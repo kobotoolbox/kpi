@@ -127,21 +127,11 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 continue
             self.assertEqual(response_value, callable_or_value)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_anonymous_succeeds(self):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self._check_response_dict(response.data)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_authenticated_succeeds(self):
         self.client.login(username='admin', password='pass')
         response = self.client.get(self.url, format='json')
@@ -155,11 +145,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         result = template.render(context)
         self.assertEqual(result, config.TERMS_OF_SERVICE_URL)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):
         self.client.login(username=self.user.username, password=self.password)
@@ -167,11 +152,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @override_config(MFA_ENABLED=False)
     def test_mfa_value_globally_disabled(self):
         self.client.login(username=self.user.username, password=self.password)
@@ -179,11 +159,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
@@ -200,11 +175,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps_no_custom_data(self):
         SocialAppCustomData.objects.all().delete()
@@ -217,11 +187,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.assertContains(response, 'social_app')
         self.assertNotContains(response, 'app.name')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_tos_sitewide_message(self):
         """
         Check that fixtures properly stores terms of service
@@ -242,11 +207,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['terms_of_service__sitewidemessage__exists']
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @pytest.mark.skipif(
         settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
     )
@@ -255,11 +215,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] is None
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -268,11 +223,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] == 'fake_public_key'
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_extra_project_metadata_select_fields_options(self):
         baker.make(
             'ExtraProjectMetadataField',

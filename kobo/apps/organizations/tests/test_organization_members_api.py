@@ -1,4 +1,3 @@
-import pytest
 from ddt import data, ddt, unpack
 from django.urls import reverse
 from rest_framework import status
@@ -78,22 +77,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(user)
         return self.client.patch(detail_url, data={'status': status})
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/',
-        'GET',
-    )
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
@@ -150,22 +133,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
                         result['user__username'], ['someuser', 'anotheruser', 'alice']
                     )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/',
-        'GET',
-    )
     def test_inactive_user_do_not_show_up_members_list(self):
 
         self.client.force_login(self.someuser)
@@ -185,27 +152,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         usernames = [m['user__username'] for m in response.data['results']]
         assert 'alice' not in usernames
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
@@ -225,27 +171,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
@@ -264,17 +189,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.patch(self.detail_url(self.member_user), data)
         self.assertEqual(response.status_code, expected_status)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
     @data(
         ('owner', status.HTTP_204_NO_CONTENT),
         ('admin', status.HTTP_204_NO_CONTENT),
@@ -304,17 +218,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             # Confirm asset permissions are revoked
             assert not self.asset.get_perms(self.member_user)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
         ('admin', status.HTTP_405_METHOD_NOT_ALLOWED),
@@ -333,22 +236,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, expected_status)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/',
-        'GET',
-    )
     def test_invitation_is_correctly_assigned_in_member_list(self):
 
         bob_org = self.bob.organization
@@ -386,27 +273,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             == OrganizationInviteStatusChoices.PENDING
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
     def test_invite_details_clear_after_user_removal(self):
         """
         Ensure invite details are only available while the user is part of an

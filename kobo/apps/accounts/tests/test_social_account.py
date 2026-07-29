@@ -1,4 +1,3 @@
-import pytest
 from django.conf import settings
 from django.urls import reverse
 from model_bakery import baker
@@ -13,11 +12,6 @@ class AccountsEmailTestCase(APITestCase):
         self.client.force_login(self.user)
         self.url_list = reverse('socialaccount-list')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'me/social-accounts/',
-        'GET',
-    )
     def test_list(self):
         account1 = baker.make('socialaccount.SocialAccount', user=self.user)
         account2 = baker.make('socialaccount.SocialAccount')

@@ -1,4 +1,3 @@
-import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -75,11 +74,6 @@ class ProjectViewsApiTestCase(BaseTestCase):
             settings={'country': [{'value': 'ESP', 'label': 'España'}]},
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/project-views/(?P<uid_project_view>[^/.]+)/assets/',
-        'GET',
-    )
     def test_project_view_country_filter(self):
         self.client.force_login(self.regular_user)
         url = reverse(
@@ -95,11 +89,6 @@ class ProjectViewsApiTestCase(BaseTestCase):
         self.assertIn(self.asset_ext_esp.uid, uids)
         self.assertNotIn(self.asset_org_fra.uid, uids)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/project-views/(?P<uid_project_view>[^/.]+)/assets/',
-        'GET',
-    )
     def test_project_view_organization_filter(self):
         self.client.force_login(self.regular_user)
         url = reverse(
@@ -115,11 +104,6 @@ class ProjectViewsApiTestCase(BaseTestCase):
         self.assertIn(self.asset_org_fra.uid, uids)
         self.assertNotIn(self.asset_ext_esp.uid, uids)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/project-views/(?P<uid_project_view>[^/.]+)/assets/',
-        'GET',
-    )
     def test_project_view_combined_filter(self):
         self.client.force_login(self.regular_user)
         url = reverse(

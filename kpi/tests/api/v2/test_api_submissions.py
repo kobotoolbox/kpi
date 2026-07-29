@@ -1313,11 +1313,6 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.data[META_ROOT_UUID] == root_uuid
         assert response.data['_validation_status'] == {}
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
-        'GET',
-    )
     def test_supplement_fallback_to_instance_id(self):
         """
         If a submission is missing `meta/rootUuid` in MongoDB, the `supplement`
@@ -1388,11 +1383,6 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert response.status_code == status.HTTP_200_OK
             assert response.data['_submitted_by'] == 'anotheruser'
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
-        'GET',
-    )
     def test_get_data_with_failed_transcription_no_value(self):
         """
         When a transcription fails (e.g., no audio attachment), the stored
@@ -1437,11 +1427,6 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
-        'GET',
-    )
     def test_simplified_supplemental_detail_for_delete(self):
 
         # q1 is not an audio question in the asset, but works fine for this test anyway.
@@ -1520,11 +1505,6 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             == 'Bonjour le monde!'
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
-        'GET',
-    )
     def test_simplified_supplemental_detail_for_acceptance(self):
 
         # q1 is not an audio question in the asset, but works fine for this test anyway.
@@ -1652,11 +1632,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             },
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/<uid_asset>/data/<pk>/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
         """
@@ -1682,11 +1657,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         }
         assert response.data == expected_response
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_edit_link_submission_as_owner(self):
         """
@@ -1753,11 +1723,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # FIXME if anotheruser has view permissions, they should receive a 403
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_edit_link_submission_shared_with_edit_as_anotheruser(self):
         """
@@ -1782,11 +1747,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_edit_link_with_partial_perms_as_anotheruser(self):
         """
@@ -1846,11 +1806,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         }
         self.assertEqual(response.data, expected_response)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_edit_link_response_includes_csrf_cookie(self):
         ee_url = (
@@ -1923,11 +1878,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         with pytest.raises(KeyError) as e:
             req = self.client.post(url)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_multiple_edit_links_and_attempt_submit_edits(self):
         """
@@ -1969,11 +1919,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             with pytest.raises(KeyError) as e:
                 res = self.client.post(url)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_edit_submission_with_different_root_name(self):
 
@@ -2045,11 +1990,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         )
         assert new_snapshot.pk != snapshot.pk
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_edit_submission_with_xml_encoding_declaration(self):
         submission = self.submissions[-1]
@@ -2080,11 +2020,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(edit_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_edit_submission_with_xml_missing_uuids(self):
         # Make a new submission without UUIDs
@@ -2153,11 +2088,6 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(edit_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
-        'GET',
-    )
     @responses.activate
     def test_get_edit_link_submission_with_latest_asset_deployment(self):
         """
@@ -2667,11 +2597,6 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         )
         assert 'redirect' in self.submission_view_redirect_url
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/view/',
-        'GET',
-    )
     @responses.activate
     def test_get_view_link_submission_as_owner(self):
         """
@@ -2728,11 +2653,6 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/view/',
-        'GET',
-    )
     @responses.activate
     def test_get_view_link_submission_shared_with_view_only_as_anotheruser(self):
         """
@@ -2756,11 +2676,6 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/view/',
-        'GET',
-    )
     @responses.activate
     def test_get_view_link_with_partial_perms_as_anotheruser(self):
         """
@@ -3359,11 +3274,6 @@ class SubmissionValidationStatusApiTests(
             },
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
     def test_retrieve_status_as_owner(self):
         """
         someuser is the owner of the project.
@@ -3384,11 +3294,6 @@ class SubmissionValidationStatusApiTests(
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
     def test_retrieve_status_of_shared_submission_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -3413,16 +3318,6 @@ class SubmissionValidationStatusApiTests(
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'PATCH',
-    )
     def test_delete_status_as_owner(self):
         """
         someuser is the owner of the project.
@@ -3443,11 +3338,6 @@ class SubmissionValidationStatusApiTests(
         response = self.client.delete(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
     def test_delete_status_of_shared_submission_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -3476,16 +3366,6 @@ class SubmissionValidationStatusApiTests(
         response = self.client.delete(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'PATCH',
-    )
     def test_edit_status_as_owner(self):
         """
         someuser is the owner of the project.
@@ -3505,16 +3385,6 @@ class SubmissionValidationStatusApiTests(
         response = self.client.patch(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'PATCH',
-    )
     def test_edit_status_of_shared_submission_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -3548,16 +3418,6 @@ class SubmissionValidationStatusApiTests(
         response = self.client.patch(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'PATCH',
-    )
     def test_edit_status_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -4044,11 +3904,6 @@ class SubmissionValidationStatusesApiTests(
 
         # TODO Test with `query` when Mockbackend support Mongo queries
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
-        'PATCH',
-    )
     def test_submitted_by_persists_when_validation_status_updated(self):
         """
         Test that the `_submitted_by` remains correct when:
@@ -4201,11 +4056,6 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
             },
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
-        'GET',
-    )
     def test_list_submissions_geojson_defaults(self):
         response = self.client.get(
             self.submission_list_url,
@@ -4243,11 +4093,6 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         }
         assert expected_output == json.loads(response.content)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
-        'GET',
-    )
     def test_list_submissions_geojson_other_geo_question(self):
         response = self.client.get(
             self.submission_list_url,

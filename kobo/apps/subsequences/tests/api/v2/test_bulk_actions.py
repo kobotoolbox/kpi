@@ -1,7 +1,6 @@
 import uuid
 from unittest.mock import patch
 
-import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -85,11 +84,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             },
         }
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'POST',
-    )
     def test_create_bulk_action(self):
         response = self.client.post(
             self.list_url,
@@ -125,11 +119,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.data['created_by'] == {'username': 'someuser'}
         assert response.data['cancelled_by'] is None
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'GET',
-    )
     def test_list_bulk_actions_returns_paginated_response(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -153,11 +142,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             self.second_submission_uuid,
         }
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'GET',
-    )
     def test_list_bulk_actions_filters_by_status_submission_and_question(self):
         matching_action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -209,16 +193,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.data['count'] == 1
         assert response.data['results'][0]['uid'] == matching_action.uid
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
     def test_retrieve_bulk_action(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -245,16 +219,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             (self.second_submission_uuid, BulkActionItemStatus.PENDING),
         }
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'GET',
-    )
     def test_retrieve_bulk_action_includes_item_failure_errors(self):
         """
         Test that the Bulk Action API correctly serializes and exposes the
@@ -285,16 +249,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             }
         ]
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
     def test_cancel_bulk_action(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -344,16 +298,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.data['cancelled_by'] == {'username': 'someuser'}
         cancel_external_operation.assert_called_once_with()
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
     def test_cancel_bulk_action_is_idempotent(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -383,16 +327,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert action.cancelled_by == 'someuser'
         cancel_external_operation.assert_not_called()
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/(?P<action_uid>[^/.]+)/',  # noqa: E501
-        'PATCH',
-    )
     def test_cancel_bulk_action_logs_external_cancel_failures(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -505,11 +439,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert 'already processed or currently being processed' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 0
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'POST',
-    )
     def test_create_bulk_action_skips_submission_with_existing_transcription(self):
         """
         Test that a submission with an existing transcription result is excluded
@@ -534,11 +463,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.data['skipped_uuids'] == [self.submission_uuid]
         assert SubsequenceBulkAction.objects.count() == 1
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'POST',
-    )
     def test_create_bulk_action_skips_submission_with_active_conflict(self):
         """
         Test that a submission already covered by a pending or in-progress bulk
@@ -566,11 +490,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.data['skipped_uuids'] == [self.submission_uuid]
         assert SubsequenceBulkAction.objects.count() == 2
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'POST',
-    )
     def test_create_bulk_action_skipped_uuids_empty_when_no_conflicts(self):
         """
         Test that skipped_uuids is an empty list in the POST response when no
@@ -585,11 +504,6 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['skipped_uuids'] == []
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'POST',
-    )
     def test_create_bulk_action_allowed_after_deleting_transcription_with_locale(self):
         """
         Test that a deleted transcription does not prevent creating a new
@@ -746,11 +660,6 @@ class EnsureQuestionAdvancedFeatureTestCase(SubsequenceBaseTestCase):
         )
         assert feature.params == [{'language': 'en'}]
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/bulk-actions/',
-        'POST',
-    )
     def test_bulk_action_succeeds_after_switching_language(self):
         """
         Test that a bulk transcription request succeeds after a previous bulk

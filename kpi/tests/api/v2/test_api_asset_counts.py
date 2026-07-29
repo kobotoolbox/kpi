@@ -1,4 +1,3 @@
-import pytest
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -58,11 +57,6 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
 
         self.asset.deployment.mock_submissions(submissions)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/counts/',
-        'GET',
-    )
     @override_settings(DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS=10000)
     def test_count_endpoint_owner(self):
         # Submission submitted time is 2022-09-12.
@@ -89,11 +83,6 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
         response = self.client.get(count_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/counts/',
-        'GET',
-    )
     def test_count_endpoint_anonymous_user_public_access(self):
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
@@ -118,11 +107,6 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
         response = self.client.get(count_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/counts/',
-        'GET',
-    )
     @override_settings(DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS=10000)
     def test_count_endpoint_another_with_perms(self):
         # Submission submitted time is 2022-09-12.

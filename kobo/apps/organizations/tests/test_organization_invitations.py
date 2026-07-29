@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import pytest
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -269,17 +268,6 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
     def test_registered_user_can_accept_invitation(self):
         self._create_invite(self.owner_user)
         self.client.force_login(self.external_user)
@@ -300,17 +288,6 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(bob_asset.owner, self.owner_user)
         self.assertEqual(mail.outbox[2].to[0], invitation.invited_by.email)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
     def test_registered_user_can_decline_invitation(self):
         """
         Test that a registered user can decline an invitation

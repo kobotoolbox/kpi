@@ -1,7 +1,6 @@
 from unittest.mock import patch
 from urllib.parse import urlencode
 
-import pytest
 from django.urls import reverse
 from djstripe.models import Customer, Price, Product, Subscription
 from model_bakery import baker
@@ -75,11 +74,6 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/stripe/customer-portal',
-        'POST',
-    )
     def test_user_must_be_owner(self, create_config, list_config, session_create, get_customer):
         session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
         self._create_stripe_data()

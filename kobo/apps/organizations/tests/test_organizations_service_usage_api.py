@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
+from kobo.apps.organizations.constants import UsageType, USAGE_TYPES_WITH_COUNTERS
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models import Asset
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
@@ -93,11 +93,6 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             assert response.data['balances'][usage_type] is None
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/service_usage/',
-        'GET',
-    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )

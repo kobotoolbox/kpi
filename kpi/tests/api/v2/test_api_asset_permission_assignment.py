@@ -1,6 +1,5 @@
 from copy import deepcopy
 
-import pytest
 from ddt import data, ddt, unpack
 from django.contrib.auth.models import Permission
 from django.urls import reverse
@@ -59,7 +58,6 @@ class BaseApiAssetPermissionTestCase(PermissionAssignmentTestCaseMixin, KpiTestC
 
 
 class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_owner_can_give_permissions(self):
         # Current user is `self.owner`
         response = self._grant_perm_as_logged_in_user(
@@ -67,7 +65,6 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_viewers_cannot_give_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_ASSET))
@@ -78,7 +75,6 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_editors_cannot_give_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
@@ -89,7 +85,6 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_anonymous_cannot_give_permissions(self):
         self.client.logout()
         response = self._grant_perm_as_logged_in_user(
@@ -97,7 +92,6 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_managers_can_give_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
@@ -107,7 +101,6 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_inactive_users_cannot_receive_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
@@ -117,7 +110,6 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         response = self._grant_perm_as_logged_in_user('anotheruser', PERM_VIEW_ASSET)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
@@ -146,7 +138,6 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
         self.asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_viewers_see_only_self_anon_and_owner_assignments(self):
         self.client.login(username='anotheruser', password='anotheruser')
         permission_list_response = self.client.get(
@@ -187,7 +178,6 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_inactive_users_are_not_in_the_list(self):
         self.asset.assign_perm(self.someuser, PERM_MANAGE_ASSET)
 
@@ -223,7 +213,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         # anotheruser should not appear anymore
         assert 'anotheruser' not in usernames
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+
     def test_managers_see_all_assignments(self):
         manager = User(username='businessfish')
         manager.set_password('manage this!')
@@ -253,7 +243,6 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
             ),
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_editors_see_only_self_anon_and_owner_assignments(self):
         self.client.login(username='someuser', password='someuser')
         permission_list_response = self.client.get(
@@ -297,7 +286,6 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_anonymous_get_only_owner_and_anonymous_assignments(self):
         self.client.logout()
         permission_list_response = self.client.get(
@@ -395,12 +383,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 )
         return assignments
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_cannot_assign_permissions_to_owner(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.client.login(username='someuser', password='someuser')
@@ -409,7 +391,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_inactive_users_cannot_receive_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.client.login(username='someuser', password='someuser')
@@ -419,7 +400,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_owner_can_assign_permissions(self):
         permission_list_response = self.client.get(
             self.get_asset_perm_assignment_list_url(self.asset), format='json'
@@ -478,7 +458,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             ),
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_assignment_removes_old_permissions(self):
         self.asset.assign_perm(self.someuser, PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
@@ -488,7 +467,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @data(
         # Anonymous cannot delete permissions at all
         (
@@ -571,7 +549,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             remaining_perms = self.asset.permissions.filter(user__username=username)
             assert len(remaining_perms) == 0
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_viewers_cannot_give_permissions(self):
         self.asset.assign_perm(self.someuser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_ASSET))
@@ -587,7 +564,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         # in good shape
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET))
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_editors_cannot_give_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
@@ -601,7 +577,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET))
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_anonymous_cannot_give_permissions(self):
         self.client.logout()
         response = self._assign_perms_as_logged_in_user(
@@ -613,7 +588,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET))
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_managers_can_give_permissions(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
@@ -632,7 +606,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
@@ -650,12 +623,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             self.asset.has_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_implied_partial_permissions_are_retained(self):
         users = {}
         for username in 'simone', 'zariah':
@@ -759,12 +726,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             }
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_partial_permission_grants_implied_view_asset(self):
         assert not self.someuser.has_perm(PERM_VIEW_ASSET, self.asset)
         assignments = [
@@ -802,12 +763,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             # permission
             assert self.someuser.has_perm(PERM_VIEW_ASSET, self.asset)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_no_assignments_saved_on_error(self):
         # Call `get_anonymous_user()` to create AnonymousUser if it does not exist
         get_anonymous_user()
@@ -893,12 +848,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_partial_permission_no_duplicate_with_simple_filter(self):
         assignments = [
             {
@@ -960,12 +909,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         assert expected == returned_partial_perms
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_partial_permission_no_duplicate_with_complex_OR_filters(self):
         assignments = [
             {
@@ -1027,12 +970,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         assert expected == returned_partial_perms
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
-        'POST',
-    )
     def test_partial_permission_no_duplicate_with_complex_AND_filters(self):
         assignments = [
             {
@@ -1113,7 +1050,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         assert expected == returned_partial_perms
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_partial_permission_invalid(self):
         """Poorly formatted json example"""
         perm_user = User.objects.get(username='someuser')
@@ -1140,7 +1076,6 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_downgrade_change_asset_to_view_asset_keeps_view_asset(self):
         """
         Regression test: downgrading 'change_asset' to 'view_asset' via the

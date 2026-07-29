@@ -1,7 +1,6 @@
 import base64
 import uuid
 
-import pytest
 from django.contrib.auth import get_user_model
 from django.test import override_settings
 from rest_framework import status
@@ -42,11 +41,6 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         self.user = get_user_model().objects.get(username='someuser')
         self.user_token, _ = Token.objects.get_or_create(user=self.user)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     @override_settings(STRIPE_ENABLED=False)
     def test_access_forbidden_with_invalid_password(self):
         # Ensure password is valid first

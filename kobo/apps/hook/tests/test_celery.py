@@ -1,7 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-import pytest
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
@@ -25,7 +24,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
         super().setUp()
         self._setup_hook_and_submission()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_retries_stalled_submissions_older_than_2_hours(self):
         """
         Should re-queue submissions that are stalled (PENDING, 500, empty message)
@@ -49,7 +47,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             mock_delay.assert_called_once_with(self.hook.id, 123)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_recent_stalled_submissions(self):
         """
         Should NOT retry submissions that are less than 2 hours old
@@ -71,7 +68,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             mock_delay.assert_not_called()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_logs_with_different_status_code(self):
         """
         Should NOT retry submissions with status codes other than 500
@@ -93,7 +89,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             mock_delay.assert_not_called()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_logs_with_message(self):
         """
         Should NOT retry submissions that have an error message
@@ -115,7 +110,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             mock_delay.assert_not_called()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_failed_status(self):
         """
         Should NOT retry submissions that are already marked as FAILED
@@ -135,7 +129,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             mock_delay.assert_not_called()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_retries_multiple_stalled_submissions(self):
         """
         Should retry all stalled submissions
@@ -158,7 +151,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             assert mock_delay.call_count == 3
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_do_retry_if_hook_is_deactived(self):
         """
         Should not retry stalled submissions from deactivated hook
@@ -194,7 +186,6 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         super().setUp()
         self._setup_hook_and_submission()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_marks_zombie_processing_submissions_as_failed(self):
         """
         Should mark as FAILED submissions stuck in PROCESSING state for > 2 hours
@@ -218,7 +209,6 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         assert 'interrupted' in zombie_log.message.lower()
         assert 'MAY have been sent' in zombie_log.message
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_recent_processing_submissions(self):
         """
         Should NOT mark submissions that are less than 2 hours old
@@ -239,7 +229,6 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         recent_log.refresh_from_db()
         assert recent_log.status == HookLogStatus.PROCESSING
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_logs_with_different_status_code(self):
         """
         Should NOT mark submissions with status other than PROCESSING
@@ -264,7 +253,6 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         assert log.status == HookLogStatus.PENDING
         assert log.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_already_failed_logs(self):
         """
         Should NOT process logs that are already FAILED
@@ -290,7 +278,6 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         assert log.status == HookLogStatus.FAILED
         assert log.message == original_message
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_ignores_success_logs(self):
         """
         Should NOT process logs that are already SUCCESS
@@ -314,7 +301,6 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         log.refresh_from_db()
         assert log.status == HookLogStatus.SUCCESS
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_marks_multiple_zombie_submissions(self):
         """
         Should mark all zombie submissions as failed
@@ -344,12 +330,10 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
 
         assert failed_count == 3
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_marks_multiple_zombie_submissions_even_if_hook_is_deactivated(self):
         Hook.objects.filter(pk=self.hook.pk).update(active=False)
         self.test_marks_multiple_zombie_submissions()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_message_explains_uncertainty(self):
         """
         The failure message should clearly explain the uncertainty about

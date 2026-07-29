@@ -1,7 +1,6 @@
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -190,11 +189,6 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total'] == 50
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/attachments/audio-duration/',
-        'POST',
-    )
     def test_ffprobe_failure_returns_null_seconds(self):
         """
         A failed ffprobe call should yield seconds=null for that attachment

@@ -7,7 +7,6 @@ from copy import deepcopy
 from unittest.mock import patch
 
 import openpyxl
-import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -1131,22 +1130,6 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         # Transfer the ownership of the user's assets to the organization
         transfer_member_data_ownership_to_org(user.pk)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
-        'PATCH',
-    )
     def test_asset_is_excluded_from_projects_list_flag(self):
         # 1. Create an asset owned by the external user
         external_user_asset = self._create_asset_by_bob()
@@ -1210,23 +1193,6 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         owner_asset = Asset.objects.get(name='Breakfast')
         self.assertFalse(owner_asset.is_excluded_from_projects_list)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/organizations/(?P<uid_organization>[^/.]+)/assets/',
-        'GET',
-    )
     def test_asset_visibility_after_transfer(self):
         """
         Test to ensure that an asset shared with an organization owner remains
@@ -1412,7 +1378,6 @@ class TestExtraMetadataFields(TestCase):
         self.assertEqual(asset.name, 'New Name')
         self.assertEqual(asset.settings['extra_metadata']['Manager'], 'Alex')
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_extra_metadata_lookup_filters_assets(self):
         matching_asset = Asset.objects.create(
             name='Matching Asset',

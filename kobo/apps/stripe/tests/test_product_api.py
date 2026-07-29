@@ -1,4 +1,3 @@
-import pytest
 from django.shortcuts import reverse
 from djstripe.enums import BillingScheme
 from model_bakery import baker
@@ -7,11 +6,6 @@ from kpi.tests.kpi_test_case import BaseTestCase
 
 
 class ProductAPITestCase(BaseTestCase):
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/stripe/products/',
-        'GET',
-    )
     def test_product_list(self):
         price = baker.make(
             'djstripe.Price',

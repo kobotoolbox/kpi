@@ -1,4 +1,3 @@
-import pytest
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from constance.test import override_config
 from django.urls import reverse
@@ -115,11 +114,6 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(user1_data['emails'][0]['value'], 'jdoe@example.com')
         self.assertEqual(user1_data['emails'][0]['primary'], True)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     def test_create_user_success(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         payload = {
@@ -167,11 +161,6 @@ class ScimUsersAPITests(APITestCase):
         )
         self.assertIsNotNone(social_account)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     def test_create_user_unique_username_generator(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
@@ -223,11 +212,6 @@ class ScimUsersAPITests(APITestCase):
         # It should append a number since the {username}_{idp_slug} is also taken
         self.assertEqual(resp3.json()['userName'], f'johndoe_{self.idp.slug}_1')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     def test_create_user_unique_username_different_idps(self):
         # Create a second IdP
         social_app_2 = SocialApp.objects.create(
@@ -279,11 +263,6 @@ class ScimUsersAPITests(APITestCase):
         # It should generate a unique username by appending the second IdP slug
         self.assertEqual(resp2.json()['userName'], f'jane_{idp_2.slug}')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     def test_create_user_existing_email_aborts_with_conflict(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
@@ -317,11 +296,6 @@ class ScimUsersAPITests(APITestCase):
             ).exists()
         )
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     def test_create_user_reactivates_existing_inactive_user(self):
         # A previously de-provisioned user gets re-assigned to the Kobo App
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
@@ -595,11 +569,6 @@ class ScimUsersAPITests(APITestCase):
         data = response.json()
         self.assertEqual(data.get('detail'), 'Operation not supported or invalid')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users/(?P<pk>[^/.]+)',
-        'PUT',
-    )
     def test_put_name_operation(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
@@ -783,11 +752,6 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(james03.is_active)
         self.assertFalse(james04.is_active)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     def test_reprovisioning_reactivates_sso_linked_accounts_only(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
@@ -837,11 +801,6 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(james03.is_active)
         self.assertFalse(james04.is_active)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     @override_config(
         USER_METADATA_FIELDS=[
             {
@@ -1004,11 +963,6 @@ class ScimUsersAPITests(APITestCase):
         no_email_user.refresh_from_db()
         self.assertTrue(no_email_user.is_active)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     @override_config(
         USER_METADATA_FIELDS=[
             {
@@ -1047,11 +1001,6 @@ class ScimUsersAPITests(APITestCase):
         extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
         self.assertEqual(extra_user_detail.data.get('country'), 'USA')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     @override_config(
         USER_METADATA_FIELDS=[
             {
@@ -1094,11 +1043,6 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(extra_user_detail.data.get('country'), 'USA')
         self.assertEqual(extra_user_detail.data.get('organization'), 'Valid Org')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
-        'POST',
-    )
     @override_config(
         USER_METADATA_FIELDS=[
             {

@@ -2,7 +2,6 @@
 from ipaddress import ip_address
 from unittest.mock import MagicMock, patch
 
-import pytest
 import responses
 from django.conf import settings
 from django.core import mail
@@ -31,17 +30,6 @@ class EmailTestCase(BaseHookTestCase):
 
         return periodic_task
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
-        'POST',
-    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),

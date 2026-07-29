@@ -1,5 +1,4 @@
 # coding: utf-8
-import pytest
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from rest_framework.test import APITestCase
@@ -18,20 +17,10 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
         self.innocuous_url = reverse('api_v2:environment')
         self.cors_response_header_name = 'Access-Control-Allow-Origin'
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_no_cors_response_without_origin(self):
         response = self.client.get(self.innocuous_url)
         self.assertFalse(response.has_header(self.cors_response_header_name))
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_no_cors_response_with_untrusted_origin(self):
         response = self.client.get(
             self.innocuous_url,
@@ -41,11 +30,6 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
         )
         self.assertFalse(response.has_header(self.cors_response_header_name))
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_cors_response_with_trusted_origin(self):
         trusted_origin = 'https://www.fsf.org'
         CorsModel.objects.create(cors=trusted_origin)
@@ -56,11 +40,6 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
         self.assertEqual(response[self.cors_response_header_name],
                          trusted_origin)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/environment/',
-        'GET',
-    )
     def test_origin_is_case_insensitive(self):
         CorsModel.objects.create(cors='https://www.fsf.org')
         response = self.client.get(

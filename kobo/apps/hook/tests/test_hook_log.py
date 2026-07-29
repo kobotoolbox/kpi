@@ -2,7 +2,6 @@ from ipaddress import ip_address
 from unittest.mock import MagicMock, patch
 
 import constance
-import pytest
 import requests
 from constance.test import override_config
 from rest_framework import status
@@ -27,7 +26,6 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         super().setUp()
         self._setup_hook_and_submission()
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -72,7 +70,6 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == 200
         assert log.message == 'Submission received successfully'
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -119,7 +116,6 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == 400
         assert 'Bad request' in log.message
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_oom_killed_before_processing_update(self, mock_post):
         """
@@ -151,7 +147,6 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.message == ''
         assert log.tries == 0
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -198,7 +193,6 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert 'Process terminated during HTTP request' in log.message
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_oom_killed(self, mock_post):
         """
@@ -258,7 +252,6 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert log.message == 'Submission is being queued for processing'
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),

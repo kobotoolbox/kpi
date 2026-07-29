@@ -5,7 +5,6 @@ from collections import defaultdict
 from datetime import timedelta
 from unittest.mock import patch
 
-import pytest
 from django.test import RequestFactory
 from django.utils import timezone
 from rest_framework import status
@@ -389,11 +388,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(list_url, data=data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/(?P<uid_export>[^/.]+)/',
-        'GET',
-    )
     def test_export_task_create_kml_with_full_payload(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
@@ -463,11 +457,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             response = self.client.post(list_url, data=data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/(?P<uid_export>[^/.]+)/',
-        'GET',
-    )
     def test_export_task_create_kml_includes_geo_fields_when_fields_filtered(self):
         geo_asset = Asset()
         geo_asset.owner = self.asset.owner
@@ -561,11 +550,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         assert '<Placemark' in export_content
         assert '<Point' in export_content
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/(?P<uid_export>[^/.]+)/',
-        'GET',
-    )
     def test_export_task_create_kml_without_field_filter_keeps_non_geo_fields(self):
         geo_asset = Asset()
         geo_asset.owner = self.asset.owner
@@ -816,11 +800,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.get(synchronous_exports_url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/(?P<uid_export>[^/.]+)/',
-        'GET',
-    )
     def test_synchronous_csv_export_matches_async_export(self):
         es = self._create_export_settings()
 
@@ -963,11 +942,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         first_line = next(synchronous_export_response.streaming_content)
         assert b'Do_you_descend_from_unicellular_organism' in first_line
 
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/(?P<uid_export>[^/.]+)/',
-        'GET',
-    )
     def test_export_asset_with_slashes(self):
         """
         Ensure that the slashes are stripped from filename

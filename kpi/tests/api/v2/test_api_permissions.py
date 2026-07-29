@@ -1,4 +1,3 @@
-import pytest
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
@@ -40,26 +39,13 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         response = self.client.get(reverse('currentuser-detail'))
         self.assertFalse('username' in response.data)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_anon_list_assets(self):
         # `view_` granted to anon means detail access, NOT list access
         self.assert_object_in_object_list(self.anon_accessible, in_list=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
     def test_anon_asset_detail(self):
         self.assert_detail_viewable(self.anon_accessible)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_cannot_create_asset(self):
         url = reverse(self._get_endpoint('asset-list'))
         data = {'name': 'my asset', 'content': ''}
@@ -91,38 +77,17 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
         self.someusers_public_asset = self.create_asset('someusers_public_asset')
         self.add_perm(self.someusers_public_asset, self.anon, 'view')
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
     def test_user_can_view_public_asset(self):
         self.assert_detail_viewable(self.admins_public_asset, self.someuser, self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_public_asset_not_in_list_user(self):
         self.assert_object_in_object_list(self.admins_public_asset, self.someuser, self.someuser_password,
                                           in_list=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_public_asset_not_in_list_admin(self):
         self.assert_object_in_object_list(self.someusers_public_asset, self.admin, self.admin_password,
                                           in_list=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_revoke_anon_from_asset_in_public_collection(self):
         self.login(self.someuser.username, self.someuser_password)
         public_collection = self.create_collection('public_collection')
@@ -177,34 +142,10 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     ################# Asset tests #####################
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_own_asset_in_asset_list(self):
         self.assert_viewable(self.admin_asset, self.admin,
                              self.admin_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_viewable_asset_in_asset_list(self):
         # Give "someuser" view permissions on an asset owned by "adminuser".
         self.add_perm(self.admin_asset, self.someuser, 'view_')
@@ -213,17 +154,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_asset, self.someuser,
                              self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_non_viewable_asset_not_in_asset_list(self):
         # Wow, that's quite a function name...
         # Ensure that "someuser" doesn't have permission to view the survey
@@ -235,18 +165,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_asset, self.someuser,
                              self.someuser_password, viewable=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_inherited_viewable_assets_in_asset_list(self):
         # Give "someuser" view permissions on a collection owned by "adminuser" and
         #   add an asset also owned by "adminuser" to that collection.
@@ -259,18 +177,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_asset, self.someuser,
                              self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_viewable_asset_inheritance_conflict(self):
         # Log in as "admin", create a new child collection, and add an asset to
         #   that collection.
@@ -292,18 +198,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_asset, self.someuser,
                              self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_non_viewable_asset_inheritance_conflict(self):
         # Log in as "admin", create a new child collection, and add an asset to
         #   that collection.
@@ -321,17 +215,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_asset, self.someuser,
                              self.someuser_password, viewable=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_viewable_asset_not_deletable(self):
         # Give "someuser" view permissions on an asset owned by "adminuser".
         self.add_perm(self.admin_asset, self.someuser, 'view_')
@@ -351,17 +234,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_inherited_viewable_asset_not_deletable(self):
         # Give "someuser" view permissions on a collection owned by "adminuser" and
         #   add an asset also owned by "adminuser" to that collection.
@@ -384,17 +256,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_shared_asset_remove_own_permissions_allowed(self):
         """
         Ensuring that a non-owner who has been shared an asset is able to remove
@@ -429,17 +290,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         assert not self.anotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
         assert len(new_asset.get_perms(self.anotheruser)) == 0
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_shared_asset_non_owner_remove_owners_permissions_not_allowed(self):
         """
         Ensuring that a non-owner who has been shared an asset is not able to
@@ -477,17 +327,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         assert res.status_code == status.HTTP_403_FORBIDDEN
         assert self.someuser.has_perm(PERM_VIEW_ASSET, new_asset)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_shared_asset_non_owner_remove_another_non_owners_permissions_not_allowed(self):
         """
         Ensuring that a non-owner who has an asset shared with them cannot
@@ -527,17 +366,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         assert res.status_code == status.HTTP_404_NOT_FOUND
         assert yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_shared_asset_manage_asset_remove_another_non_owners_permissions_allowed(self):
         """
         Ensure that a non-owner who has an asset shared with them and has
@@ -577,17 +405,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         assert res.status_code == status.HTTP_204_NO_CONTENT
         assert not yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_copy_permissions_between_assets(self):
         # Give "someuser" edit permissions on an asset owned by "adminuser"
         self.add_perm(self.admin_asset, self.someuser, 'change_')
@@ -631,17 +448,6 @@ class ApiPermissionsTestCase(KpiTestCase):
             new_asset.get_users_with_perms(attach_perms=True)
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_cannot_copy_permissions_between_non_owned_assets(self):
         # Give "someuser" view permissions on an asset owned by "adminuser"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
@@ -680,17 +486,6 @@ class ApiPermissionsTestCase(KpiTestCase):
             new_asset.get_users_with_perms(attach_perms=True)
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_user_cannot_copy_permissions_from_non_viewable_asset(self):
         # Make sure "someuser" cannot view the asset owned by "adminuser"
         self.assertFalse(
@@ -729,17 +524,6 @@ class ApiPermissionsTestCase(KpiTestCase):
             new_asset.get_users_with_perms(attach_perms=True)
         )
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_user_cannot_copy_permissions_to_non_editable_asset(self):
         # Give "someuser" view permissions on an asset owned by "adminuser"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
@@ -782,34 +566,10 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     ############# Collection tests ###############
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_own_collection_in_collection_list(self):
         self.assert_viewable(self.admin_collection, self.admin,
                              self.admin_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_viewable_collection_in_collection_list(self):
         # Give "someuser" view permissions on a collection owned by "adminuser".
         self.add_perm(self.admin_collection, self.someuser, 'view_')
@@ -818,17 +578,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_collection, self.someuser,
                              self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_non_viewable_collection_not_in_collection_list(self):
         # Wow, that's quite a function name...
         # Ensure that "someuser" doesn't have permission to view the survey
@@ -840,18 +589,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.admin_collection, self.someuser,
                              self.someuser_password, viewable=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_inherited_viewable_collections_in_collection_list(self):
         # Give "someuser" view permissions on the parent collection.
         self.add_perm(self.admin_collection, self.someuser, 'view_')
@@ -859,18 +596,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(self.child_collection, self.someuser,
                              self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_viewable_collection_inheritance_conflict(self):
         grandchild_collection = self.create_collection('grandchild_collection',
                                                        self.admin, self.admin_password)
@@ -892,18 +617,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(grandchild_collection, self.someuser,
                              self.someuser_password)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_non_viewable_collection_inheritance_conflict(self):
         grandchild_collection = self.create_collection('grandchild_collection',
                                                        self.admin, self.admin_password)
@@ -922,17 +635,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assert_viewable(grandchild_collection, self.someuser,
                              self.someuser_password, viewable=False)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_viewable_collection_not_deletable(self):
         # Give "someuser" view permissions on a collection owned by "adminuser".
         self.add_perm(self.admin_collection, self.someuser, 'view_')
@@ -953,17 +655,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_inherited_viewable_collection_not_deletable(self):
         # Give "someuser" view permissions on a collection owned by "adminuser".
         self.add_perm(self.admin_collection, self.someuser, 'view_')

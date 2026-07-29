@@ -1,4 +1,3 @@
-import pytest
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.urls import reverse
 from rest_framework import status
@@ -91,11 +90,6 @@ class ScimGroupsAPITests(APITestCase):
         response = self.client.get(self.config_url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Groups',
-        'POST',
-    )
     def test_create_group(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
@@ -182,11 +176,6 @@ class ScimGroupsAPITests(APITestCase):
         self.assertEqual(data['displayName'], 'Test Group')
         self.assertEqual(len(data['members']), 2)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Groups/(?P<pk>[^/.]+)',
-        'PUT',
-    )
     def test_put_update_group(self):
         group = ScimGroup.objects.create(
             idp=self.idp, name='Old Name', scim_external_id='old-id'

@@ -1,7 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-import pytest
 from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
@@ -151,26 +150,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
     def setUp(self):
         super().setUp()
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_create_trivial_case(self):
         self.toggle_source_sharing(enabled=True)
         self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
@@ -197,11 +176,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.client.delete(response.data['url'])
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_create_with_invalid_source(self):
         self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
@@ -209,21 +183,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_create_with_invalid_fields(self):
         self.toggle_source_sharing(enabled=True)
         self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
@@ -245,21 +204,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertTrue('fields' in response.data)
         self.assertTrue(isinstance(response.data['fields'][0], ErrorDetail))
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_create_without_view_submission_permission(self):
         self.toggle_source_sharing(enabled=True)
         # Try to pair with anotheruser, but they don't have 'view_submissions'
@@ -275,26 +219,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertTrue('source' in response.data)
         self.assertTrue(isinstance(response.data['source'][0], ErrorDetail))
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_create_by_destination_editor(self):
         self.toggle_source_sharing(enabled=True)
         self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
@@ -325,21 +249,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
                                     login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_create_with_invalid_filename(self):
         self.toggle_source_sharing(enabled=True)
         self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
@@ -356,26 +265,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertTrue('filename' in response.data)
         self.assertTrue(isinstance(response.data['filename'][0], ErrorDetail))
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_create_with_already_used_filename(self):
         asset = self.source_asset.clone()
         asset.owner = self.someuser
@@ -400,31 +289,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertEqual('`paired_data` is already used',
                          str(response.data['filename'][0]))
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'GET',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_list_with_deleted_source(self):
         # anotheruser pairs their form with someuser's source asset
         self.toggle_source_sharing(enabled=True)
@@ -446,21 +310,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertIsNone(result['source'])
         self.assertIsNone(result['source__name'])
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
     def test_create_paired_data_anonymous(self):
         self.toggle_source_sharing(enabled=True)
         payload = {
@@ -487,50 +336,10 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         # Force JSON type
         self.paired_data_detail_url = f"{paired_data_response.data['url'].rstrip('/')}.json"
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_read_paired_data_owner(self):
         response = self.client.get(self.paired_data_detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_read_paired_data_other_user(self):
         self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.paired_data_detail_url)
@@ -540,75 +349,15 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         response = self.client.get(self.paired_data_detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_read_paired_data_anonymous(self):
         self.client.logout()
         response = self.client.get(self.paired_data_detail_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_delete_paired_data(self):
         response = self.client.delete(self.paired_data_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_delete_paired_data_other_user(self):
         self.login_as_other_user('quidam', 'quidam')
         response = self.client.delete(self.paired_data_detail_url)
@@ -619,26 +368,6 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         response = self.client.delete(self.paired_data_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_delete_paired_data_anonymous(self):
         self.client.logout()
         response = self.client.delete(self.paired_data_detail_url)
@@ -660,50 +389,10 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.paired_data_detail_url = paired_data_response.data['url']
         self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_get_external_with_not_deployed_source(self):
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_get_external_with_auth_on(self):
         self.deploy_source()
         # When owner's destination asset requires authentication,
@@ -718,26 +407,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_get_external_with_no_auth(self):
         self.deploy_source()
         # When owner's destination asset does not require any authentications,
@@ -749,26 +418,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_get_external_with_changed_source_fields(self):
         self.deploy_source()
         self._submit_to_source()
@@ -782,26 +431,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         assert 'city_name' in content
         assert 'favourite_restaurant' not in content
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_get_external_with_specific_fields(self):
         self.deploy_source()
         self._submit_to_source()
@@ -820,26 +449,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         assert 'city_name' in content
         assert 'favourite_restaurant' not in content
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_get_external_returns_empty_when_source_and_destination_fields_dont_overlap(
         self,
     ):
@@ -915,26 +524,6 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
         self.login_as_other_user('anotheruser', 'anotheruser')
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_first_load_is_synchronous(self):
         """
         On first access, the AssetFile does not exist yet so the XML is
@@ -948,26 +537,6 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
             file_type=AssetFile.PAIRED_DATA
         ).exists()
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_stale_file_triggers_async_regen_and_returns_stale_content(self):
         """
         When the AssetFile exists but is past `PAIRED_DATA_EXPIRATION`, a
@@ -981,26 +550,6 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         mock_task.delay.assert_called_once()
         assert 'city_name' in response.content.decode()
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_manifest_lock_prevents_duplicate_regen(self):
         """
         `_trigger_paired_data_regen_if_expired` returns True without calling
@@ -1045,26 +594,6 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         finally:
             cache.delete(lock_key)
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_response_returns_304_on_matching_etag(self):
         """
         When the client sends an `If-None-Match` header matching the current
@@ -1088,26 +617,6 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         assert third.status_code == status.HTTP_304_NOT_MODIFIED
         assert not third.content
 
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'request-payload-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
-        'PATCH',
-    )
-    @pytest.mark.allow_openapi_mismatch(
-        'response-validation',
-        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
-        'POST',
-    )
     def test_response_xml_has_no_extra_whitespace(self):
         """
         The XML response must not contain newlines or indentation whitespace
