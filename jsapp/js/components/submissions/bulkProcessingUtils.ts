@@ -1,10 +1,54 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
-import { buildSupplementalPath } from '#/components/processing/processingUtils'
+import { buildSupplementalPath, getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
+
+/**
+ * Checks if given submission has an audio file that can be transcribed in given
+ * audio question column.
+ *
+ * A deleted attachment is not a usable source, as all of its `*_url`s return 404.
+ */
+export function hasTranscribableAudio(submission: SubmissionResponse, fieldXpath: string): boolean {
+  return Boolean(
+    submission._attachments?.some((attachment) => attachment.question_xpath === fieldXpath && !attachment.is_deleted),
+  )
+}
+
+/**
+ * Checks if any of given submissions can be transcribed, i.e. if a bulk
+ * transcription action would have anything to work with.
+ */
+export function hasAnyTranscribableAudio(submissions: SubmissionResponse[], fieldXpath: string): boolean {
+  return submissions.some((submission) => hasTranscribableAudio(submission, fieldXpath))
+}
+
+/**
+ * Checks if given submission has a transcript that can be used as a source for
+ * translation in given transcript column.
+ *
+ * A transcript is a usable source only when it has an actual value. A transcript
+ * that is still awaiting approval has no `value` (the backend omits it and sets
+ * `pendingReview` instead), so it can't be translated yet.
+ */
+export function hasTranslatableTranscript(submission: SubmissionResponse, fieldXpath: string): boolean {
+  // `fieldXpath` of a transcript column is a supplemental details path, but
+  // `_supplementalDetails` is keyed by question xpath, so we need to convert it.
+  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+  // Note: we assume here that there can be only one transcript.
+  return Boolean(submission._supplementalDetails?.[sourceRowPath]?.transcript?.value)
+}
+
+/**
+ * Checks if any of given submissions can be translated, i.e. if a bulk
+ * translation action would have anything to work with.
+ */
+export function hasAnyTranslatableTranscript(submissions: SubmissionResponse[], fieldXpath: string): boolean {
+  return submissions.some((submission) => hasTranslatableTranscript(submission, fieldXpath))
+}
 
 export function getBulkProcessingColumnKey(bulkAction: BulkActionResponse) {
   if (bulkAction.action_id === ActionIdEnum.automatic_google_transcription) {

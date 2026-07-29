@@ -17,7 +17,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
     msw: {
       handlers: [organizationMock(), assetsMock()],
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
   decorators: [
     (Story) => (

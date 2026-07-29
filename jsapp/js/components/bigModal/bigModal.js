@@ -4,7 +4,6 @@ import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
@@ -14,7 +13,6 @@ import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import TableMediaPreview from '#/components/submissions/tableMediaPreview'
-import TableSettings from '#/components/submissions/tableSettings'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
@@ -119,20 +117,8 @@ class BigModal extends React.Component {
         })
         break
 
-      case MODAL_TYPES.REST_SERVICES:
-        if (this.props.params.hookUid) {
-          this.setState({ title: t('Edit REST Service') })
-        } else {
-          this.setState({ title: t('New REST Service') })
-        }
-        break
-
       case MODAL_TYPES.REPLACE_PROJECT:
         // title is set by formEditors
-        break
-
-      case MODAL_TYPES.TABLE_SETTINGS:
-        this.setModalTitle(t('Table display options'))
         break
 
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
@@ -284,10 +270,6 @@ class BigModal extends React.Component {
             <div>
               <LoadingSpinner message={false} />
             </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.TABLE_SETTINGS && <TableSettings asset={this.props.params.asset} />}
-          {this.props.params.type === MODAL_TYPES.REST_SERVICES && (
-            <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
           )}
           {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
             <BulkEditSubmissionsForm

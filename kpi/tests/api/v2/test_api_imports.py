@@ -1114,3 +1114,29 @@ class AssetImportTaskTest(BaseTestCase):
         assert result.status == ImportExportStatusChoices.ERROR
         error_message = result.messages['error']
         assert 'this is a bad group name' in error_message
+
+    def test_import_raises_error_with_duplicate_names(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['today', 'today', ''],
+            ['begin group', 'group_1', 'This is a group'],
+            ['note', 'note_1', 'Hi there 👋'],
+            ['end group', '', ''],
+            ['begin group', 'group_2', 'This is a different group'],
+            ['note', 'note_1', 'Hi there, from group 2'],
+            ['end group', '', ''],
+        ]
+
+        content = (
+            ('survey', survey_sheet_content),
+        )
+
+        task_data = self._construct_xls_for_import(content, name='Bad file')
+        encoded_str = task_data['base64Encoded']
+        encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
+        task_data['base64Encoded'] = encoded_substr
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+        assert result.status == ImportExportStatusChoices.ERROR
+        error_message = result.messages['error']
+        assert 'note_1' in error_message

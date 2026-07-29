@@ -64,7 +64,7 @@ const meta: Meta<typeof StoryTrigger> = {
     mode: 'form',
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

@@ -1,6 +1,12 @@
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
-import { getColumnLabel, isTableColumnFilterableByTextInput, selectNestedRow } from './tableUtils'
+import {
+  getAllDataColumns,
+  getColumnLabel,
+  isTableColumnFilterableByTextInput,
+  selectNestedRow,
+  shouldDropLegacyAttachmentColumn,
+} from './tableUtils'
 import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
@@ -78,6 +84,210 @@ describe('tableUtils', () => {
     })
   })
 
+  describe('getAllDataColumns', () => {
+    const attachmentCases = [
+      {
+        title: 'audio',
+        currentKey: 'Secret_password_as_an_audio_file',
+        legacyKey: 'old_group/Secret_password_as_an_audio_file',
+        mirroredValue: 'secret-password.mp3',
+        currentOnlyValue: 'new-secret-password.mp3',
+        legacyOnlyValue: 'old-secret-password.mp3',
+      },
+      {
+        title: 'background-audio',
+        currentKey: 'background-audio',
+        legacyKey: 'old_group/background-audio',
+        mirroredValue: 'ambient.mp3',
+        currentOnlyValue: 'new-ambient.mp3',
+        legacyOnlyValue: 'old-ambient.mp3',
+      },
+      {
+        title: 'image',
+        currentKey: 'Your_selfie_goes_here',
+        legacyKey: 'old_group/Your_selfie_goes_here',
+        mirroredValue: 'selfie.jpg',
+        currentOnlyValue: 'new-selfie.jpg',
+        legacyOnlyValue: 'old-selfie.jpg',
+      },
+      {
+        title: 'video',
+        currentKey: 'A_video_WTF',
+        legacyKey: 'old_group/A_video_WTF',
+        mirroredValue: 'clip.mp4',
+        currentOnlyValue: 'new-clip.mp4',
+        legacyOnlyValue: 'old-clip.mp4',
+      },
+      {
+        title: 'file',
+        currentKey: 'Document_upload',
+        legacyKey: 'old_group/Document_upload',
+        mirroredValue: 'report.pdf',
+        currentOnlyValue: 'new-report.pdf',
+        legacyOnlyValue: 'old-report.pdf',
+      },
+    ]
+
+    const assetWithFileAttachment = (() => {
+      const clonedAsset = JSON.parse(JSON.stringify(assetWithBgAudioAndNLP))
+      clonedAsset.content.survey.push({
+        name: 'Document_upload',
+        type: 'file',
+        $kuid: 'file-row-kuid',
+        label: ['Document upload'],
+        $xpath: 'Document_upload',
+        required: false,
+        $autoname: 'Document_upload',
+      })
+      return clonedAsset
+    })()
+
+    const getAssetForCase = (questionType: string) => {
+      if (questionType === 'file') {
+        return assetWithFileAttachment
+      }
+      return assetWithBgAudioAndNLP
+    }
+
+    attachmentCases.forEach(({ title, currentKey, legacyKey, mirroredValue, currentOnlyValue, legacyOnlyValue }) => {
+      it(`should keep current ${title} key and drop legacy path duplicate`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.not.include(legacyKey)
+      })
+
+      it(`should keep both ${title} columns when same leaf points to distinct fields`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: currentKey,
+                media_file_basename: currentOnlyValue,
+                is_deleted: false,
+              },
+              {
+                question_xpath: legacyKey,
+                media_file_basename: legacyOnlyValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: currentOnlyValue,
+            [legacyKey]: legacyOnlyValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+
+      it(`should keep both ${title} columns when both paths have attachments with same basename`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: currentKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+
+      it(`should keep legacy ${title} column when some submissions have only legacy values`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [legacyKey]: mirroredValue,
+          },
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+    })
+
+    it('should keep legacy when one of several matching current paths has no value in a submission', () => {
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const currentPaths = ['Secret_password_as_an_audio_file', 'another_group/Secret_password_as_an_audio_file']
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+          Secret_password_as_an_audio_file: 'secret-password.mp3',
+        },
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const shouldDrop = shouldDropLegacyAttachmentColumn(submissions, legacyKey, currentPaths)
+
+      chai.expect(shouldDrop).to.equal(false)
+    })
+  })
+
   describe('selectNestedRow', () => {
     it('should return exact key value when present', () => {
       const row = {
@@ -134,6 +344,56 @@ describe('tableUtils', () => {
       const test = selectNestedRow(row, 'group_a/group_b/question', 'group_a')
 
       chai.expect(test).to.equal(undefined)
+    })
+  })
+
+  describe('getAllDataColumns', () => {
+    it('should keep current audio key and drop legacy path duplicate', () => {
+      // In this case, imagine we had a question with path
+      // `old_group/Secret_password_as_an_audio_file`, made a submission, and
+      // then and we've renamed it to `Secret_password_as_an_audio_file` and
+      // now we have both pieces in submission data
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: 'old_group/Secret_password_as_an_audio_file',
+              media_file_basename: 'secret_audio.mp3',
+            },
+          ],
+          Secret_password_as_an_audio_file: 'secret_audio.mp3',
+          'old_group/Secret_password_as_an_audio_file': 'secret_audio.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include('Secret_password_as_an_audio_file')
+      chai.expect(columns).to.not.include('old_group/Secret_password_as_an_audio_file')
+    })
+
+    it('should keep both columns when old and current paths are distinct fields', () => {
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: 'old_group/Secret_password_as_an_audio_file',
+              media_file_basename: 'legacy_audio.mp3',
+            },
+            {
+              question_xpath: 'Secret_password_as_an_audio_file',
+              media_file_basename: 'current_audio.mp3',
+            },
+          ],
+          Secret_password_as_an_audio_file: 'current_audio.mp3',
+          'old_group/Secret_password_as_an_audio_file': 'legacy_audio.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include('Secret_password_as_an_audio_file')
+      chai.expect(columns).to.include('old_group/Secret_password_as_an_audio_file')
     })
   })
 })

@@ -2654,6 +2654,59 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             "The survey element named 'Enter_an_int_number' has no label or hint.",
         )
 
+    def test_asset_deployment_duplicate_name_error(self):
+        self.maxDiff = None
+        bad_content = {
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'g1',
+                    'type': 'begin_group',
+                    'label': 'Group 1',
+                },
+                {
+                    'name': 'duplicate_question',
+                    'type': 'text',
+                    'label': 'Group 1 Q1',
+                },
+                {'type': 'end_group'},
+                {
+                    'name': 'g2',
+                    'type': 'begin_group',
+                    'label': 'Group 2',
+                },
+                {
+                    'name': 'duplicate_question',
+                    'type': 'text',
+                    'label': 'Group 2 Q1',
+                },
+                {'type': 'end_group'},
+            ],
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': bad_content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset_uid = asset_response.data.get('uid')
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert 'duplicate_question' in deploy_response.data['error']
+
     def test_asset_redeployment_validation_error(self):
         content = {
             'survey': [

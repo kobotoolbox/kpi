@@ -16,7 +16,7 @@ jest.mock('#/api/react-query/survey-data', () => {
   return {
     ...actual,
     getAssetsAdvancedFeaturesBulkActionsListQueryKey: jest.fn(
-      (uidAsset: string, params?: unknown) =>
+      (uidAsset?: string, params?: unknown) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     ),
     useAssetsAdvancedFeaturesBulkActionsList: jest.fn(),
@@ -112,7 +112,7 @@ describe('useDataTableBulkActions', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     getBulkActionsListQueryKeyMock.mockImplementation(
-      (uidAsset: string, params?: unknown) =>
+      (uidAsset?: string, params?: unknown) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     )
     envStore.data.asr_mt_features_enabled = true

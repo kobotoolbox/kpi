@@ -242,7 +242,7 @@ class TestAssetSnapshotList(AssetSnapshotBase):
             self.client.get(xml_url)
 
         # Check that the error message contains the expected substring
-        self.assertIn('_fail', str(context.exception))
+        self.assertIn('${fail}', str(context.exception))
 
     def test_anonymous_can_create_snapshot_when_asset_shared_public(self):
         self.client.login(username='someuser', password='someuser')
