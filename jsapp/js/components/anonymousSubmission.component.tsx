@@ -30,10 +30,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         aria-label={t('Learn more about anonymous submissions')}
         to={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
         target='_blank'
-        tooltip={t(
-          'Allow anonymous submissions for this project. Previously, this was an account-wide setting. Click the icon to learn more.',
-        )}
-        tooltipProps={{ multiline: true, w: 300 }}
+        tooltip={t('Allow anonymous submissions for this project. Click the icon to learn more.')}
       />
     </Group>
   )
