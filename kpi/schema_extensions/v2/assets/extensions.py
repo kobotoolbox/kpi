@@ -259,7 +259,6 @@ class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension)
             required=[
                 'csv_legacy',
                 'csv',
-                'kml_legacy',
                 'xls_legacy',
                 'xls',
                 'zip_legacy',
@@ -268,7 +267,6 @@ class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension)
                 'csv_legacy': GENERIC_STRING_SCHEMA,
                 'csv': GENERIC_STRING_SCHEMA,
                 'geojson': GENERIC_STRING_SCHEMA,  # optional
-                'kml_legacy': GENERIC_STRING_SCHEMA,
                 'spss_labels': GENERIC_STRING_SCHEMA,  # optional
                 'xls_legacy': GENERIC_STRING_SCHEMA,
                 'xls': GENERIC_STRING_SCHEMA,
