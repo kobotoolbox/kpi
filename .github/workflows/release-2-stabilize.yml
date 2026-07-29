@@ -200,6 +200,15 @@ jobs:
         release_version: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
 
+    # Patch releases skip QA and go straight to "Pending Image"
+    - if: ${{ needs.version.outputs.current_released == 'true' }}
+      uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_patch }}
+        stage: "Pending Image"
+
 
   merge-forward:
     name: Merge forward

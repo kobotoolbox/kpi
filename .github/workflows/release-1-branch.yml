@@ -80,6 +80,12 @@ jobs:
         access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
         release_version: ${{ needs.version.outputs.current_minor }}
         base_ref: origin/${{ needs.version.outputs.prev_branch }}
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_minor }}
+        stage: "Pending QA"
 
 
   notify-current:
