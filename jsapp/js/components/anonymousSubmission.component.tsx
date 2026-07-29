@@ -1,10 +1,5 @@
 import { Group } from '@mantine/core'
-import { IconHelpCircleFilled } from '@tabler/icons-react'
-import { Link } from 'react-router-dom'
 import ToggleSwitch from '#/components/common/toggleSwitch'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
-import envStore from '#/envStore'
-import ActionIcon from './common/ActionIcon'
 
 interface AnonymousSubmissionProps {
   checked: boolean
@@ -20,17 +15,6 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         disabled={props.disabled}
         onChange={props.onChange}
         label={t('Allow submissions to this form without a username and password')}
-      />
-
-      <ActionIcon
-        size='sm'
-        variant='transparent'
-        icon={IconHelpCircleFilled}
-        component={Link}
-        aria-label={t('Learn more about anonymous submissions')}
-        to={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
-        target='_blank'
-        tooltip={t('Allow anonymous submissions for this project. Click the icon to learn more.')}
       />
     </Group>
   )
