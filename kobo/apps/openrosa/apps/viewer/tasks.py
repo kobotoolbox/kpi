@@ -12,8 +12,8 @@ from django.core.mail import mail_admins
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.utils.export_tools import (
+    generate_attachments_zip_export,
     generate_export,
-    generate_attachments_zip_export
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     mongo_sync_status,
