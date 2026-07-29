@@ -1,12 +1,13 @@
-import jsonschema.exceptions
 from copy import deepcopy
+
+import jsonschema.exceptions
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
-from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
