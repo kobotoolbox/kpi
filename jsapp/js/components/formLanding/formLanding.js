@@ -16,12 +16,11 @@ import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
+import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
@@ -285,21 +284,10 @@ class FormLanding extends React.Component {
 
           {userCan('change_asset', this.state) && (
             <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
-              <NewFeatureDialog
-                content={t(
-                  'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.',
-                )}
-                supportArticle={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
-                featureKey='anonymousSubmissions'
-                disabled={pageState.state?.modal}
-                pointerClass='anonymousSubmissionPointer'
-                dialogClass='anonymousSubmissionDialog'
-              >
-                <AnonymousSubmission
-                  checked={this.state.anonymousSubmissions}
-                  onChange={() => this.updateAssetAnonymousSubmissions()}
-                />
-              </NewFeatureDialog>
+              <AnonymousSubmission
+                checked={this.state.anonymousSubmissions}
+                onChange={() => this.updateAssetAnonymousSubmissions()}
+              />
             </bem.FormView__cell>
           )}
         </bem.FormView__cell>
