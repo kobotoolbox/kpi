@@ -21423,9 +21423,6 @@
                             "geojson": {
                                 "type": "string"
                             },
-                            "kml_legacy": {
-                                "type": "string"
-                            },
                             "spss_labels": {
                                 "type": "string"
                             },
@@ -21442,7 +21439,6 @@
                         "required": [
                             "csv",
                             "csv_legacy",
-                            "kml_legacy",
                             "xls",
                             "xls_legacy",
                             "zip_legacy"

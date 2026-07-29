@@ -14,7 +14,6 @@ import {
   EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
-  ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
 import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
 import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
@@ -180,11 +179,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
 
   function getRows() {
     return rows.map((exportData) => {
-      // Remap legacy kml_legacy to kml for display
-      let exportType = exportData.data.type
-      if ((exportType as ExportTypeName | 'kml_legacy') === 'kml_legacy') {
-        exportType = ExportTypeName.kml
-      }
+      const exportType = exportData.data.type
 
       return [
         EXPORT_TYPES[exportType]?.label || t('Unknown format'),
