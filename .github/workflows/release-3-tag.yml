@@ -86,6 +86,7 @@ jobs:
       env:
         NEXT_BRANCH: ${{ needs.version.outputs.next_branch }}
         CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+        PREV_BRANCH: ${{ needs.version.outputs.prev_branch }}
       run: |
         LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
 
@@ -101,7 +102,17 @@ jobs:
           LATEST_TIP=$(git rev-parse "origin/$LATEST")
           TAG_COMMIT=$(git rev-parse "${LATEST_TAG:-HEAD}^{commit}" 2>/dev/null || echo "none")
           if [[ -n "$LATEST_TAG" && "$LATEST_TIP" == "$TAG_COMMIT" ]]; then
-            echo "::error::Cannot tag $CURRENT_BRANCH: the latest minor ($LATEST) is already released. Use 'force' input for deep security hotfixes."
+            echo "::error::Cannot tag $CURRENT_BRANCH: the latest minor ($LATEST) is already fully released. Use 'force' input for deep security hotfixes."
+            exit 1
+          fi
+        fi
+
+        # Previous branch must be fully merged into current (merge-forward must not be broken)
+        if [[ -n "$PREV_BRANCH" ]] && git rev-parse "origin/$PREV_BRANCH" &>/dev/null; then
+          PREV_TIP=$(git rev-parse "origin/$PREV_BRANCH")
+          CURRENT_TIP=$(git rev-parse "origin/$CURRENT_BRANCH")
+          if ! git merge-base --is-ancestor "$PREV_TIP" "$CURRENT_TIP"; then
+            echo "::error::Cannot tag $CURRENT_BRANCH: $PREV_BRANCH has unmerged commits. Resolve the merge-forward conflict first."
             exit 1
           fi
         fi
