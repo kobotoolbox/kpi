@@ -80,9 +80,32 @@ class TableStore extends Reflux.Store {
     overrides: {},
   }
 
+  /** The asset that `data.overrides` were set for, see `syncOverridesWithRoute` */
+  private overridesAssetUid: string | null = null
+
+  /**
+   * Overrides belong to a single asset, as some of them are field identifiers
+   * that mean nothing in another project. Moving to a different asset drops
+   * them, so returns the overrides that are safe to use for the current route.
+   *
+   * Routes without an asset (`null`) leave the overrides alone, so that they
+   * survive a trip outside the project.
+   */
+  private syncOverridesWithRoute() {
+    const routeAssetUid = getRouteAssetUid()
+
+    if (routeAssetUid !== null && routeAssetUid !== this.overridesAssetUid) {
+      this.overridesAssetUid = routeAssetUid
+      this.data.overrides = {}
+    }
+
+    return this.data.overrides
+  }
+
   /** Returns settings or empty object if no settings exist */
   getTableSettings() {
     const asset = this.getCurrentAsset()
+    const overrides = this.syncOverridesWithRoute()
 
     // We clone settings, as we will possibly overwrite some of them. If there
     // are no settings yet, we start with empty object.
@@ -90,7 +113,7 @@ class TableStore extends Reflux.Store {
 
     // overrides take precedense over asset endpoint settings
     OVERRIDABLE_SETTINGS.forEach((settingName) => {
-      applySetting(tableSettings, this.data.overrides, settingName)
+      applySetting(tableSettings, overrides, settingName)
     })
 
     return tableSettings
@@ -139,8 +162,10 @@ class TableStore extends Reflux.Store {
    * Only `OVERRIDABLE_SETTINGS` are picked up, the rest is ignored.
    */
   setOverrides(newOverrides: AssetTableSettings) {
+    const overrides = this.syncOverridesWithRoute()
+
     OVERRIDABLE_SETTINGS.forEach((settingName) => {
-      applySetting(this.data.overrides, newOverrides, settingName)
+      applySetting(overrides, newOverrides, settingName)
     })
 
     this.trigger(this.data)
