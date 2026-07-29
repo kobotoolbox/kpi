@@ -79,7 +79,7 @@ class FormLanding extends React.Component {
       })
     }
   }
-  enketoPreviewModal(evt) {
+  handleEnketoPreviewClick(evt) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
@@ -151,11 +151,11 @@ class FormLanding extends React.Component {
       </bem.FormView__cell>
     )
   }
-  showSharingModal(evt) {
+  handleShareClick(evt) {
     evt.preventDefault()
     openSharingModal({ asset: this.state })
   }
-  showReplaceProjectModal(evt) {
+  handleReplaceFormClick(evt) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.REPLACE_PROJECT,
@@ -381,7 +381,7 @@ class FormLanding extends React.Component {
   goToProjectsList() {
     this.props.router.navigate(ROUTES.FORMS)
   }
-  nonOwnerSelfRemoval(evt) {
+  handleNonOwnerSelfRemovalClick(evt) {
     evt.preventDefault()
     // Listen for permission removal here to avoid manage_asset user removal
     // from triggering redirect
@@ -433,7 +433,7 @@ class FormLanding extends React.Component {
           startIcon='view'
           tooltip={t('Preview')}
           tooltipPosition='right'
-          onClick={this.enketoPreviewModal.bind(this)}
+          onClick={this.handleEnketoPreviewClick.bind(this)}
           isDisabled={!this.state.url}
         />
 
@@ -444,7 +444,7 @@ class FormLanding extends React.Component {
             startIcon='replace'
             tooltip={t('Replace form')}
             tooltipPosition='right'
-            onClick={this.showReplaceProjectModal.bind(this)}
+            onClick={this.handleReplaceFormClick.bind(this)}
           />
         )}
 
@@ -466,13 +466,16 @@ class FormLanding extends React.Component {
             ))}
 
             {userCanEdit && (
-              <Menu.Item onClick={this.showSharingModal} leftSection={<i className='k-icon k-icon-user-share' />}>
+              <Menu.Item onClick={this.handleShareClick} leftSection={<i className='k-icon k-icon-user-share' />}>
                 {t('Share this project')}
               </Menu.Item>
             )}
 
             {isLoggedIn && userCanRemoveSharedProject(this.state) && (
-              <Menu.Item onClick={this.nonOwnerSelfRemoval} leftSection={<i className='k-icon k-icon-trash' />}>
+              <Menu.Item
+                onClick={this.handleNonOwnerSelfRemovalClick}
+                leftSection={<i className='k-icon k-icon-trash' />}
+              >
                 {t('Remove shared project')}
               </Menu.Item>
             )}
