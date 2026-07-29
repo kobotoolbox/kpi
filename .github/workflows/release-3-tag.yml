@@ -2,39 +2,62 @@ name: 'CD: tag'
 
 
 concurrency:
-  group: tag-${{ github.ref }}
-  cancel-in-progress: true
+  group: tag
+  cancel-in-progress: false
 
 
-# Triggered when Release Manager pushes a version tag (e.g. 2.026.27, 2.026.27a)
-# to the release branch. This is the "Pending Image" phase from the design doc.
+# Design doc: "(manually by Release Manager) run a GitHub Actions (GHA) action
+# that does the following steps"
 #
-# Pipeline: pull-transifex → build-image → [bump, linear, deploy-to-master] → notify
+# Pipeline: determine version → pull-transifex → tag → build-image → [bump, linear, deploy-to-master] → notify
 on:
-  push:
-    tags:
-      - '2.0**'
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Release branch to tag (e.g. release/2.026.27). Leave empty to auto-detect the latest.'
+        required: false
+        type: string
 
 
 jobs:
 
-  # Since the workflow is triggered by a tag (not a branch), we need to derive
-  # which release branch this tag belongs to, so find-releases.yml can compute
-  # prev/next versions.
+  # Determine which release branch to work on.
+  # If the user provided one, use it. Otherwise, find the latest release branch.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - name: Derive release branch from tag
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Determine release branch
       id: branch
+      env:
+        INPUT_BRANCH: ${{ inputs.release_branch }}
       run: |
         set -xe
-        # Extract minor version from tag (e.g. 2.026.27 from 2.026.27b)
-        MINOR=$(echo "${GITHUB_REF_NAME}" | grep -oP '^\d+\.\d+\.\d+')
-        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
+        if [[ -n "$INPUT_BRANCH" ]]; then
+          # Validate that the branch exists
+          if ! git show-branch "origin/$INPUT_BRANCH" &>/dev/null; then
+            echo "::error::Branch '$INPUT_BRANCH' does not exist."
+            exit 1
+          fi
+          echo "current_branch=$INPUT_BRANCH" >> "$GITHUB_OUTPUT"
+        else
+          # Auto-detect: find the latest release branch (the one whose next is main)
+          # Use the same logic as find_releases.sh but just find the latest
+          LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
+          if [[ -z "$LATEST" ]]; then
+            echo "::error::No release branches found."
+            exit 1
+          fi
+          echo "current_branch=$LATEST" >> "$GITHUB_OUTPUT"
+        fi
 
 
+  # Design doc step 3: "determine the next patch version tag (first release or next letter suffix)"
   version:
     needs:
       - current-branch
@@ -44,12 +67,9 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
-  # Design doc step: "pull transifex translations, if there's any to commit:
-  #   1. delete the tag  2. commit changes to release branch  3. create the tag on the new commit"
+  # Design doc step 2: "pull transifex translations (TODO DEV-1916) & commit if there's any"
   #
-  # Implementation note: instead of delete+recreate, we commit then move the tag
-  # via GitHub API (using GITHUB_TOKEN which doesn't re-trigger workflows).
-  # Recovery if interrupted: re-push the tag manually.
+  # If translations changed, commit them to the release branch before tagging.
   # TODO DEV-1916: validate this works end-to-end with real Transifex config.
   pull-transifex:
     needs:
@@ -59,9 +79,9 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: ${{ needs.version.outputs.current_branch }}
         fetch-depth: 0
         fetch-tags: true
-    # Uses GitHub App token so the push triggers downstream workflows (merge-forward etc.)
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
@@ -73,42 +93,68 @@ jobs:
         token: ${{ secrets.TRANSIFEX_API }}
         args: 'pull -a -f --mode reviewed'
 
-    - name: Check if translations changed
+    - name: Commit translations if changed
       id: pull-changed
-      run: |
-        CHANGED=$(git diff-index --exit-code HEAD &>/dev/null && echo "false" || echo "true")
-        echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-
-    - name: Commit translations, move tag
-      if: ${{ steps.pull-changed.outputs.changed == 'true' }}
       env:
-        VERSION: ${{ github.ref_name }}
-        # GITHUB_TOKEN pushes do NOT trigger workflows, so the tag move won't re-trigger this job.
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
-        # Order: commit first (safe), then move tag.
-        # If interrupted after commit but before tag move, recovery is: re-push the tag.
-        git add .
-        git commit -m "chore: pull transifex translations for $VERSION"
-        git push
-        # Move tag to new commit. Use gh api to push via GITHUB_TOKEN (no workflow re-trigger).
-        NEW_SHA=$(git rev-parse HEAD)
-        gh api -X PATCH "repos/${{ github.repository }}/git/refs/tags/$VERSION" \
-          -f sha="$NEW_SHA" -F force=true
+        if git diff-index --quiet HEAD; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          git add .
+          git commit -m "chore: pull transifex translations for $VERSION"
+          git push
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
 
 
-  # Design doc step: "create and upload image to github"
+  # Design doc steps 3-4: "determine the next patch version tag" and "tag and push the tag to kpi"
   #
-  # Adapted from John's kobo-deployments/fabfile/docker_utils.py publish_docker_image():
-  # - Clone at tag → pull base images → build → verify hash → push
-  # But simplified for GHA context (no fabric, no Docker Hub, uses GHCR instead).
+  # The version was already determined by find-releases.yml (current_patch output).
+  # Now we create and push the tag on the release branch (after any transifex commit).
+  tag:
+    needs:
+      - version
+      - pull-transifex
+    if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+
+    - name: Pull latest (in case transifex committed)
+      run: git pull --ff-only
+
+    - name: Create and push tag
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+      run: |
+        set -xe
+        # Check if tag already exists (idempotent)
+        if git rev-parse "refs/tags/$VERSION" &>/dev/null; then
+          echo "::error::Tag '$VERSION' already exists. If retrying, delete it first."
+          exit 1
+        fi
+        git tag -a "$VERSION" -m "Release $VERSION"
+        git push origin "refs/tags/$VERSION"
+
+
+  # Design doc step 5: "create and upload image to docker-hub"
   #
+  # Builds the Docker image from the tagged commit and pushes to GHCR.
   # Design doc: "on failure, delete the tag (push it again to retry)"
   build-image:
     runs-on: ubuntu-24.04
     needs:
       - version
-      - pull-transifex
+      - tag
     if: ${{ !cancelled() && !failure() }}
     permissions:
       contents: write   # needed for tag deletion on failure
@@ -118,9 +164,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
-        # Re-fetch the tag in case pull-transifex moved it to a new commit.
-        # actions/checkout resolves refs at runtime, not at workflow start.
-        ref: refs/tags/${{ github.ref_name }}
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 1
 
     - name: Log in to GitHub Container Registry
@@ -132,21 +176,18 @@ jobs:
 
     - name: Build and push image
       env:
-        VERSION: ${{ github.ref_name }}
+        VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
         set -xe
         # Pull previous release branch image for cache (best-effort, speeds up builds).
-        # Uses the sanitized branch name as tag (e.g. "release-2.026.27").
         BRANCH_TAG=$(echo "${{ needs.version.outputs.current_branch }}" | tr '/' '-')
         docker pull "$CI_REGISTRY_IMAGE:$BRANCH_TAG" || true
-        # Build the production image tagged with the version (e.g. ghcr.io/kobotoolbox/kpi:2.026.27b)
+        # Build the production image tagged with the version
         docker build \
           --cache-from "$CI_REGISTRY_IMAGE:$BRANCH_TAG" \
           --tag "$CI_REGISTRY_IMAGE:$VERSION" \
           .
-        # Verify the image contains the expected commit (from John's script logic).
-        # The Dockerfile may embed the git hash in /srv/src/kpi or .commit_sha.
-        # If neither exists (e.g. .dockerignore excludes .git), skip verification.
+        # Verify the image contains the expected commit
         EXPECTED_SHA=$(git rev-parse HEAD)
         IMAGE_SHA=$(docker run --rm "$CI_REGISTRY_IMAGE:$VERSION" bash -c \
           "cd /srv/src/kpi && git rev-parse --verify HEAD 2>/dev/null || cat .commit_sha 2>/dev/null || echo unknown")
@@ -163,19 +204,15 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "::warning::Image build failed. Deleting tag so it can be re-pushed to retry."
-        gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ github.ref_name }}" || true
+        echo "::warning::Image build failed. Deleting tag so the workflow can be re-run to retry."
+        gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ needs.version.outputs.current_patch }}" || true
 
 
-  # Design doc step: "tag/push to kobo-docker, update/commit/tag/push to kobo-install"
+  # Design doc step 5 (cont): "commit 'Upgrade KPI to 2.0XX.XX' to GitHub"
+  # Design doc step 6: "tag/push to kobo-docker"
+  # Design doc step 7: "update/commit/tag/push to kobo-install"
   #
   # Replaces the manual create-kobo-release.sh from release-notes-writer repo.
-  # Uses a cross-repo GitHub App token to push to kobotoolbox/kobo-docker and kobo-install.
-  #
-  # What create-kobo-release.sh did:
-  #   kobo-docker: tag master with version
-  #   kobo-install: update KOBO_DOCKER_BRANCH in config.py, commit, tag, push
-  #   Both: merge master→local (skipped here — that's a self-hosted deployment concern)
   bump:
     runs-on: ubuntu-24.04
     needs:
@@ -186,7 +223,6 @@ jobs:
     - uses: actions/checkout@v6
 
     # Generate a token scoped to kobo-docker and kobo-install repos.
-    # The kobo-bot GitHub App must be installed on both repos.
     - name: Generate cross-repo token
       id: app-token
       uses: actions/create-github-app-token@v3
@@ -201,11 +237,10 @@ jobs:
         git config --global user.name 'kobo-bot[bot]'
         git config --global user.email '200aborting+kobo-bot[bot]@users.noreply.github.com'
 
-    # Mirrors what create-kobo-release.sh does for kobo-docker:
-    # Updates the kpi image reference in docker-compose.frontend.yml, then tags.
+    # Design doc step 6: "tag/push to kobo-docker"
     - name: Bump KoboToolbox version in kobo-docker and tag it
       env:
-        VERSION: ${{ github.ref_name }}
+        VERSION: ${{ needs.version.outputs.current_patch }}
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
         set -xe
@@ -215,10 +250,9 @@ jobs:
         cd "$TMPDIR"
 
         # Update image tag in docker-compose.frontend.yml
-        # e.g. "image: kobotoolbox/kpi:2.026.27a" → "image: kobotoolbox/kpi:2.026.27b"
         sed -i -E "s|(image: kobotoolbox/kpi:).*|\1${VERSION}|" docker-compose.frontend.yml
 
-        # Commit if changed (idempotent — safe to re-run)
+        # Commit if changed (idempotent)
         if git diff --quiet; then
           echo "No changes needed in kobo-docker (already at $VERSION)"
         else
@@ -227,7 +261,7 @@ jobs:
           git push origin master
         fi
 
-        # Create and push annotated tag (idempotent — skips if exists)
+        # Create and push annotated tag (idempotent)
         if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
           echo "Tag ${VERSION} already exists on kobo-docker. Skipping."
         else
@@ -235,11 +269,10 @@ jobs:
           git push origin "refs/tags/${VERSION}"
         fi
 
-    # Mirrors what create-kobo-release.sh does for kobo-install:
-    # Updates KOBO_DOCKER_BRANCH in helpers/config.py, commits, tags.
+    # Design doc step 7: "update/commit/tag/push to kobo-install"
     - name: Bump KoboToolbox version in kobo-install and tag it
       env:
-        VERSION: ${{ github.ref_name }}
+        VERSION: ${{ needs.version.outputs.current_patch }}
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
         set -xe
@@ -249,10 +282,9 @@ jobs:
         cd "$TMPDIR"
 
         # Update KOBO_DOCKER_BRANCH in helpers/config.py
-        # e.g. "KOBO_DOCKER_BRANCH = '2.026.27a'" → "KOBO_DOCKER_BRANCH = '2.026.27b'"
         sed -i -E "s|(KOBO_DOCKER_BRANCH = ')[^']*('.*)|\\1${VERSION}\\2|" helpers/config.py
 
-        # Commit if changed (idempotent — safe to re-run)
+        # Commit if changed (idempotent)
         if git diff --quiet; then
           echo "No changes needed in kobo-install (already at $VERSION)"
         else
@@ -261,7 +293,7 @@ jobs:
           git push origin master
         fi
 
-        # Create and push annotated tag (idempotent — skips if exists)
+        # Create and push annotated tag (idempotent)
         if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
           echo "Tag ${VERSION} already exists on kobo-install. Skipping."
         else
@@ -270,12 +302,9 @@ jobs:
         fi
 
 
-  # Design doc steps:
-  #   - "set Linear release status to 'Pending Release'"
-  #   - "create Linear issue for Infra team to deploy it, and detect SKIP_HEAVY_MIGRATIONS"
-  #
-  # Both require Linear GraphQL API integration which is not yet implemented.
-  # The stubs below document the requirements for future implementation.
+  # Design doc step 8: "set Linear release status to 'Pending Release'"
+  # Design doc step 9: "create Linear issue for Infra team to deploy it,
+  #                     and detect SKIP_HEAVY_MIGRATIONS for that (TODO: DEV-653)"
   linear:
     runs-on: ubuntu-24.04
     needs:
@@ -283,40 +312,63 @@ jobs:
       - build-image
     if: ${{ !cancelled() && !failure() }}
     steps:
-    # TODO: Implement Linear GraphQL API integration.
-    # Requirements:
-    #   - Secret: LINEAR_API_KEY_GITHUB_ACTIONS_BOT
-    #   - Find the Linear project release by name matching $VERSION
-    #   - Update its status to "Pending Release"
-    # Linear GraphQL endpoint: https://api.linear.app/graphql
-    # Relevant mutations: updateProjectUpdate, or project status field update
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+        fetch-depth: 0
+        fetch-tags: true
+
     - name: Set Linear release status to "Pending Release"
       env:
-        VERSION: ${{ github.ref_name }}
+        VERSION: ${{ needs.version.outputs.current_patch }}
         LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
       run: |
         echo "::notice::TODO: set Linear release status to 'Pending Release' for $VERSION"
         echo "Requires Linear GraphQL API integration (see workflow comments)"
+        # TODO: Implement Linear GraphQL API integration.
+        # Requirements:
+        #   - Find the Linear project release by name matching $VERSION
+        #   - Update its status to "Pending Release"
+        # Linear GraphQL endpoint: https://api.linear.app/graphql
 
-    # TODO DEV-653: Implement Linear issue creation for Infra deployment.
-    # Requirements:
-    #   - Secret: LINEAR_API_KEY_GITHUB_ACTIONS_BOT
-    #   - Create issue in Infra team with deployment checklist
-    #   - Detect SKIP_HEAVY_MIGRATIONS by analyzing migration files between prev and current tag
-    #   - Include per-instance deployment steps from design doc
-    # Linear GraphQL mutation: issueCreate
+    - name: Detect SKIP_HEAVY_MIGRATIONS
+      id: migrations
+      env:
+        PREV_TAG: ${{ needs.version.outputs.prev_patch }}
+        CURRENT_TAG: ${{ needs.version.outputs.current_patch }}
+      run: |
+        # Check if there are new migration files between prev and current tag
+        # that contain RunPython or RunSQL (heavy migrations)
+        HEAVY="false"
+        MIGRATION_FILES=$(git diff --name-only "$PREV_TAG"..HEAD -- '*/migrations/*.py' 2>/dev/null || true)
+        if [[ -n "$MIGRATION_FILES" ]]; then
+          for f in $MIGRATION_FILES; do
+            if [[ -f "$f" ]] && grep -qE '(RunPython|RunSQL)' "$f" 2>/dev/null; then
+              HEAVY="true"
+              echo "::notice::Heavy migration detected in $f"
+              break
+            fi
+          done
+        fi
+        echo "skip_heavy=$HEAVY" >> "$GITHUB_OUTPUT"
+
     - name: Create Linear issue for Infra to deploy
       env:
-        VERSION: ${{ github.ref_name }}
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        SKIP_HEAVY: ${{ steps.migrations.outputs.skip_heavy }}
         LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
       run: |
         echo "::notice::TODO DEV-653: create Linear issue for Infra team to deploy $VERSION"
-        echo "Requires Linear GraphQL API integration and migration analysis (see workflow comments)"
+        echo "SKIP_HEAVY_MIGRATIONS=$SKIP_HEAVY"
+        # TODO DEV-653: Implement Linear issue creation for Infra deployment.
+        # Requirements:
+        #   - Create issue in Infra team with deployment checklist
+        #   - Include SKIP_HEAVY_MIGRATIONS=$SKIP_HEAVY in the issue body
+        #   - Include per-instance deployment steps
+        # Linear GraphQL mutation: issueCreate
 
 
-  # Deploys the newly-built image to kf.master.kbtdev (internal test instance).
-  # Uses the same pattern as nonprod-releases.yml's trigger-main-deploy job:
-  # dispatches a workflow in the kobotoolbox/devops repo.
+  # Deploy the newly-built image to kf.master.kbtdev (internal test instance).
   deploy-to-master:
     runs-on: ubuntu-24.04
     needs:
@@ -342,12 +394,11 @@ jobs:
         token: ${{ steps.app-token.outputs.token }}
         inputs: |
           {
-            "kpi_image_sha": "${{ github.ref_name }}"
+            "kpi_image_sha": "${{ needs.version.outputs.current_patch }}"
           }
 
 
-  # Design doc step: "notify on zulip"
-  # Waits for ALL downstream jobs to succeed before announcing.
+  # Design doc step 10: "notify on zulip"
   notify:
     needs:
       - version
@@ -360,14 +411,15 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":label: `${{ github.ref_name }}` tagged, image built and pushed to GHCR. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
+      content: ":label: `${{ needs.version.outputs.current_patch }}` tagged, image built and pushed to GHCR. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
 
 
-  # Catch-all failure notification. Lists all jobs so any failure is reported.
+  # Catch-all failure notification.
   on-failure:
     needs:
       - version
       - pull-transifex
+      - tag
       - build-image
       - bump
       - linear
@@ -377,4 +429,4 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ github.ref_name }}`. @*devs* please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. @*devs* please investigate."

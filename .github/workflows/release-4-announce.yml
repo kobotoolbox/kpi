@@ -1,11 +1,8 @@
-name: 'CD: create Github releases'
+name: 'CD: announce'
 
 
-# Triggered manually by Release Manager after the image is built and deployed.
-# This is the "Pending Release" phase from the design doc.
-#
-# Design doc: "Usually we post release notes right after building an image and
-# well before deployment."
+# Design doc: "When minor or patch release is in 'Pending Release' status:
+# 1. (manually by Release Manager) run a GHA action that does the following steps"
 #
 # Pipeline: validate tag → generate changelog → [kpi, kobo-docker, kobo-install] → linear → notify
 on:
@@ -52,10 +49,9 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
+  # Design doc step 2: "create GitHub releases with a changelog"
+  #
   # Generate changelog using git-cliff (same tool used in release-2-stabilize.yml).
-  # This replaces the approach in create-gh-releases.py which fetched CHANGELOG.md
-  # from the changelog/<tag> branch. Generating on-the-fly is more reliable and
-  # doesn't depend on a pre-existing branch.
   changelog:
     runs-on: ubuntu-24.04
     needs:
@@ -81,8 +77,7 @@ jobs:
         } >> "$GITHUB_OUTPUT"
 
 
-  # Design doc step: "create GitHub releases with a changelog"
-  # Creates the primary release on kpi with the full changelog body.
+  # Create the primary GitHub release on kpi with the full changelog body.
   kpi:
     runs-on: ubuntu-24.04
     needs:
@@ -105,11 +100,7 @@ jobs:
           --verify-tag
 
 
-  # Creates a GitHub release on kobo-docker that links back to the kpi release.
-  # This mirrors what create-gh-releases.py did:
-  #   "body": f"For more information, please see {kpi_release_link}"
-  #
-  # Uses a cross-repo GitHub App token since we're creating releases on another repo.
+  # Create a GitHub release on kobo-docker that links back to the kpi release.
   kobo-docker:
     runs-on: ubuntu-24.04
     needs:
@@ -138,7 +129,7 @@ jobs:
           --verify-tag
 
 
-  # Same as kobo-docker above, but for kobo-install.
+  # Create a GitHub release on kobo-install that links back to the kpi release.
   kobo-install:
     runs-on: ubuntu-24.04
     needs:
@@ -167,9 +158,7 @@ jobs:
           --verify-tag
 
 
-  # Design doc step: "set Linear release status to 'Released'"
-  #
-  # Requires Linear GraphQL API integration (not yet implemented).
+  # Design doc step 3: "set Linear release status to 'Released'"
   linear:
     runs-on: ubuntu-24.04
     needs:
@@ -179,12 +168,6 @@ jobs:
       - kobo-install
     if: ${{ !cancelled() && !failure() }}
     steps:
-    # TODO: Implement Linear GraphQL API integration.
-    # Requirements:
-    #   - Secret: LINEAR_API_KEY_GITHUB_ACTIONS_BOT
-    #   - Find the Linear project release by name matching $VERSION
-    #   - Update its status to "Released"
-    # Linear GraphQL endpoint: https://api.linear.app/graphql
     - name: Set Linear release status to "Released"
       env:
         VERSION: ${{ inputs.tag }}
@@ -192,9 +175,15 @@ jobs:
       run: |
         echo "::notice::TODO: set Linear release status to 'Released' for $VERSION"
         echo "Requires Linear GraphQL API integration (see workflow comments)"
+        # TODO: Implement Linear GraphQL API integration.
+        # Requirements:
+        #   - Find the Linear project release by name matching $VERSION
+        #   - Update its status to "Released"
+        # Linear GraphQL endpoint: https://api.linear.app/graphql
+        # Relevant mutations: updateProjectUpdate, or project status field update
 
 
-  # Design doc step: "notify on zulip"
+  # Design doc step 4: "notify on zulip"
   notify:
     needs:
       - version

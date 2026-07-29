@@ -172,6 +172,42 @@ jobs:
       push: true
 
 
+  # Design doc: "Patch release creation triggers when a commit is pushed to release branch after a version tag on it:
+  #   2. upsert Linear release, link related Linear issues, and upsert status to 'Pending Image'"
+  #
+  # This job runs only when a commit is pushed to a release branch that already has a tag
+  # (i.e. it's a patch release scenario). It upserts the Linear release for the patch.
+  linear-upsert:
+    needs:
+      - version
+      - changes
+      - darker
+      - biome
+      - openapi
+      - pytest
+      - npm-test
+      - locale
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Upsert Linear release and set status to "Pending Image"
+      env:
+        CURRENT_MINOR: ${{ needs.version.outputs.current_minor }}
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+      run: |
+        echo "::notice::TODO: upsert Linear release for $CURRENT_PATCH and set status to 'Pending Image'"
+        echo "Requires Linear GraphQL API integration (see workflow comments)"
+        # TODO: Implement Linear GraphQL API integration.
+        # Requirements:
+        #   - Find or create a Linear project release named "$CURRENT_MINOR"
+        #   - Link the Linear issues related to commits pushed since the last tag
+        #   - Set/update the release status to "Pending Image"
+        #   - Note: Patch releases skip QA status and process
+        # Linear GraphQL endpoint: https://api.linear.app/graphql
+        # Relevant mutations: projectCreate or projectUpdate, issueUpdate
+
+
   merge-forward:
     name: Merge forward
     needs:
@@ -217,6 +253,7 @@ jobs:
       - deploy-to-beta
       - merge-forward
       - push-to-transifex
+      - linear-upsert
     if: ${{ !cancelled() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
