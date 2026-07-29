@@ -1,18 +1,15 @@
-import React, { useState } from 'react'
-
+import React from 'react'
 import Button from '#/components/common/button'
-import KoboModal from '#/components/modals/koboModal'
-import KoboModalContent from '#/components/modals/koboModalContent'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
+import { QUESTION_TYPES } from '#/constants'
+import { openTableMediaPreviewModal } from './TableMediaPreview'
 import styles from './TextModalCell.module.scss'
 
 interface TextModalCellProps {
   /**
    * Text to be displayed in modal.
-   * If empty string is passed, empty cell will be rendered and no modal.
-   * If `null` is passed, "not available" will be rendered and no modal.
+   * If empty value is passed, empty cell will be rendered and no modal.
    */
-  text: string | null
+  text: string | null | undefined
   columnName: string
   submissionIndex: number
   submissionTotal: number
@@ -24,56 +21,37 @@ interface TextModalCellProps {
  * in a modal - useful to read a long text in full.
  */
 export default function TextModalCell(props: TextModalCellProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  // If there is no actual content, we display sweet short "not availabe"
-  // without all the modal code
+  // If there is no actual content, render a compact fallback and skip modal logic.
   if (!props.text) {
-    let textToDisplay = props.text
-    if (props.text === null) {
-      textToDisplay = t('N/A')
-    }
-
     return (
       <div className={styles.cell}>
-        <span className={styles.textContent}>{textToDisplay}</span>
+        <span className={styles.textContent}>{''}</span>
       </div>
     )
   }
 
+  const displayValue = props.text
+
   return (
-    <>
-      <div className={styles.cell} dir='auto'>
-        <span className={styles.textContent}>{props.text}</span>
+    <div className={styles.cell} dir='auto'>
+      <span className={styles.textContent}>{props.text}</span>
 
-        <Button
-          type='text'
-          size='s'
-          startIcon='expand-arrow'
-          onClick={() => setIsModalOpen(true)}
-          className={styles.modalOpener}
-        />
-      </div>
-
-      <KoboModal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} isDismissableByDefaultMeans>
-        <KoboModalHeader onRequestCloseByX={() => setIsModalOpen(false)}>
-          <div className={styles.modalHeaderText}>
-            <span>
-              {t('Submission ##submissionIndex## of ##submissionTotal##')
-                .replace('##submissionIndex##', String(props.submissionIndex))
-                .replace('##submissionTotal##', String(props.submissionTotal))}
-            </span>
-
-            <span dir='auto'>{props.columnName}</span>
-          </div>
-        </KoboModalHeader>
-
-        <KoboModalContent>
-          <div className={styles.modalContent} dir='auto'>
-            {props.modalContent ?? props.text}
-          </div>
-        </KoboModalContent>
-      </KoboModal>
-    </>
+      <Button
+        type='text'
+        size='s'
+        startIcon='expand-arrow'
+        onClick={() => {
+          openTableMediaPreviewModal({
+            questionType: QUESTION_TYPES.text.id,
+            displayValue,
+            columnName: props.columnName,
+            submissionIndex: props.submissionIndex,
+            submissionTotal: props.submissionTotal,
+            modalContent: props.modalContent,
+          })
+        }}
+        className={styles.modalOpener}
+      />
+    </div>
   )
 }
