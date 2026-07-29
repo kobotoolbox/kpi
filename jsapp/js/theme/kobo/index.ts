@@ -174,7 +174,6 @@ export const themeKobo = createTheme({
     ThemeIcon: ThemeIconThemeKobo,
     PasswordInput: PasswordInputThemeKobo,
     NumberInput: NumberInputThemeKobo,
-    PasswordInput: PasswordInputThemeKobo,
     Textarea: TextareaThemeKobo,
     Paper: PaperThemeKobo,
     Pill: PillThemeKobo,
