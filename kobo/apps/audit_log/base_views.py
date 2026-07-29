@@ -67,6 +67,7 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
             field_label = field[0] if isinstance(field, tuple) else field
             value = get_nested_field(obj, field_path)
             audit_log_data[field_label] = value
+        breakpoint()
         self.request._request.initial_data = audit_log_data
         return obj
 

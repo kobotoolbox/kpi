@@ -2273,3 +2273,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=expected_action,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
+
+    def test_view_asset_data(self):
+        self.asset.deploy(backend='mock', active=True)
+        self._base_project_history_log_test(
+            url=reverse(
+                self._get_endpoint('submission-list'),
+                args=[self.asset.uid],
+            ),
+            method=self.client.get,
+            expected_action=AuditAction.VIEW_DATA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            request_data=None,
+        )
+

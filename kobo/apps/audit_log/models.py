@@ -507,11 +507,13 @@ class ProjectHistoryLog(AuditLog):
             'assetsnapshot-submission-openrosa': cls._create_from_submission_request,
             'submissions': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
+            'submission-list': cls._create_from_data_request,
             'submission-supplement': cls._create_from_submission_extra_request,
             'advanced-features-list': cls._create_from_question_advanced_feature_request,  # noqa
             'advanced-features-detail': cls._create_from_question_advanced_feature_request,  # noqa
         }
         url_name = request.resolver_match.url_name
+        print(f'{url_name=}')
         method = url_name_to_action.get(url_name, None)
         if not method:
             return
@@ -594,6 +596,26 @@ class ProjectHistoryLog(AuditLog):
                 'source': get_human_readable_client_user_agent(request),
                 'cloned_from': request._data[CLONE_ARG_NAME],
                 'project_owner': initial_data['asset.owner.username'],
+            },
+        )
+
+    @staticmethod
+    def _create_from_data_request(request):
+        asset = getattr(request, 'asset', None)
+        if asset is None:
+            return
+        asset_uid = request.resolver_match.kwargs['uid_asset']
+
+        ProjectHistoryLog.objects.create(
+            object_id=asset.id,
+            action=AuditAction.VIEW_DATA,
+            user=request.user,
+            metadata={
+                'asset_uid': asset_uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'project_owner': asset.owner.username
             },
         )
 
