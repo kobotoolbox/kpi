@@ -20,7 +20,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
     inlines = (MassEmailQueryParamAdminInline,)
     list_display = ('name', 'date_modified', 'frequency', 'live')
     fields = ('name', 'subject', 'template', 'query', 'frequency', 'live')
-    actions = ['enqueue_mass_emails', 'export_recipient_lists']
+    actions = ['export_recipient_lists']
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.type == EmailType.ONE_TIME:
