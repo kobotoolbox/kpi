@@ -1,4 +1,4 @@
-from django.contrib import admin, messages
+from django.contrib import admin
 from import_export_celery.admin_actions import create_export_job_action
 
 from .models import (
