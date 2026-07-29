@@ -17,6 +17,8 @@ from kobo.apps.subsequences.models import (
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 
+INVALID_PARAMS_ERROR = 'Invalid parameters for this action'
+
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,7 +32,9 @@ class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
         try:
             action.__class__.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
-            raise serializers.ValidationError(ve)
+            # `str(ve)` is too verbose: it includes the whole schema and the
+            # submitted instance
+            raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
         return data
 
     def update(self, instance, validated_data):
@@ -64,7 +68,9 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         try:
             Action.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
-            raise serializers.ValidationError(ve)
+            # `str(ve)` is too verbose: it includes the whole schema and the
+            # submitted instance
+            raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
         return data
 
 
