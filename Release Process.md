@@ -111,3 +111,32 @@ Examples:
 - if hotfix Linear issue has 2.026.21b release linked, DO NOT link also 2.026.23 and subsequent releases if it made it
 - if hotfix Linear issue has 2.026.21b release linked, DO link also 2.026.23b release if it didn't make in 2.026.23
 - if hotfix Linear issue has 2.026.21b release linked and is backported to .12k and .03h, link them all.
+
+## Happy Path Scenarios
+
+### Minor release
+
+1. Context: `.27` is released and deployed. Life is good.
+2. Wednesday night automation creates `release/2.026.28` branch from main.
+3. Linear release "2.026.28" is created in "Pending QA" status. Zulip notified.
+4. Over the next few weeks, devs may merge PRs into `.28`. Each push runs tests, updates the changelog, deploys to beta, and merges forward to main.
+5. QA tests the release. Found bugs are fixed directly on `.28`.
+6. QA Lead sets Linear release to "Pending Image" and notifies on Zulip.
+7. Release Manager runs the tag workflow. Translations are pulled, tag `2.026.28` is created, image is built, kobo-docker and kobo-install are bumped and tagged. Linear release → "Pending Release".
+8. Release Manager runs the announce workflow. GitHub releases are created with a changelog. Linear release → "Released". Zulip notified.
+
+### Patch release
+
+1. Context: `.27` is released and deployed. A bug is found in production.
+2. Dev fixes it, merges PR to `.27` branch.
+3. Stabilize runs: tests pass, Linear release "2.026.27a" is created in "Pending Image" status, changes are merged forward (to `.28` if it exists, otherwise to main).
+4. Release Manager tags `.27` → `2.026.27a`. Image built, repos bumped. Linear release → "Pending Release".
+5. Release Manager announces `2.026.27a`. GitHub releases created. Linear release → "Released".
+6. If `.28` exists, the fix is already there via merge-forward, so `.28`'s Linear release does not include this issue — it was already shipped in `.27a`.
+
+### Skipped release (QA decides to kill a release)
+
+1. Context: week 28 Wednesday — `.28` branch is created. Linear release "2.026.28" is in "Pending QA".
+2. QA won't start to test `.28` in time and would rather move on to `.29`. Before next Wednesday, QA Lead runs the "skip release" workflow with `release/2.026.28`.
+3. The workflow retargets any open PRs to main, deletes the branch, deletes the Linear release, and notifies on Zulip.
+4. Week 29 Wednesday: automation computes `.29`, finds prev=`.27` (released, since `.28` no longer exists) → creates `release/2.026.29` from main. Linear release "2.026.29" created in "Pending QA".
