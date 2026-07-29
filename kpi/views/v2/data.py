@@ -270,7 +270,6 @@ class DataViewSet(
     permission_classes = (SubmissionPermission,)
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
-    log_get_requests = True
 
     @extend_schema(
         methods=['PATCH'],
