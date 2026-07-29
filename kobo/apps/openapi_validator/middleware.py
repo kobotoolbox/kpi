@@ -1,5 +1,4 @@
 import csv
-import inspect
 import json
 import os
 import re
@@ -17,7 +16,7 @@ from kpi.exceptions import (
     OpenAPIRequiredParameterError,
 )
 from kpi.utils.log import logging
-from .constants import API_PATH_PREFIXES, OPENAPI_VALIDATION_WHITELIST
+from .constants import API_PATH_PREFIXES, OPENAPI_KNOWN_MISMATCHES
 from .utils import get_django_route
 
 
@@ -271,59 +270,6 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
         return schema
 
-    def _get_test_info(self):
-        """
-        Return pytest-style test identifier (file::Class::test_*) when running tests.
-        Otherwise None.
-
-        This method handles two scenarios:
-        1. Direct test method execution: finds test_* methods in the stack
-        2. Test setup/teardown: extracts the actual test name from _testMethodName
-        """
-
-        if not settings.TESTING:
-            return None
-
-        def relative_path(filename: str) -> str:
-            for base in (Path.cwd(), Path(settings.BASE_DIR)):
-                try:
-                    return str(Path(filename).relative_to(base))
-                except ValueError:
-                    continue
-            return Path(filename).name
-
-        test_candidates = []
-        try:
-            for frame_info in inspect.stack():
-                filename = frame_info.filename
-                method_name = frame_info.frame.f_code.co_name
-                instance = frame_info.frame.f_locals.get('self')
-
-                is_test_file = '/tests/' in filename or '\\tests\\' in filename
-                if method_name.startswith('test_') and is_test_file:
-                    path_parts = [relative_path(filename)]
-                    if instance is not None:
-                        path_parts.append(instance.__class__.__name__)
-                    path_parts.append(method_name)
-                    test_candidates.append('::'.join(path_parts))
-                elif (
-                    method_name in ('setUp', 'tearDown', 'setUpClass', 'tearDownClass')
-                    and instance is not None
-                    and getattr(instance, '_testMethodName', None)
-                ):
-                    # Catch errors that occur during test setup/teardown
-                    test_candidates.append(
-                        f'{relative_path(filename)}::'
-                        f'{instance.__class__.__name__}::'
-                        f'{instance._testMethodName}'
-                    )
-        except Exception:
-            # Never let test detection break the request cycle
-            return None
-
-        # The last candidate is the deepest in the stack, i.e. the actual test
-        return test_candidates[-1] if test_candidates else None
-
     def _handle_validation_error(
         self,
         request: HttpRequest,
@@ -331,8 +277,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         error_code: str,
     ) -> None:
         """
-        Log the validation error, optionally append it to the whitelist CSV,
-        and in STRICT mode raise AssertionError unless whitelisted.
+        Log the validation error, optionally append it to the error CSV, and in
+        STRICT mode raise AssertionError unless the mismatch is a known one.
         """
 
         logging.warning(error_message)
@@ -343,48 +289,28 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not settings.OPENAPI_VALIDATION_STRICT:
             return
 
-        test_path = self._get_test_info()
-
-        if self._is_whitelisted(test_path, request.path, request.method, error_code):
+        if self._is_known_mismatch(request.path, request.method, error_code):
             return
 
         raise AssertionError(error_message)
 
-    def _is_whitelisted(
+    def _is_known_mismatch(
         self,
-        test_path: str | None,
         request_path: str,
         method: str,
         error_code: str,
     ) -> bool:
         """
-        Whitelist lookup using Django-resolved route only (no regex matching by us).
+        Whether this mismatch is already documented in OPENAPI_KNOWN_MISMATCHES.
 
-        Rules:
-          - If test_path is None -> not whitelisted
-          - Resolve request_path to django_route; only compare that route string to
-            constants keys
+        Lookup is done on the Django-resolved route, so it survives renamed
+        tests and changes to the concrete ids in a URL.
         """
-        if not test_path:
-            return False
-
-        test_entry = OPENAPI_VALIDATION_WHITELIST.get(test_path)
-        if not test_entry:
-            return False
-
-        code_entry = test_entry.get(error_code)
-        if not code_entry:
-            return False
-
         django_route = get_django_route(request_path)
         if not django_route:
             return False
 
-        allowed_methods = code_entry.get(django_route)
-        if not allowed_methods:
-            return False
-
-        return method.upper() in allowed_methods
+        return (error_code, django_route, method.upper()) in OPENAPI_KNOWN_MISMATCHES
 
     def _load_schema(self) -> Optional[dict[str, Any]]:
         """
@@ -411,16 +337,13 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             'scripts',
             'openapi_errors.csv',
         )
-        test_info = self._get_test_info()
-
         if not os.path.isfile(openapi_error_log):
             with open(openapi_error_log, 'w') as f:
                 writer = csv.writer(f)
-                writer.writerow(['test_path', 'endpoint', 'method', 'error_code'])
+                writer.writerow(['endpoint', 'method', 'error_code'])
 
         with open(openapi_error_log, 'a') as f:
             row = [
-                test_info,
                 request.path,
                 request.method,
                 error_code,

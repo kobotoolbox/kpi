@@ -1,5 +1,6 @@
 """
-Generate constants.py from a CSV for OpenAPI validation whitelist.
+Generate the OPENAPI_KNOWN_MISMATCHES constant from the CSV written by the
+middleware when OPENAPI_VALIDATION_BUILD_WHITELIST_LOG is enabled.
 
 Run with `./manage.py shell`
 
@@ -8,58 +9,55 @@ from kobo.apps.openapi_validator.scripts.generate_constants import run
 
 run(
     'kobo/apps/openapi_validator/scripts/openapi_errors.csv',
-    'kobo/apps/openapi_validator/constants.py'
+    'kobo/apps/openapi_validator/constants.py',
 )
 ```
+
+Existing entries are preserved: the CSV only ever adds to the constant, so a
+partial test run cannot silently drop known mismatches.
 """
 
 import csv
-from collections import defaultdict
 
-from django.urls import resolve
-
+from ..constants import OPENAPI_KNOWN_MISMATCHES
 from ..utils import get_django_route
+
+HEADER = """# Known, accepted mismatches between the API and the OpenAPI schema, as
+# (error_code, django_route, method) tuples. Strict validation (tests) lets
+# these through; anything else fails the test that triggers it.
+#
+# Each entry is a documented bug: either the schema lies about the endpoint or
+# the endpoint does not honor the schema. Fix the schema and delete the entry.
+# See README.md to regenerate this list after a large merge.
+OPENAPI_KNOWN_MISMATCHES = frozenset({"""
+
+MAX_LINE = 88
 
 
 def clean(value: str | None) -> str:
     return (value or '').strip()
 
 
-def upper(value: str) -> str:
-    return value.strip().upper()
+def format_entry(triple: tuple[str, str, str]) -> str:
+    error_code, route, method = triple
+    one_line = f"    ('{error_code}', '{route}', '{method}'),"
+    if len(one_line) <= MAX_LINE:
+        return one_line
+
+    return (
+        f'    (\n'
+        f"        '{error_code}',\n"
+        f"        '{route}',  # noqa: E501\n"
+        f"        '{method}',\n"
+        f'    ),'
+    )
 
 
-def resolve_to_pattern(endpoint: str) -> str:
-    """
-    Resolve a concrete URL (e.g. /api/v2/assets/abc/) to its Django route pattern.
-
-    - For path() routes, django.urls.resolve() typically provides `match.route`.
-    - For re_path() routes, it may not. We then fall back to regex.pattern if available.
-    - If resolution fails, return the raw endpoint as-is.
-    """
-    try:
-
-        path = endpoint if endpoint.startswith('/') else '/' + endpoint
-        match = resolve(path)
-
-        route = getattr(match, 'route', None)
-        if route:
-            return '/' + route
-
-        regex = getattr(getattr(match, 'pattern', None), 'regex', None)
-        if regex is not None:
-            return str(regex.pattern)
-
-        return endpoint
-    except Exception:
-        return endpoint
-
-
-def read_rows(csv_path: str) -> list[dict[str, str]]:
+def read_triples(csv_path: str, resolve: bool = True) -> set[tuple[str, str, str]]:
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
 
-        required = {'test_path', 'endpoint', 'method', 'error_code'}
+        required = {'endpoint', 'method', 'error_code'}
         missing = required - set(reader.fieldnames or [])
         if missing:
             raise ValueError(
@@ -67,123 +65,44 @@ def read_rows(csv_path: str) -> list[dict[str, str]]:
                 f'Found: {reader.fieldnames}'
             )
 
-        rows: list[dict[str, str]] = []
+        triples = set()
         for raw in reader:
-            test_path = clean(raw.get('test_path'))
-            if not test_path:
-                # Skip lines where test_path is empty
-                continue
-
             endpoint = clean(raw.get('endpoint'))
-            method = upper(clean(raw.get('method')))
+            method = clean(raw.get('method')).upper()
             error_code = clean(raw.get('error_code'))
-
             if not (endpoint and method and error_code):
                 # Skip incomplete lines
                 continue
 
-            rows.append(
-                {
-                    'test_path': test_path,
-                    'endpoint': endpoint,
-                    'method': method,
-                    'error_code': error_code,
-                }
-            )
+            route = get_django_route(endpoint) if resolve else endpoint
+            if route:
+                triples.add((error_code, route, method))
 
-        return rows
+        return triples
 
 
-def build_whitelist(
-    rows: list[dict[str, str]],
-    resolve_endpoints: bool,
-) -> dict[str, dict[str, dict[str, list[str]]]]:
-    """
-    Output shape:
-    {
-      test_path: {
-        error_code: {
-          endpoint: [METHOD, METHOD2, ...]
-        }
-      }
-    }
-    """
-    methods_map: dict[tuple[str, str, str], set[str]] = defaultdict(set)
+def write_constants(py_path: str, triples: set[tuple[str, str, str]]) -> None:
+    with open(py_path, encoding='utf-8') as f:
+        existing_content = f.read()
 
-    for r in rows:
-        endpoint_key = (
-            get_django_route(r['endpoint']) if resolve_endpoints else r['endpoint']
-        )
-        methods_map[(r['test_path'], r['error_code'], endpoint_key)].add(r['method'])
+    # Keep everything above the generated constant untouched
+    prefix = existing_content[
+        : existing_content.index('# Known, accepted mismatches')
+    ].rstrip()
 
-    out: dict[str, dict[str, dict[str, list[str]]]] = {}
-
-    # Convert to nested dicts with deterministic ordering
-    for (test_path, error_code, endpoint), methods in methods_map.items():
-        out.setdefault(test_path, {}).setdefault(error_code, {})[endpoint] = sorted(
-            methods
-        )
-
-    out_sorted: dict[str, dict[str, dict[str, list[str]]]] = {}
-    for test_path in sorted(out.keys()):
-        out_sorted[test_path] = {}
-        for error_code in sorted(out[test_path].keys()):
-            endpoints = out[test_path][error_code]
-            out_sorted[test_path][error_code] = {
-                k: endpoints[k] for k in sorted(endpoints.keys())
-            }
-
-    return out_sorted
-
-
-def write_constants(
-    py_path: str,
-    whitelist: dict[str, dict[str, dict[str, list[str]]]],
-) -> None:
-    import re
-
-    # Read existing file content if it exists
-    existing_content = ''
-    try:
-        with open(py_path, 'r', encoding='utf-8') as f:
-            existing_content = f.read()
-    except FileNotFoundError:
-        pass
-
-    # Extract the part before OPENAPI_VALIDATION_WHITELIST section
-    # Look for the auto-generated comment or the OPENAPI_VALIDATION_WHITELIST assignment
-    pattern = r'(# Auto-generated constant.*?OPENAPI_VALIDATION_WHITELIST\s*=.*?)(?=\Z)'
-    match = re.search(pattern, existing_content, re.DOTALL)
-
-    if match:
-        # Keep everything before the auto-generated section
-        prefix = existing_content[:match.start()].rstrip()
-    elif existing_content:
-        # If no match but file has content, keep everything
-        prefix = existing_content.rstrip()
-    else:
-        # New file
-        prefix = ''
-
-    # Build the new content
-    header = (
-        '# Auto-generated constant. Do not edit by hand.\n'
-        '# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST\n'
-        'OPENAPI_VALIDATION_WHITELIST = '
-    )
-
-    from pprint import pformat
+    lines = [prefix, '', HEADER]
+    lines.extend(format_entry(triple) for triple in sorted(triples))
+    lines.append('})')
 
     with open(py_path, 'w', encoding='utf-8') as f:
-        if prefix:
-            f.write(prefix)
-            f.write('\n\n')
-        f.write(header)
-        f.write(pformat(whitelist, width=88, sort_dicts=True))
-        f.write('\n')
+        f.write('\n'.join(lines) + '\n')
 
 
-def run(csv_path: str, out_path: str, resolve: bool = True):
-    rows = read_rows(csv_path)
-    whitelist = build_whitelist(rows, resolve_endpoints=resolve)
-    write_constants(out_path, whitelist)
+def run(csv_path: str, out_path: str, resolve: bool = True) -> None:
+    found = read_triples(csv_path, resolve=resolve)
+    new = found - set(OPENAPI_KNOWN_MISMATCHES)
+    write_constants(out_path, set(OPENAPI_KNOWN_MISMATCHES) | found)
+
+    print(f'{len(new)} new mismatch(es) added, {len(found)} seen in the CSV')
+    for triple in sorted(new):
+        print(f'  + {triple}')

@@ -59,21 +59,41 @@ This is useful for detecting:
 
 ### `OPENAPI_VALIDATION_BUILD_WHITELIST_LOG`
 
-When enabled, this option generates a CSV file used to build the Python constant `OPENAPI_VALIDATION_WHITELIST`.
-
-This whitelist allows specific tests and endpoints to bypass strict validation failures when necessary.
+When enabled, this option appends every validation error to a CSV file
+(`scripts/openapi_errors.csv`), used to regenerate `OPENAPI_KNOWN_MISMATCHES`.
 
 ---
 
-#### Recommended Workflow to generate `OPENAPI_VALIDATION_WHITELIST`
+## How Whitelisting Works
 
-**Step 1 — Reset `OPENAPI_VALIDATION_WHITELIST`**
+Known, accepted mismatches live in a single constant,
+`OPENAPI_KNOWN_MISMATCHES` in `constants.py`, as tuples of:
+
+- Error code (one of the six above)
+- Endpoint pattern (resolved by the Django URL resolver, anchors stripped)
+- HTTP method
 
 ```python
-OPENAPI_VALIDATION_WHITELIST = {}
+OPENAPI_KNOWN_MISMATCHES = frozenset({
+    ('response-validation', 'api/v2/environment/', 'GET'),
+    ...
+})
 ```
 
-**Step 2 — Run tests without strict mode and logs activated**
+Each entry is a documented bug — the schema lies about the endpoint, or the
+endpoint doesn't honor the schema — not a per-test exception. Any test hitting
+a listed endpoint passes; every *other* mismatch fails the test that triggers
+it. Fix the schema, delete the entry.
+
+The list is deliberately endpoint-scoped rather than test-scoped: the same
+handful of schema bugs is otherwise repeated across hundreds of tests, and
+test-scoped entries break whenever a test is renamed or moved.
+
+---
+
+#### Regenerating `OPENAPI_KNOWN_MISMATCHES` after a large merge
+
+**Step 1 — Run the tests without strict mode and with logging activated**
 
 Configure `testing.py`:
 
@@ -83,49 +103,34 @@ OPENAPI_VALIDATION_STRICT = False
 OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = True
 ```
 
-Run the full test suite:
+Delete any stale `scripts/openapi_errors.csv`, then run the full test suite
+(lower `-n` on emulated environments such as Apple Silicon):
 
 ```bash
-pytest -vv -n auto
-pytest -vv --lf
+pytest -q -n auto --dist=loadfile
 ```
 
-This step ensures that all validation errors are detected, and it generates a CSV log containing validation errors.
-
-**Step 3 — Generate the whitelist constant**
-
-Run the whitelist generator:
+**Step 2 — Regenerate the constant**
 
 ```python
 from kobo.apps.openapi_validator.scripts.generate_constants import run
 
 run(
     'kobo/apps/openapi_validator/scripts/openapi_errors.csv',
-    'kobo/apps/openapi_validator/constants.py'
+    'kobo/apps/openapi_validator/constants.py',
 )
 ```
 
-This generates the `OPENAPI_VALIDATION_WHITELIST` constant used by the middleware.
+It prints the entries it adds. Existing entries are kept, so a partial run
+can never silently drop a known mismatch. Review the diff: every new line is a
+schema bug worth a ticket.
 
-Bring back `OPENAPI_VALIDATION_STRICT` and `OPENAPI_VALIDATION_BUILD_WHITELIST_LOG` to original values:
+**Step 3 — Restore `testing.py`**
 
 ```python
 OPENAPI_VALIDATION_STRICT = True
 OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
 ```
-
----
-
-## How Whitelisting Works
-
-Each whitelist entry is scoped by:
-
-- Test path
-- Endpoint pattern (resolved using Django URL resolver)
-- HTTP method
-- Error code
-
-Whitelist entries allow tests to intentionally bypass known validation mismatches while maintaining strict enforcement elsewhere.
 
 ---
 
