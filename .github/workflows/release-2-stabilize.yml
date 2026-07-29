@@ -173,9 +173,10 @@ jobs:
       push: true
 
 
-  # Create Linear release and link issues from commits unique to this branch.
-  # Uses prev branch tip (not prev tag) so commits to be released as patches on
-  # the previous minor are excluded.
+  # Upsert Linear release and link issues.
+  # - First minor release: use prev branch tip so commits to be released as
+  #   patches on the previous minor are excluded.
+  # - Patch release: use prev patch tag (issues since last tag on this branch).
   linear-upsert:
     needs:
       - version
@@ -197,7 +198,7 @@ jobs:
       with:
         access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
         release_version: ${{ needs.version.outputs.current_patch }}
-        base_ref: origin/${{ needs.version.outputs.prev_branch }}
+        base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
 
 
   merge-forward:
