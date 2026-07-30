@@ -403,12 +403,21 @@ module.exports = do ->
 
   class skipLogicHelpers.SkipLogicHandCodeHelper
     render: ($destination) ->
+      # Sync @textarea.text from @criteria so TextArea.render() restores the
+      # current value rather than the original one from construction time.
+      @textarea.text = @criteria
       $destination.append @$parent
       @textarea.render().attach_to @$parent
       @button.render().attach_to @$parent
       @button.bind_event 'click', () => @context.use_mode_selector_helper()
+      # Use 'input' (fires on every keystroke) rather than 'change' (fires on
+      # blur) so @criteria is always current. .off() prevents accumulating
+      # duplicate handlers across re-renders.
+      @textarea.$el.off('input').on 'input', () =>
+        @criteria = @textarea.$el.val()
+        @context.view_factory.survey.trigger('change')
     serialize: () ->
-      @textarea.$el.val() || @criteria
+      @criteria
     constructor: (@criteria, @builder, @view_factory, @context) ->
       @$parent = $('<div>')
       @textarea = @view_factory.create_textarea @criteria, 'skiplogic__handcode-edit'
@@ -426,7 +435,6 @@ module.exports = do ->
         @context.use_criterion_builder_helper()
       )
       @handcode_button.bind_event('click', () =>
-        @context.view_factory.survey.trigger('change')
         @context.use_hand_code_helper()
       )
 
