@@ -46,7 +46,9 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
-  # Prefer the human-editable changelog branch; fall back to generating fresh.
+  # Fetch changelog from the dedicated branch. The tag workflow generates it,
+  # but a human may have edited it since (to fix mistakes, reword entries, etc.)
+  # — that's expected and the edited version takes precedence.
   changelog:
     runs-on: ubuntu-24.04
     needs:
@@ -59,22 +61,18 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Fetch changelog from branch or generate
+    - name: Fetch changelog from branch
       id: changelog
       env:
         VERSION: ${{ inputs.tag }}
       run: |
-        # Try fetching the curated changelog from the changelog branch
         CHANGELOG_BRANCH="changelog/$VERSION"
-        if git ls-remote --exit-code origin "refs/heads/$CHANGELOG_BRANCH" >/dev/null 2>&1; then
-          BODY=$(git show "origin/$CHANGELOG_BRANCH:CHANGELOG.md" 2>/dev/null || true)
+        if ! git ls-remote --exit-code origin "refs/heads/$CHANGELOG_BRANCH" >/dev/null 2>&1; then
+          echo "::error::Changelog branch '$CHANGELOG_BRANCH' not found. The tag workflow should have created it."
+          exit 1
         fi
 
-        # Fall back to generating with git-cliff if branch doesn't exist or is empty
-        if [[ -z "${BODY:-}" ]]; then
-          echo "::notice::Changelog branch not found, generating with git-cliff"
-          BODY=$(npx git-cliff@2.10.0 -u --tag "$VERSION")
-        fi
+        BODY=$(git show "origin/$CHANGELOG_BRANCH:CHANGELOG.md")
 
         {
           echo 'body<<EOF'

@@ -211,6 +211,19 @@ jobs:
         git push origin "refs/tags/$VERSION"
 
 
+  # Regenerate changelog with all tags known (authoritative, replaces stabilize draft).
+  changelog:
+    needs:
+      - version
+      - tag
+    if: ${{ !cancelled() && !failure() }}
+    uses: './.github/workflows/changelog.yml'
+    secrets: inherit
+    with:
+      ref: refs/tags/${{ needs.version.outputs.current_patch }}
+      version: ${{ needs.version.outputs.current_patch }}
+
+
   # Build the Docker image from the tagged commit and push to GHCR.
   build-image:
     runs-on: ubuntu-24.04
