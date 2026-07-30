@@ -36,6 +36,27 @@ Enables OpenAPI validation and (only) logs detected validation errors to the Pyt
 - `response-schema-not-found`
 - `response-validation`
 
+#### Not validated
+
+Deliberate gaps, not oversights. Each one is a candidate for a follow-up
+ticket; do not treat their absence as "checked and fine":
+
+- **Undocumented operations.** A path or method missing from the schema has no
+  contract to compare against, so it is skipped entirely. Reporting endpoints
+  absent from the schema is a different feature.
+- **Undocumented status codes.** Only the returned status code is looked up; if
+  the schema documents none for it, the response is skipped.
+- **Non-JSON responses.** File downloads, XML and HTML share the same endpoints
+  and cannot be schema-validated.
+- **Undocumented request media types.** DRF's default parsers accept
+  `multipart/form-data` on every endpoint while drf-spectacular documents only
+  `application/json`, so flagging undocumented media types reports one systemic
+  fact ~1200 times (297 failing tests when tried) with nothing actionable
+  behind it. Schema completeness for media types is a separate concern.
+- **Request headers.** Not inspected at all.
+- **Query parameter types.** Only the presence of required parameters is
+  checked, never types, formats or enums.
+
 #### Notes
 
 This setting can be controlled through an environment variable `OPENAPI_VALIDATION` as a boolean.

@@ -15,6 +15,11 @@ API_PATH_PREFIXES = (
 # See README.md to regenerate this list after a large merge.
 OPENAPI_KNOWN_MISMATCHES = frozenset(
     {
+        # Both views read `request.query_params` but declare a
+        # `serializer_class`, so drf-spectacular documents a required request
+        # body that the endpoints never read
+        ('missing-required-payload', 'api/v2/stripe/checkout-link', 'POST'),
+        ('missing-required-payload', 'api/v2/stripe/customer-portal', 'POST'),
         ('request-payload-validation', 'api/v2/asset_snapshots/', 'POST'),
         ('request-payload-validation', 'api/v2/assets/', 'POST'),
         ('request-payload-validation', 'api/v2/assets/(?P<uid_asset>[^/.]+)/', 'PATCH'),

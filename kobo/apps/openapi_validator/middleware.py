@@ -57,7 +57,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
         operation_spec = self._get_operation_spec(request.path, request.method)
         if not operation_spec:
-            # No specification found, let it pass
+            # Undocumented operation: there is no contract to check against.
+            # Reporting those is a separate concern, see README > Not validated
             return None
 
         # Validate query parameters
@@ -90,6 +91,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 return None
 
             if hasattr(request, 'body') and request.body:
+                # Only JSON payloads can be checked against a schema. Other
+                # media types are accepted as-is, see README > Not validated
                 if 'json' in content_type.lower():
                     try:
                         body_data = json.loads(request.body.decode('utf-8'))
@@ -151,9 +154,11 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
         operation_spec = self._get_operation_spec(request.path, request.method)
         if not operation_spec:
+            # Undocumented operation, see process_request()
             return response
 
-        # Only validate JSON responses
+        # Only JSON responses can be checked against a schema; file downloads,
+        # XML and HTML are served by the same endpoints and are out of scope
         content_type = response.get('Content-Type', '').lower()
         if 'json' not in content_type:
             return response

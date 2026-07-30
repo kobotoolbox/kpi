@@ -84,6 +84,18 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
             self.middleware.process_response(request, response)
 
     @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_non_json_request_body_is_not_validated(self):
+        # multipart is accepted on every DRF endpoint but documented on none,
+        # so it must not be reported — see README > Not validated
+        request = self.factory.post(
+            '/api/v2/asset_subscriptions/',
+            data=b'whatever',
+            content_type='multipart/form-data; boundary=x',
+        )
+
+        assert self.middleware.process_request(request) is None
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
     def test_bodyless_statuses_are_not_expected_to_carry_json(self):
         request = self.factory.get('/api/v2/assets/')
 
