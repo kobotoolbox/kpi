@@ -31,25 +31,27 @@ HEADER = """# Known, accepted mismatches between the API and the OpenAPI schema,
 # See README.md to regenerate this list after a large merge.
 OPENAPI_KNOWN_MISMATCHES = frozenset({"""
 
-MAX_LINE = 88
-
 
 def clean(value: str | None) -> str:
     return (value or '').strip()
 
 
-def format_entry(triple: tuple[str, str, str]) -> str:
-    error_code, route, method = triple
-    one_line = f"    ('{error_code}', '{route}', '{method}'),"
-    if len(one_line) <= MAX_LINE:
-        return one_line
+def format_source(source: str) -> str:
+    """
+    Normalize the generated module with black, so that the output matches what
+    `darker --check` expects in CI. Long routes need no `# noqa: E501`: the
+    file disables E501 as a whole.
 
-    return (
-        f'    (\n'
-        f"        '{error_code}',\n"
-        f"        '{route}',  # noqa: E501\n"
-        f"        '{method}',\n"
-        f'    ),'
+    Falls back to the unformatted source when black is missing; it is a
+    dev-only dependency and this script only ever runs in development.
+    """
+    try:
+        import black
+    except ImportError:
+        return source
+
+    return black.format_str(
+        source, mode=black.Mode(line_length=88, string_normalization=False)
     )
 
 
@@ -91,11 +93,14 @@ def write_constants(py_path: str, triples: set[tuple[str, str, str]]) -> None:
     ].rstrip()
 
     lines = [prefix, '', HEADER]
-    lines.extend(format_entry(triple) for triple in sorted(triples))
+    lines.extend(
+        f"    ('{error_code}', '{route}', '{method}'),"
+        for error_code, route, method in sorted(triples)
+    )
     lines.append('})')
 
     with open(py_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines) + '\n')
+        f.write(format_source('\n'.join(lines) + '\n'))
 
 
 def run(csv_path: str, out_path: str, resolve: bool = True) -> None:

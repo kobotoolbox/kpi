@@ -108,7 +108,12 @@ Delete any stale `scripts/openapi_errors.csv`, then run the full test suite
 
 ```bash
 pytest -q -n auto --dist=loadfile
+pytest -q --lf
 ```
+
+Always re-run the failures serially with `--lf`: parallel runs produce false
+positives, because concurrent HTTP requests interfere with each other. Only
+the mismatches that survive the serial re-run are real.
 
 **Step 2 — Regenerate the constant**
 
