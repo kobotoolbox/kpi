@@ -151,7 +151,12 @@ class TranscriptionActionMixin:
         }
 
         if pending_review:
+            # `value` is intentionally blanked out here: the FE only needs
+            # `pendingReview` to render its "Review" button, but formpack
+            # exports read `value` unconditionally and must not crash or
+            # leak an unreviewed result
             entry['pendingReview'] = True
+            entry['value'] = ''
         else:
             entry['value'] = version_data.get('value')
 
@@ -343,7 +348,12 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             }
 
             if pending_review:
+                # `value` is intentionally blanked out here: the FE only needs
+                # `pendingReview` to render its "Review" button, but formpack
+                # exports read `value` unconditionally and must not crash or
+                # leak an unreviewed result
                 entry['pendingReview'] = True
+                entry['value'] = ''
             else:
                 entry['value'] = version_data.get('value')
 

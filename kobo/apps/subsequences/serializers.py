@@ -1,11 +1,13 @@
-import jsonschema.exceptions
 from copy import deepcopy
+
+import jsonschema.exceptions
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
-from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
@@ -16,6 +18,11 @@ from kobo.apps.subsequences.models import (
     SubsequenceBulkActionItem,
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
+
+# This message reaches the UI, so it must be translatable. Wrap here rather
+# than at the call site: `makemessages` only extracts literal arguments, so
+# `t(CONSTANT)` would leave the string out of the catalogs entirely.
+INVALID_PARAMS_ERROR = t('Invalid parameters for this action')
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
@@ -30,7 +37,9 @@ class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
         try:
             action.__class__.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
-            raise serializers.ValidationError(ve)
+            # `str(ve)` is too verbose: it includes the whole schema and the
+            # submitted instance
+            raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
         return data
 
     def update(self, instance, validated_data):
@@ -64,7 +73,9 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         try:
             Action.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
-            raise serializers.ValidationError(ve)
+            # `str(ve)` is too verbose: it includes the whole schema and the
+            # submitted instance
+            raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
         return data
 
 
