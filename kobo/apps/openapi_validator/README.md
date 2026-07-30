@@ -25,6 +25,7 @@ Enables OpenAPI validation and (only) logs detected validation errors to the Pyt
 ##### Request Errors
 
 - `missing-required-parameter`
+- `missing-required-payload`
 - `invalid-json-payload`
 - `request-payload-schema-not-found`
 - `request-payload-validation`

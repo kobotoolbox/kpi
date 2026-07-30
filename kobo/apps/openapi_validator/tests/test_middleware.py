@@ -64,3 +64,31 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
 
         with self.assertRaises(AssertionError):
             self.middleware.process_response(request, response)
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_missing_required_request_body_fails_in_strict_mode(self):
+        # `/api/v2/asset_subscriptions/` POST documents a required requestBody
+        request = self.factory.post(
+            '/api/v2/asset_subscriptions/', data=b'', content_type='application/json'
+        )
+
+        with self.assertRaises(AssertionError):
+            self.middleware.process_request(request)
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_empty_response_body_fails_in_strict_mode(self):
+        request = self.factory.get('/api/v2/assets/')
+        response = HttpResponse(b'', content_type='application/json')
+
+        with self.assertRaises(AssertionError):
+            self.middleware.process_response(request, response)
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_bodyless_statuses_are_not_expected_to_carry_json(self):
+        request = self.factory.get('/api/v2/assets/')
+
+        for status_code in (204, 304):
+            response = HttpResponse(
+                b'', status=status_code, content_type='application/json'
+            )
+            assert self.middleware.process_response(request, response) is response

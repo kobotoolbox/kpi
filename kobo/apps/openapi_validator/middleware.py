@@ -75,6 +75,19 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         # Validate request body (for POST, PUT, PATCH)
         if request.method.upper() in ['POST', 'PUT', 'PATCH']:
             content_type = request.content_type
+            body_required = (operation_spec.get('requestBody') or {}).get(
+                'required', False
+            )
+
+            if body_required and not getattr(request, 'body', None):
+                error_message = (
+                    f'OpenAPI validation error for {request.path} '
+                    f'[{request.method}]: Missing required request body'
+                )
+                self._handle_validation_error(
+                    request, error_message, 'missing-required-payload'
+                )
+                return None
 
             if hasattr(request, 'body') and request.body:
                 if 'json' in content_type.lower():
@@ -161,8 +174,15 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             response_schema = None
 
         if response_schema:
-            # Parse response content
-            if hasattr(response, 'content') and response.content:
+            # HEAD and these statuses carry no body by definition, whatever the
+            # schema documents for the operation
+            no_body_expected = request.method.upper() == 'HEAD' or (
+                response.status_code in (204, 304)
+            )
+
+            # Parse response content. An empty body is validated too: the schema
+            # documents one, so its absence is a contract violation.
+            if hasattr(response, 'content') and not no_body_expected:
                 try:
                     response_data = json.loads(response.content.decode('utf-8'))
                 except (UnicodeDecodeError, json.JSONDecodeError):
