@@ -80,7 +80,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 if 'json' in content_type.lower():
                     try:
                         body_data = json.loads(request.body.decode('utf-8'))
-                    except json.JSONDecodeError:
+                    except (UnicodeDecodeError, json.JSONDecodeError):
                         error_message = (
                             f'OpenAPI validation error for {request.path} '
                             f'[{request.method}]: Invalid JSON request body'
@@ -165,7 +165,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             if hasattr(response, 'content') and response.content:
                 try:
                     response_data = json.loads(response.content.decode('utf-8'))
-                except json.JSONDecodeError:
+                except (UnicodeDecodeError, json.JSONDecodeError):
                     logging.warning(
                         f'Invalid JSON response body: [{request.method}] {request.path}'
                     )
