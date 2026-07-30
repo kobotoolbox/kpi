@@ -50,7 +50,8 @@ export default function ProjectTopTabs() {
   }
 
   return (
-    <Tabs size='lg' value={activeTab}>
+    // Magic margin top to make the rounded corners visible
+    <Tabs mt='8px' size='lg' value={activeTab}>
       <Tabs.List justify='center'>
         <Tabs.Tab
           value={summaryRoute}
