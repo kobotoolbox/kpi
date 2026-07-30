@@ -166,9 +166,14 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 try:
                     response_data = json.loads(response.content.decode('utf-8'))
                 except (UnicodeDecodeError, json.JSONDecodeError):
-                    logging.warning(
-                        f'Invalid JSON response body: [{request.method}] {request.path}'
+                    error_message = (
+                        f'OpenAPI validation error for {request.path} '
+                        f'[{request.method}]: Invalid JSON response body'
                     )
+                    self._handle_validation_error(
+                        request, error_message, 'invalid-json-response'
+                    )
+                    # Cannot validate a body that did not parse
                     return response
 
                 # Validate response

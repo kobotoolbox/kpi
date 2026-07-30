@@ -46,3 +46,21 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
 
         assert self.middleware.process_request(request) is None
         assert self.middleware.process_response(request, response) is response
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_undecodable_response_body_fails_in_strict_mode(self):
+        request = self.factory.get('/api/v2/assets/')
+        response = HttpResponse(
+            b'\xff\xfe invalid utf-8', content_type='application/json'
+        )
+
+        with self.assertRaises(AssertionError):
+            self.middleware.process_response(request, response)
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_malformed_json_response_body_fails_in_strict_mode(self):
+        request = self.factory.get('/api/v2/assets/')
+        response = HttpResponse(b'{"not": json', content_type='application/json')
+
+        with self.assertRaises(AssertionError):
+            self.middleware.process_response(request, response)

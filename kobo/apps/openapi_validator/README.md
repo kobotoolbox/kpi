@@ -31,6 +31,7 @@ Enables OpenAPI validation and (only) logs detected validation errors to the Pyt
 
 ##### Response Errors
 
+- `invalid-json-response`
 - `response-schema-not-found`
 - `response-validation`
 
