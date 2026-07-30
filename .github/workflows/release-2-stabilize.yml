@@ -223,6 +223,8 @@ jobs:
       - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
+    outputs:
+      new_migrations: ${{ steps.merge-forward.outputs.new_migrations }}
     steps:
 
     - uses: actions/checkout@v6
@@ -232,13 +234,88 @@ jobs:
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
     - name: Merge release branch forward
+      id: merge-forward
       env:
         current_branch: ${{ needs.version.outputs.current_branch }}
         next_branch: ${{ needs.version.outputs.next_branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        set -xe
+        git fetch origin "$next_branch"
         git checkout "$next_branch"
-        echo '::notice::TODO: squash migrations, if any'
-        git merge --no-ff "$current_branch"
+
+        MERGE_BRANCH="merge-forward/${current_branch##*/}-to-${next_branch##*/}"
+
+        # Attempt the merge; handle conflicts by creating a PR as notification
+        if ! git merge --no-ff "$current_branch"; then
+          echo "::warning::Merge conflict detected. Creating tracking PR for manual resolution."
+
+          # Abort the failed merge — we don't want conflict markers committed
+          git merge --abort
+
+          # Push a branch from current_branch so the PR shows what needs merging
+          git checkout -B "$MERGE_BRANCH" "$current_branch"
+          git push -f origin "$MERGE_BRANCH"
+
+          PR_BODY="### 🗒️ Checklist
+
+            1. [ ] locally resolve merge conflicts, check migrations and run CI (see instructions below)
+            2. [ ] push directly to \`$next_branch\` (do NOT use GitHub merge button)
+
+            ### 💭 Notes
+
+            Automated merge forward from \`$current_branch\` to \`$next_branch\` failed due to conflicts.
+            This PR exists only as a notification — do **not** merge it via GitHub UI.
+
+            Perform the merge locally to produce a single merge commit:
+            \`\`\`bash
+            git fetch origin $next_branch $current_branch
+            git checkout $next_branch
+            git merge --no-ff origin/$current_branch
+
+            # 1. resolve conflicts
+
+            # 2. check for new Django migrations — squash if needed
+
+            # 3. run CI locally
+            cd kobo-install
+            ./run.py
+            ./run.py -cf exec kpi ./scripts/ci_locally.sh
+
+            git add -A
+            git commit
+            git push origin $next_branch
+            \`\`\`
+
+            GitHub will auto-close this PR once \`$next_branch\` contains the merge."
+
+          EXISTING_PR=$(gh pr list --base "$next_branch" --head "$MERGE_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -z "$EXISTING_PR" ]]; then
+            gh pr create \
+              --base "$next_branch" \
+              --head "$MERGE_BRANCH" \
+              --title "chore(release): merge forward $current_branch → $next_branch (conflicts)" \
+              --body "$PR_BODY"
+          else
+            gh pr edit "$EXISTING_PR" --body "$PR_BODY"
+            echo "::notice::PR #$EXISTING_PR updated with latest branch state."
+          fi
+          exit 0
+        fi
+
+        # Merge succeeded — check if it introduced new Django migration files
+        NEW_MIGRATIONS=$(git diff --name-only "origin/$next_branch"..HEAD -- '*/migrations/*.py' \
+          | grep -v '__init__.py' || true)
+
+        if [[ -n "$NEW_MIGRATIONS" ]]; then
+          echo "::warning::New Django migrations detected in merge-forward."
+          echo "$NEW_MIGRATIONS"
+          echo "new_migrations<<EOF" >> $GITHUB_OUTPUT
+          echo "$NEW_MIGRATIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        fi
+
+        # Push directly — migrations are reported in the Zulip notification
         git push
 
 
@@ -284,7 +361,9 @@ jobs:
             && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: merged forward skipped due failed automated tests.'
-              || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
+              || needs.merge-forward.outputs.new_migrations != ''
+                && format(':check: merged forward into `{0}` — ⚠️ **new migrations detected, review manually:** ```{1}```', needs.version.outputs.next_branch, needs.merge-forward.outputs.new_migrations)
+                || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
           }}
         - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
