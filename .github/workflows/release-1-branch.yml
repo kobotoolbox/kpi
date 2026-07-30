@@ -2,7 +2,7 @@ name: 'CD: branch'
 
 
 concurrency:
-  group: branch-${{ github.ref }}
+  group: release-branch-${{ github.ref }}
   cancel-in-progress: true
 
 

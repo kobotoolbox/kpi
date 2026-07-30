@@ -2,7 +2,7 @@ name: 'CD: stabilize'
 
 
 concurrency:
-  group: stabilize-${{ github.ref }}
+  group: release-shared-${{ github.ref }}
   cancel-in-progress: true
 
 

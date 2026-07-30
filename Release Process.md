@@ -53,17 +53,16 @@ When minor release is in "Pending QA" status (usually takes two weeks):
 
 When minor or patch release is in "Pending Image" status (usually next Monday-Wednesday):
 
-1. (manually by Release Manager) push a matching minor or patch tag to release branch
-2. pull transifex translations (TODO DEV-1916), if there's any to commit:
-   1. delete the tag
-   2. commit changes to release branch
-   3. create the tag on the new commit
-3. create and upload image to github (TODO: based on John's script)
-   - on failure, delete the tag (push it again to retry)
-4. tag/push to `kobo-docker`, update/commit/tag/push to `kobo-install` (`create-kobo-release.sh` of [release-notes-writer](https://github.com/kobotoolbox/release-notes-writer))
-5. set Linear release status to "Pending Release"
-6. create Linear issue for Infra team to deploy it, and detect `SKIP_HEAVY_MIGRATIONS` for that (TODO: DEV-653)
-7. notify on zulip
+1. (manually by Release Manager) trigger the tag workflow
+2. pull transifex translations and commit if changed
+3. create and push the tag on the release branch (after any translation commit)
+4. regenerate changelog (authoritative, with all prior tags known)
+5. create and upload image to GHCR
+   - on failure, delete the tag (trigger the workflow again to retry)
+6. tag/push to `kobo-docker`, update/commit/tag/push to `kobo-install`
+7. set Linear release status to "Pending Release"
+8. create Linear issue for Infra team to deploy it, and detect `SKIP_HEAVY_MIGRATIONS` for that (TODO: DEV-653)
+9. notify on zulip
 
 When minor or patch release is in "Pending Release" status (usually right after the image is built):
 

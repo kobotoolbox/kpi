@@ -1,7 +1,7 @@
 name: 'CD: announce'
 
 
-# Pipeline: validate tag → generate changelog → [kpi, kobo-docker, kobo-install] → linear → notify
+# Pipeline: validate tag → fetch changelog → [kpi, kobo-docker, kobo-install] → linear → notify
 on:
   workflow_dispatch:
     inputs:
