@@ -10,6 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { HookLogStatusEnum } from './hookLogStatusEnum'
+import type { PatchedHookLogStatusCode } from './patchedHookLogStatusCode'
 
 export interface PatchedHookLog {
   readonly url?: string
@@ -18,8 +19,7 @@ export interface PatchedHookLog {
   readonly tries?: number
   readonly status?: HookLogStatusEnum
   status_str?: string
-  /** @nullable */
-  readonly status_code?: number | null
+  readonly status_code?: PatchedHookLogStatusCode
   readonly message?: string
   readonly date_modified?: string
 }

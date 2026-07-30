@@ -16,15 +16,6 @@ bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge')
 bem.PageWrapper = makeBem(null, 'page-wrapper')
 bem.PageWrapper__content = makeBem(bem.PageWrapper, 'content')
 
-bem.EmptyContent = makeBem(null, 'empty-content', 'section')
-bem.EmptyContent__icon = makeBem(bem.EmptyContent, 'icon', 'i')
-bem.EmptyContent__title = makeBem(bem.EmptyContent, 'title', 'h1')
-bem.EmptyContent__message = makeBem(bem.EmptyContent, 'message', 'p')
-
-bem.ServiceRow = makeBem(null, 'service-row')
-bem.ServiceRow__column = makeBem(bem.ServiceRow, 'column')
-bem.ServiceRow__linkOverlay = makeBem(bem.ServiceRow, 'link-overlay', 'a')
-
 bem.FormBuilder = makeBem(null, 'form-builder')
 bem.FormBuilder__contents = makeBem(bem.FormBuilder, 'contents')
 

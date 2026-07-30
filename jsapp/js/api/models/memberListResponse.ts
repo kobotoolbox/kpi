@@ -22,6 +22,5 @@ export interface MemberListResponse {
   user__has_mfa_enabled: boolean
   date_joined: string
   user__is_active: boolean
-  /** @nullable */
   invite: MemberListResponseInvite
 }

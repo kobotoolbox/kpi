@@ -17,6 +17,7 @@ export const OrganizationSettingsRoute = React.lazy(
 export const ACCOUNT_ROUTES: { readonly [key: string]: string } = {
   ACCOUNT_SETTINGS: ROUTES.ACCOUNT_ROOT + '/settings',
   USAGE: ROUTES.ACCOUNT_ROOT + '/usage',
+  USAGE_PROJECT_BREAKDOWN: ROUTES.ACCOUNT_ROOT + '/usage/project-breakdown',
   SECURITY: ROUTES.ACCOUNT_ROOT + '/security',
   PLAN: ROUTES.ACCOUNT_ROOT + '/plan',
   ADD_ONS: ROUTES.ACCOUNT_ROOT + '/addons',

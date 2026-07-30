@@ -94,7 +94,9 @@ export default function DataTableCell(props: DataTableCellProps) {
       ) {
         if (mediaAttachment !== null && props.question.$xpath !== undefined) {
           const audioXpath =
-            typeof mediaAttachment === 'string' ? props.question.$xpath : mediaAttachment.question_xpath
+            typeof mediaAttachment === 'string' || !mediaAttachment.question_xpath
+              ? props.question.$xpath
+              : mediaAttachment.question_xpath
           return (
             <AudioCell
               assetUid={props.asset.uid}
@@ -111,7 +113,7 @@ export default function DataTableCell(props: DataTableCellProps) {
           <MediaCell
             questionType={props.question.type}
             mediaAttachment={mediaAttachment}
-            mediaName={props.reactTableRow.value}
+            displayValue={props.reactTableRow.value}
             submissionIndex={submissionIndex}
             submissionTotal={props.submissionCount}
             submission={submission}

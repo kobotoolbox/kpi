@@ -2,8 +2,9 @@
 
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
+from django.core.cache import cache
 from django.core.management import call_command
-from django.db import IntegrityError
+from django.db import IntegrityError, connections
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from pymongo import UpdateOne
@@ -19,6 +20,7 @@ from kpi.utils.log import logging
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 FAILED_TAG = 'kobo-root-uuid-failed-0027'
+LAST_XFORM_ID_CACHE_KEY = 'lrm_0027_last_xform_id'
 
 
 def run():
@@ -37,11 +39,18 @@ def run():
 
     _check_lrm_0005_is_completed()
 
-    last_xform_id = 0
+    # Persisted across Celery restarts: instances belonging to XForms this job
+    # permanently skips (pending_delete, or tagged failed) never get a
+    # `root_uuid`, so they always match the query in `get_xforms_queryset`.
+    # Without a persisted cursor, every restart would re-scan past them from
+    # XForm pk 0, potentially never reaching a fully empty batch within a
+    # single run.
+    last_xform_id = cache.get(LAST_XFORM_ID_CACHE_KEY, 0)
     with use_db(settings.OPENROSA_DB_ALIAS):
         while True:
-            xforms, last_xform_id = get_xforms_queryset(last_xform_id)
-            if last_xform_id == -1:
+            xforms, next_xform_id = get_xforms_queryset(last_xform_id)
+            if next_xform_id == -1:
+                cache.delete(LAST_XFORM_ID_CACHE_KEY)
                 break
             for xform in xforms:
                 logging.info(
@@ -57,6 +66,13 @@ def run():
                     logging.info(
                         f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - Done'
                     )
+
+            # Only advance the persisted cursor once every XForm in this batch
+            # has reached a terminal outcome (done or tagged failed), so a
+            # crash mid-batch re-processes the same small batch on restart
+            # instead of permanently skipping whatever wasn't finished yet.
+            last_xform_id = next_xform_id
+            cache.set(LAST_XFORM_ID_CACHE_KEY, last_xform_id, timeout=None)
 
 
 def get_instances_queryset(xform_id: int) -> QuerySet:
@@ -81,13 +97,7 @@ def get_xforms_queryset(xform_id: int) -> tuple[QuerySet, int]:
     connection, avoiding cross-DB routing issues.
     """
 
-    xform_ids = list(
-        Instance.objects.filter(root_uuid__isnull=True)
-        .values_list('xform_id', flat=True)
-        .filter(xform_id__gt=xform_id)
-        .distinct()
-        .order_by('xform_id')[:CHUNK_SIZE]
-    )
+    xform_ids = _get_next_distinct_xform_ids(xform_id)
 
     if not xform_ids:
         return XForm.objects.none(), -1
@@ -135,6 +145,52 @@ def _find_timeout_in_chain(exc: BaseException) -> BaseException | None:
         current = current.__cause__ or current.__context__
 
     return None
+
+
+def _get_next_distinct_xform_ids(xform_id: int) -> list[int]:
+    """
+    Returns up to `CHUNK_SIZE` distinct `xform_id`s greater than `xform_id`
+    that still have at least one `Instance` with a null `root_uuid`.
+
+    PostgreSQL has no native loose ("skip") index scan, so a plain
+    `SELECT DISTINCT xform_id ... ORDER BY xform_id LIMIT` walks every
+    matching index entry in order, including duplicates, before it can move
+    on to the next distinct value. When a single XForm has millions of
+    null-`root_uuid` instances, that forces the scan to read all of them just
+    to advance past it, which can exceed `statement_timeout`. This recursive
+    CTE instead seeks directly to the next distinct `xform_id` at each step.
+    """
+
+    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
+        cursor.execute(
+            """
+            WITH RECURSIVE cursor_walk AS (
+                (
+                    SELECT xform_id
+                    FROM logger_instance
+                    WHERE root_uuid IS NULL AND xform_id > %(xform_id)s
+                    ORDER BY xform_id
+                    LIMIT 1
+                )
+                UNION ALL
+                SELECT (
+                    SELECT xform_id
+                    FROM logger_instance
+                    WHERE root_uuid IS NULL AND xform_id > cursor_walk.xform_id
+                    ORDER BY xform_id
+                    LIMIT 1
+                )
+                FROM cursor_walk
+                WHERE cursor_walk.xform_id IS NOT NULL
+            )
+            SELECT xform_id
+            FROM cursor_walk
+            WHERE xform_id IS NOT NULL
+            LIMIT %(chunk_size)s
+            """,
+            {'xform_id': xform_id, 'chunk_size': CHUNK_SIZE},
+        )
+        return [row[0] for row in cursor.fetchall()]
 
 
 def _process_instances_batch(
