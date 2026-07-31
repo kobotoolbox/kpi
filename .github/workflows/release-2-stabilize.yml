@@ -92,17 +92,19 @@ jobs:
       base: 'HEAD^'
 
 
+  tests:
+    needs: [version, changes, darker, biome, openapi, pytest, npm-test, locale]
+    # Don't skip this job if any of needs were skipped.
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - run: 'true'
+
+
   changelog:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+      - tests
     uses: './.github/workflows/changelog.yml'
     secrets: inherit
     with:
@@ -115,14 +117,8 @@ jobs:
   deploy-to-beta:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
+      - tests
+    if: ${{ needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
 
@@ -142,14 +138,8 @@ jobs:
   push-to-transifex:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
+      - tests
+    if: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
     uses: './.github/workflows/locale.yml'
     secrets: inherit
     with:
@@ -163,14 +153,7 @@ jobs:
   linear-upsert:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+      - tests
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
@@ -197,14 +180,7 @@ jobs:
     name: Merge forward
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+      - tests
     runs-on: ubuntu-24.04
     outputs:
       new_migrations: ${{ steps.merge-forward.outputs.new_migrations }}
