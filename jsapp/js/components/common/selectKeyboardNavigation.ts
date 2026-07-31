@@ -100,6 +100,9 @@ export const handleSelectNavigationKeys = (event: React.KeyboardEvent<HTMLInputE
   // Dropdown is shut, so just open it like `ArrowDown` does. There are no
   // options in the DOM yet, so there is nothing to page through.
   if (!listbox) {
+    if (event.key === 'Home' || event.key === 'End') {
+      return
+    }
     event.preventDefault()
     pressArrow(input, event.key === 'PageUp' ? 'ArrowUp' : 'ArrowDown', 1)
     return
