@@ -56,7 +56,9 @@ export default function SingleProcessingContent({
       <Link
         {...props}
         to={getTabRoutePath(route)}
-        onClick={() => {
+        onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          event.preventDefault()
           safeExecute(() => goToTabRoute(route))
         }}
       />
