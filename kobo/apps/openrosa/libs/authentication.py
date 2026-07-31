@@ -15,11 +15,10 @@ def digest_authentication(request):
     try:
         authentication = authenticator.authenticate(request)
     except AuthenticationFailed as e:
-        # The body is a fixed plain-text error message. Use a fixed content
-        # type rather than echoing the caller-controlled request Content-Type,
-        # which also 500s (KeyError) when the header is absent (DEV-2488).
         return HttpResponse(
-            str(e), content_type='text/plain', status=AuthenticationFailed.status_code
+            str(e),
+            content_type=request.headers['content-type'],
+            status=AuthenticationFailed.status_code
         )
     else:
         if not authentication:
