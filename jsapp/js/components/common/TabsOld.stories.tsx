@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import Tabs from './tabs'
+import Tabs from './TabsOld'
 
 const meta: Meta<typeof Tabs> = {
   title: 'Design system old/Tabs',

@@ -1,5 +1,5 @@
 {
-    "openapi": "3.0.3",
+    "openapi": "3.1.0",
     "info": {
         "title": "KoboToolbox Primary API",
         "version": "2.0.0 (api_v2)",
@@ -13256,7 +13256,7 @@
         "/api/v2/project-history-logs/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_list",
-                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters\n",
+                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n>       view-data\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -21058,10 +21058,12 @@
                         "readOnly": true
                     },
                     "parent": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
-                        "nullable": true
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "settings": {
                         "type": "object",
@@ -21303,19 +21305,25 @@
                         "format": "date-time"
                     },
                     "date_deployed": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
                     },
                     "version_id": {
-                        "type": "string",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "version__content_hash": {
-                        "type": "string",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "version_count": {
                         "type": "integer",
@@ -21326,8 +21334,10 @@
                         "readOnly": true
                     },
                     "deployed_version_id": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "readOnly": true
                     },
                     "deployed_versions": {
@@ -21413,9 +21423,6 @@
                             "geojson": {
                                 "type": "string"
                             },
-                            "kml_legacy": {
-                                "type": "string"
-                            },
                             "spss_labels": {
                                 "type": "string"
                             },
@@ -21432,7 +21439,6 @@
                         "required": [
                             "csv",
                             "csv_legacy",
-                            "kml_legacy",
                             "xls",
                             "xls_legacy",
                             "zip_legacy"
@@ -21444,9 +21450,11 @@
                         "readOnly": true
                     },
                     "deployment__last_submission_time": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "readOnly": true
                     },
                     "deployment__encrypted": {
@@ -21454,8 +21462,10 @@
                         "readOnly": true
                     },
                     "deployment__uuid": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "readOnly": true
                     },
                     "deployment_status": {
@@ -22180,12 +22190,12 @@
                     "access_types": {
                         "type": [
                             "array",
+                            "null",
                             "null"
                         ],
                         "items": {
                             "type": "string"
                         },
-                        "nullable": true,
                         "readOnly": true
                     },
                     "data_sharing": {
@@ -22198,9 +22208,11 @@
                         "readOnly": true
                     },
                     "project_ownership": {
-                        "type": "object",
+                        "type": [
+                            "object",
+                            "null"
+                        ],
                         "additionalProperties": {},
-                        "nullable": true,
                         "readOnly": true
                     },
                     "owner_label": {
@@ -22208,14 +22220,18 @@
                         "readOnly": true
                     },
                     "last_modified_by": {
-                        "type": "string",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "created_by": {
-                        "type": "string",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "readOnly": true
                     }
                 },
                 "required": [
@@ -22271,8 +22287,10 @@
                         "type": "string"
                     },
                     "seconds": {
-                        "type": "integer",
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -23348,8 +23366,10 @@
                         "maxLength": 5000
                     },
                     "description": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "A description of this object."
                     },
                     "type": {
@@ -23501,12 +23521,14 @@
                         "format": "date-time"
                     },
                     "cancelled_by": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/BulkActionUserResponse"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     },
                     "skipped_uuids": {
                         "type": "array",
@@ -23537,12 +23559,16 @@
                         "type": "integer"
                     },
                     "next": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "previous": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "results": {
                         "type": "array",
@@ -23638,12 +23664,14 @@
                         "format": "date-time"
                     },
                     "cancelled_by": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/BulkActionUserResponse"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     }
                 },
                 "required": [
@@ -23680,8 +23708,10 @@
                         "$ref": "#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum"
                     },
                     "error": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -24435,9 +24465,11 @@
                                         "automatic_bedrock_qual"
                                     ]
                                 }
+                            },
+                            {
+                                "type": "null"
                             }
                         ],
-                        "nullable": true,
                         "description": "Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.",
                         "title": " supplementaldetails"
                     }
@@ -25037,32 +25069,46 @@
                 "type": "object",
                 "properties": {
                     "terms_of_service_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "privacy_policy_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "source_code_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "support_email": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "support_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "academy_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "community_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "frontend_min_retry_time": {
                         "type": "integer"
@@ -25186,8 +25232,10 @@
                         "description": "Placeholder text for submissions"
                     },
                     "stripe_public_key": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "terms_of_service__sitewidemessage__exists": {
                         "type": "boolean",
@@ -26083,8 +26131,10 @@
                         "maxLength": 255
                     },
                     "payload_template": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "pending_count": {
                         "type": "integer",
@@ -26179,9 +26229,11 @@
                         "type": "string"
                     },
                     "status_code": {
-                        "type": "integer",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "message": {
                         "type": "string",
@@ -26731,9 +26783,11 @@
                         "example": "https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40"
                     },
                     "last_login": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
                     },
                     "extra_details": {
                         "type": "object",
@@ -26948,12 +27002,14 @@
                         "type": "boolean"
                     },
                     "invite": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/InviteResponse"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     }
                 },
                 "required": [
@@ -26994,11 +27050,13 @@
                         "type": "boolean"
                     },
                     "options": {
-                        "type": "array",
+                        "type": [
+                            "array",
+                            "null"
+                        ],
                         "items": {
                             "$ref": "#/components/schemas/MetadataFieldOption"
-                        },
-                        "nullable": true
+                        }
                     }
                 },
                 "required": [
@@ -27082,12 +27140,16 @@
                         "description": "The amount of each of the add-on's individual limits left to use."
                     },
                     "organization": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "product": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -29167,9 +29229,11 @@
                         "readOnly": true
                     },
                     "last_login": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
                     },
                     "extra_details": {
                         "type": "object",
@@ -29622,8 +29686,10 @@
                         "maxLength": 255
                     },
                     "payload_template": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "pending_count": {
                         "type": "integer",
@@ -29706,9 +29772,11 @@
                         "type": "string"
                     },
                     "status_code": {
-                        "type": "integer",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "message": {
                         "type": "string",
@@ -30051,19 +30119,23 @@
                         "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
                     },
                     "recurring": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/Recurring"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     },
                     "unit_amount": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 9223372036854775807,
                         "minimum": -9223372036854775808,
                         "format": "int64",
-                        "nullable": true,
                         "description": "The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required."
                     },
                     "human_readable_price": {
@@ -30071,7 +30143,12 @@
                         "readOnly": true
                     },
                     "metadata": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
                     },
                     "active": {
@@ -30083,7 +30160,12 @@
                         "description": "The product this price is associated with."
                     },
                     "transform_quantity": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`."
                     }
                 },
@@ -30123,19 +30205,23 @@
                         "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
                     },
                     "recurring": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/Recurring"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     },
                     "unit_amount": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 9223372036854775807,
                         "minimum": -9223372036854775808,
                         "format": "int64",
-                        "nullable": true,
                         "description": "The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required."
                     },
                     "human_readable_price": {
@@ -30143,7 +30229,12 @@
                         "readOnly": true
                     },
                     "metadata": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
                     },
                     "active": {
@@ -30154,7 +30245,12 @@
                         "$ref": "#/components/schemas/BaseProduct"
                     },
                     "transform_quantity": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`."
                     }
                 },
@@ -30181,8 +30277,10 @@
                         "maxLength": 5000
                     },
                     "description": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "A description of this object."
                     },
                     "type": {
@@ -31009,8 +31107,10 @@
                         "type": "integer"
                     },
                     "meter": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "usage_type": {
                         "$ref": "#/components/schemas/StripeUsageType"
@@ -31762,8 +31862,10 @@
                         "type": "string"
                     },
                     "provider_id": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -31820,10 +31922,12 @@
                         "$ref": "#/components/schemas/SubscriptionSchedule"
                     },
                     "application_fee_percent": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "decimal",
-                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$",
-                        "nullable": true
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$"
                     },
                     "djstripe_created": {
                         "type": "string",
@@ -31841,39 +31945,59 @@
                         "maxLength": 255
                     },
                     "livemode": {
-                        "type": "boolean",
-                        "nullable": true,
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
                         "description": "Null here indicates that the livemode status is unknown or was previously unrecorded. Otherwise, this field indicates whether this record comes from Stripe test mode or live mode operation."
                     },
                     "created": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "The datetime this object was created in stripe."
                     },
                     "metadata": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
                     },
                     "description": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "A description of this object."
                     },
                     "billing_cycle_anchor": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "Determines the date of the first full invoice, and, for plans with `month` or `year` intervals, the day of the month for subsequent invoices."
                     },
                     "billing_thresholds": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period."
                     },
                     "cancel_at": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "A date in the future at which the subscription will automatically get canceled."
                     },
                     "cancel_at_period_end": {
@@ -31881,9 +32005,11 @@
                         "description": "If the subscription has been canceled with the ``at_period_end`` flag set to true, ``cancel_at_period_end`` on the subscription will be true. You can use this attribute to determine whether a subscription that has a status of active is scheduled to be canceled at the end of the current period."
                     },
                     "canceled_at": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has been canceled, the date of that cancellation. If the subscription was canceled with ``cancel_at_period_end``, canceled_at will still reflect the date of the initial cancellation request, not the end of the subscription period when the subscription is automatically moved to a canceled state."
                     },
                     "collection_method": {
@@ -31905,38 +32031,64 @@
                         "description": "Start of the current period for which the subscription has been invoiced."
                     },
                     "days_until_due": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 2147483647,
                         "minimum": -2147483648,
-                        "nullable": true,
                         "description": "Number of days a customer has to pay invoices generated by this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`."
                     },
                     "discount": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Describes the current discount applied to this subscription, if there is one. When billing, a discount applied to a subscription overrides a discount applied on a customer-wide basis."
                     },
                     "ended_at": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has ended (either because it was canceled or because the customer was switched to a subscription to a new plan), the date the subscription ended."
                     },
                     "next_pending_invoice_item_invoice": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "Specifies the approximate timestamp on which any pending invoice items will be billed according to the schedule provided at pending_invoice_item_interval."
                     },
                     "pause_collection": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "If specified, payment collection for this subscription will be paused."
                     },
                     "pending_invoice_item_interval": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Specifies an interval for how often to bill for any pending invoice items. It is analogous to calling Create an invoice for the given subscription at the specified interval."
                     },
                     "pending_update": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "If specified, pending updates that will be applied to the subscription once the latest_invoice has been paid."
                     },
                     "proration_behavior": {
@@ -31951,22 +32103,28 @@
                         ]
                     },
                     "proration_date": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If set, the proration will be calculated as though the subscription was updated at the given time. This can be used to apply exactly the same proration that was previewed with upcoming invoice endpoint. It can also be used to implement custom proration logic, such as prorating by day instead of by second, by providing the time that you wish to use for proration calculations"
                     },
                     "quantity": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 2147483647,
                         "minimum": -2147483648,
-                        "nullable": true,
                         "description": "The quantity applied to this subscription. This value will be `null` for multi-plan subscriptions"
                     },
                     "start_date": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "Date when the subscription was first created. The date might differ from the created date due to backdating."
                     },
                     "status": {
@@ -31978,20 +32136,26 @@
                         "description": "The status of this subscription.\n\n* `active` - Active\n* `canceled` - Canceled\n* `incomplete` - Incomplete\n* `incomplete_expired` - Incomplete Expired\n* `past_due` - Past due\n* `trialing` - Trialing\n* `unpaid` - Unpaid"
                     },
                     "trial_end": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has a trial, the end of that trial."
                     },
                     "trial_start": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has a trial, the beginning of that trial."
                     },
                     "djstripe_owner_account": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The Stripe Account this object belongs to."
                     },
                     "customer": {
@@ -31999,29 +32163,39 @@
                         "description": "The customer associated with this subscription."
                     },
                     "default_payment_method": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The default payment method for the subscription. It must belong to the customer associated with the subscription. If not set, invoices will use the default payment method in the customer's invoice settings."
                     },
                     "default_source": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The default payment source for the subscription. It must belong to the customer associated with the subscription and be in a chargeable state. If not set, defaults to the customer's default source."
                     },
                     "latest_invoice": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The most recent invoice this subscription has generated."
                     },
                     "pending_setup_intent": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "We can use this SetupIntent to collect user authentication when creating a subscription without immediate payment or updating a subscription's payment method, allowing you to optimize for off-session payments."
                     },
                     "plan": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "title": "ID",
-                        "nullable": true,
                         "description": "The plan associated with this subscription. This value will be `null` for multi-plan subscriptions"
                     },
                     "default_tax_rates": {
@@ -32058,10 +32232,12 @@
                         "$ref": "#/components/schemas/PriceWithProduct"
                     },
                     "quantity": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 2147483647,
                         "minimum": 0,
-                        "nullable": true,
                         "description": "The quantity of the plan to which the customer should be subscribed."
                     }
                 },

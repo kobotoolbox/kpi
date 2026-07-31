@@ -354,7 +354,8 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.assertEqual(latest_log.user, self.admin)
         self.assertEqual(latest_log.model_name, 'organization')
         self.assertIn(
-            "adminuser updated organization 'Updated Test Org Name' (pk: org999)",
+            'adminuser updated organization '
+            "'Updated Test Org Name (org999)' (pk: org999)",
             latest_log.metadata['message']
         )
         self.assertIn(
@@ -396,7 +397,8 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.assertEqual(latest_log.user, self.admin)
         self.assertEqual(latest_log.model_name, 'organization')
         self.assertIn(
-            "adminuser deleted organization 'Test Org for Audit' (pk: org999)",
+            'adminuser deleted organization '
+            "'Test Org for Audit (org999)' (pk: org999)",
             latest_log.metadata['message']
         )
 
