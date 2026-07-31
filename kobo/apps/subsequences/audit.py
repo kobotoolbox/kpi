@@ -44,7 +44,17 @@ def sync_bulk_action_history_log(bulk_action) -> None:
     """
     Refresh the bulk-specific metadata on the existing history log row
     """
-    transaction.on_commit(lambda: _sync_bulk_action_history_log(bulk_action.pk))
+    sync_bulk_action_history_log_by_uid(bulk_action.pk)
+
+
+def sync_bulk_action_history_log_by_uid(bulk_action_uid: str) -> None:
+    """
+    Refresh the history log for a bulk action known only by its uid
+
+    Callers that update a child item with `queryset.update()` never load the
+    parent, so this avoids an extra query just to satisfy the signature
+    """
+    transaction.on_commit(lambda: _sync_bulk_action_history_log(bulk_action_uid))
 
 
 def _sync_bulk_action_history_log(bulk_action_uid: str) -> None:
@@ -55,22 +65,31 @@ def _sync_bulk_action_history_log(bulk_action_uid: str) -> None:
             SubsequenceBulkAction.objects.select_related('asset', 'asset__owner')
             .get(pk=bulk_action_uid)
         )
-        history_log = (
-            ProjectHistoryLog.objects.filter(
-                action=AuditAction.BULK_PROCESSING,
-                metadata__asset_uid=bulk_action.asset.uid,
-                metadata__bulk_action__uid=bulk_action.uid,
+        # Child items finish in parallel, so several workers can reach this at
+        # once. Refreshing the log is a read-modify-write of a single JSON blob,
+        # which loses updates under concurrency: two workers both read `3`,
+        # then write `4` and `5` in either order, and the counter can visibly go
+        # backwards. Taking the row lock first keeps the stored snapshot
+        # monotonic
+        with transaction.atomic():
+            history_log = (
+                ProjectHistoryLog.objects.select_for_update()
+                .filter(
+                    action=AuditAction.BULK_PROCESSING,
+                    metadata__asset_uid=bulk_action.asset.uid,
+                    metadata__bulk_action__uid=bulk_action.uid,
+                )
+                .order_by('-date_created')
+                .first()
             )
-            .order_by('-date_created')
-            .first()
-        )
-        if history_log is None:
-            return
+            if history_log is None:
+                return
 
-        metadata = history_log.metadata.copy()
-        metadata['bulk_action'] = bulk_action.get_history_log_metadata()
-        history_log.metadata = metadata
-        history_log.save(update_fields=['metadata'])
+            bulk_action.refresh_from_db()
+            metadata = history_log.metadata.copy()
+            metadata['bulk_action'] = bulk_action.get_history_log_metadata()
+            history_log.metadata = metadata
+            history_log.save(update_fields=['metadata'])
     except Exception:
         logging.exception(
             'Failed to sync bulk processing history log for '

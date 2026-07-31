@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import resolve_url
 from django.urls import reverse
+from django.utils.translation import gettext as t
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -107,8 +108,11 @@ class MfaMethodActivationView(APIView):
                 mfa.save()
             except Exception as cause:
                 status = HTTP_400_BAD_REQUEST
+                # Log the cause, but never expose it to the client
                 logging.error(cause, exc_info=True)
-                response_data['error'] = str(cause)
+                response_data['error'] = t(
+                    'Could not activate this method. Please try again later.'
+                )
 
         if status == HTTP_200_OK:
             secret = adapter.decrypt(mfa.secret)

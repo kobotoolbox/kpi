@@ -98,7 +98,7 @@ class AbstractDataFrameBuilder:
     ADDITIONAL_COLUMNS = [UUID, SUBMISSION_TIME, VALIDATION_STATUS]
     BINARY_SELECT_MULTIPLES = False
     """
-    Group functionality used by any DataFrameBuilder i.e. XLS, CSV and KML
+    Group functionality used by any DataFrameBuilder i.e. XLS and CSV
     """
     def __init__(self, username, id_string, filter_query=None,
                  group_delimiter=DEFAULT_GROUP_DELIMITER,
