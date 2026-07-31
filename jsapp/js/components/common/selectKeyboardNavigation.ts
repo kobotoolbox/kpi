@@ -5,12 +5,10 @@
  * `Space` (see its `useComboboxTargetProps`). A native `<select>` handles the
  * paging keys too, so we fill the gap.
  *
- * How it works: Mantine remembers which option is highlighted in a ref we can't
- * get at from props. Keeping our own copy of that index would drift out of sync,
- * and `Enter` picks whatever option *Mantine* thinks is highlighted, so we would
- * submit the wrong one. Instead we send the arrow key presses it already
- * understands. To jump 8 options down, we fire 8 `ArrowDown` events. Mantine
- * tags the highlighted option with `data-combobox-selected` straight away, so we
+ * How it works: Mantine remembers which option is highlighted in a ref (that we
+ * can't get from props). We send the arrow key presses it already understands.
+ * To jump 8 options down, we fire 8 `ArrowDown` events. Mantine tags
+ * the highlighted option with `data-combobox-selected` straight away, so we
  * can read the DOM in between to see where we ended up.
  */
 
@@ -35,7 +33,7 @@ const getListbox = (input: HTMLElement): HTMLElement | null => {
 
 /**
  * Options in DOM order, without the disabled ones. Arrow keys skip disabled
- * options, so leaving them out keeps our counting and Mantine's in step.
+ * options, so leaving them out keeps our counting and Mantine's in sync.
  */
 const getSelectableOptions = (listbox: HTMLElement): HTMLElement[] =>
   Array.from(listbox.querySelectorAll<HTMLElement>(`${OPTION_SELECTOR}:not(${DISABLED_SELECTOR})`))
