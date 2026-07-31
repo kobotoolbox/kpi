@@ -1,3 +1,5 @@
+from collections import defaultdict
+from datetime import datetime
 from json import dumps, loads
 from math import inf
 
@@ -32,20 +34,37 @@ def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
     return {res['user_id']: res['attachment_storage_bytes'] for res in query.iterator()}
 
 
+def _as_date(value):
+    # Billing bounds are tz-aware datetimes; `date` is a DateField, so
+    # normalize to a date for grouping users into shared query windows below.
+    return value.date() if isinstance(value, datetime) else value
+
+
 def get_submission_counts_in_date_range_by_user_id(
     date_ranges_by_user,
 ) -> dict[int, int]:
-    filters = Q()
+    # OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause per user
+    # forces the planner into a bitmap-or of one index scan per clause (DB-server
+    # OOM seen on EU, DEV-2567). Group users by their distinct window instead and
+    # run one narrow query per window: most orgs share the default monthly
+    # window, so there are only a handful of distinct windows even at full scale.
+    windows = defaultdict(list)
     for user_id, date_range in date_ranges_by_user.items():
-        filters |= Q(
-            user_id=user_id, date__range=[date_range['start'], date_range['end']]
+        key = (_as_date(date_range['start']), _as_date(date_range['end']))
+        windows[key].append(user_id)
+
+    results = {}
+    for (start, end), user_ids in windows.items():
+        rows = (
+            DailyXFormSubmissionCounter.objects.filter(
+                user_id__in=user_ids, date__range=[start, end]
+            )
+            .values('user_id')
+            .annotate(total=Coalesce(Sum('counter'), 0))
         )
-    all_sub_counters = (
-        DailyXFormSubmissionCounter.objects.values('counter', 'user_id', 'date')
-        .filter(filters)
-        .annotate(total=Sum('counter'))
-    )
-    return {row['user_id']: row['total'] for row in all_sub_counters}
+        for row in rows:
+            results[row['user_id']] = row['total']
+    return results
 
 
 def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
@@ -82,38 +101,48 @@ def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int,
 
 
 def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLPUsage]:
-    filters = Q()
+    # Same fix as get_submission_counts_in_date_range_by_user_id: group users by
+    # their distinct window and run one narrow query per window instead of one
+    # giant OR-chain across every user (DEV-2567).
+    windows = defaultdict(list)
     for user_id, date_range in date_ranges_by_user.items():
-        filters |= Q(
-            user_id=user_id, date__range=[date_range['start'], date_range['end']]
-        )
+        key = (_as_date(date_range['start']), _as_date(date_range['end']))
+        windows[key].append(user_id)
+
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
 
-    nlp_tracking = (
-        NLPUsageCounter.objects.values('user_id')
-        .filter(filters)
-        .annotate(
-            asr_seconds_current_period=Coalesce(
-                Sum(f'total_{UsageType.ASR_SECONDS}'),
-                0,
-            ),
-            mt_characters_current_period=Coalesce(
-                Sum(f'total_{UsageType.MT_CHARACTERS}'),
-                0,
-            ),
-            llm_requests_current_period=Coalesce(
-                Sum(f'total_{UsageType.LLM_REQUESTS}'),
-                0,
-            ),
-        )
-    )
     results = {}
-    for row in nlp_tracking:
-        results[row['user_id']] = {
-            UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
-            UsageType.MT_CHARACTERS: row[f'{UsageType.MT_CHARACTERS}_current_period'],
-            UsageType.LLM_REQUESTS: row[f'{UsageType.LLM_REQUESTS}_current_period'],
-        }
+    for (start, end), user_ids in windows.items():
+        nlp_tracking = (
+            NLPUsageCounter.objects.filter(
+                user_id__in=user_ids, date__range=[start, end]
+            )
+            .values('user_id')
+            .annotate(
+                asr_seconds_current_period=Coalesce(
+                    Sum(f'total_{UsageType.ASR_SECONDS}'),
+                    0,
+                ),
+                mt_characters_current_period=Coalesce(
+                    Sum(f'total_{UsageType.MT_CHARACTERS}'),
+                    0,
+                ),
+                llm_requests_current_period=Coalesce(
+                    Sum(f'total_{UsageType.LLM_REQUESTS}'),
+                    0,
+                ),
+            )
+        )
+        for row in nlp_tracking:
+            results[row['user_id']] = {
+                UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
+                UsageType.MT_CHARACTERS: row[
+                    f'{UsageType.MT_CHARACTERS}_current_period'
+                ],
+                UsageType.LLM_REQUESTS: row[
+                    f'{UsageType.LLM_REQUESTS}_current_period'
+                ],
+            }
     return results
 
 
