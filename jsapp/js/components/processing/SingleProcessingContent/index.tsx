@@ -50,7 +50,8 @@ export default function SingleProcessingContent({
    * use the `safeExecute` protector when left clicking.
    */
   function renderTabLink(route: string) {
-    // Passes mantine props from renderRoot
+    // Passes mantine props from renderRoot, this is needed for the tab to function as a link.
+    // We also spread the renderRoot props first and override it with our own later in order to prevent ugly prop surgery.
     return (props: Record<string, unknown>) => (
       <Link
         {...props}
@@ -74,7 +75,12 @@ export default function SingleProcessingContent({
 
   return (
     <section className={styles.root}>
-      <Tabs mt='8px' size='lg' value={activeTab}>
+      <Tabs
+        mt='8px'
+        size='lg'
+        value={activeTab}
+        classNames={{ root: styles.tabsRoot, list: styles.tabsList, tab: styles.tab }}
+      >
         <Tabs.List justify='left'>
           <Tabs.Tab value={PROCESSING_ROUTES.TRANSCRIPT} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSCRIPT)}>
             {t('Transcript')}
