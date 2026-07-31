@@ -1,5 +1,3 @@
-import time
-
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -19,7 +17,7 @@ from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
     cleanup_stale_snapshots_and_refresh_mv,
     get_or_create_run,
     iter_org_chunks_after,
-    process_chunk, refresh_user_reports_materialized_view,
+    process_chunk,
 )
 from kobo.celery import celery_app
 from kpi.utils.log import logging
@@ -85,7 +83,6 @@ def refresh_user_report_snapshots(**kwargs):
     )
 
     last_processed_org_id = run.last_processed_org_id or ''
-    last_time = time.time()
 
     try:
         while chunk_qs := iter_org_chunks_after(last_processed_org_id):
@@ -111,11 +108,6 @@ def refresh_user_report_snapshots(**kwargs):
                 last_processed_org_id=last_processed_org_id,
                 date_modified=timezone.now(),
             )
-
-            if time.time() - last_time >= 15 * 60:
-                logging.info('\tRefreshing the materialized view…')
-                last_time = time.time()
-                refresh_user_reports_materialized_view()
 
         # All orgs processed: cleanup stale, refresh MV and mark run as completed
         logging.info('Clean-up')

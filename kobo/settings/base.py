@@ -1589,10 +1589,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 15 minutes
+    # Schedule 3 times a day (every 8 hours)
     'refresh-user-report-snapshot': {
         'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
-        'schedule': crontab(minute='*/15'),
+        'schedule': crontab(minute=0, hour='*/8'),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     # Schedule every day at midnight UTC
