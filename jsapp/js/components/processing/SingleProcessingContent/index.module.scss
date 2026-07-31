@@ -10,11 +10,6 @@
   height: 100%;
 }
 
-// The tabs live on the light app background, but the shared Mantine `default`
-// variant theme (js/theme/kobo/Tabs.module.css) is styled for a dark surface.
-// These slot overrides restore the kobo "folder tab" look. Selectors are
-// nested through the root + list slots so they out-specify the shared theme's
-// `.root[data-variant='default'] .tab` rule (0,3,0).
 .tabsList {
   // The line that runs underneath all the tabs.
   border-color: colors.$kobo-gray-300;
@@ -29,7 +24,6 @@
   line-height: 48px;
   text-transform: uppercase;
   border-radius: 6px 6px 0 0;
-  // No underline indicator on inactive tabs — the folder look uses background.
   border-bottom-color: transparent;
 
   &:hover {
