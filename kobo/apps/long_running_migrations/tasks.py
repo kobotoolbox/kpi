@@ -23,7 +23,7 @@ def async_execute(migration_id: int):
     if cache.add(
         lock_key,
         'true',
-        timeout=settings.CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL,
+        timeout=settings.CELERY_HEARTBEAT_LOCK_TTL,
     ):
         stop_event = threading.Event()
         heartbeat = threading.Thread(
@@ -52,7 +52,7 @@ def execute_long_running_migrations():
     # TTL instead of the full task time limit, so a dead migration is retried
     # within minutes instead of hours.
     task_expiry_time = timezone.now() - relativedelta(
-        seconds=settings.CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL + offset
+        seconds=settings.CELERY_HEARTBEAT_LOCK_TTL + offset
     )
     # Run tasks that were just created or are in progress but whose worker died
     # without refreshing the heartbeat.
@@ -78,8 +78,8 @@ def _heartbeat(stop_event: threading.Event, lock_key: str, migration_id: int):
     `execute_long_running_migrations` tell a live task apart from a dead one.
     """
 
-    interval = settings.CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL
-    ttl = settings.CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL
+    interval = settings.CELERY_HEARTBEAT_LOCK_INTERVAL
+    ttl = settings.CELERY_HEARTBEAT_LOCK_TTL
     while not stop_event.wait(interval):
         # Recycle any connection that outlived `CONN_MAX_AGE` or was dropped
         # server-side: over a 24h lifetime a persistent connection cannot be

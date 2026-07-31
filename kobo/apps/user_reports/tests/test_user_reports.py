@@ -20,11 +20,13 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.user_reports.models import BillingAndUsageSnapshot
 from kobo.apps.user_reports.tasks import refresh_user_report_snapshots
-from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
+from kobo.apps.user_reports.utils.tasks.refresh_user_report_snapshots import (
     refresh_user_reports_materialized_view,
 )
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+
+TASK_UTILS = 'kobo.apps.user_reports.utils.tasks.refresh_user_report_snapshots'
 
 
 class UserReportsViewSetAPITestCase(BaseTestCase):
@@ -206,7 +208,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             }
         }
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            f'{TASK_UTILS}.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             cache.clear()
@@ -298,7 +300,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             }
         }
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            f'{TASK_UTILS}.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             cache.clear()
@@ -372,7 +374,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         }
 
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            f'{TASK_UTILS}.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             cache.clear()
@@ -570,7 +572,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         )
 
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits'
+            f'{TASK_UTILS}.get_organizations_effective_limits'
         ) as mock_limits:
             mock_limits.return_value = {
                 self.someuser.organization.id: {

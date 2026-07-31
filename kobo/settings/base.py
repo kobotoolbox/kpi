@@ -1725,21 +1725,34 @@ CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT = int(
     os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT', 86400)  # 24h
 )
 
-# Heartbeat that keeps a running migration's lock and `date_modified` fresh from
-# a background thread. The lock TTL is tied to this heartbeat, not to the task
-# time limit, so a hard-killed worker (e.g. a Kubernetes pod eviction that skips
-# the `finally` cleanup) releases the lock within a few heartbeats instead of
-# blocking re-execution for the whole 24h. The TTL is deliberately a few times
-# the interval to tolerate a briefly stalled worker without expiring the lock of
-# a task that is still alive.
-CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL = int(
-    os.environ.get(
-        'CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL', 60  # 60 seconds
-    )
+# Dedicated limits for `refresh_user_report_snapshots` only. A full pass over
+# every organization can take several hours, so it gets more room per
+# invocation than the generic long-running limits above, reducing how many
+# times it needs to be interrupted and resumed to complete one cycle.
+CELERY_USER_REPORTS_SNAPSHOT_TIME_LIMIT = int(
+    os.environ.get('CELERY_USER_REPORTS_SNAPSHOT_TIME_LIMIT', 13500)  # 3h45
 )
 
-CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
-    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
+CELERY_USER_REPORTS_SNAPSHOT_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_USER_REPORTS_SNAPSHOT_SOFT_TIME_LIMIT', 10800)  # 3h
+)
+
+# Shared by every task that keeps its lock fresh from a background thread instead
+# of holding a single lock for the whole task time limit.
+CELERY_HEARTBEAT_LOCK_INTERVAL = int(
+    os.environ.get('CELERY_HEARTBEAT_LOCK_INTERVAL', 60)  # 60 seconds
+)
+
+# The TTL is deliberately a few times the interval to tolerate a briefly stalled worker
+# without expiring the lock of a task that is still alive.
+CELERY_HEARTBEAT_LOCK_TTL = int(
+    os.environ.get('CELERY_HEARTBEAT_LOCK_TTL', 300)  # 300 sec
+)
+
+# Minimum time to wait after a completed run before starting a brand-new
+# cycle. Does not delay resuming an in-progress run.
+USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS = int(
+    os.environ.get('USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS', 8)  # 8 hours
 )
 
 CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
