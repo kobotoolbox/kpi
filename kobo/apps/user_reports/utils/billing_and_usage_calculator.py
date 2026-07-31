@@ -1,4 +1,7 @@
-from django.db.models import Q, Sum
+from collections import defaultdict
+from datetime import datetime
+
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
@@ -52,6 +55,12 @@ class BillingAndUsageCalculator:
         except AttributeError:
             return None
 
+    @staticmethod
+    def _as_date(value):
+        # Billing bounds are tz-aware datetimes; `date` is a DateField, so
+        # normalize to a date for the Python-side window comparison below.
+        return value.date() if isinstance(value, datetime) else value
+
     def _get_submission_usage_batch(self, user_ids, date_ranges_by_user):
         if not user_ids:
             return {}
@@ -68,19 +77,33 @@ class BillingAndUsageCalculator:
         )
         all_time = {r['user_id']: r['total'] for r in rows}
 
-        combined_q = Q()
+        # Get current-period submission counts. Each user has its own billing
+        # window. OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause
+        # per user forced the planner into a bitmap-or of one index scan per
+        # clause, each holding its own work_mem-sized state (the DB-server OOM
+        # seen on EU, DEV-2567). Group users by their distinct window instead and
+        # run one narrow query per window: ~90% of orgs share the default monthly
+        # window and windows key on day-of-month, so a chunk has only a few dozen
+        # distinct windows. Each query stays date-range-narrow (one annual plan
+        # can't widen the scan for the whole chunk) and aggregates in SQL,
+        # returning one row per user.
+        windows = defaultdict(list)
         for uid, dr in date_ranges_by_user.items():
             if dr.get('start') and dr.get('end'):
-                combined_q |= Q(user_id=uid, date__range=[dr['start'], dr['end']])
+                key = (self._as_date(dr['start']), self._as_date(dr['end']))
+                windows[key].append(uid)
 
         current = {}
-        if combined_q:
+        for (start, end), uids in windows.items():
             rows = (
-                DailyXFormSubmissionCounter.objects.filter(combined_q)
+                DailyXFormSubmissionCounter.objects.filter(
+                    user_id__in=uids, date__range=[start, end]
+                )
                 .values('user_id')
                 .annotate(total=Coalesce(Sum('counter'), 0))
             )
-            current = {r['user_id']: r['total'] for r in rows}
+            for row in rows:
+                current[row['user_id']] = row['total']
 
         return {
             uid: {
