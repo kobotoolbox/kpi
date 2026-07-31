@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 
 from django.db.models import Sum
@@ -78,35 +79,31 @@ class BillingAndUsageCalculator:
 
         # Get current-period submission counts. Each user has its own billing
         # window. OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause
-        # per user forces the planner into a bitmap-or of one index scan per
-        # clause, each holding its own work_mem-sized state, which is the
-        # DB-server OOM seen on EU (DEV-2567). Instead, scan the union window
-        # once and bucket each user's own window in Python.
-        windows = {
-            uid: (self._as_date(dr['start']), self._as_date(dr['end']))
-            for uid, dr in date_ranges_by_user.items()
-            if dr.get('start') and dr.get('end')
-        }
+        # per user forced the planner into a bitmap-or of one index scan per
+        # clause, each holding its own work_mem-sized state (the DB-server OOM
+        # seen on EU, DEV-2567). Group users by their distinct window instead and
+        # run one narrow query per window: ~90% of orgs share the default monthly
+        # window and windows key on day-of-month, so a chunk has only a few dozen
+        # distinct windows. Each query stays date-range-narrow (one annual plan
+        # can't widen the scan for the whole chunk) and aggregates in SQL,
+        # returning one row per user.
+        windows = defaultdict(list)
+        for uid, dr in date_ranges_by_user.items():
+            if dr.get('start') and dr.get('end'):
+                key = (self._as_date(dr['start']), self._as_date(dr['end']))
+                windows[key].append(uid)
 
         current = {}
-        if windows:
+        for (start, end), uids in windows.items():
             rows = (
                 DailyXFormSubmissionCounter.objects.filter(
-                    user_id__in=windows.keys(),
-                    date__range=[
-                        min(start for start, _ in windows.values()),
-                        max(end for _, end in windows.values()),
-                    ],
+                    user_id__in=uids, date__range=[start, end]
                 )
-                .values('user_id', 'date')
+                .values('user_id')
                 .annotate(total=Coalesce(Sum('counter'), 0))
             )
             for row in rows:
-                start, end = windows[row['user_id']]
-                if start <= row['date'] <= end:
-                    current[row['user_id']] = (
-                        current.get(row['user_id'], 0) + row['total']
-                    )
+                current[row['user_id']] = row['total']
 
         return {
             uid: {
