@@ -112,7 +112,9 @@ def refresh_user_report_snapshots(**kwargs):
                 date_modified=timezone.now(),
             )
 
-            if time.time() - last_time >= 15 * 60:
+            # Refresh the materialized view at most hourly during a run
+            # (was every 15 minutes) to cut its load on the database.
+            if time.time() - last_time >= 60 * 60:
                 logging.info('\tRefreshing the materialized view…')
                 last_time = time.time()
                 refresh_user_reports_materialized_view()
