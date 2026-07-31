@@ -347,7 +347,7 @@ class CustomerPortalView(APIView):
     versioning_class = APIV2Versioning
 
     @staticmethod
-    def generate_portal_link(user, organization_id, price, quantity):
+    def generate_portal_link(user, organization_id, requested_price):
         customer = (
             Customer.objects.filter(
                 subscriber_id=organization_id,
@@ -359,6 +359,7 @@ class CustomerPortalView(APIView):
                 'id',
                 'subscriptions__id',
                 'subscriptions__items__id',
+                'subscriptions__items__price__product',
                 'subscriptions__items__price__product__metadata',
             )
             .first()
@@ -373,106 +374,93 @@ class CustomerPortalView(APIView):
 
         portal_kwargs = {}
 
-        return_url = generate_return_url(
-            customer['subscriptions__items__price__product__metadata']
-        )
+        current_product_metadata = customer[
+            'subscriptions__items__price__product__metadata'
+        ]
 
-        # if we're generating a portal link for a price change, find or generate a matching portal configuration
-        if price:
+        return_url = generate_return_url(current_product_metadata)
 
-            metadata = price.product.metadata
+        relevant_config_slug = 'manage-standard'
+        if current_product_metadata.get('product_type') == 'addon':
+            relevant_config_slug = 'manage-addon'
+        if current_product_metadata.get('plan_type') == 'enterprise':
+            relevant_config_slug = 'manage-enterprise'
+        if current_product_metadata.get('plan_type') == 'unlimited':
+            relevant_config_slug = 'manage-unlimited'
+
+        # Determine which config to use to handle downgrades to ensure customers
+        # moving to a higher tier of service can switch plans immediately.
+        # Otherwise, downgrades should always be at the end of the customer's
+        # current billing period.
+        if requested_price:
+            relevant_config_slug = 'switch-plans-delayed-downgrade'
+
+            # Check if user is updating to a higher tier of service
+            # by comparing monthly prices
+            current_product_monthly_price = Price.objects.filter(
+                product=customer['subscriptions__items__price__product'],
+                recurring__interval='month',
+                recurring__interval_count=1,
+            ).first()
+            current_product_monthly_unit_amount = (
+                current_product_monthly_price.unit_amount
+                if current_product_monthly_price
+                else 0
+            )
+
+            if (
+                requested_price.recurring
+                and requested_price.recurring['interval'] == 'month'
+                and requested_price.recurring['interval_count'] == 1
+            ):
+                requested_product_monthly_unit_amount = requested_price.unit_amount
+            else:
+                requested_product_monthly_price = Price.objects.filter(
+                    product=requested_price.product,
+                    recurring__interval='month',
+                    recurring__interval_count=1,
+                ).first()
+                requested_product_monthly_unit_amount = (
+                    requested_product_monthly_price.unit_amount
+                    if requested_product_monthly_price
+                    else 0
+                )
+            if (
+                requested_product_monthly_unit_amount
+                > current_product_monthly_unit_amount
+            ):
+                relevant_config_slug = 'switch-plans-immediate-downgrade'
+
+            metadata = requested_price.product.metadata
             return_url = generate_return_url(metadata)
 
             """
             Customers with subscription schedules can't upgrade from the portal
             So if the customer has any active subscription schedules, release them, keeping the subscription intact
             """
-            schedules = SubscriptionSchedule.objects.filter(
-                customer__id=customer['id'],
-            ).exclude(status__in=['released', 'canceled']).values('status', 'id')
+            schedules = (
+                SubscriptionSchedule.objects.filter(
+                    customer__id=customer['id'],
+                )
+                .exclude(status__in=['released', 'canceled'])
+                .values('status', 'id')
+            )
             for schedule in schedules:
                 stripe.SubscriptionSchedule.release(
                     schedule['id'],
                     api_key=djstripe_settings.STRIPE_SECRET_KEY,
-                    preserve_cancel_date=False
+                    preserve_cancel_date=False,
                 )
-
-            current_config = None
-            all_configs = stripe.billing_portal.Configuration.list(
-                api_key=djstripe_settings.STRIPE_SECRET_KEY,
-                limit=100,
-            )
-
-            if not len(all_configs):
-                return Response(
-                    {'error': 'Missing Stripe billing configuration.'},
-                    status=status.HTTP_502_BAD_GATEWAY,
-                )
-
-            """
-            Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.
-            This lets us hide them as an 'upgrade' option for paid plan users.
-            """
-            needs_custom_config = (
-                metadata.get('product_type') == 'addon'
-                or metadata.get('plan_type') == 'enterprise'
-                or metadata.get('plan_type') == 'unlimited'
-            )
-            if needs_custom_config:
-                # Try getting the portal configuration that lets us switch to the provided price
-                current_config = next(
-                    (config for config in all_configs if (
-                            config['active'] and
-                            config['livemode'] == settings.STRIPE_LIVE_MODE and
-                            config['metadata'].get('portal_price', '') == price.id and
-                            'quantity' in config['features']['subscription_update']['default_allowed_updates'] and
-                            'price' in config['features']['subscription_update']['default_allowed_updates']
-                    )), None
-                )
-
-            if not current_config:
-                # get the active default configuration - we'll use this if our product is a 'plan'
-                current_config = next(
-                    (config for config in all_configs if (
-                        config['is_default'] and
-                        config['active'] and
-                        config['livemode'] == settings.STRIPE_LIVE_MODE
-                    )), None
-                )
-
-                if needs_custom_config:
-                    """
-                    we couldn't find a custom configuration, let's try making a new one
-                    add the price we're switching into to the list of prices that allow subscription updates
-                    """
-                    new_products = [
-                        {
-                            'prices': [price.id],
-                            'product': price.product.id,
-                        },
-                    ]
-                    current_config['features']['subscription_update']['products'] = new_products
-                    current_config['features']['subscription_update']['default_allowed_updates'] = ['quantity', 'price']
-                    # create the billing configuration on Stripe, so it's ready when we send the customer to check out
-                    current_config = stripe.billing_portal.Configuration.create(
-                        api_key=djstripe_settings.STRIPE_SECRET_KEY,
-                        business_profile=current_config['business_profile'],
-                        features=current_config['features'],
-                        metadata={
-                            'portal_price': price.id,
-                        }
-                    )
 
             portal_kwargs = {
-                'configuration': current_config['id'],
                 'flow_data': {
                     'type': 'subscription_update_confirm',
                     'subscription_update_confirm': {
                         'items': [
                             {
                                 'id': customer['subscriptions__items__id'],
-                                'quantity': quantity,
-                                'price': price.id,
+                                'quantity': 1,
+                                'price': requested_price.id,
                             },
                         ],
                         'subscription': customer['subscriptions__id'],
@@ -480,11 +468,34 @@ class CustomerPortalView(APIView):
                     'after_completion': {
                         'type': 'redirect',
                         'redirect': {
-                            'return_url': return_url + f'?checkout={price.id}',
+                            'return_url': return_url
+                            + f'?checkout={requested_price.id}',
                         },
                     },
                 },
             }
+
+        all_configs = stripe.billing_portal.Configuration.list(
+            active=True,
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            limit=100,
+        )
+        config = next(
+            (
+                config
+                for config in all_configs
+                if (config['metadata'].get('slug', '') == relevant_config_slug)
+            ),
+            None,
+        )
+
+        if not config:
+            return Response(
+                {'error': 'Missing Stripe billing configuration.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        portal_kwargs['configuration'] = config
 
         stripe_response = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
@@ -498,13 +509,11 @@ class CustomerPortalView(APIView):
         serializer = CustomerPortalSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         organization_id = serializer.validated_data.get('organization_id', None)
-        quantity = serializer.validated_data.get('quantity', None)
         price = serializer.validated_data.get('price_id', None)
         response = self.generate_portal_link(
             user=request.user,
             organization_id=organization_id,
-            price=price,
-            quantity=quantity,
+            requested_price=price,
         )
         return response
 
