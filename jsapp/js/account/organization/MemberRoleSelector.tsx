@@ -48,6 +48,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
       <LoadingOverlay visible={orgMembersPatch.isPending || orgInvitesPatch.isPending} />
       <Select
         size='sm'
+        searchable={false} // too little options
         data={[
           {
             value: InviteeRoleEnum.admin,
