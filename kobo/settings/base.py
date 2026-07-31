@@ -1589,12 +1589,34 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    # DISABLED - OOM KILLS POSTGRES; CAUSES SEVERE LOCK CONTENTION
+    #
+    # Robot says:
+    #
+    #    `WHERE (A AND range1) OR (B AND range2) OR ...` with hundreds of
+    #    clauses forces the planner into either a giant seq scan or a huge
+    #    number of index-scan branches unioned together (bitmap-or), each
+    #    contributing its own work_mem-sized state, which is exactly the memory
+    #    blowup Datadog saw.
+
+    #    **The actually-correct pattern for "many rows, each with a different
+    #    per-row filter condition"**: build a `VALUES (user_id, start, end),
+    #    (user_id, start, end), ...` list and join it against the table — `JOIN
+    #    (VALUES ...) v(user_id, start, end) ON t.user_id = v.user_id AND t.date
+    #    BETWEEN v.start AND v.end`. This still gets you one round trip and lets
+    #    Postgres treat it as a proper join (hash or index join) rather than
+    #    expanding into hundreds of OR branches — same result, dramatically less
+    #    planning/execution memory.
+    #
+    #
     # Schedule every 15 minutes
-    'refresh-user-report-snapshot': {
-        'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
-        'schedule': crontab(minute='*/15'),
-        'options': {'queue': 'kpi_long_running_tasks_queue'},
-    },
+    # 'refresh-user-report-snapshot': {
+    #     'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
+    #     'schedule': crontab(minute='*/15'),
+    #     'options': {'queue': 'kpi_long_running_tasks_queue'},
+    # },
+    #
+
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
