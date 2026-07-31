@@ -53,11 +53,11 @@ export default function SingleProcessingContent({
     // Passes mantine props from renderRoot
     return (props: Record<string, unknown>) => (
       <Link
+        {...props}
         to={getTabRoutePath(route)}
         onClick={() => {
           safeExecute(() => goToTabRoute(route))
         }}
-        {...props}
       />
     )
   }
