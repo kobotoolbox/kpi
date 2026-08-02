@@ -24,49 +24,6 @@ from kobo.apps.stripe.utils.subscription_limits import (
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
-def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
-    query = UserProfile.objects.values('user_id', 'attachment_storage_bytes')
-    if user_ids is not None:
-        query = query.filter(user_id__in=user_ids)
-    else:
-        query = query.exclude(user_id=settings.ANONYMOUS_USER_ID)
-
-    return {res['user_id']: res['attachment_storage_bytes'] for res in query.iterator()}
-
-
-def _as_date(value):
-    # Billing bounds are tz-aware datetimes; `date` is a DateField, so
-    # normalize to a date for grouping users into shared query windows below.
-    return value.date() if isinstance(value, datetime) else value
-
-
-def get_submission_counts_in_date_range_by_user_id(
-    date_ranges_by_user,
-) -> dict[int, int]:
-    # OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause per user
-    # forces the planner into a bitmap-or of one index scan per clause (DB-server
-    # OOM seen on EU, DEV-2567). Group users by their distinct window instead and
-    # run one narrow query per window: most orgs share the default monthly
-    # window, so there are only a handful of distinct windows even at full scale.
-    windows = defaultdict(list)
-    for user_id, date_range in date_ranges_by_user.items():
-        key = (_as_date(date_range['start']), _as_date(date_range['end']))
-        windows[key].append(user_id)
-
-    results = {}
-    for (start, end), user_ids in windows.items():
-        rows = (
-            DailyXFormSubmissionCounter.objects.filter(
-                user_id__in=user_ids, date__range=[start, end]
-            )
-            .values('user_id')
-            .annotate(total=Coalesce(Sum('counter'), 0))
-        )
-        for row in rows:
-            results[row['user_id']] = row['total']
-    return results
-
-
 def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
     if limit == inf:
         return None
@@ -82,7 +39,9 @@ def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
 
 
 @requires_stripe
-def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
+def get_nlp_usage_for_current_billing_period_by_user_id(
+    **kwargs,
+) -> dict[int, NLPUsage]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
         org_vals['id']: org_vals['owner__organization_user__user__id']
@@ -95,19 +54,11 @@ def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int,
         for org_id, dates in current_billing_dates_by_org.items()
         if org_id in owner_by_org
     }
-    return get_submission_counts_in_date_range_by_user_id(
-        current_billing_dates_by_owner
-    )
+    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
 
 
 def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLPUsage]:
-    # Same fix as get_submission_counts_in_date_range_by_user_id: group users by
-    # their distinct window and run one narrow query per window instead of one
-    # giant OR-chain across every user (DEV-2567).
-    windows = defaultdict(list)
-    for user_id, date_range in date_ranges_by_user.items():
-        key = (_as_date(date_range['start']), _as_date(date_range['end']))
-        windows[key].append(user_id)
+    windows = group_user_ids_by_date_range(date_ranges_by_user)
 
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
 
@@ -146,10 +97,37 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     return results
 
 
+def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
+    query = UserProfile.objects.values('user_id', 'attachment_storage_bytes')
+    if user_ids is not None:
+        query = query.filter(user_id__in=user_ids)
+    else:
+        query = query.exclude(user_id=settings.ANONYMOUS_USER_ID)
+
+    return {res['user_id']: res['attachment_storage_bytes'] for res in query.iterator()}
+
+
+def get_submission_counts_in_date_range_by_user_id(
+    date_ranges_by_user,
+) -> dict[int, int]:
+    windows = group_user_ids_by_date_range(date_ranges_by_user)
+
+    results = {}
+    for (start, end), user_ids in windows.items():
+        rows = (
+            DailyXFormSubmissionCounter.objects.filter(
+                user_id__in=user_ids, date__range=[start, end]
+            )
+            .values('user_id')
+            .annotate(total=Coalesce(Sum('counter'), 0))
+        )
+        for row in rows:
+            results[row['user_id']] = row['total']
+    return results
+
+
 @requires_stripe
-def get_nlp_usage_for_current_billing_period_by_user_id(
-    **kwargs,
-) -> dict[int, NLPUsage]:
+def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
         org_vals['id']: org_vals['owner__organization_user__user__id']
@@ -162,7 +140,35 @@ def get_nlp_usage_for_current_billing_period_by_user_id(
         for org_id, dates in current_billing_dates_by_org.items()
         if org_id in owner_by_org
     }
-    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
+    return get_submission_counts_in_date_range_by_user_id(
+        current_billing_dates_by_owner
+    )
+
+
+def group_user_ids_by_date_range(date_ranges_by_user) -> dict[tuple, list[int]]:
+    """
+    Group user ids sharing the same (start, end) billing window.
+
+    OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause per user
+    forces the planner into a bitmap-or of one index scan per clause, each
+    holding its own work_mem-sized state (the DB-server OOM seen on EU,
+    DEV-2567). Grouping users by their distinct window lets callers run one
+    narrow `user_id__in=...` query per window instead: most orgs share the
+    default monthly window, so there are only a handful of distinct windows
+    even at full scale.
+    """
+    windows = defaultdict(list)
+    for user_id, date_range in date_ranges_by_user.items():
+        if date_range.get('start') and date_range.get('end'):
+            key = (_as_date(date_range['start']), _as_date(date_range['end']))
+            windows[key].append(user_id)
+    return windows
+
+
+def _as_date(value):
+    # Billing bounds are tz-aware datetimes; `date` is a DateField, so
+    # normalize to a date for grouping users into shared query windows below.
+    return value.date() if isinstance(value, datetime) else value
 
 
 class ServiceUsageCalculator(CachedClass):
