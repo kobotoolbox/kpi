@@ -1,3 +1,4 @@
+import DocumentTitle from 'react-document-title'
 import type { AssetResponse } from '#/dataInterface'
 import { DataTable } from './table'
 import { useDataTableBulkActions } from './useDataTableBulkActions'
@@ -15,12 +16,16 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
     props.asset.uid,
   )
 
+  const docTitle = props.asset.name || t('Untitled')
+
   return (
-    <DataTable
-      asset={props.asset}
-      activeBulkActions={activeBulkActions}
-      hasActiveBulkActionsCreatedByCurrentUser={hasActiveBulkActionsCreatedByCurrentUser}
-      currentUsername={currentUsername}
-    />
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DataTable
+        asset={props.asset}
+        activeBulkActions={activeBulkActions}
+        hasActiveBulkActionsCreatedByCurrentUser={hasActiveBulkActionsCreatedByCurrentUser}
+        currentUsername={currentUsername}
+      />
+    </DocumentTitle>
   )
 }
