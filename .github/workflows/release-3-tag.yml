@@ -224,7 +224,8 @@ jobs:
       version: ${{ needs.version.outputs.current_patch }}
 
 
-  # Build the Docker image from the tagged commit and push to GHCR.
+  # Build and publish Docker image to Docker Hub.
+  # Replicates: kobo-deployments/fabfile/docker_utils.py::publish_docker_image()
   build-image:
     runs-on: ubuntu-24.04
     needs:
@@ -233,53 +234,63 @@ jobs:
     if: ${{ !cancelled() && !failure() }}
     permissions:
       contents: write   # needed for tag deletion on failure
-      packages: write   # needed for GHCR push
     env:
-      CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
+      DOCKER_HUB_REPO: kobotoolbox/kpi
     steps:
     - uses: actions/checkout@v6
       with:
         ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 1
 
-    - name: Log in to GitHub Container Registry
+    - name: Log in to Docker Hub
       uses: docker/login-action@v4
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push image
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
         set -xe
-        # Pull previous release branch image for cache (best-effort, speeds up builds).
-        BRANCH_TAG=$(echo "${{ needs.version.outputs.current_branch }}" | tr '/' '-')
-        docker pull "$CI_REGISTRY_IMAGE:$BRANCH_TAG" || true
-        # Build the production image tagged with the version
-        docker build \
-          --cache-from "$CI_REGISTRY_IMAGE:$BRANCH_TAG" \
-          --tag "$CI_REGISTRY_IMAGE:$VERSION" \
-          .
-        # Verify the image contains the expected commit
-        EXPECTED_SHA=$(git rev-parse HEAD)
-        IMAGE_SHA=$(docker run --rm "$CI_REGISTRY_IMAGE:$VERSION" bash -c \
-          "cd /srv/src/kpi && git rev-parse --verify HEAD 2>/dev/null || cat .commit_sha 2>/dev/null || echo unknown")
-        if [ "$IMAGE_SHA" != "unknown" ] && [ "$IMAGE_SHA" != "$EXPECTED_SHA" ]; then
-          echo "::error::Image contains commit $IMAGE_SHA but expected $EXPECTED_SHA"
+        IMAGE_NAME="${DOCKER_HUB_REPO}:${VERSION}"
+
+        # docker_utils.py:104 — get expected hash from cloned tag
+        EXPECTED_HASH=$(git rev-parse --verify HEAD)
+
+        # docker_utils.py:106-109 — idempotency: skip build if image already has correct hash
+        HASH_INSIDE_IMAGE=$(docker run --rm "$IMAGE_NAME" bash -c \
+          'cd "." && git rev-parse --verify HEAD || gosu $(stat --format=%u .) git rev-parse --verify HEAD' \
+          2>/dev/null || echo "")
+        if [[ "$HASH_INSIDE_IMAGE" == "$EXPECTED_HASH" ]]; then
+          echo "::notice::Image $IMAGE_NAME already contains the expected commit. Skipping build."
+          exit 0
+        fi
+
+        # docker_utils.py:54-57,114-115 — pull fresh base images
+        grep -i '^FROM ' Dockerfile | awk '{print $2}' | while read -r base_image; do
+          docker pull "$base_image"
+        done
+
+        # docker_utils.py:117 — build the image
+        docker build --progress plain -t "$IMAGE_NAME" .
+
+        # docker_utils.py:119-127 — verify built image contains expected hash
+        HASH_INSIDE_IMAGE=$(docker run --rm "$IMAGE_NAME" bash -c \
+          'cd "." && git rev-parse --verify HEAD || gosu $(stat --format=%u .) git rev-parse --verify HEAD')
+        if [[ "$HASH_INSIDE_IMAGE" != "$EXPECTED_HASH" ]]; then
+          echo "::error::Image contains commit $HASH_INSIDE_IMAGE but expected $EXPECTED_HASH"
           exit 1
         fi
-        # Push the image to GHCR
-        docker push "$CI_REGISTRY_IMAGE:$VERSION"
+
+        # docker_utils.py:129 — push to Docker Hub
+        docker push "$IMAGE_NAME"
 
     # On failure, delete the remote tag so the workflow can be re-run.
     - name: "Rollback: delete tag on failure"
       if: failure()
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # Uses the GitHub API because `git tag -d` only deletes locally and
-      # `git push --delete` would require push credentials in this step.
       run: |
         echo "::warning::Image build failed. Deleting tag so the workflow can be re-run to retry."
         gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ needs.version.outputs.current_patch }}" || true
@@ -464,7 +475,7 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":label: `${{ needs.version.outputs.current_patch }}` tagged, image built and pushed to GHCR. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
+      content: ":label: `${{ needs.version.outputs.current_patch }}` tagged, image built and pushed to Docker Hub. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
 
 
   on-failure:
