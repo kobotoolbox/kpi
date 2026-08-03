@@ -173,12 +173,34 @@ jobs:
         fi
 
 
+  # Set Linear release status to 'Released'
+  linear:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
+    if: ${{ !cancelled() && !failure() }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: complete
+        release_version: ${{ inputs.tag }}
+
+
   notify:
     needs:
       - version
       - github-release-kpi
       - github-release-kobo-docker
       - github-release-kobo-install
+      - linear
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -194,6 +216,7 @@ jobs:
       - github-release-kpi
       - github-release-kobo-docker
       - github-release-kobo-install
+      - linear
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'

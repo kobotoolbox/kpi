@@ -63,10 +63,36 @@ jobs:
         git push origin $NEW_BRANCH
 
 
-  notify-current:
+  # Create Linear release and link issues from commits unique to this branch.
+  # Uses prev branch tip (not prev tag) so commits to be released as patches on
+  # the previous minor are excluded.
+  linear:
     needs:
       - version
       - create-current-branch
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        release_version: ${{ needs.version.outputs.current_minor }}
+        base_ref: origin/${{ needs.version.outputs.prev_branch }}
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_minor }}
+        stage: "Pending QA"
+
+
+  notify-current:
+    needs:
+      - version
+      - linear
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -98,6 +124,7 @@ jobs:
       - current-branch
       - version
       - create-current-branch
+      - linear
       - notify-prev
       - notify-current
     if: ${{ failure() }}

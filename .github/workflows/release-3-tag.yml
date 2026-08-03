@@ -396,6 +396,36 @@ jobs:
         fi
 
 
+  linear:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - bump
+    if: ${{ !cancelled() && !failure() }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+        fetch-depth: 0
+        fetch-tags: true
+
+    # Final sync from prev_patch catches any unreleased commits from the prev
+    # branch that were merged forward (the stabilize workflow uses branch tip
+    # which excludes these).
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        release_version: ${{ needs.version.outputs.current_patch }}
+        base_ref: ${{ needs.version.outputs.prev_patch }}
+
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_patch }}
+        stage: "Pending Release (preview on kf.master)"
+
+
   # Create deployment Linear issue
   # TODO
 
@@ -404,7 +434,7 @@ jobs:
     needs:
       - version
       - changelog
-      - bump
+      - linear
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -422,6 +452,7 @@ jobs:
       - changelog
       - build-image
       - bump
+      - linear
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
