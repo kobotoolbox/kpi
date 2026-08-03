@@ -10,6 +10,7 @@ import simplejson as json
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.client import Client
@@ -35,6 +36,7 @@ from kobo.apps.openrosa.libs.utils import logger_tools
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
+    check_submission_permissions,
 )
 from kobo.apps.organizations.constants import UsageType
 from kpi.constants import PERM_ADD_SUBMISSIONS
@@ -1142,3 +1144,58 @@ def submit_data(identifier, survey_, username_, live_server_url, token_):
                 headers=headers
             )
             return response.status_code
+
+
+class TestSuperuserSubmissionRestriction(TestAbstractViewSet):
+    """
+    Superusers are blocked from submitting data by default (DEV-32). The guard
+    lives in `check_submission_permissions`, the single chokepoint every
+    submission path goes through, so it is exercised directly here.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.publish_xls_form()
+        self.superuser = User.objects.create_superuser(
+            'superadmin', 'superadmin@example.com', 'superadmin'
+        )
+
+    def _request_for(self, user):
+        request = self.factory.post('/submission')
+        request.user = user
+        return request
+
+    def test_superuser_blocked_by_default(self):
+        # `require_auth` form: the superuser guard must fire before the usual
+        # owner/permission checks.
+        with self.assertRaises(PermissionDenied):
+            check_submission_permissions(self._request_for(self.superuser), self.xform)
+
+    def test_superuser_blocked_on_anonymous_form(self):
+        # Even forms that accept anonymous submissions must reject superusers,
+        # which is why the guard sits before the `require_auth` early-return.
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        with self.assertRaises(PermissionDenied):
+            check_submission_permissions(self._request_for(self.superuser), self.xform)
+
+    @override_settings(ALLOW_SUPERUSER_SUBMISSIONS=True)
+    def test_superuser_allowed_when_opted_in(self):
+        # With the opt-in flag on, the superuser guard no longer raises. Use an
+        # anonymous-submission form so no later owner/permission check trips.
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        # Should not raise.
+        check_submission_permissions(self._request_for(self.superuser), self.xform)
+
+    def test_regular_user_not_blocked(self):
+        # A non-superuser owner submitting to their own form is unaffected.
+        check_submission_permissions(self._request_for(self.user), self.xform)
+
+    def test_anonymous_submission_still_allowed(self):
+        # Anonymous submissions to public forms keep working.
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        check_submission_permissions(
+            self._request_for(AnonymousUser()), self.xform
+        )
