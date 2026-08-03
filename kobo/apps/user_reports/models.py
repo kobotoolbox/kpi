@@ -45,6 +45,7 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
     storage_bytes_limit = models.BigIntegerField(null=True, blank=True)
     asr_seconds_limit = models.BigIntegerField(null=True, blank=True)
     mt_characters_limit = models.BigIntegerField(null=True, blank=True)
+    llm_requests_limit = models.BigIntegerField(null=True, blank=True)
 
     class Meta:
         indexes = [
