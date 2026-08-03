@@ -1,12 +1,12 @@
-from collections import defaultdict
-from datetime import datetime
-
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
 from kobo.apps.organizations.models import Organization
-from kpi.utils.usage_calculator import get_storage_usage_by_user_id
+from kpi.utils.usage_calculator import (
+    get_storage_usage_by_user_id,
+    group_user_ids_by_date_range,
+)
 from ..typing_aliases import OrganizationIterator
 
 
@@ -55,12 +55,6 @@ class BillingAndUsageCalculator:
         except AttributeError:
             return None
 
-    @staticmethod
-    def _as_date(value):
-        # Billing bounds are tz-aware datetimes; `date` is a DateField, so
-        # normalize to a date for the Python-side window comparison below.
-        return value.date() if isinstance(value, datetime) else value
-
     def _get_submission_usage_batch(self, user_ids, date_ranges_by_user):
         if not user_ids:
             return {}
@@ -77,21 +71,7 @@ class BillingAndUsageCalculator:
         )
         all_time = {r['user_id']: r['total'] for r in rows}
 
-        # Get current-period submission counts. Each user has its own billing
-        # window. OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause
-        # per user forced the planner into a bitmap-or of one index scan per
-        # clause, each holding its own work_mem-sized state (the DB-server OOM
-        # seen on EU, DEV-2567). Group users by their distinct window instead and
-        # run one narrow query per window: ~90% of orgs share the default monthly
-        # window and windows key on day-of-month, so a chunk has only a few dozen
-        # distinct windows. Each query stays date-range-narrow (one annual plan
-        # can't widen the scan for the whole chunk) and aggregates in SQL,
-        # returning one row per user.
-        windows = defaultdict(list)
-        for uid, dr in date_ranges_by_user.items():
-            if dr.get('start') and dr.get('end'):
-                key = (self._as_date(dr['start']), self._as_date(dr['end']))
-                windows[key].append(uid)
+        windows = group_user_ids_by_date_range(date_ranges_by_user)
 
         current = {}
         for (start, end), uids in windows.items():
