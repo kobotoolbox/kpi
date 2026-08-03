@@ -28,11 +28,6 @@ jobs:
   changelog:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.ref }}
-        fetch-depth: 0
-        fetch-tags: true
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets['client-id'] }}
