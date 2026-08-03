@@ -153,6 +153,9 @@ jobs:
       - version
       - tests
     runs-on: ubuntu-24.04
+    outputs:
+      new_migrations: ${{ steps.detect-migrations.outputs.new_migrations }}
+      conflict: ${{ steps.merge.outputs.conflict }}
     steps:
 
     - uses: actions/checkout@v6
@@ -161,15 +164,99 @@ jobs:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: Merge
+    - name: Attempt merge
+      id: merge
       env:
         current_branch: ${{ needs.version.outputs.current_branch }}
         next_branch: ${{ needs.version.outputs.next_branch }}
       run: |
+        set -xe
+        git fetch origin "$next_branch"
         git checkout "$next_branch"
-        echo 'TODO: squash migrations, if any'
-        git merge --no-ff "$current_branch"
-        git push
+        if ! git merge --no-ff "$current_branch"; then
+          echo "::warning::Merge conflict detected."
+          git merge --abort
+          echo "conflict=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Create conflict PR
+      if: steps.merge.outputs.conflict == 'true'
+      env:
+        current_branch: ${{ needs.version.outputs.current_branch }}
+        next_branch: ${{ needs.version.outputs.next_branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -xe
+        MERGE_BRANCH="merge-forward/${current_branch##*/}-to-${next_branch##*/}"
+        git checkout -B "$MERGE_BRANCH" "$current_branch"
+        git push -f origin "$MERGE_BRANCH"
+
+        PR_BODY_FILE=$(mktemp)
+        {
+          echo "### 🗒️ Checklist"
+          echo ""
+          echo "1. [ ] locally resolve merge conflicts, check migrations and run CI (see instructions below)"
+          echo "2. [ ] push directly to \`$next_branch\` (do NOT use GitHub merge button)"
+          echo ""
+          echo "### 💭 Notes"
+          echo ""
+          echo "Automated merge forward from \`$current_branch\` to \`$next_branch\` failed due to conflicts."
+          echo "This PR exists only as a notification — do **not** merge it via GitHub UI."
+          echo ""
+          echo "Perform the merge locally to produce a single merge commit:"
+          echo "\`\`\`bash"
+          echo "git fetch origin $next_branch $current_branch"
+          echo "git checkout $next_branch"
+          echo "git merge --no-ff origin/$current_branch"
+          echo ""
+          echo "# 1. resolve conflicts"
+          echo ""
+          echo "# 2. check for new Django migrations — squash if needed"
+          echo ""
+          echo "# 3. run CI locally"
+          echo "cd kobo-install"
+          echo "./run.py"
+          echo "./run.py -cf exec kpi ./scripts/ci_locally.sh"
+          echo ""
+          echo "git add -A"
+          echo "git commit"
+          echo "git push origin $next_branch"
+          echo "\`\`\`"
+          echo ""
+          echo "GitHub will auto-close this PR once \`$next_branch\` contains the merge."
+        } > "$PR_BODY_FILE"
+
+        EXISTING_PR=$(gh pr list --base "$next_branch" --head "$MERGE_BRANCH" --state open --json number --jq '.[0].number // empty')
+        if [[ -z "$EXISTING_PR" ]]; then
+          gh pr create \
+            --base "$next_branch" \
+            --head "$MERGE_BRANCH" \
+            --title "chore(release): merge forward $current_branch → $next_branch (conflicts)" \
+            --body-file "$PR_BODY_FILE"
+        else
+          gh pr edit "$EXISTING_PR" --body-file "$PR_BODY_FILE"
+          echo "::notice::PR #$EXISTING_PR updated with latest branch state."
+        fi
+
+    - name: Detect new migrations
+      id: detect-migrations
+      if: steps.merge.outputs.conflict != 'true'
+      env:
+        next_branch: ${{ needs.version.outputs.next_branch }}
+      run: |
+        NEW_MIGRATIONS=$(git diff --name-only "origin/$next_branch"..HEAD -- '*/migrations/*.py' \
+          | grep -v '__init__.py' || true)
+        if [[ -n "$NEW_MIGRATIONS" ]]; then
+          echo "::warning::New Django migrations detected in merge-forward."
+          echo "$NEW_MIGRATIONS"
+          echo "new_migrations<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NEW_MIGRATIONS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Push
+      if: steps.merge.outputs.conflict != 'true'
+      run: git push
 
 
   notify-success:
@@ -213,7 +300,11 @@ jobs:
             && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: merged forward skipped due failed automated tests.'
-              || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
+              || needs.merge-forward.outputs.conflict == 'true'
+                && format(':warning: merge forward to `{0}` has conflicts — PR created for manual resolution', needs.version.outputs.next_branch)
+                || needs.merge-forward.outputs.new_migrations != ''
+                  && format(':check: merged forward into `{0}` — ⚠️ **new migrations detected, review manually:** ```{1}```', needs.version.outputs.next_branch, needs.merge-forward.outputs.new_migrations)
+                  || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
           }}
         - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
