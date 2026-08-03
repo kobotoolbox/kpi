@@ -14,11 +14,6 @@
   margin-bottom: 30px;
 }
 
-// `.modal` has it's own padding, we don't need it
-.projectDetails:not(.modal) {
-  padding: 40px;
-}
-
 .projectDetails .inputWrapper {
   display: flex;
   flex-flow: row wrap;

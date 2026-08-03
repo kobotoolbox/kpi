@@ -107,7 +107,7 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
         type='secondary'
         size='s'
         startIcon='user-share'
-        onClick={() => manageAssetSharing(asset.uid)}
+        onClick={() => manageAssetSharing(asset)}
         tooltip={t('Share project')}
         tooltipPosition='right'
       />
