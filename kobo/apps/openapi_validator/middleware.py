@@ -27,7 +27,11 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
     def __init__(self, get_response=None):
         super().__init__(get_response)
-        if not settings.OPENAPI_VALIDATION:
+        # Test settings only. Validating live traffic would cost a schema
+        # validation per request and turn any bug in here into a 500, for no
+        # benefit the test suite does not already provide. Enabling it on a
+        # deployed environment is DEV-1740's follow-up, not this PoC.
+        if not (settings.TESTING and settings.OPENAPI_VALIDATION):
             # Remove the middleware from the chain entirely when disabled
             raise MiddlewareNotUsed
         self.schema = self._load_schema()

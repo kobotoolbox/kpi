@@ -8,7 +8,7 @@ This middleware validates API requests and responses against the OpenAPI schema 
 
 The OpenAPI validation system supports:
 
-- Runtime validation of requests and responses
+- Validation of requests and responses, under the test settings only
 - Strict test enforcement
 - Automated whitelist generation for known acceptable deviations
 
@@ -59,10 +59,17 @@ ticket; do not treat their absence as "checked and fine":
 
 #### Notes
 
-This setting can be controlled through an environment variable `OPENAPI_VALIDATION` as a boolean.
+⚠️ Test settings only. The middleware raises `MiddlewareNotUsed` unless
+`settings.TESTING` is true, so it cannot load on a deployed environment even if
+`OPENAPI_VALIDATION` is set — Django then drops it from the stack entirely and
+it costs nothing.
 
-It can be useful in production to detect undocumented or untested API behaviours.
-However, enabling validation may introduce performance overhead.
+Running it against live traffic would mean a schema validation on every
+documented JSON request and response, would turn any bug in the middleware into
+a 500, and would report the known mismatches below on every hit. Enabling it on
+a deployed environment needs its own design (which environments, sampling, how
+to keep known mismatches out of the alerting) and is deliberately left to a
+follow-up ticket.
 
 ---
 
@@ -141,9 +148,11 @@ the mismatches that survive the serial re-run are real.
 **Step 2 — Regenerate the constant**
 
 ```python
-from kobo.apps.openapi_validator.scripts.generate_constants import run
+from kobo.apps.openapi_validator.scripts.generate_constants import (
+    regenerate_known_mismatches,
+)
 
-run(
+regenerate_known_mismatches(
     'kobo/apps/openapi_validator/scripts/openapi_errors.csv',
     'kobo/apps/openapi_validator/constants.py',
 )
@@ -164,9 +173,6 @@ OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
 
 ## Performance Considerations
 
-OpenAPI validation adds schema resolution and JSON validation overhead.
-
-It is recommended to:
-
-- Keep validation enabled in development and testing
-- Enable selectively in production only when diagnosing API inconsistencies
+OpenAPI validation adds schema resolution and JSON validation overhead, which
+is why it is confined to the test settings. Deployed environments never load
+the middleware, so they pay nothing.

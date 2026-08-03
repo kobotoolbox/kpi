@@ -5,9 +5,11 @@ middleware when OPENAPI_VALIDATION_BUILD_WHITELIST_LOG is enabled.
 Run with `./manage.py shell`
 
 ```python
-from kobo.apps.openapi_validator.scripts.generate_constants import run
+from kobo.apps.openapi_validator.scripts.generate_constants import (
+    regenerate_known_mismatches,
+)
 
-run(
+regenerate_known_mismatches(
     'kobo/apps/openapi_validator/scripts/openapi_errors.csv',
     'kobo/apps/openapi_validator/constants.py',
 )
@@ -103,7 +105,9 @@ def write_constants(py_path: str, triples: set[tuple[str, str, str]]) -> None:
         f.write(format_source('\n'.join(lines) + '\n'))
 
 
-def run(csv_path: str, out_path: str, resolve: bool = True) -> None:
+def regenerate_known_mismatches(
+    csv_path: str, out_path: str, resolve: bool = True
+) -> None:
     found = read_triples(csv_path, resolve=resolve)
     new = found - set(OPENAPI_KNOWN_MISMATCHES)
     write_constants(out_path, set(OPENAPI_KNOWN_MISMATCHES) | found)

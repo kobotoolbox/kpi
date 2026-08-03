@@ -1,7 +1,23 @@
+from django.core.exceptions import MiddlewareNotUsed
 from django.http import HttpResponse, JsonResponse
 from django.test import RequestFactory, TestCase, override_settings
 
 from kobo.apps.openapi_validator.middleware import OpenAPIValidationMiddleware
+
+
+class OpenAPIValidationMiddlewareLoadTestCase(TestCase):
+
+    @override_settings(TESTING=False, OPENAPI_VALIDATION=True)
+    def test_refuses_to_load_outside_test_settings(self):
+        # Django drops the middleware from the stack on MiddlewareNotUsed, so
+        # a deployed environment never runs it whatever OPENAPI_VALIDATION says
+        with self.assertRaises(MiddlewareNotUsed):
+            OpenAPIValidationMiddleware(lambda request: HttpResponse())
+
+    @override_settings(TESTING=True, OPENAPI_VALIDATION=False)
+    def test_refuses_to_load_when_disabled(self):
+        with self.assertRaises(MiddlewareNotUsed):
+            OpenAPIValidationMiddleware(lambda request: HttpResponse())
 
 
 @override_settings(OPENAPI_VALIDATION_STRICT=False)
