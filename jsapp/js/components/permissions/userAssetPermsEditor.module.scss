@@ -10,10 +10,6 @@
   &:not(:last-child) {
     margin-bottom: 10px;
   }
-
-  &.rowUsername {
-    width: calc(100% - 32px);
-  }
 }
 
 .subRow {
