@@ -49,5 +49,5 @@ runs:
   - uses: actions/checkout@v6
     with:
       token: ${{ steps.app-token.outputs.token }}
-      ref: ${{ inputs.ref || github.ref }}
+      ref: ${{ inputs.ref }}
       fetch-depth: "0"
