@@ -6,6 +6,9 @@ inputs:
     required: true
   private-key:
     required: true
+  ref:
+    description: 'Git ref to checkout (default: current ref)'
+    required: false
   owner:
     description: 'GitHub organization for cross-repo token scope (optional)'
     required: false
@@ -46,4 +49,5 @@ runs:
   - uses: actions/checkout@v5
     with:
       token: ${{ steps.app-token.outputs.token }}
+      ref: ${{ inputs.ref || github.ref }}
       fetch-depth: "0"

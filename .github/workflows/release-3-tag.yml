@@ -202,9 +202,15 @@ jobs:
         VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
         set -xe
-        # Check if tag already exists (idempotent)
+        # Idempotent: if tag exists at the correct commit, skip (allows rerun)
         if git rev-parse "refs/tags/$VERSION" &>/dev/null; then
-          echo "::error::Tag '$VERSION' already exists. If retrying, delete it first."
+          TAG_SHA=$(git rev-parse "refs/tags/$VERSION^{commit}")
+          HEAD_SHA=$(git rev-parse HEAD)
+          if [[ "$TAG_SHA" == "$HEAD_SHA" ]]; then
+            echo "::notice::Tag '$VERSION' already exists at correct commit. Skipping."
+            exit 0
+          fi
+          echo "::error::Tag '$VERSION' exists but points to wrong commit ($TAG_SHA, expected $HEAD_SHA). Delete it manually to retry."
           exit 1
         fi
         git tag -a "$VERSION" -m "Release $VERSION"

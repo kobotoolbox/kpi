@@ -184,6 +184,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       new_migrations: ${{ steps.merge-forward.outputs.new_migrations }}
+      conflict: ${{ steps.merge-forward.outputs.conflict }}
     steps:
 
     - uses: actions/checkout@v6
@@ -259,6 +260,7 @@ jobs:
             gh pr edit "$EXISTING_PR" --body "$PR_BODY"
             echo "::notice::PR #$EXISTING_PR updated with latest branch state."
           fi
+          echo "conflict=true" >> $GITHUB_OUTPUT
           exit 0
         fi
 
@@ -320,9 +322,11 @@ jobs:
             && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: merged forward skipped due failed automated tests.'
-              || needs.merge-forward.outputs.new_migrations != ''
-                && format(':check: merged forward into `{0}` — ⚠️ **new migrations detected, review manually:** ```{1}```', needs.version.outputs.next_branch, needs.merge-forward.outputs.new_migrations)
-                || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
+              || needs.merge-forward.outputs.conflict == 'true'
+                && format(':warning: merge forward to `{0}` has conflicts — PR created for manual resolution', needs.version.outputs.next_branch)
+                || needs.merge-forward.outputs.new_migrations != ''
+                  && format(':check: merged forward into `{0}` — ⚠️ **new migrations detected, review manually:** ```{1}```', needs.version.outputs.next_branch, needs.merge-forward.outputs.new_migrations)
+                  || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
           }}
         - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)

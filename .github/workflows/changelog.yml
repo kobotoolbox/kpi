@@ -32,6 +32,7 @@ jobs:
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        ref: ${{ inputs.ref }}
 
     - name: Generate changelog
       run: |

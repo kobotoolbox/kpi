@@ -98,10 +98,14 @@ jobs:
         BODY: ${{ needs.changelog.outputs.body }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create "$VERSION" \
-          --title "$VERSION" \
-          --notes "$BODY" \
-          --verify-tag
+        if gh release view "$VERSION" &>/dev/null; then
+          echo "::notice::Release $VERSION already exists on kpi. Skipping."
+        else
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes "$BODY" \
+            --verify-tag
+        fi
 
 
   # Create GitHub Release on kobo-docker that links back to the kpi release.
@@ -125,12 +129,16 @@ jobs:
         VERSION: ${{ inputs.tag }}
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
-        gh release create "$VERSION" \
-          --repo kobotoolbox/kobo-docker \
-          --title "$VERSION" \
-          --notes "For more information, please see ${KPI_RELEASE_URL}" \
-          --verify-tag
+        if gh release view "$VERSION" --repo kobotoolbox/kobo-docker &>/dev/null; then
+          echo "::notice::Release $VERSION already exists on kobo-docker. Skipping."
+        else
+          KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
+          gh release create "$VERSION" \
+            --repo kobotoolbox/kobo-docker \
+            --title "$VERSION" \
+            --notes "For more information, please see ${KPI_RELEASE_URL}" \
+            --verify-tag
+        fi
 
 
   # Create GitHub Release on kobo-install that links back to the kpi release.
@@ -154,12 +162,16 @@ jobs:
         VERSION: ${{ inputs.tag }}
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
-        gh release create "$VERSION" \
-          --repo kobotoolbox/kobo-install \
-          --title "$VERSION" \
-          --notes "For more information, please see ${KPI_RELEASE_URL}" \
-          --verify-tag
+        if gh release view "$VERSION" --repo kobotoolbox/kobo-install &>/dev/null; then
+          echo "::notice::Release $VERSION already exists on kobo-install. Skipping."
+        else
+          KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
+          gh release create "$VERSION" \
+            --repo kobotoolbox/kobo-install \
+            --title "$VERSION" \
+            --notes "For more information, please see ${KPI_RELEASE_URL}" \
+            --verify-tag
+        fi
 
 
   # Set Linear release status to 'Released'
