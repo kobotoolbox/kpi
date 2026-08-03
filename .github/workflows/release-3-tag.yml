@@ -170,6 +170,8 @@ jobs:
       - pull-transifex
     if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
+    outputs:
+      tag_created: ${{ steps.create-tag.outputs.created }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -198,6 +200,7 @@ jobs:
         fi
 
     - name: Create and push tag
+      id: create-tag
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
@@ -208,6 +211,7 @@ jobs:
           HEAD_SHA=$(git rev-parse HEAD)
           if [[ "$TAG_SHA" == "$HEAD_SHA" ]]; then
             echo "::notice::Tag '$VERSION' already exists at correct commit. Skipping."
+            echo "created=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "::error::Tag '$VERSION' exists but points to wrong commit ($TAG_SHA, expected $HEAD_SHA). Delete it manually to retry."
@@ -215,6 +219,7 @@ jobs:
         fi
         git tag -a "$VERSION" -m "Release $VERSION"
         git push origin "refs/tags/$VERSION"
+        echo "created=true" >> $GITHUB_OUTPUT
 
 
   # Regenerate changelog with all tags known (authoritative, replaces stabilize draft).
@@ -292,9 +297,10 @@ jobs:
         # docker_utils.py:129 — push to Docker Hub
         docker push "$IMAGE_NAME"
 
-    # On failure, delete the remote tag so the workflow can be re-run.
+    # On failure, delete the remote tag so the workflow can be re-run — but only
+    # if this run actually created the tag (don't delete a pre-existing tag).
     - name: "Rollback: delete tag on failure"
-      if: failure()
+      if: failure() && needs.tag.outputs.tag_created == 'true'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
