@@ -154,19 +154,21 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
           <ul>
             {item.data.split(' ').map((answer, answerIndex) => {
               choice = this.findChoice(item.listName, answer)
-              if (choice) {
-                return (
-                  <li key={answerIndex}>
-                    <bem.SubmissionDataTable__value>
-                      {choice.label?.[this.props.translationIndex] || choice.name}
-                    </bem.SubmissionDataTable__value>
-                  </li>
-                )
-              } else {
+              if (!choice) {
+                // Not always a bug: the choice may have been renamed or removed
+                // after this submission came in.
                 console.error(`Choice not found for "${item.listName}" and "${answer}".`)
-                // fallback to raw data to display anything meaningful
-                return answer
               }
+              // Unmatched answers still get their own `<li>` with the raw value,
+              // so the list accounts for everything that was selected. A bare
+              // string here would be invalid markup inside the `<ul>`.
+              return (
+                <li key={answerIndex}>
+                  <bem.SubmissionDataTable__value>
+                    {choice?.label?.[this.props.translationIndex] || answer}
+                  </bem.SubmissionDataTable__value>
+                </li>
+              )
             })}
           </ul>
         )

@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { CellInfo } from 'react-table'
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import type { SubmissionAttachment, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import {
@@ -132,6 +132,26 @@ const videoSubmission = buildMediaSubmission(
   'attachment-video-1',
 )
 
+// Reproduces DEV-2476: choices 'a' and 'b' were renamed to 'A' and 'B', so only
+// the new names exist in the choice list below while the submission still holds
+// the old ones.
+const renamedChoicesQuestion: SurveyRow = {
+  type: QuestionTypeName.select_multiple,
+  $kuid: 'renamedChoicesQuestion',
+  $autoname: 'Favourite_animals',
+  $xpath: 'Favourite_animals',
+  label: ['Favourite animals'],
+  select_from_list_name: 'animals_list',
+}
+
+const renamedChoices: SurveyChoice[] = [
+  { name: 'A', label: ['Whale'], list_name: 'animals_list', $autovalue: 'A', $kuid: 'whaleChoice' },
+  { name: 'B', label: ['Frog'], list_name: 'animals_list', $autovalue: 'B', $kuid: 'frogChoice' },
+  { name: 'c', label: ['Crocodile'], list_name: 'animals_list', $autovalue: 'c', $kuid: 'crocodileChoice' },
+]
+
+const renamedChoicesSubmission = assetDataFactory(1, { Favourite_animals: 'a b c' })
+
 const meta: Meta<typeof DataTableCell> = {
   title: 'Components/DataTableCell',
   component: DataTableCell,
@@ -182,6 +202,42 @@ export const PlainText: Story = {
     docs: {
       description: {
         story: 'Modal opens via Mantine modals; this story is wrapped in ModalsProvider so the expand button works.',
+      },
+    },
+  },
+}
+
+export const SelectMultipleWithRenamedChoices: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(renamedChoicesSubmission, renamedChoicesSubmission.Favourite_animals),
+    columnKey: 'Favourite_animals',
+    question: renamedChoicesQuestion,
+    choices: renamedChoices,
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Two of the selected choices were renamed in a newer form version, so they have no label left to show. The cell falls back to their raw values instead of dropping them, showing "a, b, Crocodile".',
+      },
+    },
+  },
+}
+
+export const SelectMultipleAsXmlValues: Story = {
+  args: {
+    ...SelectMultipleWithRenamedChoices.args,
+    translationIndex: -1,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same data with the "Display XML Values" table setting, which arrives here as a negative translation index. No labels are looked up, so the response shows exactly as stored: "a b c".',
       },
     },
   },
