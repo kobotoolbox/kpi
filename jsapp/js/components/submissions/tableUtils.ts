@@ -590,8 +590,7 @@ export interface SelectResponseLabelOptions {
  *
  * Choices can be renamed in the Form Builder, while old submissions keep the
  * `name` that was current when they came in. Any value that no longer matches a
- * choice is shown raw, because dropping it would imply it was never selected
- * (DEV-2476).
+ * choice is shown raw, because dropping it would imply it was never selected.
  */
 export function getSelectResponseLabel(options: SelectResponseLabelOptions): string {
   const { value, questionType, listName, choices, translationIndex } = options

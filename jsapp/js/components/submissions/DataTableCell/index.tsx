@@ -125,10 +125,6 @@ export default function DataTableCell(props: DataTableCellProps) {
       }
     }
 
-    // Keep both select types on one path. They had separate branches that
-    // drifted apart, and `select_multiple` ended up hiding values it couldn't
-    // map to a label (DEV-2476). With labels off, the raw value falls through to
-    // the default rendering below.
     if (
       shouldShowSelectLabels &&
       (props.question.type === QUESTION_TYPES.select_one.id ||

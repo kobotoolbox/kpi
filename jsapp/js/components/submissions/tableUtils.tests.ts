@@ -76,12 +76,12 @@ describe('tableUtils', () => {
 
   describe('getSelectResponseLabel', () => {
     // The 'animals' list once had choices 'a', 'b' and 'c', then 'a' and 'b'
-    // were renamed to 'A' and 'B'. Only the current names are here, as that's
+    // were renamed to 'a1' and 'b1'. Only the current names are here, as that's
     // all the latest form version gives us, so submissions storing 'a' or 'b'
     // have nothing to match. 'other_list' guards against cross-list matches.
     const animalChoices = [
-      { name: 'A', label: ['Whale', 'Wieloryb'], list_name: 'animals', $autovalue: 'A', $kuid: 'k1' },
-      { name: 'B', label: ['Frog', 'Żaba'], list_name: 'animals', $autovalue: 'B', $kuid: 'k2' },
+      { name: 'a1', label: ['archaeopteryx', 'archaeopteryks'], list_name: 'animals', $autovalue: 'a1', $kuid: 'k1' },
+      { name: 'b1', label: ['badger', 'borsuk'], list_name: 'animals', $autovalue: 'b1', $kuid: 'k2' },
       { name: 'c', label: ['Crocodile', 'Krokodyl'], list_name: 'animals', $autovalue: 'c', $kuid: 'k3' },
       { name: 'a', label: ['Apple'], list_name: 'other_list', $autovalue: 'a', $kuid: 'k4' },
     ] as const satisfies SurveyChoice[]
@@ -97,11 +97,11 @@ describe('tableUtils', () => {
       })
 
     it('should return labels of all selected select_multiple choices', () => {
-      const test = getAnimalsLabel('A B c', QuestionTypeName.select_multiple)
-      chai.expect(test).to.equal('Whale, Frog, Crocodile')
+      const test = getAnimalsLabel('a1 b1 c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, badger, Crocodile')
     })
 
-    // The DEV-2476 bug: unmatched values were omitted, so this returned only
+    // Bug fixed: unmatched values were omitted, so this returned only
     // 'Crocodile' with no hint that two more options were selected.
     it('should fall back to raw values for select_multiple choices missing from the form', () => {
       const test = getAnimalsLabel('a b c', QuestionTypeName.select_multiple)
@@ -111,8 +111,8 @@ describe('tableUtils', () => {
     it('should use labels of given translation for select_multiple', () => {
       // Mixes a matched and an unmatched value, as the fallback should not
       // depend on which translation was asked for.
-      const test = getAnimalsLabel('a B c', QuestionTypeName.select_multiple, 1)
-      chai.expect(test).to.equal('a, Żaba, Krokodyl')
+      const test = getAnimalsLabel('a b1 c', QuestionTypeName.select_multiple, 1)
+      chai.expect(test).to.equal('a, borsuk, Krokodyl')
     })
 
     it('should fall back to raw value when a translation has no label', () => {
@@ -123,8 +123,8 @@ describe('tableUtils', () => {
     })
 
     it('should not produce dangling separators for select_multiple stray whitespace', () => {
-      const test = getAnimalsLabel(' A  c ', QuestionTypeName.select_multiple)
-      chai.expect(test).to.equal('Whale, Crocodile')
+      const test = getAnimalsLabel(' a1  c ', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, Crocodile')
     })
 
     it('should only match choices of the question own list', () => {
