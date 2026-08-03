@@ -63,21 +63,9 @@ jobs:
         git push origin $NEW_BRANCH
 
 
-  changelog:
-    needs:
-      - version
-      - create-current-branch
-    runs-on: ubuntu-24.04
-    steps:
-    - name: create Linear ticket to track a draft of changelog
-      run: |
-        echo 'TODO, for now do it manually'
-
-
   notify-current:
     needs:
       - version
-      - changelog
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -108,7 +96,6 @@ jobs:
       - current-branch
       - version
       - create-current-branch
-      - changelog
       - notify-prev
       - notify-current
     if: ${{ failure() }}
