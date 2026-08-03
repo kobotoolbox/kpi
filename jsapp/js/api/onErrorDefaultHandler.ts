@@ -12,6 +12,14 @@ import { ServerError } from './ServerError'
 export type OrvalFetchError = TypeError | DOMException | ServerError
 
 /**
+ * Shown when neither backend nor browser gave us anything displayable (e.g. a
+ * 500 with no body, or a dropped connection). Raw details still reach the
+ * console, so this is the only string frontend owns - everything else is
+ * backend copy.
+ */
+const getGenericErrorMessage = () => t('An error occurred')
+
+/**
  * Extract a user-facing error message from Orval mutator errors.
  */
 export function getApiErrorMessage(error: OrvalFetchError): string | null {
@@ -96,15 +104,20 @@ export function onErrorDefaultHandler(
     } catch {
       detail = String(error.detail)
     }
-    notify(getApiErrorMessage(error) || String(error), 'error', {}, `${error.name}: ${error.message} | ${detail}`)
+    notify(
+      getApiErrorMessage(error) || getGenericErrorMessage(),
+      'error',
+      {},
+      `${error.name}: ${error.message} | ${detail}`,
+    )
   } else if (error instanceof TypeError) {
-    notify(getApiErrorMessage(error) || String(error), 'error', {}, `${error.name}: ${error.message}`)
+    notify(getApiErrorMessage(error) || getGenericErrorMessage(), 'error', {}, `${error.name}: ${error.message}`)
   } else if (error instanceof DOMException && error.name === 'AbortError') {
     // Don't display error if user aborted the request.
   } else if (error instanceof DOMException && error.name === 'NotAllowedError') {
-    notify(getApiErrorMessage(error) || String(error), 'error', {}, `${error.name}: ${error.message}`)
+    notify(getApiErrorMessage(error) || getGenericErrorMessage(), 'error', {}, `${error.name}: ${error.message}`)
   } else {
-    notify(getApiErrorMessage(error) || String(error), 'error', {}, `${error.name}: ${error.message}`)
+    notify(getApiErrorMessage(error) || getGenericErrorMessage(), 'error', {}, `${error.name}: ${error.message}`)
   }
 
   // Query's `throwOnError` by default returns a false, whereas Mutation's `onError` return nothing.

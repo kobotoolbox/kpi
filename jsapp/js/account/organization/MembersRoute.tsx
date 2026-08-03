@@ -21,7 +21,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
 import envStore from '#/envStore'
-import { formatDate, notify } from '#/utils'
+import { formatDate } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
@@ -49,10 +49,6 @@ export default function MembersRoute() {
       // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
       // here so we don't forget about it.
       refetchOnWindowFocus: true,
-      throwOnError: () => {
-        notify(t('There was an error getting the list.'), 'error') // TODO: update message in backend (DEV-1218).
-        return false
-      },
     },
   })
 
