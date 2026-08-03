@@ -51,3 +51,4 @@ runs:
       token: ${{ steps.app-token.outputs.token }}
       ref: ${{ inputs.ref }}
       fetch-depth: "0"
+      fetch-tags: true

@@ -143,7 +143,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
@@ -187,7 +186,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
