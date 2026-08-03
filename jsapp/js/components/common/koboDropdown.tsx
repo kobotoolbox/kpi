@@ -57,6 +57,10 @@ bem.KoboDropdown__menu = makeBem(bem.KoboDropdown, 'menu', 'menu')
  *
  * To close dropdown from outside the component use:
  * - koboDropdownActions.hideAnyDropdown
+ *
+ * @deprecated For a menu of actions use Mantine's `Menu` (see `#/components/common/Menu`), for a value picker use
+ * `Select` (see `#/components/common/Select`). The only remaining consumer is the (also deprecated) `KoboSelect`, so
+ * please don't add new ones - once `KoboSelect` is gone, this component goes with it.
  */
 export default class KoboDropdown extends React.Component<KoboDropdownProps, KoboDropdownState> {
   constructor(props: KoboDropdownProps) {

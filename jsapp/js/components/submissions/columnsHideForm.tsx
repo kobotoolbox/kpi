@@ -7,7 +7,6 @@ import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
-import koboDropdownActions from '#/components/common/koboDropdownActions'
 import TextBox from '#/components/common/textBox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import tableStore from '#/components/submissions/tableStore'
@@ -29,6 +28,11 @@ export interface ColumnsHideFormProps {
   translationIndex: number
 }
 
+interface ColumnsHideFormPropsInternal extends ColumnsHideFormProps {
+  /** Called when the form is done with its job, so that the wrapping dropdown can close itself. */
+  onRequestClose: () => void
+}
+
 interface ColumnsHideColumn {
   fieldId: string
   label: string
@@ -41,10 +45,10 @@ interface ColumnsHideFormState {
   selectedColumns: string[]
 }
 
-class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideFormState> {
+class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, ColumnsHideFormState> {
   private unlisteners: Function[] = []
 
-  constructor(props: ColumnsHideFormProps) {
+  constructor(props: ColumnsHideFormPropsInternal) {
     super(props)
     this.state = {
       isPending: false, // for saving
@@ -85,7 +89,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
   }
 
   onTableUpdateSettingsCompleted() {
-    koboDropdownActions.hideAnyDropdown()
+    this.props.onRequestClose()
   }
 
   onReset() {

@@ -1,22 +1,20 @@
-@use 'scss/mixins';
 @use 'scss/colors';
-@use 'scss/libs/_mdl';
-@use 'scss/_variables';
 
-// nested selector needed for specificity
-.kobo-dropdown[data-name='columns-hide-dropdown'] {
-  @include mixins.centerRowFlex;
+// Mantine's `Menu` renders no wrapper element around the trigger, so the trigger itself has to hold the layout that
+// used to live on the dropdown wrapper.
+.columns-hide-dropdown-trigger {
+  align-self: center;
   margin-right: 20px;
+}
 
-  .kobo-dropdown__menu {
-    color: colors.$kobo-gray-700;
-    background-color: colors.$kobo-white;
-    @include mdl.box-shadow;
-    padding: 9px 0;
-    text-align: initial;
-    line-height: 20px;
-    min-width: 150px;
-  }
+// This holds a form, not a list of menu items, so we undo the dark themed dropdown. Class is doubled to win over the
+// Mantine `Menu` theme regardless of stylesheet order.
+.columns-hide-dropdown-menu.columns-hide-dropdown-menu {
+  color: colors.$kobo-gray-700;
+  background-color: colors.$kobo-white;
+  text-align: initial;
+  line-height: 20px;
+  min-width: 150px;
 }
 
 .columns-hide-form {
