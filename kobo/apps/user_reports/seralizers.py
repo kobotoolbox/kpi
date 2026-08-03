@@ -94,4 +94,8 @@ class UserReportsSerializer(serializers.ModelSerializer):
                 limit=org_limits.get(f'{UsageType.MT_CHARACTERS}_limit', float('inf')),
                 usage=obj.total_nlp_usage_mt_characters_current_period,
             ),
+            'llm_requests': calculate_usage_balance(
+                limit=org_limits.get(f'{UsageType.LLM_REQUESTS}_limit', float('inf')),
+                usage=obj.total_llm_requests_current_period,
+            ),
         }
