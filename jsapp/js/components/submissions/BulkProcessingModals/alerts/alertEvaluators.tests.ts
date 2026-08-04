@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { asrExceeded, asrNearLimit, mtExceeded, mtNearLimit, withinLimits } from '#/endpoints/serviceUsage.factory'
@@ -22,11 +23,26 @@ function bulkActionFactory(
   language: string,
   overrides: Partial<BulkActionResponse> = {},
 ): BulkActionResponse {
-  return getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  const mock = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
     uid,
     params: { language },
     ...overrides,
   })
+
+  // The generated mock randomizes `submission_statuses`, which would make tests
+  // pass or fail at random. Default them to the job status instead, and let a
+  // test override them when it cares about a specific submission.
+  if (!overrides.submission_statuses) {
+    // Every job status has a submission status of the same name, so we can just
+    // look it up.
+    const submissionStatus = BulkActionSubmissionStatusResponseStatusEnum[mock.status]
+
+    mock.submission_statuses = mock.submission_uuids.map((submissionUuid) => {
+      return { uuid: submissionUuid, status: submissionStatus, error: null }
+    })
+  }
+
+  return mock
 }
 
 describe('evaluateNoEligibleSubmissions', () => {
@@ -336,6 +352,79 @@ describe('evaluateConflictingJob', () => {
     const result = evaluateConflictingJob(context)
 
     expect(result).to.equal(null)
+  })
+
+  it('should only ignore submissions that the ongoing job has not finished yet', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      activeBulkActions: [
+        bulkActionFactory('uuid-1', 'en', {
+          // The job itself stays in progress until its last submission is done.
+          status: BulkActionResponseStatusEnum.in_progress,
+          question_xpath: 'audio_question',
+          action_id: ActionIdEnum.automatic_google_transcription,
+          submission_uuids: ['mock-uuid-1', 'mock-uuid-2', 'mock-uuid-3'],
+          submission_statuses: [
+            { uuid: 'mock-uuid-1', status: BulkActionSubmissionStatusResponseStatusEnum.complete, error: null },
+            { uuid: 'mock-uuid-2', status: BulkActionSubmissionStatusResponseStatusEnum.failed, error: 'nope' },
+            { uuid: 'mock-uuid-3', status: BulkActionSubmissionStatusResponseStatusEnum.in_progress, error: null },
+          ],
+        }),
+      ],
+      submissions: [assetDataFactory(1), assetDataFactory(2), assetDataFactory(3)],
+    }
+
+    const result = evaluateConflictingJob(context)
+
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['mock-uuid-3'])
+    expect(result?.computedValues.count).to.equal(1)
+  })
+
+  it('should not show alert when the ongoing job already finished every selected submission', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      activeBulkActions: [
+        bulkActionFactory('uuid-1', 'en', {
+          status: BulkActionResponseStatusEnum.in_progress,
+          question_xpath: 'audio_question',
+          action_id: ActionIdEnum.automatic_google_transcription,
+          submission_uuids: ['mock-uuid-1', 'other-uuid'],
+          submission_statuses: [
+            { uuid: 'mock-uuid-1', status: BulkActionSubmissionStatusResponseStatusEnum.complete, error: null },
+            { uuid: 'other-uuid', status: BulkActionSubmissionStatusResponseStatusEnum.in_progress, error: null },
+          ],
+        }),
+      ],
+      submissions: [assetDataFactory(1)],
+    }
+
+    const result = evaluateConflictingJob(context)
+
+    expect(result).to.equal(null)
+  })
+
+  it('should match submissions by root uuid even when it carries the default prefix', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      activeBulkActions: [
+        bulkActionFactory('uuid-1', 'en', {
+          status: BulkActionResponseStatusEnum.in_progress,
+          question_xpath: 'audio_question',
+          action_id: ActionIdEnum.automatic_google_transcription,
+          submission_uuids: ['uuid:mock-uuid-1'],
+          submission_statuses: [
+            { uuid: 'uuid:mock-uuid-1', status: BulkActionSubmissionStatusResponseStatusEnum.in_progress, error: null },
+          ],
+        }),
+      ],
+      submissions: [assetDataFactory(1)],
+    }
+
+    const result = evaluateConflictingJob(context)
+
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['mock-uuid-1'])
   })
 })
 
