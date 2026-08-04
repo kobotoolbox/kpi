@@ -159,7 +159,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
                 </Box>
               ))}
             </Stack>
-          </ScrollArea>
+          </ScrollArea.Autosize>
         )}
 
         {filteredFieldsList.length === 0 && <Alert type='default'>{t('No results')}</Alert>}
