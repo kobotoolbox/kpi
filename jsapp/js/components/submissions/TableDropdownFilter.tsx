@@ -30,7 +30,10 @@ const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
   const selectFromListName = 'selectFromListName' in props.column ? props.column.selectFromListName : undefined
   const translationIndex = 'translationIndex' in props.column ? props.column.translationIndex || 0 : 0
 
-  interface ChoiceOption { value: string; label: string }
+  interface ChoiceOption {
+    value: string
+    label: string
+  }
   const seenValues = new Set<string>()
   const choiceOptions = choices.reduce<ChoiceOption[]>((acc, item) => {
     if (item.list_name !== selectFromListName) return acc
