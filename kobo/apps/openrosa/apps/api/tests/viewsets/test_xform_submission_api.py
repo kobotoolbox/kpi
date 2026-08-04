@@ -1196,6 +1196,4 @@ class TestSuperuserSubmissionRestriction(TestAbstractViewSet):
         # Anonymous submissions to public forms keep working.
         self.xform.require_auth = False
         self.xform.save(update_fields=['require_auth'])
-        check_submission_permissions(
-            self._request_for(AnonymousUser()), self.xform
-        )
+        check_submission_permissions(self._request_for(AnonymousUser()), self.xform)
