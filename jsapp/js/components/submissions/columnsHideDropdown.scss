@@ -1,22 +1,5 @@
 @use 'scss/colors';
 
-// Mantine's `Menu` renders no wrapper element around the trigger, so the trigger itself has to hold the layout that
-// used to live on the dropdown wrapper.
-.columns-hide-dropdown-trigger {
-  align-self: center;
-  margin-right: 20px;
-}
-
-// This holds a form, not a list of menu items, so we undo the dark themed dropdown. Class is doubled to win over the
-// Mantine `Menu` theme regardless of stylesheet order.
-.columns-hide-dropdown-menu.columns-hide-dropdown-menu {
-  color: colors.$kobo-gray-700;
-  background-color: colors.$kobo-white;
-  text-align: initial;
-  line-height: 20px;
-  min-width: 150px;
-}
-
 .columns-hide-form {
   padding: 6px 15px;
   width: 360px;

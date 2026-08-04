@@ -25,12 +25,12 @@ export default function ColumnsHideDropdown(props: ColumnsHideFormProps) {
       withInitialFocusPlaceholder={false}
     >
       <Menu.Target>
-        <ButtonNew className='columns-hide-dropdown-trigger' variant='transparent' size='md' leftIcon='hide'>
+        <ButtonNew variant='transparent' size='md' leftIcon='hide' mr='lg'>
           {t('hide fields')}
         </ButtonNew>
       </Menu.Target>
 
-      <Menu.Dropdown className='columns-hide-dropdown-menu'>
+      <Menu.Dropdown>
         <ColumnsHideForm {...props} onRequestClose={() => setIsMenuOpen(false)} />
       </Menu.Dropdown>
     </Menu>
