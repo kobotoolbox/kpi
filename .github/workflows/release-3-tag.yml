@@ -30,7 +30,7 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -78,7 +78,7 @@ jobs:
     if: ${{ !cancelled() && !failure() && inputs.force != true }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -132,7 +132,7 @@ jobs:
     if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -193,7 +193,7 @@ jobs:
     outputs:
       tag_created: ${{ steps.create-tag.outputs.tag_created }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -254,7 +254,7 @@ jobs:
     env:
       DOCKER_HUB_REPO: kobotoolbox/kpi
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 1
@@ -322,7 +322,7 @@ jobs:
       - build-image
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -403,7 +403,7 @@ jobs:
       - bump
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
         fetch-depth: 0

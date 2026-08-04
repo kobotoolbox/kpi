@@ -48,7 +48,7 @@ jobs:
     if: ${{ needs.version.outputs.prev_released == 'true' }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
@@ -72,7 +72,7 @@ jobs:
       - create-current-branch
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
