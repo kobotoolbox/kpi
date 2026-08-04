@@ -219,6 +219,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('gender')}
                 required={isRequired('gender')}
                 name='gender'
+                searchable={false} // too little options
                 clearable={!isFieldRequired('gender')}
                 value={props.values.gender}
                 onChange={(value) => onAnyFieldChange('gender', value || '')}

@@ -1,5 +1,6 @@
 import { modals } from '@mantine/modals'
 import { userCanDeleteAssets } from '#/assetUtils'
+import ClampedTitle from '#/components/common/ClampedTitle'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { generateUuid } from '#/utils'
@@ -18,9 +19,13 @@ export function openDeleteAssetModal(
   if (deleteCheck.canDelete) {
     modals.open({
       modalId,
-      title: t('Delete ##ASSET_TYPE## "##NAME##"')
-        .replace('##ASSET_TYPE##', ASSET_TYPES[asset.asset_type].label)
-        .replace('##NAME##', name),
+      title: (
+        <ClampedTitle>
+          {t('Delete ##ASSET_TYPE## "##NAME##"')
+            .replace('##ASSET_TYPE##', ASSET_TYPES[asset.asset_type].label)
+            .replace('##NAME##', name)}
+        </ClampedTitle>
+      ),
       size: 'md',
       children: (
         <DeleteAssetModal
