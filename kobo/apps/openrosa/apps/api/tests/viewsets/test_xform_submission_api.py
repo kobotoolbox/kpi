@@ -20,6 +20,7 @@ from django.urls import reverse
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.test import force_authenticate
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
@@ -1197,3 +1198,27 @@ class TestSuperuserSubmissionRestriction(TestAbstractViewSet):
         self.xform.require_auth = False
         self.xform.save(update_fields=['require_auth'])
         check_submission_permissions(self._request_for(AnonymousUser()), self.xform)
+
+    def test_superuser_gets_403_through_submission_endpoint(self):
+        # End-to-end guard: a superuser submitting through the real endpoint
+        # must get a 403 OpenRosa response, proving the exception is mapped to
+        # the right protocol response and not only raised in isolation.
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+
+        request = self.factory.post('/submission', data, format='json')
+        force_authenticate(request, user=self.superuser)
+        view = XFormSubmissionApi.as_view({'post': 'create'})
+        response = view(request, username=self.user.username)
+
+        # The OpenRosa error handler flattens every PermissionDenied to a
+        # generic "Access denied" body, so assert on the mapped response rather
+        # than the guard's internal message.
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('Access denied', response.data['error'])
