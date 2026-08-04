@@ -15,12 +15,6 @@
   // For column width resizers
   position: relative; // Be a positioned ancestor for resize handles
   user-select: none;  // Prevent accidental text selection
-
-  // Make the whole header cell clickable for the dropdown trigger.
-  .trigger {
-    position: absolute;
-    inset: 0;
-  }
 }
 
 .trigger {
@@ -28,20 +22,16 @@
   @include mixins.centerRowFlex;
 
   width: 100%;
-  // Undo the browser default centering of button text
-  text-align: initial;
-
   padding-top: 0;
   padding-bottom: 0;
   padding-right: projectsTableRow.$projects-table-row-padding;
   // 10 px is a magic number that puts the caret icon in the same line as the
   // content of the cells below
   padding-left: projectsTableRow.$projects-table-row-padding + 10px;
-
   line-height: projectsTableRow.$projects-table-row-height;
 
   &:active {
-    // The trigger covers the whole header cell, so nudging it looks broken.
+    // The trigger covers the whole header cell, so nudging it looks weird.
     transform: none;
   }
 
