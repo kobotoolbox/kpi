@@ -74,7 +74,6 @@ def user_reports_materialized_view(django_db_setup, django_db_blocker):
     # `refresh_user_reports_materialized_view` don't fail.
 
     with django_db_blocker.unblock(), connection.cursor() as cursor:
-        # import here because we need access to the db to set up the constants
         create_mv_sql = get_create_mv_sql(cursor)
         cursor.execute(
             "SELECT 1 FROM pg_matviews WHERE matviewname = 'user_reports_userreportsmv'"
