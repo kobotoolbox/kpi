@@ -66,6 +66,7 @@ jobs:
   notify-current:
     needs:
       - version
+      - create-current-branch
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -80,6 +81,7 @@ jobs:
   notify-prev:
     needs:
       - version
+      - create-current-branch
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
