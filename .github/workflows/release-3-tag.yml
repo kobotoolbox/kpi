@@ -412,13 +412,13 @@ jobs:
     # Final sync from prev_patch catches any unreleased commits from the prev
     # branch that were merged forward (the stabilize workflow uses branch tip
     # which excludes these).
-    - uses: linear/linear-release-action@v0
+    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       with:
         access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
         release_version: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.prev_patch }}
 
-    - uses: linear/linear-release-action@v0
+    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       with:
         access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
         command: update
