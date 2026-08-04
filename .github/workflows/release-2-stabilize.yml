@@ -131,12 +131,13 @@ jobs:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: deploy to beta
+    - name: Deploy to beta
       run: |
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
   # Note: push only current release branch instead of all past or the next release branch.
+  # Push translation strings only for the latest tagged release (not older cascading branches).
   push-to-transifex:
     needs:
       - version
@@ -146,6 +147,36 @@ jobs:
     secrets: inherit
     with:
       push: true
+
+
+  # Upsert Linear release and link issues.
+  # - First minor release: use prev branch tip so commits to be released as
+  #   patches on the previous minor are excluded.
+  # - Patch release: use prev patch tag (issues since last tag on this branch).
+  linear-upsert:
+    needs:
+      - version
+      - tests
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        release_version: ${{ needs.version.outputs.current_patch }}
+        base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
+
+    # Patch releases skip QA and go straight to "Pending Image"
+    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+      if: ${{ needs.version.outputs.current_released == 'true' }}
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_patch }}
+        stage: "Pending Image"
 
 
   merge-forward:
@@ -171,6 +202,7 @@ jobs:
       env:
         current_branch: ${{ needs.version.outputs.current_branch }}
         next_branch: ${{ needs.version.outputs.next_branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -xe
         git fetch origin "$next_branch"
@@ -274,6 +306,7 @@ jobs:
       - deploy-to-beta
       - merge-forward
       - push-to-transifex
+      - linear-upsert
     if: ${{ !cancelled() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
