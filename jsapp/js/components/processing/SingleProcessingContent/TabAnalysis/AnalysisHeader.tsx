@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Badge, Group } from '@mantine/core'
+import { Badge, Group, Switch } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
@@ -11,7 +11,6 @@ import type { ResponseManualQualActionParams } from '#/api/models/responseManual
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
@@ -94,7 +93,11 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
           isDisabled={!userCan('manage_asset', asset) || !!qaQuestion}
         />
 
-        <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={setShowHints} />
+        <Switch
+          label={t('Show hints')}
+          checked={showHints}
+          onChange={(event) => setShowHints(event.currentTarget.checked)}
+        />
       </Group>
 
       <span>

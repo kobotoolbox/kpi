@@ -30,10 +30,8 @@
       flex-wrap: wrap;
       gap: 12px;
 
-      .toggle-switch {
-        .toggle-switch__label {
-          font-weight: bold;
-        }
+      .mantine-Switch-label {
+        font-weight: bold;
       }
 
       .checkbox {
