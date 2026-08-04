@@ -3,7 +3,7 @@ import type { Column, Filter, FilterRender } from 'react-table'
 import { getQuestionOrChoiceDisplayName } from '#/assetUtils'
 import Select from '#/components/common/Select'
 import type { TableColumn } from '#/components/submissions/table.types'
-import type { SurveyChoice } from '#/dataInterface'
+import type { LabelValuePair, SurveyChoice } from '#/dataInterface'
 
 const getChoiceFilterValue = (item: SurveyChoice): string | undefined =>
   item.name || item.$autoname || item.$autovalue || undefined
@@ -30,12 +30,8 @@ const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
   const selectFromListName = 'selectFromListName' in props.column ? props.column.selectFromListName : undefined
   const translationIndex = 'translationIndex' in props.column ? props.column.translationIndex || 0 : 0
 
-  interface ChoiceOption {
-    value: string
-    label: string
-  }
   const seenValues = new Set<string>()
-  const choiceOptions = choices.reduce<ChoiceOption[]>((acc, item) => {
+  const choiceOptions = choices.reduce<LabelValuePair[]>((acc, item) => {
     if (item.list_name !== selectFromListName) return acc
     const value = getChoiceFilterValue(item)
     if (!value || seenValues.has(value)) return acc
