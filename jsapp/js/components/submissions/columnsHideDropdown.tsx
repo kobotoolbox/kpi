@@ -1,7 +1,4 @@
-import './columnsHideDropdown.scss'
-
 import { useState } from 'react'
-
 import ButtonNew from '#/components/common/ButtonNew'
 import Menu from '#/components/common/Menu'
 import ColumnsHideForm from '#/components/submissions/columnsHideForm'
