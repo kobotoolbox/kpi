@@ -70,7 +70,6 @@ export enum KeyNames {
 }
 
 export const MODAL_TYPES = {
-  SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
   LIBRARY_NEW_ITEM: 'library-new-item',
@@ -81,7 +80,6 @@ export const MODAL_TYPES = {
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
-  TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }

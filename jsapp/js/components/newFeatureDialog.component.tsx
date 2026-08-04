@@ -31,7 +31,7 @@ interface NewFeatureDialogProps {
 }
 
 /*
- * Custom dialog compoennt used to highlight new features. Must adjust poisiton
+ * Custom dialog component used to highlight new features. Must adjust poisiton
  * manually with a class prop.
  *
  * Styling tip: use rootClass, pointerClass, and/or dialogClass to change the position

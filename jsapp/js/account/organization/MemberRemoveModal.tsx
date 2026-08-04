@@ -8,7 +8,6 @@ import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
-import { notify } from '#/utils'
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberRemoveModalProps {
@@ -36,7 +35,6 @@ export default function MemberRemoveModal({
   const orgMemberDestroy = useOrganizationsMembersDestroy({
     mutation: {
       onSettled: () => onConfirmDone(),
-      onError: () => notify(t('Failed to remove member'), 'error'), // TODO: update message in backend (DEV-1218).
     },
   })
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0], false, false)
