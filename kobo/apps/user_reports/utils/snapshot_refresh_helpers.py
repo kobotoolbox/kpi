@@ -11,6 +11,7 @@ from kobo.apps.user_reports.models import (
     BillingAndUsageSnapshotRun,
     BillingAndUsageSnapshotStatus,
 )
+
 from ..typing_aliases import OrganizationIterator
 
 CHUNK_SIZE = 1000
@@ -95,6 +96,9 @@ def process_chunk(
                 mt_characters_limit=_normalize_limit(
                     org_limits.get('mt_characters_limit')
                 ),
+                llm_requests_limit=_normalize_limit(
+                    org_limits.get('llm_requests_limit')
+                ),
                 date_modified=timezone.now(),
             )
         )
@@ -115,6 +119,7 @@ def process_chunk(
                 'storage_bytes_limit',
                 'asr_seconds_limit',
                 'mt_characters_limit',
+                'llm_requests_limit',
                 'date_modified',
             ],
             unique_fields=['organization_id'],

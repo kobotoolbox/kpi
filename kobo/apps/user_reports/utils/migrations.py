@@ -1,7 +1,7 @@
 # flake8: noqa: E501
 
 from django.conf import settings
-
+from django.db import ProgrammingError
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -9,7 +9,8 @@ CREATE_MV_BASE_SQL = f"""
         SELECT
             nuc.user_id,
             COALESCE(SUM(nuc.total_asr_seconds), 0) AS total_asr_seconds,
-            COALESCE(SUM(nuc.total_mt_characters), 0) AS total_mt_characters
+            COALESCE(SUM(nuc.total_mt_characters), 0) AS total_mt_characters,
+            COALESCE(SUM(nuc.total_llm_requests), 0) AS total_llm_requests
         FROM trackers_nlpusagecounter nuc
         GROUP BY nuc.user_id
     ),
@@ -32,6 +33,7 @@ CREATE_MV_BASE_SQL = f"""
             bus.storage_bytes_limit,
             bus.asr_seconds_limit,
             bus.mt_characters_limit,
+            {{BUS_LLM_REQUESTS}}
             COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
             COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
             COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period,
@@ -50,7 +52,11 @@ CREATE_MV_BASE_SQL = f"""
             SUM(
                 CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
                      THEN nuc.total_mt_characters ELSE 0 END
-            ) AS total_nlp_usage_mt_characters_current_period
+            ) AS total_nlp_usage_mt_characters_current_period,
+            SUM(
+                CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
+                     THEN nuc.total_llm_requests ELSE 0 END
+            ) AS total_nlp_usage_llm_requests_current_period
         FROM trackers_nlpusagecounter nuc
         JOIN user_billing_periods ubp ON nuc.user_id = ubp.user_id
         GROUP BY nuc.user_id
@@ -62,7 +68,8 @@ CREATE_MV_BASE_SQL = f"""
             ubp.current_period_end,
             ubp.organization_id,
             COALESCE(na.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
-            COALESCE(na.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period
+            COALESCE(na.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period,
+            COALESCE(na.total_nlp_usage_llm_requests_current_period, 0) AS total_nlp_usage_llm_requests_current_period
         FROM user_billing_periods ubp
         LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
@@ -175,8 +182,10 @@ CREATE_MV_BASE_SQL = f"""
             'total_nlp_usage', jsonb_build_object(
                 'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
                 'mt_characters_current_period', COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0),
+                'llm_requests_current_period', COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0),
                 'asr_seconds_all_time', COALESCE(unl.total_asr_seconds, 0),
-                'mt_characters_all_time', COALESCE(unl.total_mt_characters, 0)
+                'mt_characters_all_time', COALESCE(unl.total_mt_characters, 0),
+                'llm_requests_all_time', COALESCE(unl.total_llm_requests, 0)
             ),
             'total_storage_bytes', COALESCE(ubau.total_storage_bytes, 0),
             'total_submission_count', jsonb_build_object(
@@ -252,6 +261,23 @@ CREATE_MV_BASE_SQL = f"""
                                 ((COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)::numeric * 100) / NULLIF(ubau.mt_characters_limit, 0))::int,
                             'exceeded', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)) < 0
                         )
+                    END,
+                'llm_requests',
+                    CASE
+                        WHEN ubau.llm_requests_limit IS NULL THEN jsonb_build_object(
+                            'effective_limit', null,
+                            'balance_value', null,
+                            'balance_percent', 0,
+                            'exceeded', false
+                        )
+                        WHEN ubau.llm_requests_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.llm_requests_limit,
+                            'balance_value', (ubau.llm_requests_limit - COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0)::numeric * 100) / NULLIF(ubau.llm_requests_limit, 0))::int,
+                            'exceeded', (ubau.llm_requests_limit - COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0)) < 0
+                        )
                     END
             )
         )::jsonb AS service_usage,
@@ -288,6 +314,7 @@ CREATE_MV_BASE_SQL = f"""
         au.last_login,
         unl.total_asr_seconds,
         unl.total_mt_characters,
+        unl.total_llm_requests,
         ua.total_assets,
         ua.deployed_assets,
         ou.id,
@@ -296,10 +323,12 @@ CREATE_MV_BASE_SQL = f"""
         ucpu.current_period_end,
         ucpu.total_nlp_usage_asr_seconds_current_period,
         ucpu.total_nlp_usage_mt_characters_current_period,
+        ucpu.total_nlp_usage_llm_requests_current_period,
         ubau.submission_limit,
         ubau.storage_bytes_limit,
         ubau.asr_seconds_limit,
         ubau.mt_characters_limit,
+        ubau.llm_requests_limit,
         ubau.total_storage_bytes,
         ubau.total_submission_count_all_time,
         ubau.total_submission_count_current_period,
@@ -445,7 +474,20 @@ else:
         'MV_SUBSCRIPTIONS_SELECT': NO_STRIPE_SUBSCRIPTIONS,
     }
 
-CREATE_MV_SQL = CREATE_MV_BASE_SQL.format(**MV_PARAMS)
+
+def get_create_mv_sql(db_accessor):
+    # hack for migrations that use CREATE_MV_SQL from before the new column was added
+    try:
+        db_accessor.execute(
+            'SELECT llm_requests_limit from '
+            'user_reports_billingandusagesnapshot limit 1'
+        )
+        bus_llm_requests = 'bus.llm_requests_limit,'
+    except ProgrammingError:
+        bus_llm_requests = '0 AS llm_requests_limit,'
+    thing = CREATE_MV_BASE_SQL.format( BUS_LLM_REQUESTS=bus_llm_requests, **MV_PARAMS)
+    return thing
+
 
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;

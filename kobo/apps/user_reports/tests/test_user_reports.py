@@ -372,6 +372,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
                 f'{UsageType.STORAGE_BYTES}_limit': float('inf'),
                 f'{UsageType.ASR_SECONDS}_limit': float('inf'),
                 f'{UsageType.MT_CHARACTERS}_limit': float('inf'),
+                f'{UsageType.LLM_REQUESTS}_limit': float('inf'),
             }
         }
 
@@ -381,6 +382,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         ):
             cache.clear()
             refresh_user_report_snapshots()
+            # need to re-log in after cache is cleared
+            self.client.login(username='adminuser', password='pass')
             someuser_data = self._get_someuser_data()
 
         balances = someuser_data['service_usage']['balances']
@@ -398,6 +401,9 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         self.assertIsNotNone(balances['mt_characters'])
         self.assertIsNone(balances['mt_characters']['effective_limit'])
+
+        self.assertIsNotNone(balances['llm_requests'])
+        self.assertIsNone(balances['llm_requests']['effective_limit'])
 
     def test_last_updated_fallback_for_users_without_snapshot(self):
         """
@@ -477,7 +483,6 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             assert len(results) == 10
 
     def _get_someuser_data(self):
-
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -19,7 +19,8 @@ from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
     cleanup_stale_snapshots_and_refresh_mv,
     get_or_create_run,
     iter_org_chunks_after,
-    process_chunk, refresh_user_reports_materialized_view,
+    process_chunk,
+    refresh_user_reports_materialized_view,
 )
 from kobo.celery import celery_app
 from kpi.utils.log import logging

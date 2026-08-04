@@ -4,12 +4,13 @@ from django.db import migrations
 
 from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
-    CREATE_MV_SQL,
     DROP_MV_SQL,
+    get_create_mv_sql,
 )
 
 
 def apply_fix(apps, schema_editor):
+    create_mv_sql = get_create_mv_sql(schema_editor)
     if getattr(settings, 'SKIP_HEAVY_MIGRATIONS', False):
         print(
             f"""
@@ -20,7 +21,7 @@ def apply_fix(apps, schema_editor):
 
             Run the SQL query below in PostgreSQL directly to create the materialized view:
 
-            {CREATE_MV_SQL}
+            {create_mv_sql}
 
             Then run the SQL query below to create the indexes:
 
@@ -34,7 +35,7 @@ def apply_fix(apps, schema_editor):
 
     # This pulls the *latest* SQL from your updated migrations.py
     schema_editor.execute(DROP_MV_SQL)
-    schema_editor.execute(CREATE_MV_SQL)
+    schema_editor.execute(create_mv_sql)
     schema_editor.execute(CREATE_INDEXES_SQL)
 
 
@@ -44,6 +45,7 @@ base_dependencies = [
     ('accounts_mfa', '0006_add_mfa_methods_wrapper_model'),
     ('hub', '0017_alter_extrauserdetail_date_fields_and_private_data'),
     ('organizations', '0007_update_organization_name_website_and_type'),
+    ('trackers', '0006_add_total_llm_requests'),
 ]
 
 if 'djstripe' in settings.INSTALLED_APPS:
