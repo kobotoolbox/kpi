@@ -1,6 +1,6 @@
 /**
  * This is intended to be displayed in multiple places:
- * - library item page (AssetRoute)
+ * - library item page (LibraryItemRoute)
  * - library table of items (AssetsTable row)
  */
 import './assetActionButtons.scss'
