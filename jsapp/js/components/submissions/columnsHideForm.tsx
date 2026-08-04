@@ -1,24 +1,16 @@
-import './columnsHideDropdown.scss'
-
-import React from 'react'
-
+import { Box, Group, ScrollArea, Stack } from '@mantine/core'
 import Fuse from 'fuse.js'
+import React from 'react'
 import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import bem, { makeBem } from '#/bem'
-import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
+import ButtonNew from '#/components/common/ButtonNew'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-
-bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section')
-bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p')
-bem.ColumnsHideForm__list = makeBem(bem.ColumnsHideForm, 'list', 'ul')
-bem.ColumnsHideForm__listItem = makeBem(bem.ColumnsHideForm, 'list-item', 'li')
-bem.ColumnsHideForm__footer = makeBem(bem.ColumnsHideForm, 'footer', 'footer')
+import TextInput from '../common/TextInput'
+import Alert from '../common/alert'
 
 export interface ColumnsHideFormProps {
   asset: AssetResponse
@@ -141,58 +133,59 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
   render() {
     const filteredFieldsList = this.getFilteredFieldsList()
     return (
-      <bem.ColumnsHideForm>
-        <bem.ColumnsHideForm__message>
-          {t('These settings affects the experience for all project users.')}
-        </bem.ColumnsHideForm__message>
+      <Stack w={360} gap='sm' p='sm'>
+        <Box fz='sm'>{t('These settings affects the experience for all project users.')}</Box>
 
-        <TextBox
+        <TextInput
           value={this.state.filterPhrase}
-          onChange={this.onFilterPhraseChange.bind(this)}
+          onChange={(evt) => this.onFilterPhraseChange(evt.currentTarget.value)}
           placeholder={t('Find a field')}
+          size='sm'
         />
 
         {filteredFieldsList.length !== 0 && (
-          <bem.ColumnsHideForm__list dir='auto'>
-            {filteredFieldsList.map((fieldObj) => (
-              <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
-                <ToggleSwitch
-                  checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
-                  onChange={(isSelected: boolean) => {
-                    this.onFieldToggleChange(fieldObj.fieldId, isSelected)
-                  }}
-                  disabled={this.state.isPending}
-                  label={fieldObj.label}
-                />
-              </bem.ColumnsHideForm__listItem>
-            ))}
-          </bem.ColumnsHideForm__list>
+          <ScrollArea type='auto' dir='auto'>
+            <Stack gap='sm' mah={200}>
+              {filteredFieldsList.map((fieldObj) => (
+                <Box key={fieldObj.fieldId}>
+                  <ToggleSwitch
+                    checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
+                    onChange={(isSelected: boolean) => {
+                      this.onFieldToggleChange(fieldObj.fieldId, isSelected)
+                    }}
+                    disabled={this.state.isPending}
+                    label={fieldObj.label}
+                  />
+                </Box>
+              ))}
+            </Stack>
+          </ScrollArea>
         )}
 
-        {filteredFieldsList.length === 0 && (
-          <bem.ColumnsHideForm__message>{t('No results')}</bem.ColumnsHideForm__message>
-        )}
+        {filteredFieldsList.length === 0 && <Alert type='default'>{t('No results')}</Alert>}
 
-        <bem.ColumnsHideForm__footer>
-          <Button
-            type='secondary-danger'
-            size='s'
-            isFullWidth
+        <Group gap='sm'>
+          <ButtonNew
+            variant='danger-secondary'
+            size='sm'
             onClick={this.onReset.bind(this)}
-            isPending={this.state.isPending}
-            label={t('Reset')}
-          />
+            loading={this.state.isPending}
+            flex={1}
+          >
+            {t('Reset')}
+          </ButtonNew>
 
-          <Button
-            type='secondary'
-            size='s'
-            isFullWidth
+          <ButtonNew
+            variant='light'
+            size='sm'
             onClick={this.onApply.bind(this)}
-            isPending={this.state.isPending}
-            label={t('Apply')}
-          />
-        </bem.ColumnsHideForm__footer>
-      </bem.ColumnsHideForm>
+            loading={this.state.isPending}
+            flex={1}
+          >
+            {t('Apply')}
+          </ButtonNew>
+        </Group>
+      </Stack>
     )
   }
 }
