@@ -100,14 +100,14 @@ jobs:
       - delete-branch
     runs-on: ubuntu-24.04
     steps:
-    - name: Delete Linear release
+    - name: Find Linear release
+      id: find
       env:
         LINEAR_API_KEY: ${{ secrets.LINEAR_ACCESS_KEY }}
         RELEASE_NAME: ${{ needs.version.outputs.current_minor }}
       run: |
         set -xe
 
-        # Find the release by name
         RELEASE_ID=$(curl -s -X POST https://api.linear.app/graphql \
           -H "Authorization: $LINEAR_API_KEY" \
           -H "Content-Type: application/json" \
@@ -116,12 +116,20 @@ jobs:
 
         if [[ -z "$RELEASE_ID" ]]; then
           echo "::warning::Linear release '$RELEASE_NAME' not found. It may have already been deleted or doesn't exist."
-          exit 0
+        else
+          echo "Found Linear release '$RELEASE_NAME' with ID: $RELEASE_ID"
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
         fi
 
-        echo "Found Linear release '$RELEASE_NAME' with ID: $RELEASE_ID"
+    - name: Delete Linear release
+      if: steps.find.outputs.release_id != ''
+      env:
+        LINEAR_API_KEY: ${{ secrets.LINEAR_ACCESS_KEY }}
+        RELEASE_NAME: ${{ needs.version.outputs.current_minor }}
+        RELEASE_ID: ${{ steps.find.outputs.release_id }}
+      run: |
+        set -xe
 
-        # Delete the release
         RESULT=$(curl -s -X POST https://api.linear.app/graphql \
           -H "Authorization: $LINEAR_API_KEY" \
           -H "Content-Type: application/json" \
