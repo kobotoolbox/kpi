@@ -57,7 +57,13 @@ jobs:
           # revision, missing linter, …). Do not capture the output — darker
           # writes crash details to stderr, so capturing stdout and testing it
           # for emptiness makes every crash look like a pass.
-          darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH
+          #
+          # `--diff` makes darker PRINT the reformatting/isort patch it wants.
+          # Without it, `--check` signals findings through the exit code alone
+          # and prints nothing, so a formatting failure shows up as a blank red
+          # X with no explanation. `--diff` does not change the exit code; it
+          # just reveals what `format-python.sh origin/main` would fix.
+          darker --check --diff --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH
         # `bash` (not a bare `/usr/bin/bash`) so the step keeps `-e -o pipefail`
         # and aborts on the first failing command.
         shell: bash

@@ -98,12 +98,6 @@ Additional class names:
     transform: translate(0);
   }
 
-  .wrapped-tooltip [data-tip]::after,
-  .wrapped-tooltip[data-tip]::after {
-    width: 300px;
-    white-space: normal;
-  }
-
   // Modify positioning to header tooltips
   .mdl-layout__header [data-tip]::after {
     left: 50px;

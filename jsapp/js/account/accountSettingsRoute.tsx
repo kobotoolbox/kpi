@@ -7,7 +7,6 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import InlineMessage from '#/components/common/inlineMessage'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
@@ -147,29 +146,6 @@ const AccountSettings = () => {
 
         {currentLoggedAccount && (
           <bem.AccountSettings__item m='fields'>
-            <InlineMessage
-              type='warning'
-              icon='information'
-              message={
-                <>
-                  <strong>
-                    {t(
-                      'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.',
-                    )}
-                  </strong>
-                  &nbsp;
-                  {t(
-                    'This privacy feature is now a per-project setting. New projects will require authentication by default.',
-                  )}
-                  &nbsp;
-                  <a href={helpArticleUrl} target='_blank'>
-                    {t('Learn more about these changes here.')}
-                  </a>
-                </>
-              }
-              className='anonymous-submission-notice'
-            />
-
             <AccountFieldsEditor
               errors={fieldErrors}
               values={formFields}

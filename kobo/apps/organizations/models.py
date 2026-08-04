@@ -93,6 +93,10 @@ class Organization(AbstractOrganization):
         choices=OrganizationType,
     )
 
+    def __str__(self) -> str:
+        # Names are not unique: include the ID so the admin can tell homonyms apart
+        return f'{self.name} ({self.id})'
+
     def add_user(self, user, is_admin=False):
         if not self.is_mmo and self.users.all().count():
             raise NotMultiMemberOrganizationException

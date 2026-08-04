@@ -1,9 +1,12 @@
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
 from kobo.apps.organizations.models import Organization
-from kpi.utils.usage_calculator import get_storage_usage_by_user_id
+from kpi.utils.usage_calculator import (
+    get_storage_usage_by_user_id,
+    group_user_ids_by_date_range,
+)
 from ..typing_aliases import OrganizationIterator
 
 
@@ -68,19 +71,19 @@ class BillingAndUsageCalculator:
         )
         all_time = {r['user_id']: r['total'] for r in rows}
 
-        combined_q = Q()
-        for uid, dr in date_ranges_by_user.items():
-            if dr.get('start') and dr.get('end'):
-                combined_q |= Q(user_id=uid, date__range=[dr['start'], dr['end']])
+        windows = group_user_ids_by_date_range(date_ranges_by_user)
 
         current = {}
-        if combined_q:
+        for (start, end), uids in windows.items():
             rows = (
-                DailyXFormSubmissionCounter.objects.filter(combined_q)
+                DailyXFormSubmissionCounter.objects.filter(
+                    user_id__in=uids, date__range=[start, end]
+                )
                 .values('user_id')
                 .annotate(total=Coalesce(Sum('counter'), 0))
             )
-            current = {r['user_id']: r['total'] for r in rows}
+            for row in rows:
+                current[row['user_id']] = row['total']
 
         return {
             uid: {

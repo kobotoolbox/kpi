@@ -102,7 +102,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   share() {
-    manageAssetSharing(this.props.asset.uid)
+    manageAssetSharing(this.props.asset)
   }
 
   showTagsModal() {

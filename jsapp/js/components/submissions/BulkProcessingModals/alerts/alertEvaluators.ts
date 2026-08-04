@@ -1,7 +1,12 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import { hasTranscribableAudio, hasTranslatableTranscript } from '#/components/submissions/bulkProcessingUtils'
+import {
+  getOngoingBulkActionSubmissionUuids,
+  hasTranscribableAudio,
+  hasTranslatableTranscript,
+} from '#/components/submissions/bulkProcessingUtils'
+import { removeDefaultUuidPrefix } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 
 /**
@@ -136,15 +141,20 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     return null
   }
 
-  // Collect all submission UUIDs from conflicting jobs
+  // Submissions a conflicting job already finished stay eligible for a new job,
+  // so collect only the ones it is still working on.
   const conflictingUuids = new Set<string>()
   conflictingJobs.forEach((job) => {
-    job.submission_uuids.forEach((uuid) => conflictingUuids.add(uuid))
+    getOngoingBulkActionSubmissionUuids(job).forEach((uuid) => conflictingUuids.add(uuid))
   })
 
-  // Filter out submissions that are in conflicting jobs
+  // Bulk actions are keyed by root uuid, so check both uuids of each submission.
   const filteredSubmissionUuids = submissions
-    .filter((submission) => conflictingUuids.has(submission._uuid))
+    .filter((submission) =>
+      [submission._uuid, submission['meta/rootUuid']].some(
+        (uuid) => uuid && conflictingUuids.has(removeDefaultUuidPrefix(uuid)),
+      ),
+    )
     .map((submission) => submission._uuid)
 
   if (filteredSubmissionUuids.length === 0) {

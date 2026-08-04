@@ -374,6 +374,18 @@ class BulkActionItemStatus(models.TextChoices):
     CANCELLED = 'cancelled'
 
 
+# An item reaches one of these exactly once, which makes them the natural
+# trigger for refreshing the bulk processing history log: the progress numbers
+# only ever change when an item lands here
+TERMINAL_BULK_ACTION_ITEM_STATUSES = frozenset(
+    [
+        BulkActionItemStatus.COMPLETE,
+        BulkActionItemStatus.FAILED,
+        BulkActionItemStatus.CANCELLED,
+    ]
+)
+
+
 PENDING_OPERATION_MARKER = 'pending'
 
 BULK_ACTION_TYPE_TRANSCRIPTION = 'transcription'
