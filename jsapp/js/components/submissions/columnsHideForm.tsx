@@ -144,8 +144,8 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
         />
 
         {filteredFieldsList.length !== 0 && (
-          <ScrollArea type='auto' dir='auto'>
-            <Stack gap='sm' mah={200}>
+          <ScrollArea.Autosize mah={200} type='auto' dir='auto'>
+            <Stack gap='sm'>
               {filteredFieldsList.map((fieldObj) => (
                 <Box key={fieldObj.fieldId}>
                   <ToggleSwitch
