@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { Badge, Group } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
