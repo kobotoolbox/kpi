@@ -278,7 +278,7 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
           data={AUTH_OPTIONS_LIST}
           value={authLevel}
           onChange={(newVal) => setAuthLevel((newVal as HookAuthLevelName) || null)}
-          searchable={false}
+          searchable={false} // too little options
         />
 
         {authLevel === HookAuthLevelName.basic_auth && (
