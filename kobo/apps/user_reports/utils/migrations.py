@@ -485,8 +485,8 @@ def get_create_mv_sql(db_accessor):
         bus_llm_requests = 'bus.llm_requests_limit,'
     except ProgrammingError:
         bus_llm_requests = '0 AS llm_requests_limit,'
-    thing = CREATE_MV_BASE_SQL.format( BUS_LLM_REQUESTS=bus_llm_requests, **MV_PARAMS)
-    return thing
+    full_sql = CREATE_MV_BASE_SQL.format(BUS_LLM_REQUESTS=bus_llm_requests, **MV_PARAMS)
+    return full_sql
 
 
 DROP_MV_SQL = """
