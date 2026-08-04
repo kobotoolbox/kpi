@@ -103,29 +103,14 @@ jobs:
       - npm-test
       - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
-    runs-on: ubuntu-24.04
-    env:
-      PREV_BRANCH: ${{ needs.version.outputs.prev_branch }}
-      CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
-      CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
-    steps:
-
-    - uses: actions/checkout@v6
-    - uses: ./.github/actions/checkout-with-github-app-token
-      with:
-        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
-        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-
-    - name: draft a changelog
-      run: |
-        npx git-cliff@2.10.0 -u --tag $CURRENT_PATCH
-
-    - name: commit the changelog to a dedicated branch
-      run: |
-        git checkout -B changelog/$CURRENT_PATCH
-        git add -f CHANGELOG.md
-        git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
-        git push -f --set-upstream origin changelog/$CURRENT_PATCH
+    uses: './.github/workflows/changelog.yml'
+    secrets:
+      client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+      private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    with:
+      ref: ${{ needs.version.outputs.current_branch }}
+      version: ${{ needs.version.outputs.current_patch }}
+      draft: true
 
 
   # Note: deploy only the latest release branch instead of all cascading release branches.
