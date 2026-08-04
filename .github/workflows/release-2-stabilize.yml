@@ -105,6 +105,7 @@ jobs:
     needs:
       - version
       - tests
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     uses: './.github/workflows/changelog.yml'
     secrets:
       client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
@@ -120,7 +121,7 @@ jobs:
     needs:
       - version
       - tests
-    if: ${{ needs.version.outputs.next_branch == 'main' }}
+    if: ${{ !cancelled() && !failure() && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
 
@@ -140,7 +141,7 @@ jobs:
     needs:
       - version
       - tests
-    if: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
+    if: ${{ !cancelled() && !failure() && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
     uses: './.github/workflows/locale.yml'
     secrets: inherit
     with:
@@ -152,6 +153,7 @@ jobs:
     needs:
       - version
       - tests
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     outputs:
       new_migrations: ${{ steps.detect-migrations.outputs.new_migrations }}
