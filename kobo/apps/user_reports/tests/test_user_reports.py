@@ -189,7 +189,10 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             counter=135,
         )
         NLPUsageCounter.objects.create(
-            user_id=self.someuser.id, date=timezone.now().date(), total_asr_seconds=100
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            total_asr_seconds=100,
+            total_llm_requests=3,
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
@@ -207,6 +210,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
                 f'{UsageType.STORAGE_BYTES}_limit': 500000000,
                 f'{UsageType.ASR_SECONDS}_limit': 120,
                 f'{UsageType.MT_CHARACTERS}_limit': 5,
+                f'{UsageType.LLM_REQUESTS}_limit': 1,
             }
         }
         with patch(
@@ -249,7 +253,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(balances['storage_bytes']['balance_value'], 300000000)
         self.assertEqual(balances['storage_bytes']['balance_percent'], 40)
 
-        # ASR Seconds balance: 0 / 120 = 0, so 0% and not exceeded.
+        # ASR Seconds balance: 100 / 120 = 0.83ish, so 83% and not exceeded.
         self.assertIsNotNone(balances['asr_seconds'])
         self.assertFalse(balances['asr_seconds']['exceeded'])
         self.assertEqual(balances['asr_seconds']['effective_limit'], 120)
@@ -262,6 +266,13 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(balances['mt_characters']['effective_limit'], 5)
         self.assertEqual(balances['mt_characters']['balance_value'], 5)
         self.assertEqual(balances['mt_characters']['balance_percent'], 0)
+
+        # LLM requests balance: 3 / 1 = 3, so 300% and exceeded.
+        self.assertIsNotNone(balances['llm_requests'])
+        self.assertTrue(balances['llm_requests']['exceeded'])
+        self.assertEqual(balances['llm_requests']['effective_limit'], 1)
+        self.assertEqual(balances['llm_requests']['balance_value'], -2)
+        self.assertEqual(balances['llm_requests']['balance_percent'], 300)
 
     def test_organization_data_is_correctly_returned(self):
         someuser_data = self._get_someuser_data()
@@ -299,6 +310,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
                 f'{UsageType.STORAGE_BYTES}_limit': 500000000,
                 f'{UsageType.ASR_SECONDS}_limit': 120,
                 f'{UsageType.MT_CHARACTERS}_limit': 5,
+                f'{UsageType.LLM_REQUESTS}_limit': 1,
             }
         }
         with patch(
