@@ -306,6 +306,42 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    def test_search_assets_by_multiple_tags(self):
+        # DEV-1581: AND on the to-many `tags` must mean "has both tags"
+        someuser = User.objects.get(username='someuser')
+        foo_asset = Asset.objects.create(
+            owner=someuser, name='foo only', asset_type='survey'
+        )
+        foo_asset.tags.add('foo')
+        bar_asset = Asset.objects.create(
+            owner=someuser, name='bar only', asset_type='survey'
+        )
+        bar_asset.tags.add('bar')
+        both_asset = Asset.objects.create(
+            owner=someuser, name='foo and bar', asset_type='survey'
+        )
+        both_asset.tags.add('foo', 'bar')
+
+        def uids(query):
+            return sorted(
+                r['uid']
+                for r in self.client.get(self.list_url, data={'q': query}).data[
+                    'results'
+                ]
+            )
+
+        # AND: only the asset carrying both tags
+        self.assertEqual(uids('tags__name:foo AND tags__name:bar'), [both_asset.uid])
+        # single tag: every asset carrying it (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo'), sorted([foo_asset.uid, both_asset.uid])
+        )
+        # OR: any of the tags (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo OR tags__name:bar'),
+            sorted([foo_asset.uid, bar_asset.uid, both_asset.uid]),
+        )
+
     def test_numeric_search_for_assets_does_not_crash(self):
         someuser = User.objects.get(username='someuser')
 

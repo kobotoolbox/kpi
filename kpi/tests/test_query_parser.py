@@ -4,6 +4,7 @@ from django.test import TestCase
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import QueryParserNotSupportedFieldLookup
 from kpi.models.asset import Asset
+from kpi.utils.query_parser import split_relational_and
 from kpi.utils.query_parser.query_parser import QueryParseActions, parse
 
 
@@ -194,3 +195,71 @@ def test_viewset_level_allowlist_overrides():
         user=None
     )
     assert parsed_q is not None
+
+
+def _parse(query):
+    return parse(query, default_field_lookups=['name__icontains'], model=Asset)
+
+
+class TestSplitRelationalAnd(TestCase):
+    """
+    `split_relational_and` pulls to-many leaves out of a top-level AND so the
+    filter backend can apply them as chained `.filter()` calls (DEV-1581).
+    """
+
+    def test_multiple_tags_are_chained(self):
+        # `tags` is a many-to-many: each tag must be a separate filter
+        main, chained = split_relational_and(
+            _parse('tags__name:foo AND tags__name:bar'), Asset
+        )
+        self.assertEqual(len(chained), 2)
+        # nothing scalar left, so `main` matches everything
+        self.assertEqual(len(main.children), 0)
+
+    def test_scalar_and_stays_merged(self):
+        main, chained = split_relational_and(
+            _parse('asset_type:survey AND name__icontains:x'), Asset
+        )
+        self.assertEqual(chained, [])
+        self.assertEqual(len(main.children), 2)
+
+    def test_mixed_scalar_and_relational(self):
+        main, chained = split_relational_and(
+            _parse('asset_type:survey AND tags__name:foo AND tags__name:bar'),
+            Asset,
+        )
+        self.assertEqual(len(chained), 2)
+        # only the scalar `asset_type` stays in the merged Q
+        self.assertEqual(len(main.children), 1)
+
+    def test_to_one_relation_not_chained(self):
+        # `owner` is a to-one FK: merging is correct, no chaining
+        main, chained = split_relational_and(
+            _parse('owner__username:a AND owner__username:b'), Asset
+        )
+        self.assertEqual(chained, [])
+        self.assertEqual(len(main.children), 2)
+
+    def test_single_tag_is_chained_alone(self):
+        main, chained = split_relational_and(_parse('tags__name:foo'), Asset)
+        self.assertEqual(len(chained), 1)
+        self.assertEqual(len(main.children), 0)
+
+    def test_or_root_falls_back(self):
+        q = _parse('tags__name:foo OR tags__name:bar')
+        main, chained = split_relational_and(q, Asset)
+        self.assertEqual(chained, [])
+        self.assertIs(main, q)
+
+    def test_negated_root_falls_back(self):
+        q = _parse('NOT (tags__name:foo AND tags__name:bar)')
+        main, chained = split_relational_and(q, Asset)
+        self.assertEqual(chained, [])
+        self.assertIs(main, q)
+
+    def test_none_model_falls_back(self):
+        # Without a model, to-many detection cannot run: leave the Q untouched
+        q = _parse('tags__name:foo AND tags__name:bar')
+        main, chained = split_relational_and(q, None)
+        self.assertEqual(chained, [])
+        self.assertIs(main, q)

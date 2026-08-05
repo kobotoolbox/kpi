@@ -304,12 +304,9 @@ class QueryParseActions:
         """
         Reject a field whose lookup path is not explicitly whitelisted.
 
-        The path is walked from `self.model` one segment at a time. Traversal
-        can only continue while a segment resolves to a relation, so anything
-        past the first non-relational field (a scalar column, or a `JSONField`
-        whose nested keys also look like `__foo`) cannot reach another table and
-        is left untouched. This keeps the check independent of the relation
-        names used, so it holds on every endpoint regardless of the root model.
+        Walks the path (see `_iter_field_path`), which stops at the first
+        non-relational segment, so a lookup can never reach an un-whitelisted
+        table regardless of the root model.
         """
 
         if self.user and self.user.is_superuser:
@@ -320,16 +317,8 @@ class QueryParseActions:
             # resolve it against, so reject it rather than silently allowing it
             raise QueryParserNotSupportedFieldLookup
 
-        current_model = self.model
-        for segment in field.replace('[]', '').split('__'):
-            try:
-                model_field = current_model._meta.get_field(segment)  # noqa
-            except FieldDoesNotExist:
-                # A lookup/transform (e.g. `icontains`) or a `JSONField` key:
-                # no further table can be reached from here
-                return
-
-            model_label = current_model._meta.label_lower  # noqa
+        for owner_model, segment, _ in _iter_field_path(self.model, field):
+            model_label = owner_model._meta.label_lower  # noqa
             allowed_fields = ALLOWED_LOOKUP_FIELDS.get(model_label, frozenset())
             override = self.allowed_lookup_fields.get(model_label)
             if override:
@@ -338,16 +327,62 @@ class QueryParseActions:
             if segment not in allowed_fields:
                 raise QueryParserNotSupportedFieldLookup
 
-            if not model_field.is_relation:
-                # A concrete column; the rest of the path can only be lookups
-                return
 
-            related_model = model_field.related_model
-            if related_model is None:
-                # e.g. a generic relation that cannot be traversed in a lookup
-                return
+def _iter_field_path(model, field):
+    """
+    Yield `(owner_model, segment, model_field)` for each concrete model field on
+    `field`, stopping at the first lookup/JSONField key. Shared by
+    `_validate_field` and `_crosses_to_many` so they resolve paths identically.
+    """
+    current_model = model
+    for segment in field.replace('[]', '').split('__'):
+        try:
+            model_field = current_model._meta.get_field(segment)  # noqa
+        except FieldDoesNotExist:
+            return
 
-            current_model = related_model
+        yield current_model, segment, model_field
+
+        if not model_field.is_relation or model_field.related_model is None:
+            return
+
+        current_model = model_field.related_model
+
+
+def _crosses_to_many(model, field):
+    """Whether `field` traverses a to-many relation (many-to-many or reverse FK)."""
+    if model is None:
+        return False
+
+    return any(
+        model_field.many_to_many or model_field.one_to_many
+        for _, _, model_field in _iter_field_path(model, field)
+    )
+
+
+def split_relational_and(q_obj: Q, model: Optional[ModelClass]) -> tuple:
+    """
+    Split a top-level AND, pulling to-many leaves into their own `Q` objects so
+    the caller can apply them as chained `.filter()` calls (the only form that
+    means "has a related row matching each"). Returns `(main_q, chained_qs)`;
+    falls back to `(q_obj, [])` for a non-AND root or no to-many leaf.
+    """
+    if q_obj.connector != Q.AND or q_obj.negated:
+        return q_obj, []
+
+    main_children = []
+    chained = []
+    for child in q_obj.children:
+        # A nested Q (OR/NOT subtree) is never a tuple, so it stays merged
+        if isinstance(child, tuple) and _crosses_to_many(model, child[0]):
+            chained.append(Q(child))
+        else:
+            main_children.append(child)
+
+    if not chained:
+        return q_obj, []
+
+    return Q(*main_children), chained
 
 
 def get_parsed_parameters(parsed_query: Q) -> dict:
