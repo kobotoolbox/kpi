@@ -98,7 +98,7 @@ ndg-httpsclient
 pyasn1
 
 # MFA
-django-trench
+# (django-trench removed; using django-allauth[mfa])
 
 # Sentry
 sentry-sdk
