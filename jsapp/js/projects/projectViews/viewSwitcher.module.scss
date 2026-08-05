@@ -1,4 +1,3 @@
-@use 'sass:color';
 @use 'scss/colors';
 @use 'scss/mixins';
 
@@ -26,15 +25,8 @@
   line-height: 28px;
   max-width: 400px;
 
-  :global {
-    label {
-      @include mixins.textEllipsis;
-      pointer-events: none;
-    }
-
-    .k-icon {
-      margin-left: 5px;
-    }
+  :global .k-icon {
+    margin-left: 5px;
   }
 
   &:active {
@@ -42,31 +34,18 @@
   }
 }
 
+.triggerLabel {
+  @include mixins.textEllipsis;
+  pointer-events: none;
+}
+
 .triggerSimple {
   cursor: default;
 }
 
 .menu {
-  @include mixins.floatingRoundedBox;
-  display: block;
-  width: 100%;
   min-width: 300px;
   max-height: 200px;
   max-width: 300px;
-  overflow-x: auto;
-  padding: 20px 0;
-}
-
-.menuOption {
-  @include mixins.buttonReset;
-  @include mixins.textEllipsis;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 10px 30px;
-  width: 100%;
-  text-align: initial;
-
-  &:hover {
-    color: colors.$kobo-blue;
-  }
+  overflow-y: auto;
 }
