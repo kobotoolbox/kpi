@@ -1,10 +1,9 @@
-import { Box, Group, ScrollArea, Stack } from '@mantine/core'
+import { Box, Group, ScrollArea, Stack, Switch } from '@mantine/core'
 import Fuse from 'fuse.js'
 import React from 'react'
 import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import ButtonNew from '#/components/common/ButtonNew'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
@@ -148,10 +147,10 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
             <Stack gap='sm'>
               {filteredFieldsList.map((fieldObj) => (
                 <Box key={fieldObj.fieldId}>
-                  <ToggleSwitch
+                  <Switch
                     checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
-                    onChange={(isSelected: boolean) => {
-                      this.onFieldToggleChange(fieldObj.fieldId, isSelected)
+                    onChange={(event) => {
+                      this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
                     }}
                     disabled={this.state.isPending}
                     label={fieldObj.label}

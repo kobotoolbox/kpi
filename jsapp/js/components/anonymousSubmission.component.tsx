@@ -1,5 +1,4 @@
-import { Group } from '@mantine/core'
-import ToggleSwitch from '#/components/common/toggleSwitch'
+import { Group, Switch } from '@mantine/core'
 
 interface AnonymousSubmissionProps {
   checked: boolean
@@ -10,10 +9,10 @@ interface AnonymousSubmissionProps {
 export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
   return (
     <Group gap='xs'>
-      <ToggleSwitch
+      <Switch
         checked={props.checked}
         disabled={props.disabled}
-        onChange={props.onChange}
+        onChange={(event) => props.onChange(event.currentTarget.checked)}
         label={t('Allow submissions to this form without a username and password')}
       />
     </Group>

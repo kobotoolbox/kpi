@@ -1,4 +1,4 @@
-import { Badge, Group } from '@mantine/core'
+import { Badge, Group, Switch } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
@@ -8,7 +8,6 @@ import type { ResponseManualQualActionParams } from '#/api/models/responseManual
 import ButtonNew from '#/components/common/ButtonNew'
 import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
@@ -89,7 +88,11 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
           </Menu.Dropdown>
         </Menu>
 
-        <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={setShowHints} />
+        <Switch
+          label={t('Show hints')}
+          checked={showHints}
+          onChange={(event) => setShowHints(event.currentTarget.checked)}
+        />
       </Group>
 
       <span>
