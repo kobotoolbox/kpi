@@ -21,6 +21,7 @@ import { PasswordInputThemeKobo } from './PasswordInput'
 import { PillThemeKobo } from './Pill'
 import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
+import { SwitchThemeKobo } from './Switch'
 import { TableThemeKobo } from './Table'
 import { TabsThemeKobo } from './Tabs'
 import { TagsInputThemeKobo } from './TagsInput'
@@ -183,6 +184,7 @@ export const themeKobo = createTheme({
     Pill: PillThemeKobo,
     Checkbox: CheckboxThemeKobo,
     Radio: RadioThemeKobo,
+    Switch: SwitchThemeKobo,
     Notification: NotificationThemeKobo,
     Autocomplete: AutocompleteThemeKobo,
   },

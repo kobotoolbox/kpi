@@ -2,6 +2,7 @@ import './columnsHideDropdown.scss'
 
 import React from 'react'
 
+import { Switch } from '@mantine/core'
 import Fuse from 'fuse.js'
 import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
@@ -9,7 +10,6 @@ import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import koboDropdownActions from '#/components/common/koboDropdownActions'
 import TextBox from '#/components/common/textBox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
@@ -152,10 +152,10 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
           <bem.ColumnsHideForm__list dir='auto'>
             {filteredFieldsList.map((fieldObj) => (
               <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
-                <ToggleSwitch
+                <Switch
                   checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
-                  onChange={(isSelected: boolean) => {
-                    this.onFieldToggleChange(fieldObj.fieldId, isSelected)
+                  onChange={(event) => {
+                    this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
                   }}
                   disabled={this.state.isPending}
                   label={fieldObj.label}
