@@ -1702,7 +1702,7 @@ if STRIPE_ENABLED:
     CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     }
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
