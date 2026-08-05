@@ -11,6 +11,7 @@ import {
   DROPDOWN_FILTER_QUESTION_TYPES,
   EXCLUDED_COLUMNS,
   FILTER_EXACT_TYPES,
+  LAST_COLUMNS_ORDER,
   SUBMISSION_ACTIONS_ID,
   TEXT_FILTER_QUESTION_IDS,
   TEXT_FILTER_QUESTION_TYPES,
@@ -18,7 +19,6 @@ import {
 } from '#/components/submissions/tableConstants'
 import { ValidationStatusAdditionalName } from '#/components/submissions/validationStatus.constants'
 import {
-  ADDITIONAL_SUBMISSION_PROPS,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
@@ -386,6 +386,79 @@ function shouldKeepColumnAfterAttachmentDedupe(
 }
 
 /**
+ * A column followed by the supplemental details columns that belong to it. We
+ * move whole blocks around while ordering.
+ */
+type ColumnsBlock = string[]
+
+function groupColumnsIntoBlocks(columns: string[]): ColumnsBlock[] {
+  const blocks: ColumnsBlock[] = []
+  columns.forEach((key) => {
+    // `injectSupplementalRowsIntoListOfRows` already put every supplemental
+    // details column right after its source, so the block being built is the
+    // one this column belongs to. The length check is only for the malformed
+    // case of a supplemental column with nothing in front of it.
+    if (key.startsWith(SUPPLEMENTAL_DETAILS_PROP) && blocks.length > 0) {
+      blocks[blocks.length - 1].push(key)
+    } else {
+      blocks.push([key])
+    }
+  })
+  return blocks
+}
+
+/**
+ * Moves the block of given key to the beginning of the list (only if the list
+ * has such block). Mutates given list.
+ */
+function moveBlockToFront(blocks: ColumnsBlock[], key: string) {
+  const blockIndex = blocks.findIndex((block) => block[0] === key)
+  if (blockIndex > -1) {
+    blocks.unshift(blocks.splice(blockIndex, 1)[0])
+  }
+}
+
+/**
+ * This is the single source of truth for the order of columns. Takes a list of
+ * columns (keys) and returns a new list ordered as:
+ *
+ * 1. `background-audio` question (if the form has one),
+ * 2. `start` and `end` meta questions,
+ * 3. all the form questions (in the order they appear in the form definition,
+ *    with supplemental details columns following their source question),
+ * 4. all the remaining meta questions and additional submission properties
+ *    (in `LAST_COLUMNS_ORDER` order, `meta/rootUuid` being the very last one).
+ *
+ * Columns outside of `LAST_COLUMNS_ORDER` keep the order they were given in,
+ * which is the form definition order, as that's how `getAllDataColumns` builds
+ * the list.
+ *
+ * Every place that shows users a list of columns has to use this, so that they
+ * agree with each other.
+ */
+export function orderColumns(asset: AssetResponse, columns: string[]): string[] {
+  const allBlocks = groupColumnsIntoBlocks(columns)
+
+  // Split off the tail columns, then sort them by their position in
+  // `LAST_COLUMNS_ORDER` - whatever order they arrived in doesn't matter, which
+  // is what lets us feed this function columns discovered from submission data.
+  const lastBlocks = allBlocks.filter((block) => LAST_COLUMNS_ORDER.includes(block[0]))
+  const blocks = allBlocks.filter((block) => !LAST_COLUMNS_ORDER.includes(block[0]))
+  lastBlocks.sort((blockA, blockB) => LAST_COLUMNS_ORDER.indexOf(blockA[0]) - LAST_COLUMNS_ORDER.indexOf(blockB[0]))
+
+  // Each of these moves to the front, so the order of the calls is reversed:
+  // `background-audio` goes last to end up first, then `start`, then `end`.
+  moveBlockToFront(blocks, META_QUESTION_TYPES.end)
+  moveBlockToFront(blocks, META_QUESTION_TYPES.start)
+  const backgroundAudioName = getBackgroundAudioQuestionName(asset)
+  if (backgroundAudioName !== null) {
+    moveBlockToFront(blocks, backgroundAudioName)
+  }
+
+  return [...blocks, ...lastBlocks].flat()
+}
+
+/**
  * Returns a complete and unique list of columns (keys) that contain displayable
  * data that is useful for users.
  *
@@ -414,23 +487,6 @@ export function getAllDataColumns(
     const dataKeys = recordKeys(submissions.reduce((result, obj) => Object.assign(result, obj), {}))
     output = [...new Set([...output, ...dataKeys])]
   }
-
-  // Put `start` and `end` first
-  if (output.indexOf(META_QUESTION_TYPES.end)) {
-    output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0])
-  }
-  if (output.indexOf(META_QUESTION_TYPES.start)) {
-    output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0])
-  }
-
-  // In `table.tsx` we override the ordering of few columns, this one too. Some other places rely on ordering coming
-  // from this function, so we still want to ensure `meta/rootUuid` is the very last column
-  if (output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']) > -1) {
-    output.push(output.splice(output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']), 1)[0])
-  }
-  // TODO: Ordering of columns is being used in few places (columns of Data Table, "Hide fields" dropdown). Some places
-  // rely on order this function spits out, but some override it or user other means. Let's make SSOT for columns order
-  // please :pray: - see https://linear.app/kobotoolbox/issue/DEV-1480/make-order-and-list-of-columns-come-from-single-place
 
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
@@ -500,7 +556,41 @@ export function getAllDataColumns(
 
   const virtualSupplementalFields = getVirtualSupplementalFieldsForBulkActions(bulkActions)
   output = injectSupplementalRowsIntoListOfRows(asset, output, virtualSupplementalFields)
-  return output
+
+  // Ordering happens here, at the very end, rather than in each consumer - that
+  // way everything built on top of this function agrees on the order for free
+  // (see `orderColumns`).
+  return orderColumns(asset, output)
+}
+
+/**
+ * Returns a list of the metadata columns (keys) - i.e. the columns that are not
+ * responses to the form questions:
+ *
+ * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `audit`) - only
+ *    the ones that the form actually defines,
+ * 2. additional submission properties added by Back end (e.g. `_id`).
+ *
+ * We filter `getAllDataColumns` down instead of building a list of our own, so
+ * that these columns come in the same order as in Data Table and can never
+ * include something Data Table wouldn't show (see `orderColumns`).
+ *
+ * @param submissions - pass these to get the properties of the form version
+ * a submission was made with, not just the ones the current version defines
+ */
+export function getMetadataColumns(asset: AssetResponse, submissions?: SubmissionResponse[]) {
+  const metaRowNames = new Set(
+    (asset.content?.survey || [])
+      .filter((row) => Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type))
+      .map((row) => getRowName(row)),
+  )
+
+  // Two sources, because the two kinds of metadata are found in different
+  // places: meta questions come from the form definition, while the additional
+  // submission properties only ever show up in submission data.
+  return getAllDataColumns(asset, submissions).filter(
+    (key) => metaRowNames.has(key) || LAST_COLUMNS_ORDER.includes(key),
+  )
 }
 
 export interface TableFilterQuery {
