@@ -578,8 +578,10 @@ export interface SelectResponseLabelOptions {
   /** All of the form's choices, not just the ones of this question's list. */
   choices: SurveyChoice[]
   /**
-   * Index into a choice `label` array. Only pass a non-negative one; negative
-   * means "display raw XML values", where there's nothing to resolve.
+   * Index into a choice `label` array. A negative one (the "Display XML Values"
+   * setting) matches no label, so every value comes back raw — but
+   * `select_multiple` values still get re-joined with commas, so callers that
+   * need the response exactly as stored don't come here.
    */
   translationIndex: number
 }

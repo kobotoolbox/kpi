@@ -132,9 +132,6 @@ const videoSubmission = buildMediaSubmission(
   'attachment-video-1',
 )
 
-// Choices 'a' and 'b' were renamed to 'a1' and 'b1', so only
-// the new names exist in the choice list below while the submission still holds
-// the old ones.
 const renamedChoicesQuestion: SurveyRow = {
   type: QuestionTypeName.select_multiple,
   $kuid: 'renamedChoicesQuestion',
@@ -144,6 +141,9 @@ const renamedChoicesQuestion: SurveyRow = {
   select_from_list_name: 'animals_list',
 }
 
+// Choices 'a' and 'b' were renamed to 'a1' and 'b1', so only
+// the new names exist in the choice list below while the submission still holds
+// the old ones.
 const renamedChoices: SurveyChoice[] = [
   { name: 'a1', label: ['Whale'], list_name: 'animals_list', $autovalue: 'a1', $kuid: 'whaleChoice' },
   { name: 'b1', label: ['Frog'], list_name: 'animals_list', $autovalue: 'b1', $kuid: 'frogChoice' },
