@@ -506,6 +506,8 @@ pyopenssl==26.2.0
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
+pyotp==2.10.0
+    # via -r dependencies/pip/dev_requirements.in
 pyparsing==3.3.2
     # via httplib2
 pyquery==2.0.1
