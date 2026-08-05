@@ -914,12 +914,18 @@ class BaseDeploymentBackend(abc.ABC):
                         continue
 
             filename = attachment['filename']
+
+            # fall back until LRM 0027/0028 are not completed
+            root_uuid = remove_uuid_prefix(
+                submission.get(META_ROOT_UUID)
+                or submission['_uuid']
+            )
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,
                 'attachments',
                 # KoboCAT accepts submissions even when they lack `formhub/uuid`
                 self.form_uuid or submission['formhub/uuid'],
-                submission['_uuid'],
+                root_uuid,
                 os.path.basename(filename)
             )
 
