@@ -2,12 +2,13 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from constance import config
+from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db.models.signals import pre_delete
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
@@ -36,7 +37,12 @@ from ..tasks import (
     garbage_collector,
     task_restarter,
 )
-from ..utils import move_to_trash, put_back, trash_bin_task_failure
+from ..utils import (
+    move_to_trash,
+    process_deletion,
+    put_back,
+    trash_bin_task_failure,
+)
 
 
 @ddt
@@ -341,12 +347,16 @@ class AccountTrashTestCase(TestCase):
             exception='Worker exited prematurely',
         )
         account_trash.refresh_from_db()
-        assert account_trash.status == TrashStatus.IN_PROGRESS
+        # The failure is transient: `task_restarter` is expected to pick it up
+        assert account_trash.status == TrashStatus.FAILED
+        assert account_trash.metadata['retryable_failure_count'] == 1
         trash_bin_task_failure(
             AccountTrash, args=[account_trash.pk], exception='Random error'
         )
         account_trash.refresh_from_db()
         assert account_trash.status == TrashStatus.FAILED
+        # A non-transient failure does not extend the automatic restart budget
+        assert account_trash.metadata['retryable_failure_count'] == 1
 
 
 @ddt
@@ -674,12 +684,16 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             exception='Worker exited prematurely',
         )
         project_trash.refresh_from_db()
-        assert project_trash.status == TrashStatus.IN_PROGRESS
+        # The failure is transient: `task_restarter` is expected to pick it up
+        assert project_trash.status == TrashStatus.FAILED
+        assert project_trash.metadata['retryable_failure_count'] == 1
         trash_bin_task_failure(
             ProjectTrash, args=[project_trash.pk], exception='Random error'
         )
         project_trash.refresh_from_db()
         assert project_trash.status == TrashStatus.FAILED
+        # A non-transient failure does not extend the automatic restart budget
+        assert project_trash.metadata['retryable_failure_count'] == 1
 
 
 @ddt
@@ -969,3 +983,229 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         self.xform.refresh_from_db()
         self.user_profile.refresh_from_db()
         self.attachment.refresh_from_db()
+
+
+@ddt
+class TaskRestarterTestCase(TestCase):
+    """
+    Test the automatic restart of trash bin tasks which failed on a transient
+    (infrastructure) error and only those
+    """
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.someuser = get_user_model().objects.get(username='someuser')
+        self.admin = get_user_model().objects.get(username='adminuser')
+
+    @data(
+        # Format: (error message, expected restart count)
+        ('Worker exited prematurely: signal 9 (SIGKILL)', 1),
+        (
+            'No replica set members match selector, Timeout: 20.0s, '
+            'connectTimeoutMS: 20000.0ms',
+            1,
+        ),
+        ('deadlock detected DETAIL: Process 1234 waits for ShareLock', 1),
+        ('TimeLimitExceeded(4260.0,)', 1),
+        ('SoftTimeLimitExceeded()', 1),
+        # Not transient: the data itself is the problem, a restart would not help
+        ('Asset matching query does not exist.', 0),
+    )
+    @unpack
+    def test_restart_only_on_retryable_failures(self, error, restart_count):
+        account_trash = self._move_account_to_trash()
+        self._fail(account_trash, error)
+        assert self._run_restarter() == restart_count
+
+    def test_no_restart_before_cooldown(self):
+        account_trash = self._move_account_to_trash()
+        # Do not backdate `date_modified`: the task has just failed
+        trash_bin_task_failure(
+            AccountTrash, args=[account_trash.pk], exception='deadlock detected'
+        )
+        assert self._run_restarter() == 0
+
+    @override_settings(TRASH_BIN_MAX_AUTO_RESTARTS=2)
+    def test_no_restart_when_budget_is_exhausted(self):
+        account_trash = self._move_account_to_trash()
+
+        for expected_restart_count in (1, 1, 0):
+            self._fail(account_trash, 'deadlock detected')
+            assert self._run_restarter() == expected_restart_count
+
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.FAILED
+        assert account_trash.metadata['retryable_failure_count'] == 3
+
+    def test_manual_run_resets_restart_budget(self):
+        account_trash = self._move_account_to_trash()
+        self._fail(account_trash, 'deadlock detected')
+        assert account_trash.metadata['retryable_failure_count'] == 1
+
+        # `task_restarter` forces the deletion: the counter must keep growing
+        process_deletion(
+            AccountTrash,
+            account_trash.pk,
+            deletion_callback=lambda trash_object: None,
+            force=True,
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.metadata['retryable_failure_count'] == 1
+
+        self._fail(account_trash, 'deadlock detected')
+        assert account_trash.metadata['retryable_failure_count'] == 2
+
+        # Celery beat and the admin interface do not: they start over
+        process_deletion(
+            AccountTrash,
+            account_trash.pk,
+            deletion_callback=lambda trash_object: None,
+        )
+        account_trash.refresh_from_db()
+        assert 'retryable_failure_count' not in account_trash.metadata
+
+    @override_config(ACCOUNT_TRASH_RETENTION=-1)
+    def test_no_restart_when_trash_must_be_emptied_manually(self):
+        """
+        Objects waiting for a superuser to empty them manually are scheduled in
+        the past, but they must never be started automatically
+        """
+        account_trash = self._move_account_to_trash(grace_period=-1, freeze=False)
+        assert account_trash.empty_manually
+        assert account_trash.periodic_task.clocked.clocked_time < timezone.now()
+        self._make_stuck(account_trash, TrashStatus.PENDING)
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.empty_account.delay'
+        ) as patched_task:
+            task_restarter()
+
+        assert patched_task.call_count == 0
+
+    @override_config(ACCOUNT_TRASH_RETENTION=-1)
+    def test_restart_when_manually_emptied_trash_is_stuck(self):
+        """
+        Once a superuser has started the deletion, it is a stuck task like any
+        other and must be restarted
+        """
+        account_trash = self._move_account_to_trash(grace_period=-1, freeze=False)
+        assert account_trash.empty_manually
+        self._make_stuck(account_trash, TrashStatus.IN_PROGRESS)
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.empty_account.delay'
+        ) as patched_task:
+            task_restarter()
+
+        assert patched_task.call_count == 1
+
+    @override_config(ACCOUNT_TRASH_RETENTION=180)
+    def test_restart_when_manually_emptied_trash_is_stuck_after_retention_change(
+        self,
+    ):
+        """
+        `ACCOUNT_TRASH_RETENTION` may be changed after an object has been moved
+        to trash. The clocked time of an object emptied manually is set in the
+        past when it is trashed and never represented a real schedule, so it
+        must not decide whether a started deletion is restarted
+        """
+        account_trash = self._move_account_to_trash(grace_period=-1, freeze=False)
+        assert account_trash.empty_manually
+        # The retention period is now longer than the age of the object, i.e.:
+        # its clocked time is not older than the grace period anymore
+        assert account_trash.periodic_task.clocked.clocked_time > (
+            timezone.now() - timedelta(days=config.ACCOUNT_TRASH_RETENTION)
+        )
+        self._make_stuck(account_trash, TrashStatus.IN_PROGRESS)
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.empty_account.delay'
+        ) as patched_task:
+            task_restarter()
+
+        assert patched_task.call_count == 1
+
+    @override_config(ACCOUNT_TRASH_RETENTION=180)
+    def test_no_restart_when_manual_trash_is_pending_after_retention_change(self):
+        """
+        Ignoring the clocked time of objects emptied manually must not let the
+        ones still waiting for a superuser be started automatically
+        """
+        account_trash = self._move_account_to_trash(grace_period=-1, freeze=False)
+        assert account_trash.empty_manually
+        self._make_stuck(account_trash, TrashStatus.PENDING)
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.empty_account.delay'
+        ) as patched_task:
+            task_restarter()
+
+        assert patched_task.call_count == 0
+
+    @override_config(ACCOUNT_TRASH_RETENTION=-1)
+    def test_restart_when_manually_emptied_trash_failed(self):
+        """
+        A superuser started the deletion and it failed on a transient error:
+        `empty_manually` must not prevent it from being restarted
+        """
+        account_trash = self._move_account_to_trash(grace_period=-1, freeze=False)
+        assert account_trash.empty_manually
+        self._fail(account_trash, 'deadlock detected')
+
+        assert self._run_restarter() == 1
+
+    def _fail(self, account_trash, error):
+        """
+        Simulate a failed task whose cooldown period has elapsed
+        """
+        trash_bin_task_failure(
+            AccountTrash, args=[account_trash.pk], exception=error
+        )
+        AccountTrash.objects.filter(pk=account_trash.pk).update(
+            date_modified=timezone.now()
+            - timedelta(seconds=settings.TRASH_BIN_AUTO_RESTART_COOLDOWN + 10)
+        )
+        account_trash.refresh_from_db()
+
+    def _make_stuck(self, account_trash, status):
+        AccountTrash.objects.filter(pk=account_trash.pk).update(
+            status=status,
+            date_modified=timezone.now()
+            - timedelta(
+                seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5 + 10
+            ),
+        )
+        account_trash.refresh_from_db()
+
+    def _move_account_to_trash(self, grace_period=None, freeze=True):
+        if grace_period is None:
+            grace_period = config.ACCOUNT_TRASH_RETENTION
+
+        def _move():
+            move_to_trash(
+                request_author=self.admin,
+                objects_list=[
+                    {'pk': self.someuser.pk, 'username': self.someuser.username}
+                ],
+                grace_period=grace_period,
+                trash_type='user',
+                retain_placeholder=True,
+            )
+
+        if freeze:
+            # Simulate an expired grace period
+            with freeze_time('2023-12-10'):
+                _move()
+        else:
+            _move()
+
+        return AccountTrash.objects.get(user=self.someuser)
+
+    def _run_restarter(self):
+        with patch(
+            'kobo.apps.trash_bin.tasks.empty_account.apply_async'
+        ) as patched_task:
+            task_restarter()
+
+        return patched_task.call_count

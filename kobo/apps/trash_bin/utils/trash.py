@@ -20,6 +20,7 @@ from kobo.apps.trash_bin.constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
     DELETE_USER_STR_PREFIX,
+    RETRYABLE_FAILURE_PATTERNS,
 )
 from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
@@ -197,6 +198,11 @@ def process_deletion(
 
         object_trash.status = TrashStatus.IN_PROGRESS
         object_trash.metadata['failure_error'] = ''
+        if not force:
+            # `task_restarter` always forces the deletion, therefore this run has
+            # been requested by Celery beat or by a superuser from the admin
+            # interface: give the object a brand new automatic restart budget
+            object_trash.metadata.pop('retryable_failure_count', None)
         object_trash.save(update_fields=['metadata', 'status', 'date_modified'])
 
     deletion_callback(object_trash)
@@ -279,6 +285,19 @@ def put_back(
     return updated_items, update_count
 
 
+def is_retryable_failure(error: str) -> bool:
+    """
+    Return True if `error` was caused by the infrastructure and not by the data
+    being deleted which makes the failed task worth restarting automatically
+
+    Kept case-insensitive to mirror the query run by `task_restarter`
+    """
+    error = error.lower()
+    return any(
+        pattern.lower() in error for pattern in RETRYABLE_FAILURE_PATTERNS
+    )
+
+
 def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     exception = kwargs['exception']
     obj_trash_id = kwargs['args'][0]
@@ -286,15 +305,19 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
 
         error = str(exception)
-        # The task may be stopped abruptly without any traceback or clear exception.
-        # This can happen if the kernel kills it due to an OOM condition,
-        # or if Kubernetes terminates the pod (e.g., OOMKilled, failed  probes, etc.).
-        # In such cases, the exact error type is unknown.
-        if 'Worker exited prematurely' in error:
-            obj_trash.status = TrashStatus.IN_PROGRESS
-        else:
-            obj_trash.status = TrashStatus.FAILED
+        obj_trash.status = TrashStatus.FAILED
         obj_trash.metadata['failure_error'] = error
+
+        # Some failures are transient, e.g.: the task was stopped abruptly without
+        # any traceback (OOM condition, Kubernetes terminating the pod), MongoDB
+        # was unreachable, PostgreSQL detected a deadlock or Celery time limits
+        # were reached. Keep track of them, so that `task_restarter` can restart
+        # the task - up to `settings.TRASH_BIN_MAX_AUTO_RESTARTS` times
+        if is_retryable_failure(error):
+            obj_trash.metadata['retryable_failure_count'] = (
+                obj_trash.metadata.get('retryable_failure_count') or 0
+            ) + 1
+
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
