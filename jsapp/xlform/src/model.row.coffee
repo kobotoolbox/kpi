@@ -397,6 +397,11 @@ module.exports = do ->
         if _.isObject(newType)
           tpid = _.keys(newType)[0]
           p2 = _.values(newType)[0]
+        else if $configs.lookupRowType(newType)
+          # A few XLSForm types contain spaces (e.g. "phone number"), so we check
+          # the whole value before splitting it below. Otherwise we would treat
+          # the second word as a choice list name and fail to find the type.
+          tpid = newType
         else
           [tpid, p2, p3] = newType.split(" ")
 

@@ -287,6 +287,30 @@ module.exports = do ->
       # Builder doesn't load, so the question can't be edited here. We still
       # need to know the type, otherwise the row becomes a `RowError`.
       ["select_one_external", "Select one external", supportedByUI: false],
+      # Valid XLSForm types that Form Builder has no editor for. They are listed
+      # here so that the row is recognized instead of becoming a `RowError`,
+      # which would make it disappear from the form on save. The user gets
+      # a notice on the card, and the row is written back unchanged.
+      #
+      # Types with a space in the name are handled in `processType` (see
+      # `model.row.coffee`), which otherwise reads the second word as a list name.
+      ["email", "Email", supportedByUI: false],
+      ["osm", "OpenStreetMap", supportedByUI: false],
+      ["percentage", "Percentage", supportedByUI: false],
+      ["phone number", "Phone number", supportedByUI: false],
+      ["number of days in last month", "Number of days in last month", supportedByUI: false],
+      ["number of days in last six months", "Number of days in last six months", supportedByUI: false],
+      ["number of days in last year", "Number of days in last year", supportedByUI: false],
+      # Bare legacy selects, which carry no choice list to edit
+      ["q select", "Select (legacy)", supportedByUI: false],
+      ["q select1", "Select one (legacy)", supportedByUI: false],
+      # Metadata read from the device, in URI form
+      ["uri:deviceid", "Device ID (URI)", supportedByUI: false],
+      ["uri:email", "Email (URI)", supportedByUI: false],
+      ["uri:phonenumber", "Phone number (URI)", supportedByUI: false],
+      ["uri:simserial", "SIM serial (URI)", supportedByUI: false],
+      ["uri:subscriberid", "Subscriber ID (URI)", supportedByUI: false],
+      ["uri:username", "Username (URI)", supportedByUI: false],
     ]
 
     class Type

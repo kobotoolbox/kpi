@@ -451,3 +451,61 @@ do ->
       names = []
       survey.forEachRow ((r) -> names.push r.getValue('name')), includeErrors: true
       expect(names).toEqual(['q1', 'region', 'q2'])
+
+  describe 'survey.tests: types we know of but cannot edit', () ->
+    # These are valid XLSForm types that Form Builder has no editor for. Before
+    # they were registered, each one became a `RowError` and was then dropped
+    # from the survey on save, silently deleting the question from the form.
+    beforeEach -> window.xlfHideWarnings = true
+    afterEach -> window.xlfHideWarnings = false
+
+    UNEDITABLE_TYPES = [
+      'email'
+      'osm'
+      'percentage'
+      'phone number'
+      'number of days in last month'
+      'number of days in last six months'
+      'number of days in last year'
+      'q select'
+      'q select1'
+      'uri:deviceid'
+      'uri:email'
+      'uri:phonenumber'
+      'uri:simserial'
+      'uri:subscriberid'
+      'uri:username'
+    ]
+
+    loadWithType = (type) ->
+      return $model.Survey.loadDict({
+        survey: [
+          {type: 'text', name: 'before', label: 'Before'},
+          {type: type, name: 'q_x', label: 'X'},
+          {type: 'text', name: 'after', label: 'After'}
+        ]
+      })
+
+    UNEDITABLE_TYPES.forEach((type) ->
+      describe "'#{type}'", () ->
+        it 'loads without becoming an error row', () ->
+          row = loadWithType(type).rows.at(1)
+          expect(row.isError()).toBe(false)
+          expect(row.get('type').get('typeId')).toBe(type)
+
+        it 'is marked as unsupported by UI', () ->
+          row = loadWithType(type).rows.at(1)
+          expect(row.get('type').get('rowType').supportedByUI).toBe(false)
+
+        it 'is kept, with its type intact, when the form is saved', () ->
+          savedRows = loadWithType(type).toFlatJSON().survey
+          expect((row.type for row in savedRows)).toEqual(['text', type, 'text'])
+
+        it 'gets no choice list', () ->
+          survey = loadWithType(type)
+          # A type containing a space used to have its second word read as a list
+          # name, which is how these types failed to be found in the first place
+          expect(survey.rows.at(1).get('type').get('listName')).toBeUndefined()
+          expect(survey.toFlatJSON().choices).toBeUndefined()
+      return
+    )
