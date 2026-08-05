@@ -27,7 +27,11 @@ export default function ConnectProjectsExports({
     return (
       <div className='connect-projects__export'>
         <div className='connect-projects__export-options'>
-          <Switch onChange={onToggleSharingData} label={t('Data sharing enabled')} checked={isShared} />
+          <Switch
+            onChange={onToggleSharingData}
+            label={<strong>{t('Data sharing enabled')}</strong>}
+            checked={isShared}
+          />
 
           <Checkbox
             name='sharing'
