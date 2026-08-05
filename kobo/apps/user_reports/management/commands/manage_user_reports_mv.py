@@ -3,12 +3,12 @@ import datetime
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
-from user_reports.utils.migrations import get_create_mv_sql
 
 from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
     DROP_MV_SQL,
+    get_create_mv_sql,
 )
 
 
