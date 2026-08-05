@@ -130,7 +130,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'trench',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -2124,32 +2123,6 @@ MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
 MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
-
-TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
-    'USER_ACTIVE_FIELD': 'is_active',
-    'BACKUP_CODES_QUANTITY': 5,
-    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
-    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
-    'DEFAULT_VALIDITY_PERIOD': 30,
-    'ENCRYPT_BACKUP_CODES': True,
-    'SECRET_KEY_LENGTH': 32,
-    'CONFIRM_DISABLE_WITH_CODE': True,
-    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
-    'ALLOW_BACKUP_CODES_REGENERATION': True,
-    'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
-    },
-    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
-}
-
 
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
