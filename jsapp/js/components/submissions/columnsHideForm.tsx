@@ -132,7 +132,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
   render() {
     const filteredFieldsList = this.getFilteredFieldsList()
     return (
-      <Stack w={360} gap='sm' p='sm'>
+      <Stack w={360} gap='sm' p='sm' mah='calc(100vh - 200px)' mih={200}>
         <Box fz='sm'>{t('These settings affects the experience for all project users.')}</Box>
 
         <TextInput
@@ -144,7 +144,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
 
         {filteredFieldsList.length !== 0 && (
           <ScrollArea.Autosize mah={200} type='auto' dir='auto'>
-            <Stack gap='sm'>
+            <Stack gap='sm' p='xs'>
               {filteredFieldsList.map((fieldObj) => (
                 <Box key={fieldObj.fieldId}>
                   <Switch
@@ -154,6 +154,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
                     }}
                     disabled={this.state.isPending}
                     label={fieldObj.label}
+                    size='sm'
                   />
                 </Box>
               ))}
