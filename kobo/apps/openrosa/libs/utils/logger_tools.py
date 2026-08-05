@@ -127,6 +127,22 @@ def check_submission_permissions(
     :raises: PermissionDenied based on the above criteria.
     """
 
+    # Block superusers from submitting data unless a self-hoster has explicitly
+    # opted into the risk (see DEV-32). Checked before `require_auth` so it also
+    # applies to forms that accept anonymous submissions. Internal callers pass
+    # `request=None` and are never affected.
+    if (
+        request
+        and request.user.is_superuser
+        and not settings.ALLOW_SUPERUSER_SUBMISSIONS
+    ):
+        raise PermissionDenied(
+            t(
+                'Superusers are not allowed to submit data. '
+                'Please use a regular account.'
+            )
+        )
+
     if not xform.require_auth:
         # Anonymous submissions are allowed!
         return

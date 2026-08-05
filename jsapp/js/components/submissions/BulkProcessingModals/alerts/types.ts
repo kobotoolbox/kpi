@@ -10,7 +10,15 @@ import type { SubmissionResponse } from '#/dataInterface'
  */
 export type AlertSeverity = 'error' | 'warning'
 
-export type BulkActionType = 'transcript' | 'translation'
+/**
+ * Bulk actions that can show alerts.
+ *
+ * `approve` only accepts content that is already there, so it doesn't need the
+ * quota, language or source checks the other two use. It gets its own short list
+ * of alerts in `getAlertDefinitions`, which is why evaluators that look at
+ * `actionType` only ever see `transcript` or `translation`.
+ */
+export type BulkActionType = 'transcript' | 'translation' | 'approve'
 
 /**
  * Context passed to alert evaluators
