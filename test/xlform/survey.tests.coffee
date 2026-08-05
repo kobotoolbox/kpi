@@ -384,3 +384,70 @@ do ->
       expect(choiceList.options.at(0).get('name')).toBe('tomato')
       expect(choiceList.options.at(1).get('name')).toBe('cucumber')
       expect(choiceList.options.at(2).get('name')).toBe('corn')
+
+  describe 'survey.tests: select_one_external', () ->
+    # We can't edit this type (its choices live in the `external_choices` sheet,
+    # which Form Builder doesn't load), but loading it must not throw, and saving
+    # must give the row back unchanged.
+    beforeEach -> window.xlfHideWarnings = true
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'loads without becoming an error row', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'}
+        ]
+      })
+      row = survey.rows.at(0)
+      expect(row.isError()).toBe(false)
+      expect(row.get('type').get('typeId')).toBe('select_one_external')
+
+    it 'is marked as unsupported by UI', () ->
+      survey = $model.Survey.loadDict({
+        survey: [{type: 'select_one_external', name: 'region', label: 'Region'}]
+      })
+      expect(survey.rows.at(0).get('type').get('rowType').supportedByUI).toBe(false)
+
+    it 'keeps the type and list name through a save/reload', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'}
+        ]
+      })
+      surveyJSON = survey.toFlatJSON()
+      savedRow = surveyJSON.survey[0]
+      expect(savedRow.type).toBe('select_one_external')
+      expect(savedRow.select_from_list_name).toBe('regions')
+
+      reloadedSurvey = $model.Survey.loadDict(JSON.parse(JSON.stringify(surveyJSON)))
+      expect(reloadedSurvey.rows.at(0).isError()).toBe(false)
+
+    it 'does not invent a list name when there was none', () ->
+      survey = $model.Survey.loadDict({
+        survey: [{type: 'select_one_external', name: 'region', label: 'Region'}]
+      })
+      savedRow = survey.toFlatJSON().survey[0]
+      expect(savedRow.type).toBe('select_one_external')
+      expect(savedRow.select_from_list_name).toBeUndefined()
+
+    it 'is not treated as a select question, so it gets no choice list', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'}
+        ]
+      })
+      row = survey.rows.at(0)
+      expect(row._isSelectQuestion()).toBe(false)
+      expect(survey.toFlatJSON().choices).toBeUndefined()
+
+    it 'does not block the rest of the form from loading', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'text', name: 'q1', label: 'Q1'},
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'},
+          {type: 'text', name: 'q2', label: 'Q2'}
+        ]
+      })
+      names = []
+      survey.forEachRow ((r) -> names.push r.getValue('name')), includeErrors: true
+      expect(names).toEqual(['q1', 'region', 'q2'])

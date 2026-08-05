@@ -282,7 +282,11 @@ module.exports = do ->
       ["select_one_from_file", "Select one from file"],
       ["select_multiple_from_file", "Select multiple from file"],
       ["xml-external", "External XML"],
-      ["background-geopoint", "Background geopoint", supportedByUI: false],
+      ["background-geopoint", "Background geopoint", supportedByUI: false, hiddenInUI: true],
+      # Choices for this type live in the `external_choices` sheet, which Form
+      # Builder doesn't load, so the question can't be edited here. We still
+      # need to know the type, otherwise the row becomes a `RowError`.
+      ["select_one_external", "Select one external", supportedByUI: false],
     ]
 
     class Type
