@@ -25,7 +25,12 @@ jest.mock('#/api/react-query/user-team-organization-usage', () => ({
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
-import { DeleteBlockerReason, getSurveyFlatPaths, userCanDeleteAssets } from '#/assetUtils'
+import {
+  DeleteBlockerReason,
+  getSurveyFlatPaths,
+  injectSupplementalRowsIntoListOfRows,
+  userCanDeleteAssets,
+} from '#/assetUtils'
 import { surveyWithAllPossibleGroups, surveyWithGroups } from '#/assetUtils.mocks'
 
 describe('getSurveyFlatPaths', () => {
@@ -117,6 +122,115 @@ describe('getSurveyFlatPaths', () => {
       Comments: 'Comments',
     }
     expect(test).to.deep.equal(target)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// injectSupplementalRowsIntoListOfRows
+// ---------------------------------------------------------------------------
+
+describe('injectSupplementalRowsIntoListOfRows', () => {
+  /**
+   * A form with one audio question that has a transcript and a qualitative
+   * analysis question.
+   *
+   * Back end points `qualNote` and `qualSource` fields at the qual question
+   * (`Record_a_sound/qual-uuid`), so they are only reachable through the nested
+   * lookup in the function. We list them pointing at the audio question too, as
+   * that shape is what would leak into Data Table if the type filtering ever
+   * broke - the passing test needs to prove both are dropped.
+   */
+  const assetWithNonDisplayableFields = getApiV2AssetsRetrieveResponseMock({
+    content: {
+      survey: [
+        {
+          name: 'Record_a_sound',
+          type: 'audio',
+          $kuid: 'audio-kuid',
+          $xpath: 'Record_a_sound',
+          $autoname: 'Record_a_sound',
+          label: ['Record a sound'],
+        },
+      ],
+    },
+    analysis_form_json: {
+      additional_fields: [
+        {
+          type: 'transcript',
+          name: 'Record_a_sound/transcript',
+          dtpath: 'Record_a_sound/transcript_en',
+          label: 'Record_a_sound - transcript',
+          language: 'en',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualText',
+          name: 'What_do_you_hear',
+          dtpath: 'Record_a_sound/qual-uuid',
+          label: 'What do you hear?',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualVerification',
+          name: 'Record_a_sound/qual-uuid/verified',
+          dtpath: 'Record_a_sound/qual-uuid/verified',
+          label: 'verified',
+          source: 'Record_a_sound/qual-uuid',
+        },
+        {
+          type: 'qualNote',
+          name: 'Some_note',
+          dtpath: 'Record_a_sound/note-uuid',
+          label: 'Some note',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualNote',
+          name: 'Record_a_sound/qual-uuid/note',
+          dtpath: 'Record_a_sound/qual-uuid/note',
+          label: 'note',
+          source: 'Record_a_sound/qual-uuid',
+        },
+        {
+          type: 'qualSource',
+          name: 'Record_a_sound/source',
+          dtpath: 'Record_a_sound/source',
+          label: 'source',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualSource',
+          name: 'Record_a_sound/qual-uuid/source',
+          dtpath: 'Record_a_sound/qual-uuid/source',
+          label: 'source',
+          source: 'Record_a_sound/qual-uuid',
+        },
+      ],
+    },
+  })
+
+  it('should inject supplemental columns right after their source question', () => {
+    const test = injectSupplementalRowsIntoListOfRows(assetWithNonDisplayableFields, [
+      'Record_a_sound',
+      'some_other_question',
+    ])
+
+    expect(test).to.deep.equal([
+      'Record_a_sound',
+      '_supplementalDetails/Record_a_sound/transcript_en',
+      '_supplementalDetails/Record_a_sound/qual-uuid',
+      '_supplementalDetails/Record_a_sound/qual-uuid/verified',
+      'some_other_question',
+    ])
+  })
+
+  it('should not inject the fields that are not meant to be displayed to users', () => {
+    const test = injectSupplementalRowsIntoListOfRows(assetWithNonDisplayableFields, ['Record_a_sound'])
+
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/note-uuid')
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/qual-uuid/note')
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/source')
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/qual-uuid/source')
   })
 })
 
