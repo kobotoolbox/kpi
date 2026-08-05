@@ -917,8 +917,7 @@ class BaseDeploymentBackend(abc.ABC):
 
             # fall back until LRM 0027/0028 are not completed
             root_uuid = remove_uuid_prefix(
-                submission.get(META_ROOT_UUID)
-                or submission['_uuid']
+                submission.get(META_ROOT_UUID) or submission['_uuid']
             )
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,

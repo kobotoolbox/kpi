@@ -32,7 +32,7 @@ def generate_attachment_filename(instance, filename):
         'attachments',
         xform.uuid or xform.id_string or '__pk-{}'.format(xform.pk),
         instance.root_uuid,
-        os.path.split(filename)[1]
+        os.path.split(filename)[1],
     )
 
 
