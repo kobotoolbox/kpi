@@ -51,7 +51,7 @@ jobs:
     - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
-        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
     - name: create next RC branch
       id: branch
@@ -63,21 +63,36 @@ jobs:
         git push origin $NEW_BRANCH
 
 
-  changelog:
+  # Create Linear release and link issues from commits unique to this branch.
+  # Uses prev branch tip (not prev tag) so commits to be released as patches on
+  # the previous minor are excluded.
+  linear:
     needs:
       - version
       - create-current-branch
     runs-on: ubuntu-24.04
     steps:
-    - name: create Linear ticket to track a draft of changelog
-      run: |
-        echo 'TODO, for now do it manually'
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        release_version: ${{ needs.version.outputs.current_minor }}
+        base_ref: origin/${{ needs.version.outputs.prev_branch }}
+    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_minor }}
+        stage: "Pending QA"
 
 
   notify-current:
     needs:
       - version
-      - changelog
+      - linear
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -92,6 +107,7 @@ jobs:
   notify-prev:
     needs:
       - version
+      - create-current-branch
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -108,7 +124,7 @@ jobs:
       - current-branch
       - version
       - create-current-branch
-      - changelog
+      - linear
       - notify-prev
       - notify-current
     if: ${{ failure() }}

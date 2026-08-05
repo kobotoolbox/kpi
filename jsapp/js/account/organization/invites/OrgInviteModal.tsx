@@ -32,7 +32,6 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   const orgName = (orgInvitesQuery.data?.data as InviteResponse)?.organization_name ?? mmoLabel
 
   const [userResponseType, setUserResponseType] = useState<InviteStatusChoicesEnum | null>(null)
-  const [miscError, setMiscError] = useState<string | undefined>()
   const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
     mutation: {
@@ -54,8 +53,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
         setUserResponseType(null)
         props.onUserResponse()
       },
-      onError: (_error) => {
-        setMiscError(t('Unknown error while trying to update an invitation')) // TODO: update message in backend (DEV-1218).
+      onError: () => {
+        // Displayed inline by the alert below, so suppress the default toast.
         setUserResponseType(null)
       },
     },
@@ -127,12 +126,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
       </Stack>
     )
   }
-  // Case 4: failed to accept or decline invitation (misc error)
-  else if (miscError) {
-    title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
-    content = <Alert type='error'>{miscError}</Alert>
-  }
-  // Case 3: got the invite, its status is pending, so we display form
+  // Case 4: got the invite, its status is pending, so we display form
   // We also continue displaying this content while we wait for data to refresh following acceptance
   else if (
     orgInvitesQuery.data?.status === 200 &&
@@ -179,7 +173,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
       </Stack>
     )
   }
-  // Case 4: got the invite, its status is something else, we display error message
+  // Case 5: got the invite, its status is something else, we display error message
   else if (orgInvitesQuery.data?.status === 200 && orgInvitesQuery.data?.data.status) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
     content = <Alert type='error'>{t('This invitation is no longer available for a response')}</Alert>

@@ -65,7 +65,10 @@ from kpi.utils.xml import (
 
 
 @ddt
-@override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
+# These tests create submissions as the superuser `adminuser`, which is blocked
+# by default (DEV-32). Opt into it here since the restriction is not what they
+# exercise.
+@override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock', ALLOW_SUPERUSER_SUBMISSIONS=True)
 class TestProjectHistoryLogs(BaseAuditLogTestCase):
     """
     Integration tests for flows that create ProjectHistoryLogs
