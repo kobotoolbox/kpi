@@ -1261,6 +1261,12 @@ TEMPLATES = [
 ]
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
+
+# Superusers submitting real survey data through the OpenRosa API tends to break
+# things (see DEV-32), so it is blocked by default. Self-hosters who really need
+# a superuser to submit can opt back into the risk by setting this to `True`;
+# consider yourself warned that bad things can happen.
+ALLOW_SUPERUSER_SUBMISSIONS = env.bool('ALLOW_SUPERUSER_SUBMISSIONS', False)
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
