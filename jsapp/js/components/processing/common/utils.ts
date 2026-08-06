@@ -189,6 +189,31 @@ export const getLatestTranscriptVersionItem = (
     .sort(TransxVersionSortFunction)[0] as TranscriptVersionItem | undefined
 }
 
+/**
+ * Returns the language a new translation would actually be sourced from, or `undefined` if nothing can be translated
+ * yet.
+ *
+ * This mirrors the back end's dependency resolution (`RequiresTranscriptionMixin.attach_action_dependency`), which
+ * picks the transcript version with the most recent *acceptance* date and ignores versions that were never accepted.
+ * That differs from `getLatestTranscriptVersionItem`, which sorts by creation date - the two disagree whenever
+ * versions were accepted in a different order than they were created, so don't substitute one for the other.
+ */
+export const getTranslationSourceLanguage = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+): LanguageCode | undefined => {
+  const usableVersions = getAllTranscriptsFromSupplementData(supplementData, xpath)
+    .flatMap<TranscriptVersionItem>((transcript) => transcript._versions)
+    // An unaccepted version is not a source yet, and one without a text value was deleted or never finished.
+    // `_dateAccepted` is typed as a required string on manual versions but can be empty, hence the truthiness check.
+    .filter((version) => Boolean(version._dateAccepted) && isSupplementVersionWithValue(version))
+
+  // Newest acceptance first. `_dateAccepted` is an ISO-8601 string, so lexicographic order is chronological order.
+  const latestAccepted = usableVersions.sort((a, b) => (a._dateAccepted! < b._dateAccepted! ? 1 : -1))[0]
+
+  return latestAccepted?._data.language
+}
+
 // Qual
 
 /**

@@ -13,7 +13,7 @@ import { CreateSteps } from '../../common/types'
 import {
   getAllTranslationsFromSupplementData,
   getLatestAutomaticTranslationVersionItem,
-  getLatestTranscriptVersionItem,
+  getTranslationSourceLanguage,
   isSupplementVersionAutomatic,
 } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
@@ -45,12 +45,13 @@ export default function TranslationTab({
     [supplement, questionXpath],
   )
 
-  // Languages that can't be picked for a new translation: the ones already translated into, plus the transcript's own
-  // language. Translating a transcript into its own language produces an empty, undeletable translation.
+  // Languages that can't be picked for a new translation: the ones already translated into, plus the language of the
+  // transcript the translation would be sourced from. Translating a transcript into its own language produces an empty,
+  // undeletable translation.
   const unavailableLanguages = useMemo(() => {
-    const transcriptLanguage = getLatestTranscriptVersionItem(supplement, questionXpath)?._data.language
+    const sourceLanguage = getTranslationSourceLanguage(supplement, questionXpath)
     const existingLanguages = translationVersions.map(({ _data }) => _data.language)
-    return transcriptLanguage ? [...existingLanguages, transcriptLanguage] : existingLanguages
+    return sourceLanguage ? [...existingLanguages, sourceLanguage] : existingLanguages
   }, [supplement, questionXpath, translationVersions])
 
   // Read languageCode from URL params if available (for direct navigation to specific translation)

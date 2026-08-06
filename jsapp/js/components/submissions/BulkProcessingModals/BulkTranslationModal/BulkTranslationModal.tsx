@@ -99,12 +99,27 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
-  // `fieldXpath` points at the transcript column being translated, so its language code is the source language.
-  const { sourceRowPath, languageCode: transcriptLanguage } = getSupplementalPathParts(props.fieldXpath)
+  // `fieldXpath` points at the transcript column being translated, so its language code is the column's language.
+  const { sourceRowPath, languageCode: columnLanguage } = getSupplementalPathParts(props.fieldXpath)
 
   // Translating a transcript into its own language produces an empty column that can't be removed, so we don't let
-  // users pick it. See DEV-2622.
-  const hiddenLanguages = useMemo(() => (transcriptLanguage ? [transcriptLanguage] : []), [transcriptLanguage])
+  // users pick it.
+  //
+  // The column's own language is not enough: eligibility only requires a transcript with a value, regardless of its
+  // language, so a selected row transcribed in another language would be translated from that other language instead.
+  // We therefore hide every language actually present across the selected rows too.
+  const hiddenLanguages = useMemo(() => {
+    const languages = new Set<LanguageCode>(columnLanguage ? [columnLanguage] : [])
+
+    props.selectedSubmissions.forEach((submission) => {
+      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+      if (transcript?.languageCode) {
+        languages.add(transcript.languageCode)
+      }
+    })
+
+    return [...languages]
+  }, [columnLanguage, props.selectedSubmissions, sourceRowPath])
 
   // Use bulk processing alerts hook
   // Near-limit should reflect only the submissions that still need translation.
