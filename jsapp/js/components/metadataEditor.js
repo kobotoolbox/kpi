@@ -2,13 +2,13 @@ import './metadataEditor.scss'
 
 import React from 'react'
 
+import { Switch } from '@mantine/core'
 import autoBind from 'react-autobind'
 import Select from 'react-select'
 import bem, { makeBem } from '#/bem'
 import Checkbox from '#/components/common/checkbox'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import { FUNCTION_TYPE, META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
@@ -227,9 +227,9 @@ export default class MetadataEditor extends React.Component {
           <bem.FormBuilderAside__header>{this.renderBackgroundAudioLabel()}</bem.FormBuilderAside__header>
 
           <bem.FormModal__item>
-            <ToggleSwitch
+            <Switch
               checked={backgroundAudioProp.value}
-              onChange={this.onCheckboxChange.bind(this, backgroundAudioProp.name)}
+              onChange={(event) => this.onCheckboxChange(backgroundAudioProp.name, event.currentTarget.checked)}
               label={
                 backgroundAudioProp.value
                   ? t('This survey will be recorded')

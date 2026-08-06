@@ -132,12 +132,6 @@ bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav')
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav')
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside')
 
-bem.ToggleSwitch = makeBem(null, 'toggle-switch')
-bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label')
-bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input')
-bem.ToggleSwitch__slider = makeBem(bem.ToggleSwitch, 'slider', 'span')
-bem.ToggleSwitch__label = makeBem(bem.ToggleSwitch, 'label', 'span')
-
 bem.Breadcrumbs = makeBem(null, 'breadcrumbs')
 bem.Breadcrumbs__crumb = makeBem(bem.Breadcrumbs, 'crumb', 'a')
 bem.Breadcrumbs__divider = makeBem(bem.Breadcrumbs, 'divider', 'i')

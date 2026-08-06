@@ -15,6 +15,7 @@ export const MultiSelectThemeKobo = MultiSelect.extend({
     // Keep default height aligned with Select when no explicit size is provided.
     size: 'md',
     withCheckIcon: false,
+    searchable: true,
     comboboxProps: {
       offset: 0,
       dropdownPadding: 0,

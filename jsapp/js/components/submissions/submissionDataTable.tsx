@@ -152,22 +152,28 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
-            {item.data.split(' ').map((answer, answerIndex) => {
-              choice = this.findChoice(item.listName, answer)
-              if (choice) {
+            {/* Dropping empty pieces keeps stray spaces in the stored response from becoming blank bullets. */}
+            {item.data
+              .split(' ')
+              .filter((answer) => answer !== '')
+              .map((answer, answerIndex) => {
+                choice = this.findChoice(item.listName, answer)
+                if (!choice) {
+                  // Not always a bug: the choice may have been renamed or
+                  // removed after this submission came in.
+                  console.error(`Choice not found for "${item.listName}" and "${answer}".`)
+                }
+                // Unmatched answers still get their own `<li>` with the raw
+                // value, so the list accounts for everything that was selected.
+                // A bare string here would be invalid markup inside the `<ul>`.
                 return (
                   <li key={answerIndex}>
                     <bem.SubmissionDataTable__value>
-                      {choice.label?.[this.props.translationIndex] || choice.name}
+                      {choice?.label?.[this.props.translationIndex] || answer}
                     </bem.SubmissionDataTable__value>
                   </li>
                 )
-              } else {
-                console.error(`Choice not found for "${item.listName}" and "${answer}".`)
-                // fallback to raw data to display anything meaningful
-                return answer
-              }
-            })}
+              })}
           </ul>
         )
       case QUESTION_TYPES.date.id:

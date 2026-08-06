@@ -14,6 +14,7 @@ export const SelectThemeKobo = Select.extend({
     size: 'md',
     withCheckIcon: false,
     allowDeselect: false,
+    searchable: true,
     comboboxProps: {
       offset: 0,
       dropdownPadding: 0,
