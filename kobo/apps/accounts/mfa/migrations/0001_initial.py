@@ -24,8 +24,18 @@ class Migration(migrations.Migration):
                         verbose_name='ID',
                     ),
                 ),
-                ('date_created', models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime)),
-                ('date_modified', models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime)),
+                (
+                    'date_created',
+                    models.DateTimeField(
+                        default=kpi.models.abstract_models._get_default_datetime
+                    ),
+                ),
+                (
+                    'date_modified',
+                    models.DateTimeField(
+                        default=kpi.models.abstract_models._get_default_datetime
+                    ),
+                ),
                 ('date_disabled', models.DateTimeField(null=True)),
             ],
         ),
