@@ -596,7 +596,13 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":package: `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub. `kobo-docker` and `kobo-install` bumped. @*sysadmin*: please deploy ${{ needs.deploy-issue.outputs.issue-identifier }}"
+      content: |
+        :package: Release `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub, `kobo-docker` and `kobo-install` bumped.
+
+        Next manual steps:
+        - review [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/${{ needs.version.outputs.current_patch }}/CHANGELOG.md): `git checkout changelog/${{ needs.version.outputs.current_patch }}` and `git add CHANGELOG.md && git push`
+        - publish release notes: [run this workflow](https://github.com/kobotoolbox/kpi/actions/workflows/release-4-publish.yml) with `${{ needs.version.outputs.current_patch }}` parameter.
+        - deploy: ${{ needs.deploy-issue.outputs.issue-identifier }}, cc @*sysadmin*
 
 
   on-failure:

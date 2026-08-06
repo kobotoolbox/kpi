@@ -206,7 +206,7 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":rocket: `${{ inputs.tag }}` GitHub releases published for kpi, kobo-docker, and kobo-install."
+      content: ":mega: Release `${{ inputs.tag }}` published on Github for [kpi](https://github.com/kobotoolbox/kpi/releases/tag/${{ inputs.tag }}), [kobo-docker](https://github.com/kobotoolbox/kobo-docker/releases/tag/${{ inputs.tag }}), and [kobo-install](https://github.com/kobotoolbox/kobo-install/releases/tag/${{ inputs.tag }})."
 
 
   on-failure:
