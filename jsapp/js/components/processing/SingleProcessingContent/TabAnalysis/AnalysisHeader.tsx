@@ -1,17 +1,13 @@
-import React from 'react'
-
-import { Badge, Group } from '@mantine/core'
+import { Badge, Group, Switch } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
-import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
-import Button from '#/components/common/button'
+import ButtonNew from '#/components/common/ButtonNew'
+import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import KoboDropdown from '#/components/common/koboDropdown'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
@@ -56,45 +52,47 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
   return (
     <header className={styles.root}>
       <Group>
-        <KoboDropdown
-          placement={'down-left'}
-          hideOnMenuClick
-          triggerContent={<Button type='primary' size='m' startIcon='plus' label={t('Add question')} />}
-          menuContent={
-            <menu className={styles.addQuestionMenu}>
-              {questionDefs.map((questionDef) => {
-                return typeof questionDef === 'string' ? (
-                  <li key={'title'}>
-                    <h2>{t('Automated analysis')}</h2>
-                  </li>
-                ) : (
-                  <li
-                    className={classNames({
-                      [styles.addQuestionMenuButton]: true,
-                      // We want to disable the Keyword Search question type when there is no transcript or translation.
-                      [styles.addQuestionMenuButtonDisabled]:
-                        questionDef.type === 'qualAutoKeywordCount' &&
-                        transcriptVersion &&
-                        translationVersions.length === 0,
-                    })}
-                    key={questionDef.type}
-                    onClick={() => setQaQuestion(cloneDeep(questionDef.placeholder))}
-                    tabIndex={0}
-                  >
-                    <Icon name={questionDef.icon} />
-                    <label>{questionDef.label}</label>
-                  </li>
-                )
-              })}
-            </menu>
-          }
-          name='qualitative_analysis_add_question'
-          // We only allow editing one question at a time, so adding new is not
-          // possible until user stops editing
-          isDisabled={!userCan('manage_asset', asset) || !!qaQuestion}
-        />
+        <Menu closeOnItemClick position='bottom-start' offset={2}>
+          <Menu.Target>
+            <ButtonNew
+              size='md'
+              leftIcon='plus'
+              // We only allow editing one question at a time, so adding new is not
+              // possible until user stops editing
+              disabled={!userCan('manage_asset', asset) || !!qaQuestion}
+            >
+              {t('Add question')}
+            </ButtonNew>
+          </Menu.Target>
 
-        <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={setShowHints} />
+          <Menu.Dropdown className={styles.addQuestionMenu}>
+            {questionDefs.map((questionDef) =>
+              typeof questionDef === 'string' ? (
+                <Menu.Label key={'title'}>{t('Automated analysis')}</Menu.Label>
+              ) : (
+                <Menu.Item
+                  key={questionDef.type}
+                  // We want to disable the Keyword Search question type when there is no transcript or translation.
+                  disabled={
+                    questionDef.type === 'qualAutoKeywordCount' &&
+                    Boolean(transcriptVersion) &&
+                    translationVersions.length === 0
+                  }
+                  onClick={() => setQaQuestion(cloneDeep(questionDef.placeholder))}
+                  leftSection={<Icon name={questionDef.icon} size='m' />}
+                >
+                  {questionDef.label}
+                </Menu.Item>
+              ),
+            )}
+          </Menu.Dropdown>
+        </Menu>
+
+        <Switch
+          label={t('Show hints')}
+          checked={showHints}
+          onChange={(event) => setShowHints(event.currentTarget.checked)}
+        />
       </Group>
 
       <span>

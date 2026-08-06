@@ -6,6 +6,9 @@ import type { SubmissionResponse } from '#/dataInterface'
 import { getAlertDefinitions } from './alertDefinitions'
 import type { ActiveAlert, AlertEvaluationContext, BulkActionType } from './types'
 
+/** Kept outside the hook so skipping `activeBulkActions` doesn't re-run the evaluation on every render. */
+const NO_ACTIVE_BULK_ACTIONS: BulkActionResponse[] = []
+
 interface UseBulkProcessingAlertsProps {
   actionType: BulkActionType
   selectedSubmissions: SubmissionResponse[]
@@ -16,7 +19,8 @@ interface UseBulkProcessingAlertsProps {
   /** Required amount for full job in base units: seconds (transcription) or characters (translation). */
   requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
-  activeBulkActions: BulkActionResponse[]
+  /** Only the `conflicting-job` alert uses these, so `approve` can leave them out. */
+  activeBulkActions?: BulkActionResponse[]
 }
 
 interface UseBulkProcessingAlertsReturn {
@@ -46,7 +50,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     fieldXpath,
     requiredAmount,
     serviceUsageData,
-    activeBulkActions,
+    activeBulkActions = NO_ACTIVE_BULK_ACTIONS,
   } = props
 
   const alertDefinitions = useMemo(() => getAlertDefinitions(actionType), [actionType])
