@@ -62,11 +62,22 @@ runs:
           variables: { filter: { title: { eq: $title }, team: { id: { eq: $teamId } } } }
         }')
 
-      RESPONSE=$(curl -s -X POST \
+      RESPONSE=$(curl -s -f -X POST \
         -H "Content-Type: application/json" \
         -H "Authorization: $LINEAR_API_KEY" \
         -d "$PAYLOAD" \
         https://api.linear.app/graphql)
+
+      # Validate response before deciding
+      ERRORS=$(echo "$RESPONSE" | jq -r '.errors // empty')
+      if [[ -n "$ERRORS" && "$ERRORS" != "null" ]]; then
+        echo "::error::Linear API error during lookup: $ERRORS"
+        exit 1
+      fi
+      if ! echo "$RESPONSE" | jq -e '.data.issues' >/dev/null 2>&1; then
+        echo "::error::Unexpected Linear API response during lookup: $RESPONSE"
+        exit 1
+      fi
 
       EXISTING=$(echo "$RESPONSE" | jq -r '.data.issues.nodes[0].identifier // empty')
       if [[ -n "$EXISTING" ]]; then
