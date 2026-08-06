@@ -121,9 +121,10 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
         # deletion, i.e.: run the destructive workflow at the same time. The
         # update is conditional, so that two overlapping runs cannot both claim
         # the same object
+        claimed_at = timezone.now()
         claimed = model.objects.filter(
             pk=stuck_id, date_modified__lte=stuck_threshold
-        ).update(date_modified=timezone.now())
+        ).update(date_modified=claimed_at)
         if not claimed:
             continue
 
@@ -133,5 +134,7 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
             # If the task fails to enqueue, restore the original date_modified
             # so that it can be picked up again in the next run, and carry on
             # with the rest of the batch instead of holding it back too
-            model.objects.filter(pk=stuck_id).update(date_modified=date_modified)
+            model.objects.filter(pk=stuck_id, date_modified=claimed_at).update(
+                date_modified=date_modified
+            )
             logging.exception(f'Could not restart {model.__name__} #{stuck_id}')
