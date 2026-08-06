@@ -23,7 +23,7 @@ inputs:
   priority:
     description: '0=None, 1=Urgent, 2=High, 3=Medium, 4=Low'
     required: false
-    default: '0'
+    default: '3'
 
 outputs:
   issue-id:

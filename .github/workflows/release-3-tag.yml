@@ -480,8 +480,6 @@ jobs:
       run: |
         {
           echo "body<<EOF"
-          echo "Deploy kpi version $VERSION to public and private instances:"
-          echo ""
 
           if [[ "$HAS_HEAVY" == "true" ]]; then
             echo "> [!CAUTION]"
@@ -494,6 +492,8 @@ jobs:
             echo ""
           fi
 
+          echo "Deploy kpi version $VERSION to public and private instances:"
+          echo ""
           echo "**Public servers:**"
           echo ""
           echo "- [ ] global"
