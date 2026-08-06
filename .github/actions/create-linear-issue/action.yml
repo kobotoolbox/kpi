@@ -24,6 +24,10 @@ inputs:
     description: '0=None, 1=Urgent, 2=High, 3=Medium, 4=Low'
     required: false
     default: '3'
+  state-id:
+    description: 'Workflow state UUID (overrides default team triage state)'
+    required: false
+    default: ''
 
 outputs:
   issue-id:
@@ -49,6 +53,7 @@ runs:
       TEAM_ID: ${{ inputs.team-id }}
       LABEL_IDS: ${{ inputs.label-ids }}
       PRIORITY: ${{ inputs.priority }}
+      STATE_ID: ${{ inputs.state-id }}
     run: |
       # Build the GraphQL mutation payload
       LABEL_IDS_GQL=$(echo "$LABEL_IDS" | jq -c '.')
@@ -57,6 +62,7 @@ runs:
         --arg title "$TITLE" \
         --arg description "$DESCRIPTION" \
         --arg teamId "$TEAM_ID" \
+        --arg stateId "$STATE_ID" \
         --argjson labelIds "$LABEL_IDS_GQL" \
         --argjson priority "$PRIORITY" \
         '{
@@ -67,7 +73,8 @@ runs:
               teamId: $teamId,
               priority: $priority
             } + (if $description != "" then {description: $description} else {} end)
-              + (if ($labelIds | length) > 0 then {labelIds: $labelIds} else {} end))
+              + (if ($labelIds | length) > 0 then {labelIds: $labelIds} else {} end)
+              + (if $stateId != "" then {stateId: $stateId} else {} end))
           }
         }')
 

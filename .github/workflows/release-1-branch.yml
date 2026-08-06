@@ -71,12 +71,15 @@ jobs:
       - version
       - create-current-branch
     runs-on: ubuntu-24.04
+    outputs:
+      release_url: ${{ steps.create.outputs.release-url }}
     steps:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         fetch-tags: true
     - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+      id: create
       with:
         access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
         release_version: ${{ needs.version.outputs.current_minor }}
@@ -89,10 +92,73 @@ jobs:
         stage: "Pending QA"
 
 
+  qa-issue:
+    needs:
+      - version
+      - create-current-branch
+      - linear
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+
+    - name: Fetch QA template from Linear
+      id: template
+      env:
+        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        TEMPLATE_ID: 'DEV-2637'
+      run: |
+        PAYLOAD=$(jq -n --arg id "$TEMPLATE_ID" \
+          '{ query: "query($id: String!) { issue(id: $id) { description } }", variables: { id: $id } }')
+
+        RESPONSE=$(curl -s -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: $LINEAR_API_KEY" \
+          -d "$PAYLOAD" \
+          https://api.linear.app/graphql)
+
+        TEMPLATE=$(echo "$RESPONSE" | jq -r '.data.issue.description // empty')
+        if [[ -z "$TEMPLATE" ]]; then
+          echo "::error::Failed to fetch QA template from $TEMPLATE_ID"
+          exit 1
+        fi
+
+        echo "template<<EOF" >> "$GITHUB_OUTPUT"
+        echo "${TEMPLATE}EOF" >> "$GITHUB_OUTPUT"
+
+    - name: Build issue description
+      id: body
+      env:
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+        CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+        RELEASE_URL: ${{ needs.linear.outputs.release_url }}
+        TEMPLATE: ${{ steps.template.outputs.template }}
+      run: |
+        BODY="${TEMPLATE//\$CURRENT_PATCH/$CURRENT_PATCH}"
+        BODY="${BODY//\$CURRENT_BRANCH/$CURRENT_BRANCH}"
+        BODY="${BODY//\$RELEASE_URL/$RELEASE_URL}"
+
+        {
+          echo "body<<EOF"
+          echo "${BODY}EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Create Linear QA issue
+      uses: ./.github/actions/create-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        title: "QA kpi ${{ needs.version.outputs.current_minor }}"
+        description: ${{ steps.body.outputs.body }}
+        team-id: 'ea750a9d-5a92-4fe2-a494-55fa114ba0dd'
+        state-id: 'f5f82c75-1cd0-4792-b233-c31f51fdc0d0'  # In QA
+
+
   notify-current:
     needs:
       - version
       - linear
+      - qa-issue
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -100,8 +166,6 @@ jobs:
       content: |
         :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
         - @*QA* & @*product*: the release window is as long as it takes to tag the release version. If you want to "scrap" this release then ask devs to manually delete the branch.
-        - @_**Kalvis Kalniņš**: check Linear cycles whether now-past cycle `v${{ needs.version.outputs.current_minor }}` closed today and the upcoming cycle has started.
-        - @*devs*: if you merge a PR or cherry-pick a commit into `${{ needs.version.outputs.current_branch }}` branch, then please manually set issue's cycle to the `v${{ needs.version.outputs.current_minor }}` cycle (Linear automatically sets for next one).
 
 
   notify-prev:
@@ -125,6 +189,7 @@ jobs:
       - version
       - create-current-branch
       - linear
+      - qa-issue
       - notify-prev
       - notify-current
     if: ${{ failure() }}
