@@ -1,5 +1,7 @@
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
+import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import { getSuggestedLanguages, getTranslationSourceLanguage } from './utils'
 
 // Mock AdvancedFeatureResponse objects for tests
@@ -76,7 +78,7 @@ function buildTranscriptVersion(options: {
   dateCreated: string
   dateAccepted: string
   value?: string | null
-}) {
+}): SupplementalDataVersionItemManual {
   return {
     _uuid: options.uuid,
     _dateCreated: options.dateCreated,
@@ -88,24 +90,33 @@ function buildTranscriptVersion(options: {
   }
 }
 
-/** Wraps transcript versions in the `manual_transcription` shape of a supplement response. */
-function buildSupplement(versions: ReturnType<typeof buildTranscriptVersion>[]): DataSupplementResponse {
-  return {
-    _version: '1',
-    [XPATH]: {
-      manual_transcription: {
-        _dateCreated: '2026-01-01T00:00:00Z',
-        _dateModified: '2026-01-01T00:00:00Z',
-        _versions: versions,
-      },
-    },
-  } as unknown as DataSupplementResponse
+/**
+ * Wraps transcript versions in the `manual_transcription` shape of a supplement response. Pass no versions to get a
+ * supplement with no transcription action at all (`_versions` is never legitimately empty - the API requires at least
+ * one entry).
+ */
+function buildSupplement(versions: SupplementalDataVersionItemManual[]): DataSupplementResponse {
+  const actions: Record<string, { manual_transcription: SupplementalDataManualTranscription }> = versions.length
+    ? {
+        [XPATH]: {
+          manual_transcription: {
+            _dateCreated: '2026-01-01T00:00:00Z',
+            _dateModified: '2026-01-01T00:00:00Z',
+            _versions: versions,
+          },
+        },
+      }
+    : {}
+
+  // `DataSupplementResponse` is `{_version: string} & Record<string, SupplementalDataResponseAction>`, so `_version`
+  // would have to be a string *and* an action object at once. No literal can satisfy that, hence the assertion. The
+  // parts we actually assert on are fully typed above, so a wrong version or transcription shape still fails to compile.
+  return { _version: '1', ...actions } as DataSupplementResponse
 }
 
 describe('getTranslationSourceLanguage', () => {
   it('returns undefined when there are no transcripts at all', () => {
-    const supplement = { _version: '1' } as DataSupplementResponse
-    chai.expect(getTranslationSourceLanguage(supplement, XPATH)).to.equal(undefined)
+    chai.expect(getTranslationSourceLanguage(buildSupplement([]), XPATH)).to.equal(undefined)
   })
 
   it('returns the language of the only accepted transcript', () => {
