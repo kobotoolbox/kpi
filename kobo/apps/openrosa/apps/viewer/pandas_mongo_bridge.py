@@ -23,6 +23,7 @@ from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
+    DATE_MODIFIED,
     DELETEDAT,
     GEOLOCATION,
     ID,
@@ -92,6 +93,7 @@ class AbstractDataFrameBuilder:
         ATTACHMENTS,
         GEOLOCATION,
         DELETEDAT,  # no longer used but may persist in old submissions
+        DATE_MODIFIED,  # changes on every update; kept out of legacy exports
         SUBMITTED_BY,
     ]
     # fields NOT within the form def that we want to include
