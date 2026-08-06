@@ -293,9 +293,7 @@ def is_retryable_failure(error: str) -> bool:
     Kept case-insensitive to mirror the query run by `task_restarter`
     """
     error = error.lower()
-    return any(
-        pattern.lower() in error for pattern in RETRYABLE_FAILURE_PATTERNS
-    )
+    return any(pattern.lower() in error for pattern in RETRYABLE_FAILURE_PATTERNS)
 
 
 def trash_bin_task_failure(model: TrashBinModel, **kwargs):
@@ -314,9 +312,7 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
         # has exhausted its budget, so it cannot restart forever
         obj_trash.status = TrashStatus.FAILED
         if is_retryable_failure(error):
-            restart_count = (
-                obj_trash.metadata.get('retryable_failure_count') or 0
-            ) + 1
+            restart_count = (obj_trash.metadata.get('retryable_failure_count') or 0) + 1
             obj_trash.metadata['retryable_failure_count'] = restart_count
             if restart_count <= settings.TRASH_BIN_MAX_AUTO_RESTARTS:
                 obj_trash.status = TrashStatus.IN_PROGRESS

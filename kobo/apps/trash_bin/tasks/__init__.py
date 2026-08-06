@@ -105,8 +105,8 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
         periodic_task__clocked__clocked_time__lte=pending_grace_period,
     )
 
-    stuck_ids = (
-        model.objects.values_list('pk', flat=True)
+    stuck_objects = (
+        model.objects.values_list('pk', 'date_modified')
         .filter(
             started_objects | due_objects,
             date_modified__lte=stuck_threshold,
@@ -114,7 +114,7 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
         .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     )
 
-    for stuck_id in stuck_ids:
+    for stuck_id, date_modified in stuck_objects:
         # Claim the object, otherwise the next run would enqueue it again while
         # its restart is still waiting in the queue. And both would force the
         # deletion, i.e.: run the destructive workflow at the same time. The
@@ -126,4 +126,10 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
         if not claimed:
             continue
 
-        task.delay(stuck_id, force=True)
+        try:
+            task.delay(stuck_id, force=True)
+        except Exception:
+            # If the task fails to enqueue, restore the original date_modified
+            # so that it can be picked up again in the next run
+            model.objects.filter(pk=stuck_id).update(date_modified=date_modified)
+            raise

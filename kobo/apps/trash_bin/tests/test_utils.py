@@ -1023,9 +1023,7 @@ class TaskRestarterTestCase(TestCase):
         account_trash = self._move_account_to_trash()
         self._fail(account_trash, error)
 
-        expected_status = (
-            TrashStatus.IN_PROGRESS if retryable else TrashStatus.FAILED
-        )
+        expected_status = TrashStatus.IN_PROGRESS if retryable else TrashStatus.FAILED
         assert account_trash.status == expected_status
         assert account_trash.metadata['failure_error'] == error
         assert self._run_restarter() == (1 if retryable else 0)
@@ -1218,9 +1216,7 @@ class TaskRestarterTestCase(TestCase):
         Simulate a failed task which has since gone quiet long enough to be
         considered stuck
         """
-        trash_bin_task_failure(
-            AccountTrash, args=[account_trash.pk], exception=error
-        )
+        trash_bin_task_failure(AccountTrash, args=[account_trash.pk], exception=error)
         AccountTrash.objects.filter(pk=account_trash.pk).update(
             date_modified=self._stale_timestamp()
         )
@@ -1262,9 +1258,7 @@ class TaskRestarterTestCase(TestCase):
         return AccountTrash.objects.get(user=self.someuser)
 
     def _run_restarter(self):
-        with patch(
-            'kobo.apps.trash_bin.tasks.empty_account.delay'
-        ) as patched_task:
+        with patch('kobo.apps.trash_bin.tasks.empty_account.delay') as patched_task:
             task_restarter()
 
         return patched_task.call_count
