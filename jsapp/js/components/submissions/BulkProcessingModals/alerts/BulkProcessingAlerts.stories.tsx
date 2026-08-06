@@ -2,7 +2,7 @@ import { Stack, Text } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
 import BulkProcessingAlerts from './BulkProcessingAlerts'
 import { getAlertDefinitions } from './alertDefinitions'
-import type { ActiveAlert } from './types'
+import type { ActiveAlert, BulkActionType } from './types'
 
 const meta = {
   title: 'Components/BulkProcessingAlerts',
@@ -17,17 +17,19 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 // Get alert definitions for creating realistic mock alerts
-const transcriptionAlerts = getAlertDefinitions('transcript')
-const translationAlerts = getAlertDefinitions('translation')
+const alertsByActionType: Record<BulkActionType, ReturnType<typeof getAlertDefinitions>> = {
+  transcript: getAlertDefinitions('transcript'),
+  translation: getAlertDefinitions('translation'),
+  approve: getAlertDefinitions('approve'),
+}
 
 // Helper to create mock alert from definition
 function createMockAlert(
   alertId: string,
   computedValues: Record<string, any>,
-  actionType: 'transcript' | 'translation' = 'transcript',
+  actionType: BulkActionType = 'transcript',
 ): ActiveAlert {
-  const alerts = actionType === 'transcript' ? transcriptionAlerts : translationAlerts
-  const definition = alerts.find((a) => a.id === alertId)
+  const definition = alertsByActionType[actionType].find((a) => a.id === alertId)
   if (!definition) {
     throw new Error(`Alert definition not found: ${alertId}`)
   }
@@ -52,6 +54,12 @@ const mockWarningAlreadyTranslated = createMockAlert(
   'translation',
 )
 const mockWarningNoSourceTranslation = createMockAlert('no-source', { count: 1 }, 'translation')
+const mockWarningAlreadyApproved = createMockAlert('already-approved', { count: 5 }, 'approve')
+const mockErrorNothingToApprove = createMockAlert(
+  'no-eligible-submissions',
+  { totalCount: 5, filteredCount: 5 },
+  'approve',
+)
 
 /**
  * Default state with no alerts
@@ -137,6 +145,24 @@ export const NoEligibleSubmissions: Story = {
 export const TranslationAlerts: Story = {
   args: {
     activeAlerts: [mockWarningAlreadyTranslated, mockWarningNoSourceTranslation],
+  },
+}
+
+/**
+ * Bulk approve alerts - part of the selection was already approved
+ */
+export const ApproveWithAlreadyApproved: Story = {
+  args: {
+    activeAlerts: [mockWarningAlreadyApproved],
+  },
+}
+
+/**
+ * Bulk approve alerts - the whole selection was already approved
+ */
+export const NothingToApprove: Story = {
+  args: {
+    activeAlerts: [mockWarningAlreadyApproved, mockErrorNothingToApprove],
   },
 }
 
