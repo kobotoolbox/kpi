@@ -18,7 +18,7 @@ import {
 import ButtonNew from '#/components/common/ButtonNew'
 import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getBlockedTargetLanguages, getSuggestedLanguages } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
 import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
@@ -102,19 +102,22 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   // `fieldXpath` points at the transcript column being translated, so its language code is the column's language.
   const { sourceRowPath, languageCode: columnLanguage } = getSupplementalPathParts(props.fieldXpath)
 
-  // Translating a transcript into its own language produces an empty column that can't be removed, so we don't let
-  // users pick it.
+  // Translating a transcript into its own language leaves behind an empty column that can't be deleted, so that
+  // language must not be pickable.
   //
-  // The column's own language is not enough: eligibility only requires a transcript with a value, regardless of its
-  // language, so a selected row transcribed in another language would be translated from that other language instead.
-  // We therefore hide every language actually present across the selected rows too.
+  // Hiding the column's language alone isn't enough. A row only needs a transcript with some value to be eligible, no
+  // matter which language it is in, so a row transcribed in another language gets translated from that one instead.
+  // Hence the scan over selected rows. `regionCode` holds the transcript's locale, which the back end prefers over
+  // `languageCode` when deciding what to translate from.
   const hiddenLanguages = useMemo(() => {
     const languages = new Set<LanguageCode>(columnLanguage ? [columnLanguage] : [])
 
     props.selectedSubmissions.forEach((submission) => {
       const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
       if (transcript?.languageCode) {
-        languages.add(transcript.languageCode)
+        getBlockedTargetLanguages(transcript.languageCode, transcript.regionCode).forEach((language) =>
+          languages.add(language),
+        )
       }
     })
 
