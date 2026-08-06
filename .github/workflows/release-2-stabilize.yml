@@ -165,7 +165,7 @@ jobs:
         fetch-tags: true
     - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
 
@@ -173,7 +173,7 @@ jobs:
     - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       if: ${{ needs.version.outputs.current_released == 'true' }}
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
         release_version: ${{ needs.version.outputs.current_patch }}
         stage: "Pending Image"
