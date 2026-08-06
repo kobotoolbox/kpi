@@ -370,6 +370,8 @@ pycparser==3.0
     # via cffi
 pygments==2.20.0
     # via -r dependencies/pip/requirements.in
+pyjwt==2.13.0
+    # via -r dependencies/pip/requirements.in
 pymongo==4.10.1
     # via -r dependencies/pip/requirements.in
 pyopenssl==26.2.0

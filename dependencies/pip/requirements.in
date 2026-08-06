@@ -100,6 +100,11 @@ pyasn1
 # MFA
 # (django-trench removed; using django-allauth[mfa])
 
+# JWT — used by allauth's socialaccount OIDC/microsoft providers to validate
+# id_tokens. Was pulled in transitively via django-trench; declared directly
+# now that trench is gone.
+pyjwt
+
 # Sentry
 sentry-sdk
 

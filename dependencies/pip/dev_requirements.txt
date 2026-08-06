@@ -498,6 +498,8 @@ pygments==2.20.0
     #   ipython-pygments-lexers
     #   pytest
     #   rich
+pyjwt==2.13.0
+    # via -r dependencies/pip/requirements.in
 pymongo==4.10.1
     # via -r dependencies/pip/requirements.in
 pynacl==1.6.2
