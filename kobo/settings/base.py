@@ -2380,14 +2380,6 @@ MAX_RESTARTED_TRANSFERS = 20
 # error is automatically restarted before it requires manual intervention
 TRASH_BIN_MAX_AUTO_RESTARTS = 5
 
-# Delay (in seconds) before a failed trash bin task becomes eligible for an
-# automatic restart
-TRASH_BIN_AUTO_RESTART_COOLDOWN = 5 * 60
-
-# Maximum random delay (in seconds) added to each automatic restart, so that
-# tasks which deadlocked against each other do not collide again right away
-TRASH_BIN_AUTO_RESTART_JITTER = 60
-
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 

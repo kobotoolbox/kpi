@@ -1,13 +1,10 @@
-import random
 from datetime import timedelta
 
 from celery import Task
 from constance import config
 from django.conf import settings
 from django.db import transaction
-from django.db.models import IntegerField, Q, Value
-from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Cast, Coalesce
+from django.db.models import Q
 from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
@@ -16,7 +13,6 @@ from ..constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
     DELETE_USER_STR_PREFIX,
-    RETRYABLE_FAILURE_PATTERNS,
 )
 from ..models import TrashStatus
 from ..models.account import AccountTrash
@@ -78,96 +74,56 @@ def task_restarter():
         (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
     ):
         _restart_stuck_tasks(model, task, retention)
-        _restart_failed_tasks(model, task)
-
-
-def _restart_failed_tasks(model: TrashBinModel, task: Task):
-    """
-    Restart tasks which failed on an error that is caused by the infrastructure
-    and not by the data being deleted
-
-    Each attempt is counted in `metadata['retryable_failure_count']` and the
-    object is left alone, i.e.: it requires manual intervention after
-    `settings.TRASH_BIN_MAX_AUTO_RESTARTS` attempts
-    """
-    cooldown = timezone.now() - timedelta(
-        seconds=settings.TRASH_BIN_AUTO_RESTART_COOLDOWN
-    )
-
-    # Must stay case-insensitive, just like `is_retryable_failure()`: an object
-    # selected here but ignored there would be restarted over and over without
-    # its counter ever being incremented.
-    # `__contains` cannot be used, it means JSON containment - i.e.: equality
-    # for strings - and not a substring match
-    retryable_errors = Q()
-    for pattern in RETRYABLE_FAILURE_PATTERNS:
-        retryable_errors |= Q(metadata__failure_error__icontains=pattern)
-
-    failed_ids = (
-        model.objects.annotate(
-            # `metadata__retryable_failure_count__lte` would compare two JSON
-            # values instead of two integers, and would silently discard the
-            # objects which failed before this counter existed
-            restart_count=Coalesce(
-                Cast(
-                    KeyTextTransform('retryable_failure_count', 'metadata'),
-                    IntegerField(),
-                ),
-                Value(0),
-            ),
-        )
-        .filter(
-            retryable_errors,
-            status=TrashStatus.FAILED,
-            date_modified__lte=cooldown,
-            restart_count__lte=settings.TRASH_BIN_MAX_AUTO_RESTARTS,
-        )
-        .values_list('pk', flat=True)
-        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
-    )
-
-    for failed_id in failed_ids:
-        # Spread the restarts over time, so that tasks which deadlocked against
-        # each other do not collide again as soon as they are restarted
-        task.apply_async(
-            args=[failed_id],
-            kwargs={'force': True},
-            countdown=random.randint(0, settings.TRASH_BIN_AUTO_RESTART_JITTER),
-        )
 
 
 def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
     """
     Restart tasks which have been stopped accidentally, i.e.: they are still
     flagged as pending or in progress but nothing has updated them for a while
+
+    Tasks which failed on a transient (infrastructure) error are deliberately
+    left in progress by `trash_bin_task_failure()`, so they are picked up here
+    as well
     """
     pending_grace_period = timezone.now() - timedelta(days=retention)
     stuck_threshold = timezone.now() - timedelta(
         seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
     )
 
-    # Objects waiting for a superuser to empty them manually must never be
-    # started automatically. Once a superuser has started one, it becomes a
-    # stuck task like any other - and its clocked time, which is set in the past
-    # when it is trashed and never represented a real schedule, must not decide
-    # whether it is restarted
-    manually_started_objects = Q(
-        empty_manually=True, status=TrashStatus.IN_PROGRESS
-    )
-    scheduled_and_due_objects = Q(
+    # A deletion which has already started has, by definition, passed its
+    # scheduled time: looking at the clocked time again would only delay its
+    # restart by a whole retention period and that time is set in the past
+    # when the object is trashed manually anyway
+    started_objects = Q(status=TrashStatus.IN_PROGRESS)
+
+    # Objects which never started must wait for their scheduled time, and the
+    # ones waiting for a superuser to empty them manually must never be started
+    # automatically
+    due_objects = Q(
         empty_manually=False,
-        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
+        status=TrashStatus.PENDING,
         periodic_task__clocked__clocked_time__lte=pending_grace_period,
     )
 
     stuck_ids = (
         model.objects.values_list('pk', flat=True)
         .filter(
-            manually_started_objects | scheduled_and_due_objects,
+            started_objects | due_objects,
             date_modified__lte=stuck_threshold,
         )
         .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     )
 
     for stuck_id in stuck_ids:
+        # Claim the object, otherwise the next run would enqueue it again while
+        # its restart is still waiting in the queue. And both would force the
+        # deletion, i.e.: run the destructive workflow at the same time. The
+        # update is conditional, so that two overlapping runs cannot both claim
+        # the same object
+        claimed = model.objects.filter(
+            pk=stuck_id, date_modified__lte=stuck_threshold
+        ).update(date_modified=timezone.now())
+        if not claimed:
+            continue
+
         task.delay(stuck_id, force=True)

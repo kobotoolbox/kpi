@@ -305,18 +305,21 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
 
         error = str(exception)
-        obj_trash.status = TrashStatus.FAILED
         obj_trash.metadata['failure_error'] = error
 
-        # Some failures are transient, e.g.: the task was stopped abruptly without
-        # any traceback (OOM condition, Kubernetes terminating the pod), MongoDB
-        # was unreachable, PostgreSQL detected a deadlock or Celery time limits
-        # were reached. Keep track of them, so that `task_restarter` can restart
-        # the task - up to `settings.TRASH_BIN_MAX_AUTO_RESTARTS` times
+        # Transient failures (OOM kill, MongoDB unreachable, deadlock, Celery
+        # time limits) are left in progress, so that `task_restarter` grabs them
+        # like any other task whose worker died. Attempts are counted and the
+        # object is only flagged as failed. i.e.: left for a human - once it
+        # has exhausted its budget, so it cannot restart forever
+        obj_trash.status = TrashStatus.FAILED
         if is_retryable_failure(error):
-            obj_trash.metadata['retryable_failure_count'] = (
+            restart_count = (
                 obj_trash.metadata.get('retryable_failure_count') or 0
             ) + 1
+            obj_trash.metadata['retryable_failure_count'] = restart_count
+            if restart_count <= settings.TRASH_BIN_MAX_AUTO_RESTARTS:
+                obj_trash.status = TrashStatus.IN_PROGRESS
 
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
