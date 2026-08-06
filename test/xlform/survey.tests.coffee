@@ -385,6 +385,24 @@ do ->
       expect(choiceList.options.at(1).get('name')).toBe('cucumber')
       expect(choiceList.options.at(2).get('name')).toBe('corn')
 
+  describe 'survey.tests: selects without a choice list', () ->
+    beforeEach -> window.xlfHideWarnings = true
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'omits select_from_list_name instead of writing an empty one', () ->
+      # A select that has no list yet used to serialize `select_from_list_name`
+      # as undefined, which the constructor then read back as the literal type
+      # "select_one undefined"
+      survey = $model.Survey.loadDict({
+        survey: [{type: 'select_one', name: 'a', label: 'A'}]
+      })
+      rowJSON = survey.rows.at(0).toJSON2()
+      expect('select_from_list_name' of rowJSON).toBe(false)
+
+      reloaded = new $model.Survey()
+      reloaded.rows.add(rowJSON)
+      expect(reloaded.rows.at(0).get('type').get('value')).toBe('select_one')
+
   describe 'survey.tests: select_one_external', () ->
     # We can't edit this type (its choices live in the `external_choices` sheet,
     # which Form Builder doesn't load), but loading it must not throw, and saving
