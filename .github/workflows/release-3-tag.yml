@@ -434,6 +434,8 @@ jobs:
       - version
       - bump
     if: ${{ !cancelled() && !failure() }}
+    outputs:
+      issue-identifier: ${{ steps.check.outputs.identifier || steps.create.outputs.issue-identifier }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -566,11 +568,13 @@ jobs:
           URL=$(echo "$RESPONSE" | jq -r '.data.issues.nodes[0].url')
           echo "::notice::Deployment issue already exists: $EXISTING ($URL). Skipping creation."
           echo "exists=true" >> "$GITHUB_OUTPUT"
+          echo "identifier=$EXISTING" >> "$GITHUB_OUTPUT"
         else
           echo "exists=false" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Create Linear deployment issue
+      id: create
       if: steps.check.outputs.exists != 'true'
       uses: ./.github/actions/create-linear-issue
       with:
@@ -592,7 +596,7 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":package: `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub. `kobo-docker` and `kobo-install` bumped. @*sysadmin*: please deploy."
+      content: ":package: `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub. `kobo-docker` and `kobo-install` bumped. @*sysadmin*: please deploy ${{ needs.deploy-issue.outputs.issue-identifier }}"
 
 
   on-failure:
