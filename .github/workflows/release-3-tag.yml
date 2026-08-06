@@ -540,7 +540,38 @@ jobs:
           echo "EOF"
         } >> "$GITHUB_OUTPUT"
 
+    - name: Check for existing deployment issue
+      id: check
+      env:
+        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        TITLE: "Deploy kpi ${{ needs.version.outputs.current_patch }}"
+        TEAM_ID: 'cb3bc542-ef8f-4f91-9876-dd9d33c00333'
+      run: |
+        PAYLOAD=$(jq -n \
+          --arg title "$TITLE" \
+          --arg teamId "$TEAM_ID" \
+          '{
+            query: "query($filter: IssueFilter) { issues(filter: $filter, first: 1) { nodes { id identifier url } } }",
+            variables: { filter: { title: { eq: $title }, team: { id: { eq: $teamId } } } }
+          }')
+
+        RESPONSE=$(curl -s -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: $LINEAR_API_KEY" \
+          -d "$PAYLOAD" \
+          https://api.linear.app/graphql)
+
+        EXISTING=$(echo "$RESPONSE" | jq -r '.data.issues.nodes[0].identifier // empty')
+        if [[ -n "$EXISTING" ]]; then
+          URL=$(echo "$RESPONSE" | jq -r '.data.issues.nodes[0].url')
+          echo "::notice::Deployment issue already exists: $EXISTING ($URL). Skipping creation."
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Create Linear deployment issue
+      if: steps.check.outputs.exists != 'true'
       uses: ./.github/actions/create-linear-issue
       with:
         linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
