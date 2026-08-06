@@ -46,7 +46,7 @@ export default function TranslationTab({
   )
 
   // Languages that can't be picked for a new translation: the ones already translated into, plus the transcript's own
-  // language. Translating a transcript into its own language produces an empty, undeletable translation (DEV-2622).
+  // language. Translating a transcript into its own language produces an empty, undeletable translation.
   const unavailableLanguages = useMemo(() => {
     const transcriptLanguage = getLatestTranscriptVersionItem(supplement, questionXpath)?._data.language
     const existingLanguages = translationVersions.map(({ _data }) => _data.language)
