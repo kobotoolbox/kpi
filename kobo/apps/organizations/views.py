@@ -1,6 +1,7 @@
 from operator import attrgetter
 
 from allauth.socialaccount.models import SocialAccount
+from django.core.exceptions import FieldError
 from django.db import transaction
 from django.db.models import (
     Case,
@@ -656,13 +657,17 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                             'user__email__icontains',
                             'user__first_name__icontains',
                             'user__last_name__icontains',
+                            'user__extra_details__data__name__icontains',
                         ],
                         model=queryset.model,
                         allowed_lookup_fields=user_allowed_fields,
                         user=self.request.user,
                     )
+
                     queryset = queryset.filter(q_obj_user)
                 except ParseError:
+                    queryset = queryset.none()
+                except (FieldError, ValueError):
                     queryset = queryset.none()
                 except (
                     QueryParserBadSyntax,
@@ -679,6 +684,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                             'invitee__email__icontains',
                             'invitee__first_name__icontains',
                             'invitee__last_name__icontains',
+                            'invitee__extra_details__data__name__icontains',
                             'invitee_identifier__icontains',
                         ],
                         model=invitation_queryset.model,
@@ -687,6 +693,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     )
                     invitation_queryset = invitation_queryset.filter(q_obj_invite)
                 except ParseError:
+                    invitation_queryset = invitation_queryset.none()
+                except (FieldError, ValueError):
                     invitation_queryset = invitation_queryset.none()
                 except (
                     QueryParserBadSyntax,
