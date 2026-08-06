@@ -99,7 +99,12 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
-  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+  // `fieldXpath` points at the transcript column being translated, so its language code is the source language.
+  const { sourceRowPath, languageCode: transcriptLanguage } = getSupplementalPathParts(props.fieldXpath)
+
+  // Translating a transcript into its own language produces an empty column that can't be removed, so we don't let
+  // users pick it. See DEV-2622.
+  const hiddenLanguages = useMemo(() => (transcriptLanguage ? [transcriptLanguage] : []), [transcriptLanguage])
 
   // Use bulk processing alerts hook
   // Near-limit should reflect only the submissions that still need translation.
@@ -191,6 +196,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               value={selectedLanguage}
               required
               suggestedLanguages={suggestedLanguages}
+              hiddenLanguages={hiddenLanguages}
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
             />
