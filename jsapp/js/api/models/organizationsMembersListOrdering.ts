@@ -9,27 +9,24 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { OrganizationsMembersListOrdering } from './organizationsMembersListOrdering'
 
-export type OrganizationsMembersListParams = {
-  /**
-   * Number of results to return per page. Use with `start`.
-   */
-  limit?: number
-  /**
-   * Deprecated alias of `start`.
-   */
-  offset?: number
-  /**
-   * Which field to use when ordering the results.
-   */
-  ordering?: OrganizationsMembersListOrdering
-  /**
-   * Filter the results with a search query.
-   */
-  q?: string
-  /**
-   * The initial index from which to return the results. Use with `limit`.
-   */
-  start?: number
-}
+export type OrganizationsMembersListOrdering =
+  (typeof OrganizationsMembersListOrdering)[keyof typeof OrganizationsMembersListOrdering]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OrganizationsMembersListOrdering = {
+  '-created': '-created',
+  '-date_added': '-date_added',
+  '-date_joined': '-date_joined',
+  '-role': '-role',
+  '-status': '-status',
+  '-user__has_sso_enabled': '-user__has_sso_enabled',
+  '-user__username': '-user__username',
+  created: 'created',
+  date_added: 'date_added',
+  date_joined: 'date_joined',
+  role: 'role',
+  status: 'status',
+  user__has_sso_enabled: 'user__has_sso_enabled',
+  user__username: 'user__username',
+} as const
