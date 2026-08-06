@@ -1,0 +1,101 @@
+name: Create a Linear Issue
+description: Creates an issue via Linear GraphQL API
+
+inputs:
+  linear-api-key:
+    description: 'Linear API key'
+    required: true
+  title:
+    description: 'Issue title'
+    required: true
+  description:
+    description: 'Issue description (Markdown)'
+    required: false
+    default: ''
+  team-id:
+    description: 'Linear team UUID'
+    required: false
+    default: 'ea750a9d-5a92-4fe2-a494-55fa114ba0dd'  # Development & Support
+  label-ids:
+    description: 'JSON array of label IDs, e.g. ["id1","id2"]'
+    required: false
+    default: '[]'
+  priority:
+    description: '0=None, 1=Urgent, 2=High, 3=Medium, 4=Low'
+    required: false
+    default: '3'
+
+outputs:
+  issue-id:
+    description: 'The UUID of the created issue'
+    value: ${{ steps.create.outputs.issue_id }}
+  issue-identifier:
+    description: 'The human-readable identifier (e.g. DEV-123)'
+    value: ${{ steps.create.outputs.issue_identifier }}
+  issue-url:
+    description: 'The URL of the created issue'
+    value: ${{ steps.create.outputs.issue_url }}
+
+runs:
+  using: composite
+  steps:
+  - name: Create Linear issue
+    id: create
+    shell: bash
+    env:
+      LINEAR_API_KEY: ${{ inputs.linear-api-key }}
+      TITLE: ${{ inputs.title }}
+      DESCRIPTION: ${{ inputs.description }}
+      TEAM_ID: ${{ inputs.team-id }}
+      LABEL_IDS: ${{ inputs.label-ids }}
+      PRIORITY: ${{ inputs.priority }}
+    run: |
+      # Build the GraphQL mutation payload
+      LABEL_IDS_GQL=$(echo "$LABEL_IDS" | jq -c '.')
+
+      PAYLOAD=$(jq -n \
+        --arg title "$TITLE" \
+        --arg description "$DESCRIPTION" \
+        --arg teamId "$TEAM_ID" \
+        --argjson labelIds "$LABEL_IDS_GQL" \
+        --argjson priority "$PRIORITY" \
+        '{
+          query: "mutation CreateIssue($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id identifier url } } }",
+          variables: {
+            input: ({
+              title: $title,
+              teamId: $teamId,
+              priority: $priority
+            } + (if $description != "" then {description: $description} else {} end)
+              + (if ($labelIds | length) > 0 then {labelIds: $labelIds} else {} end))
+          }
+        }')
+
+      RESPONSE=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -H "Authorization: $LINEAR_API_KEY" \
+        -d "$PAYLOAD" \
+        https://api.linear.app/graphql)
+
+      # Check for errors
+      ERRORS=$(echo "$RESPONSE" | jq -r '.errors // empty')
+      if [[ -n "$ERRORS" && "$ERRORS" != "null" ]]; then
+        echo "::error::Linear API returned errors: $ERRORS"
+        exit 1
+      fi
+
+      SUCCESS=$(echo "$RESPONSE" | jq -r '.data.issueCreate.success')
+      if [[ "$SUCCESS" != "true" ]]; then
+        echo "::error::Linear issue creation failed. Response: $RESPONSE"
+        exit 1
+      fi
+
+      ISSUE_ID=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.id')
+      ISSUE_IDENTIFIER=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.identifier')
+      ISSUE_URL=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.url')
+
+      echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+      echo "issue_identifier=$ISSUE_IDENTIFIER" >> "$GITHUB_OUTPUT"
+      echo "issue_url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
+
+      echo "::notice::Created Linear issue $ISSUE_IDENTIFIER: $ISSUE_URL"
