@@ -171,6 +171,39 @@ OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
 
 ---
 
+#### Which tests produced an entry?
+
+`OPENAPI_KNOWN_MISMATCHES` is keyed by endpoint, so it does not record where an
+entry came from. The CSV does: its `test` column holds the pytest node id of the
+test that was running, so the same run that regenerates the constant also
+explains it.
+
+```bash
+python - <<'EOF'
+import csv
+from collections import defaultdict
+
+by_entry = defaultdict(set)
+with open('kobo/apps/openapi_validator/scripts/openapi_errors.csv') as f:
+    for row in csv.DictReader(f):
+        key = (row['error_code'], row['endpoint'], row['method'])
+        by_entry[key].add(row['test'].split(' (')[0])
+
+for key, tests in sorted(by_entry.items()):
+    print(*key)
+    for test in sorted(tests):
+        print('   ', test)
+EOF
+```
+
+Useful when a local run produces entries CI does not: the tests behind them
+usually point at the difference (an app disabled in your settings, missing
+fixtures, a stale schema artifact). Regenerate the schema with
+`./scripts/generate_api.sh` before assuming a mismatch is real — validation is
+only as correct as `static/openapi/schema_v2.json`.
+
+---
+
 ## Performance Considerations
 
 OpenAPI validation adds schema resolution and JSON validation overhead, which

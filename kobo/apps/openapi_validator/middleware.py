@@ -374,13 +374,18 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not os.path.isfile(openapi_error_log):
             with open(openapi_error_log, 'w') as f:
                 writer = csv.writer(f)
-                writer.writerow(['endpoint', 'method', 'error_code'])
+                writer.writerow(['endpoint', 'method', 'error_code', 'test'])
 
         with open(openapi_error_log, 'a') as f:
             row = [
                 request.path,
                 request.method,
                 error_code,
+                # Diagnostic only: which test produced this row. The constant
+                # is keyed by endpoint, so nothing reads it back — it is there
+                # to answer "where does this entry come from?".
+                # pytest sets this per test; empty outside a test run.
+                os.environ.get('PYTEST_CURRENT_TEST', ''),
             ]
             writer = csv.writer(f)
             writer.writerow(row)
