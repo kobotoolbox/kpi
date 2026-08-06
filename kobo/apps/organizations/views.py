@@ -16,6 +16,11 @@ from rest_framework.response import Response
 
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.exceptions import (
+    QueryParserBadSyntax,
+    QueryParserNotSupportedFieldLookup,
+    SearchQueryTooShortException,
+)
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
 from kpi.paginators import NoCountPagination
@@ -47,6 +52,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -436,6 +442,38 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with a search query.',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                enum=[
+                    'user__username',
+                    '-user__username',
+                    'status',
+                    '-status',
+                    'date_joined',
+                    '-date_joined',
+                    'date_added',
+                    '-date_added',
+                    'created',
+                    '-created',
+                    'role',
+                    '-role',
+                    'user__has_sso_enabled',
+                    '-user__has_sso_enabled',
+                ],
+                description='Which field to use when ordering the results.',
+            ),
+        ],
     ),
     retrieve=extend_schema(
         description=read_md('organizations', 'members/retrieve.md'),
@@ -568,6 +606,70 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     OrganizationInviteStatusChoices.RESENT,
                 ],
             )
+
+            q = self.request.query_params.get('q', '').strip()
+            if q:
+                user_allowed_fields = {
+                    'organizations.organizationuser': frozenset({'user'}),
+                    'kobo_auth.user': frozenset(
+                        {'username', 'email', 'first_name', 'last_name'}
+                    ),
+                }
+                invite_allowed_fields = {
+                    'organizations.organizationinvitation': frozenset(
+                        {'invitee', 'invitee_identifier'}
+                    ),
+                    'kobo_auth.user': frozenset(
+                        {'username', 'email', 'first_name', 'last_name'}
+                    ),
+                }
+
+                try:
+                    q_obj_user = parse(
+                        q,
+                        default_field_lookups=[
+                            'user__username__icontains',
+                            'user__email__icontains',
+                            'user__first_name__icontains',
+                            'user__last_name__icontains',
+                        ],
+                        model=queryset.model,
+                        allowed_lookup_fields=user_allowed_fields,
+                        user=self.request.user,
+                    )
+                    queryset = queryset.filter(q_obj_user)
+                except ParseError:
+                    queryset = queryset.none()
+                except (
+                    QueryParserBadSyntax,
+                    QueryParserNotSupportedFieldLookup,
+                    SearchQueryTooShortException,
+                ) as e:
+                    raise e
+
+                try:
+                    q_obj_invite = parse(
+                        q,
+                        default_field_lookups=[
+                            'invitee__username__icontains',
+                            'invitee__email__icontains',
+                            'invitee__first_name__icontains',
+                            'invitee__last_name__icontains',
+                            'invitee_identifier__icontains',
+                        ],
+                        model=invitation_queryset.model,
+                        allowed_lookup_fields=invite_allowed_fields,
+                        user=self.request.user,
+                    )
+                    invitation_queryset = invitation_queryset.filter(q_obj_invite)
+                except ParseError:
+                    invitation_queryset = invitation_queryset.none()
+                except (
+                    QueryParserBadSyntax,
+                    QueryParserNotSupportedFieldLookup,
+                    SearchQueryTooShortException,
+                ) as e:
+                    raise e
 
             # Get existing user IDs from the queryset
             members_user_ids = queryset.values_list('user_id', flat=True)
