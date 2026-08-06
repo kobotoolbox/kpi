@@ -6,7 +6,7 @@ concurrency:
   cancel-in-progress: false
 
 
-# Pipeline: determine version → pull-transifex → tag → build-image → [bump, linear, deploy-to-master] → notify
+# Pipeline: determine version → pull-transifex → tag → build-image → bump → [linear-release, deploy-issue] → notify
 on:
   workflow_dispatch:
     inputs:
@@ -396,7 +396,7 @@ jobs:
         fi
 
 
-  linear:
+  linear-release:
     runs-on: ubuntu-24.04
     needs:
       - version
@@ -405,7 +405,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
-        ref: ${{ needs.version.outputs.current_branch }}
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 0
         fetch-tags: true
 
@@ -426,15 +426,136 @@ jobs:
         stage: "Pending Release (preview on kf.master)"
 
 
-  # Create deployment Linear issue
-  # TODO
+  # Create deployment Linear issue for the Infrastructure team.
+  # Detects if any new migrations reference SKIP_HEAVY_MIGRATIONS.
+  deploy-issue:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - bump
+    if: ${{ !cancelled() && !failure() }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Detect heavy migrations
+      id: heavy
+      env:
+        PREV_PATCH: ${{ needs.version.outputs.prev_patch }}
+      run: |
+        # Find migration files added/changed since the previous tag
+        MIGRATION_FILES=$(git diff --name-only "$PREV_PATCH"..HEAD -- '*/migrations/*.py' \
+          | grep -v '__init__.py' || true)
+
+        if [[ -z "$MIGRATION_FILES" ]]; then
+          echo "has_heavy=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Check which migration files reference SKIP_HEAVY_MIGRATIONS
+        HEAVY_FILES=""
+        while IFS= read -r file; do
+          if [[ -f "$file" ]] && grep -q 'SKIP_HEAVY_MIGRATIONS' "$file"; then
+            HEAVY_FILES="${HEAVY_FILES}${file}"$'\n'
+          fi
+        done <<< "$MIGRATION_FILES"
+
+        if [[ -n "$HEAVY_FILES" ]]; then
+          echo "has_heavy=true" >> "$GITHUB_OUTPUT"
+          echo "heavy_files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${HEAVY_FILES}EOF" >> "$GITHUB_OUTPUT"
+        else
+          echo "has_heavy=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Build issue description
+      id: body
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        HAS_HEAVY: ${{ steps.heavy.outputs.has_heavy }}
+        HEAVY_FILES: ${{ steps.heavy.outputs.heavy_files }}
+      run: |
+        {
+          echo "body<<EOF"
+          echo "Deploy kpi version $VERSION to public and private instances:"
+          echo ""
+
+          if [[ "$HAS_HEAVY" == "true" ]]; then
+            echo "> [!CAUTION]"
+            echo "> This release contains migrations that use \`SKIP_HEAVY_MIGRATIONS\`."
+            echo "> Review the following files and run the heavy migrations manually after deployment:"
+            echo ">"
+            while IFS= read -r file; do
+              [[ -n "$file" ]] && echo "> - \`$file\`"
+            done <<< "$HEAVY_FILES"
+            echo ""
+          fi
+
+          echo "**Public servers:**"
+          echo ""
+          echo "- [ ] global"
+          echo "- [ ] eu"
+          echo ""
+          echo "eu-central-1 private instances:"
+          echo ""
+          echo "- [ ] ACF"
+          echo "- [ ] CARE"
+          echo "- [ ] DRC"
+          echo "- [ ] IFRC"
+          echo "- [ ] NRC"
+          echo "- [ ] REACH"
+          echo "- [ ] SOS"
+          echo "- [ ] SWISSCONTACT"
+          echo "- [ ] UNOCHA"
+          echo ""
+          echo "eu-west-2 private instances:"
+          echo ""
+          echo "- [ ] EAA"
+          echo "- [ ] SCI"
+          echo ""
+          echo "us-east-1 private instances:"
+          echo ""
+          echo "- [ ] CRS"
+          echo "- [ ] TNC"
+          echo "- [ ] UNWOMEN"
+          echo ""
+          echo "fao private instance:"
+          echo ""
+          echo "- [ ] FAO"
+          echo ""
+          echo "Private servers azure:"
+          echo ""
+          echo "- [ ] UNDP"
+          echo ""
+          echo "Other:"
+          echo ""
+          echo "- [ ] IOM"
+          echo ""
+          echo "Manual tasks:"
+          echo ""
+          echo "- [ ] Post output of \`devops/scripts/get_deployed_versions.sh\` in [zulip thread](https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/Currently.20running.20kpi.20version)"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Create Linear deployment issue
+      uses: ./.github/actions/create-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        title: "Deploy kpi ${{ needs.version.outputs.current_patch }}"
+        description: ${{ steps.body.outputs.body }}
+        team-id: 'cb3bc542-ef8f-4f91-9876-dd9d33c00333'
+        label-ids: '["144fdb8b-f79f-44fb-8ac8-72ddc8c2e133"]'
 
 
   notify:
     needs:
       - version
       - changelog
-      - linear
+      - linear-release
+      - deploy-issue
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -452,7 +573,8 @@ jobs:
       - changelog
       - build-image
       - bump
-      - linear
+      - linear-release
+      - deploy-issue
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
