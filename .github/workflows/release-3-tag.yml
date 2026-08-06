@@ -414,13 +414,13 @@ jobs:
     # which excludes these).
     - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.prev_patch }}
 
     - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
         release_version: ${{ needs.version.outputs.current_patch }}
         stage: "Pending Release (preview on kf.master)"
