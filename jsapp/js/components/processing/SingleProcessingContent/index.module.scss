@@ -10,46 +10,46 @@
   height: 100%;
 }
 
-.tabs {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 12px;
+.tabsList {
+  // The line that runs underneath all the tabs.
+  border-color: colors.$kobo-gray-300;
 }
 
-.tab {
+.tabsRoot[data-variant='default'] .tabsList .tab {
   cursor: pointer;
-  color: colors.$kobo-gray-600;
+  color: colors.$kobo-gray-700;
   position: relative;
   font-weight: 900;
   font-size: 14px;
   line-height: 48px;
   text-transform: uppercase;
   border-radius: 6px 6px 0 0;
+  border-bottom-color: transparent;
 
   &:hover {
-    color: colors.$kobo-gray-700;
+    color: colors.$kobo-gray-800;
+    background-color: colors.$kobo-gray-100;
   }
 
-  &:active:not(.activeTab) {
-    transform: translateY(#{1px});
+  &:active:not([data-active]) {
+    transform: translateY(1px);
   }
 
-  // We need this for covering the border radius of the white box underneath
-  // the tabbed menu - for the first element.
+  // Covers the border radius of the white body box underneath the active tab,
+  // merging the tab into the body so it reads as a folder tab.
   &::after {
     content: '';
     position: absolute;
-    left: 0%;
+    left: 0;
     top: 100%;
     width: 100%;
     height: 6px;
   }
 
-  &.activeTab {
+  &[data-active] {
     color: colors.$kobo-gray-800;
     background-color: colors.$kobo-white;
+    border-bottom-color: transparent;
 
     &::after {
       background-color: inherit;
