@@ -435,7 +435,7 @@ jobs:
       - bump
     if: ${{ !cancelled() && !failure() }}
     outputs:
-      issue-identifier: ${{ steps.check.outputs.identifier || steps.create.outputs.issue-identifier }}
+      issue-identifier: ${{ steps.create.outputs.issue-identifier }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -443,39 +443,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Check for existing deployment issue
-      id: check
-      env:
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-        TITLE: "Deploy kpi ${{ needs.version.outputs.current_patch }}"
-        TEAM_ID: 'cb3bc542-ef8f-4f91-9876-dd9d33c00333'
-      run: |
-        PAYLOAD=$(jq -n \
-          --arg title "$TITLE" \
-          --arg teamId "$TEAM_ID" \
-          '{
-            query: "query($filter: IssueFilter) { issues(filter: $filter, first: 1) { nodes { id identifier url } } }",
-            variables: { filter: { title: { eq: $title }, team: { id: { eq: $teamId } } } }
-          }')
-
-        RESPONSE=$(curl -s -X POST \
-          -H "Content-Type: application/json" \
-          -H "Authorization: $LINEAR_API_KEY" \
-          -d "$PAYLOAD" \
-          https://api.linear.app/graphql)
-
-        EXISTING=$(echo "$RESPONSE" | jq -r '.data.issues.nodes[0].identifier // empty')
-        if [[ -n "$EXISTING" ]]; then
-          URL=$(echo "$RESPONSE" | jq -r '.data.issues.nodes[0].url')
-          echo "::notice::Deployment issue already exists: $EXISTING ($URL). Skipping creation."
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-          echo "identifier=$EXISTING" >> "$GITHUB_OUTPUT"
-        else
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-        fi
-
     - name: Detect heavy migrations
-      if: steps.check.outputs.exists != 'true'
       id: heavy
       env:
         PREV_PATCH: ${{ needs.version.outputs.prev_patch }}
@@ -506,38 +474,19 @@ jobs:
         fi
 
     - name: Fetch deploy template from Linear
-      if: steps.check.outputs.exists != 'true'
       id: template
-      env:
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-        TEMPLATE_ID: 'INFRA-565'
-      run: |
-        PAYLOAD=$(jq -n --arg id "$TEMPLATE_ID" \
-          '{ query: "query($id: String!) { issue(id: $id) { description } }", variables: { id: $id } }')
-
-        RESPONSE=$(curl -s -X POST \
-          -H "Content-Type: application/json" \
-          -H "Authorization: $LINEAR_API_KEY" \
-          -d "$PAYLOAD" \
-          https://api.linear.app/graphql)
-
-        TEMPLATE=$(echo "$RESPONSE" | jq -r '.data.issue.description // empty')
-        if [[ -z "$TEMPLATE" ]]; then
-          echo "::error::Failed to fetch deploy template from $TEMPLATE_ID"
-          exit 1
-        fi
-
-        echo "template<<EOF" >> "$GITHUB_OUTPUT"
-        echo "${TEMPLATE}EOF" >> "$GITHUB_OUTPUT"
+      uses: ./.github/actions/fetch-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        issue-id: 'INFRA-565'
 
     - name: Build issue description
-      if: steps.check.outputs.exists != 'true'
       id: body
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
         HAS_HEAVY: ${{ steps.heavy.outputs.has_heavy }}
         HEAVY_FILES: ${{ steps.heavy.outputs.heavy_files }}
-        TEMPLATE: ${{ steps.template.outputs.template }}
+        TEMPLATE: ${{ steps.template.outputs.body }}
       run: |
         # Build the heavy migrations warning block
         HEAVY_BLOCK=""
@@ -562,10 +511,9 @@ jobs:
           echo "${BODY}EOF"
         } >> "$GITHUB_OUTPUT"
 
-    - name: Create Linear deployment issue
+    - name: Upsert Linear deployment issue
       id: create
-      if: steps.check.outputs.exists != 'true'
-      uses: ./.github/actions/create-linear-issue
+      uses: ./.github/actions/upsert-linear-issue
       with:
         linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
         title: "Deploy kpi ${{ needs.version.outputs.current_patch }}"

@@ -105,27 +105,10 @@ jobs:
 
     - name: Fetch QA template from Linear
       id: template
-      env:
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-        TEMPLATE_ID: 'DEV-2637'
-      run: |
-        PAYLOAD=$(jq -n --arg id "$TEMPLATE_ID" \
-          '{ query: "query($id: String!) { issue(id: $id) { description } }", variables: { id: $id } }')
-
-        RESPONSE=$(curl -s -X POST \
-          -H "Content-Type: application/json" \
-          -H "Authorization: $LINEAR_API_KEY" \
-          -d "$PAYLOAD" \
-          https://api.linear.app/graphql)
-
-        TEMPLATE=$(echo "$RESPONSE" | jq -r '.data.issue.description // empty')
-        if [[ -z "$TEMPLATE" ]]; then
-          echo "::error::Failed to fetch QA template from $TEMPLATE_ID"
-          exit 1
-        fi
-
-        echo "template<<EOF" >> "$GITHUB_OUTPUT"
-        echo "${TEMPLATE}EOF" >> "$GITHUB_OUTPUT"
+      uses: ./.github/actions/fetch-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        issue-id: 'DEV-2637'
 
     - name: Build issue description
       id: body
@@ -133,7 +116,7 @@ jobs:
         CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
         CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
         RELEASE_URL: ${{ needs.linear.outputs.release_url }}
-        TEMPLATE: ${{ steps.template.outputs.template }}
+        TEMPLATE: ${{ steps.template.outputs.body }}
       run: |
         BODY="${TEMPLATE//\$CURRENT_PATCH/$CURRENT_PATCH}"
         BODY="${BODY//\$CURRENT_BRANCH/$CURRENT_BRANCH}"
@@ -144,8 +127,8 @@ jobs:
           echo "${BODY}EOF"
         } >> "$GITHUB_OUTPUT"
 
-    - name: Create Linear QA issue
-      uses: ./.github/actions/create-linear-issue
+    - name: Upsert Linear QA issue
+      uses: ./.github/actions/upsert-linear-issue
       with:
         linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
         title: "QA kpi ${{ needs.version.outputs.current_minor }}"
