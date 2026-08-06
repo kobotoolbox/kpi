@@ -9,6 +9,7 @@ from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 from kobo.celery import celery_app
+from kpi.utils.log import logging
 from ..constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
@@ -130,6 +131,7 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
             task.delay(stuck_id, force=True)
         except Exception:
             # If the task fails to enqueue, restore the original date_modified
-            # so that it can be picked up again in the next run
+            # so that it can be picked up again in the next run, and carry on
+            # with the rest of the batch instead of holding it back too
             model.objects.filter(pk=stuck_id).update(date_modified=date_modified)
-            raise
+            logging.exception(f'Could not restart {model.__name__} #{stuck_id}')
