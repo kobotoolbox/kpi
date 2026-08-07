@@ -19257,7 +19257,9 @@ components:
       type: object
       properties:
         role:
-          $ref: '#/components/schemas/MemberRoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/MemberRoleEnum'
+          nullable: true
         url:
           type: string
           format: uri
