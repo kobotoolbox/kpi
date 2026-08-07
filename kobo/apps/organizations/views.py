@@ -528,9 +528,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         ).values('pk')
 
         # Subquery to check if the user has an associated SSO account
-        sso_subquery = SocialAccount.objects.filter(
-            user=OuterRef('user_id')
-        ).values('pk')
+        sso_subquery = SocialAccount.objects.filter(user=OuterRef('user_id')).values(
+            'pk'
+        )
 
         # Subquery to check if the user is the owner
         owner_subquery = OrganizationOwner.objects.filter(
