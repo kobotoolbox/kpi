@@ -18,5 +18,6 @@ export interface VersionRetrieveResponse {
   readonly content_hash: string
   readonly date_deployed: VersionRetrieveResponseDateDeployed
   readonly date_modified: string
+  readonly version_number: string
   readonly content: VersionRetrieveResponseContent
 }

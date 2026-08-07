@@ -73,7 +73,13 @@ export function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
   return (
     <form onSubmit={onSubmit}>
       <Stack gap='lg'>
-        <TagsInput value={tags} onChange={onTagsChange} disabled={updateAssetMutation.isPending} data-autofocus />
+        <TagsInput
+          mt='5' // for focus styles
+          value={tags}
+          onChange={onTagsChange}
+          disabled={updateAssetMutation.isPending}
+          data-autofocus
+        />
 
         <Group justify='flex-end'>
           <ButtonNew type='submit' size='lg' loading={updateAssetMutation.isPending}>

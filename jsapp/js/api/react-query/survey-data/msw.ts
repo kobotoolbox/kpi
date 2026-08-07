@@ -36,6 +36,8 @@ import { BulkActionResponseStatusEnum } from '../../models/bulkActionResponseSta
 
 import { BulkActionSubmissionStatusResponseStatusEnum } from '../../models/bulkActionSubmissionStatusResponseStatusEnum'
 
+import type { BulkActionUserResponse } from '../../models/bulkActionUserResponse'
+
 import type { DataBulkUpdateResponse } from '../../models/dataBulkUpdateResponse'
 
 import type { DataResponse } from '../../models/dataResponse'
@@ -280,6 +282,13 @@ export const getApiV2AssetsAdvancedFeaturesPartialUpdateResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2AssetsAdvancedFeaturesBulkActionsListResponseBulkActionUserResponseMock = (
+  overrideResponse: Partial<BulkActionUserResponse> = {},
+): BulkActionUserResponse => ({
+  ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+  ...overrideResponse,
+})
+
 export const getApiV2AssetsAdvancedFeaturesBulkActionsListResponseMock = (
   overrideResponse: Partial<BulkActionListResponse> = {},
 ): BulkActionListResponse => ({
@@ -314,10 +323,20 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsListResponseMock = (
     date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
     date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
     cancelled_by: faker.helpers.arrayElement([
-      { ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) } },
+      faker.helpers.arrayElement([
+        { ...getApiV2AssetsAdvancedFeaturesBulkActionsListResponseBulkActionUserResponseMock() },
+        null,
+      ]),
       undefined,
     ]),
   })),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsAdvancedFeaturesBulkActionsCreateResponseBulkActionUserResponseMock = (
+  overrideResponse: Partial<BulkActionUserResponse> = {},
+): BulkActionUserResponse => ({
+  ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) },
   ...overrideResponse,
 })
 
@@ -345,12 +364,22 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsCreateResponseMock = (
   date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
   date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   cancelled_by: faker.helpers.arrayElement([
-    { ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) } },
+    faker.helpers.arrayElement([
+      { ...getApiV2AssetsAdvancedFeaturesBulkActionsCreateResponseBulkActionUserResponseMock() },
+      null,
+    ]),
     undefined,
   ]),
   skipped_uuids: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
     faker.string.alpha({ length: { min: 10, max: 20 } }),
   ),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseBulkActionUserResponseMock = (
+  overrideResponse: Partial<BulkActionUserResponse> = {},
+): BulkActionUserResponse => ({
+  ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) },
   ...overrideResponse,
 })
 
@@ -378,9 +407,19 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock = (
   date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
   date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   cancelled_by: faker.helpers.arrayElement([
-    { ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) } },
+    faker.helpers.arrayElement([
+      { ...getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseBulkActionUserResponseMock() },
+      null,
+    ]),
     undefined,
   ]),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsAdvancedFeaturesBulkActionsPartialUpdateResponseBulkActionUserResponseMock = (
+  overrideResponse: Partial<BulkActionUserResponse> = {},
+): BulkActionUserResponse => ({
+  ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) },
   ...overrideResponse,
 })
 
@@ -408,7 +447,10 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsPartialUpdateResponseMock 
   date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
   date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   cancelled_by: faker.helpers.arrayElement([
-    { ...{ username: faker.string.alpha({ length: { min: 10, max: 20 } }) } },
+    faker.helpers.arrayElement([
+      { ...getApiV2AssetsAdvancedFeaturesBulkActionsPartialUpdateResponseBulkActionUserResponseMock() },
+      null,
+    ]),
     undefined,
   ]),
   ...overrideResponse,
@@ -776,6 +818,7 @@ export const getApiV2AssetsDataListResponseMock = (
             },
           },
         },
+        null,
       ]),
       undefined,
     ]),
@@ -1125,6 +1168,7 @@ export const getApiV2AssetsDataRetrieveResponseMock = (overrideResponse: Partial
           },
         },
       },
+      null,
     ]),
     undefined,
   ]),
@@ -1481,6 +1525,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseMock = (
           },
         },
       },
+      null,
     ]),
     undefined,
   ]),

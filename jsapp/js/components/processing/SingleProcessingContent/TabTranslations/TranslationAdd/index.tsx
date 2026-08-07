@@ -28,7 +28,8 @@ interface Props {
   submission: DataResponse
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
-  languagesExisting: LanguageCode[]
+  /** Languages that can't be picked: already translated into, or the transcript's own language. */
+  languagesUnavailable: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -43,7 +44,7 @@ export default function TranslationAdd({
   submission,
   supplement,
   activeBulkActions,
-  languagesExisting,
+  languagesUnavailable,
   initialStep,
   translationVersions,
   onCreate,
@@ -100,7 +101,7 @@ export default function TranslationAdd({
           onNext={(nextStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(nextStep)}
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           usageType={UsageLimitTypes.TRANSLATION}
-          hiddenLanguages={languagesExisting}
+          hiddenLanguages={languagesUnavailable}
           suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}

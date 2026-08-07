@@ -26,8 +26,9 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
+import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
+import type { TableColumn } from './table.types'
 
 const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
   QUESTION_TYPES.audio.id,
@@ -568,6 +569,53 @@ export function buildFilterQuery(
   return output
 }
 
+export interface SelectResponseLabelOptions {
+  /** Raw response, as stored in submission data. */
+  value: string
+  questionType: AnyRowTypeName | undefined
+  /** The question's `select_from_list_name`. */
+  listName: string | undefined
+  /** All of the form's choices, not just the ones of this question's list. */
+  choices: SurveyChoice[]
+  /**
+   * Index into a choice `label` array. A negative one (the "Display XML Values"
+   * setting) matches no label, so every value comes back raw — but
+   * `select_multiple` values still get re-joined with commas, so callers that
+   * need the response exactly as stored don't come here.
+   */
+  translationIndex: number
+}
+
+/**
+ * Builds the human-readable value of a `select_one` or `select_multiple`
+ * response, i.e. the label(s) of the selected choice(s).
+ *
+ * Choices can be renamed in the Form Builder, while old submissions keep the
+ * `name` that was current when they came in. Any value that no longer matches a
+ * choice is shown raw, because dropping it would imply it was never selected.
+ */
+export function getSelectResponseLabel(options: SelectResponseLabelOptions): string {
+  const { value, questionType, listName, choices, translationIndex } = options
+
+  // `select_multiple` is the only type that packs several values into one
+  // string. Splitting any other type would mangle values that contain spaces.
+  let values = [value]
+  if (questionType === QUESTION_TYPES.select_multiple.id) {
+    // Filtering empties keeps stray spaces from becoming dangling separators.
+    values = value.split(' ').filter((valueItem) => valueItem !== '')
+  }
+
+  return values
+    .map((valueItem) => {
+      // Choice names are only unique within their own list, hence matching both.
+      const choice = choices.find((choiceItem) => choiceItem.list_name === listName && choiceItem.name === valueItem)
+      // A choice may exist but have no label in this translation, so this
+      // fallback covers more than just renamed choices.
+      return choice?.label?.[translationIndex] || valueItem
+    })
+    .join(', ')
+}
+
 /**
  * For checking if given column from Data Table should display a text input
  * filter. It works for columns associated with form questions and for other
@@ -585,4 +633,25 @@ export function isTableColumnFilterableByTextInput(questionType: AnyRowTypeName 
  */
 export function isTableColumnFilterableByDropdown(questionType: AnyRowTypeName | undefined) {
   return questionType && DROPDOWN_FILTER_QUESTION_TYPES.includes(questionType)
+}
+
+/**
+ * Returns xpaths of the audio question columns among the given Data Table
+ * columns. Pass the columns the table is rendering to get only the audio
+ * columns the user can actually see, which is how we avoid looking up durations
+ * for hidden columns.
+ */
+export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
+  const xpaths: string[] = []
+  columns.forEach((column) => {
+    const question = column.question
+    const xpath = question?.$xpath
+    if (
+      xpath &&
+      (question?.type === QUESTION_TYPES.audio.id || question?.type === QUESTION_TYPES['background-audio'].id)
+    ) {
+      xpaths.push(xpath)
+    }
+  })
+  return xpaths
 }

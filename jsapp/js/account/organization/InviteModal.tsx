@@ -92,6 +92,7 @@ export default function InviteModal(props: ModalProps) {
           <Select
             flex={2}
             placeholder='Role'
+            searchable={false} // too little options
             data={[
               {
                 value: InviteeRoleEnum.admin,

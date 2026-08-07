@@ -5,8 +5,8 @@ import { observer } from 'mobx-react-lite'
 import { Link } from 'react-router-dom'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import KoboDropdown from '#/components/common/koboDropdown'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { HOME_VIEW, ORG_VIEW } from './constants'
 import projectViewsStore from './projectViewsStore'
@@ -68,8 +68,8 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   // this piece of UI interactive. We display a "simple" header instead.
   if (!hasMultipleOptions) {
     return (
-      <button className={cx(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
-        <label>{triggerLabel}</label>
+      <button type='button' className={cx(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
+        <span className={styles.triggerLabel}>{triggerLabel}</span>
       </button>
     )
   }
@@ -81,47 +81,48 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         [styles.isMenuVisible]: isMenuVisible,
       })}
     >
-      <KoboDropdown
-        name='projects_view_switcher'
-        placement={'down-left'}
-        hideOnMenuClick
-        onMenuVisibilityChange={setIsMenuVisible}
-        triggerContent={
-          <button className={styles.trigger} title={triggerLabel}>
-            <label>{triggerLabel}</label>
+      <Menu
+        closeOnItemClick
+        position='bottom-start'
+        offset={2}
+        onOpen={() => setIsMenuVisible(true)}
+        onClose={() => setIsMenuVisible(false)}
+      >
+        <Menu.Target>
+          <button type='button' className={styles.trigger} title={triggerLabel}>
+            <span className={styles.triggerLabel}>{triggerLabel}</span>
             <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>
-        }
-        menuContent={
-          <div className={styles.menu}>
-            {/* This is the "My projects" option - always there */}
-            <Link key={HOME_VIEW.uid} className={styles.menuOption} to={getOptionRoute(HOME_VIEW.uid)}>
-              {HOME_VIEW.name}
-            </Link>
+        </Menu.Target>
 
-            {/* This is the organization view option - restricted to
-            MMO admins and owners */}
-            {displayMyOrgOption && (
-              <Link key={ORG_VIEW.uid} className={styles.menuOption} to={getOptionRoute(ORG_VIEW.uid)}>
-                {ORG_VIEW.name.replace('##organization name##', organizationName)}
-              </Link>
-            )}
+        <Menu.Dropdown className={styles.menu}>
+          {/* This is the "My projects" option - always there */}
+          <Menu.Item key={HOME_VIEW.uid} component={Link} to={getOptionRoute(HOME_VIEW.uid)}>
+            {HOME_VIEW.name}
+          </Menu.Item>
 
-            {/* This is the list of all options for custom views. These are only
-            being added if custom views are defined (at least one). */}
-            {projectViews.views.map((view) => (
-              <Link
-                key={view.uid}
-                className={styles.menuOption}
-                to={getOptionRoute(view.uid)}
-                onClick={() => onCustomViewClick(view.uid)}
-              >
-                {view.name}
-              </Link>
-            ))}
-          </div>
-        }
-      />
+          {/* This is the organization view option - restricted to
+          MMO admins and owners */}
+          {displayMyOrgOption && (
+            <Menu.Item key={ORG_VIEW.uid} component={Link} to={getOptionRoute(ORG_VIEW.uid)}>
+              {ORG_VIEW.name.replace('##organization name##', organizationName)}
+            </Menu.Item>
+          )}
+
+          {/* This is the list of all options for custom views. These are only
+          being added if custom views are defined (at least one). */}
+          {projectViews.views.map((view) => (
+            <Menu.Item
+              key={view.uid}
+              component={Link}
+              to={getOptionRoute(view.uid)}
+              onClick={() => onCustomViewClick(view.uid)}
+            >
+              {view.name}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
     </div>
   )
 }

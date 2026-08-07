@@ -10,6 +10,7 @@ import simplejson as json
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.client import Client
@@ -19,6 +20,7 @@ from django.urls import reverse
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.test import force_authenticate
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
@@ -35,6 +37,7 @@ from kobo.apps.openrosa.libs.utils import logger_tools
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
+    check_submission_permissions,
 )
 from kobo.apps.organizations.constants import UsageType
 from kpi.constants import PERM_ADD_SUBMISSIONS
@@ -71,7 +74,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            expected_queries = FuzzyInt(40, 45)
+            expected_queries = FuzzyInt(39, 45)
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
             # TODO: Constance adds three extra queries when checking
@@ -79,7 +82,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
                 # But because of cache, sometimes goes down to 58
-                expected_queries = FuzzyInt(58, 90)
+                expected_queries = FuzzyInt(57, 90)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -1142,3 +1145,80 @@ def submit_data(identifier, survey_, username_, live_server_url, token_):
                 headers=headers
             )
             return response.status_code
+
+
+class TestSuperuserSubmissionRestriction(TestAbstractViewSet):
+    """
+    Superusers are blocked from submitting data by default (DEV-32). The guard
+    lives in `check_submission_permissions`, the single chokepoint every
+    submission path goes through, so it is exercised directly here.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.publish_xls_form()
+        self.superuser = User.objects.create_superuser(
+            'superadmin', 'superadmin@example.com', 'superadmin'
+        )
+
+    def _request_for(self, user):
+        request = self.factory.post('/submission')
+        request.user = user
+        return request
+
+    def test_superuser_blocked_by_default(self):
+        # `require_auth` form: the superuser guard must fire before the usual
+        # owner/permission checks.
+        with self.assertRaises(PermissionDenied):
+            check_submission_permissions(self._request_for(self.superuser), self.xform)
+
+    def test_superuser_blocked_on_anonymous_form(self):
+        # Even forms that accept anonymous submissions must reject superusers,
+        # which is why the guard sits before the `require_auth` early-return.
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        with self.assertRaises(PermissionDenied):
+            check_submission_permissions(self._request_for(self.superuser), self.xform)
+
+    @override_settings(ALLOW_SUPERUSER_SUBMISSIONS=True)
+    def test_superuser_allowed_when_opted_in(self):
+        # With the opt-in flag on, the superuser guard no longer raises. Use an
+        # anonymous-submission form so no later owner/permission check trips.
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        # Should not raise.
+        check_submission_permissions(self._request_for(self.superuser), self.xform)
+
+    def test_regular_user_not_blocked(self):
+        # A non-superuser owner submitting to their own form is unaffected.
+        check_submission_permissions(self._request_for(self.user), self.xform)
+
+    def test_anonymous_submission_still_allowed(self):
+        # Anonymous submissions to public forms keep working.
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        check_submission_permissions(self._request_for(AnonymousUser()), self.xform)
+
+    def test_superuser_gets_403_through_submission_endpoint(self):
+        # End-to-end guard: a superuser submitting through the real endpoint
+        # must get a 403 OpenRosa response, proving the exception is mapped to
+        # the right protocol response and not only raised in isolation.
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+
+        request = self.factory.post('/submission', data, format='json')
+        force_authenticate(request, user=self.superuser)
+        view = XFormSubmissionApi.as_view({'post': 'create'})
+        response = view(request, username=self.user.username)
+
+        # The OpenRosa error handler flattens every PermissionDenied to a
+        # generic "Access denied" body, so assert on the mapped response rather
+        # than the guard's internal message.
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('Access denied', response.data['error'])

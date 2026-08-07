@@ -618,11 +618,13 @@ def test_transform_data_for_output():
     assert result == {
         ('translation', 'es'): {
             'pendingReview': True,
+            'value': '',
             'languageCode': 'es',
             '_sortByDate': retrieved_data['es']['_versions'][0]['_dateCreated'],
         },
         ('translation', 'fr'): {
             'pendingReview': True,
+            'value': '',
             'languageCode': 'fr',
             '_sortByDate': retrieved_data['fr']['_versions'][0]['_dateCreated'],
         },
@@ -658,6 +660,7 @@ def test_transform_data_for_output_with_delete():
     assert result == {
         ('translation', 'fr'): {
             'pendingReview': True,
+            'value': '',
             'languageCode': 'fr',
             '_sortByDate': retrieved_data['fr']['_versions'][0]['_dateCreated'],
         },

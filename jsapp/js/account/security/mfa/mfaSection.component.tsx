@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { Switch } from '@mantine/core'
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfaActions'
@@ -7,7 +8,6 @@ import mfaActions from '#/actions/mfaActions'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import Tooltip from '#/components/common/tooltip'
 import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
@@ -135,10 +135,10 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
 
     const toggle = (
       <div className={styles.options}>
-        <ToggleSwitch
+        <Switch
           label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
           checked={this.state.isMfaActive}
-          onChange={this.onToggleChange.bind(this)}
+          onChange={(event) => this.onToggleChange(event.currentTarget.checked)}
           disabled={isDisabled}
         />
       </div>

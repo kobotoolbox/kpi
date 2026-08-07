@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.user_reports.models import BillingAndUsageSnapshotRun
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
@@ -177,6 +178,35 @@ class DjangoORMHelperTestCase(TestCase):
         )
         data = self._data()
         assert data['profile']['contact']['email'] == 'bob@example.com'
+
+    def test_root_scalar_merge_when_target_field_is_null(self):
+        """
+        `jsonb_set()` returns NULL when its target document is NULL, so a
+        never-touched nullable JSONField (still NULL, not `{}`) must not
+        swallow the update. `ExtraUserDetail.data` defaults to `{}` and
+        can't be NULL, so this uses `BillingAndUsageSnapshotRun.details`
+        (`null=True`, no default) instead.
+        """
+        run = BillingAndUsageSnapshotRun.objects.create()
+        assert run.details is None
+
+        BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
+            details=UpdateJSONFieldAttributes('details', updates={'last_error': 'boom'})
+        )
+        run.refresh_from_db()
+        assert run.details == {'last_error': 'boom'}
+
+    def test_nested_merge_when_target_field_is_null(self):
+        run = BillingAndUsageSnapshotRun.objects.create()
+        assert run.details is None
+
+        BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
+            details=UpdateJSONFieldAttributes(
+                'details', path='profile__contact', updates={'email': 'bob@example.com'}
+            )
+        )
+        run.refresh_from_db()
+        assert run.details['profile']['contact']['email'] == 'bob@example.com'
 
     def test_error_when_root_with_non_dict(self):
         """

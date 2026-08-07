@@ -11,7 +11,4 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { MemberRoleEnum } from './memberRoleEnum'
 
-/**
- * @nullable
- */
 export type MemberListResponseRole = MemberRoleEnum | null
