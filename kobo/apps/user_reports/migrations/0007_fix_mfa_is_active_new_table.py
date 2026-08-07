@@ -1,9 +1,12 @@
 # flake8: noqa: E501
 from django.conf import settings
 from django.db import migrations
-from user_reports.utils.migrations import reschedule_lrm_recreate
 
-from kobo.apps.user_reports.utils.migrations import CREATE_MV_SQL_VERSIONS, drop_mv
+from kobo.apps.user_reports.utils.migrations import (
+    CREATE_MV_SQL_VERSIONS,
+    drop_mv,
+    reschedule_lrm_recreate,
+)
 
 base_dependencies = [
     ('user_reports', '0006_fix_org_subscriptions_missing_metadata'),
