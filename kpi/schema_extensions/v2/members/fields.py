@@ -12,7 +12,7 @@ class MemberUrlField(serializers.JSONField):
 
 
 RoleChoiceField = serializers.ChoiceField(
-    choices=ROLE_CHOICES_ENUM, allow_null=True, allow_blank=True
+    choices=ROLE_CHOICES_ENUM, allow_null=False, allow_blank=False
 )
 
 

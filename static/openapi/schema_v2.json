@@ -26939,18 +26939,7 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "nullable": true,
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/MemberRoleEnum"
-                            },
-                            {
-                                "$ref": "#/components/schemas/BlankEnum"
-                            },
-                            {
-                                "$ref": "#/components/schemas/NullEnum"
-                            }
-                        ]
+                        "$ref": "#/components/schemas/MemberRoleEnum"
                     },
                     "url": {
                         "type": "string",
@@ -27089,11 +27078,6 @@
                     "total_nlp_asr_seconds",
                     "total_nlp_llm_requests",
                     "total_nlp_mt_characters"
-                ]
-            },
-            "NullEnum": {
-                "enum": [
-                    null
                 ]
             },
             "NullableServiceUsageBalanceData": {

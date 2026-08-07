@@ -20,8 +20,6 @@ import type { AssetListCount } from '../../models/assetListCount'
 
 import { AssetTypeEnum } from '../../models/assetTypeEnum'
 
-import { BlankEnum } from '../../models/blankEnum'
-
 import { CustomAssetUsageDeploymentStatusEnum } from '../../models/customAssetUsageDeploymentStatusEnum'
 
 import type { EmailAddress } from '../../models/emailAddress'
@@ -833,11 +831,7 @@ export const getApiV2OrganizationsMembersListResponseMock = (
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    role: faker.helpers.arrayElement([
-      faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
-      faker.helpers.arrayElement(Object.values(BlankEnum)),
-      faker.helpers.arrayElement([] as const),
-    ]),
+    role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
     url: faker.helpers.arrayElement([faker.internet.url(), null]),
     user: faker.helpers.arrayElement([faker.internet.url(), null]),
     user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
@@ -866,11 +860,7 @@ export const getApiV2OrganizationsMembersListResponseMock = (
 export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
-  role: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
-    faker.helpers.arrayElement(Object.values(BlankEnum)),
-    faker.helpers.arrayElement([] as const),
-  ]),
+  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
   url: faker.helpers.arrayElement([faker.internet.url(), null]),
   user: faker.helpers.arrayElement([faker.internet.url(), null]),
   user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
@@ -898,11 +888,7 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
 export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
-  role: faker.helpers.arrayElement([
-    faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
-    faker.helpers.arrayElement(Object.values(BlankEnum)),
-    faker.helpers.arrayElement([] as const),
-  ]),
+  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
   url: faker.helpers.arrayElement([faker.internet.url(), null]),
   user: faker.helpers.arrayElement([faker.internet.url(), null]),
   user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
