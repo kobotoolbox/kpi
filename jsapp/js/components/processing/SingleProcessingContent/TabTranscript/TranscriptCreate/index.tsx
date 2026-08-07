@@ -51,15 +51,15 @@ export default function TranscriptCreate({
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
 
-  const hasConflictingOngoingJob =
-    languageCode !== null &&
-    isConflictingOngoingJobForSubmission({
-      activeBulkActions,
-      actionType: 'transcript',
-      fieldXpath: questionXpath,
-      submissionUuid: getSubmissionRootUuid(submission),
-      selectedLanguage: languageCode,
-    })
+  // Any job on this question rewrites the transcript, so the conflict doesn't
+  // depend on which language is selected here.
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+    selectedLanguage: languageCode ?? undefined,
+  })
 
   const attachment = getAttachmentForProcessing(questionXpath, submission)
 
@@ -72,7 +72,12 @@ export default function TranscriptCreate({
   return (
     <>
       {step === CreateSteps.Begin && (
-        <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep(CreateSteps.Language)} />
+        <StepBegin
+          asset={asset}
+          questionXpath={questionXpath}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
+          onNext={() => setStep(CreateSteps.Language)}
+        />
       )}
       {step === CreateSteps.Language && (
         <StepSelectLanguage
