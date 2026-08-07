@@ -17,6 +17,8 @@ if 'djstripe' in settings.INSTALLED_APPS:
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = dependencies
 
     operations = [
