@@ -545,9 +545,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         organization_id = self.kwargs['uid_organization']
 
         for obj in page:
-            if obj.model_type != '0_organization_user':
-                break
-            members_user_ids.append(obj.user_id)
+            if obj.model_type == '0_organization_user':
+                members_user_ids.append(obj.user_id)
 
         self._invites_queryset = OrganizationInvitation.objects.filter(  # noqa
             status=OrganizationInviteStatusChoices.ACCEPTED,

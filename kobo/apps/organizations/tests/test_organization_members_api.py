@@ -393,6 +393,52 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.assertEqual(statuses_desc[:2], ['invited', 'invited'])
         self.assertEqual(statuses_desc[2:], ['active', 'active', 'active'])
 
+    def test_accepted_invite_populated_when_ordered_descending_by_status(self):
+        """
+        Ensure accepted invite details are populated for members even when
+        ordering puts pending invitations at the beginning of the result list
+        (?ordering=-status).
+        """
+        # Create an invite for registered_invitee_user and accept it
+        self._create_invite(self.someuser)
+        invitation = OrganizationInvitation.objects.get(
+            invitee=self.registered_invitee_user
+        )
+        self.client.force_login(self.registered_invitee_user)
+        self._update_invite(
+            self.registered_invitee_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
+        )
+
+        # Request member list with ?ordering=-status where pending invites come first
+        self.client.force_login(self.someuser)
+        response = self.client.get(f'{self.list_url}?ordering=-status')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Assert that the first result is a pending invite (placing it before members)
+        first_item = response.data['results'][0]
+        self.assertIsNotNone(first_item['invite'])
+        self.assertEqual(
+            first_item['invite']['status'],
+            OrganizationInviteStatusChoices.PENDING
+        )
+
+        # Find member row for registered_invitee_user
+        member_row = next(
+            (
+                r
+                for r in response.data['results']
+                if r['user__username'] == self.registered_invitee_user.username
+            ),
+            None,
+        )
+        self.assertIsNotNone(member_row)
+        self.assertIsNotNone(member_row['invite'])
+        self.assertEqual(
+            member_row['invite']['invitee'], self.registered_invitee_user.username
+        )
+
     def test_sort_members_by_role(self):
         self._create_invite(self.someuser)
         self.client.force_login(self.someuser)
