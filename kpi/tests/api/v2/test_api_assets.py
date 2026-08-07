@@ -377,9 +377,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
     def test_search_rejects_disallowed_lookup_field(self):
         # DEV-2417 / kpi#7243 regression: the allowlist must keep blocking
         # sensitive lookup paths after the query-parser refactor
-        response = self.client.get(
-            self.list_url, data={'q': 'owner__password:x'}
-        )
+        response = self.client.get(self.list_url, data={'q': 'owner__password:x'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_numeric_search_for_assets_does_not_crash(self):
