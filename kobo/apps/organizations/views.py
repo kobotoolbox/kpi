@@ -1,6 +1,7 @@
 from operator import attrgetter
 
 from allauth.socialaccount.models import SocialAccount
+from django.core.exceptions import FieldError
 from django.db import transaction
 from django.db.models import (
     Case,
@@ -15,6 +16,7 @@ from django.db.models import (
 from django.db.models.expressions import Exists
 from django.db.models.functions import Coalesce, Lower
 from django.utils.http import http_date
+from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -28,6 +30,11 @@ from rest_framework.response import Response
 
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.exceptions import (
+    QueryParserBadSyntax,
+    QueryParserNotSupportedFieldLookup,
+    SearchQueryTooShortException,
+)
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
 from kpi.paginators import NoCountPagination
@@ -59,6 +66,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -183,21 +191,21 @@ class OrganizationAssetViewSet(AssetViewSet):
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with start parameter',
+                description=t('Paginate results with start parameter'),
             ),
             OpenApiParameter(
                 name='limit',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with limit parameter',
+                description=t('Paginate results with limit parameter'),
             ),
             OpenApiParameter(
                 name='ordering',
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Which field to use when ordering the results.',
+                description=t('Which field to use when ordering the results.'),
             ),
         ],
         operation_id='api_v2_organizations_asset_usage_list',
@@ -243,21 +251,21 @@ class OrganizationAssetViewSet(AssetViewSet):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Filter the results with search query',
+                description=t('Filter the results with search query'),
             ),
             OpenApiParameter(
                 name='limit',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Number of results to return per page.',
+                description=t('Number of results to return per page.'),
             ),
             OpenApiParameter(
                 name='start',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='The initial index from which to return the results.',
+                description=t('The initial index from which to return the results.'),
             ),
         ],
     ),
@@ -450,6 +458,13 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with a search query.',
+            ),
+            OpenApiParameter(
                 name='ordering',
                 type=str,
                 location=OpenApiParameter.QUERY,
@@ -609,8 +624,88 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ],
             )
 
-            # Get existing user IDs from the queryset
+            # Get ALL existing user IDs from the base queryset BEFORE applying the `q`
+            # filter. This ensures we don't accidentally include pending invitations
+            # for existing members just because their member profile was filtered out
+            # by `q`.
             members_user_ids = queryset.values_list('user_id', flat=True)
+
+            q = self.request.query_params.get('q', '').strip()
+            if q:
+                user_allowed_fields = {
+                    'organizations.organizationuser': frozenset({'user'}),
+                    'kobo_auth.user': frozenset(
+                        {'username', 'email', 'first_name', 'last_name'}
+                    ),
+                }
+                invite_allowed_fields = {
+                    'organizations.organizationinvitation': frozenset(
+                        {'invitee', 'invitee_identifier'}
+                    ),
+                    'kobo_auth.user': frozenset(
+                        {'username', 'email', 'first_name', 'last_name'}
+                    ),
+                }
+
+                user_unsupported_exception = None
+                try:
+                    q_obj_user = parse(
+                        q,
+                        default_field_lookups=[
+                            'user__username__icontains',
+                            'user__email__icontains',
+                            'user__first_name__icontains',
+                            'user__last_name__icontains',
+                            'user__extra_details__data__name__icontains',
+                        ],
+                        model=queryset.model,
+                        allowed_lookup_fields=user_allowed_fields,
+                        user=self.request.user,
+                    )
+
+                    queryset = queryset.filter(q_obj_user)
+                except QueryParserNotSupportedFieldLookup as e:
+                    user_unsupported_exception = e
+                    queryset = queryset.none()
+                except (ParseError, FieldError, ValueError):
+                    queryset = queryset.none()
+                except (
+                    QueryParserBadSyntax,
+                    SearchQueryTooShortException,
+                ) as e:
+                    raise e
+
+                invite_unsupported_exception = None
+                try:
+                    q_obj_invite = parse(
+                        q,
+                        default_field_lookups=[
+                            'invitee__username__icontains',
+                            'invitee__email__icontains',
+                            'invitee__first_name__icontains',
+                            'invitee__last_name__icontains',
+                            'invitee__extra_details__data__name__icontains',
+                            'invitee_identifier__icontains',
+                        ],
+                        model=invitation_queryset.model,
+                        allowed_lookup_fields=invite_allowed_fields,
+                        user=self.request.user,
+                    )
+                    invitation_queryset = invitation_queryset.filter(q_obj_invite)
+                except QueryParserNotSupportedFieldLookup as e:
+                    invite_unsupported_exception = e
+                    invitation_queryset = invitation_queryset.none()
+                except (ParseError, FieldError, ValueError):
+                    invitation_queryset = invitation_queryset.none()
+                except (
+                    QueryParserBadSyntax,
+                    SearchQueryTooShortException,
+                ) as e:
+                    raise e
+
+                if user_unsupported_exception and invite_unsupported_exception:
+                    raise user_unsupported_exception
+
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
