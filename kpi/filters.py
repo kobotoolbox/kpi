@@ -32,7 +32,12 @@ from kpi.utils.object_permission import (
     get_perm_ids_from_code_names,
 )
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
+from kpi.utils.query_parser import (
+    ParseError,
+    get_parsed_parameters,
+    parse,
+    rewrite_to_many_and,
+)
 from .models import Asset, ObjectPermission
 
 
@@ -485,9 +490,11 @@ class SearchFilter(filters.BaseFilterBackend):
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
         try:
-            # If we are searching on an n-to-many field, we may get multiple results
-            # from the same model, so we need to de-duplicate with distinct(). Rely
-            # on the view to tell us if this is not necessary
+            # A to-many AND must become a `pk__in` subquery, not one merged
+            # `.filter()` (which matches no rows). See `rewrite_to_many_and`.
+            q_obj = rewrite_to_many_and(q_obj, queryset.model)
+
+            # n-to-many joins can duplicate rows; de-dupe unless the view opts out
             if getattr(view, 'skip_distinct', False):
                 return queryset.filter(q_obj)
             else:

@@ -1,9 +1,14 @@
 import pytest
+from django.conf import settings
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.exceptions import QueryParserNotSupportedFieldLookup
+from kpi.exceptions import (
+    QueryParserNotSupportedFieldLookup,
+    QueryParserTooManyRelationalFilters,
+)
 from kpi.models.asset import Asset
+from kpi.utils.query_parser import rewrite_to_many_and
 from kpi.utils.query_parser.query_parser import QueryParseActions, parse
 
 
@@ -194,3 +199,91 @@ def test_viewset_level_allowlist_overrides():
         user=None
     )
     assert parsed_q is not None
+
+
+def _parse(query):
+    return parse(query, default_field_lookups=['name__icontains'], model=Asset)
+
+
+def _leaf_keys(q):
+    """Flatten a `Q` tree into the list of lookup keys on its leaf tuples."""
+    keys = []
+    for child in q.children:
+        if isinstance(child, tuple):
+            keys.append(child[0])
+        else:
+            keys.extend(_leaf_keys(child))
+    return keys
+
+
+class TestRewriteToManyAnd(TestCase):
+    """
+    `rewrite_to_many_and` collapses an AND of two or more leaves on the same
+    to-many relation into a single `pk__in` subquery, so "has a related row
+    matching each" holds at any depth of the boolean tree (DEV-1581).
+    """
+
+    def test_multiple_tags_collapse_to_subquery(self):
+        # `tags` is a many-to-many: the two leaves become one `pk__in`
+        rewritten = rewrite_to_many_and(
+            _parse('tags__name:foo AND tags__name:bar'), Asset
+        )
+        self.assertEqual(_leaf_keys(rewritten), ['pk__in'])
+
+    def test_scalar_and_stays_merged(self):
+        rewritten = rewrite_to_many_and(
+            _parse('asset_type:survey AND name__icontains:x'), Asset
+        )
+        self.assertEqual(
+            sorted(_leaf_keys(rewritten)), ['asset_type', 'name__icontains']
+        )
+
+    def test_mixed_scalar_and_relational(self):
+        rewritten = rewrite_to_many_and(
+            _parse('asset_type:survey AND tags__name:foo AND tags__name:bar'),
+            Asset,
+        )
+        # scalar leaf kept, the two tag leaves collapsed into one `pk__in`
+        self.assertEqual(sorted(_leaf_keys(rewritten)), ['asset_type', 'pk__in'])
+
+    def test_to_one_relation_not_collapsed(self):
+        # `owner` is a to-one FK: merging is correct, no subquery
+        rewritten = rewrite_to_many_and(
+            _parse('owner__username:a AND owner__username:b'), Asset
+        )
+        self.assertEqual(_leaf_keys(rewritten), ['owner__username'] * 2)
+
+    def test_single_tag_untouched(self):
+        rewritten = rewrite_to_many_and(_parse('tags__name:foo'), Asset)
+        self.assertEqual(_leaf_keys(rewritten), ['tags__name'])
+
+    def test_to_many_and_nested_in_or_is_rewritten(self):
+        # Olivier's report: the AND-of-tags buried in an OR must still collapse
+        rewritten = rewrite_to_many_and(
+            _parse('(tags__name:foo AND tags__name:bar) OR asset_type:survey'),
+            Asset,
+        )
+        self.assertEqual(sorted(_leaf_keys(rewritten)), ['asset_type', 'pk__in'])
+
+    def test_to_many_and_negated_is_rewritten(self):
+        q = _parse('NOT (tags__name:foo AND tags__name:bar)')
+        rewritten = rewrite_to_many_and(q, Asset)
+        self.assertEqual(_leaf_keys(rewritten), ['pk__in'])
+        self.assertTrue(rewritten.negated)
+
+    def test_none_model_falls_back(self):
+        # Without a model, to-many detection cannot run: leave the Q untouched
+        q = _parse('tags__name:foo AND tags__name:bar')
+        self.assertIs(rewrite_to_many_and(q, None), q)
+
+    def test_too_many_to_many_filters_rejected(self):
+        limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+        query = ' OR '.join(f'tags__name:t{i}' for i in range(limit + 1))
+        with self.assertRaises(QueryParserTooManyRelationalFilters):
+            rewrite_to_many_and(_parse(query), Asset)
+
+    def test_at_limit_to_many_filters_allowed(self):
+        limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+        query = ' OR '.join(f'tags__name:t{i}' for i in range(limit))
+        # exactly at the cap must not raise
+        rewrite_to_many_and(_parse(query), Asset)

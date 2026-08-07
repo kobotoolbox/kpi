@@ -306,6 +306,80 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    def test_search_assets_by_multiple_tags(self):
+        # DEV-1581: AND on the to-many `tags` must mean "has both tags"
+        someuser = User.objects.get(username='someuser')
+        foo_asset = Asset.objects.create(
+            owner=someuser, name='foo only', asset_type='survey'
+        )
+        foo_asset.tags.add('foo')
+        bar_asset = Asset.objects.create(
+            owner=someuser, name='bar only', asset_type='survey'
+        )
+        bar_asset.tags.add('bar')
+        both_asset = Asset.objects.create(
+            owner=someuser, name='foo and bar', asset_type='survey'
+        )
+        both_asset.tags.add('foo', 'bar')
+        # Non-survey assets, to exercise the AND nested in an OR against a
+        # branch (`asset_type:survey`) they do not match
+        both_collection = Asset.objects.create(
+            owner=someuser, name='foo and bar collection', asset_type='collection'
+        )
+        both_collection.tags.add('foo', 'bar')
+        foo_collection = Asset.objects.create(
+            owner=someuser, name='foo collection', asset_type='collection'
+        )
+        foo_collection.tags.add('foo')
+
+        def uids(query):
+            return sorted(
+                r['uid']
+                for r in self.client.get(self.list_url, data={'q': query}).data[
+                    'results'
+                ]
+            )
+
+        # AND: only the assets carrying both tags
+        self.assertEqual(
+            uids('tags__name:foo AND tags__name:bar'),
+            sorted([both_asset.uid, both_collection.uid]),
+        )
+        # single tag: every asset carrying it (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo'),
+            sorted(
+                [foo_asset.uid, both_asset.uid, both_collection.uid, foo_collection.uid]
+            ),
+        )
+        # OR: any of the tags (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo OR tags__name:bar'),
+            sorted(
+                [
+                    foo_asset.uid,
+                    bar_asset.uid,
+                    both_asset.uid,
+                    both_collection.uid,
+                    foo_collection.uid,
+                ]
+            ),
+        )
+        # AND-of-tags nested inside an OR must still match (Olivier's report).
+        # Assert membership rather than equality: the `asset_type:survey` branch
+        # also returns unrelated survey assets from the fixtures.
+        nested_or = uids('(tags__name:foo AND tags__name:bar) OR asset_type:survey')
+        # both-tagged collection is returned even though it is no survey
+        self.assertIn(both_collection.uid, nested_or)
+        # the foo-only collection matches neither branch and stays out
+        self.assertNotIn(foo_collection.uid, nested_or)
+
+    def test_search_rejects_disallowed_lookup_field(self):
+        # DEV-2417 / kpi#7243 regression: the allowlist must keep blocking
+        # sensitive lookup paths after the query-parser refactor
+        response = self.client.get(self.list_url, data={'q': 'owner__password:x'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_numeric_search_for_assets_does_not_crash(self):
         someuser = User.objects.get(username='someuser')
 
