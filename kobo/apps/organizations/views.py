@@ -4,6 +4,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
+from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -178,21 +179,21 @@ class OrganizationAssetViewSet(AssetViewSet):
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with start parameter',
+                description=t('Paginate results with start parameter'),
             ),
             OpenApiParameter(
                 name='limit',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with limit parameter',
+                description=t('Paginate results with limit parameter'),
             ),
             OpenApiParameter(
                 name='ordering',
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Which field to use when ordering the results.',
+                description=t('Which field to use when ordering the results.'),
             ),
         ],
         operation_id='api_v2_organizations_asset_usage_list',
@@ -238,21 +239,21 @@ class OrganizationAssetViewSet(AssetViewSet):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Filter the results with search query',
+                description=t('Filter the results with search query'),
             ),
             OpenApiParameter(
                 name='limit',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Number of results to return per page.',
+                description=t('Number of results to return per page.'),
             ),
             OpenApiParameter(
                 name='start',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='The initial index from which to return the results.',
+                description=t('The initial index from which to return the results.'),
             ),
         ],
     ),
