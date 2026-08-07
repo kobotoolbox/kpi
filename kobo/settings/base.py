@@ -167,6 +167,7 @@ MIDDLEWARE = [
     'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.OpenRosaTrailingSlashMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

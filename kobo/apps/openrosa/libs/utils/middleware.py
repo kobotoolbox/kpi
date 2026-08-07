@@ -8,6 +8,7 @@ from django.http import (
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseNotAllowed,
+    HttpResponseNotFound,
 )
 from django.middleware.locale import LocaleMiddleware
 from django.template import loader
@@ -39,6 +40,34 @@ ALLOWED_VIEWS_WITH_WEAK_PASSWORD = {
         'GET': []
     },
 }
+
+
+class OpenRosaTrailingSlashMiddleware(MiddlewareMixin):
+    """
+    OpenRosa endpoints (submission, formList and their variants) are reached
+    WITHOUT a trailing slash: clients (Collect, Enketo) build slash-less URLs,
+    and Django's APPEND_SLASH redirect would drop the POST body on submissions.
+
+    Without this, a slashed request falls through to CsrfViewMiddleware and
+    surfaces a misleading CSRF error (DEV-1039). Intercept before CSRF runs and
+    return an explicit 404 pointing at the correct, slash-less URL.
+    """
+
+    # Slash-stripped path suffixes that identify an OpenRosa endpoint.
+    OPENROSA_SUFFIXES = ('/submission', '/formList')
+
+    def process_request(self, request):
+        path = request.path
+        if not path.endswith('/'):
+            return None
+
+        target = path.rstrip('/')
+        if target.endswith(self.OPENROSA_SUFFIXES):
+            return HttpResponseNotFound(
+                'OpenRosa endpoints do not accept a trailing slash. '
+                f'Retry the request at {target}'
+            )
+        return None
 
 
 class HTTPResponseNotAllowedMiddleware(MiddlewareMixin):
