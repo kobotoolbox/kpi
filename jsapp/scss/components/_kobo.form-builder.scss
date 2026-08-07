@@ -259,6 +259,10 @@ $s-form-builder-content-width: 1024px;
   }
 }
 
+.form-builder-aside__switch .mantine-Switch-input:not(:checked) + .mantine-Switch-track {
+  background-color: var(--mantine-color-gray-4);
+}
+
 // CASCADE MODAL CONTENTS
 
 .cascade-popup {

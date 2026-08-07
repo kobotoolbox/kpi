@@ -41,7 +41,8 @@
 }
 
 /* Matches the Checkbox label colour and 8px gap so inline controls line up. */
-.label {
+.label,
+.description {
   color: var(--mantine-color-gray-1);
   padding-inline-start: 8px;
 }
@@ -59,10 +60,6 @@
 .label[data-disabled] {
   color: var(--kobo-choice-control-disabled-label);
   opacity: 1;
-}
-
-.description {
-  color: var(--mantine-color-gray-2);
 }
 
 .error {

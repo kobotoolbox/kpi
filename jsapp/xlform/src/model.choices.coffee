@@ -125,13 +125,17 @@ module.exports = do ->
 
     finalize: ->
       # ensure that all options have names
+      # check if allow_choice_duplicates is enabled in settings
+      survey = @getSurvey?()
+      allowDuplicates = survey?.settings?.get('allow_choice_duplicates') is 'yes'
       names = []
       for option in @options.models
         label = option.get("label")
         name = option.get("name")
         if not name
+          # no name set - generate from label
           name = $modelUtils.sluggify(label, {
-            preventDuplicates: names
+            preventDuplicates: if allowDuplicates then false else names
             lowerCase: true
             lrstrip: true
             characterLimit: 40

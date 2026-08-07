@@ -518,6 +518,8 @@ export interface AssetContentSettings {
   /** The name of the locking profile applied to whole form. */
   'kobo--locking-profile'?: string
   default_language?: string | null
+  /** When 'yes', allows duplicate choice values in the same list. */
+  allow_choice_duplicates?: 'yes' | 'no'
 }
 
 /**
