@@ -640,7 +640,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             field_name = ordering.lstrip('-')
 
             if sort_attr := SORT_FIELDS.get(field_name):
-                queryset = sorted(queryset, key=attrgetter(sort_attr), reverse=reverse)
+                queryset = sorted(
+                    queryset,
+                    key=attrgetter(sort_attr, 'model_type', 'ordering_date'),
+                    reverse=reverse,
+                )
             else:
                 queryset = sorted(
                     queryset, key=attrgetter('model_type', 'ordering_date')
