@@ -185,6 +185,15 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
     SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
+# Absolute ceiling for anonymous users' permissions; the Constance setting of
+# the same name below can only narrow it further, never widen it.
+ALLOWED_ANONYMOUS_PERMISSIONS = (
+    'kpi.view_asset',
+    'kpi.discover_asset',
+    'kpi.add_submissions',
+    'kpi.view_submissions',
+)
+
 # Configuration options that superusers can modify in the Django admin
 # interface. Please note that it's not as simple as moving a setting into the
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
@@ -295,6 +304,11 @@ CONSTANCE_CONFIG = {
     'SSRF_DENIED_IP_ADDRESS': (
         '',
         'Blacklisted IP addresses to bypass SSRF protection\nOne per line',
+    ),
+    'ALLOWED_ANONYMOUS_PERMISSIONS': (
+        '\n'.join(ALLOWED_ANONYMOUS_PERMISSIONS),
+        'Permissions grantable to anonymous (public) users\nOne per line. '
+        'Can only narrow the server maximum; entries outside it are ignored.',
     ),
     'EXPOSE_GIT_REV': (
         False,
@@ -790,6 +804,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
         'SSRF_DENIED_IP_ADDRESS',
+        'ALLOWED_ANONYMOUS_PERMISSIONS',
         'MFA_ISSUER_NAME',
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
@@ -869,13 +884,6 @@ WSGI_APPLICATION = 'kobo.wsgi.application'
 
 # What User object should be mapped to AnonymousUser?
 ANONYMOUS_USER_ID = -1
-# Permissions assigned to AnonymousUser are restricted to the following
-ALLOWED_ANONYMOUS_PERMISSIONS = (
-    'kpi.view_asset',
-    'kpi.discover_asset',
-    'kpi.add_submissions',
-    'kpi.view_submissions',
-)
 
 # run heavy migration scripts by default
 # NOTE: this should be set to False for major deployments. This can take a long time
