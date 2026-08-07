@@ -845,6 +845,7 @@ export const getApiV2OrganizationsMembersListResponseMock = (
     user__email: faker.internet.email(),
     user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     user__has_mfa_enabled: faker.datatype.boolean(),
+    user__has_sso_enabled: faker.datatype.boolean(),
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     user__is_active: faker.datatype.boolean(),
     invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
@@ -878,6 +879,7 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   user__email: faker.internet.email(),
   user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   user__has_mfa_enabled: faker.datatype.boolean(),
+  user__has_sso_enabled: faker.datatype.boolean(),
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.datatype.boolean(),
   invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
@@ -910,6 +912,7 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   user__email: faker.internet.email(),
   user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   user__has_mfa_enabled: faker.datatype.boolean(),
+  user__has_sso_enabled: faker.datatype.boolean(),
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.datatype.boolean(),
   invite: faker.helpers.arrayElement([

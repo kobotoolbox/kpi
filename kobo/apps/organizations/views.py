@@ -1,3 +1,4 @@
+from allauth.socialaccount.models import SocialAccount
 from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
@@ -526,6 +527,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             is_active=True
         ).values('pk')
 
+        # Subquery to check if the user has an associated SSO account
+        sso_subquery = SocialAccount.objects.filter(
+            user=OuterRef('user_id')
+        ).values('pk')
+
         # Subquery to check if the user is the owner
         owner_subquery = OrganizationOwner.objects.filter(
             organization_id=OuterRef('organization_id'),
@@ -546,6 +552,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     output_field=CharField(),
                 ),
                 has_mfa_enabled=Exists(mfa_subquery),
+                has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
                 ordering_date=F('created'),
                 model_type=Value('0_organization_user', output_field=CharField()),

@@ -19261,6 +19261,8 @@ components:
           type: string
         user__has_mfa_enabled:
           type: boolean
+        user__has_sso_enabled:
+          type: boolean
         date_joined:
           type: string
           format: date-time
@@ -19279,6 +19281,7 @@ components:
       - user__email
       - user__extra_details__name
       - user__has_mfa_enabled
+      - user__has_sso_enabled
       - user__is_active
       - user__username
     MemberRoleEnum:
