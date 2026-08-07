@@ -4,6 +4,8 @@ import React from 'react'
 import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import ButtonNew from '#/components/common/ButtonNew'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan } from '#/components/permissions/utils'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
@@ -83,19 +85,41 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
     this.props.onRequestClose()
   }
 
+  /**
+   * With `change_asset` the selection goes through `actions.table.updateSettings`,
+   * so we show progress and let `onTableUpdateSettingsCompleted` close the
+   * dropdown. Otherwise `tableStore` applies it synchronously as a session
+   * override - no request to wait for, so close right away.
+   */
+  private applySelection(applyToStore: () => void) {
+    const isSavedToAsset = userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
+
+    if (isSavedToAsset) {
+      this.setState({ isPending: true })
+    }
+
+    applyToStore()
+
+    if (!isSavedToAsset) {
+      this.props.onRequestClose()
+    }
+  }
+
   onReset() {
-    this.setState({ isPending: true })
-    tableStore.showAllFields()
+    this.applySelection(() => {
+      tableStore.showAllFields()
+    })
   }
 
   onApply() {
-    this.setState({ isPending: true })
-    tableStore.setFieldsVisibility(
-      this.props.asset,
-      this.props.submissions,
-      this.props.bulkActions,
-      this.state.selectedColumns,
-    )
+    this.applySelection(() => {
+      tableStore.setFieldsVisibility(
+        this.props.asset,
+        this.props.submissions,
+        this.props.bulkActions,
+        this.state.selectedColumns,
+      )
+    })
   }
 
   onFieldToggleChange(fieldId: string, isSelected: boolean) {
@@ -133,7 +157,11 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
     const filteredFieldsList = this.getFilteredFieldsList()
     return (
       <Stack w={360} gap='sm' p='sm' mah='calc(100vh - 200px)' mih={200}>
-        <Box fz='sm'>{t('These settings affects the experience for all project users.')}</Box>
+        <Box fz='sm'>
+          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
+            ? t('These settings affect the experience for all project users.')
+            : t('These settings only apply to your current session.')}
+        </Box>
 
         <TextInput
           value={this.state.filterPhrase}
