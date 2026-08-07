@@ -26939,40 +26939,60 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "$ref": "#/components/schemas/MemberRoleEnum"
+                        "nullable": true,
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/MemberRoleEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/NullEnum"
+                            }
+                        ]
                     },
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/",
+                        "nullable": true
                     },
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/",
+                        "nullable": true
                     },
                     "user__username": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "user__email": {
                         "type": "string",
-                        "format": "email"
+                        "format": "email",
+                        "nullable": true
                     },
                     "user__extra_details__name": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "user__has_mfa_enabled": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "nullable": true
                     },
                     "user__has_sso_enabled": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "nullable": true
                     },
                     "date_joined": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "nullable": true
                     },
                     "user__is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "nullable": true
                     },
                     "invite": {
                         "allOf": [
@@ -27069,6 +27089,11 @@
                     "total_nlp_asr_seconds",
                     "total_nlp_llm_requests",
                     "total_nlp_mt_characters"
+                ]
+            },
+            "NullEnum": {
+                "enum": [
+                    null
                 ]
             },
             "NullableServiceUsageBalanceData": {

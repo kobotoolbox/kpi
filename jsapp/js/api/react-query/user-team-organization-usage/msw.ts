@@ -20,6 +20,8 @@ import type { AssetListCount } from '../../models/assetListCount'
 
 import { AssetTypeEnum } from '../../models/assetTypeEnum'
 
+import { BlankEnum } from '../../models/blankEnum'
+
 import { CustomAssetUsageDeploymentStatusEnum } from '../../models/customAssetUsageDeploymentStatusEnum'
 
 import type { EmailAddress } from '../../models/emailAddress'
@@ -831,15 +833,19 @@ export const getApiV2OrganizationsMembersListResponseMock = (
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
-    url: faker.internet.url(),
-    user: faker.internet.url(),
-    user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    user__email: faker.internet.email(),
-    user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    role: faker.helpers.arrayElement([
+      faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+      faker.helpers.arrayElement(Object.values(BlankEnum)),
+      faker.helpers.arrayElement([] as const),
+    ]),
+    url: faker.helpers.arrayElement([faker.internet.url(), null]),
+    user: faker.helpers.arrayElement([faker.internet.url(), null]),
+    user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    user__email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    user__extra_details__name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     user__has_mfa_enabled: faker.datatype.boolean(),
     user__has_sso_enabled: faker.datatype.boolean(),
-    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
     user__is_active: faker.datatype.boolean(),
     invite: {
       ...{
@@ -860,15 +866,19 @@ export const getApiV2OrganizationsMembersListResponseMock = (
 export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
-  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
-  url: faker.internet.url(),
-  user: faker.internet.url(),
-  user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  user__email: faker.internet.email(),
-  user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  role: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+    faker.helpers.arrayElement(Object.values(BlankEnum)),
+    faker.helpers.arrayElement([] as const),
+  ]),
+  url: faker.helpers.arrayElement([faker.internet.url(), null]),
+  user: faker.helpers.arrayElement([faker.internet.url(), null]),
+  user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  user__email: faker.helpers.arrayElement([faker.internet.email(), null]),
+  user__extra_details__name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   user__has_mfa_enabled: faker.datatype.boolean(),
   user__has_sso_enabled: faker.datatype.boolean(),
-  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
   user__is_active: faker.datatype.boolean(),
   invite: {
     ...{
@@ -888,15 +898,19 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
 export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
-  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
-  url: faker.internet.url(),
-  user: faker.internet.url(),
-  user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  user__email: faker.internet.email(),
-  user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  role: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+    faker.helpers.arrayElement(Object.values(BlankEnum)),
+    faker.helpers.arrayElement([] as const),
+  ]),
+  url: faker.helpers.arrayElement([faker.internet.url(), null]),
+  user: faker.helpers.arrayElement([faker.internet.url(), null]),
+  user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  user__email: faker.helpers.arrayElement([faker.internet.email(), null]),
+  user__extra_details__name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   user__has_mfa_enabled: faker.datatype.boolean(),
   user__has_sso_enabled: faker.datatype.boolean(),
-  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
   user__is_active: faker.datatype.boolean(),
   invite: {
     ...{
