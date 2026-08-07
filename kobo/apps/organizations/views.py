@@ -6,7 +6,6 @@ from django.db.models import (
     Case,
     CharField,
     F,
-    IntegerField,
     OuterRef,
     Q,
     QuerySet,
@@ -597,13 +596,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 model_type=Value('0_organization_user', output_field=CharField()),
                 username_sort=Lower(F('user__username')),
                 status_sort=Value('active'),
-                date_joined_sort=F('created'),
-                role_sort=Lower(role_annotation),
-                sso_sort=Case(
-                    When(Exists(sso_subquery), then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
-                ),
             )
         )
 
@@ -622,26 +614,25 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
+                role=Lower(F('invitee_role')),
+                has_sso_enabled=Value(False),
                 ordering_date=F('created'),
                 model_type=Value('1_organization_invitation', output_field=CharField()),
                 username_sort=Lower(
                     Coalesce(F('invitee__username'), F('invitee_identifier'), Value(''))
                 ),
                 status_sort=Value('invited'),
-                date_joined_sort=F('created'),
-                role_sort=Lower(F('invitee_role')),
-                sso_sort=Value(0, output_field=IntegerField()),
             )
             queryset = list(queryset) + list(invitees)
 
             SORT_FIELDS = {
                 'user__username': 'username_sort',
                 'status': 'status_sort',
-                'date_joined': 'date_joined_sort',
-                'date_added': 'date_joined_sort',
-                'created': 'date_joined_sort',
-                'role': 'role_sort',
-                'user__has_sso_enabled': 'sso_sort',
+                'date_joined': 'ordering_date',
+                'date_added': 'ordering_date',
+                'created': 'ordering_date',
+                'role': 'role',
+                'user__has_sso_enabled': 'has_sso_enabled',
             }
 
             ordering = self.request.query_params.get('ordering', '').strip()
