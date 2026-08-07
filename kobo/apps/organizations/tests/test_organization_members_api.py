@@ -420,8 +420,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         first_item = response.data['results'][0]
         self.assertIsNotNone(first_item['invite'])
         self.assertEqual(
-            first_item['invite']['status'],
-            OrganizationInviteStatusChoices.PENDING
+            first_item['invite']['status'], OrganizationInviteStatusChoices.PENDING
         )
 
         # Find member row for registered_invitee_user
