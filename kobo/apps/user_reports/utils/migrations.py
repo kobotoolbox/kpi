@@ -1,7 +1,14 @@
 # flake8: noqa: E501
+import time
 
 from django.conf import settings
 from django.db import ProgrammingError
+
+REDIS_LOCK_KEY = 'billing_and_usage_snapshot:run_lock'
+REDIS_LOCK_TTL = 300
+REDIS_LOCK_ACQUIRE_TIMEOUT = 5
+PG_LOCK_TIMEOUT = '30s'
+POST_TERMINATE_SLEEP = 3
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -474,20 +481,89 @@ else:
         'MV_SUBSCRIPTIONS_SELECT': NO_STRIPE_SUBSCRIPTIONS,
     }
 
+CREATE_MV_SQL = CREATE_MV_BASE_SQL.format(**MV_PARAMS)
 
-def get_create_mv_sql(db_accessor):
-    # hack for migrations that use CREATE_MV_SQL from before the new column was added
+
+def drop_mv(apps, schema_editor):
+    from django.core.cache import cache
+
+    lock = None
+    acquired = False
     try:
-        db_accessor.execute(
-            'SELECT llm_requests_limit from '
-            'user_reports_billingandusagesnapshot limit 1'
-        )
-        bus_llm_requests = 'bus.llm_requests_limit,'
-    except ProgrammingError:
-        bus_llm_requests = '0 AS llm_requests_limit,'
-    full_sql = CREATE_MV_BASE_SQL.format(BUS_LLM_REQUESTS=bus_llm_requests, **MV_PARAMS)
-    return full_sql
+        lock = cache.lock(REDIS_LOCK_KEY, timeout=REDIS_LOCK_TTL)
+    except Exception:
+        lock = None
 
+    try:
+        if lock is not None:
+            try:
+                acquired = lock.acquire(
+                    blocking=True, blocking_timeout=REDIS_LOCK_ACQUIRE_TIMEOUT
+                )
+            except Exception:
+                acquired = False
+
+        with schema_editor.connection.cursor() as cursor:
+            if not acquired:
+                terminate_backends_touching_mv(cursor)
+                time.sleep(POST_TERMINATE_SLEEP)
+                if lock is not None:
+                    try:
+                        acquired = lock.acquire(
+                            blocking=True,
+                            blocking_timeout=REDIS_LOCK_ACQUIRE_TIMEOUT,
+                        )
+                    except Exception:
+                        acquired = False
+
+            # Safety net: kill any stray backend still holding a lock on the
+            # MV now that we control the Redis lock - just in case.
+            terminate_backends_touching_mv(cursor)
+
+            cursor.execute(f"SET lock_timeout = '{PG_LOCK_TIMEOUT}'")
+            try:
+                cursor.execute(DROP_INDEXES_SQL)
+                cursor.execute(DROP_MV_SQL)
+            finally:
+                cursor.execute('RESET lock_timeout')
+    finally:
+        if acquired and lock is not None:
+            try:
+                lock.release()
+            except Exception:
+                pass
+
+
+def reschedule_lrm_recreate(apps, schema_editor):
+    LongRunningMigration = apps.get_model(
+        'long_running_migrations', 'LongRunningMigration'
+    )
+    LongRunningMigration.objects.filter(name='0019_recreate_user_reports_mv').update(
+        status='created'
+    )
+
+
+def terminate_backends_touching_mv(cursor):
+    """
+    Terminate any backend currently refreshing or holding a lock on
+    user_reports_userreportsmv. The MV is about to be dropped so losing an
+    in-flight refresh is harmless; killing the backend forces the Celery
+    snapshot task to release its Redis lock via its `finally` block.
+    """
+    cursor.execute("""
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE pid <> pg_backend_pid()
+          AND (
+              query ILIKE '%%REFRESH MATERIALIZED VIEW%%user_reports_userreportsmv%%'
+              OR pid IN (
+                  SELECT l.pid
+                  FROM pg_locks l
+                  JOIN pg_class c ON l.relation = c.oid
+                  WHERE c.relname = 'user_reports_userreportsmv'
+              )
+          );
+        """)
 
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;

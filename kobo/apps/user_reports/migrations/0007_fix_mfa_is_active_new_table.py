@@ -2,39 +2,6 @@
 from django.conf import settings
 from django.db import migrations
 
-from kobo.apps.user_reports.utils.migrations import (
-    CREATE_INDEXES_SQL,
-    DROP_MV_SQL,
-    get_create_mv_sql,
-)
-
-
-def apply_fix(apps, schema_editor):
-    create_mv_sql = get_create_mv_sql(schema_editor)
-    if getattr(settings, 'SKIP_HEAVY_MIGRATIONS', False):
-        print(f"""
-            ⚠️ ATTENTION ⚠️
-            Drop the existing materialized view
-
-            {DROP_MV_SQL}
-
-            Run the SQL query below in PostgreSQL directly to create the materialized view:
-
-            {create_mv_sql}
-
-            Then run the SQL query below to create the indexes:
-
-            {CREATE_INDEXES_SQL}
-
-            """.replace('CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY'))
-        return
-
-    # This pulls the *latest* SQL from your updated migrations.py
-    schema_editor.execute(DROP_MV_SQL)
-    schema_editor.execute(create_mv_sql)
-    schema_editor.execute(CREATE_INDEXES_SQL)
-
-
 base_dependencies = [
     ('user_reports', '0006_fix_org_subscriptions_missing_metadata'),
     ('kpi', '0052_add_deployment_status_to_asset'),
@@ -54,6 +21,8 @@ class Migration(migrations.Migration):
     atomic = False
     dependencies = base_dependencies
 
+    # Originally dropped and rebuilt the user reports mv.
+    # change to noop on 8/7/26. Rebuild will be done by 0009
     operations = [
-        migrations.RunPython(apply_fix, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
     ]

@@ -6,7 +6,7 @@ from pytest import fixture
 
 from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
-    get_create_mv_sql,
+    CREATE_MV_SQL,
 )
 from kpi.utils.object_permission import get_anonymous_user
 
@@ -74,10 +74,9 @@ def user_reports_materialized_view(django_db_setup, django_db_blocker):
     # `refresh_user_reports_materialized_view` don't fail.
 
     with django_db_blocker.unblock(), connection.cursor() as cursor:
-        create_mv_sql = get_create_mv_sql(cursor)
         cursor.execute(
             "SELECT 1 FROM pg_matviews WHERE matviewname = 'user_reports_userreportsmv'"
         )
         if cursor.fetchone() is None:
-            cursor.execute(create_mv_sql)
+            cursor.execute(CREATE_MV_SQL)
             cursor.execute(CREATE_INDEXES_SQL)

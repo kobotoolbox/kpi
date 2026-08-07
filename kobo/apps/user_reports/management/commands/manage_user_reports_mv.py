@@ -7,8 +7,8 @@ from django.db import connection
 from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
+    CREATE_MV_SQL,
     DROP_MV_SQL,
-    get_create_mv_sql,
 )
 
 
@@ -67,8 +67,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         '⏳Creating materialized view (this may take several minutes)…'
                     )
-                    create_mv_sql = get_create_mv_sql(cursor)
-                    cursor.execute(create_mv_sql)
+                    cursor.execute(CREATE_MV_SQL)
                     cursor.execute(CREATE_INDEXES_SQL)
                     self.stdout.write(self.style.SUCCESS('Created.'))
 
