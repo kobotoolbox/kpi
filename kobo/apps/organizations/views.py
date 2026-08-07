@@ -671,13 +671,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     )
 
                     queryset = queryset.filter(q_obj_user)
-                except ParseError:
-                    queryset = queryset.none()
-                except (FieldError, ValueError):
+                except (ParseError, FieldError, ValueError, QueryParserNotSupportedFieldLookup):
                     queryset = queryset.none()
                 except (
                     QueryParserBadSyntax,
-                    QueryParserNotSupportedFieldLookup,
                     SearchQueryTooShortException,
                 ) as e:
                     raise e
@@ -698,13 +695,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                         user=self.request.user,
                     )
                     invitation_queryset = invitation_queryset.filter(q_obj_invite)
-                except ParseError:
-                    invitation_queryset = invitation_queryset.none()
-                except (FieldError, ValueError):
+                except (ParseError, FieldError, ValueError, QueryParserNotSupportedFieldLookup):
                     invitation_queryset = invitation_queryset.none()
                 except (
                     QueryParserBadSyntax,
-                    QueryParserNotSupportedFieldLookup,
                     SearchQueryTooShortException,
                 ) as e:
                     raise e
