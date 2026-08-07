@@ -1036,8 +1036,7 @@ export default function EditableForm(props: EditableFormProps) {
                 onChange={(event) => onAllowChoiceDuplicatesChange(event.currentTarget.checked)}
                 label={t('Allow duplicate choice values')}
                 description={t(
-                  'When enabled, multiple choices in the same list can have the same value. ' +
-                    'When disabled, duplicate values are automatically made unique.',
+                  'When enabled, multiple choices in the same list can have the same value. When disabled, duplicate values are automatically made unique.',
                 )}
                 disabled={isChangingAppearanceRestricted()}
                 className='form-builder-aside__switch'
