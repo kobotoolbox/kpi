@@ -8,6 +8,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -188,24 +189,33 @@ def process_deletion(
     indicating whether the deletion was successful.
     """
 
-    with transaction.atomic():
-        object_trash = model.objects.select_for_update().get(pk=object_id)
-        if not force and object_trash.status == TrashStatus.IN_PROGRESS:
-            return object_trash, False
+    # Restarts force the deletion, so only this lock stops two workers running
+    # it at once
+    lock_key = f'trash_bin_deletion:{model._meta.model_name}:{object_id}'
+    if not cache.add(lock_key, True, timeout=settings.TRASH_BIN_DELETION_LOCK_TTL):
+        return model.objects.get(pk=object_id), False
 
-        if pre_deletion_callback:
-            pre_deletion_callback(object_trash)
+    try:
+        with transaction.atomic():
+            object_trash = model.objects.select_for_update().get(pk=object_id)
+            if not force and object_trash.status == TrashStatus.IN_PROGRESS:
+                return object_trash, False
 
-        object_trash.status = TrashStatus.IN_PROGRESS
-        object_trash.metadata['failure_error'] = ''
-        if not force:
-            # `task_restarter` always forces the deletion, therefore this run has
-            # been requested by Celery beat or by a superuser from the admin
-            # interface: give the object a brand new automatic restart budget
-            object_trash.metadata.pop('retryable_failure_count', None)
-        object_trash.save(update_fields=['metadata', 'status', 'date_modified'])
+            if pre_deletion_callback:
+                pre_deletion_callback(object_trash)
 
-    deletion_callback(object_trash)
+            object_trash.status = TrashStatus.IN_PROGRESS
+            object_trash.metadata['failure_error'] = ''
+            if not force:
+                # `task_restarter` always forces the deletion, therefore this run
+                # has been requested by Celery beat or by a superuser from the
+                # admin interface: give the object a brand new restart budget
+                object_trash.metadata.pop('retryable_failure_count', None)
+            object_trash.save(update_fields=['metadata', 'status', 'date_modified'])
+
+        deletion_callback(object_trash)
+    finally:
+        cache.delete(lock_key)
 
     # The related PeriodicTask is intentionally NOT deleted here to avoid
     # triggering a `PeriodicTasks.changed()` signal for each completed task.
