@@ -655,6 +655,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     ),
                 }
 
+                user_unsupported_exception = None
                 try:
                     q_obj_user = parse(
                         q,
@@ -671,7 +672,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     )
 
                     queryset = queryset.filter(q_obj_user)
-                except (ParseError, FieldError, ValueError, QueryParserNotSupportedFieldLookup):
+                except QueryParserNotSupportedFieldLookup as e:
+                    user_unsupported_exception = e
+                    queryset = queryset.none()
+                except (ParseError, FieldError, ValueError):
                     queryset = queryset.none()
                 except (
                     QueryParserBadSyntax,
@@ -679,6 +683,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ) as e:
                     raise e
 
+                invite_unsupported_exception = None
                 try:
                     q_obj_invite = parse(
                         q,
@@ -695,13 +700,19 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                         user=self.request.user,
                     )
                     invitation_queryset = invitation_queryset.filter(q_obj_invite)
-                except (ParseError, FieldError, ValueError, QueryParserNotSupportedFieldLookup):
+                except QueryParserNotSupportedFieldLookup as e:
+                    invite_unsupported_exception = e
+                    invitation_queryset = invitation_queryset.none()
+                except (ParseError, FieldError, ValueError):
                     invitation_queryset = invitation_queryset.none()
                 except (
                     QueryParserBadSyntax,
                     SearchQueryTooShortException,
                 ) as e:
                     raise e
+
+                if user_unsupported_exception and invite_unsupported_exception:
+                    raise user_unsupported_exception
 
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
