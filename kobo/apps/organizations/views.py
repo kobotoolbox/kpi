@@ -608,6 +608,12 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ],
             )
 
+            # Get ALL existing user IDs from the base queryset BEFORE applying the `q`
+            # filter. This ensures we don't accidentally include pending invitations
+            # for existing members just because their member profile was filtered out
+            # by `q`.
+            members_user_ids = queryset.values_list('user_id', flat=True)
+
             q = self.request.query_params.get('q', '').strip()
             if q:
                 user_allowed_fields = {
@@ -679,8 +685,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ) as e:
                     raise e
 
-            # Get existing user IDs from the queryset
-            members_user_ids = queryset.values_list('user_id', flat=True)
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
