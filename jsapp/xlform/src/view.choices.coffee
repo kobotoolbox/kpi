@@ -123,6 +123,8 @@ module.exports = do ->
       @n.change ((input)->
         val = input.currentTarget.value
         other_names = @options.cl.getNames()
+        survey = @options.cl.getSurvey?()
+        allowDuplicates = survey?.settings?.get('allow_choice_duplicates') is 'yes'
         if @model.get('name')? && val.toLowerCase() == @model.get('name').toLowerCase()
           other_names.splice _.indexOf(other_names, @model.get('name')), 1
         if val is ''
@@ -132,7 +134,7 @@ module.exports = do ->
           @$el.trigger("choice-list-update", @options.cl.cid)
         else
           val = $modelUtils.sluggify(val, {
-                    preventDuplicates: other_names
+                    preventDuplicates: if allowDuplicates then false else other_names
                     lowerCase: false
                     lrstrip: true
                     incrementorPadding: false
@@ -143,6 +145,8 @@ module.exports = do ->
           @model.set('name', val)
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
+        # Update the input to show the (possibly deduplicated) value
+        @n.val(val)
         return newValue: val
       ).bind @
       @pw.html(@p)
@@ -204,15 +208,20 @@ module.exports = do ->
         nval = nval.replace /\t/g, ' '
         @model.set("label", nval, silent: true)
         other_names = @options.cl.getNames()
+        survey = @options.cl.getSurvey?()
+        allowDuplicates = survey?.settings?.get('allow_choice_duplicates') is 'yes'
         if !@model.get('setManually')
           sluggifyOpts =
-            preventDuplicates: other_names
+            preventDuplicates: if allowDuplicates then false else other_names
             lowerCase: false
             stripSpaces: true
             lrstrip: true
             incrementorPadding: 3
             validXmlTag: true
-          @model.set("name", $modelUtils.sluggify(nval, sluggifyOpts))
+          newName = $modelUtils.sluggify(nval, sluggifyOpts)
+          @model.set("name", newName)
+          # Update the name input in the UI to reflect the deduplicated value
+          @n.val(newName)
         @$el.trigger("choice-list-update", @options.cl.cid)
         @model.getSurvey()?.trigger('change')
         return

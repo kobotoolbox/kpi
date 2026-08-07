@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Text } from '@mantine/core'
+import { Switch, Text } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
@@ -135,6 +135,7 @@ interface EditableFormState extends SurveyStateStoreData {
   name: string
   preventNavigatingOut: boolean
   settings__style?: FormStyleName
+  settings__allow_choice_duplicates: boolean
   showCascadePopup: boolean
   cascadeLastSelectedRowIndex?: number
   surveyAppRendered: boolean
@@ -161,6 +162,7 @@ export default function EditableForm(props: EditableFormProps) {
     isBackgroundAudioBannerDismissed: false,
     name: '',
     preventNavigatingOut: false,
+    settings__allow_choice_duplicates: false,
     showCascadePopup: false,
     surveyAppRendered: false,
     surveyLoadError: undefined,
@@ -221,9 +223,15 @@ export default function EditableForm(props: EditableFormProps) {
   useEffect(() => {
     if (state.asset) {
       let settingsStyle: FormStyleName | undefined
+      let settingsAllowChoiceDuplicates = false
       if (state.asset.content?.settings && !Array.isArray(state.asset.content?.settings)) {
         settingsStyle = state.asset.content.settings.style
+        settingsAllowChoiceDuplicates = state.asset.content.settings.allow_choice_duplicates === 'yes'
       }
+      setState((currentState) => ({
+        ...currentState,
+        settings__allow_choice_duplicates: settingsAllowChoiceDuplicates,
+      }))
       launchAppForSurveyContent(state.asset.content, {
         name: state.asset.name,
         settings__style: settingsStyle,
@@ -316,6 +324,16 @@ export default function EditableForm(props: EditableFormProps) {
     return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
   }
 
+  function onAllowChoiceDuplicatesChange(isChecked: boolean) {
+    // Immediately update the survey settings so deduplication logic sees the change
+    app?.survey.settings.set('allow_choice_duplicates', isChecked ? 'yes' : 'no')
+    setState((currentState) => ({
+      ...currentState,
+      settings__allow_choice_duplicates: isChecked,
+    }))
+    onSurveyChangeDebounced()
+  }
+
   function onSurveyChange() {
     if (!state.asset_updated !== update_states.UNSAVED_CHANGES) {
       preventClosingTab()
@@ -389,6 +407,8 @@ export default function EditableForm(props: EditableFormProps) {
       app?.survey.settings.set('style', state.settings__style)
     }
 
+    app?.survey.settings.set('allow_choice_duplicates', state.settings__allow_choice_duplicates ? 'yes' : 'no')
+
     if (state.name) {
       app?.survey.settings.set('title', state.name)
     }
@@ -440,6 +460,8 @@ export default function EditableForm(props: EditableFormProps) {
     if (state.settings__style !== undefined) {
       app.survey.settings.set('style', state.settings__style)
     }
+
+    app.survey.settings.set('allow_choice_duplicates', state.settings__allow_choice_duplicates ? 'yes' : 'no')
 
     let surveyJSON = surveyToValidJson(app.survey)
     const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
@@ -1003,6 +1025,22 @@ export default function EditableForm(props: EditableFormProps) {
                 menuPlacement='bottom'
                 isDisabled={isChangingAppearanceRestricted()}
                 isSearchable={false}
+              />
+            </bem.FormBuilderAside__row>
+
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>{t('Choice options')}</bem.FormBuilderAside__header>
+
+              <Switch
+                checked={state.settings__allow_choice_duplicates}
+                onChange={(event) => onAllowChoiceDuplicatesChange(event.currentTarget.checked)}
+                label={t('Allow duplicate choice values')}
+                description={t(
+                  'When enabled, multiple choices in the same list can have the same value. ' +
+                    'When disabled, duplicate values are automatically made unique.',
+                )}
+                disabled={isChangingAppearanceRestricted()}
+                className='form-builder-aside__switch'
               />
             </bem.FormBuilderAside__row>
 

@@ -124,15 +124,30 @@ module.exports = do ->
       return _.uniq(option_keys)
 
     finalize: ->
-      # ensure that all options have names
+      # ensure that all options have names and deduplicate if needed
+      # check if allow_choice_duplicates is enabled in settings
+      survey = @getSurvey?()
+      allowDuplicates = survey?.settings?.get('allow_choice_duplicates') is 'yes'
       names = []
       for option in @options.models
         label = option.get("label")
         name = option.get("name")
         if not name
+          # no name set - generate from label
           name = $modelUtils.sluggify(label, {
-            preventDuplicates: names
+            preventDuplicates: if allowDuplicates then false else names
             lowerCase: true
+            lrstrip: true
+            characterLimit: 40
+            incrementorPadding: false
+            validXmlTag: false
+          })
+          option.set("name", name)
+        else if not allowDuplicates and name in names
+          # name exists but is a duplicate - make it unique
+          name = $modelUtils.sluggify(name, {
+            preventDuplicates: names
+            lowerCase: false
             lrstrip: true
             characterLimit: 40
             incrementorPadding: false
