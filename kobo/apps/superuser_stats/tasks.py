@@ -576,7 +576,7 @@ def generate_user_details_report(
         )
         .exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
-            mfa_is_active=F('mfa_methods__is_active'),
+            mfa_is_active=F('mfa_methods_wrapper__is_active'),
             metadata=F('extra_details__data'),
             joined_date=Cast('date_joined', CharField()),
             last_login_date=Cast('last_login', CharField()),
