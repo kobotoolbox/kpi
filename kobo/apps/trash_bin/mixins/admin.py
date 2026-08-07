@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin, messages
 
 
@@ -15,6 +16,13 @@ class TrashMixin:
             ' to get an updated list',
             messages.SUCCESS,
         )
+
+    @admin.display(description='Automatic restarts')
+    def get_auto_restarts(self, obj):
+        restart_count = obj.metadata.get('retryable_failure_count') or 0
+        if not restart_count:
+            return '-'
+        return f'{restart_count}/{settings.TRASH_BIN_MAX_AUTO_RESTARTS}'
 
     @admin.display(description='Error')
     def get_failure_error(self, obj):

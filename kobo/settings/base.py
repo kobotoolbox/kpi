@@ -2392,6 +2392,14 @@ AZURE_DELETE_BATCH_SIZE = 256
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
+# Number of times a trash bin task that failed on a transient (infrastructure)
+# error is automatically restarted before it requires manual intervention
+TRASH_BIN_MAX_AUTO_RESTARTS = 30
+
+# How long a trash bin object stays locked while it is being deleted. Must stay
+# shorter than the delay after which `task_restarter` considers a task stuck
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60
+
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 
