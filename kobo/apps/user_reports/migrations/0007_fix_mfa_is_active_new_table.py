@@ -1,6 +1,9 @@
 # flake8: noqa: E501
 from django.conf import settings
 from django.db import migrations
+from user_reports.utils.migrations import reschedule_lrm_recreate
+
+from kobo.apps.user_reports.utils.migrations import CREATE_MV_SQL_VERSIONS, drop_mv
 
 base_dependencies = [
     ('user_reports', '0006_fix_org_subscriptions_missing_metadata'),
@@ -16,13 +19,24 @@ if 'djstripe' in settings.INSTALLED_APPS:
     # djstripe is installed; those tables are created in djstripe 0001_initial.
     base_dependencies.append(('djstripe', '0012_2_8'))
 
+expected_sql_version = 'initial'
+if CREATE_MV_SQL_VERSIONS[-1] == expected_sql_version:
+    operations = [
+        migrations.RunPython(drop_mv, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            reschedule_lrm_recreate, reverse_code=migrations.RunPython.noop
+        ),
+    ]
+else:
+    operations = [
+        migrations.RunPython(
+            migrations.RunPython.noop, reverse_code=migrations.RunPython.noop
+        )
+    ]
+
 
 class Migration(migrations.Migration):
     atomic = False
     dependencies = base_dependencies
 
-    # Originally dropped and rebuilt the user reports mv.
-    # change to noop on 8/7/26. Rebuild will be done by 0009
-    operations = [
-        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
-    ]
+    operations = operations

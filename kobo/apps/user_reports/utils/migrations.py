@@ -2,13 +2,14 @@
 import time
 
 from django.conf import settings
-from django.db import ProgrammingError
 
 REDIS_LOCK_KEY = 'billing_and_usage_snapshot:run_lock'
 REDIS_LOCK_TTL = 300
 REDIS_LOCK_ACQUIRE_TIMEOUT = 5
 PG_LOCK_TIMEOUT = '30s'
 POST_TERMINATE_SLEEP = 3
+
+CREATE_MV_SQL_VERSIONS = ['initial', '20260807']
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -40,7 +41,7 @@ CREATE_MV_BASE_SQL = f"""
             bus.storage_bytes_limit,
             bus.asr_seconds_limit,
             bus.mt_characters_limit,
-            {{BUS_LLM_REQUESTS}}
+            bus.llm_requests_limit,
             COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
             COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
             COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period,

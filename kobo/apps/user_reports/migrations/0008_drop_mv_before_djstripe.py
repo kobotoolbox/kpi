@@ -1,8 +1,11 @@
-
 from django.conf import settings
 from django.db import migrations
 
-from kobo.apps.user_reports.utils.migrations import drop_mv
+from kobo.apps.user_reports.utils.migrations import (
+    CREATE_MV_SQL_VERSIONS,
+    drop_mv,
+    reschedule_lrm_recreate,
+)
 
 base_dependencies = [
     ('user_reports', '0007_fix_mfa_is_active_new_table'),
@@ -15,6 +18,15 @@ if 'djstripe' in settings.INSTALLED_APPS:
     # depends on (price.type, product.type). Must DROP before this runs.
     run_before_migrations.append(('djstripe', '0013_2_9'))
 
+expected_sql_version = 'initial'
+operations = [migrations.RunPython(drop_mv, migrations.RunPython.noop)]
+if CREATE_MV_SQL_VERSIONS[-1] == expected_sql_version:
+    operations.append(
+        migrations.RunPython(
+            reschedule_lrm_recreate, reverse_code=migrations.RunPython.noop
+        ),
+    )
+
 
 class Migration(migrations.Migration):
     atomic = False
@@ -22,8 +34,4 @@ class Migration(migrations.Migration):
     dependencies = base_dependencies
     run_before = run_before_migrations
 
-    # Originally kicked off a rebuild of the user reports mv.
-    # change to noop on 8/7/26. Rebuild will be done by 0009
-    operations = [
-        migrations.RunPython(drop_mv, reverse_code=migrations.RunPython.noop),
-    ]
+    operations = operations
