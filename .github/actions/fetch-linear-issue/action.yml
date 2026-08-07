@@ -1,0 +1,43 @@
+name: Fetch a Linear Issue
+description: Fetches an issue's details from Linear by identifier (e.g. DEV-123)
+
+inputs:
+  linear-api-key:
+    description: 'Linear API key'
+    required: true
+  issue-id:
+    description: 'Issue identifier (e.g. DEV-2637, INFRA-565)'
+    required: true
+
+outputs:
+  body:
+    description: 'The issue description (Markdown)'
+    value: ${{ steps.fetch.outputs.body }}
+
+runs:
+  using: composite
+  steps:
+  - name: Fetch Linear issue
+    id: fetch
+    shell: bash
+    env:
+      LINEAR_API_KEY: ${{ inputs.linear-api-key }}
+      ISSUE_ID: ${{ inputs.issue-id }}
+    run: |
+      PAYLOAD=$(jq -n --arg id "$ISSUE_ID" \
+        '{ query: "query($id: String!) { issue(id: $id) { description } }", variables: { id: $id } }')
+
+      RESPONSE=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -H "Authorization: $LINEAR_API_KEY" \
+        -d "$PAYLOAD" \
+        https://api.linear.app/graphql)
+
+      BODY=$(echo "$RESPONSE" | jq -r '.data.issue.description // empty')
+      if [[ -z "$BODY" ]]; then
+        echo "::error::Failed to fetch issue $ISSUE_ID from Linear"
+        exit 1
+      fi
+
+      echo "body<<EOF" >> "$GITHUB_OUTPUT"
+      echo "${BODY}EOF" >> "$GITHUB_OUTPUT"
