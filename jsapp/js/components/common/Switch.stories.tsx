@@ -51,8 +51,7 @@ export const Disabled: Story = {
 }
 
 /**
- * Every combination of state and size. Off uses a neutral grey and on uses the primary blue,
- * so the two states stay distinguishable without relying on thumb position.
+ * Every combination of state and size.
  */
 export const PreviewAllVariants = () => (
   <Stack gap='xl'>

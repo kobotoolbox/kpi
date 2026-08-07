@@ -67,8 +67,13 @@ export default function DataTableCell(props: DataTableCellProps) {
 
   // Some repeat answers are stored under related nested keys, so a direct lookup for this column key can be
   // undefined even though repeat data exists in the submission payload.
+  //
+  // `null` is excluded explicitly, as `typeof null` is `'object'` and an empty
+  // response (e.g. `_submitted_by` of an anonymous submission) would otherwise be
+  // formatted as the string "null".
   if (
     !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP) &&
+    props.reactTableRow.value !== null &&
     (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
   ) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
@@ -148,7 +153,13 @@ export default function DataTableCell(props: DataTableCellProps) {
   }
 
   if (props.columnKey === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
-    return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
+    // Empty check keeps an absent date an empty cell, as `moment` formats those
+    // as "Invalid date".
+    return (
+      <span className='trimmed-text'>
+        {props.reactTableRow.value ? formatTimeDateShort(props.reactTableRow.value) : ''}
+      </span>
+    )
   }
 
   if (props.question?.type === QUESTION_TYPES.text.id) {

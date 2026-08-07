@@ -1,6 +1,6 @@
 /* Default/Off */
 .root .input + .track {
-  --switch-bg: var(--mantine-color-gray-4);
+  --switch-bg: var(--mantine-color-blue-8);
   --switch-cursor: pointer;
 }
 
@@ -9,16 +9,14 @@
   --switch-bg: var(--mantine-color-blue-6);
 }
 
-/*
- * Disabled keeps a separate colour per state rather than Mantine's single grey, so a
- * read-only switch still reads as on or off. Both are pale enough to read as unavailable.
- */
+/* Default/Off disabled */
 .root .input:disabled:not(:checked) + .track,
 .root .input[data-disabled]:not(:checked) + .track {
-  --switch-bg: var(--mantine-color-gray-5);
+  --switch-bg: var(--mantine-color-gray-6);
   --switch-cursor: not-allowed;
 }
 
+/* On disabled */
 .root .input:disabled:checked + .track,
 .root .input[data-disabled]:checked + .track {
   --switch-bg: var(--mantine-color-blue-7);
