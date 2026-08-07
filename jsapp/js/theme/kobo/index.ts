@@ -20,7 +20,9 @@ import { PaperThemeKobo } from './Paper'
 import { PasswordInputThemeKobo } from './PasswordInput'
 import { PillThemeKobo } from './Pill'
 import { RadioThemeKobo } from './Radio'
+import { ScrollAreaThemeKobo } from './ScrollArea'
 import { SelectThemeKobo } from './Select'
+import { SwitchThemeKobo } from './Switch'
 import { TableThemeKobo } from './Table'
 import { TabsThemeKobo } from './Tabs'
 import { TagsInputThemeKobo } from './TagsInput'
@@ -157,33 +159,39 @@ export const themeKobo = createTheme({
     zIndexCssVars: KOBO_Z_INDEX_CSS_VARS,
   },
 
+  // Note: please keep this list in abc order <3
   components: {
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,
+    Autocomplete: AutocompleteThemeKobo,
     Button: ButtonThemeKobo,
+    Checkbox: CheckboxThemeKobo,
     CloseButton: CloseButtonThemeKobo,
     Code: CodeThemeKobo,
+    Divider: DividerThemeKobo,
+    Dropzone: DropzoneThemeKobo,
     InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Modal: ModalThemeKobo,
     MultiSelect: MultiSelectThemeKobo,
+    Notification: NotificationThemeKobo,
+    NumberInput: NumberInputThemeKobo,
+    Paper: PaperThemeKobo,
+    PasswordInput: PasswordInputThemeKobo,
+    Pill: PillThemeKobo,
+    Radio: RadioThemeKobo,
+    ScrollArea: ScrollAreaThemeKobo,
     Select: SelectThemeKobo,
-    Tooltip: TooltipThemeKobo,
+    Switch: SwitchThemeKobo,
     Table: TableThemeKobo,
     Tabs: TabsThemeKobo,
-    Divider: DividerThemeKobo,
-    Dropzone: DropzoneThemeKobo,
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
     PasswordInput: PasswordInputThemeKobo,
     NumberInput: NumberInputThemeKobo,
     Textarea: TextareaThemeKobo,
-    Paper: PaperThemeKobo,
-    Pill: PillThemeKobo,
-    Checkbox: CheckboxThemeKobo,
-    Radio: RadioThemeKobo,
-    Notification: NotificationThemeKobo,
-    Autocomplete: AutocompleteThemeKobo,
+    ThemeIcon: ThemeIconThemeKobo,
+    Tooltip: TooltipThemeKobo,
   },
 })

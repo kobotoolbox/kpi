@@ -6,6 +6,7 @@ import {
   hasTranscribableAudio,
   hasTranslatableTranscript,
 } from '#/components/submissions/bulkProcessingUtils'
+import { hasUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import { removeDefaultUuidPrefix } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 
@@ -293,6 +294,43 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     computedValues: {
       count: alreadyTranslated.length,
       characters: totalCharacters,
+    },
+  }
+}
+
+/**
+ * Checks for submissions with nothing left to approve, either because they are
+ * approved already or because there is no automatic content at all. The backend
+ * skips both.
+ *
+ * Uses the same check as the `Approve all selected` menu item and the `Review`
+ * button in a cell, so all three agree on what still needs approval.
+ */
+export function evaluateAlreadyApproved(context: AlertEvaluationContext): AlertEvaluationResult | null {
+  const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
+
+  const alreadyApproved: string[] = []
+
+  submissions.forEach((submission) => {
+    // Skip if already filtered by previous evaluators
+    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+      return
+    }
+
+    if (!hasUnacceptedAutomaticContent(submission, fieldXpath)) {
+      alreadyApproved.push(submission._uuid)
+    }
+  })
+
+  if (alreadyApproved.length === 0) {
+    return null
+  }
+
+  return {
+    type: 'warning',
+    filteredSubmissionUuids: alreadyApproved,
+    computedValues: {
+      count: alreadyApproved.length,
     },
   }
 }

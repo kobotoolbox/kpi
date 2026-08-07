@@ -1,3 +1,4 @@
+from allauth.socialaccount.models import SocialAccount
 from ddt import data, ddt, unpack
 from django.urls import reverse
 from rest_framework import status
@@ -127,11 +128,36 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
                 ]:
                     self.assertEqual(result['user__username'], None)
                     self.assertEqual(result['user__has_mfa_enabled'], None)
+                    self.assertEqual(result['user__has_sso_enabled'], None)
                     self.assertEqual(result['role'], None)
                 else:
                     self.assertIn(
                         result['user__username'], ['someuser', 'anotheruser', 'alice']
                     )
+
+    def test_user_has_sso_enabled(self):
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        alice_data = next(
+            m for m in response.data['results'] if m['user__username'] == 'alice'
+        )
+        self.assertFalse(alice_data['user__has_sso_enabled'])
+
+        # Create a SocialAccount for alice
+        SocialAccount.objects.create(
+            user=self.alice,
+            provider='google',
+            uid='alice_google_uid',
+        )
+
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        alice_data = next(
+            m for m in response.data['results'] if m['user__username'] == 'alice'
+        )
+        self.assertTrue(alice_data['user__has_sso_enabled'])
 
     def test_inactive_user_do_not_show_up_members_list(self):
 
