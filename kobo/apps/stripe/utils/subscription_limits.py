@@ -207,6 +207,7 @@ def get_organizations_effective_limits(
     :param include_storage_addons: bool. Include storage addons in the calculation
     :param include_onetime_addons: bool. Include onetime addons in the calculation
     """
+
     if not settings.STRIPE_ENABLED:
         orgs = organizations or Organization.objects.all()
         return {org.id: _get_default_usage_limits() for org in orgs}

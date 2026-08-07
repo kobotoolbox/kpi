@@ -1634,7 +1634,7 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 15 minutes
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
-        'schedule': crontab(minute='*/15'),
+        'schedule': crontab(minute='*/2'),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     # Schedule every day at midnight UTC
