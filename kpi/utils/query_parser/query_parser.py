@@ -13,6 +13,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import (
     QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
+    QueryParserTooManyRelationalFilters,
     SearchQueryTooShortException,
 )
 from kpi.type_aliases import LookupFieldsMap, ModelClass
@@ -349,40 +350,122 @@ def _iter_field_path(model, field):
         current_model = model_field.related_model
 
 
-def _crosses_to_many(model, field):
-    """Whether `field` traverses a to-many relation (many-to-many or reverse FK)."""
+def _to_many_relation_root(model, field):
+    """
+    Return the first path segment of `field` that enters a to-many relation
+    (many-to-many or reverse FK), or `None` if the path stays scalar/to-one.
+
+    The segment doubles as a grouping key: two leaves sharing a root traverse
+    the same relation, so they belong in one `pk__in` subquery.
+    """
     if model is None:
-        return False
+        return None
 
-    return any(
-        model_field.many_to_many or model_field.one_to_many
-        for _, _, model_field in _iter_field_path(model, field)
-    )
+    for _, segment, model_field in _iter_field_path(model, field):
+        if model_field.many_to_many or model_field.one_to_many:
+            return segment
+
+    return None
 
 
-def split_relational_and(q_obj: Q, model: Optional[ModelClass]) -> tuple:
+def _crosses_to_many(model, field):
     """
-    Split a top-level AND, pulling to-many leaves into their own `Q` objects so
-    the caller can apply them as chained `.filter()` calls (the only form that
-    means "has a related row matching each"). Returns `(main_q, chained_qs)`;
-    falls back to `(q_obj, [])` for a non-AND root or no to-many leaf.
+    Whether `field` traverses a to-many relation (many-to-many or reverse FK).
     """
-    if q_obj.connector != Q.AND or q_obj.negated:
-        return q_obj, []
+    return _to_many_relation_root(model, field) is not None
 
-    main_children = []
-    chained = []
+
+def _count_to_many_leaves(q_obj: Q, model: Optional[ModelClass]) -> int:
+    """Count, across the whole tree, leaves whose lookup crosses a to-many."""
+    total = 0
     for child in q_obj.children:
-        # A nested Q (OR/NOT subtree) is never a tuple, so it stays merged
-        if isinstance(child, tuple) and _crosses_to_many(model, child[0]):
-            chained.append(Q(child))
+        if isinstance(child, Q):
+            total += _count_to_many_leaves(child, model)
+        elif isinstance(child, tuple) and _crosses_to_many(model, child[0]):
+            total += 1
+
+    return total
+
+
+def rewrite_to_many_and(q_obj: Q, model: Optional[ModelClass]) -> Q:
+    """
+    Rewrite every ``AND`` of two or more leaves on the same to-many relation
+    into a single ``pk__in`` subquery, so "has a related row matching each"
+    holds anywhere in the boolean tree — including inside ``OR``/``NOT``
+    (DEV-1581).
+
+    A plain ``.filter(a & b)`` on a to-many asks one joined row to satisfy both
+    leaves at once, which never matches; chaining ``.filter().filter()`` only
+    works at the top level. Collapsing the group to ``pk__in=<rows matching each
+    leaf>`` yields one freely composable predicate. Scalar and to-one leaves,
+    and lone to-many leaves, keep their merged form. Returns a new ``Q``; the
+    input is left untouched.
+    """
+    if model is None:
+        return q_obj
+
+    max_filters = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+    if _count_to_many_leaves(q_obj, model) > max_filters:
+        # Bound the JOIN/subquery fan-out an anonymous search can trigger
+        raise QueryParserTooManyRelationalFilters
+
+    return _rewrite_to_many_and(q_obj, model)
+
+
+def _rewrite_to_many_and(q_obj: Q, model: ModelClass) -> Q:
+    # Depth-first: rewrite nested subtrees before this node, so a to-many AND
+    # buried inside an OR/NOT is collapsed too.
+    new_children = [
+        _rewrite_to_many_and(child, model) if isinstance(child, Q) else child
+        for child in q_obj.children
+    ]
+
+    if q_obj.connector == Q.AND:
+        # Collapse to-many groups even when the AND is negated: `NOT (foo AND
+        # bar)` must exclude rows having both, which only `~Q(pk__in=...)` does.
+        new_children = _collapse_to_many_leaves(new_children, model)
+
+    rewritten = Q(*new_children)
+    rewritten.connector = q_obj.connector
+    rewritten.negated = q_obj.negated
+    return rewritten
+
+
+def _collapse_to_many_leaves(children: list, model: ModelClass) -> list:
+    """
+    Within a single AND, group leaf tuples by the to-many relation they
+    traverse and replace each group of 2+ leaves with a ``pk__in`` subquery
+    matching rows that carry a related row for every leaf. Groups of one, and
+    everything scalar/to-one, pass through unchanged (a single join already
+    means "has a matching row").
+    """
+    groups = defaultdict(list)  # to-many root segment -> [leaf tuple, ...]
+    passthrough = []
+    for child in children:
+        root = (
+            _to_many_relation_root(model, child[0])
+            if isinstance(child, tuple)
+            else None
+        )
+        if root is None:
+            passthrough.append(child)
         else:
-            main_children.append(child)
+            groups[root].append(child)
 
-    if not chained:
-        return q_obj, []
+    result = list(passthrough)
+    for leaves in groups.values():
+        if len(leaves) < 2:
+            result.extend(leaves)
+            continue
+        # `_base_manager` never narrows the row set, so the subquery is a pure
+        # "has a row for each leaf" predicate; the outer queryset keeps its own
+        # scope when it applies `pk__in`.
+        subquery = model._base_manager.all()
+        for leaf in leaves:
+            subquery = subquery.filter(Q(leaf))
+        result.append(('pk__in', subquery.values('pk')))
 
-    return Q(*main_children), chained
+    return result
 
 
 def get_parsed_parameters(parsed_query: Q) -> dict:

@@ -36,7 +36,7 @@ from kpi.utils.query_parser import (
     ParseError,
     get_parsed_parameters,
     parse,
-    split_relational_and,
+    rewrite_to_many_and,
 )
 from .models import Asset, ObjectPermission
 
@@ -490,18 +490,15 @@ class SearchFilter(filters.BaseFilterBackend):
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
         try:
-            # A to-many AND needs chained `.filter()` calls, not one merged
-            # `.filter()` (which matches no rows). See `split_relational_and`.
-            main_q, chained_qs = split_relational_and(q_obj, queryset.model)
-            filtered = queryset.filter(main_q)
-            for chained_q in chained_qs:
-                filtered = filtered.filter(chained_q)
+            # A to-many AND must become a `pk__in` subquery, not one merged
+            # `.filter()` (which matches no rows). See `rewrite_to_many_and`.
+            q_obj = rewrite_to_many_and(q_obj, queryset.model)
 
             # n-to-many joins can duplicate rows; de-dupe unless the view opts out
             if getattr(view, 'skip_distinct', False):
-                return filtered
+                return queryset.filter(q_obj)
             else:
-                return filtered.distinct()
+                return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
 
