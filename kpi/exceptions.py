@@ -156,6 +156,18 @@ class NotSupportedFormatException(Exception):
     pass
 
 
+class OpenAPIComponentRefNotFoundError(Exception):
+    """
+    Exception raised when OpenAPI component reference cannot be found.
+    """
+
+    pass
+
+
+class OpenAPIRequiredParameterError(Exception):
+    pass
+
+
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = t('The specified object has not been deployed')
