@@ -249,6 +249,13 @@ OPENAPI_KNOWN_MISMATCHES = frozenset(
             'api/v2/organizations/(?P<uid_organization>[^/.]+)/assets/',
             'GET',
         ),
+        # Invite errors are returned as a flat `detail` string (DEV-1218) instead
+        # of DRF's default field-keyed arrays, so they don't honor the schema.
+        (
+            'response-validation',
+            'api/v2/organizations/(?P<uid_organization>[^/.]+)/invites/(?P<guid>[^/.]+)/',
+            'PATCH',
+        ),
         (
             'response-validation',
             'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/',
