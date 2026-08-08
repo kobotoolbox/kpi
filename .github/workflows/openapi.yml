@@ -41,10 +41,10 @@ jobs:
           - 6379:6379
     steps:
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -98,8 +98,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.node-version' # single source of truth for our Node version
           check-latest: true # download newer semver match if available
@@ -113,7 +113,7 @@ jobs:
 
       # Cache: Use cache for node_modules
       #        Keyed on os, node version, package-lock, and patches
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         name: Check for cached node_modules
         id: cache-nodemodules
         env:
