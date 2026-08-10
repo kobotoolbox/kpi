@@ -10,9 +10,11 @@
   height: 100%;
 }
 
-.tabsList {
-  // The line that runs underneath all the tabs.
-  border-color: colors.$kobo-gray-300;
+// Mantine draws the line under the tabs as `Tabs.List::before`, colored by
+// `--tab-border-color`. Scoped under `.tabsRoot` so it beats the theme-level
+// `.list` rule in Tabs.module.css, which has the same specificity.
+.tabsRoot .tabsList {
+  --tab-border-color: transparent;
 }
 
 .tabsRoot[data-variant='default'] .tabsList .tab {
@@ -59,7 +61,7 @@
 
 .body {
   background-color: colors.$kobo-white;
-  border-radius: 6px;
+  border-radius: 0 6px 6px 6px;
   flex: 1;
 }
 
