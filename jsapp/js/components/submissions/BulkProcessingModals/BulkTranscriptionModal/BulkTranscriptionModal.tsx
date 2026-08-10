@@ -269,7 +269,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
           <Text size='sm'>
             {t(
-              'Your ##total_files## audio files is a total of ##total_length##. This may take longer to complete than the total duration of your files.',
+              'Your ##total_files## audio files are a total of ##total_length##. This may take longer to complete than the total duration of your files.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
               .replace(
