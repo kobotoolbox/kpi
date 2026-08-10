@@ -223,10 +223,10 @@ export default function EditableForm(props: EditableFormProps) {
   useEffect(() => {
     if (state.asset) {
       let settingsStyle: FormStyleName | undefined
-      let settingsAllowChoiceDuplicates = true
+      let settingsAllowChoiceDuplicates = false
       if (state.asset.content?.settings && !Array.isArray(state.asset.content?.settings)) {
         settingsStyle = state.asset.content.settings.style
-        settingsAllowChoiceDuplicates = state.asset.content.settings.allow_choice_duplicates !== 'no'
+        settingsAllowChoiceDuplicates = state.asset.content.settings.allow_choice_duplicates === 'yes'
       }
       setState((currentState) => ({
         ...currentState,
