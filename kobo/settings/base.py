@@ -1573,12 +1573,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 30 minutes
-    'attachment-cleanup-for-users-exceeding-limits': {
-        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
-    },
     # Schedule every 5 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
@@ -1702,6 +1696,12 @@ if STRIPE_ENABLED:
     CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
         'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
         'schedule': crontab(minute='*/' + str(minute_interval)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
+
+    CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
