@@ -64,10 +64,6 @@ export function DataAttachmentColumnsForm({
 
   const isLoading = isCreatingAttachment || isPatchingAttachment
 
-  //useEffect(() => {
-  //  onSetModalTitle(t('Import data from ##SOURCE_NAME##').replace('##SOURCE_NAME##', source.name))
-  //}, [onSetModalTitle, source.name])
-
   useEffect(() => {
     const payload = sourceAssetResponse?.data
     if (!payload || !('uid' in payload)) {

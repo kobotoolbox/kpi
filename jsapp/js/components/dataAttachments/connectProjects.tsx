@@ -9,10 +9,9 @@ import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
-import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
+import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
@@ -149,43 +148,24 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       setNewSource(null)
     }
   }, [])
-const showColumnFilterModal = useCallback(
-  (
-    source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
-    filename: string,
-    fields: string[],
-    attachmentUrl?: string,
-  ) => {
-    openDataAttachmentColumnsModal({
-      asset,
-      source,
-      filename,
-      fields,
-      attachmentUrl,
-      onAttachmentChanged: refreshAttachmentList,
-    })
-  },
-  [asset, refreshAttachmentList],
-)
-  //const showColumnFilterModal = useCallback(
-  //  (
-  //    source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
-  //    filename: string,
-  //    fields: string[],
-  //    attachmentUrl?: string,
-  //  ) => {
-  //    pageState.showModal({
-  //      type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
-  //      asset,
-  //      source,
-  //      filename,
-  //      fields,
-  //      attachmentUrl,
-  //      onAttachmentChanged: refreshAttachmentList,
-  //    })
-  //  },
-  //  [asset, refreshAttachmentList],
-  //)
+  const showColumnFilterModal = useCallback(
+    (
+      source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
+      filename: string,
+      fields: string[],
+      attachmentUrl?: string,
+    ) => {
+      openDataAttachmentColumnsModal({
+        asset,
+        source,
+        filename,
+        fields,
+        attachmentUrl,
+        onAttachmentChanged: refreshAttachmentList,
+      })
+    },
+    [asset, refreshAttachmentList],
+  )
 
   const onConfirmAttachment = useCallback(
     (evt: MouseEvent<HTMLButtonElement>) => {
