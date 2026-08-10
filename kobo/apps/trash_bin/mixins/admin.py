@@ -17,12 +17,13 @@ class TrashMixin:
             messages.SUCCESS,
         )
 
-    @admin.display(description='Automatic restarts')
+    @admin.display(
+        description=(
+            f'Automatic restarts (max: {settings.TRASH_BIN_MAX_AUTO_RESTARTS})'
+        )
+    )
     def get_auto_restarts(self, obj):
-        restart_count = obj.metadata.get('retryable_failure_count') or 0
-        if not restart_count:
-            return '-'
-        return f'{restart_count}/{settings.TRASH_BIN_MAX_AUTO_RESTARTS}'
+        return obj.metadata.get('retryable_failure_count') or '-'
 
     @admin.display(description='Error')
     def get_failure_error(self, obj):

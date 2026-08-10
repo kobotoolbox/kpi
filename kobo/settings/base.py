@@ -2394,11 +2394,11 @@ MAX_RESTARTED_TRANSFERS = 20
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
-TRASH_BIN_MAX_AUTO_RESTARTS = 30
+TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 
-# How long a trash bin object stays locked while it is being deleted. Must stay
-# shorter than the delay after which `task_restarter` considers a task stuck
-TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60
+# How long a trash bin object stays locked while it is being deleted. Must be
+# greater than or equal to the Celery hard time limit of the task
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100

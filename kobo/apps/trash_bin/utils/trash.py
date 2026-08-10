@@ -22,6 +22,7 @@ from kobo.apps.trash_bin.constants import (
     DELETE_PROJECT_STR_PREFIX,
     DELETE_USER_STR_PREFIX,
     RETRYABLE_FAILURE_PATTERNS,
+    TIME_LIMIT_FAILURE_PATTERNS,
 )
 from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
@@ -306,6 +307,15 @@ def is_retryable_failure(error: str) -> bool:
     return any(pattern.lower() in error for pattern in RETRYABLE_FAILURE_PATTERNS)
 
 
+def is_time_limit_failure(error: str) -> bool:
+    """
+    Return True if `error` means the object was too big to be deleted within the
+    time Celery gives a task, which is worth restarting without counting it
+    """
+    error = error.lower()
+    return any(pattern.lower() in error for pattern in TIME_LIMIT_FAILURE_PATTERNS)
+
+
 def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     exception = kwargs['exception']
     obj_trash_id = kwargs['args'][0]
@@ -317,11 +327,11 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
 
         # Transient failures (OOM kill, MongoDB unreachable, deadlock, Celery
         # time limits) are left in progress, so that `task_restarter` grabs them
-        # like any other task whose worker died. Attempts are counted and the
-        # object is only flagged as failed. i.e.: left for a human - once it
-        # has exhausted its budget, so it cannot restart forever
+        # like any other task whose worker died
         obj_trash.status = TrashStatus.FAILED
-        if is_retryable_failure(error):
+        if is_time_limit_failure(error):
+            obj_trash.status = TrashStatus.IN_PROGRESS
+        elif is_retryable_failure(error):
             restart_count = (obj_trash.metadata.get('retryable_failure_count') or 0) + 1
             obj_trash.metadata['retryable_failure_count'] = restart_count
             if restart_count <= settings.TRASH_BIN_MAX_AUTO_RESTARTS:

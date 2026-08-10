@@ -1,5 +1,3 @@
-from time import sleep
-
 from django.conf import settings
 from django.db.models import Q
 
@@ -10,7 +8,7 @@ from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kpi.utils.log import logging
 
-CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
+CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
 
 
 def run():
@@ -44,4 +42,3 @@ def run():
             model.objects.filter(pk__in=batch).update(status=TrashStatus.IN_PROGRESS)
             released += len(batch)
             logging.info(f'[LRM 0031] released {released} {model.__name__} objects')
-            sleep(0.5)
