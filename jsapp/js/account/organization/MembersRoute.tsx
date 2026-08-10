@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 
-import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
+import { Box, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { keepPreviousData } from '@tanstack/react-query'
+import { observer } from 'mobx-react-lite'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import { isSsoAvailable } from '#/account/security/sso/sso.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
@@ -27,7 +29,16 @@ import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
 
-export default function MembersRoute() {
+/** Shared look of the boolean "is this security feature on?" columns (2FA, SSO). */
+function renderStatusBadge(isEnabled: boolean) {
+  return isEnabled ? (
+    <Badge size='s' color='light-blue' icon='check' />
+  ) : (
+    <Badge size='s' color='light-storm' icon='minus' />
+  )
+}
+
+function MembersRoute() {
   const [organization] = useOrganizationAssumed()
   const isUserAdminOrOwner =
     organization.request_user_role === MemberRoleEnum.owner || organization.request_user_role === MemberRoleEnum.admin
@@ -151,17 +162,30 @@ export default function MembersRoute() {
       label: t('2FA'),
       size: 90,
       cellFormatter: (obj: MemberListResponse) => {
-        const { invite, member } = getMemberOrInviteDetails(obj)
-        if (member) {
-          if (member.user__has_mfa_enabled) {
-            return <Badge size='s' color='light-blue' icon='check' />
-          }
-          return <Badge size='s' color='light-storm' icon='minus' />
-        }
-        return
+        const { member } = getMemberOrInviteDetails(obj)
+        return member ? renderStatusBadge(member.user__has_mfa_enabled) : undefined
       },
     },
   ]
+
+  // The SSO column is always shown, but is inert until the organization has the SSO add-on.
+  const isSsoColumnDisabled = !isSsoAvailable(envStore.data)
+  columns.push({
+    key: 'user__has_sso_enabled',
+    label: (
+      <Tooltip label={isSsoColumnDisabled ? t('Activate SSO add-on to enable') : t('SSO status')}>
+        <span className={isSsoColumnDisabled ? styles.disabledColumnHeader : undefined}>{t('SSO')}</span>
+      </Tooltip>
+    ),
+    size: 90,
+    cellFormatter: (obj: MemberListResponse) => {
+      if (isSsoColumnDisabled) {
+        return undefined
+      }
+      const { member } = getMemberOrInviteDetails(obj)
+      return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+    },
+  })
 
   // Actions column is only for owner and admins.
   if (isUserAdminOrOwner) {
@@ -238,3 +262,6 @@ export default function MembersRoute() {
     </div>
   )
 }
+
+// `observer` so the SSO column appears as soon as `envStore` is ready.
+export default observer(MembersRoute)
