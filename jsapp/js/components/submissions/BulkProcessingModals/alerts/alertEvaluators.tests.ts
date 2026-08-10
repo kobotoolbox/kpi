@@ -7,6 +7,7 @@ import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { asrExceeded, asrNearLimit, mtExceeded, mtNearLimit, withinLimits } from '#/endpoints/serviceUsage.factory'
 import {
+  evaluateAlreadyApproved,
   evaluateAlreadyTranscribed,
   evaluateAlreadyTranslated,
   evaluateConflictingJob,
@@ -969,6 +970,128 @@ describe('evaluateAlreadyTranscribed', () => {
       count: 1,
       duration: 0,
     })
+  })
+})
+
+describe('evaluateAlreadyApproved', () => {
+  const questionXpath = 'audio_question'
+  const transcriptColumnKey = `_supplementalDetails/${questionXpath}/transcript_en`
+  const translationColumnKey = `_supplementalDetails/${questionXpath}/translation_fr`
+
+  const baseContext: AlertEvaluationContext = {
+    submissions: [],
+    fieldXpath: transcriptColumnKey,
+    actionType: 'approve',
+    activeBulkActions: [],
+    previouslyFilteredSubmissionUuids: new Set(),
+  }
+
+  const pendingTranscriptSubmission = assetDataFactory(1, {
+    _uuid: 'pending-transcript-uuid',
+    _supplementalDetails: {
+      [questionXpath]: {
+        transcript: { languageCode: 'en', pendingReview: true },
+      },
+    },
+  })
+
+  const approvedTranscriptSubmission = assetDataFactory(2, {
+    _uuid: 'approved-transcript-uuid',
+    _supplementalDetails: {
+      [questionXpath]: {
+        transcript: { languageCode: 'en', value: 'Hello world' },
+      },
+    },
+  })
+
+  const pendingTranslationSubmission = assetDataFactory(3, {
+    _uuid: 'pending-translation-uuid',
+    _supplementalDetails: {
+      [questionXpath]: {
+        translation: { fr: { languageCode: 'fr', pendingReview: true } },
+      },
+    },
+  })
+
+  const approvedTranslationSubmission = assetDataFactory(4, {
+    _uuid: 'approved-translation-uuid',
+    _supplementalDetails: {
+      [questionXpath]: {
+        translation: { fr: { languageCode: 'fr', value: 'Bonjour le monde' } },
+      },
+    },
+  })
+
+  it('should not show alert when every submission awaits approval', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: [pendingTranscriptSubmission],
+    }
+
+    const result = evaluateAlreadyApproved(context)
+
+    expect(result).to.equal(null)
+  })
+
+  it('should filter out submissions that are already approved', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: [approvedTranscriptSubmission, pendingTranscriptSubmission],
+    }
+
+    const result = evaluateAlreadyApproved(context)
+
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['approved-transcript-uuid'])
+    expect(result?.computedValues).to.deep.equal({ count: 1 })
+  })
+
+  it('should filter out submissions with no supplemental content at all', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: [assetDataFactory(5, { _uuid: 'no-content-uuid' })],
+    }
+
+    const result = evaluateAlreadyApproved(context)
+
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['no-content-uuid'])
+  })
+
+  it('should handle translation columns', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      fieldXpath: translationColumnKey,
+      submissions: [approvedTranslationSubmission, pendingTranslationSubmission],
+    }
+
+    const result = evaluateAlreadyApproved(context)
+
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['approved-translation-uuid'])
+  })
+
+  it('should only consider the language of the given translation column', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      fieldXpath: `_supplementalDetails/${questionXpath}/translation_es`,
+      submissions: [pendingTranslationSubmission],
+    }
+
+    const result = evaluateAlreadyApproved(context)
+
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['pending-translation-uuid'])
+  })
+
+  it('should skip submissions already filtered by previous evaluators', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: [approvedTranscriptSubmission, pendingTranscriptSubmission],
+      previouslyFilteredSubmissionUuids: new Set(['approved-transcript-uuid']),
+    }
+
+    const result = evaluateAlreadyApproved(context)
+
+    expect(result).to.equal(null)
   })
 })
 

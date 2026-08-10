@@ -19,7 +19,7 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -55,7 +55,7 @@ jobs:
     outputs:
       body: ${{ steps.changelog.outputs.body }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -89,7 +89,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Create GitHub release for kpi
       env:
@@ -183,13 +183,13 @@ jobs:
       - github-release-kobo-install
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
     - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: complete
         release_version: ${{ inputs.tag }}
 

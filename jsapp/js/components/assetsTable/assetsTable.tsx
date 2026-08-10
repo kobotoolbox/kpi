@@ -9,7 +9,7 @@ import type { AssetResponse, MetadataResponse } from '#/dataInterface'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
 import { ASSETS_TABLE_COLUMNS, ASSETS_TABLE_CONTEXTS, ORDER_DIRECTIONS } from './assetsTableConstants'
-import type { AssetsTableColumn, AssetsTableContextName } from './assetsTableConstants'
+import { type AssetsTableColumn, AssetsTableContextName } from './assetsTableConstants'
 import AssetsTableRow from './assetsTableRow'
 
 bem.AssetsTable = makeBem(null, 'assets-table')
@@ -355,6 +355,9 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
     const modifiers: string[] = [this.props.context]
     if (this.state.isFullscreen) {
       modifiers.push('fullscreen')
+    }
+    if (this.props.context === AssetsTableContextName.COLLECTION_CONTENT) {
+      modifiers.push('no-scroll')
     }
 
     return (

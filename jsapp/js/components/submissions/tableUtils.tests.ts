@@ -1,9 +1,11 @@
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type { SubmissionResponse } from '#/dataInterface'
+import type { AnyRowTypeName } from '#/constants'
+import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
 import {
   getAllDataColumns,
   getColumnLabel,
   getMetadataColumns,
+  getSelectResponseLabel,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
@@ -71,6 +73,84 @@ describe('tableUtils', () => {
     // TODO: write more tests here… I haven't got enough time to go over all
     // possible cases, just added one that I was fixing a bug for and a couple
     // that came to my mind.
+  })
+
+  describe('getSelectResponseLabel', () => {
+    // The 'animals' list once had choices 'a', 'b' and 'c', then 'a' and 'b'
+    // were renamed to 'a1' and 'b1'. Only the current names are here, as that's
+    // all the latest form version gives us, so submissions storing 'a' or 'b'
+    // have nothing to match. 'other_list' guards against cross-list matches.
+    const animalChoices = [
+      { name: 'a1', label: ['archaeopteryx', 'archaeopteryks'], list_name: 'animals', $autovalue: 'a1', $kuid: 'k1' },
+      { name: 'b1', label: ['badger', 'borsuk'], list_name: 'animals', $autovalue: 'b1', $kuid: 'k2' },
+      { name: 'c', label: ['Crocodile', 'Krokodyl'], list_name: 'animals', $autovalue: 'c', $kuid: 'k3' },
+      { name: 'a', label: ['Apple'], list_name: 'other_list', $autovalue: 'a', $kuid: 'k4' },
+    ] as const satisfies SurveyChoice[]
+
+    /** Resolves a response against `animalChoices`, as every case here does. */
+    const getAnimalsLabel = (value: string, questionType: AnyRowTypeName, translationIndex = 0) =>
+      getSelectResponseLabel({
+        value,
+        questionType,
+        listName: 'animals',
+        choices: animalChoices,
+        translationIndex,
+      })
+
+    it('should return labels of all selected select_multiple choices', () => {
+      const test = getAnimalsLabel('a1 b1 c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, badger, Crocodile')
+    })
+
+    // Bug fixed: unmatched values were omitted, so this returned only
+    // 'Crocodile' with no hint that two more options were selected.
+    it('should fall back to raw values for select_multiple choices missing from the form', () => {
+      const test = getAnimalsLabel('a b c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('a, b, Crocodile')
+    })
+
+    it('should use labels of given translation for select_multiple', () => {
+      // Mixes a matched and an unmatched value, as the fallback should not
+      // depend on which translation was asked for.
+      const test = getAnimalsLabel('a b1 c', QuestionTypeName.select_multiple, 1)
+      chai.expect(test).to.equal('a, borsuk, Krokodyl')
+    })
+
+    it('should fall back to raw value when a translation has no label', () => {
+      // 'c' does match a choice, but index 5 is past the end of its labels,
+      // like a choice left untranslated in one language.
+      const test = getAnimalsLabel('c', QuestionTypeName.select_multiple, 5)
+      chai.expect(test).to.equal('c')
+    })
+
+    it('should not produce dangling separators for select_multiple stray whitespace', () => {
+      const test = getAnimalsLabel(' a1  c ', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, Crocodile')
+    })
+
+    it('should only match choices of the question own list', () => {
+      // 'a' is labelled 'Apple' in 'other_list' but absent from 'animals', so it
+      // must stay raw instead of borrowing that label.
+      const test = getAnimalsLabel('a', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('a')
+    })
+
+    it('should return label of selected select_one choice', () => {
+      const test = getAnimalsLabel('c', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('Crocodile')
+    })
+
+    it('should fall back to raw value for a select_one choice missing from the form', () => {
+      const test = getAnimalsLabel('a', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('a')
+    })
+
+    it('should not split select_one values on spaces', () => {
+      // A single value may contain spaces. Treating them as separators would
+      // mangle this into 'a, b, Crocodile'.
+      const test = getAnimalsLabel('a b c', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('a b c')
+    })
   })
 
   describe('isTableColumnFilterableByTextInput', () => {

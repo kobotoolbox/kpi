@@ -16,20 +16,20 @@ import AssetContentSummary from './assetContentSummary'
 import AssetInfoBox from './assetInfoBox'
 import AssetPublicButton from './assetPublicButton'
 
-interface AssetRouteProps {
+interface LibraryItemRouteProps {
   params: {
     uid: string
   }
 }
 
-interface AssetRouteState {
+interface LibraryItemRouteState {
   asset: AssetResponse | undefined
 }
 
-export default class AssetRoute extends React.Component<AssetRouteProps, AssetRouteState> {
+export default class LibraryItemRoute extends React.Component<LibraryItemRouteProps, LibraryItemRouteState> {
   private unlisteners: Function[] = []
 
-  constructor(props: AssetRouteProps) {
+  constructor(props: LibraryItemRouteProps) {
     super(props)
 
     this.state = {
@@ -56,7 +56,7 @@ export default class AssetRoute extends React.Component<AssetRouteProps, AssetRo
     })
   }
 
-  componentWillReceiveProps(nextProps: AssetRouteProps) {
+  componentWillReceiveProps(nextProps: LibraryItemRouteProps) {
     // trigger loading when switching assets
     if (nextProps.params.uid !== this.props.params.uid) {
       this.setState({ asset: undefined })

@@ -30,7 +30,7 @@ jobs:
       - version
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -57,7 +57,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Retarget open PRs to main
       env:
         BRANCH: ${{ inputs.release_branch }}
@@ -81,7 +81,7 @@ jobs:
       - retarget-prs
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
@@ -103,13 +103,13 @@ jobs:
     - name: Find Linear release
       id: find
       env:
-        LINEAR_API_KEY: ${{ secrets.LINEAR_ACCESS_KEY }}
+        LINEAR_PIPELINE_KEY_KPI: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         RELEASE_NAME: ${{ needs.version.outputs.current_minor }}
       run: |
         set -xe
 
         RELEASE_ID=$(curl -s -X POST https://api.linear.app/graphql \
-          -H "Authorization: $LINEAR_API_KEY" \
+          -H "Authorization: $LINEAR_PIPELINE_KEY_KPI" \
           -H "Content-Type: application/json" \
           -d "{\"query\": \"query { releases(filter: { name: { eq: \\\"$RELEASE_NAME\\\" } }) { nodes { id name } } }\"}" \
           | jq -r '.data.releases.nodes[0].id // empty')
@@ -124,14 +124,14 @@ jobs:
     - name: Delete Linear release
       if: steps.find.outputs.release_id != ''
       env:
-        LINEAR_API_KEY: ${{ secrets.LINEAR_ACCESS_KEY }}
+        LINEAR_PIPELINE_KEY_KPI: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         RELEASE_NAME: ${{ needs.version.outputs.current_minor }}
         RELEASE_ID: ${{ steps.find.outputs.release_id }}
       run: |
         set -xe
 
         RESULT=$(curl -s -X POST https://api.linear.app/graphql \
-          -H "Authorization: $LINEAR_API_KEY" \
+          -H "Authorization: $LINEAR_PIPELINE_KEY_KPI" \
           -H "Content-Type: application/json" \
           -d "{\"query\": \"mutation { releaseDelete(id: \\\"$RELEASE_ID\\\") { success } }\"}")
 

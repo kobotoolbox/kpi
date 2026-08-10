@@ -13,6 +13,7 @@ import { CreateSteps } from '../../common/types'
 import {
   getAllTranslationsFromSupplementData,
   getLatestAutomaticTranslationVersionItem,
+  getTranslationSourceLanguages,
   isSupplementVersionAutomatic,
 } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
@@ -42,6 +43,18 @@ export default function TranslationTab({
   const translationVersions = useMemo(
     () => getAllTranslationsFromSupplementData(supplement, questionXpath, false),
     [supplement, questionXpath],
+  )
+
+  // Languages already translated into, plus the source transcript's own language. Translating a transcript into its own
+  // language leaves behind an empty column that can't be deleted, so that language has to go too.
+  const unavailableLanguages = useMemo(
+    () => [
+      ...new Set([
+        ...translationVersions.map(({ _data }) => _data.language),
+        ...getTranslationSourceLanguages(supplement, questionXpath),
+      ]),
+    ],
+    [supplement, questionXpath, translationVersions],
   )
 
   // Read languageCode from URL params if available (for direct navigation to specific translation)
@@ -112,6 +125,7 @@ export default function TranslationTab({
         submission={submission}
         supplement={supplement}
         languageCode={languageCode}
+        activeBulkActions={activeBulkActions}
       />
     )
   }
@@ -143,7 +157,7 @@ export default function TranslationTab({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
-          languagesExisting={translationVersions.map(({ _data }) => _data.language)}
+          languagesUnavailable={unavailableLanguages}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
           activeBulkActions={activeBulkActions}

@@ -18,7 +18,7 @@ import {
 import ButtonNew from '#/components/common/ButtonNew'
 import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getBlockedTargetLanguages, getSuggestedLanguages } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
 import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
@@ -99,7 +99,30 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
-  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+  // `fieldXpath` points at the transcript column being translated, so its language code is the column's language.
+  const { sourceRowPath, languageCode: columnLanguage } = getSupplementalPathParts(props.fieldXpath)
+
+  // Translating a transcript into its own language leaves behind an empty column that can't be deleted, so that
+  // language must not be pickable.
+  //
+  // Hiding the column's language alone isn't enough. A row only needs a transcript with some value to be eligible, no
+  // matter which language it is in, so a row transcribed in another language gets translated from that one instead.
+  // Hence the scan over selected rows. `regionCode` holds the transcript's locale, which the back end prefers over
+  // `languageCode` when deciding what to translate from.
+  const hiddenLanguages = useMemo(() => {
+    const languages = new Set<LanguageCode>(columnLanguage ? [columnLanguage] : [])
+
+    props.selectedSubmissions.forEach((submission) => {
+      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+      if (transcript?.languageCode) {
+        getBlockedTargetLanguages(transcript.languageCode, transcript.regionCode).forEach((language) =>
+          languages.add(language),
+        )
+      }
+    })
+
+    return [...languages]
+  }, [columnLanguage, props.selectedSubmissions, sourceRowPath])
 
   // Use bulk processing alerts hook
   // Near-limit should reflect only the submissions that still need translation.
@@ -177,9 +200,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t(
-              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
-            )
+            {t('Your ##total_selected## transcripts are a total of ##total_characters## characters.')
               .replace('##total_selected##', String(eligibleSubmissions.length))
               .replace('##total_characters##', String(totalCharacters))}
           </Text>
@@ -191,6 +212,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               value={selectedLanguage}
               required
               suggestedLanguages={suggestedLanguages}
+              hiddenLanguages={hiddenLanguages}
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
             />

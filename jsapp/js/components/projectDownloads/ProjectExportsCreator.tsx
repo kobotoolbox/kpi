@@ -1,3 +1,4 @@
+import { Switch } from '@mantine/core'
 import * as Sentry from '@sentry/react'
 import cx from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
@@ -15,7 +16,6 @@ import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
 import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import TextBox from '#/components/common/textBox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
@@ -672,11 +672,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
         <bem.ProjectDownloads__column m='right'>
           <bem.ProjectDownloads__columnRow m='rows-selector-header'>
-            <ToggleSwitch
+            <Switch
               checked={state.isCustomSelectionEnabled}
-              onChange={(newValue) => {
+              onChange={(event) => {
                 clearSelectedDefinedExport()
-                mergeState({ isCustomSelectionEnabled: newValue })
+                mergeState({ isCustomSelectionEnabled: event.currentTarget.checked })
               }}
               label={t('Select questions to be exported')}
             />

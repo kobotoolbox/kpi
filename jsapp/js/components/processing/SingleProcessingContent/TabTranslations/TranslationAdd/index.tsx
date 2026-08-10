@@ -28,7 +28,8 @@ interface Props {
   submission: DataResponse
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
-  languagesExisting: LanguageCode[]
+  /** Languages that can't be picked: already translated into, or the transcript's own language. */
+  languagesUnavailable: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -43,7 +44,7 @@ export default function TranslationAdd({
   submission,
   supplement,
   activeBulkActions,
-  languagesExisting,
+  languagesUnavailable,
   initialStep,
   translationVersions,
   onCreate,
@@ -56,17 +57,16 @@ export default function TranslationAdd({
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
 
-  // Translation conflicts are language-specific, so we only evaluate once a
-  // target language is selected.
-  const hasConflictingOngoingJob =
-    languageCode !== null &&
-    isConflictingOngoingJobForSubmission({
-      activeBulkActions,
-      actionType: 'translation',
-      fieldXpath: questionXpath,
-      submissionUuid: getSubmissionRootUuid(submission),
-      selectedLanguage: languageCode,
-    })
+  // Translation conflicts are language-specific, but only once a target language
+  // is selected. Before that we warn about any ongoing job, so users learn about
+  // it on this tab too instead of only on the transcript one.
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'translation',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+    selectedLanguage: languageCode ?? undefined,
+  })
 
   /**
    * This is for going back from manual/automated to language selector step
@@ -93,14 +93,20 @@ export default function TranslationAdd({
 
   return (
     <>
-      {step === CreateSteps.Begin && <StepBegin asset={asset} onNext={() => setStep(CreateSteps.Language)} />}
+      {step === CreateSteps.Begin && (
+        <StepBegin
+          asset={asset}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
+          onNext={() => setStep(CreateSteps.Language)}
+        />
+      )}
       {step === CreateSteps.Language && (
         <StepSelectLanguage
           onBack={goBackFromLanguageStep}
           onNext={(nextStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(nextStep)}
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           usageType={UsageLimitTypes.TRANSLATION}
-          hiddenLanguages={languagesExisting}
+          hiddenLanguages={languagesUnavailable}
           suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}

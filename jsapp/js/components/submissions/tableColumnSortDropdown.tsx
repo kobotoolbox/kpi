@@ -3,15 +3,11 @@ import { Group } from '@mantine/core'
 import React, { useState } from 'react'
 import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
-import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 interface TableColumnSortDropdownProps {
-  asset: AssetResponse
   /** one of table columns */
   fieldId: string
   isAudioQuestionColumn?: boolean
@@ -193,32 +189,32 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
             </>
           )}
 
-          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <>
-              <Menu.Divider />
+          {/*
+            Open to everyone. `tableStore` decides whether the choice is saved to
+            the project (needs `change_asset`) or kept for the session only.
+          */}
+          <Menu.Divider />
 
-              <Menu.Item
-                className='sort-dropdown-menu-button'
-                onClick={hideField}
-                leftSection={<Icon name='hide' size='inherit' />}
-              >
-                {t('Hide field')}
-              </Menu.Item>
+          <Menu.Item
+            className='sort-dropdown-menu-button'
+            onClick={hideField}
+            leftSection={<Icon name='hide' size='inherit' />}
+          >
+            {t('Hide field')}
+          </Menu.Item>
 
-              <Menu.Item
-                className='sort-dropdown-menu-button'
-                onClick={() => {
-                  changeFieldFrozen(!props.isFieldFrozen)
-                }}
-                leftSection={
-                  props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
-                }
-              >
-                {props.isFieldFrozen && t('Unfreeze field')}
-                {!props.isFieldFrozen && t('Freeze field')}
-              </Menu.Item>
-            </>
-          )}
+          <Menu.Item
+            className='sort-dropdown-menu-button'
+            onClick={() => {
+              changeFieldFrozen(!props.isFieldFrozen)
+            }}
+            leftSection={
+              props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
+            }
+          >
+            {props.isFieldFrozen && t('Unfreeze field')}
+            {!props.isFieldFrozen && t('Freeze field')}
+          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
     </div>
