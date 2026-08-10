@@ -318,7 +318,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
                 onClick={handleStartTranscription}
                 disabled={!selectedLanguage || isLoadingUsage || hasErrors}
               >
-                {t('Start Transcription')}
+                {t('Start transcription')}
               </ButtonNew>
             )}
             {hasExceededLimit && (
