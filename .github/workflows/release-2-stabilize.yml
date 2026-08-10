@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id:   filter
         uses: dorny/paths-filter@v4
         name: Detect changed files
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
@@ -159,7 +159,7 @@ jobs:
       - tests
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -191,7 +191,7 @@ jobs:
       conflict: ${{ steps.merge.outputs.conflict }}
     steps:
 
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}

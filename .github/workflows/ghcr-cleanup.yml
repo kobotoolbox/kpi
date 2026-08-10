@@ -11,7 +11,7 @@ jobs:
     permissions:
       packages: write
     steps:
-      - uses: snok/container-retention-policy@v3.0.1
+      - uses: snok/container-retention-policy@v3.1.0
         with:
           account: kobotoolbox
           token: ${{ secrets.GITHUB_TOKEN }}
