@@ -10,9 +10,8 @@ import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttach
 import type { AssetResponse } from '#/dataInterface'
 import { getAssetUIDFromUrl, notify } from '#/utils'
 
-interface DataAttachmentColumnsFormProps {
-  onSetModalTitle: (newTitle: string) => void
-  onModalClose: () => void
+export interface DataAttachmentColumnsFormProps {
+  onRequestClose: () => void
   onAttachmentChanged?: () => void
   asset: AssetResponse
   source: Pick<AssetResponse, 'uid' | 'name' | 'url'>
@@ -24,8 +23,7 @@ interface DataAttachmentColumnsFormProps {
 /**
  * The content of the DATA_ATTACHMENT_COLUMNS modal
  *
- * @prop {function} onSetModalTitle - for changing the modal title by this component
- * @prop {function} onModalClose - causes the modal to close
+ * @prop {function} onRequestClose - causes the modal to close
  * @prop {object} asset - current asset
  * @prop {sourceAttributes} source
  * @prop {string} filename
@@ -33,9 +31,8 @@ interface DataAttachmentColumnsFormProps {
  * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
                                   otherwise, this is a new import
  */
-function DataAttachmentColumnsForm({
-  onSetModalTitle,
-  onModalClose,
+export function DataAttachmentColumnsForm({
+  onRequestClose,
   onAttachmentChanged,
   asset,
   source,
@@ -67,9 +64,9 @@ function DataAttachmentColumnsForm({
 
   const isLoading = isCreatingAttachment || isPatchingAttachment
 
-  useEffect(() => {
-    onSetModalTitle(t('Import data from ##SOURCE_NAME##').replace('##SOURCE_NAME##', source.name))
-  }, [onSetModalTitle, source.name])
+  //useEffect(() => {
+  //  onSetModalTitle(t('Import data from ##SOURCE_NAME##').replace('##SOURCE_NAME##', source.name))
+  //}, [onSetModalTitle, source.name])
 
   useEffect(() => {
     const payload = sourceAssetResponse?.data
@@ -108,7 +105,7 @@ function DataAttachmentColumnsForm({
 
       const onSuccess = () => {
         onAttachmentChanged?.()
-        onModalClose()
+        onRequestClose()
       }
 
       const onFailure = (error: ServerError) => {
@@ -187,7 +184,7 @@ function DataAttachmentColumnsForm({
       createPairedDataMutate,
       filename,
       onAttachmentChanged,
-      onModalClose,
+      onRequestClose,
       patchPairedDataMutate,
       source.url,
     ],

@@ -18,6 +18,7 @@ import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
+import openDataAttachmentColumnsModal from './openDataAttachmentColumnsModal'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
@@ -148,26 +149,43 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       setNewSource(null)
     }
   }, [])
-
-  const showColumnFilterModal = useCallback(
-    (
-      source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
-      filename: string,
-      fields: string[],
-      attachmentUrl?: string,
-    ) => {
-      pageState.showModal({
-        type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
-        asset,
-        source,
-        filename,
-        fields,
-        attachmentUrl,
-        onAttachmentChanged: refreshAttachmentList,
-      })
-    },
-    [asset, refreshAttachmentList],
-  )
+const showColumnFilterModal = useCallback(
+  (
+    source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
+    filename: string,
+    fields: string[],
+    attachmentUrl?: string,
+  ) => {
+    openDataAttachmentColumnsModal({
+      asset,
+      source,
+      filename,
+      fields,
+      attachmentUrl,
+      onAttachmentChanged: refreshAttachmentList,
+    })
+  },
+  [asset, refreshAttachmentList],
+)
+  //const showColumnFilterModal = useCallback(
+  //  (
+  //    source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
+  //    filename: string,
+  //    fields: string[],
+  //    attachmentUrl?: string,
+  //  ) => {
+  //    pageState.showModal({
+  //      type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
+  //      asset,
+  //      source,
+  //      filename,
+  //      fields,
+  //      attachmentUrl,
+  //      onAttachmentChanged: refreshAttachmentList,
+  //    })
+  //  },
+  //  [asset, refreshAttachmentList],
+  //)
 
   const onConfirmAttachment = useCallback(
     (evt: MouseEvent<HTMLButtonElement>) => {
