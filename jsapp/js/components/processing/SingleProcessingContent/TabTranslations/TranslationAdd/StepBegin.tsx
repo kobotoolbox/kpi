@@ -9,7 +9,12 @@ import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
   asset: AssetResponse
-  /** Whether any translation job is running, since no language is picked yet here. */
+  /**
+   * Whether any job is running for this submission, since no target language is
+   * picked at this step yet. We block "begin" rather than only warning: the job
+   * may finish (or another may start) while the user is walking through the next
+   * steps, so the language step's own check can't be the only guard.
+   */
   hasConflictingOngoingJob: boolean
   onNext: () => void
 }
@@ -19,17 +24,12 @@ export default function StepBegin({ asset, hasConflictingOngoingJob, onNext }: P
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
       <header className={bodyStyles.header}>{t('This transcript does not have any translations yet')}</header>
 
-      {/*
-        We only warn here, without blocking: a job translating to one language
-        doesn't stop the user from adding another one. The language step checks
-        the picked language and blocks that case.
-      */}
       <Button
         type='primary'
         size='l'
         label={t('begin')}
         onClick={onNext}
-        isDisabled={!userCan('change_submissions', asset)}
+        isDisabled={!userCan('change_submissions', asset) || hasConflictingOngoingJob}
       />
 
       {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mt='md' />}

@@ -51,14 +51,15 @@ export default function TranscriptCreate({
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
 
-  // Any job on this question rewrites the transcript, so the conflict doesn't
-  // depend on which language is selected here.
+  // No `selectedLanguage`: every job on this question rewrites the transcript, so
+  // for `transcript` the check ignores the language anyway. Previously this was
+  // additionally gated on a language being picked, which kept the "begin" step
+  // (where none is picked yet) from ever knowing about a running job.
   const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
     activeBulkActions,
     actionType: 'transcript',
     fieldXpath: questionXpath,
     submissionUuid: getSubmissionRootUuid(submission),
-    selectedLanguage: languageCode ?? undefined,
   })
 
   const attachment = getAttachmentForProcessing(questionXpath, submission)
