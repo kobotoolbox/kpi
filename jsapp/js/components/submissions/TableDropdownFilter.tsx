@@ -39,7 +39,7 @@ const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
     acc.push({ value, label: getQuestionOrChoiceDisplayName(item, translationIndex) })
     return acc
   }, [])
-  const data = [{ value: SHOW_ALL_VALUE, label: t('Show All') }, ...choiceOptions]
+  const data = [{ value: SHOW_ALL_VALUE, label: t('Show all') }, ...choiceOptions]
 
   // Map internal filter value (empty string) to our sentinel value for display
   const displayValue = !props.filter || props.filter.value === '' ? SHOW_ALL_VALUE : props.filter.value
