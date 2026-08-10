@@ -8,6 +8,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -20,6 +21,8 @@ from kobo.apps.trash_bin.constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
     DELETE_USER_STR_PREFIX,
+    RETRYABLE_FAILURE_PATTERNS,
+    TIME_LIMIT_FAILURE_PATTERNS,
 )
 from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
@@ -187,19 +190,33 @@ def process_deletion(
     indicating whether the deletion was successful.
     """
 
-    with transaction.atomic():
-        object_trash = model.objects.select_for_update().get(pk=object_id)
-        if not force and object_trash.status == TrashStatus.IN_PROGRESS:
-            return object_trash, False
+    # Restarts force the deletion, so only this lock stops two workers running
+    # it at once
+    lock_key = f'trash_bin_deletion:{model._meta.model_name}:{object_id}'
+    if not cache.add(lock_key, True, timeout=settings.TRASH_BIN_DELETION_LOCK_TTL):
+        return model.objects.get(pk=object_id), False
 
-        if pre_deletion_callback:
-            pre_deletion_callback(object_trash)
+    try:
+        with transaction.atomic():
+            object_trash = model.objects.select_for_update().get(pk=object_id)
+            if not force and object_trash.status == TrashStatus.IN_PROGRESS:
+                return object_trash, False
 
-        object_trash.status = TrashStatus.IN_PROGRESS
-        object_trash.metadata['failure_error'] = ''
-        object_trash.save(update_fields=['metadata', 'status', 'date_modified'])
+            if pre_deletion_callback:
+                pre_deletion_callback(object_trash)
 
-    deletion_callback(object_trash)
+            object_trash.status = TrashStatus.IN_PROGRESS
+            object_trash.metadata['failure_error'] = ''
+            if not force:
+                # `task_restarter` always forces the deletion, therefore this run
+                # has been requested by Celery beat or by a superuser from the
+                # admin interface: give the object a brand new restart budget
+                object_trash.metadata.pop('retryable_failure_count', None)
+            object_trash.save(update_fields=['metadata', 'status', 'date_modified'])
+
+        deletion_callback(object_trash)
+    finally:
+        cache.delete(lock_key)
 
     # The related PeriodicTask is intentionally NOT deleted here to avoid
     # triggering a `PeriodicTasks.changed()` signal for each completed task.
@@ -279,6 +296,26 @@ def put_back(
     return updated_items, update_count
 
 
+def is_retryable_failure(error: str) -> bool:
+    """
+    Return True if `error` was caused by the infrastructure and not by the data
+    being deleted which makes the failed task worth restarting automatically
+
+    Kept case-insensitive to mirror the query run by `task_restarter`
+    """
+    error = error.lower()
+    return any(pattern.lower() in error for pattern in RETRYABLE_FAILURE_PATTERNS)
+
+
+def is_time_limit_failure(error: str) -> bool:
+    """
+    Return True if `error` means the object was too big to be deleted within the
+    time Celery gives a task, which is worth restarting without counting it
+    """
+    error = error.lower()
+    return any(pattern.lower() in error for pattern in TIME_LIMIT_FAILURE_PATTERNS)
+
+
 def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     exception = kwargs['exception']
     obj_trash_id = kwargs['args'][0]
@@ -286,15 +323,20 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
 
         error = str(exception)
-        # The task may be stopped abruptly without any traceback or clear exception.
-        # This can happen if the kernel kills it due to an OOM condition,
-        # or if Kubernetes terminates the pod (e.g., OOMKilled, failed  probes, etc.).
-        # In such cases, the exact error type is unknown.
-        if 'Worker exited prematurely' in error:
-            obj_trash.status = TrashStatus.IN_PROGRESS
-        else:
-            obj_trash.status = TrashStatus.FAILED
         obj_trash.metadata['failure_error'] = error
+
+        # Transient failures (OOM kill, MongoDB unreachable, deadlock, Celery
+        # time limits) are left in progress, so that `task_restarter` grabs them
+        # like any other task whose worker died
+        obj_trash.status = TrashStatus.FAILED
+        if is_time_limit_failure(error):
+            obj_trash.status = TrashStatus.IN_PROGRESS
+        elif is_retryable_failure(error):
+            restart_count = (obj_trash.metadata.get('retryable_failure_count') or 0) + 1
+            obj_trash.metadata['retryable_failure_count'] = restart_count
+            if restart_count <= settings.TRASH_BIN_MAX_AUTO_RESTARTS:
+                obj_trash.status = TrashStatus.IN_PROGRESS
+
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 

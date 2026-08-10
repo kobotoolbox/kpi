@@ -32,7 +32,7 @@ export interface ValidationStatusOption {
  */
 export const VALIDATION_STATUS_SHOW_ALL_OPTION: ValidationStatusOption = {
   value: ValidationStatusAdditionalName.show_all,
-  label: t('Show All'),
+  label: t('Show all'),
 }
 
 export const VALIDATION_STATUS_NO_OPTION: ValidationStatusOption = {

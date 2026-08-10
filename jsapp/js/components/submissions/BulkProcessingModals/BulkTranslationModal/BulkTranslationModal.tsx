@@ -200,7 +200,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t('Your ##total_selected## transcripts is a total of ##total_characters## characters.')
+            {t('Your ##total_selected## transcripts are a total of ##total_characters## characters.')
               .replace('##total_selected##', String(eligibleSubmissions.length))
               .replace('##total_characters##', String(totalCharacters))}
           </Text>
