@@ -326,7 +326,12 @@ export default function EditableForm(props: EditableFormProps) {
 
   function onAllowChoiceDuplicatesChange(isChecked: boolean) {
     // Immediately update the survey settings so deduplication logic sees the change
-    app?.survey.settings.set('allow_choice_duplicates', isChecked ? 'yes' : 'no')
+    // Only store 'yes' value; unset when false to keep settings clean
+    if (isChecked) {
+      app?.survey.settings.set('allow_choice_duplicates', 'yes')
+    } else {
+      app?.survey.settings.unset('allow_choice_duplicates')
+    }
     setState((currentState) => ({
       ...currentState,
       settings__allow_choice_duplicates: isChecked,
@@ -407,7 +412,11 @@ export default function EditableForm(props: EditableFormProps) {
       app?.survey.settings.set('style', state.settings__style)
     }
 
-    app?.survey.settings.set('allow_choice_duplicates', state.settings__allow_choice_duplicates ? 'yes' : 'no')
+    if (state.settings__allow_choice_duplicates) {
+      app?.survey.settings.set('allow_choice_duplicates', 'yes')
+    } else {
+      app?.survey.settings.unset('allow_choice_duplicates')
+    }
 
     if (state.name) {
       app?.survey.settings.set('title', state.name)
@@ -461,7 +470,11 @@ export default function EditableForm(props: EditableFormProps) {
       app.survey.settings.set('style', state.settings__style)
     }
 
-    app.survey.settings.set('allow_choice_duplicates', state.settings__allow_choice_duplicates ? 'yes' : 'no')
+    if (state.settings__allow_choice_duplicates) {
+      app.survey.settings.set('allow_choice_duplicates', 'yes')
+    } else {
+      app.survey.settings.unset('allow_choice_duplicates')
+    }
 
     let surveyJSON = surveyToValidJson(app.survey)
     const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
