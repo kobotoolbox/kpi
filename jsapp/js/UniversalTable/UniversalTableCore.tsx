@@ -11,11 +11,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import cx from 'classnames'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
-import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useViewportSize } from '#/hooks/useViewportSize'
-import { generateUuid } from '#/utils'
 import styles from './UniversalTableCore.module.scss'
 
 export interface UniversalTableColumn<DataItem> {
@@ -430,22 +429,22 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
             />
           </section>
 
-          <KoboSelect
+          <Select
             className={styles.pageSizeSelect}
-            name={`universal-table-select-${generateUuid()}`}
-            type='outline'
-            size='s'
-            options={(props.pageSizeOptions || []).map((pageSize) => {
+            size='xs'
+            searchable={false}
+            clearable={false}
+            data={(props.pageSizeOptions || []).map((pageSize) => {
               return {
                 value: String(pageSize),
                 label: t('##number## rows').replace('##number##', String(pageSize)),
               }
             })}
-            selectedOption={String(table.getState().pagination.pageSize)}
-            onChange={(newSelectedOption: string | null) => {
+            value={String(table.getState().pagination.pageSize)}
+            onChange={(newSelectedOption) => {
               table.setPageSize(Number(newSelectedOption))
             }}
-            placement='up-left'
+            comboboxProps={{ position: 'top' }}
           />
         </footer>
       )}
