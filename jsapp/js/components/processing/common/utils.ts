@@ -8,7 +8,7 @@ import type { SupplementalDataManualTranslation } from '#/api/models/supplementa
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 
-import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import type {
   DisplaysList,
@@ -187,6 +187,48 @@ export const getLatestTranscriptVersionItem = (
   return getAllTranscriptsFromSupplementData(supplementData, xpath)
     .flatMap<TranscriptVersionItem>((transcript) => transcript._versions)
     .sort(TransxVersionSortFunction)[0] as TranscriptVersionItem | undefined
+}
+
+/**
+ * Language codes that must not be offered as translation targets, given the `language`/`locale` pair of the transcript
+ * a translation would come from.
+ *
+ * Not just `[language]`, for two reasons. The back end translates from `locale` when it is set and never validates it
+ * against `language`, so `{language: 'es', locale: 'fr-CA'}` is storable and would be translated from French. And
+ * columns are keyed by base language (the back end does `language.split('-')[0]`), so `fr-CA` and `fr` end up sharing
+ * one column. Both codes come back, which also covers a regional target if one ever reaches the dropdown.
+ */
+export const getBlockedTargetLanguages = (language: LanguageCode, locale?: LocaleCode | null): LanguageCode[] => {
+  const source = locale || language
+  return [...new Set([source, source.split('-')[0]])]
+}
+
+/**
+ * Language codes a new translation must not target, based on the transcript it would be sourced from. Empty when there
+ * is nothing to translate yet.
+ *
+ * Picks the source the way the back end does (`RequiresTranscriptionMixin.attach_action_dependency`): most recent
+ * *acceptance* date, skipping versions that were never accepted. `getLatestTranscriptVersionItem` sorts by creation
+ * date instead, and the two disagree when versions were accepted out of order, so don't swap one for the other.
+ */
+export const getTranslationSourceLanguages = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+): LanguageCode[] => {
+  const usableVersions = getAllTranscriptsFromSupplementData(supplementData, xpath)
+    .flatMap<TranscriptVersionItem>((transcript) => transcript._versions)
+    // An unaccepted version is not a source yet, and one with no text was deleted or never finished. `_dateAccepted` is
+    // typed as a required string on manual versions but comes back empty, so check the value rather than the key.
+    .filter((version) => Boolean(version._dateAccepted) && isSupplementVersionWithValue(version))
+
+  // Newest acceptance first. These are ISO-8601 strings, so comparing them as strings gives chronological order.
+  const latestAccepted = usableVersions.sort((a, b) => (a._dateAccepted! < b._dateAccepted! ? 1 : -1))[0]
+
+  if (!latestAccepted) {
+    return []
+  }
+
+  return getBlockedTargetLanguages(latestAccepted._data.language, latestAccepted._data.locale)
 }
 
 // Qual

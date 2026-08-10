@@ -730,7 +730,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       Header: () => (
         <div className='column-header-wrapper'>
           <TableColumnSortDropdown
-            asset={this.props.asset}
             fieldId={VALIDATION_STATUS_ID_PROP}
             sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange.bind(this)}
@@ -974,7 +973,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           return (
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
-                asset={this.props.asset}
                 fieldId={key}
                 isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
                 isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
@@ -1153,13 +1151,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       JSON.stringify(newData.overrides[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions()
-      // If some other table settings changed, we need to fix columns using
-      // existing data, as after `actions.table.updateSettings` resolves,
-      // the props asset is not yet updated
-    } else if (
-      JSON.stringify(this.previousOverrides[DATA_TABLE_SETTING]) !==
-      JSON.stringify(newData.overrides[DATA_TABLE_SETTING])
-    ) {
+    } else if (!isEqual(this.previousOverrides, newData.overrides)) {
+      // Other overrides (e.g. a hidden or frozen column) only change how existing
+      // data is presented, so rebuilding the columns is enough.
+      //
+      // For users without `change_asset` this is the only signal available -
+      // nothing is persisted, so `componentDidUpdate` never sees a new asset.
       this._prepColumns(this.state.submissions)
     }
 
@@ -1457,15 +1454,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         </Stack>
 
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
-            <ColumnsHideDropdown
-              asset={this.props.asset}
-              submissions={this.state.submissions}
-              bulkActions={this.props.activeBulkActions || []}
-              showGroupName={this.state.showGroupName}
-              translationIndex={this.state.translationIndex}
-            />
-          )}
+          {/*
+            Open to everyone - this is the only way back for a session-only user
+            who hid a field, as its column header went away with the column.
+          */}
+          <ColumnsHideDropdown
+            asset={this.props.asset}
+            submissions={this.state.submissions}
+            bulkActions={this.props.activeBulkActions || []}
+            showGroupName={this.state.showGroupName}
+            translationIndex={this.state.translationIndex}
+          />
 
           {this.renderBulkSelectUI()}
 

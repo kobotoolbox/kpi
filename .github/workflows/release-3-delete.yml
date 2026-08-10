@@ -1,0 +1,172 @@
+name: 'CD: skip release'
+
+
+concurrency:
+  group: release-shared-refs/heads/${{ inputs.release_branch }}
+  cancel-in-progress: true
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Release branch to skip (e.g. release/2.026.28)'
+        required: true
+        type: string
+
+
+jobs:
+
+
+  version:
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+    with:
+      current_branch: ${{ inputs.release_branch }}
+
+
+  validate:
+    needs:
+      - version
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Validate branch is unreleased and has no tags
+      env:
+        BRANCH: ${{ inputs.release_branch }}
+        CURRENT_RELEASED: ${{ needs.version.outputs.current_released }}
+      run: |
+        set -xe
+        if [[ "$CURRENT_RELEASED" == "true" ]]; then
+          echo "::error::$BRANCH already has a tag. Cannot skip a released branch."
+          exit 1
+        fi
+        if ! git show-branch "origin/$BRANCH" &>/dev/null; then
+          echo "::error::Branch '$BRANCH' does not exist."
+          exit 1
+        fi
+
+
+  retarget-prs:
+    needs:
+      - validate
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v7
+    - name: Retarget open PRs to main
+      env:
+        BRANCH: ${{ inputs.release_branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -xe
+        PRS=$(gh pr list --base "$BRANCH" --state open --json number --jq '.[].number')
+        if [[ -z "$PRS" ]]; then
+          echo "::notice::No open PRs targeting $BRANCH"
+          exit 0
+        fi
+        echo "$PRS" | while read -r pr; do
+          echo "Retargeting PR #$pr to main"
+          gh pr edit "$pr" --base main
+        done
+
+
+  delete-branch:
+    needs:
+      - version
+      - retarget-prs
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    - name: Delete release branch
+      env:
+        BRANCH: ${{ inputs.release_branch }}
+      run: |
+        set -xe
+        git push origin --delete "$BRANCH"
+
+
+  delete-linear-release:
+    needs:
+      - version
+      - delete-branch
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Find Linear release
+      id: find
+      env:
+        LINEAR_PIPELINE_KEY_KPI: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        RELEASE_NAME: ${{ needs.version.outputs.current_minor }}
+      run: |
+        set -xe
+
+        RELEASE_ID=$(curl -s -X POST https://api.linear.app/graphql \
+          -H "Authorization: $LINEAR_PIPELINE_KEY_KPI" \
+          -H "Content-Type: application/json" \
+          -d "{\"query\": \"query { releases(filter: { name: { eq: \\\"$RELEASE_NAME\\\" } }) { nodes { id name } } }\"}" \
+          | jq -r '.data.releases.nodes[0].id // empty')
+
+        if [[ -z "$RELEASE_ID" ]]; then
+          echo "::warning::Linear release '$RELEASE_NAME' not found. It may have already been deleted or doesn't exist."
+        else
+          echo "Found Linear release '$RELEASE_NAME' with ID: $RELEASE_ID"
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Delete Linear release
+      if: steps.find.outputs.release_id != ''
+      env:
+        LINEAR_PIPELINE_KEY_KPI: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        RELEASE_NAME: ${{ needs.version.outputs.current_minor }}
+        RELEASE_ID: ${{ steps.find.outputs.release_id }}
+      run: |
+        set -xe
+
+        RESULT=$(curl -s -X POST https://api.linear.app/graphql \
+          -H "Authorization: $LINEAR_PIPELINE_KEY_KPI" \
+          -H "Content-Type: application/json" \
+          -d "{\"query\": \"mutation { releaseDelete(id: \\\"$RELEASE_ID\\\") { success } }\"}")
+
+        SUCCESS=$(echo "$RESULT" | jq -r '.data.releaseDelete.success // false')
+        if [[ "$SUCCESS" == "true" ]]; then
+          echo "::notice::Linear release '$RELEASE_NAME' has been deleted."
+        else
+          echo "::warning::Failed to delete Linear release: $RESULT"
+          exit 1
+        fi
+
+
+  notify:
+    needs:
+      - version
+      - delete-branch
+      - delete-linear-release
+    if: ${{ !cancelled() && !failure() }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":wastebasket: Release `${{ needs.version.outputs.current_minor }}` has been skipped. Branch deleted, PRs retargeted to main, Linear release deleted."
+
+
+  on-failure:
+    needs:
+      - version
+      - validate
+      - retarget-prs
+      - delete-branch
+      - delete-linear-release
+    if: ${{ !cancelled() && failure() }}
+    secrets: inherit
+    uses: './.github/workflows/zulip.yml'
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to skip release `${{ needs.version.outputs.current_minor }}`. @*devs* please investigate."

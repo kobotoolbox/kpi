@@ -1,7 +1,13 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import { hasTranscribableAudio, hasTranslatableTranscript } from '#/components/submissions/bulkProcessingUtils'
+import {
+  getOngoingBulkActionSubmissionUuids,
+  hasTranscribableAudio,
+  hasTranslatableTranscript,
+} from '#/components/submissions/bulkProcessingUtils'
+import { hasUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
+import { removeDefaultUuidPrefix } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 
 /**
@@ -136,15 +142,20 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     return null
   }
 
-  // Collect all submission UUIDs from conflicting jobs
+  // Submissions a conflicting job already finished stay eligible for a new job,
+  // so collect only the ones it is still working on.
   const conflictingUuids = new Set<string>()
   conflictingJobs.forEach((job) => {
-    job.submission_uuids.forEach((uuid) => conflictingUuids.add(uuid))
+    getOngoingBulkActionSubmissionUuids(job).forEach((uuid) => conflictingUuids.add(uuid))
   })
 
-  // Filter out submissions that are in conflicting jobs
+  // Bulk actions are keyed by root uuid, so check both uuids of each submission.
   const filteredSubmissionUuids = submissions
-    .filter((submission) => conflictingUuids.has(submission._uuid))
+    .filter((submission) =>
+      [submission._uuid, submission['meta/rootUuid']].some(
+        (uuid) => uuid && conflictingUuids.has(removeDefaultUuidPrefix(uuid)),
+      ),
+    )
     .map((submission) => submission._uuid)
 
   if (filteredSubmissionUuids.length === 0) {
@@ -283,6 +294,43 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     computedValues: {
       count: alreadyTranslated.length,
       characters: totalCharacters,
+    },
+  }
+}
+
+/**
+ * Checks for submissions with nothing left to approve, either because they are
+ * approved already or because there is no automatic content at all. The backend
+ * skips both.
+ *
+ * Uses the same check as the `Approve all selected` menu item and the `Review`
+ * button in a cell, so all three agree on what still needs approval.
+ */
+export function evaluateAlreadyApproved(context: AlertEvaluationContext): AlertEvaluationResult | null {
+  const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
+
+  const alreadyApproved: string[] = []
+
+  submissions.forEach((submission) => {
+    // Skip if already filtered by previous evaluators
+    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+      return
+    }
+
+    if (!hasUnacceptedAutomaticContent(submission, fieldXpath)) {
+      alreadyApproved.push(submission._uuid)
+    }
+  })
+
+  if (alreadyApproved.length === 0) {
+    return null
+  }
+
+  return {
+    type: 'warning',
+    filteredSubmissionUuids: alreadyApproved,
+    computedValues: {
+      count: alreadyApproved.length,
     },
   }
 }

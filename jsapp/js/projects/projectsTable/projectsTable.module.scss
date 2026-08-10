@@ -26,16 +26,4 @@ $projects-table-min-width: 820px;
 
 .body {
   flex: 1;
-
-  :global {
-    // The loading message of the ProjectsTable component
-    .loading:first-of-type {
-      margin: 40px auto;
-    }
-
-    // The loading spinner of the react-infinite-scroller plugin
-    .loading:last-of-type {
-      padding: 10px 0 20px;
-    }
-  }
 }

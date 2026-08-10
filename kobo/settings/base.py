@@ -1261,6 +1261,12 @@ TEMPLATES = [
 ]
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
+
+# Superusers submitting real survey data through the OpenRosa API tends to break
+# things (see DEV-32), so it is blocked by default. Self-hosters who really need
+# a superuser to submit can opt back into the risk by setting this to `True`;
+# consider yourself warned that bad things can happen.
+ALLOW_SUPERUSER_SUBMISSIONS = env.bool('ALLOW_SUPERUSER_SUBMISSIONS', False)
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
@@ -1567,12 +1573,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 30 minutes
-    'attachment-cleanup-for-users-exceeding-limits': {
-        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
-    },
     # Schedule every 5 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
@@ -1603,10 +1603,14 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule 3 times a day (every 8 hours)
+    # Ticks every 15 minutes, but `is_in_cooldown()` skips starting a new
+    # cycle unless the last one completed more than
+    # `USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS` ago - an in-progress run is
+    # always resumed regardless, so a short tick lets it finish quickly
+    # after an interruption instead of waiting up to that cooldown.
     'refresh-user-report-snapshot': {
         'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
-        'schedule': crontab(minute=0, hour='*/8'),
+        'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     # Schedule every day at midnight UTC
@@ -1695,6 +1699,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
+
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
     'fanout_prefix': True,
@@ -1754,6 +1764,12 @@ CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL = int(
 
 CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
     os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
+)
+
+# Minimum time to wait after a completed run before starting a brand-new
+# cycle. Does not delay resuming an in-progress run.
+USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS = int(
+    os.environ.get('USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS', 4)  # 4 hours
 )
 
 CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
@@ -2375,6 +2391,14 @@ AZURE_DELETE_BATCH_SIZE = 256
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of times a trash bin task that failed on a transient (infrastructure)
+# error is automatically restarted before it requires manual intervention
+TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
+
+# How long a trash bin object stays locked while it is being deleted. Must be
+# greater than or equal to the Celery hard time limit of the task
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
