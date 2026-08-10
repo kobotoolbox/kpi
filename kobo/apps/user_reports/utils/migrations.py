@@ -9,6 +9,9 @@ REDIS_LOCK_ACQUIRE_TIMEOUT = 5
 PG_LOCK_TIMEOUT = '30s'
 POST_TERMINATE_SLEEP = 3
 
+# used by migrations to determine if they are responsible for running CREATE_MV_SQL
+# when updating the sql, add a new version to the end of the list and gate the migration
+# on `if <my_new_version> == CREATE_MV_SQL_VERSIONS[-1]`
 CREATE_MV_SQL_VERSIONS = ['initial', '20260807']
 
 CREATE_MV_BASE_SQL = f"""
