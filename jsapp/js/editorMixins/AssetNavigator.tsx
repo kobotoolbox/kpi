@@ -78,8 +78,6 @@ export default function AssetNavigator() {
 
     // Include tags filtering
     if (selectedTags.length > 0) {
-      // BUG: this doesn't work correctly - it does filter one tag, but if multiple are selected it returns zero values
-      // See: https://linear.app/kobotoolbox/issue/DEV-1581/make-it-possible-to-filter-assets-by-multiple-tags
       const tagQuery = selectedTags.map((t) => `tags__name__icontains:"${t}"`).join(' AND ')
       queryParts.push(`(${tagQuery})`)
     }

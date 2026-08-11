@@ -365,6 +365,12 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
                 ]
             ),
         )
+        # OR nested inside an AND on the same to-many: with a single shared
+        # join this would wrongly return nothing
+        self.assertEqual(
+            uids('tags__name:foo AND (tags__name:bar OR name__icontains:zzz)'),
+            sorted([both_asset.uid, both_collection.uid]),
+        )
         # AND-of-tags nested inside an OR must still match (Olivier's report).
         # Assert membership rather than equality: the `asset_type:survey` branch
         # also returns unrelated survey assets from the fixtures.

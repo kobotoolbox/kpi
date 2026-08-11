@@ -1,5 +1,6 @@
 import pytest
 from django.conf import settings
+from django.db.models import Exists
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -8,7 +9,7 @@ from kpi.exceptions import (
     QueryParserTooManyRelationalFilters,
 )
 from kpi.models.asset import Asset
-from kpi.utils.query_parser import rewrite_to_many_and
+from kpi.utils.query_parser import get_parsed_parameters
 from kpi.utils.query_parser.query_parser import QueryParseActions, parse
 
 
@@ -206,84 +207,98 @@ def _parse(query):
 
 
 def _leaf_keys(q):
-    """Flatten a `Q` tree into the list of lookup keys on its leaf tuples."""
+    """
+    Flatten a `Q` tree into its leaves: the lookup key for a leaf tuple,
+    `'exists'` for an `EXISTS` expression.
+    """
     keys = []
     for child in q.children:
         if isinstance(child, tuple):
             keys.append(child[0])
+        elif isinstance(child, Exists):
+            keys.append('exists')
         else:
             keys.extend(_leaf_keys(child))
     return keys
 
 
-class TestRewriteToManyAnd(TestCase):
+class TestToManyLeafAsExists(TestCase):
     """
-    `rewrite_to_many_and` collapses an AND of two or more leaves on the same
-    to-many relation into a single `pk__in` subquery, so "has a related row
-    matching each" holds at any depth of the boolean tree (DEV-1581).
+    `parse()` builds every leaf crossing a to-many relation as its own
+    `EXISTS` subquery, so AND/OR/NOT compose with set semantics instead of
+    sharing a single join (DEV-1581).
     """
 
-    def test_multiple_tags_collapse_to_subquery(self):
-        # `tags` is a many-to-many: the two leaves become one `pk__in`
-        rewritten = rewrite_to_many_and(
-            _parse('tags__name:foo AND tags__name:bar'), Asset
-        )
-        self.assertEqual(_leaf_keys(rewritten), ['pk__in'])
+    def test_multiple_tags_become_one_exists_per_leaf(self):
+        # `tags` is a many-to-many: each leaf gets its own `EXISTS`
+        q = _parse('tags__name:foo AND tags__name:bar')
+        self.assertEqual(_leaf_keys(q), ['exists', 'exists'])
 
     def test_scalar_and_stays_merged(self):
-        rewritten = rewrite_to_many_and(
-            _parse('asset_type:survey AND name__icontains:x'), Asset
-        )
-        self.assertEqual(
-            sorted(_leaf_keys(rewritten)), ['asset_type', 'name__icontains']
-        )
+        q = _parse('asset_type:survey AND name__icontains:x')
+        self.assertEqual(sorted(_leaf_keys(q)), ['asset_type', 'name__icontains'])
 
     def test_mixed_scalar_and_relational(self):
-        rewritten = rewrite_to_many_and(
-            _parse('asset_type:survey AND tags__name:foo AND tags__name:bar'),
-            Asset,
-        )
-        # scalar leaf kept, the two tag leaves collapsed into one `pk__in`
-        self.assertEqual(sorted(_leaf_keys(rewritten)), ['asset_type', 'pk__in'])
+        q = _parse('asset_type:survey AND tags__name:foo AND tags__name:bar')
+        # scalar leaf kept, one `EXISTS` per tag leaf
+        self.assertEqual(sorted(_leaf_keys(q)), ['asset_type', 'exists', 'exists'])
 
-    def test_to_one_relation_not_collapsed(self):
-        # `owner` is a to-one FK: merging is correct, no subquery
-        rewritten = rewrite_to_many_and(
-            _parse('owner__username:a AND owner__username:b'), Asset
-        )
-        self.assertEqual(_leaf_keys(rewritten), ['owner__username'] * 2)
+    def test_to_one_relation_stays_plain(self):
+        # `owner` is a to-one FK: a merged filter is correct there
+        q = _parse('owner__username:a AND owner__username:b')
+        self.assertEqual(_leaf_keys(q), ['owner__username'] * 2)
 
-    def test_single_tag_untouched(self):
-        rewritten = rewrite_to_many_and(_parse('tags__name:foo'), Asset)
-        self.assertEqual(_leaf_keys(rewritten), ['tags__name'])
+    def test_single_tag_becomes_exists(self):
+        q = _parse('tags__name:foo')
+        self.assertEqual(_leaf_keys(q), ['exists'])
 
-    def test_to_many_and_nested_in_or_is_rewritten(self):
-        # Olivier's report: the AND-of-tags buried in an OR must still collapse
-        rewritten = rewrite_to_many_and(
-            _parse('(tags__name:foo AND tags__name:bar) OR asset_type:survey'),
-            Asset,
-        )
-        self.assertEqual(sorted(_leaf_keys(rewritten)), ['asset_type', 'pk__in'])
+    def test_to_many_and_nested_in_or(self):
+        # an AND-of-tags buried in an OR
+        q = _parse('(tags__name:foo AND tags__name:bar) OR asset_type:survey')
+        self.assertEqual(sorted(_leaf_keys(q)), ['asset_type', 'exists', 'exists'])
 
-    def test_to_many_and_negated_is_rewritten(self):
+    def test_to_many_or_nested_in_and(self):
+        # the converse shape: a lone tag leaf ANDed with an OR holding
+        # another tag leaf. A tree-level rewrite missed this one; leaf-level
+        # `EXISTS` handles any shape
+        q = _parse('tags__name:foo AND (tags__name:bar OR name__icontains:x)')
+        self.assertEqual(sorted(_leaf_keys(q)), ['exists', 'exists', 'name__icontains'])
+
+    def test_to_many_and_negated(self):
         q = _parse('NOT (tags__name:foo AND tags__name:bar)')
-        rewritten = rewrite_to_many_and(q, Asset)
-        self.assertEqual(_leaf_keys(rewritten), ['pk__in'])
-        self.assertTrue(rewritten.negated)
+        self.assertEqual(_leaf_keys(q), ['exists', 'exists'])
+        self.assertTrue(q.negated)
 
-    def test_none_model_falls_back(self):
-        # Without a model, to-many detection cannot run: leave the Q untouched
-        q = _parse('tags__name:foo AND tags__name:bar')
-        self.assertIs(rewrite_to_many_and(q, None), q)
+    def test_no_model_leaf_stays_plain(self):
+        # without a model there is nothing to resolve the relation against;
+        # only superusers may skip field validation, so use one
+        superuser = User.objects.create_superuser(
+            'super_search', 'super_search@example.com', 'pass'
+        )
+        q = parse(
+            'tags__name:foo AND tags__name:bar',
+            default_field_lookups=['name__icontains'],
+            model=None,
+            user=superuser,
+        )
+        self.assertEqual(_leaf_keys(q), ['tags__name'] * 2)
+
+    def test_get_parsed_parameters_skips_exists_leaves(self):
+        # `get_parsed_parameters` reads `(field, value)` tuples; `EXISTS`
+        # leaves must be passed over, not crash it
+        parameters = get_parsed_parameters(
+            _parse('tags__name:foo AND asset_type:survey')
+        )
+        self.assertEqual(parameters, {'asset_type': ['survey']})
 
     def test_too_many_to_many_filters_rejected(self):
         limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
         query = ' OR '.join(f'tags__name:t{i}' for i in range(limit + 1))
         with self.assertRaises(QueryParserTooManyRelationalFilters):
-            rewrite_to_many_and(_parse(query), Asset)
+            _parse(query)
 
     def test_at_limit_to_many_filters_allowed(self):
         limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
         query = ' OR '.join(f'tags__name:t{i}' for i in range(limit))
         # exactly at the cap must not raise
-        rewrite_to_many_and(_parse(query), Asset)
+        _parse(query)

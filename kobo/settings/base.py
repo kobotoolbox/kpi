@@ -2232,9 +2232,9 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 
-# Upper bound on how many to-many lookups a single `q` search may contain.
-# Each one adds a JOIN (or a `pk__in` subquery), so an unbounded count lets a
-# search fan out into an expensive query. See `kpi.utils.query_parser`.
+# Max to-many lookups in a single `q` search: each becomes its own EXISTS
+# subquery, so an unbounded count lets a search fan out.
+# See `kpi.utils.query_parser`.
 QUERY_PARSER_MAX_TO_MANY_FILTERS = 10
 
 # Django 3.2 required settings

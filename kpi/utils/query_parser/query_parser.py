@@ -6,7 +6,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django_request_cache import cache_for_request
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -69,6 +69,7 @@ class QueryParseActions:
         self.model = model
         self.user = user
         self.has_term_with_sufficient_length = False
+        self.to_many_leaf_count = 0
 
     @classmethod
     def process_value(cls, field, value):
@@ -168,7 +169,7 @@ class QueryParseActions:
             # Since no field was specified, apply the search term to all
             # default fields
             q_list = [
-                Q(**{field: value}) for field in self.default_field_lookups
+                self._make_leaf_q(field, value) for field in self.default_field_lookups
             ]
             # Join all the default field queries together with boolean OR
             return reduce(operator.or_, q_list)
@@ -193,7 +194,7 @@ class QueryParseActions:
             # Trivial case, `field` is not a list inside a jsonb field.
             if not re.search(r'(\[\]$|\[\]__.+)', field):
                 value = _get_value(field, elements)
-                return Q(**{field: value})
+                return self._make_leaf_q(field, value)
 
             value = _get_value('', elements)
             field, parts = field.split('[]')
@@ -280,6 +281,29 @@ class QueryParseActions:
     def name(text, a, b, elements):
         return text[a:b]
 
+    def _make_leaf_q(self, field: str, value) -> Q:
+        """
+        Build the `Q` for one `field:value` leaf.
+
+        A lookup crossing a to-many relation becomes its own `EXISTS`
+        subquery, i.e. an independent "some related row matches" predicate.
+        Left as plain lookups instead, every to-many condition in a single
+        `.filter()` call shares one join, so `tags__name:a AND tags__name:b`
+        asks one tag row to hold both names and never matches (DEV-1581).
+        """
+        if self.model is None or not _crosses_to_many(self.model, field):
+            return Q(**{field: value})
+
+        self.to_many_leaf_count += 1
+        if self.to_many_leaf_count > settings.QUERY_PARSER_MAX_TO_MANY_FILTERS:
+            # Bound the subquery fan-out a single search can trigger
+            raise QueryParserTooManyRelationalFilters
+
+        # `_base_manager`: the outer queryset applies its own scope
+        return Q(
+            Exists(self.model._base_manager.filter(pk=OuterRef('pk'), **{field: value}))
+        )
+
     @staticmethod
     def _normalize_numeric_value(value):
 
@@ -329,145 +353,6 @@ class QueryParseActions:
                 raise QueryParserNotSupportedFieldLookup
 
 
-def _iter_field_path(model, field):
-    """
-    Yield `(owner_model, segment, model_field)` for each concrete model field on
-    `field`, stopping at the first lookup/JSONField key. Shared by
-    `_validate_field` and `_crosses_to_many` so they resolve paths identically.
-    """
-    current_model = model
-    for segment in field.replace('[]', '').split('__'):
-        try:
-            model_field = current_model._meta.get_field(segment)  # noqa
-        except FieldDoesNotExist:
-            return
-
-        yield current_model, segment, model_field
-
-        if not model_field.is_relation or model_field.related_model is None:
-            return
-
-        current_model = model_field.related_model
-
-
-def _to_many_relation_root(model, field):
-    """
-    Return the first path segment of `field` that enters a to-many relation
-    (many-to-many or reverse FK), or `None` if the path stays scalar/to-one.
-
-    The segment doubles as a grouping key: two leaves sharing a root traverse
-    the same relation, so they belong in one `pk__in` subquery.
-    """
-    if model is None:
-        return None
-
-    for _, segment, model_field in _iter_field_path(model, field):
-        if model_field.many_to_many or model_field.one_to_many:
-            return segment
-
-    return None
-
-
-def _crosses_to_many(model, field):
-    """
-    Whether `field` traverses a to-many relation (many-to-many or reverse FK).
-    """
-    return _to_many_relation_root(model, field) is not None
-
-
-def _count_to_many_leaves(q_obj: Q, model: Optional[ModelClass]) -> int:
-    """Count, across the whole tree, leaves whose lookup crosses a to-many."""
-    total = 0
-    for child in q_obj.children:
-        if isinstance(child, Q):
-            total += _count_to_many_leaves(child, model)
-        elif isinstance(child, tuple) and _crosses_to_many(model, child[0]):
-            total += 1
-
-    return total
-
-
-def rewrite_to_many_and(q_obj: Q, model: Optional[ModelClass]) -> Q:
-    """
-    Rewrite every ``AND`` of two or more leaves on the same to-many relation
-    into a single ``pk__in`` subquery, so "has a related row matching each"
-    holds anywhere in the boolean tree — including inside ``OR``/``NOT``
-    (DEV-1581).
-
-    A plain ``.filter(a & b)`` on a to-many asks one joined row to satisfy both
-    leaves at once, which never matches; chaining ``.filter().filter()`` only
-    works at the top level. Collapsing the group to ``pk__in=<rows matching each
-    leaf>`` yields one freely composable predicate. Scalar and to-one leaves,
-    and lone to-many leaves, keep their merged form. Returns a new ``Q``; the
-    input is left untouched.
-    """
-    if model is None:
-        return q_obj
-
-    max_filters = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
-    if _count_to_many_leaves(q_obj, model) > max_filters:
-        # Bound the JOIN/subquery fan-out an anonymous search can trigger
-        raise QueryParserTooManyRelationalFilters
-
-    return _rewrite_to_many_and(q_obj, model)
-
-
-def _rewrite_to_many_and(q_obj: Q, model: ModelClass) -> Q:
-    # Depth-first: rewrite nested subtrees before this node, so a to-many AND
-    # buried inside an OR/NOT is collapsed too.
-    new_children = [
-        _rewrite_to_many_and(child, model) if isinstance(child, Q) else child
-        for child in q_obj.children
-    ]
-
-    if q_obj.connector == Q.AND:
-        # Collapse to-many groups even when the AND is negated: `NOT (foo AND
-        # bar)` must exclude rows having both, which only `~Q(pk__in=...)` does.
-        new_children = _collapse_to_many_leaves(new_children, model)
-
-    rewritten = Q(*new_children)
-    rewritten.connector = q_obj.connector
-    rewritten.negated = q_obj.negated
-    return rewritten
-
-
-def _collapse_to_many_leaves(children: list, model: ModelClass) -> list:
-    """
-    Within a single AND, group leaf tuples by the to-many relation they
-    traverse and replace each group of 2+ leaves with a ``pk__in`` subquery
-    matching rows that carry a related row for every leaf. Groups of one, and
-    everything scalar/to-one, pass through unchanged (a single join already
-    means "has a matching row").
-    """
-    groups = defaultdict(list)  # to-many root segment -> [leaf tuple, ...]
-    passthrough = []
-    for child in children:
-        root = (
-            _to_many_relation_root(model, child[0])
-            if isinstance(child, tuple)
-            else None
-        )
-        if root is None:
-            passthrough.append(child)
-        else:
-            groups[root].append(child)
-
-    result = list(passthrough)
-    for leaves in groups.values():
-        if len(leaves) < 2:
-            result.extend(leaves)
-            continue
-        # `_base_manager` never narrows the row set, so the subquery is a pure
-        # "has a row for each leaf" predicate; the outer queryset keeps its own
-        # scope when it applies `pk__in`.
-        subquery = model._base_manager.all()
-        for leaf in leaves:
-            subquery = subquery.filter(Q(leaf))
-        result.append(('pk__in', subquery.values('pk')))
-
-    return result
-
-
 def get_parsed_parameters(parsed_query: Q) -> dict:
     """
     NOTE: this is a hack that does not respect boolean logic.
@@ -484,6 +369,11 @@ def get_parsed_parameters(parsed_query: Q) -> dict:
     for child in parsed_query.__dict__['children']:
         if isinstance(child, Q):
             parameters.update(get_parsed_parameters(child))
+            continue
+
+        if not isinstance(child, tuple):
+            # e.g. the `Exists` built for a to-many lookup: no parameter to
+            # extract
             continue
 
         parameters[child[0]].append(child[1])
@@ -531,3 +421,34 @@ def parse(
         raise SearchQueryTooShortException()
 
     return q_object
+
+
+def _crosses_to_many(model: ModelClass, field: str) -> bool:
+    """
+    Whether `field` traverses a to-many relation (many-to-many or reverse FK).
+    """
+    return any(
+        model_field.many_to_many or model_field.one_to_many
+        for _, _, model_field in _iter_field_path(model, field)
+    )
+
+
+def _iter_field_path(model, field):
+    """
+    Yield `(owner_model, segment, model_field)` for each concrete model field
+    on `field`, stopping at the first lookup/JSONField key. Shared so that
+    `_validate_field` and `_crosses_to_many` resolve paths identically.
+    """
+    current_model = model
+    for segment in field.replace('[]', '').split('__'):
+        try:
+            model_field = current_model._meta.get_field(segment)  # noqa
+        except FieldDoesNotExist:
+            return
+
+        yield current_model, segment, model_field
+
+        if not model_field.is_relation or model_field.related_model is None:
+            return
+
+        current_model = model_field.related_model
