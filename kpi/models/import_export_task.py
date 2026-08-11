@@ -7,7 +7,7 @@ import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 import constance
@@ -83,6 +83,7 @@ from kpi.utils.rename_xls_sheet import (
     rename_xlsx_sheet,
 )
 from kpi.utils.sluggify import is_valid_node_name
+from kpi.utils.standardize_content import standardize_content_in_place
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
@@ -378,6 +379,7 @@ class ImportTask(ImportExportTask):
                     # The below is copied from `_parse_b64_upload` pretty much as is
                     # TODO: review and test carefully
                     asset = destination
+                    self._make_translations_explicit(kontent)
                     asset.content = kontent
                     asset.save()
                     messages['updated'].append({
@@ -416,6 +418,18 @@ class ImportTask(ImportExportTask):
             if name in names:
                 raise DuplicateNameException(f'Duplicate node name: {name}')
             names.add(name)
+
+    @staticmethod
+    def _make_translations_explicit(survey_dict: dict[str, Any]) -> None:
+        """
+        Expand the uploaded content so that its list of languages comes from
+        the uploaded file only.
+
+        `Asset.save()` restores the translations saved in the database when the
+        content it receives does not declare any of its own, which would keep
+        alive the languages that the new XLSForm no longer contains.
+        """
+        standardize_content_in_place(survey_dict)
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
@@ -490,6 +504,7 @@ class ImportTask(ImportExportTask):
                     _append_kobo_locking_profiles(
                         base64_encoded_upload, survey_dict
                     )
+                self._make_translations_explicit(survey_dict)
                 asset.content = survey_dict
                 old_name = asset.name
                 # saving sometimes changes the name
