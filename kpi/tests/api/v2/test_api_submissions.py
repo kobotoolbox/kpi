@@ -1666,6 +1666,65 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self._get_edit_link()
 
     @responses.activate
+    def test_get_edit_link_with_duplicates_in_content(self):
+        self.asset.content = {
+            'survey': [
+                {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'},
+                {
+                    'type': 'text',
+                    'label': 'fixture q1 duplicate',
+                    'name': 'q1',
+                    'kuid': 'def',
+                },
+            ]
+        }
+
+        def force_autoname_no_error(content, **kwargs):
+            # simulate old-style autonaming
+            content['survey'] = [
+                {
+                    'type': 'text',
+                    'label': ['fixture q1'],
+                    'name': 'q1',
+                    'kuid': 'abc',
+                    '$autoname': 'q1',
+                },
+                {
+                    'type': 'text',
+                    'label': ['fixture q1 duplicate'],
+                    'name': 'q1',
+                    'kuid': 'def',
+                    '$autoname': 'q1_001',
+                    '$given_name': 'q1',
+                },
+                {
+                    'name': '__version__',
+                    'calculation': "'vttkbu4G8hbjC8ST3s8B8S'",
+                    'type': 'calculate',
+                    '$autoname': '__version__',
+                },
+            ]
+
+        with mock.patch.object(
+            self.asset, '_autoname', side_effect=force_autoname_no_error
+        ):
+            self.asset.save()
+            self.asset.deploy()
+        uuid_ = uuid.uuid4()
+        submission = {
+            'q1': ''.join(random.choice(string.ascii_letters) for letter in range(10)),
+            'q1_001': ''.join(
+                random.choice(string.ascii_letters) for letter in range(10)
+            ),
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': 'someuser',
+        }
+
+        self.asset.deployment.mock_submissions([submission])
+        self._get_edit_link()
+
+    @responses.activate
     def test_get_edit_submission_redirect_as_owner(self):
         """
         someuser is the owner of the project.

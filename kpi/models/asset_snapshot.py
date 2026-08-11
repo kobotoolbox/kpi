@@ -2,8 +2,8 @@ import copy
 
 from django.conf import settings
 from django.db import models
-from formpack import FormPack
 
+from formpack import FormPack
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.constants import API_NAMESPACES
 from kpi.fields import KpiUidField
@@ -139,7 +139,8 @@ class AssetSnapshot(
         self._standardize(_source)
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
-        self._autoname(_source, raise_on_error=kwargs.get('raise_on_duplicate_error', False))
+        raise_on_duplicate = kwargs.pop('raise_on_duplicate_error', True)
+        self._autoname(_source, raise_on_error=raise_on_duplicate)
         self._remove_empty_expressions(_source)
         # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})
