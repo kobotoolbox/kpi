@@ -21,6 +21,7 @@ from kpi.constants import (
 from kpi.exceptions import (
     QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
+    QueryParserTooManyRelationalFilters,
     SearchQueryTooShortException,
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
@@ -398,6 +399,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         except (
             ParseError,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ):
             # Let's `SearchFilter` handle errors
@@ -478,6 +480,7 @@ class SearchFilter(filters.BaseFilterBackend):
         except (
             QueryParserBadSyntax,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ) as e:
             # raising an exception if the default search query without a

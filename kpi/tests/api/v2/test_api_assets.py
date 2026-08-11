@@ -386,6 +386,14 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         response = self.client.get(self.list_url, data={'q': 'owner__password:x'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_search_rejects_too_many_relational_filters(self):
+        # Over the to-many cap, the API must answer 400 like other parser
+        # errors, not 500
+        limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+        query = ' OR '.join(f'tags__name:t{i}' for i in range(limit + 1))
+        response = self.client.get(self.list_url, data={'q': query})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_numeric_search_for_assets_does_not_crash(self):
         someuser = User.objects.get(username='someuser')
 
