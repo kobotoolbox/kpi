@@ -2,11 +2,13 @@ from copy import deepcopy
 
 import jsonschema.exceptions
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
@@ -23,6 +25,34 @@ from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 # than at the call site: `makemessages` only extracts literal arguments, so
 # `t(CONSTANT)` would leave the string out of the catalogs entirely.
 INVALID_PARAMS_ERROR = t('Invalid parameters for this action')
+
+
+def get_submission_root_uuid_map(asset, submission_uuids: list[str]) -> dict[str, str]:
+    """
+    Map the submission identifiers a client may send to their root UUIDs
+
+    The frontend normally sends the root UUID, but some submissions do not have
+    one yet, and for those it sends the submission's `uuid` instead. Accept
+    either and return the root UUID to use for each, since that is what the
+    rest of the bulk code is keyed on
+
+    TODO: drop this helper, and filter on `root_uuid` directly again, once LRM
+    0027 and 0028 have completed everywhere and every client sends root UUIDs
+    """
+    if not asset.has_deployment:
+        return {}
+
+    requested = [remove_uuid_prefix(uuid) for uuid in submission_uuids]
+    root_uuid_by_identifier = {}
+    for uuid, root_uuid in Instance.objects.filter(
+        Q(root_uuid__in=requested) | Q(uuid__in=requested),
+        xform=asset.deployment.xform,
+    ).values_list('uuid', 'root_uuid'):
+        root_uuid = root_uuid or uuid
+        root_uuid_by_identifier.setdefault(uuid, root_uuid)
+        root_uuid_by_identifier[root_uuid] = root_uuid
+
+    return root_uuid_by_identifier
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
@@ -176,7 +206,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
                 {'params': {'language': ['This field is required.']}}
             )
 
-        self._validate_submissions_exist(asset, submission_uuids)
+        submission_uuids = self._resolve_submission_root_uuids(asset, submission_uuids)
 
         skipped = self._get_existing_result_uuids(
             asset, question_xpath, action_id, params, submission_uuids
@@ -200,18 +230,19 @@ class BulkActionCreateSerializer(serializers.Serializer):
         attrs['skipped_uuids'] = sorted(skipped)
         return attrs
 
-    def _validate_submissions_exist(self, asset, submission_uuids):
+    def _resolve_submission_root_uuids(self, asset, submission_uuids) -> list[str]:
+        """
+        Validate the requested submissions and return their root UUIDs
+        """
         if not asset.has_deployment:
             raise serializers.ValidationError(
                 'Bulk actions can only be created for deployed assets.'
             )
-        existing = set(
-            Instance.objects.filter(
-                xform=asset.deployment.xform,
-                root_uuid__in=submission_uuids,
-            ).values_list('root_uuid', flat=True)
-        )
-        missing = [uuid for uuid in submission_uuids if uuid not in existing]
+
+        requested = [remove_uuid_prefix(uuid) for uuid in submission_uuids]
+        root_uuid_by_identifier = get_submission_root_uuid_map(asset, requested)
+
+        missing = [uuid for uuid in requested if uuid not in root_uuid_by_identifier]
         if missing:
             raise serializers.ValidationError(
                 {
@@ -220,6 +251,8 @@ class BulkActionCreateSerializer(serializers.Serializer):
                     ]
                 }
             )
+
+        return [root_uuid_by_identifier[uuid] for uuid in requested]
 
     def _get_active_bulk_conflict_uuids(
         self,
@@ -452,12 +485,18 @@ class BulkAcceptSerializer(serializers.Serializer):
         language = self.validated_data.get('language')
         now_str = utc_datetime_to_js_str(timezone.now())
 
+        root_uuid_by_identifier = get_submission_root_uuid_map(asset, submission_uids)
+        submission_root_uuids = [
+            root_uuid_by_identifier.get(identifier, identifier)
+            for identifier in map(remove_uuid_prefix, submission_uids)
+        ]
+
         with transaction.atomic():
             supplements = list(
                 SubmissionSupplement.objects.select_for_update()
                 .filter(
                     asset=asset,
-                    submission_uuid__in=submission_uids,
+                    submission_uuid__in=submission_root_uuids,
                 )
             )
 

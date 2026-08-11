@@ -545,12 +545,29 @@ def _get_bulk_action_request_data(action_data: dict) -> dict:
 def _get_submission_for_bulk_action_item(item):
     """
     Load the deployed submission targeted by a bulk action item
+
+    TODO: drop the `_uuid` branch from `query` once LRM 0028 is complete
     """
+    root_uuid = item.submission_root_uuid
     submissions = item.parent.asset.deployment.get_submissions(
         user=item.parent.asset.owner,
-        query={'meta/rootUuid': add_uuid_prefix(item.submission_root_uuid)},
+        query={
+            '$or': [
+                {SUBMISSION_UUID_FIELD: add_uuid_prefix(root_uuid)},
+                {'_uuid': root_uuid},
+            ]
+        },
     )
-    return next(iter(submissions), None)
+    submission = next(iter(submissions), None)
+    if submission is None:
+        return None
+
+    # Everything downstream reads `meta/rootUuid` straight off this dict, so
+    # fill it in for documents LRM 0028 has not reached yet
+    if not submission.get(SUBMISSION_UUID_FIELD):
+        submission[SUBMISSION_UUID_FIELD] = add_uuid_prefix(root_uuid)
+
+    return submission
 
 
 def _mark_bulk_item_failed(item, error: str | None = None) -> None:

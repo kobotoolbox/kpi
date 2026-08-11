@@ -3,6 +3,7 @@ import uuid
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 
@@ -404,3 +405,69 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
             }
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class BulkAcceptSubmissionUuidResolutionTestCase(SubsequenceBaseTestCase):
+    """
+    Supplements are keyed on the root UUID, but a client may send `_uuid`
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.accept_url = reverse(
+            self._get_endpoint('data-supplements-bulk-list'),
+            args=[self.asset.uid],
+        )
+        self.instance = Instance.objects.get(
+            xform=self.asset.deployment.xform, root_uuid=self.submission_uuid
+        )
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=_transcription_supplement(self.submission_uuid),
+        )
+
+    def _post_accept(self, submission_uids):
+        return self.client.post(
+            self.accept_url,
+            data={
+                'submission_uids': submission_uids,
+                'question_xpath': 'q1',
+                'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
+            },
+            format='json',
+        )
+
+    def _accepted_date(self):
+        supplement = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        )
+        versions = supplement.content['q1']['automatic_google_transcription'][
+            '_versions'
+        ]
+        return versions[0].get('_dateAccepted')
+
+    def test_accept_by_current_uuid_of_edited_submission(self):
+        edited_uuid = str(uuid.uuid4())
+        Instance.objects.filter(pk=self.instance.pk).update(uuid=edited_uuid)
+
+        response = self._post_accept([edited_uuid])
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['accepted_count'] == 1
+        assert self._accepted_date() is not None
+
+    def test_accept_by_root_uuid_still_works(self):
+        response = self._post_accept([self.submission_uuid])
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['accepted_count'] == 1
+        assert self._accepted_date() is not None
+
+    def test_unknown_uuid_accepts_nothing(self):
+        response = self._post_accept([str(uuid.uuid4())])
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['accepted_count'] == 0
+        assert self._accepted_date() is None

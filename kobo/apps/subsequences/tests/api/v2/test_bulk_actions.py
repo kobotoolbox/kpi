@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
@@ -715,3 +716,90 @@ class EnsureQuestionAdvancedFeatureTestCase(SubsequenceBaseTestCase):
         languages = [p['language'] for p in feature.params]
         assert 'de' in languages
         assert 'fr' in languages
+
+
+class BulkActionSubmissionUuidResolutionTestCase(SubsequenceBaseTestCase):
+    """
+    Clients may identify a submission by either of its two UUIDs
+
+    `_uuid` changes every time a submission is edited, while `meta/rootUuid`
+    never does, and the data table exposes both. The endpoint must accept
+    either and store the root UUID, as the single-submission endpoint does
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.list_url = reverse(
+            self._get_endpoint('advanced-features-bulk-actions-list'),
+            args=[self.asset.uid],
+        )
+        self.instance = Instance.objects.get(
+            xform=self.asset.deployment.xform, root_uuid=self.submission_uuid
+        )
+
+    def _edit_submission(self) -> str:
+        """
+        Simulate an edit: `uuid` moves on, `root_uuid` stays put
+        """
+        edited_uuid = str(uuid.uuid4())
+        Instance.objects.filter(pk=self.instance.pk).update(uuid=edited_uuid)
+        return edited_uuid
+
+    def _post(self, submission_uuids):
+        return self.client.post(
+            self.list_url,
+            data={
+                'action_id': 'automatic_google_transcription',
+                'question_xpath': 'q1',
+                'submission_uuids': submission_uuids,
+                'params': {'language': 'en', 'locale': 'en-US'},
+            },
+            format='json',
+        )
+
+    def test_edited_submission_accepted_by_current_uuid(self):
+        edited_uuid = self._edit_submission()
+
+        response = self._post([edited_uuid])
+
+        assert response.status_code == status.HTTP_201_CREATED
+        action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
+        # Stored and echoed back as the root UUID, not the edit UUID
+        assert list(
+            action.items.values_list('submission_root_uuid', flat=True)
+        ) == [self.submission_uuid]
+        assert response.data['submission_uuids'] == [self.submission_uuid]
+
+    def test_edited_submission_still_accepted_by_root_uuid(self):
+        self._edit_submission()
+
+        response = self._post([self.submission_uuid])
+
+        assert response.status_code == status.HTTP_201_CREATED
+        action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
+        assert list(
+            action.items.values_list('submission_root_uuid', flat=True)
+        ) == [self.submission_uuid]
+
+    def test_submission_without_root_uuid_accepted_by_uuid(self):
+        """
+        LRM 0027/0028 have not finished everywhere, so `root_uuid` can be null
+        """
+        Instance.objects.filter(pk=self.instance.pk).update(root_uuid=None)
+
+        response = self._post([self.submission_uuid])
+
+        assert response.status_code == status.HTTP_201_CREATED
+        action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
+        assert list(
+            action.items.values_list('submission_root_uuid', flat=True)
+        ) == [self.submission_uuid]
+
+    def test_unknown_uuid_still_rejected(self):
+        unknown_uuid = str(uuid.uuid4())
+
+        response = self._post([self.submission_uuid, unknown_uuid])
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert unknown_uuid in response.data['submission_uuids'][0]
+        assert self.submission_uuid not in response.data['submission_uuids'][0]
