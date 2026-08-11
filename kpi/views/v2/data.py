@@ -1001,6 +1001,8 @@ class DataViewSet(
             root_node_name=xml_root_node_name,
             version_uid=version_uid,
             submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+            raise_on_duplicate_error=False,
+            rename_invalid_fields=True,
         )
 
         data = {

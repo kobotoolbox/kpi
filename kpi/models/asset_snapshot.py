@@ -140,7 +140,7 @@ class AssetSnapshot(
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
         raise_on_duplicate = kwargs.pop('raise_on_duplicate_error', True)
-        rename = kwargs.pop('rename_bad_fields', False)
+        rename = kwargs.pop('rename_invalid_fields', False)
         self._autoname(
             _source, raise_on_error=raise_on_duplicate, rename_bad_fields=rename
         )

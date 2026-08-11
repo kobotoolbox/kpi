@@ -1300,7 +1300,7 @@ class Asset(
         submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,
         raise_on_duplicate_error: bool = False,
-        rename_bad_fields: bool = False,
+        rename_invalid_fields: bool = False,
     ) -> AssetSnapshot:
         if version_uid:
             asset_version = self.asset_versions.get(uid=version_uid)
@@ -1345,7 +1345,7 @@ class Asset(
             snapshot = AssetSnapshot(**snap_params)
             snapshot.save(
                 raise_on_duplicate_error=raise_on_duplicate_error,
-                rename_bad_fields=rename_bad_fields,
+                rename_invalid_fields=rename_invalid_fields,
             )
 
         return snapshot

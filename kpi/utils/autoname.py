@@ -84,7 +84,7 @@ def autoname_fields(surv_content, in_place=False):
 
 
 def autoname_fields_in_place(
-    surv_content, destination_key, raise_on_error=True, rename_bad_fields=False
+    surv_content, destination_key, raise_on_error=True, rename_invalid_fields=False
 ):
     surv_list = surv_content.get('survey')
     other_names = OrderedDict()
@@ -102,21 +102,17 @@ def autoname_fields_in_place(
     rows_needing_names = [r for r in surv_list if not _is_group_end(r)]
     for row in [r for r in rows_needing_names if _has_name(r)]:
         _name = row['name']
-        if not rename_bad_fields:
+        if not rename_invalid_fields:
             _assign_row_to_name(row, _name)
             continue
-        _attempt_count = 0
 
+        _attempt_count = 0
         while not is_valid_node_name(_name) or _name in other_names:
-            # this will be necessary for untangling skip logic
+            # save original name
             row['$given_name'] = _name
             _name = sluggify_label(_name, other_names=list(other_names.keys()))
-            # We might be able to remove these next 4 lines because
-            # sluggify_label shouldn't be returning an empty string
-            # and these fields already have names (_has_name(r)==True).
-            # However, these lines were added when testing a large set
-            # of forms so it's possible some edge cases (e.g. arabic)
-            # still permit it
+            # _name shouldn't be empty at this point but there are some edge cases
+            # for certain languages (eg Arabic)
             if _name == '' and '$kuid' in row:
                 _name = '{}_{}'.format(row['type'], row['$kuid'])
             elif _name == '':
