@@ -50,6 +50,13 @@ class OpenRosaTrailingSlashMiddlewareTests(TestCase):
             with self.subTest(path=path):
                 self.assertIsNone(self._process(path))
 
+    def test_non_openrosa_slashed_suffix_passes_through(self):
+        # Suffix alone is not enough: the slash-less path must resolve to an
+        # OpenRosa endpoint (guards against future /…/submission/ endpoints)
+        for path in ['/api/v2/assets/aXYZ/submission/', '/foo/bar/formList/']:
+            with self.subTest(path=path):
+                self.assertIsNone(self._process(path))
+
     def test_double_trailing_slash_collapses_target(self):
         response = self._process('/submission//')
         self.assertIn('Retry the request at /submission', response.content.decode())
