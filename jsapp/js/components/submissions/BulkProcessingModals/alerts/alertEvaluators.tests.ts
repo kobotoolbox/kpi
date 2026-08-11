@@ -1259,9 +1259,11 @@ describe('evaluateNoSource', () => {
   })
 
   describe('for translation', () => {
+    // Translation always runs off a transcript column, so the xpath is a supplemental path here, not a bare question
+    // name like in the transcription block above.
     const baseContext: AlertEvaluationContext = {
       submissions: [],
-      fieldXpath: 'audio_question',
+      fieldXpath: '_supplementalDetails/audio_question/transcript_en',
       actionType: 'translation',
       activeBulkActions: [],
       previouslyFilteredSubmissionUuids: new Set(),
@@ -1381,6 +1383,40 @@ describe('evaluateNoSource', () => {
 
       expect(result).to.not.equal(null)
       expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    })
+
+    it('should flag submissions transcribed in another language than the column', () => {
+      // The Spanish row is empty in the English column, so it has no source to translate and has to be filtered out
+      // rather than blocking the whole action.
+      const mockSubmissions = [
+        assetDataFactory(1, {
+          _uuid: 'uuid-1',
+          _supplementalDetails: {
+            audio_question: {
+              transcript: { languageCode: 'en', value: 'Hello world' },
+            },
+          },
+        }),
+        assetDataFactory(2, {
+          _uuid: 'uuid-2',
+          _supplementalDetails: {
+            audio_question: {
+              transcript: { languageCode: 'es', value: 'Hola mundo' },
+            },
+          },
+        }),
+      ]
+
+      const context: AlertEvaluationContext = {
+        ...baseContext,
+        submissions: mockSubmissions,
+      }
+
+      const result = evaluateNoSource(context)
+
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+      expect(result?.computedValues.count).to.equal(1)
     })
 
     it('should skip submissions already filtered by previous evaluators', () => {
