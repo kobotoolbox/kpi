@@ -558,9 +558,20 @@ def _get_submission_for_bulk_action_item(item):
             ]
         },
     )
-    submission = next(iter(submissions), None)
-    if submission is None:
+    candidates = list(submissions)
+    if not candidates:
         return None
+
+    # `_uuid` is only a fallback, so a `meta/rootUuid` match always wins
+    submission = next(
+        (
+            candidate
+            for candidate in candidates
+            if remove_uuid_prefix(candidate.get(SUBMISSION_UUID_FIELD) or '')
+            == root_uuid
+        ),
+        candidates[0],
+    )
 
     # Everything downstream reads `meta/rootUuid` straight off this dict, so
     # fill it in for documents LRM 0028 has not reached yet

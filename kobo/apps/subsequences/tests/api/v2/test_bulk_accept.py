@@ -7,7 +7,6 @@ from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 
-
 TRANSCRIPTION_VERSION = {
     '_dateCreated': '2026-01-01T00:00:00.000000Z',
     '_uuid': '00000000-0000-0000-0000-000000000001',

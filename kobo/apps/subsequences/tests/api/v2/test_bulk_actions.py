@@ -765,9 +765,9 @@ class BulkActionSubmissionUuidResolutionTestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
         # Stored and echoed back as the root UUID, not the edit UUID
-        assert list(
-            action.items.values_list('submission_root_uuid', flat=True)
-        ) == [self.submission_uuid]
+        assert list(action.items.values_list('submission_root_uuid', flat=True)) == [
+            self.submission_uuid
+        ]
         assert response.data['submission_uuids'] == [self.submission_uuid]
 
     def test_edited_submission_still_accepted_by_root_uuid(self):
@@ -777,9 +777,9 @@ class BulkActionSubmissionUuidResolutionTestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_201_CREATED
         action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
-        assert list(
-            action.items.values_list('submission_root_uuid', flat=True)
-        ) == [self.submission_uuid]
+        assert list(action.items.values_list('submission_root_uuid', flat=True)) == [
+            self.submission_uuid
+        ]
 
     def test_submission_without_root_uuid_accepted_by_uuid(self):
         """
@@ -791,9 +791,9 @@ class BulkActionSubmissionUuidResolutionTestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_201_CREATED
         action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
-        assert list(
-            action.items.values_list('submission_root_uuid', flat=True)
-        ) == [self.submission_uuid]
+        assert list(action.items.values_list('submission_root_uuid', flat=True)) == [
+            self.submission_uuid
+        ]
 
     def test_unknown_uuid_still_rejected(self):
         unknown_uuid = str(uuid.uuid4())
