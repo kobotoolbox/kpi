@@ -140,7 +140,10 @@ class AssetSnapshot(
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
         raise_on_duplicate = kwargs.pop('raise_on_duplicate_error', True)
-        self._autoname(_source, raise_on_error=raise_on_duplicate)
+        rename = kwargs.pop('rename_bad_fields', False)
+        self._autoname(
+            _source, raise_on_error=raise_on_duplicate, rename_bad_fields=rename
+        )
         self._remove_empty_expressions(_source)
         # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})
