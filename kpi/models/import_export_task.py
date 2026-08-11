@@ -7,11 +7,12 @@ import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
+import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -21,13 +22,6 @@ from django.db.models.functions import Cast, Coalesce, Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from rest_framework import exceptions
-from rest_framework.reverse import reverse
-from werkzeug.http import parse_options_header
-
-import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -38,6 +32,13 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from rest_framework.reverse import reverse
+from werkzeug.http import parse_options_header
+
 from kobo.apps.audit_log.utils import get_lookback_date
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
@@ -87,7 +88,6 @@ from kpi.utils.standardize_content import standardize_content_in_place
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 
 
 def utcnow(*args, **kwargs):
@@ -379,7 +379,9 @@ class ImportTask(ImportExportTask):
                     # The below is copied from `_parse_b64_upload` pretty much as is
                     # TODO: review and test carefully
                     asset = destination
-                    self._make_translations_explicit(kontent)
+                    # Derive `translations` from the file so `Asset.save()`
+                    # does not restore languages removed from it (DEV-2657)
+                    standardize_content_in_place(kontent)
                     asset.content = kontent
                     asset.save()
                     messages['updated'].append({
@@ -418,18 +420,6 @@ class ImportTask(ImportExportTask):
             if name in names:
                 raise DuplicateNameException(f'Duplicate node name: {name}')
             names.add(name)
-
-    @staticmethod
-    def _make_translations_explicit(survey_dict: dict[str, Any]) -> None:
-        """
-        Expand the uploaded content so that its list of languages comes from
-        the uploaded file only.
-
-        `Asset.save()` restores the translations saved in the database when the
-        content it receives does not declare any of its own, which would keep
-        alive the languages that the new XLSForm no longer contains.
-        """
-        standardize_content_in_place(survey_dict)
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
@@ -504,7 +494,9 @@ class ImportTask(ImportExportTask):
                     _append_kobo_locking_profiles(
                         base64_encoded_upload, survey_dict
                     )
-                self._make_translations_explicit(survey_dict)
+                # Derive `translations` from the file so `Asset.save()`
+                # does not restore languages removed from it (DEV-2657)
+                standardize_content_in_place(survey_dict)
                 asset.content = survey_dict
                 old_name = asset.name
                 # saving sometimes changes the name
