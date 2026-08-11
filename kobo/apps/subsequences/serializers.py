@@ -43,14 +43,22 @@ def get_submission_root_uuid_map(asset, submission_uuids: list[str]) -> dict[str
         return {}
 
     requested = [remove_uuid_prefix(uuid) for uuid in submission_uuids]
-    root_uuid_by_identifier = {}
-    for uuid, root_uuid in Instance.objects.filter(
-        Q(root_uuid__in=requested) | Q(uuid__in=requested),
-        xform=asset.deployment.xform,
-    ).values_list('uuid', 'root_uuid'):
-        root_uuid = root_uuid or uuid
-        root_uuid_by_identifier.setdefault(uuid, root_uuid)
-        root_uuid_by_identifier[root_uuid] = root_uuid
+    rows = list(
+        Instance.objects.filter(
+            Q(root_uuid__in=requested) | Q(uuid__in=requested),
+            xform=asset.deployment.xform,
+        )
+        .order_by('pk')
+        .values_list('uuid', 'root_uuid')
+    )
+
+    # `uuid` has no uniqueness constraint, so order by `pk` to stay reproducible
+    root_uuid_by_identifier = {uuid: root_uuid or uuid for uuid, root_uuid in rows}
+
+    # `root_uuid` does, so it always identifies itself: apply it last
+    root_uuid_by_identifier.update(
+        {(root_uuid or uuid): (root_uuid or uuid) for uuid, root_uuid in rows}
+    )
 
     return root_uuid_by_identifier
 
