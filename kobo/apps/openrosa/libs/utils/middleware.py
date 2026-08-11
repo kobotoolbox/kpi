@@ -96,9 +96,7 @@ class OpenRosaTrailingSlashMiddleware(MiddlewareMixin):
         if cls._openrosa_url_names_cache is None:
             from kpi.urls.router_api_v2 import OpenRosaCompatibleExtendedRouter
 
-            openrosa_aliases = (
-                OpenRosaCompatibleExtendedRouter.OPENROSA_ENDPOINT_NAMES
-            )
+            openrosa_aliases = OpenRosaCompatibleExtendedRouter.OPENROSA_ENDPOINT_NAMES
             cls._openrosa_url_names_cache = frozenset(
                 {'submissions', 'form-list'}
                 | {f'{name}-openrosa' for name in openrosa_aliases}
