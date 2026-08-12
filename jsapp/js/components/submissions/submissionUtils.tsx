@@ -856,9 +856,9 @@ export function hasUnacceptedAutomaticContent(
       return false
     }
 
-    // A question holds a single transcript, not one per language, so it only
-    // belongs to the column matching its language. Without this check a pending
-    // transcript would light up every transcript column of the row.
+    // A question holds a single transcript, not one per language, so it belongs
+    // only to the column matching its language. Without this check a pending
+    // transcript puts a Review button in every transcript column of the row.
     if (transcriptData.languageCode !== pathParts.languageCode) {
       return false
     }

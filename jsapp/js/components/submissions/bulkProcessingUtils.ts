@@ -59,6 +59,24 @@ export function hasAnyTranslatableTranscript(submissions: SubmissionResponse[], 
 }
 
 /**
+ * Checks if given submission already has a transcript that a new bulk
+ * transcription would overwrite.
+ *
+ * Unlike `hasTranslatableTranscript` above, the language is ignored on purpose:
+ * a question holds a single transcript, so a French one would be replaced by an
+ * English transcription just the same.
+ *
+ * A transcript awaiting approval counts too. It has no `value` yet (the backend
+ * sends `pendingReview` instead), but it would still be lost.
+ */
+export function hasTranscriptInAnyLanguage(submission: SubmissionResponse, fieldXpath: string): boolean {
+  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+  const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+
+  return Boolean(transcript?.value || transcript?.pendingReview)
+}
+
+/**
  * Gets languages the user shouldn't be able to pick when bulk translating given transcript column.
  * Translating a transcript into its own language leaves an empty column that can't be deleted, so the column's language
  * is always blocked.

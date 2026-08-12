@@ -11,6 +11,7 @@ import {
   hasAnyTranscribableAudio,
   hasAnyTranslatableTranscript,
   hasTranscribableAudio,
+  hasTranscriptInAnyLanguage,
   hasTranslatableTranscript,
   isBulkProcessingCellInProgress,
 } from './bulkProcessingUtils'
@@ -320,6 +321,66 @@ describe('bulkProcessingUtils', () => {
           _supplementalDetails: {
             Secret_password_as_an_audio_file: {
               transcript: { languageCode: 'es', value: 'Hola mundo' },
+            },
+          },
+        }),
+        transcriptColumnKey,
+      )
+
+      chai.expect(test).to.be.false
+    })
+  })
+
+  describe('hasTranscriptInAnyLanguage', () => {
+    const transcriptColumnKey = '_supplementalDetails/Secret_password_as_an_audio_file/transcript_en'
+
+    it('should return true for a transcript in another language than the column', () => {
+      // Pinning the language-blindness on purpose: an English transcription would overwrite this Spanish
+      // transcript, so it has to count as existing content.
+      const test = hasTranscriptInAnyLanguage(
+        assetDataFactory(1, {
+          _supplementalDetails: {
+            Secret_password_as_an_audio_file: {
+              transcript: { languageCode: 'es', value: 'Hola mundo' },
+            },
+          },
+        }),
+        transcriptColumnKey,
+      )
+
+      chai.expect(test).to.be.true
+    })
+
+    it('should return true for a transcript still awaiting approval', () => {
+      const test = hasTranscriptInAnyLanguage(
+        assetDataFactory(1, {
+          _supplementalDetails: {
+            Secret_password_as_an_audio_file: {
+              transcript: { languageCode: 'en', pendingReview: true },
+            },
+          },
+        }),
+        transcriptColumnKey,
+      )
+
+      chai.expect(test).to.be.true
+    })
+
+    it('should return false when there is no transcript at all', () => {
+      const test = hasTranscriptInAnyLanguage(
+        assetDataFactory(1, { _supplementalDetails: { Secret_password_as_an_audio_file: {} } }),
+        transcriptColumnKey,
+      )
+
+      chai.expect(test).to.be.false
+    })
+
+    it('should return false for a transcript of another question', () => {
+      const test = hasTranscriptInAnyLanguage(
+        assetDataFactory(1, {
+          _supplementalDetails: {
+            Some_other_question: {
+              transcript: { languageCode: 'en', value: 'Hello world' },
             },
           },
         }),

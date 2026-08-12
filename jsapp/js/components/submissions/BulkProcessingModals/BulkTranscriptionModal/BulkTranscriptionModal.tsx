@@ -19,6 +19,7 @@ import Alert from '#/components/common/alert'
 import RegionSelector from '#/components/languages/RegionSelector'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { hasTranscriptInAnyLanguage } from '#/components/submissions/bulkProcessingUtils'
 import { useCalculateAudioDuration } from '#/components/submissions/useCalculateAudioDuration.hook'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -41,12 +42,6 @@ function getAlreadyTranscribedMessage(count: number, duration: string): string {
   )
     .replace('##count##', String(count))
     .replace('##duration##', duration)
-}
-
-function isAlreadyTranscribedSubmission(submission: SubmissionResponse, sourceRowPath: string): boolean {
-  const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
-
-  return Boolean(transcript?.value || transcript?.pendingReview)
 }
 
 export interface BulkTranscriptionModalProps {
@@ -123,8 +118,8 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   // The alert hook filters already-transcribed submissions later, so we mirror
   // that exclusion here instead of counting every selected row up front.
   const transcribableSubmissions = useMemo(
-    () => props.selectedSubmissions.filter((submission) => !isAlreadyTranscribedSubmission(submission, sourceRowPath)),
-    [props.selectedSubmissions, sourceRowPath],
+    () => props.selectedSubmissions.filter((submission) => !hasTranscriptInAnyLanguage(submission, props.fieldXpath)),
+    [props.selectedSubmissions, props.fieldXpath],
   )
 
   const {
