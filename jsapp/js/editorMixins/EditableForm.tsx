@@ -1041,19 +1041,6 @@ export default function EditableForm(props: EditableFormProps) {
               />
             </bem.FormBuilderAside__row>
 
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>{t('Choice options')}</bem.FormBuilderAside__header>
-
-              <Switch
-                checked={state.settings__allow_choice_duplicates}
-                onChange={(event) => onAllowChoiceDuplicatesChange(event.currentTarget.checked)}
-                label={t('Allow duplicate choice values')}
-                description={t('When enabled, multiple choices in the same list can have the same value.')}
-                disabled={isChangingAppearanceRestricted()}
-                className='form-builder-aside__switch'
-              />
-            </bem.FormBuilderAside__row>
-
             {hasMetadataAndDetails() && (
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>{t('Metadata')}</bem.FormBuilderAside__header>
@@ -1066,6 +1053,19 @@ export default function EditableForm(props: EditableFormProps) {
                 />
               </bem.FormBuilderAside__row>
             )}
+
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>{t('Choice options')}</bem.FormBuilderAside__header>
+
+              <Switch
+                checked={state.settings__allow_choice_duplicates}
+                onChange={(event) => onAllowChoiceDuplicatesChange(event.currentTarget.checked)}
+                label={t('Allow duplicate choice names')}
+                description={t('When enabled, multiple choices in the same list can have the same name.')}
+                disabled={isChangingAppearanceRestricted()}
+                className='form-builder-aside__switch'
+              />
+            </bem.FormBuilderAside__row>
           </bem.FormBuilderAside__content>
         )}
 
