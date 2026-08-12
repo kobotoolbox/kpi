@@ -30,7 +30,7 @@ import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
 
 /** Shared look of the boolean "is this security feature on?" columns (2FA, SSO). */
-function renderStatusBadge(isEnabled: boolean) {
+function renderStatusBadge(isEnabled: boolean | null | undefined) {
   return isEnabled ? (
     <Badge size='s' color='light-blue' icon='check' />
   ) : (
