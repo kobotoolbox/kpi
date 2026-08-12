@@ -500,7 +500,7 @@ class Asset(
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
-        self._autoname(self.content)
+        self._autoname(self.content, handle_duplicates=HandleDuplicatesOptions.IGNORE)
         self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
@@ -1300,7 +1300,6 @@ class Asset(
         version_uid: Optional[str] = None,
         submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,
-        handle_duplicates=HandleDuplicatesOptions.RAISE,
     ) -> AssetSnapshot:
         if version_uid:
             asset_version = self.asset_versions.get(uid=version_uid)
@@ -1343,7 +1342,7 @@ class Asset(
 
             snap_params['source'] = content
             snapshot = AssetSnapshot(**snap_params)
-            snapshot.save(handle_duplicates=handle_duplicates)
+            snapshot.save()
 
         return snapshot
 
