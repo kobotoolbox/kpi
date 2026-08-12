@@ -1,8 +1,20 @@
+from operator import attrgetter
+
 from allauth.socialaccount.models import SocialAccount
 from django.core.exceptions import FieldError
 from django.db import transaction
-from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
+from django.db.models import (
+    Case,
+    CharField,
+    F,
+    OuterRef,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 from django.db.models.expressions import Exists
+from django.db.models.functions import Coalesce, Lower
 from django.utils.http import http_date
 from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
@@ -547,9 +559,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         organization_id = self.kwargs['uid_organization']
 
         for obj in page:
-            if obj.model_type != '0_organization_user':
-                break
-            members_user_ids.append(obj.user_id)
+            if obj.model_type == '0_organization_user':
+                members_user_ids.append(obj.user_id)
 
         self._invites_queryset = OrganizationInvitation.objects.filter(  # noqa
             status=OrganizationInviteStatusChoices.ACCEPTED,
@@ -578,6 +589,13 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             organization_user=OuterRef('pk')
         ).values('pk')
 
+        role_annotation = Case(
+            When(Exists(owner_subquery), then=Value('owner')),
+            When(is_admin=True, then=Value('admin')),
+            default=Value('member'),
+            output_field=CharField(),
+        )
+
         # Annotate with the role based on organization ownership and admin status
         queryset = (
             OrganizationUser.objects.filter(
@@ -585,17 +603,14 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             )
             .select_related('user__extra_details')
             .annotate(
-                role=Case(
-                    When(Exists(owner_subquery), then=Value('owner')),
-                    When(is_admin=True, then=Value('admin')),
-                    default=Value('member'),
-                    output_field=CharField(),
-                ),
+                role=role_annotation,
                 has_mfa_enabled=Exists(mfa_subquery),
                 has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
                 ordering_date=F('created'),
                 model_type=Value('0_organization_user', output_field=CharField()),
+                username_sort=Lower(F('user__username')),
+                status_sort=Value('active'),
             )
         )
 
@@ -694,11 +709,41 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
+                role=Lower(F('invitee_role')),
+                has_sso_enabled=Value(False),
                 ordering_date=F('created'),
                 model_type=Value('1_organization_invitation', output_field=CharField()),
+                username_sort=Lower(
+                    Coalesce(F('invitee__username'), F('invitee_identifier'), Value(''))
+                ),
+                status_sort=Value('invited'),
             )
             queryset = list(queryset) + list(invitees)
-            queryset = sorted(queryset, key=lambda x: (x.model_type, x.ordering_date))
+
+            SORT_FIELDS = {
+                'user__username': 'username_sort',
+                'status': 'status_sort',
+                'date_joined': 'ordering_date',
+                'date_added': 'ordering_date',
+                'created': 'ordering_date',
+                'role': 'role',
+                'user__has_sso_enabled': 'has_sso_enabled',
+            }
+
+            ordering = self.request.query_params.get('ordering', '').strip()
+            reverse = ordering.startswith('-')
+            field_name = ordering.lstrip('-')
+
+            if sort_attr := SORT_FIELDS.get(field_name):
+                queryset = sorted(
+                    queryset,
+                    key=attrgetter(sort_attr, 'model_type', 'ordering_date'),
+                    reverse=reverse,
+                )
+            else:
+                queryset = sorted(
+                    queryset, key=attrgetter('model_type', 'ordering_date')
+                )
 
         return queryset
 

@@ -9299,10 +9299,10 @@ paths:
     get:
       operationId: api_v2_organizations_members_list
       description: "## List Members\n\nRetrieves all members and pending invitations
-        in the specified organization.\n\n### Searching\n\nSearch can be made with
-        the `q` parameter. It will implicitly match against the username, email, first
-        name, last name, and profile name (`extra_details__data__name`) of the members
-        or pending invitations.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?q=luis\n```\n\n>
+        in the specified organization.\n\n<<<<<<< HEAD\n### Searching\n\nSearch can
+        be made with the `q` parameter. It will implicitly match against the username,
+        email, first name, last name, and profile name (`extra_details__data__name`)
+        of the members or pending invitations.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?q=luis\n```\n\n>
         [!WARNING]\n> **Explicit Field Searching:** Because this endpoint combines
         active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`),
         you cannot use an explicit boolean `OR` across different model fields in the
@@ -9312,8 +9312,8 @@ paths:
         simply rely on the generic query (e.g., `q=luis@example.com`) without specifying
         prefixes. Use explicit field prefixes ONLY when you want to narrow the results
         to a specific group (e.g., `q=user__email:luis@example.com` to target only
-        active members).\n\n### Sorting\n\nResults can be sorted with the `ordering`
-        parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed
+        active members).\n\n=======\n>>>>>>> origin/main\n### Sorting\n\nResults can
+        be sorted with the `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed
         ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`,
         `created`)\n- `role`\n- `user__has_sso_enabled`\n\nPrefix field names with
         `-` for descending sort.\n"
@@ -19286,31 +19286,52 @@ components:
       type: object
       properties:
         role:
-          $ref: '#/components/schemas/MemberRoleEnum'
+          oneOf:
+          - allOf:
+            - $ref: '#/components/schemas/MemberRoleEnum'
+          - type: 'null'
         url:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/
         user:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user__username:
-          type: string
+          type:
+          - string
+          - 'null'
         user__email:
-          type: string
+          type:
+          - string
+          - 'null'
           format: email
         user__extra_details__name:
-          type: string
+          type:
+          - string
+          - 'null'
         user__has_mfa_enabled:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
         user__has_sso_enabled:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
         date_joined:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
         user__is_active:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
         invite:
           oneOf:
           - $ref: '#/components/schemas/InviteResponse'

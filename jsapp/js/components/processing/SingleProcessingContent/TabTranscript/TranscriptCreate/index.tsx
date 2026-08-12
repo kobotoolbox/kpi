@@ -51,15 +51,16 @@ export default function TranscriptCreate({
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
 
-  const hasConflictingOngoingJob =
-    languageCode !== null &&
-    isConflictingOngoingJobForSubmission({
-      activeBulkActions,
-      actionType: 'transcript',
-      fieldXpath: questionXpath,
-      submissionUuid: getSubmissionRootUuid(submission),
-      selectedLanguage: languageCode,
-    })
+  // No `selectedLanguage`: every job on this question rewrites the transcript, so
+  // for `transcript` the check ignores the language anyway. Previously this was
+  // additionally gated on a language being picked, which kept the "begin" step
+  // (where none is picked yet) from ever knowing about a running job.
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+  })
 
   const attachment = getAttachmentForProcessing(questionXpath, submission)
 
@@ -72,7 +73,12 @@ export default function TranscriptCreate({
   return (
     <>
       {step === CreateSteps.Begin && (
-        <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep(CreateSteps.Language)} />
+        <StepBegin
+          asset={asset}
+          questionXpath={questionXpath}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
+          onNext={() => setStep(CreateSteps.Language)}
+        />
       )}
       {step === CreateSteps.Language && (
         <StepSelectLanguage

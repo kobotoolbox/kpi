@@ -1488,6 +1488,7 @@ export const useOrganizationsInvitesDestroy = <TError = ErrorDetail, TContext = 
 
 Retrieves all members and pending invitations in the specified organization.
 
+<<<<<<< HEAD
 ### Searching
 
 Search can be made with the `q` parameter. It will implicitly match against the username, email, first name, last name, and profile name (`extra_details__data__name`) of the members or pending invitations.
@@ -1501,6 +1502,8 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/m
 > 
 > To search across both groups simultaneously, simply rely on the generic query (e.g., `q=luis@example.com`) without specifying prefixes. Use explicit field prefixes ONLY when you want to narrow the results to a specific group (e.g., `q=user__email:luis@example.com` to target only active members).
 
+=======
+>>>>>>> origin/main
 ### Sorting
 
 Results can be sorted with the `ordering` parameter, e.g.:
