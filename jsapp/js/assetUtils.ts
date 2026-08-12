@@ -243,9 +243,9 @@ export function getQuestionOrChoiceDisplayName(
   }
 
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
-    // If the user hasn't made translations yet for a form language show
-    // the xml names instead of blank.
-    if (questionOrChoice.label[translationIndex] === null) {
+    // Fall back to XML name if the label is missing (null) or the index is
+    // out of bounds (undefined).
+    if (questionOrChoice.label[translationIndex] == null) {
       return getRowName(questionOrChoice)
     }
     return questionOrChoice.label[translationIndex]
