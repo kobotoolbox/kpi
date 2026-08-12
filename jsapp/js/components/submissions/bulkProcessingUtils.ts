@@ -4,7 +4,7 @@ import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkA
 import { buildSupplementalPath, getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid, removeDefaultUuidPrefix } from '#/utils'
 
 /**
  * Checks if given submission has an audio file that can be transcribed in given
@@ -91,15 +91,11 @@ export function getOngoingBulkActionSubmissionUuids(bulkAction: BulkActionRespon
 /**
  * Checks if this bulk action is still processing given submission.
  *
- * Pass every uuid that identifies the submission (usually `_uuid` and
- * `meta/rootUuid`), because different code paths know it by different ones.
+ * @param submissionRootUuid - From `getSubmissionRootUuid`. Prefixed or not, both work.
  */
-export function isSubmissionOngoingInBulkAction(
-  bulkAction: BulkActionResponse,
-  submissionUuids: Array<string | undefined>,
-): boolean {
+export function isSubmissionOngoingInBulkAction(bulkAction: BulkActionResponse, submissionRootUuid: string): boolean {
   const ongoingUuids = new Set(getOngoingBulkActionSubmissionUuids(bulkAction))
-  return submissionUuids.some((uuid) => uuid && ongoingUuids.has(removeDefaultUuidPrefix(uuid)))
+  return ongoingUuids.has(removeDefaultUuidPrefix(submissionRootUuid))
 }
 
 export function isBulkProcessingCellInProgress(
@@ -116,7 +112,7 @@ export function isBulkProcessingCellInProgress(
       return false
     }
 
-    return isSubmissionOngoingInBulkAction(bulkAction, [submission._uuid, submission['meta/rootUuid']])
+    return isSubmissionOngoingInBulkAction(bulkAction, getSubmissionRootUuid(submission))
   })
 }
 
@@ -140,11 +136,7 @@ export function getVisibleBulkProcessingSubmissionUuidsToRefresh(
 
   const previousActionsByUid = new Map(prevActiveBulkActions.map((bulkAction) => [bulkAction.uid, bulkAction]))
 
-  const visibleSubmissionUuids = new Set<string>()
-  visibleSubmissions.forEach((submission) => {
-    visibleSubmissionUuids.add(removeDefaultUuidPrefix(submission._uuid))
-    visibleSubmissionUuids.add(removeDefaultUuidPrefix(submission['meta/rootUuid']))
-  })
+  const visibleSubmissionUuids = new Set(visibleSubmissions.map(getSubmissionRootUuid))
 
   const uuidsToRefresh = new Set<string>()
 

@@ -83,6 +83,33 @@ describe('bulkProcessingUtils', () => {
     chai.expect(test).to.equal(true)
   })
 
+  // Without root uuid matching the spinner would vanish mid-job, making a running transcription look finished.
+  it('should detect in-progress cells for a submission that was edited after the job started', () => {
+    const editedSubmission = assetDataFactory(1, {
+      _uuid: 'edited-uuid-1',
+      'meta/rootUuid': 'uuid:root-uuid-1',
+    })
+
+    const test = isBulkProcessingCellInProgress(
+      [
+        buildBulkAction({
+          submission_uuids: ['root-uuid-1'],
+          submission_statuses: [
+            {
+              uuid: 'root-uuid-1',
+              status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+              error: null,
+            },
+          ],
+        }),
+      ],
+      editedSubmission,
+      '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
+    )
+
+    chai.expect(test).to.equal(true)
+  })
+
   it('should ignore bulk actions for other columns or finished submission statuses', () => {
     const test = isBulkProcessingCellInProgress(
       [
@@ -172,6 +199,31 @@ describe('bulkProcessingUtils', () => {
     const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, [], [notVisibleSubmission])
 
     chai.expect(test).to.deep.equal([])
+  })
+
+  it('should return the root uuid of a visible submission that was edited after the job started', () => {
+    const editedSubmission = assetDataFactory(1, {
+      _uuid: 'edited-uuid-1',
+      'meta/rootUuid': 'uuid:root-uuid-1',
+    })
+
+    const prev = [
+      buildBulkAction({
+        uid: 'bulk-action-edited',
+        submission_uuids: ['root-uuid-1'],
+        submission_statuses: [
+          {
+            uuid: 'root-uuid-1',
+            status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+            error: null,
+          },
+        ],
+      }),
+    ]
+
+    const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, [], [editedSubmission])
+
+    chai.expect(test).to.deep.equal(['root-uuid-1'])
   })
 
   describe('hasTranscribableAudio', () => {
