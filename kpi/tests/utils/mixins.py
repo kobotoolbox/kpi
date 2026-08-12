@@ -225,9 +225,9 @@ class SubmissionEditTestCaseMixin:
 
         snapshot = self.asset.snapshot(
             regenerate=True,
-            root_node_name=xml_root_node_name,
             version_uid=last_deployed_version.uid,
             submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+            root_node_name=xml_root_node_name,
         )
 
         edit_submission_xml(

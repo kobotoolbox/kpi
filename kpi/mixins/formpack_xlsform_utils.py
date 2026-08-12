@@ -19,7 +19,11 @@ from kpi.utils.asset_translation_utils import (  # TRANSLATIONS_EQUAL,
     TRANSLATIONS_OUT_OF_ORDER,
     compare_translations,
 )
-from kpi.utils.autoname import autoname_fields_in_place, autovalue_choices_in_place
+from kpi.utils.autoname import (
+    HandleDuplicatesOptions,
+    autoname_fields_in_place,
+    autovalue_choices_in_place,
+)
 from kpi.utils.kobo_to_xlsform import (
     expand_rank_and_score_in_place,
     remove_empty_expressions_in_place,
@@ -57,10 +61,12 @@ class FormpackXLSFormUtilsMixin:
         else:
             return False
 
-    def _autoname(self, content, raise_on_error=True, rename_bad_fields=False):
-        autoname_fields_in_place(
-            content, '$autoname', raise_on_error, rename_bad_fields
-        )
+    def _autoname(
+        self,
+        content,
+        handle_duplicates: HandleDuplicatesOptions = HandleDuplicatesOptions.RAISE,
+    ):
+        autoname_fields_in_place(content, '$autoname', handle_duplicates)
         autovalue_choices_in_place(content, '$autovalue')
 
     def _insert_xpath(self, content):

@@ -9,6 +9,7 @@ from kpi.constants import API_NAMESPACES
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.mixins import FormpackXLSFormUtilsMixin, XlsExportableMixin
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
@@ -139,11 +140,11 @@ class AssetSnapshot(
         self._standardize(_source)
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
-        raise_on_duplicate = kwargs.pop('raise_on_duplicate_error', True)
-        rename = kwargs.pop('rename_invalid_fields', False)
-        self._autoname(
-            _source, raise_on_error=raise_on_duplicate, rename_bad_fields=rename
+        handle_duplicates = kwargs.pop(
+            'handle_duplicates', HandleDuplicatesOptions.IGNORE
         )
+        rename = kwargs.pop('rename_invalid_fields', False)
+        self._autoname(_source, handle_duplicates=handle_duplicates)
         self._remove_empty_expressions(_source)
         # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})

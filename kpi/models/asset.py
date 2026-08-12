@@ -65,6 +65,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -499,7 +500,7 @@ class Asset(
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
-        self._autoname(self.content, raise_on_error=False)
+        self._autoname(self.content)
         self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
@@ -1299,8 +1300,7 @@ class Asset(
         version_uid: Optional[str] = None,
         submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,
-        raise_on_duplicate_error: bool = False,
-        rename_invalid_fields: bool = False,
+        handle_duplicates=HandleDuplicatesOptions.RAISE,
     ) -> AssetSnapshot:
         if version_uid:
             asset_version = self.asset_versions.get(uid=version_uid)
@@ -1343,10 +1343,7 @@ class Asset(
 
             snap_params['source'] = content
             snapshot = AssetSnapshot(**snap_params)
-            snapshot.save(
-                raise_on_duplicate_error=raise_on_duplicate_error,
-                rename_invalid_fields=rename_invalid_fields,
-            )
+            snapshot.save(handle_duplicates=handle_duplicates)
 
         return snapshot
 

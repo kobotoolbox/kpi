@@ -5,12 +5,12 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
+from xml.etree.ElementTree import ParseError
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
 from constance import config
-from xml.etree.ElementTree import ParseError
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
@@ -21,7 +21,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from pyxform.builder import create_survey_from_xls
 from rest_framework import exceptions, status
 
 from kobo.apps.data_collectors.utils import (
@@ -75,11 +74,13 @@ from kpi.fields import KpiUidField
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from pyxform.builder import create_survey_from_xls
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
@@ -129,6 +130,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'form_title': self.asset.name,
                 }
             },
+            handle_duplicates=HandleDuplicatesOptions.RAISE,
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 

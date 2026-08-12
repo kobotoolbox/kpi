@@ -2014,7 +2014,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # name will be the name saved in the settings of the asset version.
         snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=submission_root_uuid
+            submission_uuid=submission_root_uuid,
         )
 
         (
@@ -2045,7 +2045,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Validate a new snapshot has been generated for the same criteria
         new_snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=submission_root_uuid
+            submission_uuid=submission_root_uuid,
         )
         assert new_snapshot.pk != snapshot.pk
 
@@ -2354,9 +2354,9 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         snapshot = asset.snapshot(
             regenerate=True,
-            root_node_name=xml_root_node_name,
             version_uid=version_uid,
             submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+            root_node_name=xml_root_node_name,
         )
 
         edit_submission_xml(
