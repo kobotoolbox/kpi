@@ -26312,43 +26312,77 @@
                 "type": "object",
                 "properties": {
                     "destination": {
-                        "type": "string",
-                        "format": "uri",
-                        "nullable": true
+                        "oneOf": [
+                            {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri"
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
                     },
                     "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "nullable": true
+                        "oneOf": [
+                            {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri"
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
                     },
                     "name": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "assetUid": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "base64Encoded": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "library": {
-                        "type": "boolean",
-                        "nullable": true
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "desired_type": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "totalFiles": {
-                        "type": "integer",
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "file": {
-                        "type": "string",
-                        "format": "uri",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "binary"
                     }
                 }
             },
