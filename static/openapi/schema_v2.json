@@ -11500,8 +11500,7 @@
                                 "$ref": "#/components/schemas/ImportCreateRequest"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "security": [
                     {
@@ -26313,25 +26312,63 @@
                 "type": "object",
                 "properties": {
                     "destination": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri"
                     },
                     "url": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri"
                     },
                     "name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "assetUid": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "base64Encoded": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "library": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "desired_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "totalFiles": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "file": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "binary"
                     }
-                },
-                "required": [
-                    "assetUid",
-                    "destination",
-                    "url"
-                ]
+                }
             },
             "ImportCreateResponse": {
                 "type": "object",

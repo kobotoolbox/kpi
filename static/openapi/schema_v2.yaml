@@ -8485,7 +8485,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/ImportCreateRequest'
-        required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -18807,19 +18806,44 @@ components:
       type: object
       properties:
         destination:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
         url:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
         name:
-          type: string
+          type:
+          - string
+          - 'null'
         assetUid:
-          type: string
-      required:
-      - assetUid
-      - destination
-      - url
+          type:
+          - string
+          - 'null'
+        base64Encoded:
+          type:
+          - string
+          - 'null'
+        library:
+          type:
+          - boolean
+          - 'null'
+        desired_type:
+          type:
+          - string
+          - 'null'
+        totalFiles:
+          type:
+          - integer
+          - 'null'
+        file:
+          type:
+          - string
+          - 'null'
+          format: binary
     ImportCreateResponse:
       type: object
       properties:
