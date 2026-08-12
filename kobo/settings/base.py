@@ -2369,6 +2369,11 @@ MAX_RESTARTED_TRANSFERS = 20
 # error is automatically restarted before it requires manual intervention
 TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 
+# How long `task_restarter` stays locked while it runs. Only needs to outlive a
+# normal run, and must stay shorter than the interval it is scheduled at so a
+# run which died never skips the next one
+TASK_RESTARTER_LOCK_TTL = 60 * 5
+
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5

@@ -4,6 +4,7 @@ from typing import Optional
 from celery import Task
 from constance import config
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -25,6 +26,9 @@ from ..utils import temporarily_disconnect_signals
 from .account import empty_account
 from .attachment import empty_attachment
 from .project import empty_project
+
+# Only one `task_restarter` may run at a time
+TASK_RESTARTER_LOCK_KEY = 'trash_bin_task_restarter'
 
 
 @celery_app.task
@@ -74,27 +78,38 @@ def task_restarter():
     may be running at the same time
     """
 
-    models_tasks_retentions = (
-        (AccountTrash, empty_account, config.ACCOUNT_TRASH_RETENTION),
-        (ProjectTrash, empty_project, config.PROJECT_TRASH_RETENTION),
-        (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
-    )
-
-    running = _count_running_deletions(
-        {task.name for _, task, _ in models_tasks_retentions}
-    )
-    if running is None:
-        logging.warning('task_restarter: no worker answered, skipping this run')
+    if not cache.add(
+        TASK_RESTARTER_LOCK_KEY, True, timeout=settings.TASK_RESTARTER_LOCK_TTL
+    ):
+        logging.warning('task_restarter: another run is in progress, skipping')
         return
 
-    # The three types of deletion compete for the same rows, therefore they
-    # share a single budget instead of getting one each
-    available_slots = settings.MAX_RESTARTED_TASKS - running
+    try:
+        models_tasks_retentions = (
+            (AccountTrash, empty_account, config.ACCOUNT_TRASH_RETENTION),
+            (ProjectTrash, empty_project, config.PROJECT_TRASH_RETENTION),
+            (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
+        )
 
-    for model, task, retention in models_tasks_retentions:
-        if available_slots <= 0:
-            break
-        available_slots -= _restart_stuck_tasks(model, task, retention, available_slots)
+        running = _count_running_deletions(
+            {task.name for _, task, _ in models_tasks_retentions}
+        )
+        if running is None:
+            logging.warning('task_restarter: no worker answered, skipping this run')
+            return
+
+        # The three types of deletion compete for the same rows, therefore they
+        # share a single budget instead of getting one each
+        available_slots = settings.MAX_RESTARTED_TASKS - running
+
+        for model, task, retention in models_tasks_retentions:
+            if available_slots <= 0:
+                break
+            available_slots -= _restart_stuck_tasks(
+                model, task, retention, available_slots
+            )
+    finally:
+        cache.delete(TASK_RESTARTER_LOCK_KEY)
 
 
 def _count_running_deletions(task_names: set[str]) -> Optional[int]:

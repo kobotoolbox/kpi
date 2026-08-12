@@ -6,6 +6,7 @@ from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.management import call_command
 from django.db.models.signals import pre_delete
 from django.test import TestCase, override_settings
@@ -31,6 +32,7 @@ from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..tasks import (
+    TASK_RESTARTER_LOCK_KEY,
     _count_running_deletions,
     empty_account,
     empty_attachment,
@@ -1288,6 +1290,24 @@ class TaskRestarterTestCase(IdleWorkersMixin, TestCase):
             )
 
         assert running == 3
+
+    def test_only_one_restarter_run_at_a_time(self):
+        """
+        `task_restarter` shares its queue with the deletions it dispatches, so
+        several runs can pile up and start at once. They would all see the same
+        headroom and each enqueue a full batch
+        """
+        account_trash = self._move_account_to_trash()
+        self._fail(account_trash, 'deadlock detected')
+
+        # A run is already in progress
+        cache.add(TASK_RESTARTER_LOCK_KEY, True, timeout=60)
+        self.addCleanup(cache.delete, TASK_RESTARTER_LOCK_KEY)
+
+        assert self._run_restarter() == 0
+
+        cache.delete(TASK_RESTARTER_LOCK_KEY)
+        assert self._run_restarter() == 1
 
     def _fail(self, account_trash, error):
         """
