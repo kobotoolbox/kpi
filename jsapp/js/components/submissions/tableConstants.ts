@@ -26,6 +26,47 @@ export const EXCLUDED_COLUMNS = [
   '_validation_status',
 ]
 
+/**
+ * These columns go at the very end of the list of columns, in this exact order.
+ * They hold metadata that is of lesser interest to users than the responses to
+ * the form questions.
+ *
+ * NOTE: this is part of the single source of truth for the order of columns,
+ * see `orderColumns` in `tableUtils.ts`. Anything listed here is also treated
+ * as metadata by `getMetadataColumns`, so don't add form questions.
+ */
+export const LAST_COLUMNS_ORDER: string[] = [
+  META_QUESTION_TYPES.username,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  META_QUESTION_TYPES.today,
+  // Both the current and the legacy name of the form version column
+  '__version__',
+  '_version_',
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
+  ADDITIONAL_SUBMISSION_PROPS._submitted_by,
+  ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid'],
+]
+
+/**
+ * Human friendly labels for the metadata columns (i.e. the columns that are not
+ * responses to the form questions, so they have no label in the form
+ * definition). Anything not listed here falls back to displaying the column key.
+ */
+export const METADATA_COLUMN_LABELS: { [key: string]: string } = {
+  [META_QUESTION_TYPES.start]: t('start'),
+  [META_QUESTION_TYPES.end]: t('end'),
+  [META_QUESTION_TYPES.today]: t('today'),
+  [META_QUESTION_TYPES.username]: t('username'),
+  [META_QUESTION_TYPES.deviceid]: t('device ID'),
+  [META_QUESTION_TYPES.phonenumber]: t('phone number'),
+  [META_QUESTION_TYPES.audit]: t('audit'),
+  [ADDITIONAL_SUBMISSION_PROPS._submitted_by]: t('Submitted by'),
+  [ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']]: t('rootUuid'),
+}
+
 export enum SortValues {
   ASCENDING = 'ASCENDING',
   DESCENDING = 'DESCENDING',

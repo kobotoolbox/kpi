@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .schema import ROLE_CHOICES_ENUM
@@ -11,8 +12,18 @@ class MemberUrlField(serializers.JSONField):
     pass
 
 
-RoleChoiceField = serializers.ChoiceField(
-    choices=ROLE_CHOICES_ENUM, allow_null=False, allow_blank=False
+@extend_schema_field(
+    {
+        'allOf': [{'$ref': '#/components/schemas/MemberRoleEnum'}],
+        'nullable': True,
+    }
+)
+class NullableRoleChoiceField(serializers.ChoiceField):
+    pass
+
+
+RoleChoiceField = NullableRoleChoiceField(
+    choices=ROLE_CHOICES_ENUM, allow_null=True, allow_blank=True
 )
 
 

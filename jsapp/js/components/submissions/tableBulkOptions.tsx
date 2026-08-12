@@ -97,7 +97,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       message: t(
         'You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.',
       ).replace('##', String(selectedCount)),
-      labels: { ok: t('Update Validation Status'), cancel: t('Cancel') },
+      labels: { ok: t('Update validation status'), cancel: t('Cancel') },
       onok: () => {
         apiFn(this.props.asset.uid, requestObj)
         // keep the dialog open

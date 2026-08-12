@@ -33,7 +33,7 @@ import {
   getExportFormatOptions,
 } from '#/components/projectDownloads/exportsUtils'
 import { openDeleteExportSettingModal } from '#/components/projectDownloads/openDeleteExportSettingModal'
-import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { getColumnLabel, orderColumns } from '#/components/submissions/tableUtils'
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery } from '#/dataInterface'
 import { createDateQuery, formatTimeDate, notify, recordEntries, recordKeys, recordValues } from '#/utils'
@@ -108,7 +108,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
     allRows = new Set(injectSupplementalRowsIntoListOfRows(props.asset, allRows))
 
-    return allRows
+    // Order these the same way as Data Table does (see `orderColumns`), so that
+    // users pick fields from a familiar looking list. Note that the list itself
+    // is wider than Data Table's on purpose - some props are worth exporting
+    // even though we never show them as columns.
+    return new Set(orderColumns(props.asset, Array.from(allRows)))
   }
 
   function getInitialState(): ProjectExportsCreatorState {

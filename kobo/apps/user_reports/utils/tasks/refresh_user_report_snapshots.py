@@ -314,6 +314,9 @@ def _process_chunk(
                 mt_characters_limit=_normalize_limit(
                     org_limits.get('mt_characters_limit')
                 ),
+                llm_requests_limit=_normalize_limit(
+                    org_limits.get('llm_requests_limit')
+                ),
                 date_modified=timezone.now(),
             )
         )
@@ -334,6 +337,7 @@ def _process_chunk(
                 'storage_bytes_limit',
                 'asr_seconds_limit',
                 'mt_characters_limit',
+                'llm_requests_limit',
                 'date_modified',
             ],
             unique_fields=['organization_id'],
