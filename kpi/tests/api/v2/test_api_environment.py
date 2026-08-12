@@ -87,7 +87,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                     '##support email##', config.SUPPORT_EMAIL
                 )
             ),
-            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
+            'mfa_code_length': settings.MFA_TOTP_DIGITS,
             'superuser_auth_enforcement': config.SUPERUSER_AUTH_ENFORCEMENT,
             # stripe key added below if stripe is enabled
             'stripe_public_key': None,

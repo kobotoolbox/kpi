@@ -125,6 +125,7 @@ export default function TranslationTab({
         submission={submission}
         supplement={supplement}
         languageCode={languageCode}
+        activeBulkActions={activeBulkActions}
       />
     )
   }

@@ -1,6 +1,8 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { getBlockedTargetLanguages } from '#/components/processing/common/utils'
 import { buildSupplementalPath, getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
@@ -30,16 +32,22 @@ export function hasAnyTranscribableAudio(submissions: SubmissionResponse[], fiel
  * Checks if given submission has a transcript that can be used as a source for
  * translation in given transcript column.
  *
- * A transcript is a usable source only when it has an actual value. A transcript
- * that is still awaiting approval has no `value` (the backend omits it and sets
- * `pendingReview` instead), so it can't be translated yet.
+ * A transcript awaiting approval has no `value` (the backend sends `pendingReview`
+ * instead), so it can't be translated yet. One in another language belongs to a
+ * different column: a question holds a single transcript, and it only shows up in
+ * the column matching its language, so the cell is empty here.
  */
 export function hasTranslatableTranscript(submission: SubmissionResponse, fieldXpath: string): boolean {
   // `fieldXpath` of a transcript column is a supplemental details path, but
   // `_supplementalDetails` is keyed by question xpath, so we need to convert it.
-  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
-  // Note: we assume here that there can be only one transcript.
-  return Boolean(submission._supplementalDetails?.[sourceRowPath]?.transcript?.value)
+  const { sourceRowPath, languageCode } = getSupplementalPathParts(fieldXpath)
+  const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+
+  if (!transcript?.value) {
+    return false
+  }
+
+  return transcript.languageCode === languageCode
 }
 
 /**
@@ -48,6 +56,36 @@ export function hasTranslatableTranscript(submission: SubmissionResponse, fieldX
  */
 export function hasAnyTranslatableTranscript(submissions: SubmissionResponse[], fieldXpath: string): boolean {
   return submissions.some((submission) => hasTranslatableTranscript(submission, fieldXpath))
+}
+
+/**
+ * Gets languages the user shouldn't be able to pick when bulk translating given transcript column.
+ * Translating a transcript into its own language leaves an empty column that can't be deleted, so the column's language
+ * is always blocked.
+ * Rows this column can't translate from are ignored, as they get dropped before the action runs anyway.
+ */
+export function getBlockedBulkTranslationLanguages(
+  submissions: SubmissionResponse[],
+  fieldXpath: string,
+): LanguageCode[] {
+  const { sourceRowPath, languageCode: columnLanguage } = getSupplementalPathParts(fieldXpath)
+  const languages = new Set<LanguageCode>(columnLanguage ? [columnLanguage] : [])
+
+  // Scanning the rows catches `regionCode`, the transcript's locale. The back end translates from the locale whenever
+  // there is one, without checking it against the language, so an `es` transcript with an `fr-CA` locale really would
+  // be translated from French.
+  submissions
+    .filter((submission) => hasTranslatableTranscript(submission, fieldXpath))
+    .forEach((submission) => {
+      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+      if (transcript?.languageCode) {
+        getBlockedTargetLanguages(transcript.languageCode, transcript.regionCode).forEach((language) =>
+          languages.add(language),
+        )
+      }
+    })
+
+  return [...languages]
 }
 
 export function getBulkProcessingColumnKey(bulkAction: BulkActionResponse) {
