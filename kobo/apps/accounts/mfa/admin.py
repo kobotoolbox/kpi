@@ -4,10 +4,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 
-from .models import (
-    MfaMethodsWrapper,
-    TrenchMFAMethod,
-)
+from .models import MfaMethodsWrapper
 
 
 class MfaMethodsWrapperAdminForm(forms.ModelForm):
@@ -96,5 +93,4 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
             )
 
 
-admin.site.unregister(TrenchMFAMethod)
 admin.site.register(MfaMethodsWrapper, MfaMethodsWrapperAdmin)
