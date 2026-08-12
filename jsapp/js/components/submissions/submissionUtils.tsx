@@ -856,6 +856,13 @@ export function hasUnacceptedAutomaticContent(
       return false
     }
 
+    // A question holds a single transcript, not one per language, so it only
+    // belongs to the column matching its language. Without this check a pending
+    // transcript would light up every transcript column of the row.
+    if (transcriptData.languageCode !== pathParts.languageCode) {
+      return false
+    }
+
     // The backend returns pendingReview: true when content is awaiting acceptance
     return Boolean(transcriptData.pendingReview)
   }
