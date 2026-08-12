@@ -169,7 +169,8 @@ class QueryParseActions:
             # Since no field was specified, apply the search term to all
             # default fields
             q_list = [
-                self._make_leaf_q(field, value) for field in self.default_field_lookups
+                self._make_leaf_q(field, value, from_default_lookups=True)
+                for field in self.default_field_lookups
             ]
             # Join all the default field queries together with boolean OR
             return reduce(operator.or_, q_list)
@@ -281,7 +282,7 @@ class QueryParseActions:
     def name(text, a, b, elements):
         return text[a:b]
 
-    def _make_leaf_q(self, field: str, value) -> Q:
+    def _make_leaf_q(self, field: str, value, from_default_lookups: bool = False) -> Q:
         """
         Build the `Q` for one `field:value` leaf.
 
@@ -290,8 +291,17 @@ class QueryParseActions:
         Left as plain lookups instead, every to-many condition in a single
         `.filter()` call shares one join, so `tags__name:a AND tags__name:b`
         asks one tag row to hold both names and never matches (DEV-1581).
+
+        Leaves from `default_field_lookups` stay plain: a bare search term
+        expands to one leaf per default lookup, so a subquery each would make
+        every word of a plain search cost one, for a shape the user did not
+        ask for.
         """
-        if self.model is None or not _crosses_to_many(self.model, field):
+        if (
+            from_default_lookups
+            or self.model is None
+            or not _crosses_to_many(self.model, field)
+        ):
             return Q(**{field: value})
 
         self.to_many_leaf_count += 1

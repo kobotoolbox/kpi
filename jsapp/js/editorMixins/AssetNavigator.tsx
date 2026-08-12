@@ -24,6 +24,10 @@ declare global {
 
 const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 
+// Past this the `q` search rejects the query; mirrors the back end's
+// `QUERY_PARSER_MAX_TO_MANY_FILTERS`
+const MAX_SELECTED_TAGS = 10
+
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch] = useDebouncedValue(searchQuery, 500)
@@ -151,6 +155,7 @@ export default function AssetNavigator() {
         value={selectedTags}
         onChange={setSelectedTags}
         placeholder='Filter by tags'
+        maxValues={MAX_SELECTED_TAGS}
         searchable
         clearable
         nothingFoundMessage='No tags found'

@@ -4,6 +4,7 @@ from django.db.models import Exists
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     QueryParserTooManyRelationalFilters,
@@ -290,6 +291,21 @@ class TestToManyLeafAsExists(TestCase):
             _parse('tags__name:foo AND asset_type:survey')
         )
         self.assertEqual(parameters, {'asset_type': ['survey']})
+
+    def test_default_field_lookups_stay_plain(self):
+        """
+        `tags__name__icontains` is a default lookup, so a bare term crosses a
+        to-many. It must stay a plain lookup: one `EXISTS` per word would let
+        a plain search of a few words exhaust the cap.
+        """
+        limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+        query = ' '.join(f'word{i}' for i in range(limit + 1))
+        q = parse(
+            query,
+            default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
+            model=Asset,
+        )
+        self.assertNotIn('exists', _leaf_keys(q))
 
     def test_too_many_to_many_filters_rejected(self):
         limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
