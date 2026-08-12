@@ -88,6 +88,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.log import logging
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -998,9 +999,10 @@ class DataViewSet(
         # the client can do about it
         snapshot = self.asset.snapshot(
             regenerate=True,
+            root_node_name=xml_root_node_name,
             version_uid=version_uid,
             submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
-            root_node_name=xml_root_node_name,
+            handle_duplicates=HandleDuplicatesOptions.RENAME,
         )
 
         data = {
