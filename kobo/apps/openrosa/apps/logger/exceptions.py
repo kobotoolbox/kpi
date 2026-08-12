@@ -93,6 +93,10 @@ class InvalidSubmissionIdsError(Exception):
     pass
 
 
+class InvalidXMLCharacterError(Exception):
+    pass
+
+
 class LockedSubmissionError(Exception):
     def __init__(self, message=t('Submission is currently being processed.')):
         super().__init__(message)

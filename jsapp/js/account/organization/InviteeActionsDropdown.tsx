@@ -2,9 +2,6 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { ServerError } from '#/api/ServerError'
-import type { ErrorDetail } from '#/api/models/errorDetail'
-import type { ErrorObject } from '#/api/models/errorObject'
 import type { InviteResponse } from '#/api/models/inviteResponse'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import {
@@ -32,28 +29,11 @@ export default function InviteeActionsDropdown({
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
     mutation: {
       onSuccess: () => notify(t('The invitation was resent'), 'success'),
-      onError: (error: ErrorObject | ErrorDetail | ServerError) => {
-        const retryAfter =
-          error instanceof ServerError && error.response.status === 429
-            ? error.response.headers?.get('Retry-After')
-            : null
-        if (!retryAfter) return notify(t('There was an error updating this invitation.'), 'error') // TODO: update message in backend (DEV-1218).
-
-        notify(
-          t('Invitation resent too quickly, wait for ##MINUTES## minutes before retrying').replace(
-            '##MINUTES##',
-            Math.ceil(Number.parseInt(retryAfter) / 60).toString(),
-          ),
-          'error',
-        ) // TODO: update message in backend (DEV-1218).
-        return
-      },
     },
   })
   const orgInvitesDestroy = useOrganizationsInvitesDestroy({
     mutation: {
       onSuccess: () => notify(t('Invitation removed'), 'success'),
-      onError: () => notify(t('An error occurred while removing the invitation'), 'error'), // TODO: update message in backend (DEV-1218).
     },
   })
 

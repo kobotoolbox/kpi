@@ -1,17 +1,28 @@
+from copy import deepcopy
+
 import jsonschema.exceptions
 from django.db import IntegrityError, transaction
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
-from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
+    QATagTracker,
     QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
     SubsequenceBulkActionItem,
 )
+from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
+
+# This message reaches the UI, so it must be translatable. Wrap here rather
+# than at the call site: `makemessages` only extracts literal arguments, so
+# `t(CONSTANT)` would leave the string out of the catalogs entirely.
+INVALID_PARAMS_ERROR = t('Invalid parameters for this action')
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
@@ -26,7 +37,9 @@ class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
         try:
             action.__class__.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
-            raise serializers.ValidationError(ve)
+            # `str(ve)` is too verbose: it includes the whole schema and the
+            # submitted instance
+            raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
         return data
 
     def update(self, instance, validated_data):
@@ -60,8 +73,16 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         try:
             Action.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
-            raise serializers.ValidationError(ve)
+            # `str(ve)` is too verbose: it includes the whole schema and the
+            # submitted instance
+            raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
         return data
+
+
+class QATagTrackerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QATagTracker
+        fields = ['value']
 
 
 class BulkActionUserSerializer(serializers.Serializer):
@@ -156,19 +177,27 @@ class BulkActionCreateSerializer(serializers.Serializer):
             )
 
         self._validate_submissions_exist(asset, submission_uuids)
-        self._validate_no_existing_results(
-            asset,
-            question_xpath,
-            action_id,
-            params,
-            submission_uuids,
+
+        skipped = self._get_existing_result_uuids(
+            asset, question_xpath, action_id, params, submission_uuids
         )
-        self._validate_no_active_bulk_conflicts(
-            question_xpath,
-            action_id,
-            params,
-            submission_uuids,
+        skipped |= self._get_active_bulk_conflict_uuids(
+            question_xpath, action_id, params, submission_uuids
         )
+        eligible = [uuid for uuid in submission_uuids if uuid not in skipped]
+
+        if not eligible:
+            raise serializers.ValidationError(
+                {
+                    'submission_uuids': [
+                        'All submissions are already processed or currently '
+                        'being processed.'
+                    ]
+                }
+            )
+
+        attrs['submission_uuids'] = eligible
+        attrs['skipped_uuids'] = sorted(skipped)
         return attrs
 
     def _validate_submissions_exist(self, asset, submission_uuids):
@@ -192,37 +221,36 @@ class BulkActionCreateSerializer(serializers.Serializer):
                 }
             )
 
-    def _validate_no_active_bulk_conflicts(
+    def _get_active_bulk_conflict_uuids(
         self,
         question_xpath: str,
         action_id: str,
         params: dict,
         submission_uuids: list[str],
-    ):
+    ) -> set[str]:
         params_hash = SubsequenceBulkAction.make_params_hash(params)
-        if SubsequenceBulkActionItem.objects.filter(
-            parent__asset=self.context['asset'],
-            submission_root_uuid__in=submission_uuids,
-            action_id=action_id,
-            question_xpath=question_xpath,
-            hash=params_hash,
-            status__in=[
-                BulkActionItemStatus.PENDING,
-                BulkActionItemStatus.IN_PROGRESS,
-            ],
-        ).exists():
-            raise serializers.ValidationError(
-                'One or more submissions already have an active matching bulk action.'
-            )
+        return set(
+            SubsequenceBulkActionItem.objects.filter(
+                parent__asset=self.context['asset'],
+                submission_root_uuid__in=submission_uuids,
+                action_id=action_id,
+                question_xpath=question_xpath,
+                hash=params_hash,
+                status__in=[
+                    BulkActionItemStatus.PENDING,
+                    BulkActionItemStatus.IN_PROGRESS,
+                ],
+            ).values_list('submission_root_uuid', flat=True)
+        )
 
-    def _validate_no_existing_results(
+    def _get_existing_result_uuids(
         self,
         asset,
         question_xpath: str,
         action_id: str,
         params: dict,
         submission_uuids: list[str],
-    ):
+    ) -> set[str]:
         supplements_by_uuid = {
             supplement.submission_uuid: supplement.content or {}
             for supplement in SubmissionSupplement.objects.filter(
@@ -231,26 +259,18 @@ class BulkActionCreateSerializer(serializers.Serializer):
             ).only('submission_uuid', 'content')
         }
 
-        ineligible = []
+        ineligible = set()
         for submission_uuid in submission_uuids:
             supplement = supplements_by_uuid.get(submission_uuid, {})
             question_data = supplement.get(question_xpath) or {}
             if action_id == 'automatic_google_transcription':
                 if self._has_existing_transcription(question_data, params):
-                    ineligible.append(submission_uuid)
+                    ineligible.add(submission_uuid)
             elif action_id == 'automatic_google_translation':
                 if self._has_existing_translation(question_data, params):
-                    ineligible.append(submission_uuid)
+                    ineligible.add(submission_uuid)
 
-        if ineligible:
-            raise serializers.ValidationError(
-                {
-                    'submission_uuids': [
-                        'These submissions already contain matching results: '
-                        + ', '.join(ineligible)
-                    ]
-                }
-            )
+        return ineligible
 
     def _has_existing_transcription(self, question_data: dict, params: dict) -> bool:
         candidates = []
@@ -265,7 +285,11 @@ class BulkActionCreateSerializer(serializers.Serializer):
                 continue
             requested_locale = params.get('locale')
             if requested_locale and data.get('locale') != requested_locale:
-                continue
+                # Deleted versions may have no locale; always include them so a
+                # deletion can clear eligibility regardless of which locale was
+                # originally stored
+                if data.get('status') != 'deleted':
+                    continue
             matching_versions.append(version)
 
         if not matching_versions:
@@ -332,10 +356,12 @@ class BulkActionCreateSerializer(serializers.Serializer):
                     submission_root_uuids=validated_data['submission_uuids'],
                 )
                 bulk_action.start_batch()
+            bulk_action.skipped_uuids = validated_data.get('skipped_uuids', [])
             return bulk_action
         except IntegrityError as err:
             raise serializers.ValidationError(
-                'One or more submissions already have an active matching bulk action.'
+                'One or more submissions are already processed or currently '
+                'being processed.'
             ) from err
 
     def _ensure_question_advanced_feature(
@@ -364,8 +390,9 @@ class BulkActionCreateSerializer(serializers.Serializer):
             return
 
         action = feature.to_action()
+        params_before_update = deepcopy(feature.params)
         action.update_params(feature_params)
-        if action.params != feature.params:
+        if action.params != params_before_update:
             feature.params = action.params
             feature.save(update_fields=['params'])
 
@@ -374,6 +401,109 @@ class BulkActionCreateSerializer(serializers.Serializer):
         if not language:
             return []
         return [{'language': language}]
+
+
+class BulkAcceptSerializer(serializers.Serializer):
+    """
+    Validates and executes a bulk-accept request for ASR/MT results
+
+    Accepts the latest pending NLP result for each submission UUID by stamping
+    `_dateAccepted` on the current (first) version in the supplement content.
+    """
+
+    ACTION_CHOICES = (
+        'automatic_google_transcription',
+        'automatic_google_translation',
+    )
+
+    BULK_OPERATION_CHOICES = ('accept',)
+
+    submission_uids = serializers.ListField(
+        child=serializers.CharField(),
+        allow_empty=False,
+    )
+    question_xpath = serializers.CharField(max_length=2000)
+    action_id = serializers.ChoiceField(choices=ACTION_CHOICES)
+    language = serializers.CharField(required=False, allow_blank=False)
+    operation = serializers.ChoiceField(choices=BULK_OPERATION_CHOICES)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if (
+            attrs['action_id'] == 'automatic_google_translation'
+            and not attrs.get('language')
+        ):
+            raise serializers.ValidationError(
+                {'language': ['This field is required for translation actions.']}
+            )
+        return attrs
+
+    def accept(self, asset) -> int:
+        """
+        Bulk-accept NLP results and return the count of accepted records
+
+        Only versions that already have a non-null value are stamped. Records
+        that cannot be accepted (missing supplement, missing action data, no
+        value) are silently skipped and excluded from the returned count.
+        """
+        submission_uids = self.validated_data['submission_uids']
+        question_xpath = self.validated_data['question_xpath']
+        action_id = self.validated_data['action_id']
+        language = self.validated_data.get('language')
+        now_str = utc_datetime_to_js_str(timezone.now())
+
+        with transaction.atomic():
+            supplements = list(
+                SubmissionSupplement.objects.select_for_update()
+                .filter(
+                    asset=asset,
+                    submission_uuid__in=submission_uids,
+                )
+            )
+
+            to_update = []
+            for supplement in supplements:
+                content = supplement.content
+                if not content:
+                    continue
+
+                question_data = content.get(question_xpath)
+                if not question_data:
+                    continue
+
+                action_data = question_data.get(action_id)
+                if not action_data:
+                    continue
+
+                # For translation actions the result is keyed by language code
+                target = action_data.get(language) if language else action_data
+                if not target:
+                    continue
+
+                versions = target.get('_versions', [])
+                if not versions:
+                    continue
+
+                latest_version = versions[0]
+                version_data = latest_version.get('_data', {})
+
+                # Only accept versions that have actual content
+                if version_data.get('value') is None:
+                    continue
+
+                # Skip versions that are already accepted
+                if latest_version.get('_dateAccepted'):
+                    continue
+
+                latest_version['_dateAccepted'] = now_str
+                target['_dateModified'] = now_str
+
+                to_update.append(supplement)
+
+            if to_update:
+                SubmissionSupplement.objects.bulk_update(to_update, ['content'])
+
+        return len(to_update)
 
 
 class BulkActionCancelSerializer(serializers.ModelSerializer):

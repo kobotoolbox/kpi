@@ -1,14 +1,17 @@
-import { Box, type ComboboxItem, Group, Select, Stack, Text } from '@mantine/core'
+import { Box, type ComboboxItem, FocusTrap, Group, Stack, Text } from '@mantine/core'
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks'
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
-import alertify from 'alertifyjs'
 import React, { useState, useMemo, useEffect } from 'react'
 import { INFINITE_QUERY_KEY_MARKER } from '#/api/mutation-defaults/common'
 import { assetsList, getAssetsListQueryKey } from '#/api/react-query/manage-projects-and-library-content'
 import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
+import ModalNew from '#/components/common/ModalNew'
+import Select from '#/components/common/Select'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { escapeHtml, notify } from '#/utils'
+import { KOBO_MODAL_OVERLAY_PROPS } from '#/theme/kobo/Modal'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
+import { notify } from '#/utils'
 import { actions } from '../../actions'
 import ButtonNew from '../common/ButtonNew'
 
@@ -22,6 +25,7 @@ interface CopyTeamPermissionsProps {
 export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps) {
   const [isAwaitingAssetChange, setIsAwaitingAssetChange] = useState(false)
   const [isFormOpened, { open: openForm, close: closeForm }] = useDisclosure()
+  const [isConfirmPromptOpened, { open: openConfirmPrompt, close: closeConfirmPrompt }] = useDisclosure()
   const [isDropdownOpened, setIsDropdownOpened] = useState(false)
   const [sourceUid, setSourceUid] = useState<string | null>(null)
   const [sourceName, setSourceName] = useState<string | null>(null)
@@ -90,9 +94,10 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     refetchOnWindowFocus: false,
   })
 
-  const rowData = useMemo(() => {
-    return assetsInfiniteQuery.data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
-  }, [assetsInfiniteQuery.data])
+  const rowData = useMemo(
+    () => assetsInfiniteQuery.data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || [],
+    [assetsInfiniteQuery.data],
+  )
 
   const onSelectedProjectChange = (newSelectedOption: string | null) => {
     setSourceUid(newSelectedOption)
@@ -106,30 +111,64 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     }
   }
 
-  const safeCopyPermissionsFrom = () => {
-    if (sourceUid && sourceName) {
-      const assetName = asset.name || t('Untitled')
-      const dialog = alertify.dialog('confirm')
-      const finalMessage = t(
-        'You are about to copy permissions from ##source to ##target. This action cannot be undone.',
-      )
-        .replace('##source', `<strong>${escapeHtml(sourceName)}</strong>`)
-        .replace('##target', `<strong>${escapeHtml(assetName)}</strong>`)
-
-      const dialogOptions = {
-        title: t('Are you sure you want to copy permissions?'),
-        message: finalMessage,
-        labels: { ok: t('Proceed'), cancel: t('Cancel') },
-        onok: () => {
-          setIsAwaitingAssetChange(true)
-          actions.permissions.copyPermissionsFrom(sourceUid, asset.uid)
-        },
-        oncancel: () => {
-          dialog.destroy()
-        },
-      }
-      dialog.set(dialogOptions).show()
+  const confirmCopyPermissionsFrom = () => {
+    if (sourceUid) {
+      setIsAwaitingAssetChange(true)
+      actions.permissions.copyPermissionsFrom(sourceUid, asset.uid)
     }
+    closeConfirmPrompt()
+  }
+
+  /**
+   * A confirmation modal displayed on top of the Sharing modal, thus it needs the nested modal z-indexes.
+   */
+  const renderConfirmPrompt = () => {
+    // Keeping the placeholders in the split result (instead of splitting them away) lets translations put them in any
+    // order.
+    const messageParts = t(
+      'You are about to copy permissions from ##source to ##target. This action cannot be undone.',
+    ).split(/(##source|##target)/)
+
+    return (
+      <ModalNew
+        opened={isConfirmPromptOpened}
+        onClose={closeConfirmPrompt}
+        title={t('Are you sure you want to copy permissions?')}
+        size='sm'
+        zIndex={KOBO_Z_INDEX.nestedModal}
+        overlayProps={{
+          ...KOBO_MODAL_OVERLAY_PROPS,
+          zIndex: KOBO_Z_INDEX.nestedModalOverlay,
+        }}
+      >
+        {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
+        <FocusTrap.InitialFocus />
+
+        <Stack>
+          <Text>
+            {messageParts.map((part, index) => {
+              if (part === '##source') {
+                return <strong key={index}>{sourceName || t('Untitled')}</strong>
+              }
+              if (part === '##target') {
+                return <strong key={index}>{asset.name || t('Untitled')}</strong>
+              }
+              return part
+            })}
+          </Text>
+
+          <Group justify='flex-end'>
+            <ButtonNew size='md' variant='light' onClick={closeConfirmPrompt}>
+              {t('Cancel')}
+            </ButtonNew>
+
+            <ButtonNew size='md' onClick={confirmCopyPermissionsFrom}>
+              {t('Proceed')}
+            </ButtonNew>
+          </Group>
+        </Stack>
+      </ModalNew>
+    )
   }
 
   const isImportButtonEnabled = sourceUid !== null && !isAwaitingAssetChange
@@ -137,10 +176,12 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   const selectData = useMemo(() => {
     const data: ComboboxItem[] = rowData
       .filter((listAsset) => listAsset.uid !== asset.uid)
-      .map((listAsset) => ({
-        value: listAsset.uid,
-        label: listAsset.name || t('Untitled'),
-      }))
+      .map((listAsset) => {
+        return {
+          value: listAsset.uid,
+          label: listAsset.name || t('Untitled'),
+        }
+      })
 
     // In case the search query changes and the selected option disappears from the filtered array
     // we want to prepend it manually so Mantine Select doesn't lose track of its label.
@@ -174,22 +215,23 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   ])
 
   return (
-    <Box>
-      <ButtonNew
-        size='md'
-        variant='transparent'
-        p='0'
-        onClick={isFormOpened ? closeForm : openForm}
-        rightIcon={isFormOpened ? 'angle-up' : 'angle-down'}
-      >
-        {t('Copy team from another project')}
-      </ButtonNew>
+    <Stack gap='sm'>
+      <Box>
+        <ButtonNew
+          size='md'
+          variant='light'
+          onClick={isFormOpened ? closeForm : openForm}
+          rightIcon={isFormOpened ? 'angle-up' : 'angle-down'}
+        >
+          {t('Copy team from another project')}
+        </ButtonNew>
+      </Box>
 
       {isFormOpened && (
-        <Stack gap='md'>
+        <Stack gap='sm'>
           <Text>{t('This will overwrite any existing sharing settings defined in this project.')}</Text>
 
-          <Group p='md' bg='gray.7'>
+          <Group p='md' bg='gray.7' bdrs='sm'>
             <Select
               size='md'
               searchable
@@ -239,12 +281,14 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
               }}
             />
 
-            <ButtonNew size='lg' onClick={safeCopyPermissionsFrom} disabled={!isImportButtonEnabled}>
+            <ButtonNew size='lg' onClick={openConfirmPrompt} disabled={!isImportButtonEnabled}>
               {t('copy')}
             </ButtonNew>
           </Group>
         </Stack>
       )}
-    </Box>
+
+      {renderConfirmPrompt()}
+    </Stack>
   )
 }

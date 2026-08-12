@@ -5,9 +5,15 @@
 
 import React from 'react'
 import { isRtlLang } from 'rtl-detect'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { queryClient } from '#/api/queryClient'
+import {
+  type OrganizationsRetrieveQueryResult,
+  getOrganizationsRetrieveQueryKey,
+} from '#/api/react-query/user-team-organization-usage'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
+import { isDisplayableSupplementalField } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
 import {
   ACCESS_TYPES,
@@ -41,6 +47,11 @@ import type { Asset } from './api/models/asset'
 import type { AssetMinimalList } from './api/models/assetMinimalList'
 import type { BulkActionResponse } from './api/models/bulkActionResponse'
 import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
+
+export enum DeleteBlockerReason {
+  submissions = 'submissions',
+  permissions = 'permissions',
+}
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -143,13 +154,16 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
      * and then switching to french would result in seeing spanish labels)
      */
     const countries = []
-    // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
+    // Backend schema specifies country as array, but old assets (pre-Dec 2022)
+    // may still have it as a single object if they haven't been updated since
+    // standardization was added, or if the migration was skipped.
     if (Array.isArray(asset.settings.country)) {
       for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value))
       }
     } else {
-      countries.push(envStore.getCountryLabel(asset.settings.country.value))
+      // Legacy fallback: single object format from pre-standardization assets
+      countries.push(envStore.getCountryLabel((asset.settings.country as any).value))
     }
 
     if (countries.length === 0) {
@@ -449,6 +463,21 @@ export function findRowByXpath(assetContent: AssetContent, xpath: string) {
   return assetContent?.survey?.find((row) => row.$xpath === xpath)
 }
 
+/**
+ * Like `findRowByXpath`, but falls back to matching by leaf name when the
+ * xpath doesn't exist in the current schema (e.g. after a group rename).
+ * Note that this will return the first match by leaf name,
+ * which may not be the correct one.
+ */
+export function findRowByXpathOrLeafName(assetContent: AssetContent, xpath: string) {
+  const exactMatch = findRowByXpath(assetContent, xpath)
+  if (exactMatch) {
+    return exactMatch
+  }
+  const leafName = xpath.includes('/') ? xpath.split('/').at(-1) : xpath
+  return leafName ? findRow(assetContent, leafName) : undefined
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
   const foundRow = findRow(assetContent, rowName)
   return foundRow?.type
@@ -502,7 +531,8 @@ export function renderQuestionTypeIcon(
  * Injects supplemental details columns next to their respective source rows in a given list of rows.
  * Returns a new updated `rows` list.
  *
- * Note: we omit injecting `qualNote` questions.
+ * Note: we omit the fields that belong to Single Processing route alone, i.e.
+ * `qualNote` and `qualSource` (see `isDisplayableSupplementalField`).
  *
  * @param asset
  * @param rows - The list of base columns
@@ -535,12 +565,11 @@ export function injectSupplementalRowsIntoListOfRows(
   )
 
   const allSupplementalFields = [
-    // Note questions make sense only in the context of writing responses to
-    // Qualitative Analysis questions. They bear no data, so there is no point
-    // displaying them outside of Single Processing route. As this function is
-    // part of Data Table and Data Downloads, we need to hide the notes.
-    // Merge real and virtual supplemental fields
-    ...additionalFields.filter((field) => field.type !== QUAL_NOTE_TYPE),
+    // This function feeds Data Table and Data Downloads, so the fields that
+    // belong to Single Processing alone have to go (see
+    // `isDisplayableSupplementalField`). Virtual fields need no such filtering,
+    // as they only ever describe ongoing transcriptions and translations.
+    ...additionalFields.filter(isDisplayableSupplementalField),
     ...(uniqueVirtualFields || []),
   ]
 
@@ -560,7 +589,11 @@ export function injectSupplementalRowsIntoListOfRows(
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
 
-      // Qual source and verified data are kept in a qual-id-based key, rather than in the source question key
+      // Back end points `qualVerification` (and `qualSource`) fields at the qual
+      // question they describe, not at the form question, so they don't show up
+      // in the loop above - we have to look them up by the qual key. The type
+      // check is belt and braces: `qualSource` is already gone by now, but this
+      // makes sure a newly added field type can't slip in unnoticed.
       ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
         if (qaCol.type === 'qualVerification') {
           outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)
@@ -723,6 +756,56 @@ export function getVirtualSupplementalFieldsForBulkActions(
   return result
 }
 
+export type AssetDeleteCheckResult =
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: true }
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: false; reason: DeleteBlockerReason }
+
+/**
+ * Checks whether the current user can delete the given assets.
+ * Returns one result per asset (in the same order), each with `canDelete: true`
+ * or `canDelete: false` with the reason why that specific asset is blocked.
+ */
+export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): AssetDeleteCheckResult[] {
+  const account = sessionStore.currentAccount
+  const orgUid = 'organization' in account ? account.organization?.uid : undefined
+  const orgResponse = orgUid
+    ? queryClient.getQueryData<OrganizationsRetrieveQueryResult>(getOrganizationsRetrieveQueryKey(orgUid))
+    : undefined
+  const org = orgResponse?.status === 200 ? orgResponse.data : undefined
+
+  const isAdmin = org?.request_user_role === MemberRoleEnum.admin
+  if (isAdmin) {
+    return assets.map((asset) => {
+      return { asset, canDelete: true as const }
+    })
+  }
+
+  const isMmoMember = org?.is_mmo && org?.request_user_role === MemberRoleEnum.member
+  const currentUsername = account.username
+
+  if (isMmoMember) {
+    // Only projects created by the user with no submissions can be deleted by MMO members.
+    // Permissions reason takes priority over submissions reason.
+    return assets.map((asset) => {
+      const isNotOwned = !asset.created_by || asset.created_by !== currentUsername
+      const hasSubmissions = (asset.deployment__submission_count ?? 0) > 0
+      if (isNotOwned) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.permissions }
+      }
+      if (hasSubmissions) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.submissions }
+      }
+      return { asset, canDelete: true }
+    })
+  }
+
+  // Non-MMO users: the delete button is disabled unless they have delete_asset,
+  // so no blocker is needed.
+  return assets.map((asset) => {
+    return { asset, canDelete: true as const }
+  })
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -746,4 +829,5 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
+  userCanDeleteAssets,
 }

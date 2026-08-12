@@ -145,11 +145,7 @@ class PairedData(OpenRosaManifestInterface,
 
         # Update asset
         del self.asset.paired_data[self.source_uid]
-        self.asset.save(
-            update_fields=['paired_data'],
-            adjust_content=False,
-            create_version=False,
-        )
+        self.asset.save(update_fields=['paired_data'], adjust_content=False)
 
     @property
     def deleted_at(self):
@@ -287,11 +283,7 @@ class PairedData(OpenRosaManifestInterface,
             'paired_data_uid': self.paired_data_uid,
         }
 
-        self.asset.save(
-            update_fields=['paired_data'],
-            adjust_content=False,
-            create_version=False,
-        )
+        self.asset.save(update_fields=['paired_data'], adjust_content=False)
 
     def void_external_xml_cache(self):
         # We delete the content of `self.asset_file` to force its regeneration

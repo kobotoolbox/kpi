@@ -1,22 +1,29 @@
-import React, { useState } from 'react'
+import React from 'react'
 
+import { Flex, Group, TextInput } from '@mantine/core'
+import { IconLanguage, IconX } from '@tabler/icons-react'
 import cx from 'classnames'
 import { ServerError } from '#/api/ServerError'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
 import {
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+import ActionIcon from '#/components/common/ActionIcon'
+import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import RegionSelector from '#/components/languages/RegionSelector'
-import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
+import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -26,6 +33,7 @@ interface Props {
   questionXpath: string
   languageCode: LanguageCode
   submission: DataResponse
+  hasConflictingOngoingJob: boolean
   onBack: () => void
   onLimitExceeded: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -37,13 +45,12 @@ export default function StepCreateAutomated({
   questionXpath,
   languageCode,
   submission,
+  hasConflictingOngoingJob,
   onBack,
   onLimitExceeded,
   onCreate,
   advancedFeatures,
 }: Props) {
-  const [locale, setLocale] = useState<null | string>(null)
-
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.automatic_google_translation && af.question_xpath === questionXpath,
   )
@@ -73,6 +80,16 @@ export default function StepCreateAutomated({
     },
   })
 
+  // TODO: HACK-FIX: We should rely on passing Language instead of LanguageCode throughout the single processing view to avoid
+  // using the languages hook here, but this involves dealing with time consuming type handling for LanguageSelector.
+  const { data, isLoading: isLoadingLanguages } = useLanguagesRetrieve(languageCode, {
+    query: {
+      queryKey: getLanguagesRetrieveQueryKey(languageCode),
+      enabled: languageCode !== '',
+    },
+  })
+  const language = data?.status === 200 ? data.data : undefined
+
   const latestAutomaticTranslation =
     mutationCreateAutomaticTranslation.data?.status === 200
       ? getLatestAutomaticTranslationVersionItem(
@@ -88,17 +105,20 @@ export default function StepCreateAutomated({
     latestAutomaticTranslation.error
 
   const anyPending =
-    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranslation.isPending
-
-  function handleChangeLocale(newVal: LocaleCode | null) {
-    setLocale(newVal)
-  }
+    mutationCreateAF.isPending ||
+    mutationPatchAF.isPending ||
+    mutationCreateAutomaticTranslation.isPending ||
+    isLoadingLanguages
 
   function handleClickBack() {
     onBack()
   }
 
   async function handleCreateTranslation() {
+    // Keep a runtime guard in addition to disabled UI controls.
+    // This protects against stale state and accidental double-trigger paths.
+    if (hasConflictingOngoingJob) return
+
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
@@ -128,22 +148,39 @@ export default function StepCreateAutomated({
     }
 
     try {
-      await mutationCreateAutomaticTranslation.mutateAsync({
+      const response = await mutationCreateAutomaticTranslation.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            automatic_google_translation: { language: languageCode, locale },
+            automatic_google_translation: { language: languageCode },
           },
         },
       })
+
+      // This endpoint is expected to come back with 200 on success. If that ever changes,
+      // the API contract needs fixing instead of guessing our way through it here.
+      if (response.status !== 200) return
+
+      const translationVersion = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)
+      if (
+        translationVersion?._data &&
+        'status' in translationVersion._data &&
+        (translationVersion._data.status === 'failed' || translationVersion._data.status === 'in_progress')
+      ) {
+        if (translationVersion._data.status === 'in_progress') {
+          const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+          goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, languageCode)
+        }
+        return
+      }
+
+      onCreate(languageCode, 'automated')
     } catch {
       // Error is handled by the onError callback above
       return
     }
-
-    onCreate(languageCode, 'automated')
   }
 
   if (!languageCode) return null
@@ -168,15 +205,27 @@ export default function StepCreateAutomated({
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
 
-      <RegionSelector
-        disabled={anyPending}
-        serviceCode='goog'
-        serviceType='translation'
-        rootLanguage={languageCode}
-        onRegionChange={handleChangeLocale}
-        onCancel={handleClickBack}
-        mb={'xl'}
-      />
+      <Flex component='section' direction='row' align='center' justify='center' mb='xl'>
+        <Group gap='xs'>
+          <TextInput
+            readOnly
+            value={language?.name || ''}
+            leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
+            w={220}
+            size='sm'
+            rightSection={
+              <ActionIcon
+                disabled={anyPending}
+                aria-label={t('Close')}
+                variant='transparent'
+                size='sm'
+                onClick={handleClickBack}
+                icon={IconX}
+              />
+            }
+          />
+        </Group>
+      </Flex>
 
       <h2>{t('Translation provider')}</h2>
 
@@ -192,11 +241,13 @@ export default function StepCreateAutomated({
 
       {errorMessage && (
         <div>
-          <Alert iconName='alert' type='error'>
+          <Alert iconName='alert' type='error' mt='md'>
             {errorMessage}
           </Alert>
         </div>
       )}
+
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mt='md' />}
 
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
@@ -207,7 +258,7 @@ export default function StepCreateAutomated({
             size='m'
             label={t('create translation')}
             onClick={handleCreateTranslation}
-            isDisabled={anyPending}
+            isDisabled={anyPending || hasConflictingOngoingJob}
           />
         </div>
       </footer>

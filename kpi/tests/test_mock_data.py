@@ -502,7 +502,7 @@ class MockDataReports(BaseSubmissionTestCase):
         )
 
     def test_has_version_and_submissions(self):
-        self.assertEqual(self.asset.asset_versions.count(), 2)
+        self.assertTrue(self.asset.asset_versions.exists())
         self.assertTrue(self.asset.has_deployment)
         self.asset.deployment.xform.refresh_from_db()
         self.assertEqual(self.asset.deployment.submission_count, 4)

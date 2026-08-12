@@ -29,7 +29,10 @@ module.exports = do ->
       rIds = []
       gatherId = (r)->
         rIds.push(r.cid)
-      survey.forEachRow(gatherId, includeGroups: true)
+      # `includeErrors` needs to match the options `_reset` renders with,
+      # otherwise error rows are in the DOM but missing here, and we report
+      # a mismatch that never happened
+      survey.forEachRow(gatherId, includeGroups: true, includeErrors: true)
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)
@@ -461,6 +464,9 @@ module.exports = do ->
           create: =>
             @formEditorEl.addClass('js-sortable-enabled')
             return
+          # Handles library items dropped into the main survey list.
+          # Extract the UID, calculate position, call handleItem(), then cancel the sortable
+          # operation (since we insert asynchronously, not via sortable's built-in move).
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -477,7 +483,11 @@ module.exports = do ->
             return
         })
 
-      # apply sortable to all groups
+      # Apply sortable to all groups.
+      # We need separate sortables for groups because each .group__rows element needs
+      # its own sortable instance to handle drops into that specific group. The receive
+      # handler below is almost identical to the main survey one above, but it also
+      # captures the group ID so we know where to insert.
       group_rows = @formEditorEl.find('.group__rows')
       group_rows.each (index) =>
         $(group_rows[index]).sortable({
@@ -500,6 +510,11 @@ module.exports = do ->
             @survey.trigger('group-sortable-created', group_rows[index])
             $(group_rows[index]).addClass('js-sortable-enabled')
             return
+          # Handles library items dropped into groups.
+          # Same as the main survey receive handler above, but we also find the parent
+          # group's ID by looking for an ancestor with [data-row-id] and pass it to
+          # handleItem() so the item gets inserted inside that group instead of at
+          # the survey root.
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid

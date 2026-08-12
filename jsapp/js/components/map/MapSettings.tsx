@@ -9,7 +9,7 @@ import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
 import MapColorPicker from '#/components/map/MapColorPicker'
 import { userCan } from '#/components/permissions/utils'
-import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT } from '#/constants'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
   AssetFileResponse,
@@ -68,8 +68,6 @@ const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
   'application/vnd.google-earth.kmz': ['.kmz'],
   'application/json': ['.geojson', '.json'],
   'application/geo+json': ['.geojson'],
-  'text/plain': ['.wkt'],
-  'application/wkt': ['.wkt'],
 }
 
 // FYI the order here matters and influences the order of tabs in UI
@@ -105,7 +103,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     const geoQuestions: LabelValuePair[] = []
     props.asset.content?.survey?.forEach((question: any) => {
-      if (question.type && question.type === 'geopoint') {
+      if (isMapDisplayableGeopointType(question.type)) {
         geoQuestions.push({
           value: getRowName(question),
           label: getQuestionOrChoiceDisplayName(question, 0),
@@ -290,6 +288,8 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     var modalTabs = tabsToDisplay.map((tabId) => (
       <button
+        role='tab'
+        aria-selected={activeTab === tabId}
         className={cx({
           'legacy-modal-tab-button': true,
           'legacy-modal-tab-button--active': activeTab === tabId,
@@ -347,7 +347,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                 <bem.FormModal__item m='layer-upload'>
                   <label htmlFor='name'>
                     {t(
-                      'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.',
+                      'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ or GEOJSON. The data will be made available as layers for display on the map.',
                     )}
                   </label>
                   <input

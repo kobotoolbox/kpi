@@ -1,5 +1,4 @@
 import type { Survey } from '../../xlform/src/model.survey'
-import type formMediaActions from './actions/mediaActions'
 import type { AssetResponse, FailResponse } from './dataInterface'
 
 /**
@@ -420,7 +419,6 @@ export declare const actions: {
   }
   submissions: {
     getSubmission: GetSubmissionDefinition
-    getSubmissionByUuid: GetSubmissionDefinition
     getSubmissions: GetSubmissionsDefinition
     getProcessingSubmissions: GetProcessingSubmissionsDefinition
     bulkDeleteStatus: GenericDefinition
@@ -428,7 +426,6 @@ export declare const actions: {
     bulkPatchValues: GenericDefinition
     bulkDelete: GenericDefinition
   }
-  media: typeof formMediaActions
   exports: {
     getExport: GetExportDefinition
     getExports: GenericDefinition

@@ -28,11 +28,22 @@ class TranscriptionService(BaseLanguageService):
                 service__code=self.code, region__code=value
             )
         except TranscriptionServiceLanguageM2M.DoesNotExist as err:
-            # Fall back on language itself and let the service detect the region.
+            # Check if value is itself a language code (e.g. 'en')
             if self.language_set.filter(code=value).exists():
                 return value
-            else:
-                raise LanguageNotSupported from err
+
+            # `value` is a region code (e.g. 'fr-BE') not explicitly in
+            # the DB. Strip the region suffix to get the parent language code
+            # (e.g. 'fr') and check whether that base language is supported.
+            # If it is, return the original region code unchanged so that
+            # Google STT receives the correct regional hint
+            parent_code = value.split('-')[0]
+            if parent_code != value and self.language_set.filter(
+                code=parent_code
+            ).exists():
+                return value
+
+            raise LanguageNotSupported from err
         else:
             return (
                 through_obj.mapping_code if through_obj.mapping_code else value
@@ -61,16 +72,25 @@ class TranscriptionService(BaseLanguageService):
         if through_obj:
             return self._build_config(through_obj)
 
-        if not self.language_set.filter(code=value).exists():
+        # `value` is a language code (e.g. 'fr') or a region-specific code
+        # (e.g. 'fr-BE'). If the exact code is not configured, fall back to the
+        # parent language ('fr') and use its stored configuration (model, location,
+        # etc.), so region-specific variants inherit their parent language settings
+        parent_code = value.split('-')[0]
+        lang_code = value if self.language_set.filter(code=value).exists() else (
+            parent_code if self.language_set.filter(code=parent_code).exists()
+            else None
+        )
+        if lang_code is None:
             raise LanguageNotSupported
 
-        candidates = list(queryset.filter(language__code=value))
+        candidates = list(queryset.filter(language__code=lang_code))
         if len(candidates) == 1:
             return self._build_config(candidates[0])
 
         if len(candidates) > 1:
             return self._build_config(
-                self._get_default_candidate(value, candidates)
+                self._get_default_candidate(lang_code, candidates)
             )
 
         raise LanguageNotSupported

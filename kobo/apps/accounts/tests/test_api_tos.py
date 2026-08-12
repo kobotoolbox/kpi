@@ -9,7 +9,7 @@ from kpi.tests.base_test_case import BaseTestCase
 
 class TOSTestCase(BaseTestCase):
     def setUp(self) -> None:
-        self.url = reverse(self._get_endpoint('tos'))
+        self.url = reverse('tos')
         self.user = baker.make(
             settings.AUTH_USER_MODEL, username='spongebob', email='me@sponge.bob'
         )

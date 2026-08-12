@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
-git+https://github.com/kobotoolbox/formpack.git@0b20c04f957638df2caca3777419a933e53d9f4f#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@c00683281c5df4cdac86144d8e52c13e283f3e5e#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -81,6 +81,7 @@ requests
 regex
 responses
 shortuuid
+simplekml
 sqlparse
 static3
 tabulate
@@ -98,7 +99,12 @@ ndg-httpsclient
 pyasn1
 
 # MFA
-django-trench
+# (django-trench removed; using django-allauth[mfa])
+
+# JWT — used by allauth's socialaccount OIDC/microsoft providers to validate
+# id_tokens. Was pulled in transitively via django-trench; declared directly
+# now that trench is gone.
+pyjwt
 
 # Sentry
 sentry-sdk

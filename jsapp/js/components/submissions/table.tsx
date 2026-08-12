@@ -1,4 +1,5 @@
 import './table.scss'
+import { Stack } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
@@ -8,10 +9,8 @@ import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import type { SurveyFlatPaths } from '#/assetUtils'
-import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
+import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
-import DebouncedTextInput from '#/components/common/DebouncedTextInput'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -19,10 +18,19 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { AudioDurationsProvider } from '#/components/submissions/AudioDurationsContext'
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
-import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
+import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
+import TableTextFilter from '#/components/submissions/TableTextFilter'
+import {
+  getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  hasAnyTranscribableAudio,
+  hasAnyTranslatableTranscript,
+  isBulkProcessingCellInProgress,
+} from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
@@ -47,11 +55,12 @@ import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
   buildFilterQuery,
   getAllDataColumns,
-  getBackgroundAudioQuestionName,
   getColumnHXLTags,
   getColumnLabel,
+  getVisibleAudioXpaths,
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
+  selectNestedRow,
 } from '#/components/submissions/tableUtils'
 import type {
   ValidationStatusOption,
@@ -64,15 +73,7 @@ import {
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
-import {
-  ADDITIONAL_SUBMISSION_PROPS,
-  EnketoActions,
-  GROUP_TYPES_BEGIN,
-  META_QUESTION_TYPES,
-  MODAL_TYPES,
-  QUESTION_TYPES,
-  SUPPLEMENTAL_DETAILS_PROP,
-} from '#/constants'
+import { EnketoActions, GROUP_TYPES_BEGIN, MODAL_TYPES, QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type {
   AssetResponse,
@@ -85,20 +86,26 @@ import type {
   SurveyRow,
   ValidationStatusResponse,
 } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { recordKeys } from '#/utils'
+import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import { openBulkApproveModal } from './BulkProcessingModals/BulkApproveModal'
+import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
+import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
+import { openTableSettingsModal } from './openTableSettingsModal'
 
 const DEFAULT_PAGE_SIZE = 30
+const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
 
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
-  hasActiveBulkActionsCreatedByAnotherUser?: boolean
+  hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
 }
 
@@ -147,6 +154,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {}
 
+  private lastRowRefreshErrorNotifiedAt = 0
+
   private unlisteners: Function[] = []
 
   constructor(props: DataTableProps) {
@@ -184,7 +193,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.resources.removeSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
-      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
@@ -238,10 +246,103 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions)
     } else if (!isEqual(prevActiveBulkActions, newActiveBulkActions)) {
+      // Keep `table.tsx` focused on orchestration: utility computes which rows
+      // need refresh, then this component dispatches one-row fetches.
+      const submissionUuidsToRefresh = getVisibleBulkProcessingSubmissionUuidsToRefresh(
+        prevActiveBulkActions || [],
+        newActiveBulkActions || [],
+        this.state.submissions,
+      )
+
+      this.refreshSubmissionsByUuids(submissionUuidsToRefresh)
+
       // If bulk actions have changed, it means they might've just gotten loaded
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+  }
+
+  refreshSubmissionsByUuids(submissionUuids: string[]) {
+    if (submissionUuids.length === 0) {
+      return
+    }
+
+    // TODO: When DataTable is migrated to a functional component, replace this
+    // `dataInterface.getSubmissions` bridge with the Orval/react-query path.
+    // Hooks are not available in this legacy class component.
+
+    const uniqueSubmissionUuids = [...new Set(submissionUuids)]
+    const query = {
+      $or: [
+        {
+          'meta/rootUuid': { $in: uniqueSubmissionUuids.map((submissionUuid) => addDefaultUuidPrefix(submissionUuid)) },
+        },
+        { _uuid: { $in: uniqueSubmissionUuids } },
+      ],
+    }
+
+    dataInterface
+      .getSubmissions(
+        this.props.asset.uid,
+        uniqueSubmissionUuids.length,
+        0,
+        [],
+        [],
+        `&query=${encodeURIComponent(JSON.stringify(query))}`,
+      )
+      .done((response: PaginatedResponse<SubmissionResponse>) => {
+        this.onBulkProcessingSubmissionsRefreshCompleted(response.results)
+      })
+      .fail((response: FailResponse) => {
+        this.notifyRowRefreshFailure(response)
+      })
+  }
+
+  notifyRowRefreshFailure(response?: FailResponse) {
+    // TODO: Move this failure reporting to the Orval query error handling layer
+    // once this component uses hook-based data fetching.
+    const now = Date.now()
+    if (now - this.lastRowRefreshErrorNotifiedAt < ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS) {
+      return
+    }
+
+    this.lastRowRefreshErrorNotifiedAt = now
+    notify.error(
+      t('Could not refresh some processing rows. Table data may be temporarily out of date.'),
+      { id: 'datatable-row-refresh-failed' },
+      response?.responseText || response?.statusText || t('Bulk processing row refresh failed.'),
+    )
+  }
+
+  onBulkProcessingSubmissionsRefreshCompleted(updatedSubmissions: SubmissionResponse[]) {
+    if (!updatedSubmissions.length) {
+      return
+    }
+
+    const submissions = [...this.state.submissions]
+
+    updatedSubmissions.forEach((updatedSubmission) => {
+      const submissionIndex = submissions.findIndex(
+        (submission) =>
+          matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
+          matchUuid(submission._uuid, updatedSubmission._uuid) ||
+          submission._id === updatedSubmission._id,
+      )
+
+      if (submissionIndex !== -1) {
+        submissions[submissionIndex] = updatedSubmission
+      }
+    })
+
+    if (isEqual(submissions, this.state.submissions)) {
+      return
+    }
+
+    // Rebuild columns because new supplemental values can introduce/show
+    // dynamic transcript/translation columns.
+    this.setState({ submissions }, () => {
+      this._prepColumns(submissions)
+    })
   }
 
   /**
@@ -401,36 +502,66 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen)
   }
 
-  onTranscribeSelectedAudioFiles(fieldId: string) {
+  /**
+   * Returns full submission objects for the currently selected rows.
+   * Note: Only submissions from the currently loaded page are included, even if
+   * rows from other pages are selected. This is intentional - the warning modal
+   * alerts users when they've selected rows across multiple pages.
+   */
+  private getSelectedSubmissions(): SubmissionResponse[] {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    return this.state.submissions.filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
+  }
 
-    console.log('Bulk processing - Transcribe selected audio files', {
-      fieldId,
-      selectedSubmissionIds,
+  /**
+   * Opens a bulk processing modal for selected submissions.
+   */
+  private openBulkProcessingModal(fieldId: string, modalType: 'transcribe' | 'translate' | 'approve') {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    const selectedSubmissions = this.getSelectedSubmissions()
+
+    // Show warning if "Select All" would process more rows than are visible on current page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
+    const commonProps = {
+      fieldXpath: fieldId,
+      assetUid: this.props.asset.uid,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
-    })
+      showWarningModal,
+      selectedSubmissions,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
+    }
+
+    if (modalType === 'transcribe') {
+      openBulkTranscriptionModal({
+        ...commonProps,
+        activeBulkActions: this.props.activeBulkActions || [],
+      })
+    } else if (modalType === 'translate') {
+      openBulkTranslationModal({
+        ...commonProps,
+        activeBulkActions: this.props.activeBulkActions || [],
+      })
+    } else {
+      openBulkApproveModal(commonProps)
+    }
+  }
+
+  onTranscribeSelectedAudioFiles(fieldId: string) {
+    this.openBulkProcessingModal(fieldId, 'transcribe')
   }
 
   onTranslateSelectedTranscriptions(fieldId: string) {
-    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
-
-    console.log('Bulk processing - Translate selected transcriptions', {
-      fieldId,
-      selectedSubmissionIds,
-      selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
-    })
+    this.openBulkProcessingModal(fieldId, 'translate')
   }
 
-  // We need to distinguish between repeated groups with nested values
-  // and other question types that use a flat nested key (i.e. with '/').
-  // If submission response contains the parent key, we should use that.
-  _selectNestedRow(row: SubmissionResponse, key: string, rootParentGroup: string | undefined) {
-    if (rootParentGroup && rootParentGroup in row && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-      return row[rootParentGroup]
-    }
-    return row[key]
+  onApproveSelectedSubmissions(fieldId: string) {
+    this.openBulkProcessingModal(fieldId, 'approve')
   }
 
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
@@ -498,7 +629,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           </div>
         ),
         accessor: 'sub-actions',
-        index: '__0',
         id: SUBMISSION_ACTIONS_ID,
         width: columnWidth,
         filterable: true, // Not filterable, but we need react-table to render TableBulkCheckbox (the filter cell override)
@@ -589,7 +719,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       Header: () => (
         <div className='column-header-wrapper'>
           <TableColumnSortDropdown
-            asset={this.props.asset}
             fieldId={VALIDATION_STATUS_ID_PROP}
             sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange.bind(this)}
@@ -602,7 +731,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       ),
       sortable: false,
       accessor: VALIDATION_STATUS_ID_PROP,
-      index: '__2',
       id: VALIDATION_STATUS_ID_PROP,
       width: this._getColumnWidth(VALIDATION_STATUS_ID_PROP),
       className: elClassNames.join(' '),
@@ -667,7 +795,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       showHXLTags = Boolean(tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL])
     }
 
-    // define the columns array
+    // Define the columns array.
+    // NOTE: we don't sort this list - the data columns are already in the right
+    // order, as `getAllDataColumns` applies it (see `orderColumns`). All we do
+    // here is prepend the two columns that exist in Data Table alone.
     let columnsToRender: Array<TableColumn> = []
 
     const columnSubmissionActions = this._getColumnSubmissionActions(maxPageRes)
@@ -685,12 +816,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // from the file. It needs to first load the file and then parse the content
     // so it's quite the task :)
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
-    let flatPaths: SurveyFlatPaths = {}
-    if (survey) {
-      flatPaths = getSurveyFlatPaths(survey)
-    }
 
-    allColumns.forEach((key: string, columnIndex: number) => {
+    allColumns.forEach((key: string) => {
       let q: SurveyRow | undefined
       let rootParentGroup: string | undefined
       if (key.includes('/')) {
@@ -705,105 +832,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
       if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {
         return false
-      }
-
-      // Set ordering of question columns. Meta questions can be prepended or
-      // appended relative to survey questions with an index prefix
-
-      // sets location of columns for questions not in current survey version
-      // `y` puts this case in front of known meta types
-      let index = 'y_' + key
-
-      // Get background-audio question name in case user changes it
-      const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset)
-
-      // place meta question columns at the very end with `z` prefix
-      switch (key) {
-        case META_QUESTION_TYPES.username:
-          index = 'z1'
-          break
-        case META_QUESTION_TYPES.deviceid:
-          index = 'z4'
-          break
-        case META_QUESTION_TYPES.phonenumber:
-          index = 'z5'
-          break
-        case META_QUESTION_TYPES.today:
-          index = 'z6'
-          break
-        case '__version__':
-        case '_version_':
-          index = 'z7'
-          break
-        case ADDITIONAL_SUBMISSION_PROPS._id:
-          index = 'z8'
-          break
-        case ADDITIONAL_SUBMISSION_PROPS._uuid:
-          index = 'z9'
-          break
-        case ADDITIONAL_SUBMISSION_PROPS._submission_time:
-          index = 'z91'
-          break
-        case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
-          index = 'z92'
-          break
-        // Ensure `meta/rootUuid` is the last one
-        case ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']:
-          index = 'z999'
-          break
-        // set index for `background-audio` to the very first column with `_`
-        case backgroundAudioName:
-          index = '_1'
-          break
-        default:
-          // Look for a survey row that matches current column 'key' and set
-          // index for it based on the order in which it is stored in survey
-          // (including questions in groups).
-          survey?.forEach((surveyRow, surveyRowIndex) => {
-            // Get the row name (`loopKey`) from possible path (`key`).
-            let loopKey = key
-            if (key.includes('/')) {
-              const loopKeyArray = loopKey.split('/')
-              loopKey = loopKeyArray[loopKeyArray.length - 1]
-            }
-
-            if (getRowName(surveyRow) === loopKey) {
-              index = surveyRowIndex.toString()
-            }
-          })
-
-          // Detect supplemental details column and put it after its source column.
-          if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            let sourceColumn: TableColumn | undefined
-
-            // First, try to find a parent that is also a supplemental detail (e.g., for '.../<uuid>/verified')
-            const parentKeyWithPrefix = key.substring(0, key.lastIndexOf('/'))
-            sourceColumn = columnsToRender.find((column) => column.id === parentKeyWithPrefix)
-
-            // If not found, try to find the original survey question as the parent
-            if (!sourceColumn) {
-              const pathWithoutPrefix = key.substring(SUPPLEMENTAL_DETAILS_PROP.length + 1)
-              const parentKeyWithoutPrefix = pathWithoutPrefix.substring(0, pathWithoutPrefix.lastIndexOf('/'))
-              sourceColumn = columnsToRender.find((column) => column.id === parentKeyWithoutPrefix)
-
-              // Fallback to the original flatPaths approach for groups/nested structures
-              if (!sourceColumn) {
-                const keyArray = key.split('/')
-                const relatedKey = keyArray.at(-2)
-                sourceColumn = relatedKey
-                  ? columnsToRender.find((column) => column.id === flatPaths[relatedKey])
-                  : undefined
-              }
-            }
-
-            if (sourceColumn) {
-              // This way if we have a source column with index `2`, and
-              // the supplemental column with index `5`, we will set
-              // the supplemental details column to `2_5_supplementalDetails/…`
-              // to make sure it keeps the correct order.
-              index = `${sourceColumn.index}_${columnIndex}_${key}`
-            }
-          }
       }
 
       const elClassNames = []
@@ -833,10 +861,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           return (
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
-                asset={this.props.asset}
                 fieldId={key}
                 isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
                 isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
+                isTranslationColumn={getSupplementalPathParts(key).type === 'translation'}
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
@@ -844,13 +872,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
-                isBulkProcessingDisabled={
-                  !(
-                    userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-                    userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
-                  ) ||
-                  (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
+                onApproveSelectedSubmissions={this.onApproveSelectedSubmissions.bind(this)}
+                userCanChangeSubmissions={
+                  userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+                  userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
                 }
+                hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length !== 0}
+                hasAnyTranscribableAudio={hasAnyTranscribableAudio(this.getSelectedSubmissions(), key)}
+                hasAnyTranslatableTranscript={hasAnyTranslatableTranscript(this.getSelectedSubmissions(), key)}
+                hasAnyUnacceptedAutomaticContent={hasAnyUnacceptedAutomaticContent(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
@@ -867,8 +897,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           )
         },
         id: key,
-        accessor: (row) => this._selectNestedRow(row, key, rootParentGroup),
-        index: index,
+        accessor: (row) => selectNestedRow(row, key, rootParentGroup),
         question: q,
         // This (and the Filter itself) will be set below (we do it separately,
         // because we need to do it for all the columns, not only the ones in
@@ -901,11 +930,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       return false
     })
 
-    // Apply stored indexes to all columns to sort them.
-    // NOTE: frozen column index stay as is, it is being moved to the beginning
-    // of table using CSS styling.
-    columnsToRender.sort((columnA, columnB) => columnA.index.localeCompare(columnB.index, 'en', { numeric: true }))
-
+    // NOTE: frozen column stays where it is on the list, it is being moved to
+    // the beginning of table using CSS styling.
     const frozenColumn = tableStore.getFrozenColumn()
 
     columnsToRender.forEach((col: TableColumn) => {
@@ -914,39 +940,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // We set filters here, so they apply for all columns
       if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true
-        const DropdownFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <select
-            onChange={(event) => onChange(event.target.value)}
-            style={{ width: '100%' }}
-            value={filter ? filter.value : ''}
-          >
-            <option value=''>{t('Show All')}</option>
-            {choices
-              .filter((choiceItem) => choiceItem.list_name === columnQuestion?.select_from_list_name)
-              .map((item, n) => {
-                const displayName = getQuestionOrChoiceDisplayName(item, translationIndex)
-                return (
-                  <option value={item.name} key={n}>
-                    {displayName}
-                  </option>
-                )
-              })}
-          </select>
-        )
-        DropdownFilter.displayName = 'DropdownFilter'
-        col.Filter = DropdownFilter
+        // Attach column-specific data to the column object so TableDropdownFilter
+        // can read it from the column prop that React-Table passes in
+        col.choices = choices
+        col.selectFromListName = columnQuestion?.select_from_list_name
+        col.translationIndex = translationIndex
+        col.Filter = TableDropdownFilter
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
-        const TextInputFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <DebouncedTextInput
-            value={filter ? filter.value : undefined}
-            onChange={onChange}
-            placeholder={t('Search')}
-            size='xs'
-          />
-        )
-        TextInputFilter.displayName = 'TextInputFilter'
-        col.Filter = TextInputFilter
+        col.Filter = TableTextFilter
       }
 
       // Ensure frozen columns stay correctly aligned to the left, even after
@@ -1023,8 +1025,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onTableStoreChange(newData: TableStoreData) {
-    // Close table settings modal after settings are saved.
-    pageState.hideModal()
+    // Note: closing the table settings modal after a save is owned by the modal
+    // instance itself (see `TableSettings`), so it isn't handled here.
 
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
@@ -1033,23 +1035,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       JSON.stringify(newData.overrides[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions()
-      // If some other table settings changed, we need to fix columns using
-      // existing data, as after `actions.table.updateSettings` resolves,
-      // the props asset is not yet updated
-    } else if (
-      JSON.stringify(this.previousOverrides[DATA_TABLE_SETTING]) !==
-      JSON.stringify(newData.overrides[DATA_TABLE_SETTING])
-    ) {
+    } else if (!isEqual(this.previousOverrides, newData.overrides)) {
+      // Other overrides (e.g. a hidden or frozen column) only change how existing
+      // data is presented, so rebuilding the columns is enough.
+      //
+      // For users without `change_asset` this is the only signal available -
+      // nothing is persisted, so `componentDidUpdate` never sees a new asset.
       this._prepColumns(this.state.submissions)
     }
 
     this.previousOverrides = clonedeep(newData.overrides)
-  }
-
-  onTableUpdateSettingsCompleted() {
-    // Close table settings modal after settings are saved.
-    pageState.hideModal()
-    // Any updates after table settings are saved are handled by `componentDidUpdate`.
   }
 
   /** Uses `fetchData` but with past instance. */
@@ -1106,8 +1101,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   showTableColumnsOptionsModal() {
-    pageState.showModal({
-      type: MODAL_TYPES.TABLE_SETTINGS,
+    // The modal closes itself once its own save resolves (see `TableSettings`).
+    openTableSettingsModal({
       asset: this.props.asset,
     })
   }
@@ -1332,25 +1327,28 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        <bem.FormView__item m='banner-container'>
+        <Stack gap='sm' className='table-banner-container'>
           <LimitNotifications />
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
             currentUsername={this.props.currentUsername}
-            activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
-            hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
+            activeBulkActions={this.props.activeBulkActions || []}
+            hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
-        </bem.FormView__item>
+        </Stack>
+
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
-            <ColumnsHideDropdown
-              asset={this.props.asset}
-              submissions={this.state.submissions}
-              bulkActions={this.props.activeBulkActions || []}
-              showGroupName={this.state.showGroupName}
-              translationIndex={this.state.translationIndex}
-            />
-          )}
+          {/*
+            Open to everyone - this is the only way back for a session-only user
+            who hid a field, as its column header went away with the column.
+          */}
+          <ColumnsHideDropdown
+            asset={this.props.asset}
+            submissions={this.state.submissions}
+            bulkActions={this.props.activeBulkActions || []}
+            showGroupName={this.state.showGroupName}
+            translationIndex={this.state.translationIndex}
+          />
 
           {this.renderBulkSelectUI()}
 
@@ -1374,45 +1372,51 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
           </bem.FormView__item>
         </bem.FormView__group>
-        <ReactTable
-          data={this.state.submissions}
-          columns={this.state.columns}
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={0}
-          className={tableClasses.join(' ')}
-          pages={pages}
-          manual
-          onFetchData={this.fetchData.bind(this)}
-          loading={this.state.loading}
-          previousText={
-            <React.Fragment>
-              <i className='k-icon k-icon-caret-left' />
-              {t('Prev')}
-            </React.Fragment>
-          }
-          nextText={
-            <React.Fragment>
-              {t('Next')}
-              <i className='k-icon k-icon-caret-right' />
-            </React.Fragment>
-          }
-          loadingText={<LoadingSpinner />}
-          noDataText={t('Your filters returned no submissions.')}
-          pageText={t('Page')}
-          ofText={t('of')}
-          rowsText={t('rows')}
-          getTableProps={() => {
-            return {
-              onScroll: this.onTableScroll.bind(this),
+        <AudioDurationsProvider
+          assetUid={this.props.asset.uid}
+          submissions={this.state.submissions}
+          visibleAudioXpaths={getVisibleAudioXpaths(this.state.columns)}
+        >
+          <ReactTable
+            data={this.state.submissions}
+            columns={this.state.columns}
+            defaultPageSize={DEFAULT_PAGE_SIZE}
+            pageSizeOptions={[10, 30, 50, 100, 200, 500]}
+            minRows={0}
+            className={tableClasses.join(' ')}
+            pages={pages}
+            manual
+            onFetchData={this.fetchData.bind(this)}
+            loading={this.state.loading}
+            previousText={
+              <React.Fragment>
+                <i className='k-icon k-icon-caret-left' />
+                {t('Prev')}
+              </React.Fragment>
             }
-          }}
-          filterable
-          // Enables RTL support in table cells
-          getTdProps={() => {
-            return { dir: 'auto' }
-          }}
-        />
+            nextText={
+              <React.Fragment>
+                {t('Next')}
+                <i className='k-icon k-icon-caret-right' />
+              </React.Fragment>
+            }
+            loadingText={<LoadingSpinner />}
+            noDataText={t('Your filters returned no submissions.')}
+            pageText={t('Page')}
+            ofText={t('of')}
+            rowsText={t('rows')}
+            getTableProps={() => {
+              return {
+                onScroll: this.onTableScroll.bind(this),
+              }
+            }}
+            filterable
+            // Enables RTL support in table cells
+            getTdProps={() => {
+              return { dir: 'auto' }
+            }}
+          />
+        </AudioDurationsProvider>
       </bem.FormView>
     )
   }

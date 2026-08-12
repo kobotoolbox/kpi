@@ -7,7 +7,6 @@ import unittest
 import uuid
 from datetime import datetime
 from unittest import mock
-from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -519,13 +518,12 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
-    def test_query_counts_for_list_submissions(self, mock_tracker):
+    def test_query_counts_for_list_submissions(self):
         # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(16, 18)):
+        with self.assertNumQueries(FuzzyInt(17, 19)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(FuzzyInt(16, 18)):
+        with self.assertNumQueries(FuzzyInt(17, 19)):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -543,8 +541,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 },
             )
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
-    def test_query_count_does_not_increase_with_more_submissions(self, mock_tracker):
+    def test_query_count_does_not_increase_with_more_submissions(self):
         with CaptureQueriesContext(connection) as context:
             self.client.get(self.submission_list_url, {'format': 'json'})
         count = context.final_queries - context.initial_queries
@@ -1316,6 +1313,58 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.data[META_ROOT_UUID] == root_uuid
         assert response.data['_validation_status'] == {}
 
+    def test_supplement_fallback_to_instance_id(self):
+        """
+        If a submission is missing `meta/rootUuid` in MongoDB, the `supplement`
+        endpoint should fallback to `meta/instanceID` (`_uuid`) and still retrieve the
+        supplement.
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        mongo_document = settings.MONGO_DB.instances.find_one(
+            {'_id': submission['_id']}
+        )
+        root_uuid = mongo_document.pop(META_ROOT_UUID)
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid}},
+        )
+
+        supplement_data = {
+            'q1': {
+                'manual_transcription': {
+                    '_versions': [
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour'},
+                        }
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=remove_uuid_prefix(submission['_uuid']),
+            content=supplement_data,
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-supplement'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'root_uuid': submission['_uuid'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['_version'], '20250820')
+
     def test_submitted_by_persists_after_user_deletion(self):
         # Simulate old submissions that don't have `submitted_by`
         ParsedInstance.objects.filter(instance__user=self.anotheruser).update(
@@ -1447,11 +1496,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
+        # The automatic transcription is accepted and wins over the deleted manual
+        # transcription, so the accepted value should be returned
         assert (
             response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
                 'value'
             ]
-            is None
+            == 'Bonjour le monde!'
         )
 
     def test_simplified_supplemental_detail_for_acceptance(self):
@@ -1514,12 +1565,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
-                'value'
-            ]
-            == 'Bonjour la foule!'
+        # The automatic transcription is newer but unaccepted (pending), so it
+        # beats the older accepted manual transcription
+        transcript = (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript']
         )
+        assert transcript.get('pendingReview') is True
+        assert transcript['value'] == ''
 
         transcription_data['q1']['automatic_google_transcription']['_versions'][0][
             '_dateAccepted'
@@ -2086,7 +2138,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # redeploy the asset to create a new deployment version
         self.asset.deploy(active=True)
         self.asset.save()
-        assert self.asset.asset_versions.count() == original_versions_count + 2
+        assert self.asset.asset_versions.count() == original_versions_count + 1
         assert (
             self.asset.deployed_versions.count()
             == original_deployed_versions_count + 1
@@ -2986,6 +3038,48 @@ class SubmissionDuplicateApiTests(
         # submission XML
         assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH not in response.data
         assert 'deprecatedID' not in duplicated_instance.xml
+
+    def test_duplicate_submission_attachment_uses_own_root_uuid(self):
+        """
+        The duplicate's attachment must be stored under a folder named
+        after the duplicate's own root_uuid, not the source submission's.
+        """
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'foo',
+            'meta/instanceID': f'uuid:{uuid.uuid4()}',
+            '_attachments': [{'filename': 'IMG_4266-11_38_22.jpg'}],
+        }
+        self.asset.deployment.mock_submissions([submission])
+
+        source_instance = Instance.objects.get(pk=submission['_id'])
+        source_attachment = source_instance.attachments.get()
+        assert (
+            source_attachment.media_file.name.split('/')[-2]
+            == source_instance.root_uuid
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+
+        duplicated_instance = Instance.objects.get(pk=response.data['_id'])
+        duplicated_attachment = duplicated_instance.attachments.get()
+
+        assert duplicated_instance.root_uuid != source_instance.root_uuid
+        assert (
+            duplicated_attachment.media_file.name.split('/')[-2]
+            == duplicated_instance.root_uuid
+        )
+        assert (
+            duplicated_attachment.media_file.name != source_attachment.media_file.name
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

@@ -144,8 +144,8 @@ class TestSimpleSubmission(TestCase):
             self.user.username, TempFileProxy(xml), None, None, request=request
         )
         # No `DjangoUnicodeDecodeError` errors are raised anymore.
-        # An `ExpatError` is raised instead
-        text = 'Improperly formatted XML'
+        # An `InvalidXMLCharacterError` is raised instead
+        text = 'unsupported or invisible characters'
         self.assertContains(error, text, status_code=400)
 
     @pytest.mark.skipif(
@@ -172,3 +172,23 @@ class TestSimpleSubmission(TestCase):
         instance.delete()
         instance = self._submit_simple_yes(request=None)
         assert instance.parsed_instance.submitted_by is None
+
+    def test_rejects_invalid_xml_char_in_text_submission(self):
+        """
+        Submitting an XML that contains an invalid XML control character (U+000C)
+        should be rejected
+        """
+        # XML with an invalid character
+        invalid_char_xml = (
+            '<?xml version="1.0" ?>'
+            '<yes_or_no id="yes_or_no">'
+            '<yesno>Yes\u000CNo</yesno>'
+            '<meta><instanceID>uuid:{}</instanceID></meta>'
+            '</yes_or_no>'
+        ).format(str(uuid.uuid4()))
+
+        error, instance = safe_create_instance(
+            self.user.username, TempFileProxy(invalid_char_xml), None, None
+        )
+        text = 'unsupported or invisible characters'
+        self.assertContains(error, text, status_code=400)

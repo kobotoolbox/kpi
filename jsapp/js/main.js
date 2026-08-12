@@ -16,6 +16,8 @@ import '@mantine/dropzone/styles.css'
 // We import all the weights and styles we actually use here to avoid unnecessary weight (pun intended).
 import './fonts'
 import '../scss/main.scss'
+// Focus ring styles need to go after main styles
+import './theme/kobo/focusRing.css'
 
 import $ from 'jquery'
 // jQuery v4 ESM no longer auto-populates window.$/window.jQuery
@@ -73,7 +75,8 @@ moment.locale(currentLang())
 const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]')
 if (gaTokenEl !== null && gaTokenEl.content) {
   window.dataLayer = window.dataLayer || []
-  window.gtag = () => {
+  // biome-ignore lint/complexity/useArrowFunction: arrow functions lack `arguments`
+  window.gtag = function () {
     window.dataLayer.push(arguments)
   }
   window.gtag('js', new Date())

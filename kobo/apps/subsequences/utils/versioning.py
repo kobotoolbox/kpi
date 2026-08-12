@@ -162,11 +162,7 @@ def migrate_advanced_features(
     if advanced_features is None:
         asset.advanced_features = {'_version': SCHEMA_VERSIONS[0]}
         if save_asset:
-            asset.save(
-                update_fields=['advanced_features'],
-                create_version=False,
-                adjust_content=False,
-            )
+            asset.save(update_fields=['advanced_features'], adjust_content=False)
         return
 
     if asset.advanced_features.get('_version') == SCHEMA_VERSIONS[0]:
@@ -212,11 +208,7 @@ def migrate_advanced_features(
         asset.advanced_features = copied
         asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
         if save_asset:
-            asset.save(
-                update_fields=['advanced_features'],
-                create_version=False,
-                adjust_content=False,
-            )
+            asset.save(update_fields=['advanced_features'], adjust_content=False)
 
 
 def migrate_qual_data(supplemental_data: dict) -> dict | None:

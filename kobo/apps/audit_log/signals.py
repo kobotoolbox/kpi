@@ -3,8 +3,8 @@ from collections import defaultdict
 
 from celery.signals import task_success
 from constance.signals import config_updated
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
+from django.contrib.auth.signals import user_logged_in, user_login_failed
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django_userforeignkey.request import get_current_request
@@ -38,6 +38,12 @@ def create_access_log(sender, user, **kwargs):
         AccessLog.create_from_request(request, user)
     else:
         AccessLog.create_from_request(request)
+
+
+@receiver(user_login_failed)
+def create_failed_access_log(sender, credentials, request, **kwargs):
+    username = credentials.get('username')
+    AccessLog.create_failed_from_request(request, username)
 
 
 # Project History Log receivers

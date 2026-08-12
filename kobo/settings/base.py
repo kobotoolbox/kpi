@@ -1,6 +1,5 @@
 import logging
 import os
-import string
 import subprocess
 import warnings
 from datetime import timedelta
@@ -18,6 +17,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
+from .utils import constance_env, dj_stripe_request_callback_method
 
 env = environ.Env()
 
@@ -130,7 +130,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'trench',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -166,6 +165,7 @@ MIDDLEWARE = [
     'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.OpenRosaTrailingSlashMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -177,7 +177,6 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
-    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 
@@ -219,6 +218,14 @@ CONSTANCE_CONFIG = {
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
+    'LAST_TOS_UPDATE': (
+        '',
+        'Date of the most recent update to the terms of service. '
+        "DO NOT EDIT HERE. Instead, use the 'Require "
+        "all users to reaccept the Terms of Service' action in "
+        'Sitewide messages',
+        'disabled',
+    ),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
         'https://github.com/kobotoolbox/',
@@ -226,21 +233,39 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
+        constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_EMAIL',
+            'KOBO_SUPPORT_EMAIL',
+            env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        ),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_URL',
+            'KOBO_SUPPORT_URL',
+            'https://support.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
+        constance_env(
+            env.str,
+            'CONSTANCE_ACADEMY_URL',
+            'KOBO_ACADEMY_URL',
+            'https://academy.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
-        env.str(
-            'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+        constance_env(
+            env.str,
+            'CONSTANCE_COMMUNITY_URL',
+            'KOBO_COMMUNITY_URL',
+            'https://community.kobotoolbox.org/',
         ),
         'URL for "KoboToolbox Community Forum"',
     ),
@@ -329,7 +354,12 @@ CONSTANCE_CONFIG = {
         'Require MFA for superusers with a usable password',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
-        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        constance_env(
+            env.bool,
+            'CONSTANCE_USAGE_LIMIT_ENFORCEMENT',
+            'USAGE_LIMIT_ENFORCEMENT',
+            False,
+        ),
         'For Stripe-enabled instances, determines whether usage limits will be enforced'
         'by blocking submissions/NLP actions or deleting stored files.',
     ),
@@ -346,10 +376,6 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
-    # We are adopting the `CONSTANCE_` prefix as the new standard for all env
-    # variables that override Constance defaults. Legacy variables (e.g., KOBO_*)
-    # will be deprecated and migrated to this new pattern after the upcoming
-    # migration to Constance 4.x
     'ASR_MT_GOOGLE_PROJECT_ID': (
         env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
@@ -363,12 +389,30 @@ CONSTANCE_CONFIG = {
             ' variable `GS_BUCKET_NAME`.'
         ),
     ),
-    'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        env.str('CONSTANCE_ASR_MT_GOOGLE_TRANSLATION_LOCATION', 'us-central1'),
+    'ASR_MT_GOOGLE_REGION': (
+        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'global'),
         (
-            'Google Cloud location to use for large translation tasks. It'
-            ' cannot be `global`, and Google only allows certain locations.'
+            'Google Cloud region for ASR/MT data residency. '
+            'global (default): maximum language support, per-language routing '
+            'to the best available Google endpoint for each model. '
+            'eu: restrict all processing to EU-hosted Google endpoints; '
+            'languages only available outside the EU become unsupported.'
         ),
+        'google_region_choice',
+    ),
+    # TODO: remove this default override once Google fixes Speech-to-Text
+    # support for 'sw' and 'sw-KE' language codes
+    'ASR_LANGUAGE_CODE_OVERRIDES': (
+        env.str('CONSTANCE_ASR_LANGUAGE_CODE_OVERRIDES', 'sw:auto,sw-KE:auto'),
+        (
+            'Comma-separated mappings that override the language code sent to '
+            'Google Speech-to-Text. Works around known Google-side pipeline '
+            'failures for specific languages. Useful for temporary workarounds '
+            'when Google Speech-to-Text does not correctly support a specific '
+            'language code. Format: source_language:google_language. '
+            'Example: sw:auto,sw-KE:auto'
+        ),
+        str,
     ),
     'ASR_MT_GOOGLE_CREDENTIALS': (
         '',
@@ -673,21 +717,11 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
     'long_metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 45}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 45}}},
     ],
     'long_textfield': [
         'django.forms.fields.CharField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 30}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 30}}},
     ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
@@ -696,6 +730,19 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
     'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
+    'google_region_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': (
+                ('global', 'Global'),
+                ('eu', 'Europe'),
+            ),
+        },
+    ],
+    'disabled': [
+        'django.forms.fields.CharField',
+        {'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -706,6 +753,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
+        'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
@@ -732,7 +780,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_INVITEE_USERNAMES',
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
+        'ASR_MT_GOOGLE_REGION',
+        'ASR_LANGUAGE_CODE_OVERRIDES',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
         'AUTOMATIC_QA_REQUESTS_PER_SECOND'
@@ -1019,6 +1068,7 @@ SPECTACULAR_SETTINGS = {
         'user-facing application are represented in the API as "assets".'
     ),
     'VERSION': '2.0.0',
+    'OAS_VERSION': '3.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'POSTPROCESSING_HOOKS': [
         'drf_spectacular.hooks.postprocess_schema_enums',
@@ -1045,6 +1095,7 @@ SPECTACULAR_SETTINGS = {
         'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
         'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
         'AssetDeploymentStatusEnum': 'kpi.serializers.v2.asset.DEPLOYMENT_STATUS_ENUM',
+        'BulkActionResponseStatusEnum': 'kpi.schema_extensions.v2.subsequences.serializers.BULK_ACTION_STATUS_CHOICES',  # noqa
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1209,6 +1260,12 @@ TEMPLATES = [
 ]
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
+
+# Superusers submitting real survey data through the OpenRosa API tends to break
+# things (see DEV-32), so it is blocked by default. Self-hosters who really need
+# a superuser to submit can opt back into the risk by setting this to `True`;
+# consider yourself warned that bad things can happen.
+ALLOW_SUPERUSER_SUBMISSIONS = env.bool('ALLOW_SUPERUSER_SUBMISSIONS', False)
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
@@ -1240,16 +1297,6 @@ Stripe configuration intended for kf.kobotoolbox.org only,
 tracks usage limit exceptions
 """
 STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
-
-
-def dj_stripe_request_callback_method():
-    # This method exists because dj-stripe's documentation doesn't reflect reality.
-    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
-    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
-    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
-    # It doesn't need to do anything other than exist
-    # https://github.com/dj-stripe/dj-stripe/issues/1900
-    pass
 
 
 BULK_ACTION_RATE_LIMITS = {
@@ -1525,12 +1572,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 30 minutes
-    'attachment-cleanup-for-users-exceeding-limits': {
-        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
-    },
     # Schedule every 5 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
@@ -1561,7 +1602,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 15 minutes
+    # Ticks every 15 minutes, but `is_in_cooldown()` skips starting a new
+    # cycle unless the last one completed more than
+    # `USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS` ago - an in-progress run is
+    # always resumed regardless, so a short tick lets it finish quickly
+    # after an interruption instead of waiting up to that cooldown.
     'refresh-user-report-snapshot': {
         'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
         'schedule': crontab(minute='*/15'),
@@ -1653,6 +1698,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
+
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
     'fanout_prefix': True,
@@ -1686,7 +1737,41 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
     os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
 )
 
-CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # seconds
+# Dedicated, much longer limits for long-running migrations only. Unlike the
+# generic limits above (shared by many tasks), a single migration run may need
+# to churn through a whole table, so it is allowed up to ~24h in one pass.
+CELERY_LONG_RUNNING_MIGRATION_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_TIME_LIMIT', 86460)  # 24h + 1min
+)
+
+CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT', 86400)  # 24h
+)
+
+# Heartbeat that keeps a running migration's lock and `date_modified` fresh from
+# a background thread. The lock TTL is tied to this heartbeat, not to the task
+# time limit, so a hard-killed worker (e.g. a Kubernetes pod eviction that skips
+# the `finally` cleanup) releases the lock within a few heartbeats instead of
+# blocking re-execution for the whole 24h. The TTL is deliberately a few times
+# the interval to tolerate a briefly stalled worker without expiring the lock of
+# a task that is still alive.
+CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL = int(
+    os.environ.get(
+        'CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL', 60  # 60 seconds
+    )
+)
+
+CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
+)
+
+# Minimum time to wait after a completed run before starting a brand-new
+# cycle. Does not delay resuming an in-progress run.
+USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS = int(
+    os.environ.get('USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS', 4)  # 4 hours
+)
+
+CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
 
 """ Django allauth configuration """
 # User.email should continue to be used instead of the EmailAddress model
@@ -2112,32 +2197,6 @@ MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
 
-TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
-    'USER_ACTIVE_FIELD': 'is_active',
-    'BACKUP_CODES_QUANTITY': 5,
-    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
-    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
-    'DEFAULT_VALIDITY_PERIOD': 30,
-    'ENCRYPT_BACKUP_CODES': True,
-    'SECRET_KEY_LENGTH': 32,
-    'CONFIRM_DISABLE_WITH_CODE': True,
-    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
-    'ALLOW_BACKUP_CODES_REGENERATION': True,
-    'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
-    },
-    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
-}
-
-
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
@@ -2145,6 +2204,11 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
+
+# Max to-many lookups in a single `q` search: each becomes its own EXISTS
+# subquery, so an unbounded count lets a search fan out.
+# See `kpi.utils.query_parser`.
+QUERY_PARSER_MAX_TO_MANY_FILTERS = 10
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -2306,6 +2370,17 @@ AZURE_DELETE_BATCH_SIZE = 256
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
+# Number of times a trash bin task that failed on a transient (infrastructure)
+# error is automatically restarted before it requires manual intervention
+TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
+
+# How long a trash bin object stays locked while it is being deleted. Must be
+# greater than or equal to the Celery hard time limit of the task
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+
+# Number of transfer log records rendered inline on a transfer admin page
+PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
+
 # Maximum timeout (in minutes) for hook processing
 HOOK_STALLED_PENDING_TIMEOUT = 120
 HOOK_STALLED_RETRY_TIMEOUT = 1440
@@ -2333,3 +2408,9 @@ AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
 # 24 months x 31 days/month = 744 default
 PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
 ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
+
+# Minimum gap between two ExtraUserDetail.last_project_activity writes for the same
+# user. Prevents write storms when a user submits many forms in a short window.
+LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
+    'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
+)

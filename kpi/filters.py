@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
@@ -21,6 +21,7 @@ from kpi.constants import (
 from kpi.exceptions import (
     QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
+    QueryParserTooManyRelationalFilters,
     SearchQueryTooShortException,
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
@@ -33,7 +34,6 @@ from kpi.utils.object_permission import (
 )
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
-
 from .models import Asset, ObjectPermission
 
 
@@ -129,10 +129,7 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
             ordering.insert(0, '-ordering_priority')
 
         if ordering:
-            if (
-                'subscribers_count' in ordering
-                or '-subscribers_count' in ordering
-            ):
+            if 'subscribers_count' in ordering or '-subscribers_count' in ordering:
                 queryset = queryset.annotate(
                     subscribers_count=Count('userassetsubscription__user')
                 )
@@ -156,6 +153,7 @@ class ExcludeOrgAssetFilter(filters.BaseFilterBackend):
     Filters out assets marked as 'is_excluded_from_projects_list' for
     organization owners in MMO organizations
     """
+
     def filter_queryset(self, request, queryset, view):
         user = get_database_user(request.user)
         organization = user.organization
@@ -183,16 +181,12 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         if self._return_queryset:
             return queryset.distinct()
 
-        queryset = self._get_queryset_for_data_sharing_enabled(
-            request, queryset
-        )
+        queryset = self._get_queryset_for_data_sharing_enabled(request, queryset)
         if self._return_queryset:
             return queryset.distinct()
 
         # Getting the children of discoverable public collections
-        queryset = self._get_queryset_for_discoverable_child_assets(
-            request, queryset
-        )
+        queryset = self._get_queryset_for_discoverable_child_assets(request, queryset)
         if self._return_queryset:
             return queryset.distinct()
 
@@ -252,9 +246,8 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
             perms = ObjectPermission.objects.none()
         else:
             perms = ObjectPermission.objects.filter(
-                deny=False,
-                user=user,
-                permission_id__in=required_perm_ids)
+                deny=False, user=user, permission_id__in=required_perm_ids
+            )
 
         asset_ids = perms.values('asset')
 
@@ -265,10 +258,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
     def _get_discoverable(self, queryset):
         # We were asked not to consider subscriptions; return all
         # discoverable objects
-        return get_objects_for_user(
-            get_anonymous_user(), PERM_DISCOVER_ASSET,
-            queryset
-        )
+        return get_objects_for_user(get_anonymous_user(), PERM_DISCOVER_ASSET, queryset)
 
     def _get_queryset_for_collection_statuses(self, request, queryset):
         """
@@ -338,18 +328,19 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         except KeyError:
             return queryset
 
-        # `self.__get_parsed_parameters()` returns a list for each parameters
-        # but we should only search only with one parent uid
-        parent_obj = queryset.get(uid=parent_uids[0])
+        # `self.__get_parsed_parameters()` returns a list for each parameter
+        # but we should only search with one parent uid
+        try:
+            parent_obj = queryset.get(uid=parent_uids[0])
+        except (ObjectDoesNotExist, Asset.MultipleObjectsReturned):
+            return queryset
 
         if not isinstance(parent_obj, Asset):
             return queryset
 
         if parent_obj.has_perm(get_anonymous_user(), PERM_DISCOVER_ASSET):
             self._return_queryset = True
-            return queryset.filter(
-                pk__in=self._get_publics(), parent=parent_obj
-            )
+            return queryset.filter(pk__in=self._get_publics(), parent=parent_obj)
 
         return queryset
 
@@ -374,9 +365,8 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
     def _get_publics():
         view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
         return ObjectPermission.objects.filter(
-            deny=False,
-            user=get_anonymous_user(),
-            permission_id=view_asset_perm_id).values('asset')
+            deny=False, user=get_anonymous_user(), permission_id=view_asset_perm_id
+        ).values('asset')
 
     @classmethod
     def _get_subscribed(cls, user):
@@ -401,9 +391,17 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+                q,
+                default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
+                model=Asset,
+                user=request.user,
             )
-        except (ParseError, SearchQueryTooShortException):
+        except (
+            ParseError,
+            QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
+            SearchQueryTooShortException,
+        ):
             # Let's `SearchFilter` handle errors
             return {}
         else:
@@ -432,9 +430,7 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
             org_assets = Asset.objects.none()
 
         available_assets = super().filter_queryset(
-            request=request,
-            queryset=Asset.objects.all(),
-            view=view
+            request=request, queryset=Asset.objects.all(), view=view
         )
         return queryset.filter(asset__in=available_assets | org_assets)
 
@@ -447,6 +443,12 @@ class SearchFilter(filters.BaseFilterBackend):
     parseable, references a field that does not exist, or specifies an invalid
     value for a field (e.g. text for an integer field), return an empty
     queryset to make the problem obvious.
+
+    Special notes:
+        * `allowed_lookup_fields_override` can be defined on a ViewSet as a
+        dictionary mapping model labels to a set of field names. This allows
+        specific views to securely augment the global `ALLOWED_LOOKUP_FIELDS`
+        with additional fields that are safe to expose in that context.
     """
 
     def filter_queryset(self, request, queryset, view):
@@ -467,12 +469,18 @@ class SearchFilter(filters.BaseFilterBackend):
                 min_search_characters=getattr(
                     view, 'min_search_characters', None
                 ),
+                allowed_lookup_fields=getattr(
+                    view, 'allowed_lookup_fields_override', None
+                ),
+                model=queryset.model,
+                user=request.user,
             )
         except ParseError:
             return queryset.model.objects.none()
         except (
             QueryParserBadSyntax,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ) as e:
             # raising an exception if the default search query without a
@@ -480,15 +488,41 @@ class SearchFilter(filters.BaseFilterBackend):
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
         try:
-            # If we are searching on an n-to-many field, we may get multiple results
-            # from the same model, so we need to de-duplicate with distinct(). Rely
-            # on the view to tell us if this is not necessary
+            # n-to-many joins can duplicate rows; de-dupe unless the view opts out
             if getattr(view, 'skip_distinct', False):
                 return queryset.filter(q_obj)
             else:
                 return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
+
+
+class AssetFileTypeFilter(filters.BaseFilterBackend):
+    """
+    Filters asset files by ``file_type`` query param.
+
+    Declaring the filter as a backend (rather than a manual param in
+    ``extend_schema``) ensures drf-spectacular emits ``required: false`` in
+    the generated schema, which orval then picks up correctly when generating
+    the TypeScript ``AssetsFilesListParams`` type.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        file_type = request.query_params.get('file_type')
+        if file_type is not None:
+            queryset = queryset.filter(file_type=file_type)
+        return queryset
+
+    def get_schema_operation_parameters(self, view):
+        return [
+            {
+                'name': 'file_type',
+                'required': False,
+                'in': 'query',
+                'description': 'Filter files by type (e.g., "form_media")',
+                'schema': {'type': 'string'},
+            }
+        ]
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
@@ -520,7 +554,8 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
             | Q(user=user)  # everyone with access sees their own
             | Q(
                 # everyone with access sees the owner's
-                asset__permissions__user=user, user=F('asset__owner')
+                asset__permissions__user=user,
+                user=F('asset__owner'),
             )
         ).distinct()
         return result

@@ -155,6 +155,7 @@ class AccessLogExportTaskTests(BaseAccessLogTestCase, LookbackTestMixin):
                 'user_uid',
                 'username',
                 'auth_type',
+                'action',
                 'date_created',
                 'source',
                 'ip_address',
@@ -174,6 +175,7 @@ class AccessLogExportTaskTests(BaseAccessLogTestCase, LookbackTestMixin):
             self.assertEqual(first_row['user_uid'], log.user_uid)
             self.assertEqual(first_row['username'], self.user.username)
             self.assertEqual(first_row['auth_type'], 'test_auth')
+            self.assertEqual(first_row['action'], AuditAction.AUTH)
             self.assertEqual(first_row['source'], 'test_source')
             self.assertEqual(first_row['ip_address'], '127.0.0.1')
             self.assertEqual(first_row['initial_superusername'], 'initial_superuser')

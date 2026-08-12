@@ -32,7 +32,8 @@ export default function SelectMultipleResponseForm({
 
   return (
     <Radio.Group
-      p='md'
+      // We need to make some room for MultiCheckbox padding to match total spacing of other response forms
+      p={'calc(var(--mantine-spacing-md) - 4px)'}
       style={{ borderRadius: 'var(--mantine-radius-md)' }}
       className={cx({
         [styles.responseBorderAI]: isAnswerAIGenerated,

@@ -2,6 +2,7 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
+@use 'scss/mixins';
 @use 'scss/libs/_mdl';
 
 #kpiapp,
@@ -92,8 +93,8 @@ iframe {
     font-size: 14px;
     border: 1px solid colors.$kobo-gray-300;
 
-    &:focus {
-      border-color: colors.$kobo-blue;
+    &:focus-visible {
+      @include mixins.default-ui-focus;
     }
   }
 

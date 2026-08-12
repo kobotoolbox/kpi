@@ -7,13 +7,33 @@ import { meMockResponse } from './me.mocks'
  * Mock API handler for the /service_usage/ endpoint of an organization.
  * Use in Storybook tests in `parameters.msw.handlers.organizationServiceUsage`.
  *
+ * Note: NOT fully migrated to Orval because it uses organizationServiceUsage.factory.ts
+ * which provides domain-specific presets (storageWarning, storageExceeded, etc.).
+ * While we could use Orval's handler, the factory presets are more valuable for tests
+ * than raw Orval mocks as they encode business logic about when warnings/errors trigger.
+ *
  * Property `id` is used to generate the URL and populate other response fields that depend on it.
  * Default value is coming from `meMockResponse`.
+ *
+ * @param overrideId - Organization ID override
+ * @param overrideData - Partial override for the service usage response
  */
-const organizationServiceUsageMock = (overrideId?: string) => {
-  const id = overrideId ?? meMockResponse.organization!.uid
+const organizationServiceUsageMock = (overrideId?: string, overrideData?: Partial<UserReportsServiceUsageResponse>) => {
+  const id = overrideId ?? meMockResponse.organization?.uid ?? 'default-org-id'
+  const baseResponse = mockServiceUsageResponse()
+
+  // Deep merge balances if provided
+  const mergedResponse: UserReportsServiceUsageResponse = {
+    ...baseResponse,
+    ...overrideData,
+    balances: {
+      ...baseResponse.balances,
+      ...(overrideData?.balances || {}),
+    },
+  }
+
   return http.get<never, never, UserReportsServiceUsageResponse>(getOrganizationsServiceUsageRetrieveUrl(id), () =>
-    HttpResponse.json(mockServiceUsageResponse()),
+    HttpResponse.json(mergedResponse),
   )
 }
 export default organizationServiceUsageMock

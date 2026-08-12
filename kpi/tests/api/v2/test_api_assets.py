@@ -6,6 +6,9 @@ from datetime import datetime
 import dateutil.parser
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.db import connection
+from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -17,6 +20,7 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kpi.constants import (
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -32,7 +36,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, AssetFile, AssetVersion
 from kpi.models.asset import AssetDeploymentStatus
-from kpi.serializers.v2.asset import AssetListSerializer
+from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.tests.base_test_case import (
     BaseAssetDetailTestCase,
     BaseAssetTestCase,
@@ -302,6 +306,94 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    def test_search_assets_by_multiple_tags(self):
+        # DEV-1581: AND on the to-many `tags` must mean "has both tags"
+        someuser = User.objects.get(username='someuser')
+        foo_asset = Asset.objects.create(
+            owner=someuser, name='foo only', asset_type='survey'
+        )
+        foo_asset.tags.add('foo')
+        bar_asset = Asset.objects.create(
+            owner=someuser, name='bar only', asset_type='survey'
+        )
+        bar_asset.tags.add('bar')
+        both_asset = Asset.objects.create(
+            owner=someuser, name='foo and bar', asset_type='survey'
+        )
+        both_asset.tags.add('foo', 'bar')
+        # Non-survey assets, to exercise the AND nested in an OR against a
+        # branch (`asset_type:survey`) they do not match
+        both_collection = Asset.objects.create(
+            owner=someuser, name='foo and bar collection', asset_type='collection'
+        )
+        both_collection.tags.add('foo', 'bar')
+        foo_collection = Asset.objects.create(
+            owner=someuser, name='foo collection', asset_type='collection'
+        )
+        foo_collection.tags.add('foo')
+
+        def uids(query):
+            return sorted(
+                r['uid']
+                for r in self.client.get(self.list_url, data={'q': query}).data[
+                    'results'
+                ]
+            )
+
+        # AND: only the assets carrying both tags
+        self.assertEqual(
+            uids('tags__name:foo AND tags__name:bar'),
+            sorted([both_asset.uid, both_collection.uid]),
+        )
+        # single tag: every asset carrying it (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo'),
+            sorted(
+                [foo_asset.uid, both_asset.uid, both_collection.uid, foo_collection.uid]
+            ),
+        )
+        # OR: any of the tags (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo OR tags__name:bar'),
+            sorted(
+                [
+                    foo_asset.uid,
+                    bar_asset.uid,
+                    both_asset.uid,
+                    both_collection.uid,
+                    foo_collection.uid,
+                ]
+            ),
+        )
+        # OR nested inside an AND on the same to-many: with a single shared
+        # join this would wrongly return nothing
+        self.assertEqual(
+            uids('tags__name:foo AND (tags__name:bar OR name__icontains:zzz)'),
+            sorted([both_asset.uid, both_collection.uid]),
+        )
+        # AND-of-tags nested inside an OR must still match (Olivier's report).
+        # Assert membership rather than equality: the `asset_type:survey` branch
+        # also returns unrelated survey assets from the fixtures.
+        nested_or = uids('(tags__name:foo AND tags__name:bar) OR asset_type:survey')
+        # both-tagged collection is returned even though it is no survey
+        self.assertIn(both_collection.uid, nested_or)
+        # the foo-only collection matches neither branch and stays out
+        self.assertNotIn(foo_collection.uid, nested_or)
+
+    def test_search_rejects_disallowed_lookup_field(self):
+        # DEV-2417 / kpi#7243 regression: the allowlist must keep blocking
+        # sensitive lookup paths after the query-parser refactor
+        response = self.client.get(self.list_url, data={'q': 'owner__password:x'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_search_rejects_too_many_relational_filters(self):
+        # Over the to-many cap, the API must answer 400 like other parser
+        # errors, not 500
+        limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+        query = ' OR '.join(f'tags__name:t{i}' for i in range(limit + 1))
+        response = self.client.get(self.list_url, data={'q': query})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_numeric_search_for_assets_does_not_crash(self):
         someuser = User.objects.get(username='someuser')
 
@@ -330,6 +422,11 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
 
         result_uids_float = [r['uid'] for r in resp_float.data.get('results', [])]
         self.assertIn(asset_float.uid, result_uids_float)
+
+    def test_nonexistent_parent(self):
+        res = self.client.get(self.list_url, data={'q': 'parent__uid:bad'})
+        assert res.status_code == status.HTTP_200_OK
+        assert res.data['results'] == []
 
     def test_assets_ordering(self):
 
@@ -1529,6 +1626,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         }
         self.assertEqual(resp.data['settings'], expected)
 
+    def test_update_settings_does_not_produce_new_version(self):
+        initial_version_count = self.asset.asset_versions.count()
+        data = {
+            'settings': json.dumps({
+                'mysetting': 'value'
+            }),
+        }
+        self.client.patch(self.asset_url, data, format='json')
+        self.asset.refresh_from_db()
+        assert self.asset.asset_versions.count() == initial_version_count
+
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2187,6 +2295,37 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertIn('someuser', usernames)
         self.assertIn(self.thirduser.username, usernames)
 
+    def test_detail_access_types_reuses_permission_fetch(self):
+        """
+        On the detail endpoint, get_access_types reuses the per-request
+        permission-assignment fetch that get_permissions also uses, instead of
+        issuing its own query (DEV-1833): once the fetch is primed, it triggers
+        no further object-permission query.
+        """
+        collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.asset.owner,
+            name='shared-fetch collection',
+        )
+        collection.assign_perm(self.thirduser, PERM_VIEW_ASSET)
+
+        request = RequestFactory().get('/')
+        request.user = self.asset.owner
+        serializer = AssetSerializer(collection, context={'request': request})
+
+        # Prime the shared, memoized fetch (the same one get_permissions reads).
+        serializer._get_object_permission_assignments(collection)
+        with CaptureQueriesContext(connection) as context:
+            access_types = serializer.get_access_types(collection)
+
+        object_permission_queries = [
+            q['sql']
+            for q in context.captured_queries
+            if 'kpi_objectpermission' in q['sql']
+        ]
+        self.assertEqual(object_permission_queries, [])
+        self.assertEqual(access_types, ['owned'])
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
 
@@ -2602,6 +2741,59 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             deploy_response.data['error'],
             "The survey element named 'Enter_an_int_number' has no label or hint.",
         )
+
+    def test_asset_deployment_duplicate_name_error(self):
+        self.maxDiff = None
+        bad_content = {
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'g1',
+                    'type': 'begin_group',
+                    'label': 'Group 1',
+                },
+                {
+                    'name': 'duplicate_question',
+                    'type': 'text',
+                    'label': 'Group 1 Q1',
+                },
+                {'type': 'end_group'},
+                {
+                    'name': 'g2',
+                    'type': 'begin_group',
+                    'label': 'Group 2',
+                },
+                {
+                    'name': 'duplicate_question',
+                    'type': 'text',
+                    'label': 'Group 2 Q1',
+                },
+                {'type': 'end_group'},
+            ],
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': bad_content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset_uid = asset_response.data.get('uid')
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert 'duplicate_question' in deploy_response.data['error']
 
     def test_asset_redeployment_validation_error(self):
         content = {

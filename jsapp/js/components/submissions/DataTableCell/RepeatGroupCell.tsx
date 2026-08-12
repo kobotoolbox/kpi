@@ -1,5 +1,5 @@
 import type { SubmissionResponse } from '#/dataInterface'
-import { getRepeatGroupAnswers } from '../submissionUtils'
+import { getRepeatGroupAnswers } from '../repeatGroupUtils'
 import styles from './RepeatGroupCell.module.scss'
 
 interface RepeatGroupCellProps {
@@ -12,10 +12,9 @@ interface RepeatGroupCellProps {
  */
 export default function RepeatGroupCell(props: RepeatGroupCellProps) {
   const repeatGroupAnswers = getRepeatGroupAnswers(props.submissionData, props.rowName)
-  if (!repeatGroupAnswers) return null
-
+  if (!repeatGroupAnswers || repeatGroupAnswers.length <= 0) return null
   return (
-    <div className={styles.repeatGroupCell} dir='auto'>
+    <div dir='auto' className={styles.cell}>
       {repeatGroupAnswers.map((answer, i) => (
         <span key={i}>
           {i > 0 && ', '}

@@ -11,20 +11,32 @@ from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.subsequences.audit import create_bulk_action_history_log
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
-from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubsequenceBulkAction
+from kobo.apps.subsequences.models import (
+    BulkActionStatus,
+    QATagTracker,
+    QuestionAdvancedFeature,
+    SubsequenceBulkAction,
+)
 from kobo.apps.subsequences.serializers import (
+    BulkAcceptSerializer,
     BulkActionCancelSerializer,
     BulkActionCreateSerializer,
     BulkActionResponseSerializer,
+    QATagTrackerSerializer,
     QuestionAdvancedFeatureSerializer,
     QuestionAdvancedFeatureUpdateSerializer,
 )
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
-from kpi.permissions import AssetAdvancedFeaturesPermission
+from kpi.permissions import (
+    AssetAdvancedFeaturesPermission,
+    QATagTrackerPermission,
+)
 from kpi.schema_extensions.v2.subsequences.examples import (
+    get_bulk_accept_examples,
     get_bulk_action_list_response_examples,
     get_bulk_action_patch_examples,
     get_bulk_action_response_examples,
+    get_bulk_action_retrieve_examples,
     get_bulk_actions_create_examples,
     get_advanced_features_create_examples,
     get_advanced_features_list_examples,
@@ -35,7 +47,10 @@ from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeaturePatchRequest,
     AdvancedFeaturePostRequest,
     AdvancedFeatureResponse,
+    BulkAcceptRequest,
+    BulkAcceptResponse,
     BulkActionCreateRequest,
+    BulkActionCreateResponse,
     BulkActionListResponse,
     BulkActionPatchRequest,
     BulkActionResponse,
@@ -191,7 +206,7 @@ class QuestionAdvancedFeatureViewSet(
         description=read_md('subsequences', 'subsequences/bulk_actions_create.md'),
         request={'application/json': BulkActionCreateRequest},
         responses=open_api_201_created_response(
-            BulkActionResponse,
+            BulkActionCreateResponse,
             require_auth=False,
             raise_access_forbidden=False,
         ),
@@ -202,6 +217,32 @@ class QuestionAdvancedFeatureViewSet(
     ),
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='status',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=(
+                    'Filter by parent job status. Accepts comma-separated values, '
+                    'e.g. "pending,in_progress".'
+                ),
+            ),
+            OpenApiParameter(
+                name='submission_uuid',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter jobs to those containing this submission UUID.',
+            ),
+            OpenApiParameter(
+                name='question_xpath',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter jobs to this question xpath.',
+            ),
+        ],
         responses=open_api_200_ok_response(
             BulkActionListResponse(many=False),
             require_auth=False,
@@ -247,7 +288,7 @@ class QuestionAdvancedFeatureViewSet(
                 description='UID of the bulk action job',
             ),
         ],
-        examples=get_bulk_action_response_examples(),
+        examples=get_bulk_action_retrieve_examples(),
     ),
 )
 class BulkActionViewSet(
@@ -286,16 +327,45 @@ class BulkActionViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+        skipped_uuids = instance.skipped_uuids
 
         # Re-fetch the instance to ensure all related data is included
         # (e.g. for response serialization)
         instance = self.get_queryset().get(pk=instance.pk)
         create_bulk_action_history_log(request, instance)
-        response_serializer = BulkActionResponseSerializer(instance)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        response_data = BulkActionResponseSerializer(instance).data
+        response_data['skipped_uuids'] = skipped_uuids
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+
+        requested_statuses = []
+        for raw_status in request.query_params.getlist('status'):
+            requested_statuses.extend(
+                status.strip() for status in raw_status.split(',') if status.strip()
+            )
+        if requested_statuses:
+            valid_statuses = set(BulkActionStatus.values)
+            filtered_statuses = [
+                status for status in requested_statuses if status in valid_statuses
+            ]
+            queryset = (
+                queryset.filter(status__in=filtered_statuses)
+                if filtered_statuses
+                else queryset.none()
+            )
+
+        submission_uuid = request.query_params.get('submission_uuid')
+        if submission_uuid:
+            queryset = queryset.filter(
+                items__submission_root_uuid=submission_uuid
+            ).distinct()
+
+        question_xpath = request.query_params.get('question_xpath')
+        if question_xpath:
+            queryset = queryset.filter(question_xpath=question_xpath)
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -315,3 +385,101 @@ class BulkActionViewSet(
         instance = self.get_queryset().get(pk=instance.pk)
         response_serializer = BulkActionResponseSerializer(instance)
         return Response(response_serializer.data)
+
+
+@extend_schema(
+    tags=['Survey data'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
+    methods=['POST'],
+    request={'application/json': BulkAcceptRequest},
+    responses=open_api_200_ok_response(
+        BulkAcceptResponse,
+        require_auth=False,
+        raise_access_forbidden=False,
+    ),
+    description=read_md('subsequences', 'subsequences/bulk_accept.md'),
+    examples=get_bulk_accept_examples(),
+)
+class BulkAcceptViewSet(
+    NestedViewSetMixin, AssetNestedObjectViewsetMixin, viewsets.GenericViewSet
+):
+    """
+    POST /api/v2/assets/{uid_asset}/data/supplements/bulk/
+
+    Accepts NLP results (transcription or translation) in bulk for the given
+    submission UUIDs. Returns the count of records that were successfully
+    accepted.
+    """
+
+    permission_classes = (AssetAdvancedFeaturesPermission,)
+    versioning_class = APIV2Versioning
+    http_method_names = ['post']
+
+    def create(self, request, *args, **kwargs):
+        serializer = BulkAcceptSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        accepted_count = serializer.accept(self.asset)
+        return Response(
+            {
+                'accepted_count': accepted_count
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+@extend_schema(
+    tags=['Survey data'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='uid_qa_question',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UUID of the QA tags question',
+        ),
+    ],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('subsequences', 'subsequences/qa_tag_trackers_list.md'),
+    ),
+)
+class QATagTrackerViewSet(
+    NestedViewSetMixin,
+    AssetNestedObjectViewsetMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    GET /api/v2/assets/{uid_asset}/qual-questions/{uid_qa_question}/tags/
+
+    Lists previously tracked tag values for a QA tags question, for use in
+    frontend autocomplete suggestions.
+    """
+
+    serializer_class = QATagTrackerSerializer
+    permission_classes = (QATagTrackerPermission,)
+    versioning_class = APIV2Versioning
+    pagination_class = None
+    http_method_names = ['get']
+
+    def get_queryset(self):
+        return QATagTracker.objects.filter(
+            asset=self.asset,
+            question_uuid=self.kwargs['uid_qa_question'],
+        ).order_by('value')

@@ -34,7 +34,7 @@ class OrgAdmin(BaseOrganizationAdmin):
     view_on_site = False
     readonly_fields = ['id', 'subscription_plan']
     fields = ['id', 'name', 'mmo_override', 'subscription_plan']
-    search_fields = ['name']
+    search_fields = ['name', 'id']
     change_form_template = 'admin/organizations/organization/change_form.html'
 
     # parent overrides

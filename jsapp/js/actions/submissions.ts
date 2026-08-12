@@ -13,14 +13,13 @@ import type {
   PaginatedResponse,
   SubmissionResponse,
 } from '#/dataInterface'
-import { addDefaultUuidPrefix, matchUuid, notify } from '#/utils'
+import { notify } from '#/utils'
 
 /**
  * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 const submissionsActions = Reflux.createActions({
   getSubmission: { children: ['completed', 'failed'] },
-  getSubmissionByUuid: { children: ['completed', 'failed'] },
   getSubmissions: { children: ['completed', 'failed'] },
   bulkDeleteStatus: { children: ['completed', 'failed'] },
   bulkPatchStatus: { children: ['completed', 'failed'] },
@@ -70,31 +69,6 @@ submissionsActions.getSubmission.listen((assetUid: string, submissionId: string)
     .getSubmission(assetUid, submissionId)
     .done(submissionsActions.getSubmission.completed)
     .fail(submissionsActions.getSubmission.failed)
-})
-
-// There is no shortcut endpoint to get submission using uuid, so we have to
-// make a queried call over all submissions.
-submissionsActions.getSubmissionByUuid.listen((assetUid: string, submissionUuid: string) => {
-  // `_uuid` is the legacy identifier that changes (per OpenRosa spec) after every edit;
-  // `meta/rootUuid` remains consistent across edits.
-  const query = JSON.stringify({
-    $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionUuid) }, { _uuid: submissionUuid }],
-  })
-  $.ajax({
-    dataType: 'json',
-    method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?query=${query}`,
-  })
-    .done((response: PaginatedResponse<SubmissionResponse>) => {
-      // preferentially return a result matching the persistent UUID
-      submissionsActions.getSubmissionByUuid.completed(
-        response.results.find((sub) => matchUuid(sub['meta/rootUuid'], submissionUuid)) || response.results[0],
-      )
-    })
-    .fail(submissionsActions.getSubmissionByUuid.failed)
-})
-submissionsActions.getSubmissionByUuid.failed.listen(() => {
-  notify(t('Failed to get submission.'), 'error')
 })
 
 submissionsActions.bulkDeleteStatus.listen((uid: string, data: BulkSubmissionsRequest) => {

@@ -234,8 +234,6 @@ $k-select-menu-padding: 6px;
 .k-select.k-select--type-gray {
   &.k-select--is-menu-visible {
     .k-select__trigger {
-      border-color: colors.$kobo-mid-blue;
-
       &:focus-within {
         @include mixins.default-ui-focus;
       }
@@ -290,8 +288,6 @@ $k-select-menu-padding: 6px;
 
   &.k-select--is-menu-visible {
     .k-select__trigger {
-      border-color: colors.$kobo-blue;
-
       &:focus-within {
         @include mixins.default-ui-focus;
       }

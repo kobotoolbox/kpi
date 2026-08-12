@@ -209,6 +209,9 @@ class DataSupplementPayloadExtension(
                 'language': GENERIC_STRING_SCHEMA,
                 'locale': GENERIC_STRING_SCHEMA,
                 'accepted': {'type': 'boolean'},
+                # `value` is only ever null: passing `{value: null}` deletes the
+                # automatic transcription/translation (see DEV-1722).
+                'value': {'enum': [None], 'nullable': True},
             },
             required=['language'],
         )
@@ -329,95 +332,92 @@ class DataSupplementalDetailsFieldExtension(
             auto_schema, qual_references=references
         )
 
+        # Note: These schemas are inlined (not registered as components) to avoid
+        # Orval generating problematic MSW mocks for types with index signatures.
+        # The oneOf discriminator is sufficient for the API schema.
+        #
+        # Structure of each oneOf option:
+        # {
+        #   [question_xpath]: {
+        #     [action_type]: { ...action_data }
+        #   }
+        # }
+        #
+        # The six oneOf options represent all possible action types that can
+        # generate supplemental data. Each has a unique property name that acts
+        # as a discriminator, allowing TypeScript to narrow the union based on
+        # which property exists.
         return {
             'oneOf': [
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsManualTranscription',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'manual_transcription': supp_references[
-                                    'action_object_manual'
-                                ],
-                            },
-                            required=['manual_transcription'],
-                        ),
-                        description='Manual transcription supplemental details',
+                # Option 1: Human-generated audio/video transcription
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'manual_transcription': supp_references[
+                                'action_object_manual'
+                            ],
+                        },
+                        required=['manual_transcription'],
                     ),
+                    description='Manual transcription supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsManualTranslation',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'manual_translation': supp_references[
-                                    'translation_map_manual'
-                                ],
-                            },
-                            required=['manual_translation'],
-                        ),
-                        description='Manual translation supplemental details',
+                # Option 2: Human-generated text translation
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'manual_translation': supp_references[
+                                'translation_map_manual'
+                            ],
+                        },
+                        required=['manual_translation'],
                     ),
+                    description='Manual translation supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsAutomaticTranscription',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'automatic_google_transcription': supp_references[
-                                    'action_object_automatic'
-                                ],
-                            },
-                            required=['automatic_google_transcription'],
-                        ),
-                        description='Automatic transcription supplemental details',
+                # Option 3: AI-generated audio/video transcription
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'automatic_google_transcription': supp_references[
+                                'action_object_automatic'
+                            ],
+                        },
+                        required=['automatic_google_transcription'],
                     ),
+                    description='Automatic transcription supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsAutomaticTranslation',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'automatic_google_translation': supp_references[
-                                    'translation_map_automatic'
-                                ],
-                            },
-                            required=['automatic_google_translation'],
-                        ),
-                        description='Automatic translation supplemental details',
+                # Option 4: AI-generated text translation
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'automatic_google_translation': supp_references[
+                                'translation_map_automatic'
+                            ],
+                        },
+                        required=['automatic_google_translation'],
                     ),
+                    description='Automatic translation supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsManualQual',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'manual_qual': supp_references['qual_map'],
-                            },
-                            required=['manual_qual'],
-                        ),
-                        description='Manual qualitative supplemental details',
+                # Option 5: Human-generated qualitative analysis tags
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'manual_qual': supp_references['qual_map'],
+                        },
+                        required=['manual_qual'],
                     ),
+                    description='Manual qualitative supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsAutomaticQual',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'automatic_bedrock_qual': supp_references[
-                                    'qual_map_automatic'
-                                ],
-                            },
-                            required=['automatic_bedrock_qual'],
-                        ),
-                        description='Automatic qualitative supplemental details',
+                # Option 6: AI-generated qualitative analysis tags
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'automatic_bedrock_qual': supp_references[
+                                'qual_map_automatic'
+                            ],
+                        },
+                        required=['automatic_bedrock_qual'],
                     ),
+                    description='Automatic qualitative supplemental details',
                 ),
             ],
             'nullable': True,  # Field is required=False

@@ -34,6 +34,7 @@ export default function SingleProcessingHeader({
     <header className={styles.root}>
       <SelectQuestion
         asset={asset}
+        submission={submission}
         xpath={xpath}
         currentSubmissionUid={currentSubmissionUid}
         questionLabelLanguage={questionLabelLanguage}

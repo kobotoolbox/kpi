@@ -20,7 +20,9 @@ from kobo.apps.mass_emails.user_queries import (
     get_users_over_100_percent_of_nlp_limits,
     get_users_over_100_percent_of_storage_limit,
     get_users_over_100_percent_of_submission_limit,
-    get_users_who_are_accessing_v1_endpoints,
+    get_users_over_80_percent_of_auto_qa_limits,
+    get_users_over_90_percent_of_auto_qa_limits,
+    get_users_over_100_percent_of_auto_qa_limits,
 )
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -37,8 +39,10 @@ USER_QUERIES: dict[str, Callable] = {
     'users_above_80_percent_nlp_usage': get_users_over_80_percent_of_nlp_limits,
     'users_above_90_percent_nlp_usage': get_users_over_90_percent_of_nlp_limits,
     'users_above_100_percent_nlp_usage': get_users_over_100_percent_of_nlp_limits,
+    'users_above_80_percent_autoqa_usage': get_users_over_80_percent_of_auto_qa_limits,
+    'users_above_90_percent_autoqa_usage': get_users_over_90_percent_of_auto_qa_limits,
+    'users_above_100_percent_autoqa_usage': get_users_over_100_percent_of_auto_qa_limits,  # noqa
     'test_users': get_all_test_users,
-    'users_accessing_v1_endpoints': get_users_who_are_accessing_v1_endpoints,
 }
 USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
 EmailType = Enum('EmailType', ['RECURRING', 'ONE_TIME'])

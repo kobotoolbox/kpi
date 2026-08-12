@@ -1,5 +1,6 @@
 import React from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
@@ -19,6 +20,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
   advancedFeatures: AdvancedFeatureResponse[]
@@ -28,6 +30,7 @@ export default function TranscriptTab({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   onUnsavedWorkChange,
   supplement,
   advancedFeatures,
@@ -42,7 +45,15 @@ export default function TranscriptTab({
     isSupplementVersionAutomatic(transcriptVersion) &&
     (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
   ) {
-    return <TranscriptPoll key={submissionKey} asset={asset} questionXpath={questionXpath} submission={submission} />
+    return (
+      <TranscriptPoll
+        key={submissionKey}
+        asset={asset}
+        questionXpath={questionXpath}
+        submission={submission}
+        activeBulkActions={activeBulkActions}
+      />
+    )
   }
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (
@@ -53,6 +64,7 @@ export default function TranscriptTab({
         submission={submission}
         supplement={supplement}
         transcriptVersion={transcriptVersion}
+        activeBulkActions={activeBulkActions}
         onUnsavedWorkChange={onUnsavedWorkChange}
         advancedFeatures={advancedFeatures}
       />
@@ -66,6 +78,7 @@ export default function TranscriptTab({
       questionXpath={questionXpath}
       submission={submission}
       supplement={supplement}
+      activeBulkActions={activeBulkActions}
       onUnsavedWorkChange={onUnsavedWorkChange}
       advancedFeatures={advancedFeatures}
     />

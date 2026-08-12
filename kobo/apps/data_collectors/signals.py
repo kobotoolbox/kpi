@@ -54,10 +54,9 @@ def remove_enketo_links_on_permission_removed(sender, instance, *args, **kwargs)
 
     if group is not None and group.owner_id == instance.user_id:
         # we have to do this manually instead of using obj.assets.remove()
-        # so we can call save() with adjust_content=False
+        # so we can call save() with parameters
         asset.data_collector_group = None
         asset.save(
             update_fields=['data_collector_group'],
             adjust_content=False,
-            create_version=False,
         )

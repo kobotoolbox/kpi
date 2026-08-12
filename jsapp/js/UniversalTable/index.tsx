@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { ErrorObject } from 'schema-utils/declarations/validate'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import UniversalTableCore from './UniversalTableCore'
 import type { UniversalTableColumn } from './UniversalTableCore'
@@ -47,7 +46,7 @@ export namespace PaginatedListResponse {
   }
 }
 
-interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject> {
+interface UniversalTableProps<Datum, TError = Error | ErrorDetail> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
@@ -63,6 +62,12 @@ interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject>
   maxHeight?: number | string
   /** Used to inject infinite scroll observers or footer info into the table. */
   bottomContent?: React.ReactNode
+  /**
+   * Controls when spinner overlay is shown.
+   * - `fetching` shows spinner for all fetches, including background refetches.
+   * - `loading` shows spinner only while there is no data yet.
+   */
+  spinnerVisibility?: 'fetching' | 'loading'
 }
 
 export const PAGE_SIZES = [10, 30, 50, 100]
@@ -104,6 +109,7 @@ export default function UniversalTable<Datum, TError = Error>({
   setPagination,
   maxHeight,
   bottomContent,
+  spinnerVisibility = 'fetching',
 }: UniversalTableProps<Datum, TError>) {
   const availablePages = useMemo(
     () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
@@ -112,13 +118,15 @@ export default function UniversalTable<Datum, TError = Error>({
 
   const currentPageIndex = useMemo(() => Math.ceil(pagination.start / pagination.limit), [pagination])
 
+  const isSpinnerVisible = spinnerVisibility === 'loading' ? queryResult.isLoading : queryResult.isFetching
+
   if (queryResult.data?.status !== 200) return null
 
   return (
     <UniversalTableCore<Datum>
       columns={columns}
       data={queryResult.data?.data.results ?? []}
-      isSpinnerVisible={queryResult.isFetching}
+      isSpinnerVisible={isSpinnerVisible}
       maxHeight={maxHeight}
       bottomContent={bottomContent}
       pageIndex={currentPageIndex}

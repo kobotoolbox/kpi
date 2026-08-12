@@ -32,7 +32,10 @@ interface RadioProps {
   isClearable?: boolean
 }
 
-/** A radio input generic component. */
+/**
+ * A radio input generic component.
+ * @deprecated Use Mantine's Radio instead.
+ */
 class Radio extends React.Component<RadioProps> {
   constructor(props: RadioProps) {
     if (typeof props.onChange !== 'function') {

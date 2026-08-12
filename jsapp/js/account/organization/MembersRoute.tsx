@@ -7,7 +7,7 @@ import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import type { ErrorObject } from '#/api/models/errorObject'
+import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import type { MemberListResponse } from '#/api/models/memberListResponse'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -21,7 +21,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
 import envStore from '#/envStore'
-import { formatDate, notify } from '#/utils'
+import { formatDate } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
@@ -49,10 +49,6 @@ export default function MembersRoute() {
       // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
       // here so we don't forget about it.
       refetchOnWindowFocus: true,
-      throwOnError: () => {
-        notify(t('There was an error getting the list.'), 'error') // TODO: update message in backend (DEV-1218).
-        return false
-      },
     },
   })
 
@@ -78,9 +74,9 @@ export default function MembersRoute() {
         return (
           <Avatar
             size='m'
-            username={member ? member.user__username : invite!.invitee!}
+            username={member ? member.user__username! : invite!.invitee!}
             isUsernameVisible
-            email={member ? member.user__email : undefined}
+            email={member ? (member.user__email ?? undefined) : undefined}
             // We pass `undefined` for the case it's an empty string
             fullName={invite ? undefined : member?.user__extra_details__name || undefined}
             isEmpty={!member}
@@ -108,7 +104,7 @@ export default function MembersRoute() {
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        return invite ? formatDate(invite.created) : formatDate(member!.date_joined)
+        return invite ? formatDate(invite.created) : formatDate(member!.date_joined!)
       },
     },
     {
@@ -143,8 +139,8 @@ export default function MembersRoute() {
         }
         return (
           <MemberRoleSelector
-            username={member!.user__username}
-            role={member!.role}
+            username={member!.user__username!}
+            role={member!.role!}
             currentUserRole={organization.request_user_role}
           />
         )
@@ -233,7 +229,7 @@ export default function MembersRoute() {
         </Box>
       )}
 
-      <UniversalTable<MemberListResponse, ErrorObject>
+      <UniversalTable<MemberListResponse, ErrorDetail>
         columns={columns}
         queryResult={membersQuery}
         pagination={pagination}

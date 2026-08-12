@@ -3,6 +3,12 @@ import type { SubmissionResponse } from '#/dataInterface'
 
 /**
  * Creates a minimal SubmissionResponse for a form with no questions.
+ *
+ * Note: NOT migrated to Orval because SubmissionResponse is a legacy type
+ * defined in dataInterface.ts, not in the OpenAPI schema. It represents
+ * dynamic form submission data with arbitrary question fields, which cannot
+ * be statically typed in OpenAPI/Orval.
+ *
  * @param testId - Id of the submission
  * @param overrides - For overriding any property of the submission
  */

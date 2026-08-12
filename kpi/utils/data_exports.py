@@ -71,6 +71,7 @@ ACCESS_LOGS_EXPORT_FIELDS = (
     'user_uid',
     'username',
     'auth_type',
+    'action',
     'date_created',
     'source',
     'ip_address',
@@ -164,7 +165,7 @@ def get_user_data(filtered_queryset: QuerySet) -> QuerySet:
     return (
         filtered_queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
-            mfa_is_active=F('mfa_methods__is_active'),
+            mfa_is_active=F('mfa_methods_wrapper__is_active'),
             metadata=F('extra_details__data'),
             asset_count=Count('assets'),
         )

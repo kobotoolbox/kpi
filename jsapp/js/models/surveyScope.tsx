@@ -114,17 +114,30 @@ class SurveyScope {
       })
   }
 
+  /**
+   * Fetches a library asset and inserts it into the form.
+   *
+   * The asset can be a single question or a group containing multiple questions.
+   * For select questions, insertSurvey() will call _ensure_row_list_is_copied()
+   * to give each instance its own choice list.
+   *
+   * We deep-clone the asset content before parsing because Survey.loadDict()
+   * mutates its argument.
+   *
+   * @param position - Where to insert (0-based)
+   * @param uid - Library asset UID
+   * @param groupId - Target group CID (omit for survey root)
+   * @throws Error if asset not found
+   */
   addExternalItemAtPosition(position: number, uid: string, groupId?: string): void {
     assetsRetrieve(uid)
       .then((response) => {
         const data = response?.data
 
         if (data && 'content' in data && data.content) {
-          // `loadDict()` mutates its first argument, so pass a copied object
           const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
-          // TODO: Edge case warning - if the survey changes before the response arrives, `insertSurvey` can insert into
-          // the wrong place, because `newSurvey` is freshly fetched from API, and both position and groupId are carried
-          // over.
+          // TODO: Race condition - if the survey changes before this async fetch completes,
+          // we might insert at the wrong position or into a group that no longer exists
           this.survey.insertSurvey(newSurvey, position, groupId)
         } else {
           throw new Error(`Asset ${uid} not found or response missing content`)
@@ -136,6 +149,15 @@ class SurveyScope {
       })
   }
 
+  /**
+   * Handles library items dropped into FormBuilder.
+   * Called by the sortable receive handlers in view.surveyApp.coffee.
+   *
+   * @param data.position - Where to insert (0-based index)
+   * @param data.itemUid - Library asset UID
+   * @param data.groupId - Target group CID (omit to insert at survey root)
+   * @throws Error if itemUid is missing
+   */
   handleItem(data: { position: number; itemUid: string; groupId?: string }): void {
     if (!data.itemUid) {
       throw new Error('addExternalItemAtPosition: itemUid not provided!')

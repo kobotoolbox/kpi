@@ -1,0 +1,81 @@
+/* Selector for the non-labelled line */
+.list {
+  --tab-border-color: var(--mantine-color-gray-6);
+}
+
+.tab {
+  /* Global text color of the non active tabs */
+  color: var(--mantine-color-gray-2);
+  font-size: var(--mantine-font-size-md);
+  font-weight: 500;
+}
+
+/* default variant — underline indicator */
+.root[data-variant='default'] .tab {
+  /* Color of the non-active unline */
+  border-color: var(--mantine-color-gray-6);
+
+  &:hover {
+    color: var(--mantine-color-gray-1);
+    background-color: var(--mantine-color-gray-8);
+  }
+
+  &[data-active] {
+    color: var(--mantine-color-blue-5);
+    border-color: var(--mantine-color-blue-5);
+  }
+}
+
+/* pills variant — button style */
+.root[data-variant='pills'] .tab {
+  border-radius: var(--mantine-radius-sm);
+
+  &:hover {
+    background-color: var(--mantine-color-gray-8);
+  }
+
+  &[data-active] {
+    color: var(--mantine-color-gray-9);
+    background-color: var(--mantine-color-blue-6);
+  }
+}
+
+/* bubble variant — speech bubble */
+.root[data-variant='bubble'] {
+  .tab {
+    position: relative;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-teal-2);
+  }
+
+  .tab[data-active='true'] {
+    background: var(--mantine-color-teal-6);
+  }
+
+  /* Speech bubble triangle */
+  .tab[data-active='true']::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -10px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 10px solid var(--mantine-color-teal-6);
+  }
+}
+
+/* Size variants done with font sizes, default is --mantine-font-size-md */
+.root[data-size='md'] {
+  .tab {
+    font-size: var(--mantine-font-size-lg);
+  }
+}
+
+.root[data-size='lg'] {
+  .tab {
+    font-size: var(--mantine-font-size-xl);
+  }
+}

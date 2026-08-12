@@ -59,7 +59,7 @@ from kpi.renderers import (
 )
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
-    ASSET_CONTENT_SCHEMA,
+    ASSET_CONTENT_REQUEST_SCHEMA,
     ASSET_ENABLED_SCHEMA,
     ASSET_FIELDS_SCHEMA,
     ASSET_NAME_SCHEMA,
@@ -299,7 +299,9 @@ from kpi.utils.strings import strtobool
             OpenApiExample(
                 name='Updating an asset',
                 value={
-                    'content': generate_example_from_schema(ASSET_CONTENT_SCHEMA),
+                    'content': generate_example_from_schema(
+                        ASSET_CONTENT_REQUEST_SCHEMA
+                    ),
                     'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
                 },
                 request_only=True,
@@ -307,8 +309,10 @@ from kpi.utils.strings import strtobool
             OpenApiExample(
                 name='Data sharing of the project',
                 value={
-                    'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
-                    'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                    'data_sharing': {
+                        'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
+                        'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                    }
                 },
                 request_only=True,
             ),
@@ -1062,9 +1066,10 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
-        md_table = ss_structure_to_mdtable(sa.ordered_xlsform_content())
-        return Response('<!doctype html>\n'
-                        '<html><body><code><pre>' + md_table.strip())
+        md_table = ss_structure_to_mdtable(
+            sa.ordered_xlsform_content(raise_on_autoname_error=False)
+        )
+        return Response('<!doctype html>\n<html><body><code><pre>' + md_table.strip())
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):

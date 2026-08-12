@@ -1,5 +1,5 @@
+import { Box } from '@mantine/core'
 import React, { Suspense } from 'react'
-
 import autoBind from 'react-autobind'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
@@ -7,6 +7,7 @@ import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TransferProjects from '#/components/permissions/transferProjects/transferProjects.component'
 import FormMedia from '#/project/FormMedia'
+import { ProjectSettings } from '#/project/ProjectSettings'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { actions } from '../actions'
@@ -14,7 +15,6 @@ import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
 import RESTServices from './RESTServices'
 import FormMapWrapper from './map/formMapWrapper'
-import ProjectSettings from './modalForms/projectSettings'
 import SharingForm from './permissions/sharingForm.component'
 import LimitNotifications from './usageLimits/limitNotifications.component'
 
@@ -120,9 +120,12 @@ export class FormSubScreens extends React.Component {
     return (
       <bem.FormView m='form-settings-sharing'>
         <LimitNotifications />
+
         <SharingForm assetUid={uid} />
 
-        <TransferProjects asset={this.state} />
+        <Box mt='xl'>
+          <TransferProjects asset={this.state} />
+        </Box>
       </bem.FormView>
     )
   }

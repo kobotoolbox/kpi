@@ -1,8 +1,10 @@
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from google.api_core.exceptions import PermissionDenied
+from google.cloud import speech_v2 as speech
+from google.rpc import status_pb2
 
 from kobo.apps.subsequences.exceptions import (
     GoogleTranscriptionServiceNotConfigured,
@@ -59,6 +61,53 @@ def test_adapt_response_handles_nested_batch_result_payloads():
     }
 
     assert service.adapt_response(response) == 'Hello world'
+
+
+def test_extract_per_file_error_returns_none_for_empty_response():
+    service = object.__new__(GoogleTranscriptionService)
+
+    assert service._extract_per_file_error(None) is None
+    assert service._extract_per_file_error({}) is None
+
+
+def test_extract_per_file_error_returns_none_when_no_result_has_an_error():
+    service = object.__new__(GoogleTranscriptionService)
+    response = {'results': {'gs://bucket/file.flac': {}}}
+
+    assert service._extract_per_file_error(response) is None
+
+
+def test_extract_per_file_error_reads_message_from_dict_response():
+    service = object.__new__(GoogleTranscriptionService)
+    response = {
+        'results': {
+            'gs://bucket/file.flac': {'error': {'message': 'some google error'}},
+        }
+    }
+
+    assert service._extract_per_file_error(response) == 'some google error'
+
+
+def test_extract_per_file_error_reads_message_from_proto_response():
+    """
+    Exercise the real proto path returned by `operation.result()`, as opposed
+    to the dict path from the polling code (already covered by
+    `test_extract_per_file_error_reads_message_from_dict_response`).
+    `BatchRecognizeFileResult.error` is a generated protobuf field typed
+    `google.rpc.Status`, so it must be built from that message type rather
+    than a plain string or dict.
+    """
+
+    service = object.__new__(GoogleTranscriptionService)
+    response = speech.BatchRecognizeResponse(
+        results={
+            'gs://bucket/file.flac': speech.BatchRecognizeFileResult(
+                error=status_pb2.Status(message='some google error'),
+            ),
+        }
+    )
+
+    assert service._extract_per_file_error(response) == 'some google error'
 
 
 def test_read_batch_result_raises_when_no_json_result_files_exist():
@@ -133,7 +182,17 @@ def test_process_data_returns_failed_for_missing_google_service_config():
     }
 
 
-def test_process_data_returns_failed_for_polling_auth_errors():
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_asr_language_code_overrides',  # noqa E501
+    return_value={},
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_returns_failed_for_polling_auth_errors(
+    _mock_location, _mock_overrides
+):
     service = _get_service_for_process_data()
     service._get_google_language_config = MagicMock(
         return_value=MagicMock(language_code='en-US', location_code='global')
@@ -152,7 +211,17 @@ def test_process_data_returns_failed_for_polling_auth_errors():
     )
 
 
-def test_process_data_raises_quota_error_when_start_quota_is_exhausted():
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_asr_language_code_overrides',  # noqa E501
+    return_value={},
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_raises_quota_error_when_start_quota_is_exhausted(
+    _mock_location, _mock_overrides
+):
     """
     Test that if the internal token bucket rate limit is exhausted,
     the transcription process aborts locally and bubbles the quota error up
@@ -176,7 +245,17 @@ def test_process_data_raises_quota_error_when_start_quota_is_exhausted():
     service._clear_operation_reference.assert_not_called()
 
 
-def test_process_data_returns_failed_for_unexpected_polling_errors():
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_asr_language_code_overrides',  # noqa E501
+    return_value={},
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_returns_failed_for_unexpected_polling_errors(
+    _mock_location, _mock_overrides
+):
     service = _get_service_for_process_data()
     service._get_google_language_config = MagicMock(
         return_value=MagicMock(language_code='en-US', location_code='global')

@@ -233,7 +233,7 @@ export default function FormGallery(props: FormGalleryProps) {
             {/* Current image */}
             <Box style={{ flexGrow: 1, minWidth: 0 }}>
               <Image
-                src={currentAttachment.download_url}
+                src={currentAttachment.download_large_url || currentAttachment.download_url}
                 alt={currentAttachment.filename}
                 fit='contain'
                 style={{ maxHeight: '70vh', width: '100%' }}

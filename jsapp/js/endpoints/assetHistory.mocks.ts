@@ -1,20 +1,58 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
+import type { ProjectHistoryLogResponse } from '#/api/models/projectHistoryLogResponse'
+import { getApiV2ProjectHistoryLogsListResponseMock } from '#/api/react-query/server-logs-superusers/msw'
 import {
   type ActivityLogsItem,
   AuditActions,
   BULK_PROCESSING_ACTION_IDS,
 } from '#/components/activity/activity.constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import assetHistoryLogFactory, { defaultAssetHistoryAssetUid } from './assetHistoryLog.factory'
 
-export const mockAssetUid = defaultAssetHistoryAssetUid
+export const mockAssetUid = 'a1234567890bcdEFGhijkl'
 
-type AssetHistoryLogOverrides = Parameters<typeof assetHistoryLogFactory>[0]
+/**
+ * Creates a mock history log item using Orval's generated mock.
+ *
+ * Since the API doesn't have a single-item retrieve endpoint, Orval only generates
+ * getApiV2ProjectHistoryLogsListResponseMock (which returns a paginated list).
+ * This helper extracts a single item from that list and merges overrides.
+ *
+ * Note: ActivityLogsItem extends ProjectHistoryLogResponse with typed action/metadata.
+ */
+type AssetHistoryLogOverrides = Partial<Omit<ActivityLogsItem, 'metadata'>> & {
+  metadata?: Partial<ActivityLogsItem['metadata']>
+}
+
+const createHistoryLog = (overrides: AssetHistoryLogOverrides = {}): ActivityLogsItem => {
+  // Get a sample log from Orval's list mock
+  const sampleList = getApiV2ProjectHistoryLogsListResponseMock()
+  const baseLog = sampleList.results[0] as ProjectHistoryLogResponse
+
+  const { metadata, ...rest } = overrides
+
+  return {
+    ...baseLog,
+    user: '/api/v2/users/john/',
+    user_uid: 'umBqhq3XSkkeNEzrFpCfTZ',
+    username: 'john',
+    action: AuditActions['update-content'],
+    metadata: {
+      ...baseLog.metadata,
+      source: 'Firefox (Mac OS X)',
+      asset_uid: mockAssetUid,
+      ip_address: '192.168.107.1',
+      ...metadata,
+    },
+    date_created: '2025-04-15T11:31:30Z',
+    ...rest,
+  } as ActivityLogsItem
+}
+
 type ActivityPermissions = NonNullable<ActivityLogsItem['metadata']['permissions']>
 
 const johnLog = (overrides: AssetHistoryLogOverrides) =>
-  assetHistoryLogFactory({
+  createHistoryLog({
     user: '/api/v2/users/john/',
     user_uid: 'umBqhq3XSkkeNEzrFpCfTZ',
     username: 'john',
@@ -22,7 +60,7 @@ const johnLog = (overrides: AssetHistoryLogOverrides) =>
   })
 
 const karinaLog = (overrides: AssetHistoryLogOverrides) =>
-  assetHistoryLogFactory({
+  createHistoryLog({
     user: '/api/v2/users/karina/',
     user_uid: 'umBqhq3XSkkeNEzrFpCfTx',
     username: 'karina',
@@ -104,6 +142,48 @@ const bulkTranscribedAudioFilesLog = karinaLog({
     },
   },
   date_created: '2026-05-30T13:41:20Z',
+})
+
+const bulkTranscriptionInProgressLog = johnLog({
+  action: AuditActions['bulk-processing'],
+  metadata: {
+    bulk_action: {
+      uid: 'sbaX5mP9vN3wQyT7kR2bC8',
+      action_id: BULK_PROCESSING_ACTION_IDS.automaticGoogleTranscription,
+      type: 'transcription',
+      status: 'in_progress',
+      question_xpath: '/data/audio_file',
+      params: { language: 'en' },
+      created_by: 'john',
+      total_count: 25,
+      processed_count: 8,
+      completed_count: 7,
+      failed_count: 1,
+      cancelled_count: 0,
+    },
+  },
+  date_created: '2026-06-11T14:22:15Z',
+})
+
+const bulkTranslationInProgressLog = karinaLog({
+  action: AuditActions['bulk-processing'],
+  metadata: {
+    bulk_action: {
+      uid: 'sbaW2nL6uK4pRxS9jQ3aD5',
+      action_id: BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation,
+      type: 'translation',
+      status: 'in_progress',
+      question_xpath: '/data/transcript',
+      params: { language: 'fr' },
+      created_by: 'karina',
+      total_count: 15,
+      processed_count: 3,
+      completed_count: 3,
+      failed_count: 0,
+      cancelled_count: 0,
+    },
+  },
+  date_created: '2026-06-11T14:18:30Z',
 })
 
 /**
@@ -357,3 +437,29 @@ const assetHistoryFilteredResponse: PaginatedResponse<ActivityLogsItem> = {
   previous: null,
   results: [addMediaAttachmentLog],
 }
+
+/**
+ * Response with ongoing bulk processing jobs for testing.
+ */
+export const assetHistoryWithOngoingBulkProcessing: PaginatedResponse<ActivityLogsItem> = {
+  count: 4,
+  next: null,
+  previous: null,
+  results: [
+    bulkTranscriptionInProgressLog,
+    bulkTranslationInProgressLog,
+    bulkTranslatedTranscriptionsLog,
+    bulkTranscribedAudioFilesLog,
+  ],
+}
+
+/**
+ * Mock API for project activity with ongoing bulk processing. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ */
+export const assetHistoryMockWithOngoingBulkProcessing = http.get<
+  PathParams<'limit' | 'start' | 'q'>,
+  never,
+  PaginatedResponse<ActivityLogsItem>
+>(endpoints.ASSET_HISTORY.replace(':asset_uid', mockAssetUid), () =>
+  HttpResponse.json(assetHistoryWithOngoingBulkProcessing),
+)

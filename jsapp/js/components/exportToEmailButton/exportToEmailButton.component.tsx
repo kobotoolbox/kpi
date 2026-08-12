@@ -23,7 +23,7 @@ export default function ExportToEmailButton({
     setIsPending(true)
     exportFunction()
       .then(() => {
-        notify(t("Export is being generated, you will recieve an email once it's done"))
+        notify(t("Export is being generated, you will receive an email once it's done"))
       })
       .catch((error) => handleApiFail(error as FailResponse))
       .finally(() => {

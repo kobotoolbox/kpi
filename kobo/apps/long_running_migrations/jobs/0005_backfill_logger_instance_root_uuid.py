@@ -104,6 +104,8 @@ def _process_instances_batch(
             if 'root_uuid should not be empty' in str(e):
                 # fallback on `uuid` to back-fill `root_uuid`
                 instance.root_uuid = instance.uuid
+            else:
+                raise
 
         instance_batch_ids.append(instance.pk)
         instance_batch.append(instance)
@@ -114,7 +116,7 @@ def _process_instances_batch(
         if first_try:
             try:
                 call_command(
-                    'clean_duplicated_submissions',
+                    'clean_duplicated_submissions_root_uuid',
                     xform=xform.id_string,
                     verbosity=2,
                 )

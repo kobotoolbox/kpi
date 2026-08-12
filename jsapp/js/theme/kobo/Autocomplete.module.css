@@ -7,7 +7,8 @@
 }
 
 .input:focus-visible:not([data-error]) {
-  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
 }
 
 .input {

@@ -220,16 +220,14 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       patchDataSharingMutate(
         {
           uidAsset: asset.uid,
-          // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't model this, see:
-          // https://linear.app/kobotoolbox/issue/DEV-2003
-          data: { data_sharing: { enabled: data.enabled, fields: data.fields } } as any,
+          data: { data_sharing: { enabled: data.enabled, fields: data.fields } },
         },
         {
           onSuccess: (response) => {
             // Derive state from the canonical server value rather than the optimistic `data` object
             const serverSharing =
               response.status === 200
-                ? ((response.data as any).data_sharing as { enabled?: boolean; fields?: string[] } | undefined)
+                ? (response.data.data_sharing as { enabled?: boolean; fields?: string[] } | undefined)
                 : undefined
             const nextEnabled = serverSharing?.enabled ?? data.enabled
             const nextFields = serverSharing?.fields ?? data.fields

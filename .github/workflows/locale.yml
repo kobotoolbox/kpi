@@ -20,12 +20,12 @@ jobs:
 
     ## Setup
 
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Set up Python 3.12
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: "3.12"
 
@@ -51,6 +51,13 @@ jobs:
         BASE: ${{ inputs.base }}
       run: git checkout "$BASE"
 
+    # Re-sync deps to the base commit: it may install/remove apps whose Python
+    # packages differ from the PR head (e.g. a PR that drops an INSTALLED_APPS
+    # entry), otherwise makemessages fails to import the base's settings.
+    - name: Install base Python dependencies
+      if: ${{ !!inputs.base }}
+      run: uv pip sync --system dependencies/pip/dev_requirements.txt
+
     - name: Extract translatable strings from Python code.
       if: ${{ !!inputs.base }}
       run: python manage.py makemessages --locale en
@@ -68,6 +75,12 @@ jobs:
         git stash
         git checkout -
         git stash pop
+
+    # Re-sync deps back to the PR head after returning from the base checkout,
+    # mirroring the base re-sync above.
+    - name: Re-install Python dependencies
+      if: ${{ !!inputs.base }}
+      run: uv pip sync --system dependencies/pip/dev_requirements.txt
 
     - name: Extract translatable strings from Python code.
       run: python manage.py makemessages --locale en

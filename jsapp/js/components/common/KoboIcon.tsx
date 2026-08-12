@@ -16,7 +16,7 @@ const IconColorToCssColorMap: Record<IconColor, string> = {
   'mid-red': 'var(--mantine-color-red-6)',
   storm: 'var(--mantine-color-gray-2)',
   teal: 'var(--mantine-color-teal-4)',
-  amber: 'var(--mantine-color-amber-6)',
+  amber: 'var(--mantine-color-amber-5)',
   blue: 'var(--mantine-color-blue-5)',
 }
 

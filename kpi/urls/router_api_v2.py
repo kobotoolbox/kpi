@@ -15,7 +15,9 @@ from kobo.apps.organizations.views import (
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
 from kobo.apps.subsequences.views import (
+    BulkAcceptViewSet,
     BulkActionViewSet,
+    QATagTrackerViewSet,
     QuestionAdvancedFeatureViewSet,
 )
 from kobo.apps.user_reports.views import UserReportsViewSet
@@ -23,6 +25,7 @@ from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.attachment_audio_duration import AttachmentAudioDurationViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
@@ -141,6 +144,13 @@ asset_routes.register(
 )
 
 asset_routes.register(
+    r'attachments/audio-duration',
+    AttachmentAudioDurationViewSet,
+    basename='asset-attachment-audio-duration',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
     r'attachments',
     AttachmentDeleteViewSet,
     basename='asset-attachments',
@@ -158,6 +168,13 @@ asset_routes.register(
     r'advanced-features',
     QuestionAdvancedFeatureViewSet,
     basename='advanced-features',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'data/supplements/bulk',
+    BulkAcceptViewSet,
+    basename='data-supplements-bulk',
     parents_query_lookups=['asset'],
 )
 
@@ -270,6 +287,18 @@ supplement_url_patterns = [
     ),
 ]
 
+# Declared here instead of nested under `asset_routes` because `uid_qa_question`
+# is not a real FK relation on QATagTracker's parent chain (QA questions aren't
+# stored as separate DB objects), so it can't be expressed via
+# `parents_query_lookups`
+qa_tag_tracker_url_patterns = [
+    path(
+        'assets/<uid_asset>/qual-questions/<uid_qa_question>/tags/',
+        QATagTrackerViewSet.as_view({'get': 'list'}),
+        name='qa-tag-tracker-list',
+    ),
+]
+
 kobo_scim_url_patterns = [
     path(
         'scim/v2/',
@@ -285,6 +314,7 @@ urls_patterns = (
     router_api_v2.urls
     + enketo_url_aliases
     + supplement_url_patterns
+    + qa_tag_tracker_url_patterns
     + kobo_scim_url_patterns
     + additional_urls
 )

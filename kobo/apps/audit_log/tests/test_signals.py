@@ -77,6 +77,34 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+    def test_audit_log_created_on_failed_login(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'user',
+            'password': 'wrongpassword',
+        }
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertEqual(audit_log.user.id, self.user.id)
+        self.assertEqual(audit_log.metadata.get('attempted_username'), 'user')
+
+    def test_audit_log_created_on_failed_login_for_non_existent_user(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'invalidusername',
+            'password': 'somepassword',
+        }
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertIsNone(audit_log.user)
+        self.assertEqual(
+            audit_log.metadata.get('attempted_username'), 'invalidusername'
+        )
+
     def test_login_with_email_verification(self):
         user = AccessLogsSignalsTestCase.user
         data = {
@@ -326,7 +354,8 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.assertEqual(latest_log.user, self.admin)
         self.assertEqual(latest_log.model_name, 'organization')
         self.assertIn(
-            "adminuser updated organization 'Updated Test Org Name' (pk: org999)",
+            'adminuser updated organization '
+            "'Updated Test Org Name (org999)' (pk: org999)",
             latest_log.metadata['message']
         )
         self.assertIn(
@@ -368,7 +397,8 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.assertEqual(latest_log.user, self.admin)
         self.assertEqual(latest_log.model_name, 'organization')
         self.assertIn(
-            "adminuser deleted organization 'Test Org for Audit' (pk: org999)",
+            'adminuser deleted organization '
+            "'Test Org for Audit (org999)' (pk: org999)",
             latest_log.metadata['message']
         )
 

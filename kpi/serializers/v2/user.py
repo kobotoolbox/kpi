@@ -87,7 +87,12 @@ class UserListSerializer(UserSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_asset_count(self, user):
-        return user.assets_count
+        # `assets_count` is precomputed per page by `UserViewSet`; other
+        # consumers (e.g. project-views) don't inject it, so fall back to a
+        # direct count.
+        if (assets_count := getattr(user, 'assets_count', None)) is not None:
+            return assets_count
+        return user.assets.count()
 
     @extend_schema_field(MetadataField)
     def get_metadata(self, user):

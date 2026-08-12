@@ -26,12 +26,14 @@ from .instance import Instance
 
 def generate_attachment_filename(instance, filename):
     xform = instance.xform
+
     return os.path.join(
         xform.user.username,
         'attachments',
         xform.uuid or xform.id_string or '__pk-{}'.format(xform.pk),
-        instance.uuid or '__pk-{}'.format(instance.pk),
-        os.path.split(filename)[1])
+        instance.root_uuid,
+        os.path.split(filename)[1],
+    )
 
 
 def upload_to(attachment, filename):
@@ -93,6 +95,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         db_index=True,
     )
     hash = models.CharField(null=True, max_length=64)
+    audio_length = models.FloatField(null=True, blank=True)
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()

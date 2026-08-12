@@ -1,24 +1,18 @@
 import './tableColumnSortDropdown.scss'
-
-import React from 'react'
-import { useState } from 'react'
-
 import { Group } from '@mantine/core'
+import React, { useState } from 'react'
 import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
-import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 interface TableColumnSortDropdownProps {
-  asset: AssetResponse
   /** one of table columns */
   fieldId: string
   isAudioQuestionColumn?: boolean
   isTranscriptColumn?: boolean
+  isTranslationColumn?: boolean
   sortValue: SortValues | null
   onSortChange: (fieldId: string, sortValue: SortValues | null) => void
   onHide: (fieldId: string) => void
@@ -26,7 +20,13 @@ interface TableColumnSortDropdownProps {
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
   onTranscribeSelectedAudioFiles?: (fieldId: string) => void
   onTranslateSelectedTranscriptions?: (fieldId: string) => void
-  isBulkProcessingDisabled?: boolean
+  onApproveSelectedSubmissions?: (fieldId: string) => void
+  // Props below are being used by bulk processing code
+  userCanChangeSubmissions?: boolean
+  hasRowsSelected?: boolean
+  hasAnyTranscribableAudio?: boolean
+  hasAnyTranslatableTranscript?: boolean
+  hasAnyUnacceptedAutomaticContent?: boolean
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
@@ -48,7 +48,12 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     isBulkProcessingEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
   const canTranslateSelectedTranscriptions =
     isBulkProcessingEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
-  const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
+  const canApproveSelectedSubmissions =
+    isBulkProcessingEnabled &&
+    (props.isTranscriptColumn || props.isTranslationColumn) &&
+    Boolean(props.onApproveSelectedSubmissions)
+  const shouldRenderBulkProcessingButtons =
+    canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions || canApproveSelectedSubmissions
 
   function renderTrigger() {
     let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
@@ -83,6 +88,10 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
 
   function translateSelectedTranscriptions() {
     props.onTranslateSelectedTranscriptions?.(props.fieldId)
+  }
+
+  function approveSelectedSubmissions() {
+    props.onApproveSelectedSubmissions?.(props.fieldId)
   }
 
   function renderSortButton(buttonSortValue: SortValues) {
@@ -142,7 +151,9 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canTranscribeSelectedAudioFiles && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || !props.hasAnyTranscribableAudio
+                  }
                   onClick={transcribeSelectedAudioFiles}
                   leftSection={<Icon name='qt-audio' size='inherit' />}
                 >
@@ -153,42 +164,57 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canTranslateSelectedTranscriptions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || !props.hasAnyTranslatableTranscript
+                  }
                   onClick={translateSelectedTranscriptions}
                   leftSection={<Icon name='transcripts' size='inherit' />}
                 >
                   {t('Translate selected transcriptions')}
                 </Menu.Item>
               )}
+
+              {canApproveSelectedSubmissions && (
+                <Menu.Item
+                  className='sort-dropdown-menu-button'
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || !props.hasAnyUnacceptedAutomaticContent
+                  }
+                  onClick={approveSelectedSubmissions}
+                  leftSection={<Icon name='check' size='inherit' />}
+                >
+                  {t('Approve all selected')}
+                </Menu.Item>
+              )}
             </>
           )}
 
-          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <>
-              <Menu.Divider />
+          {/*
+            Open to everyone. `tableStore` decides whether the choice is saved to
+            the project (needs `change_asset`) or kept for the session only.
+          */}
+          <Menu.Divider />
 
-              <Menu.Item
-                className='sort-dropdown-menu-button'
-                onClick={hideField}
-                leftSection={<Icon name='hide' size='inherit' />}
-              >
-                {t('Hide field')}
-              </Menu.Item>
+          <Menu.Item
+            className='sort-dropdown-menu-button'
+            onClick={hideField}
+            leftSection={<Icon name='hide' size='inherit' />}
+          >
+            {t('Hide field')}
+          </Menu.Item>
 
-              <Menu.Item
-                className='sort-dropdown-menu-button'
-                onClick={() => {
-                  changeFieldFrozen(!props.isFieldFrozen)
-                }}
-                leftSection={
-                  props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
-                }
-              >
-                {props.isFieldFrozen && t('Unfreeze field')}
-                {!props.isFieldFrozen && t('Freeze field')}
-              </Menu.Item>
-            </>
-          )}
+          <Menu.Item
+            className='sort-dropdown-menu-button'
+            onClick={() => {
+              changeFieldFrozen(!props.isFieldFrozen)
+            }}
+            leftSection={
+              props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
+            }
+          >
+            {props.isFieldFrozen && t('Unfreeze field')}
+            {!props.isFieldFrozen && t('Freeze field')}
+          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
     </div>

@@ -142,6 +142,57 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             self.second_submission_uuid,
         }
 
+    def test_list_bulk_actions_filters_by_status_submission_and_question(self):
+        matching_action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.second_submission_uuid],
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q2',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.COMPLETE,
+        )
+
+        response = self.client.get(
+            self.list_url,
+            {
+                'status': 'pending,in_progress',
+                'submission_uuid': self.submission_uuid,
+                'question_xpath': 'q1',
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['uid'] == matching_action.uid
+
     def test_retrieve_bulk_action(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,
@@ -343,7 +394,11 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert 'Unknown submission UUIDs: missing-uuid' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 0
 
-    def test_create_bulk_action_rejects_active_matching_conflicts(self):
+    def test_create_bulk_action_rejects_when_all_have_active_conflicts(self):
+        """
+        Test that a 400 is returned when every requested submission is already
+        being processed by an active bulk action with matching params
+        """
         SubsequenceBulkAction.create_with_items(
             asset=self.asset,
             action_id='automatic_google_transcription',
@@ -360,10 +415,14 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'active matching bulk action' in str(response.data)
+        assert 'already processed or currently being processed' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 1
 
-    def test_create_bulk_action_rejects_existing_transcription(self):
+    def test_create_bulk_action_rejects_when_all_have_existing_transcription(self):
+        """
+        Test that a 400 is returned when every requested submission already has
+        an accepted transcription result for the same language and locale
+        """
         SubmissionSupplement.objects.create(
             asset=self.asset,
             submission_uuid=self.submission_uuid,
@@ -377,6 +436,282 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'already contain matching results' in str(response.data)
-        assert self.submission_uuid in str(response.data)
+        assert 'already processed or currently being processed' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 0
+
+    def test_create_bulk_action_skips_submission_with_existing_transcription(self):
+        """
+        Test that a submission with an existing transcription result is excluded
+        from the new bulk action and returned in skipped_uuids
+        """
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=self._make_transcription_supplement(),
+        )
+
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(
+                submission_uuids=[self.submission_uuid, self.second_submission_uuid]
+            ),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['submission_uuids'] == [self.second_submission_uuid]
+        assert response.data['skipped_uuids'] == [self.submission_uuid]
+        assert SubsequenceBulkAction.objects.count() == 1
+
+    def test_create_bulk_action_skips_submission_with_active_conflict(self):
+        """
+        Test that a submission already covered by a pending or in-progress bulk
+        action with matching params is excluded and returned in skipped_uuids
+        """
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+        )
+
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(
+                submission_uuids=[self.submission_uuid, self.second_submission_uuid]
+            ),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['submission_uuids'] == [self.second_submission_uuid]
+        assert response.data['skipped_uuids'] == [self.submission_uuid]
+        assert SubsequenceBulkAction.objects.count() == 2
+
+    def test_create_bulk_action_skipped_uuids_empty_when_no_conflicts(self):
+        """
+        Test that skipped_uuids is an empty list in the POST response when no
+        submissions are filtered out
+        """
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['skipped_uuids'] == []
+
+    def test_create_bulk_action_allowed_after_deleting_transcription_with_locale(self):
+        """
+        Test that a deleted transcription does not prevent creating a new
+        bulk transcription, even when the deleted transcription history
+        contains locale-specific versions
+        """
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content={
+                '_version': '20250820',
+                'q1': {
+                    'automatic_google_transcription': {
+                        '_dateCreated': '2026-05-14T10:00:00Z',
+                        '_dateModified': '2026-05-14T10:01:00Z',
+                        '_versions': [
+                            {
+                                # The deletion version: no locale, newer timestamp
+                                '_dateCreated': '2026-05-14T10:01:00Z',
+                                '_uuid': '22222222-2222-2222-2222-222222222222',
+                                '_data': {
+                                    'language': 'en',
+                                    'status': 'deleted',
+                                    'value': None,
+                                },
+                            },
+                            {
+                                # The original complete version with locale
+                                '_dateCreated': '2026-05-14T10:00:00Z',
+                                '_uuid': '11111111-1111-1111-1111-111111111111',
+                                '_data': {
+                                    'language': 'en',
+                                    'locale': 'en-US',
+                                    'status': 'complete',
+                                    'value': 'hello world',
+                                },
+                            },
+                        ],
+                    }
+                },
+            },
+        )
+
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(
+                submission_uuids=[self.submission_uuid]
+            ),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert self.submission_uuid in response.data['submission_uuids']
+        assert response.data['skipped_uuids'] == []
+
+
+class EnsureQuestionAdvancedFeatureTestCase(SubsequenceBaseTestCase):
+    """
+    Tests that bulk transcription and translation actions correctly remember
+    every language a user has requested, even when different languages are used
+    across separate bulk runs.
+
+    Previously, when a user ran a bulk action with one language and then ran
+    another bulk action with a different language, the system failed to save the
+    new language, so the second request would be rejected. These tests verify
+    that each language is properly recorded and that switching languages between
+    bulk runs always succeeds.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.list_url = reverse(
+            self._get_endpoint('advanced-features-bulk-actions-list'),
+            args=[self.asset.uid],
+        )
+
+    def _call_ensure_feature(self, action_id, question_xpath, params):
+        from kobo.apps.subsequences.serializers import BulkActionCreateSerializer
+
+        serializer = BulkActionCreateSerializer(
+            context={'asset': self.asset, 'request': self.client}
+        )
+        serializer._ensure_question_advanced_feature(
+            asset=self.asset,
+            action_id=action_id,
+            question_xpath=question_xpath,
+            params=params,
+        )
+
+    def test_first_language_creates_feature_with_correct_params(self):
+        """
+        Test that calling _ensure_question_advanced_feature for the first time
+        creates a QuestionAdvancedFeature row with the requested language in params
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        assert feature.params == [{'language': 'en'}]
+
+    def test_second_language_is_persisted_to_db(self):
+        """
+        Test that calling _ensure_question_advanced_feature with a second
+        language saves both languages to the DB so subsequent bulk jobs have
+        an up-to-date schema that accepts the new language
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'fr'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        languages = [p['language'] for p in feature.params]
+        assert 'en' in languages
+        assert 'fr' in languages
+
+    def test_duplicate_language_does_not_add_extra_entry(self):
+        """
+        Test that calling _ensure_question_advanced_feature twice with the same
+        language does not create duplicate entries in the feature params list
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        assert feature.params == [{'language': 'en'}]
+
+    def test_bulk_action_succeeds_after_switching_language(self):
+        """
+        Test that a bulk transcription request succeeds after a previous bulk
+        action was created with a different language, verifying that the feature
+        params are correctly updated in the DB so the new language is accepted
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+
+        payload = {
+            'action_id': 'automatic_google_transcription',
+            'question_xpath': 'q1',
+            'submission_uuids': [self.submission_uuid],
+            'params': {'language': 'fr', 'locale': 'fr-FR'},
+        }
+        response = self.client.post(self.list_url, data=payload, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        languages = [p['language'] for p in feature.params]
+        assert 'en' in languages
+        assert 'fr' in languages
+
+    def test_translation_second_language_persisted_to_db(self):
+        """
+        Test that calling _ensure_question_advanced_feature twice with different
+        translation target languages saves both languages, confirming the fix
+        applies equally to translation actions
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_translation',
+            question_xpath='q1',
+            params={'language': 'de'},
+        )
+        self._call_ensure_feature(
+            action_id='automatic_google_translation',
+            question_xpath='q1',
+            params={'language': 'fr'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+        )
+        languages = [p['language'] for p in feature.params]
+        assert 'de' in languages
+        assert 'fr' in languages

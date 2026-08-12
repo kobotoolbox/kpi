@@ -24,6 +24,10 @@ declare global {
 
 const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 
+// Past this the `q` search rejects the query; mirrors the back end's
+// `QUERY_PARSER_MAX_TO_MANY_FILTERS`
+const MAX_SELECTED_TAGS = 10
+
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch] = useDebouncedValue(searchQuery, 500)
@@ -78,8 +82,6 @@ export default function AssetNavigator() {
 
     // Include tags filtering
     if (selectedTags.length > 0) {
-      // BUG: this doesn't work correctly - it does filter one tag, but if multiple are selected it returns zero values
-      // See: https://linear.app/kobotoolbox/issue/DEV-1581/make-it-possible-to-filter-assets-by-multiple-tags
       const tagQuery = selectedTags.map((t) => `tags__name__icontains:"${t}"`).join(' AND ')
       queryParts.push(`(${tagQuery})`)
     }
@@ -104,7 +106,14 @@ export default function AssetNavigator() {
     ordering: '-date_modified',
   })
 
-  // Step 4. Setup drag and drop of found assets
+  // Step 4. Setup drag and drop for library assets
+  //
+  // Makes library items draggable into FormBuilder. Drop targets are .survey-editor__list
+  // (main survey) and .group__rows (groups). The receive handlers in view.surveyApp.coffee
+  // catch the drop and call surveyScope.handleItem() to fetch and insert the asset.
+  //
+  // We call sortable('cancel') on deactivate so the item stays in the library after dragging
+  // (it's a copy operation, not a move).
   const assetsListRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const foundEl = ReactDOM.findDOMNode(assetsListRef.current)
@@ -146,6 +155,7 @@ export default function AssetNavigator() {
         value={selectedTags}
         onChange={setSelectedTags}
         placeholder='Filter by tags'
+        maxValues={MAX_SELECTED_TAGS}
         searchable
         clearable
         nothingFoundMessage='No tags found'

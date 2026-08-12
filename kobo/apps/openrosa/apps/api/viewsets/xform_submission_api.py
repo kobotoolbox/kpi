@@ -396,11 +396,12 @@ class XFormSubmissionApi(
         ):
             context['confirmation_message'] = confirmation_message
         serializer = SubmissionSerializer(instance, context=context)
-
-        return Response(serializer.data,
-                        headers=self.get_openrosa_headers(request),
-                        status=status.HTTP_201_CREATED,
-                        template_name=self.template_name)
+        return Response(
+            serializer.data,
+            headers=self.get_openrosa_headers(request),
+            status=status.HTTP_201_CREATED,
+            template_name=self.template_name,
+        )
 
     def error_response(self, error, is_json_request, request):
         if not error:

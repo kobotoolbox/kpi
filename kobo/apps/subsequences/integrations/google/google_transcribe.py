@@ -42,6 +42,11 @@ from ...exceptions import (
     TranscriptionResultNotFound
 )
 from .base import GoogleService
+from .locations import (
+    get_asr_language_code_overrides,
+    get_speech_location_for_region,
+    get_speech_location_for_model
+)
 from .rate_limit import (
     GoogleServiceRateLimitExceeded,
     get_google_retry_after_seconds,
@@ -50,8 +55,13 @@ from .rate_limit import (
 
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
-DEFAULT_SPEECH_LOCATION = 'global'
-DEFAULT_SPEECH_MODEL = 'long'
+
+# Fallback STT model used when a language has no `model_code` set in the
+# `TranscriptionServiceLanguageM2M` database table. 'chirp_3' is chosen over
+# 'long' because it is available for every language in the 'us' and 'eu'
+# multi-region endpoints, and it supports all recognition features
+# (e.g. enable_automatic_punctuation)
+DEFAULT_SPEECH_MODEL = 'chirp_3'
 
 
 class GoogleTranscriptionService(GoogleService):
@@ -109,8 +119,8 @@ class GoogleTranscriptionService(GoogleService):
         target_lang: str,
         content: Any,
         *,
-        location_code: str | None = None,
         model_code: str | None = None,
+        speech_location: str | None = None,
     ) -> tuple[object, int]:
         """
         Set up a batch transcription operation
@@ -122,8 +132,9 @@ class GoogleTranscriptionService(GoogleService):
                 'Audio file of duration %s is too long.' % duration
             )
 
-        speech_location = location_code or DEFAULT_SPEECH_LOCATION
         speech_model = model_code or DEFAULT_SPEECH_MODEL
+        if speech_location is None:
+            speech_location = get_speech_location_for_region()
         speech_client = self._get_speech_client(speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 
@@ -144,7 +155,12 @@ class GoogleTranscriptionService(GoogleService):
                 language_codes=[source_lang],
                 model=speech_model,
                 features=speech.RecognitionFeatures(
-                    enable_automatic_punctuation=True
+                    # chirp_3, chirp_2, and chirp support automatic punctuation
+                    # for all languages. 'long' does not support it for several
+                    # languages, including the 6 legacy African languages
+                    # (Kinyarwanda, Swati, Southern Sotho, Tswana, Tsonga, Venda),
+                    # and will return a 400 error if enabled
+                    enable_automatic_punctuation=(speech_model != 'long'),
                 ),
             ),
             files=[speech.BatchRecognizeFileMetadata(uri=gcs_input_uri)],
@@ -214,6 +230,29 @@ class GoogleTranscriptionService(GoogleService):
             return {'status': 'failed', 'error': message}
 
         source_language = language_config.language_code
+
+        # Apply any configured language-code override before sending the
+        # request to Google Speech-to-Text
+        #
+        # This allows temporary workarounds for Google side issues (for
+        # example, mapping 'sw' to 'auto') without changing Kobo's language
+        # definitions or requiring a code deployment
+        asr_overrides = get_asr_language_code_overrides()
+        if source_language in asr_overrides:
+            override_value = asr_overrides[source_language]
+            logging.info(
+                'Applying ASR language override: %s -> %s',
+                source_language,
+                override_value,
+            )
+            source_language = override_value
+
+        speech_location = (
+            get_speech_location_for_model(language_config.model_code)
+            or language_config.location_code
+            or get_speech_location_for_region()
+        )
+
         operation_name = self._get_operation_reference(
             xpath, source_language, bulk_action_uid
         )
@@ -243,8 +282,8 @@ class GoogleTranscriptionService(GoogleService):
                     source_lang=source_language,
                     target_lang=None,
                     content=converted_audio,
-                    location_code=language_config.location_code,
                     model_code=language_config.model_code,
+                    speech_location=speech_location,
                 )
             except AudioTooLongError as err:
                 return {'status': 'failed', 'error': str(err)}
@@ -292,9 +331,30 @@ class GoogleTranscriptionService(GoogleService):
             )
 
             try:
-                operation.result(
+                result = operation.result(
                     timeout=constance.config.ASR_MT_GOOGLE_REQUEST_TIMEOUT
                 )
+
+                # Google may complete the batch request within this synchronous wait,
+                # but individual input files can still fail even when the operation
+                # itself succeeds. Check the BatchRecognizeResponse for per-file
+                # errors before attempting to read transcription output from GCS
+                per_file_error = self._extract_per_file_error(result)
+                if per_file_error:
+                    logging.error(
+                        f'Google batch per-file error for {xpath=}, '
+                        f'{self.submission_root_uuid=}, '
+                        f'operation={operation_name}: {per_file_error}'
+                    )
+                    self._clear_operation_reference(
+                        xpath, source_language, bulk_action_uid
+                    )
+                    return {
+                        'status': 'failed',
+                        'error': (
+                            f'Transcription failed with error {per_file_error}'
+                        ),
+                    }
 
                 # If Google finished within the request timeout, read the
                 # output immediately and return a completed response
@@ -307,7 +367,11 @@ class GoogleTranscriptionService(GoogleService):
             except TimeoutError:
                 return {'status': 'in_progress'}
             except TranscriptionResultNotFound as err:
-                logging.error(f'No transcriptions found for {xpath=}: {err}')
+                logging.error(
+                    f'No transcription output written to GCS for {xpath=}, '
+                    f'{self.submission_root_uuid=}, operation={operation_name}: '
+                    f'{err}'
+                )
                 self._clear_operation_reference(
                     xpath, source_language, bulk_action_uid
                 )
@@ -343,7 +407,7 @@ class GoogleTranscriptionService(GoogleService):
             # read the batch result after Google reports completion
             operation_payload = self._get_operation_payload(
                 operation_name,
-                language_config.location_code,
+                speech_location,
             )
             if not operation_payload.get('done'):
                 raise SubsequenceTimeoutError
@@ -360,6 +424,29 @@ class GoogleTranscriptionService(GoogleService):
                     'error': f'Transcription failed with error {error}',
                 }
 
+            # Even when the long-running operation completes successfully
+            # (`done=True` with no top-level error), individual input files may
+            # still fail. Those failures are reported under
+            # `response.results[<uri>].error`, and Google does not generate an
+            # output JSON for those files. Checking here lets us return actual
+            # error instead of a misleading 'no transcription output' message
+            per_file_error = self._extract_per_file_error(
+                operation_payload.get('response')
+            )
+            if per_file_error:
+                logging.error(
+                    f'Google batch per-file error while polling transcription '
+                    f'for {xpath=}, {self.submission_root_uuid=}, '
+                    f'operation={operation_name}: {per_file_error}'
+                )
+                self._clear_operation_reference(
+                    xpath, source_language, bulk_action_uid
+                )
+                return {
+                    'status': 'failed',
+                    'error': f'Transcription failed with error {per_file_error}',
+                }
+
             value = self._read_batch_result(xpath, source_language)
         except SubsequenceTimeoutError:
             logging.info(
@@ -368,7 +455,11 @@ class GoogleTranscriptionService(GoogleService):
             )
             return {'status': 'in_progress'}
         except TranscriptionResultNotFound as err:
-            logging.error(f'No transcriptions found for {xpath=}: {err}')
+            logging.error(
+                f'No transcription output written to GCS for {xpath=}, '
+                f'{self.submission_root_uuid=}, operation={operation_name}, '
+                f'payload={operation_payload}: {err}'
+            )
             self._clear_operation_reference(xpath, source_language, bulk_action_uid)
             return {
                 'status': 'failed',
@@ -493,12 +584,12 @@ class GoogleTranscriptionService(GoogleService):
         """
         Create a Speech client bound to the configured regional endpoint
         """
-        client_kwargs = {'credentials': self.credentials}
-        if location != DEFAULT_SPEECH_LOCATION:
-            client_kwargs['client_options'] = client_options.ClientOptions(
+        return speech.SpeechClient(
+            credentials=self.credentials,
+            client_options=client_options.ClientOptions(
                 api_endpoint=f'{location}-speech.googleapis.com'
-            )
-        return speech.SpeechClient(**client_kwargs)
+            ),
+        )
 
     def _get_recognizer_name(self, location: str) -> str:
         """
@@ -509,17 +600,32 @@ class GoogleTranscriptionService(GoogleService):
             f'locations/{location}/recognizers/_'
         )
 
+    def cancel_google_operation(self, operation_name: str) -> None:
+        """
+        Parse the GCP location from a long-running operation resource name and
+        cancel a previously started Google long-running operation
+
+        STT v2 operation names follow the pattern:
+            projects/{project}/locations/{location}/operations/{id}
+        """
+        try:
+            parts = operation_name.split('/')
+            location = parts[parts.index('locations') + 1]
+        except (ValueError, IndexError):
+            location = get_speech_location_for_region()
+
+        speech_client = self._get_speech_client(location)
+        speech_client.transport.operations_client.cancel_operation(name=operation_name)
+
     def _get_operation_payload(
         self,
         operation_name: str,
-        location_code: str | None = None,
+        speech_location: str,
     ) -> dict:
         """
-        Poll the Google long-running operation backing the batch request.
+        Poll the Google long-running operation backing the batch request
         """
-        speech_client = self._get_speech_client(
-            location_code or DEFAULT_SPEECH_LOCATION
-        )
+        speech_client = self._get_speech_client(speech_location)
         operation = speech_client.transport.operations_client.get_operation(
             operation_name
         )
@@ -527,6 +633,46 @@ class GoogleTranscriptionService(GoogleService):
             operation._pb if hasattr(operation, '_pb') else operation,
             preserving_proto_field_name=True,
         )
+
+    def _extract_per_file_error(self, response) -> str | None:
+        """
+        Return a user-facing error message if Google's BatchRecognizeResponse
+        reports a per-file error, otherwise None
+
+        In Speech-to-Text v2 batch mode, an operation can complete successfully
+        (`done=True`, no top-level error) while individual input files fail with
+        reasons stored in `response.results[<uri>].error`. Google does not write
+        a JSON output file for those inputs, so callers that only inspect GCS
+        will see a missing-result condition without knowing the cause.
+
+        Accepts either a `BatchRecognizeResponse` proto (as returned directly
+        by `operation.result()`) or a dict (from the polling path, where the
+        payload is already converted via `MessageToDict`).
+        """
+        if not response:
+            return None
+
+        # Normalise proto message to dict.
+        if hasattr(response, 'DESCRIPTOR') or hasattr(response, '_pb'):
+            response = MessageToDict(
+                response._pb if hasattr(response, '_pb') else response,
+                preserving_proto_field_name=True,
+            )
+
+        if not isinstance(response, dict):
+            return None
+
+        results = response.get('results') or {}
+        for file_result in results.values():
+            if not isinstance(file_result, dict):
+                continue
+            error = file_result.get('error')
+            if not error:
+                continue
+            if isinstance(error, dict):
+                return error.get('message') or str(error)
+            return str(error)
+        return None
 
     def _read_batch_result(self, xpath: str, source_lang: str) -> str:
         """

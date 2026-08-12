@@ -28,7 +28,7 @@ MeListResponse = inline_serializer_class(
         'date_joined': serializers.DateTimeField(),
         'projects_url': ProjectUrlField(),
         'gravatar': GravatarField(),
-        'last_login': serializers.DateTimeField(),
+        'last_login': serializers.DateTimeField(allow_null=True),
         'extra_details': ExtraDetailField(),
         'git_rev': GitRevField(),
         'social_accounts': SocialAccountField(),

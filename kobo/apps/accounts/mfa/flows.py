@@ -4,37 +4,47 @@ from allauth.mfa.models import Authenticator
 from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
 from allauth.mfa.recovery_codes.internal.flows import auto_generate_recovery_codes
 from allauth.mfa.totp.internal.auth import TOTP
+from django.db import transaction
 from rest_framework.exceptions import NotFound, ValidationError
 
 from .models import MfaMethodsWrapper
 
 
 def activate_totp(request, name):
-    try:
-        mfa = MfaMethodsWrapper.objects.get(
+    with transaction.atomic():
+        try:
+            mfa = MfaMethodsWrapper.objects.select_for_update().get(
+                user=request.user,
+                name=name,
+                is_active=False,
+            )
+        except MfaMethodsWrapper.DoesNotExist:
+            raise NotFound
+
+        form = ActivateTOTPInput(request.data, user=request.user)
+        if not form.is_valid():
+            raise ValidationError(detail=form.errors)
+
+        # Clean up any orphaned authenticators
+        Authenticator.objects.filter(
+            user=request.user, type=Authenticator.Type.TOTP
+        ).delete()
+        Authenticator.objects.filter(
+            user=request.user, type=Authenticator.Type.RECOVERY_CODES
+        ).delete()
+
+        totp = TOTP.activate(request.user, form.secret).instance
+        signals.authenticator_added.send(
+            sender=Authenticator,
+            request=request,
             user=request.user,
-            name=name,
-            is_active=False,
+            authenticator=totp,
         )
-    except MfaMethodsWrapper.DoesNotExist:
-        raise NotFound
-
-    form = ActivateTOTPInput(request.data, user=request.user)
-    if not form.is_valid():
-        raise ValidationError(detail=form.errors)
-
-    totp = TOTP.activate(request.user, form.secret).instance
-    signals.authenticator_added.send(
-        sender=Authenticator,
-        request=request,
-        user=request.user,
-        authenticator=totp,
-    )
-    recovery_codes = auto_generate_recovery_codes(request)
-    mfa.totp = totp
-    mfa.recovery_codes = recovery_codes
-    mfa.is_active = True
-    mfa.save()
+        recovery_codes = auto_generate_recovery_codes(request)
+        mfa.totp = totp
+        mfa.recovery_codes = recovery_codes
+        mfa.is_active = True
+        mfa.save()
 
     return totp.wrap(), recovery_codes.wrap()
 

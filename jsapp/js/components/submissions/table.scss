@@ -460,6 +460,10 @@ $s-data-table-font: 13px;
   }
 }
 
+.table-banner-container:not(:empty) {
+  margin-top: var(--mantine-spacing-sm);
+}
+
 @include breakpoints.breakpoint(veryNarrow) {
   .form-view--table .ReactTable .-pagination .-previous,
   .form-view--table .ReactTable .-pagination .-next {

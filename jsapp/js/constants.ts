@@ -70,7 +70,6 @@ export enum KeyNames {
 }
 
 export const MODAL_TYPES = {
-  SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
   LIBRARY_NEW_ITEM: 'library-new-item',
@@ -80,10 +79,7 @@ export const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_SETTINGS: 'table-settings',
-  REST_SERVICES: 'rest-services',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
-  TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }
@@ -150,6 +146,8 @@ export enum AssetTypeName {
   template = 'template',
   survey = 'survey',
   collection = 'collection',
+  // Sometimes an empty asset is possible to be created by some funky import flows
+  // empty = 'empty'
 }
 
 export interface AssetTypeDefinition {
@@ -255,7 +253,7 @@ type QuestionTypes = Record<QuestionTypeName, QuestionTypeDefinition>
  *   - renderQuestionTypeIcon in assetUtils.ts
  * 5. If question doesn't hold data, update:
  *   - getDisplayData in bulkEditSubmissionsForm.js
- *   - getDisplayedColumns in table.js
+ *   - getAllDataColumns in components/submissions/tableUtils.ts
  * 6. Update renderResponseData in submissionDataTable.tsx
  * 7. Update getSubmissionDisplayData in submissionUtils.ts
  * 8. If it's media type update renderAttachment in submissionDataTable.tsx
@@ -381,6 +379,23 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.audit,
   MetaQuestionTypeName['start-geopoint'],
 ]) as { [P in MetaQuestionTypeName]: MetaQuestionTypeName }
+
+/**
+ * Question types that contain geopoint data that can be displayed on the map.
+ */
+export const MAP_DISPLAYABLE_GEOPOINT_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.geopoint,
+  MetaQuestionTypeName['start-geopoint'],
+]
+
+/**
+ * Type predicate to check if a question type is a map-displayable geopoint type.
+ */
+export function isMapDisplayableGeopointType(
+  type: AnyRowTypeName | undefined,
+): type is (typeof MAP_DISPLAYABLE_GEOPOINT_TYPES)[number] {
+  return type !== undefined && MAP_DISPLAYABLE_GEOPOINT_TYPES.includes(type)
+}
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
@@ -604,7 +619,7 @@ export const DND_TYPES = {
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
 */
-export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing'])
+export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing', 'unpaid'])
 
 /*
   The ratio of current usage / usage limit at which we display soft 'warning' messages on the frontend

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_ERROR
+
 
 class ScimErrorSerializer(serializers.Serializer):
     """
@@ -8,7 +10,7 @@ class ScimErrorSerializer(serializers.Serializer):
 
     schemas = serializers.ListField(
         child=serializers.CharField(),
-        default=['urn:ietf:params:scim:api:messages:2.0:Error'],
+        default=[SCIM_SCHEMA_ERROR],
     )
     detail = serializers.CharField(
         help_text='A detailed, human-readable message.'

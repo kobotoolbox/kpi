@@ -1,10 +1,8 @@
-# coding: utf-8
 from __future__ import annotations
 
 from typing import Union
 
 from django.conf import settings
-from django.db.models import Q
 from django_request_cache import cache_for_request
 
 from kobo.apps.project_views.models import ProjectView
@@ -20,18 +18,33 @@ def get_project_view_user_permissions_for_asset(
     asset within a project view
     """
 
-    asset_countries = asset.settings.get('country_codes', [])
     user = get_database_user(user)
-
-    q = Q(countries__contains='*')
-    for country in asset_countries:
-        q |= Q(countries__contains=country)
-    perms = list(
-        ProjectView.objects.filter(q, users=user).values_list(
-            'permissions', flat=True
-        )
+    asset_org = (
+        asset.owner.organization.id
+        if asset.owner and asset.owner.organization
+        else None
     )
-    return list(set(p for np in perms for p in np))
+    asset_countries = asset.settings.get('country_codes', [])
+
+    project_views = ProjectView.objects.filter(users=user).prefetch_related(
+        'organizations'
+    )
+    perms = set()
+
+    for pv in project_views:
+        region = pv.get_countries()
+
+        if '*' not in region and not any(c in region for c in asset_countries):
+            continue
+
+        if pv.organizations.all() and asset_org not in [
+            org.id for org in pv.organizations.all()
+        ]:
+            continue
+
+        perms.update(pv.permissions)
+
+    return list(perms)
 
 
 @cache_for_request

@@ -38,6 +38,20 @@ class TestBriefcaseAttachmentUrl(TestBase):
         response = digest_client.get(self._url())
         assert response.status_code == 200
 
+    def test_digest_auth_failure_returns_401_with_fixed_content_type(self):
+        """
+        A GET carrying a Digest header with invalid credentials must return
+        the AuthenticationFailed status (401) with a fixed `text/plain`
+        content type. It must not 500 on a missing request Content-Type
+        header, nor echo a caller-controlled Content-Type (DEV-2488).
+        """
+        self.client.logout()
+        digest_client = DigestClient()
+        digest_client.set_authorization(self.login_username, 'wrong-password')
+        response = digest_client.get(self._url())
+        assert response.status_code == 401
+        assert response['Content-Type'] == 'text/plain'
+
     def test_attachment_not_found(self):
         url = reverse(
             'briefcase-attachment',

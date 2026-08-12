@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
-import BulkDeletePrompt from './bulkActions/bulkDeletePrompt'
+import { openBulkDeleteModal } from './bulkActions/openBulkDeleteModal'
 import actionsStyles from './projectActions.module.scss'
 
 interface ProjectBulkActionsProps {
@@ -13,23 +13,26 @@ interface ProjectBulkActionsProps {
   assets: Array<AssetResponse | ProjectViewAsset>
 }
 
-function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
-  return assets.every((asset) => userCan('delete_asset', asset))
-}
-
 /**
  * "Bulk" Quick Actions buttons. Use these when two or more projects are
  * selected in the Project Table.
  */
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
-  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
   const [organization] = useOrganizationAssumed()
-  const canBulkDelete = userCanDeleteAssets(props.assets) || organization.request_user_role === MemberRoleEnum.admin
+  const isAdmin = organization.request_user_role === MemberRoleEnum.admin
+  const isMmoMember = organization.is_mmo && organization.request_user_role === MemberRoleEnum.member
 
-  let tooltipForDelete = t('Delete projects')
-  if (canBulkDelete) {
-    tooltipForDelete = t('Delete ##count## projects').replace('##count##', String(props.assets.length))
-  }
+  // Button is enabled for anyone who may see either the confirm or blocker modal.
+  // Non-MMO: all selected assets must be deletable
+  const canOpenDeleteModal =
+    isAdmin ||
+    (isMmoMember
+      ? props.assets.every((asset) => userCan('manage_asset', asset))
+      : props.assets.every((asset) => userCan('delete_asset', asset)))
+
+  const tooltipForDelete = canOpenDeleteModal
+    ? t('Delete ##count## projects').replace('##count##', String(props.assets.length))
+    : t('Delete projects')
 
   return (
     <div className={actionsStyles.root}>
@@ -55,21 +58,14 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
 
       {/* Delete */}
       <Button
-        isDisabled={!canBulkDelete}
+        isDisabled={!canOpenDeleteModal}
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() => setIsDeletePromptOpen(true)}
+        onClick={() => openBulkDeleteModal(props.assets)}
         tooltip={tooltipForDelete}
         tooltipPosition='right'
       />
-
-      {isDeletePromptOpen && (
-        <BulkDeletePrompt
-          assetUids={props.assets.map((asset) => asset.uid)}
-          onRequestClose={() => setIsDeletePromptOpen(false)}
-        />
-      )}
     </div>
   )
 }

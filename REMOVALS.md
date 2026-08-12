@@ -1,3 +1,7 @@
+# Endpoint removals as of release 2.026.27b
+
+`/api/v2/tags/<uid>` has been removed due to being broken, unused, and providing no value beyond the `/api/v2/tags` list endpoint. See kobotoolbox/kpi#7280 for details.
+
 # Endpoint removals as of release 2.026.22
 
 ⚠️ As of 2026, the legacy `v1` API has been officially removed. To ensure your
@@ -126,7 +130,7 @@ URL Pattern | View Class or Function | View Name
 
 The following `/api/v1/data` actions were removed in favour of using the
 OpenRosa classes within Python code in KPI. The remaining `/api/v1/data`
-endpoints were fully removed in release 2.026.__ (see above).
+endpoints were fully removed in release 2.026.22 (see above).
 
 URL Pattern | View Class or Function | Description
 -- | -- | --

@@ -2,8 +2,9 @@ import React from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
+import { archiveAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
+import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
@@ -24,15 +25,34 @@ interface ProjectQuickActionsProps {
  */
 const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   const [organization] = useOrganizationAssumed()
-
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
   // that property, and it is fine, as we don't expect Project View to have
   // a lot of options available.
   const isChangingPossible = userCan('change_asset', asset)
   const isManagingPossible = userCan('manage_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
-  const isDeletingPossible = userCan('delete_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
   const isProjectViewAsset = !('permissions' in asset)
+  const isAdmin = organization.request_user_role === MemberRoleEnum.admin
+  const isMmoMember = organization.is_mmo && organization.request_user_role === MemberRoleEnum.member
+
+  // Button is enabled for anyone who may see either the confirm or blocker modal.
+  // MMO members are checked for manage_asset (their deletion gate); non-MMO for delete_asset.
+  const canOpenDeleteFlow = isAdmin || (isMmoMember ? userCan('manage_asset', asset) : userCan('delete_asset', asset))
+
+  function handleDelete() {
+    openDeleteAssetModal(
+      asset,
+      getAssetDisplayName(asset).final,
+      (deletedAssetUid: string) => {
+        customViewStore.handleAssetsDeleted([deletedAssetUid])
+      },
+      () => {
+        // On fail, lets update project list so the user has a feedback of fail reason.
+        // e.g: a last minute submission, or the project was deleted by someone else.
+        customViewStore.fetchAssets()
+      },
+    )
+  }
 
   return (
     <div className={styles.root}>
@@ -87,23 +107,19 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
         type='secondary'
         size='s'
         startIcon='user-share'
-        onClick={() => manageAssetSharing(asset.uid)}
+        onClick={() => manageAssetSharing(asset)}
         tooltip={t('Share project')}
         tooltipPosition='right'
       />
 
       {/* Delete */}
       <Button
-        isDisabled={!isDeletingPossible}
+        isDisabled={!canOpenDeleteFlow}
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() =>
-          deleteAsset(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
-            customViewStore.handleAssetsDeleted([deletedAssetUid])
-          })
-        }
-        tooltip={isDeletingPossible ? t('Delete 1 project') : t('Delete project')}
+        onClick={handleDelete}
+        tooltip={canOpenDeleteFlow ? t('Delete 1 project') : t('Delete project')}
         tooltipPosition='right'
       />
     </div>

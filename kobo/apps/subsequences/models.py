@@ -12,6 +12,7 @@ from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import (
+    QUESTION_TYPE_TAGS,
     SCHEMA_VERSIONS,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
@@ -67,6 +68,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             0
         ].content  # lock it?
 
+        pending_qual_tag_syncs = []
         for question_xpath, data_for_this_question in incoming_data.items():
             if question_xpath == '_version':
                 # FIXME: what's a better way? skip all leading underscore keys?
@@ -117,18 +119,57 @@ class SubmissionSupplement(AbstractTimeStampedModel):
 
                 question_supplemental_data[action_id] = action_supplemental_data
 
-                # 2025-09-24 oleger: What are the 3 lines below for?
-                # retrieved_supplemental_data.setdefault(question_xpath, {})[
-                #    action_id
-                # ] = action.retrieve_data(action_supplemental_data)
+                if action_id == Action.MANUAL_QUAL:
+                    # Defer tracker sync until the supplement content is
+                    # actually persisted below, so both writes commit or
+                    # roll back together
+                    pending_qual_tag_syncs.append((feature.params, action_data))
 
         supplemental_data['_version'] = schema_version
         validate_submission_supplement(asset, supplemental_data)
-        SubmissionSupplement.objects.filter(
-            asset=asset, submission_uuid=submission_uuid
-        ).update(content=supplemental_data)
+
+        with transaction.atomic():
+            SubmissionSupplement.objects.filter(
+                asset=asset, submission_uuid=submission_uuid
+            ).update(content=supplemental_data)
+
+            for params, action_data in pending_qual_tag_syncs:
+                SubmissionSupplement._sync_qual_tag_trackers(
+                    asset, params, action_data
+                )
 
         return supplemental_data
+
+    @staticmethod
+    def _sync_qual_tag_trackers(
+        asset: 'kpi.Asset', params: list, action_data: dict
+    ) -> None:
+        """
+        Create QATagTracker rows for any new tags submitted on a qualTags question
+        """
+        question_uuid = action_data.get('uuid')
+        tag_values = action_data.get('value')
+
+        if not question_uuid or not tag_values:
+            return
+
+        question_type = next(
+            (q['type'] for q in params if q.get('uuid') == question_uuid),
+            None,
+        )
+
+        if question_type != QUESTION_TYPE_TAGS:
+            return
+
+        # Ignore conflicts so existing tag tracker records are skipped instead of
+        # raising an integrity error
+        QATagTracker.objects.bulk_create(
+            [
+                QATagTracker(asset=asset, question_uuid=question_uuid, value=tag)
+                for tag in tag_values
+            ],
+            ignore_conflicts=True,
+        )
 
     @staticmethod
     def retrieve_data(
@@ -287,6 +328,29 @@ class QuestionAdvancedFeature(models.Model):
         )
 
 
+class QATagTracker(models.Model):
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='qa_tag_trackers',
+        on_delete=models.CASCADE,
+    )
+    question_uuid = models.CharField(max_length=36)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name = 'QA tag tracker'
+        verbose_name_plural = 'QA tag trackers'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['asset', 'question_uuid', 'value'],
+                name='unique_qa_tag_per_question',
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.value} (asset={self.asset_id}, question={self.question_uuid})'
+
+
 class BulkActionStatus(models.TextChoices):
     """
     Represents the lifecycle status of a batch job
@@ -308,6 +372,18 @@ class BulkActionItemStatus(models.TextChoices):
     COMPLETE = 'complete'
     FAILED = 'failed'
     CANCELLED = 'cancelled'
+
+
+# An item reaches one of these exactly once, which makes them the natural
+# trigger for refreshing the bulk processing history log: the progress numbers
+# only ever change when an item lands here
+TERMINAL_BULK_ACTION_ITEM_STATUSES = frozenset(
+    [
+        BulkActionItemStatus.COMPLETE,
+        BulkActionItemStatus.FAILED,
+        BulkActionItemStatus.CANCELLED,
+    ]
+)
 
 
 PENDING_OPERATION_MARKER = 'pending'

@@ -1,0 +1,57 @@
+name: Generate changelog
+
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout (branch or tag)'
+        required: true
+        type: string
+      version:
+        description: 'Version tag for git-cliff (e.g. 2.026.28)'
+        required: true
+        type: string
+      draft:
+        description: 'If true, prepend a draft notice header (stabilize-time preview)'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      client-id:
+        required: true
+      private-key:
+        required: true
+
+
+jobs:
+  changelog:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        client-id: ${{ secrets['client-id'] }}
+        private-key: ${{ secrets['private-key'] }}
+        ref: ${{ inputs.ref }}
+
+    - name: Generate changelog
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        npx git-cliff@2.10.0 -u --tag "$VERSION"
+
+    - name: Prepend draft notice (if draft)
+      if: ${{ inputs.draft }}
+      run: |
+        NOTICE='> ⚠️ **DRAFT** — this changelog is auto-generated on every push and may be inaccurate (e.g. include commits from untagged patches). It will be regenerated authoritatively at tag time. Please wait until after tagging before making manual edits.\n\n'
+        sed -i "1i\\${NOTICE}" CHANGELOG.md
+
+    - name: Commit to dedicated branch
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        git checkout -B changelog/$VERSION
+        git add -f CHANGELOG.md
+        git commit -m "chore(releases): generate CHANGELOG.md for $VERSION"
+        git push -f --set-upstream origin changelog/$VERSION
