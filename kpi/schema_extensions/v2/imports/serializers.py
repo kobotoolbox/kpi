@@ -8,9 +8,9 @@ ImportCreateRequestSerializer = inline_serializer_class(
     name='ImportCreateRequestSerializer',
     fields={
         'destination': serializers.URLField(
-            required=False, allow_blank=True, allow_null=True
+            required=False, allow_null=True
         ),
-        'url': serializers.URLField(required=False, allow_blank=True, allow_null=True),
+        'url': serializers.URLField(required=False, allow_null=True),
         'name': serializers.CharField(
             required=False, allow_blank=True, allow_null=True
         ),

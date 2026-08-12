@@ -1849,10 +1849,10 @@ export const importsCreate = async (
   options?: RequestInit,
 ): Promise<importsCreateResponse> => {
   const formData = new FormData()
-  if (importCreateRequest.destination !== undefined) {
+  if (importCreateRequest.destination !== undefined && importCreateRequest.destination !== null) {
     formData.append(`destination`, importCreateRequest.destination)
   }
-  if (importCreateRequest.url !== undefined) {
+  if (importCreateRequest.url !== undefined && importCreateRequest.url !== null) {
     formData.append(`url`, importCreateRequest.url)
   }
   if (importCreateRequest.name !== undefined && importCreateRequest.name !== null) {

@@ -18806,21 +18806,15 @@ components:
       type: object
       properties:
         destination:
-          oneOf:
-          - type:
-            - string
-            - 'null'
-            format: uri
-          - type: string
-            maxLength: 0
+          type:
+          - string
+          - 'null'
+          format: uri
         url:
-          oneOf:
-          - type:
-            - string
-            - 'null'
-            format: uri
-          - type: string
-            maxLength: 0
+          type:
+          - string
+          - 'null'
+          format: uri
         name:
           type:
           - string
