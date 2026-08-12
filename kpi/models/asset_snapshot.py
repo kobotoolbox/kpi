@@ -2,8 +2,8 @@ import copy
 
 from django.conf import settings
 from django.db import models
-
 from formpack import FormPack
+
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.constants import API_NAMESPACES
 from kpi.fields import KpiUidField
