@@ -4,6 +4,7 @@ import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
 import {
   getAllDataColumns,
   getColumnLabel,
+  getMetadataColumns,
   getSelectResponseLabel,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
@@ -452,6 +453,78 @@ describe('tableUtils', () => {
       chai.expect(columns).to.not.include('old_group/Secret_password_as_an_audio_file')
     })
 
+    it('should return columns in the canonical order', () => {
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP)
+
+      chai.expect(columns).to.deep.equal([
+        // `background-audio` (with its supplemental details columns) goes first
+        'background-audio',
+        '_supplementalDetails/background-audio/transcript_en',
+        '_supplementalDetails/background-audio/translation_fr',
+        '_supplementalDetails/background-audio/e59a3552-c06c-43f2-92f1-8e3607052624',
+        // …then `start` and `end`…
+        'start',
+        'end',
+        // …then all the form questions in the form definition order (note that
+        // `today`, `username`, `deviceid` and `phonenumber` are defined before
+        // these questions in the form, but they are metadata, so they go last)…
+        'audit',
+        'Your_name_here',
+        'Your_selfie_goes_here',
+        'A_video_WTF',
+        'Secret_password_as_an_audio_file',
+        // …and finally the remaining metadata columns
+        'username',
+        'deviceid',
+        'phonenumber',
+        'today',
+      ])
+    })
+
+    it('should put metadata columns from submissions at the end in the canonical order', () => {
+      // Note the reversed order of these properties - we want to make sure the
+      // order of the columns doesn't depend on the order of submission props.
+      const submissions = [
+        {
+          'meta/rootUuid': 'aaa',
+          _submitted_by: 'kobo',
+          _submission_time: '2026-08-04T12:00:00',
+          _uuid: 'bbb',
+          _id: 1,
+          __version__: 'vABC',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai
+        .expect(columns.slice(-10))
+        .to.deep.equal([
+          'username',
+          'deviceid',
+          'phonenumber',
+          'today',
+          '__version__',
+          '_id',
+          '_uuid',
+          '_submission_time',
+          '_submitted_by',
+          'meta/rootUuid',
+        ])
+    })
+
+    it('should keep the order of questions from a nested group', () => {
+      const columns = getAllDataColumns(assetWithNestedGroupsAndNLP)
+
+      chai
+        .expect(columns)
+        .to.deep.equal([
+          'outer_group/middle_group/inner_group/What_did_you_hear',
+          '_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/transcript_pl',
+          '_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/translation_de',
+        ])
+    })
+
     it('should keep both columns when old and current paths are distinct fields', () => {
       const submissions = [
         {
@@ -474,6 +547,39 @@ describe('tableUtils', () => {
 
       chai.expect(columns).to.include('Secret_password_as_an_audio_file')
       chai.expect(columns).to.include('old_group/Secret_password_as_an_audio_file')
+    })
+  })
+
+  describe('getMetadataColumns', () => {
+    it('should return only the metadata columns the form defines', () => {
+      const test = getMetadataColumns(assetWithBgAudioAndNLP)
+
+      // `audit` is included because this form defines it. Single Submission
+      // modal used to show it for every form, which was a bug.
+      chai.expect(test).to.deep.equal(['start', 'end', 'audit', 'username', 'deviceid', 'phonenumber', 'today'])
+    })
+
+    it('should not return meta questions that the form does not define', () => {
+      const test = getMetadataColumns(assetWithNestedGroupsAndNLP)
+
+      chai.expect(test).to.deep.equal([])
+    })
+
+    it('should return additional submission properties found in submissions', () => {
+      const submissions = [
+        {
+          _id: 1,
+          _uuid: 'aaa',
+          _submission_time: '2026-08-04T12:00:00',
+          // These two are in `EXCLUDED_COLUMNS`, so they must not come through
+          _status: 'submitted_via_web',
+          'meta/instanceID': 'uuid:aaa',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const test = getMetadataColumns(assetWithNestedGroupsAndNLP, submissions)
+
+      chai.expect(test).to.deep.equal(['_id', '_uuid', '_submission_time'])
     })
   })
 })

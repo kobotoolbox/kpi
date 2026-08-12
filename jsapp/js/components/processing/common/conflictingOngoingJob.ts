@@ -40,8 +40,9 @@ function isConflictingAction(
 
   if (action.action_id === ActionIdEnum.automatic_google_translation) {
     // A translation job reads the transcript, so it clashes with editing it.
-    // For translations it only clashes with the language it writes to.
-    return actionType === 'transcript' || action.params.language === selectedLanguage
+    // For translations it clashes with the language it writes to, or with any of
+    // them when the caller hasn't settled on a language yet.
+    return actionType === 'transcript' || !selectedLanguage || action.params.language === selectedLanguage
   }
 
   return false
@@ -58,10 +59,6 @@ export function isConflictingOngoingJobForSubmission(args: IsConflictingOngoingJ
   const { activeBulkActions, actionType, fieldXpath, submissionUuid, selectedLanguage } = args
 
   if (!submissionUuid) {
-    return false
-  }
-
-  if (actionType === 'translation' && !selectedLanguage) {
     return false
   }
 
