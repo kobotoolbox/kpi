@@ -85,9 +85,9 @@ function MembersRoute() {
         return (
           <Avatar
             size='m'
-            username={member ? member.user__username : invite!.invitee!}
+            username={member ? member.user__username! : invite!.invitee!}
             isUsernameVisible
-            email={member ? member.user__email : undefined}
+            email={member ? (member.user__email ?? undefined) : undefined}
             // We pass `undefined` for the case it's an empty string
             fullName={invite ? undefined : member?.user__extra_details__name || undefined}
             isEmpty={!member}
@@ -115,7 +115,7 @@ function MembersRoute() {
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        return invite ? formatDate(invite.created) : formatDate(member!.date_joined)
+        return invite ? formatDate(invite.created) : formatDate(member!.date_joined!)
       },
     },
     {
@@ -150,8 +150,8 @@ function MembersRoute() {
         }
         return (
           <MemberRoleSelector
-            username={member!.user__username}
-            role={member!.role}
+            username={member!.user__username!}
+            role={member!.role!}
             currentUserRole={organization.request_user_role}
           />
         )
