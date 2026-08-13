@@ -6,13 +6,11 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
-import {
-  getSubmissionRootUuid,
-  isConflictingOngoingJobForSubmission,
-} from '#/components/processing/common/conflictingOngoingJob'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { useSupplementStatusPolling } from '#/components/processing/common/useSupplementStatusPolling'
 import { getLatestTranscriptVersionItem, isSupplementVersionWithValue } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
+import { getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 
 const MIN_FIRST_POLL_DELAY_MS = 3000

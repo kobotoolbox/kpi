@@ -18,6 +18,7 @@ import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.paginators import DefaultPagination
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -420,5 +421,5 @@ class XlsRenderer(renderers.BaseRenderer):
         return asset.to_xlsx_io(
             versioned=False,
             kobo_specific_types=self.kobo_specific_types,
-            raise_on_autoname_error=False,
+            handle_duplicates=HandleDuplicatesOptions.IGNORE,
         )
