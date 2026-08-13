@@ -1091,7 +1091,7 @@ class AssetViewSet(
     @extend_schema(tags=['Form content'])
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
-        return self.table_view(self, request, *args, **kwargs)
+        return self.table_view(request, *args, **kwargs)
 
     def _attach_xforms_to_assets(self, assets: list):
         """
