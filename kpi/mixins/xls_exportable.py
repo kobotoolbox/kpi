@@ -11,10 +11,15 @@ from formpack.utils.kobo_locking import (
     revert_kobo_lock_structure,
 )
 
+from kpi.utils.autoname import HandleDuplicatesOptions
+
 
 class XlsExportableMixin:
     def ordered_xlsform_content(
-        self, kobo_specific_types=False, append=None, raise_on_autoname_error=True
+        self,
+        kobo_specific_types=False,
+        append=None,
+        handle_duplicates=HandleDuplicatesOptions.RAISE,
     ):
         # currently, this method depends on "FormpackXLSFormUtilsMixin"
         content = copy.deepcopy(self.content)
@@ -23,7 +28,7 @@ class XlsExportableMixin:
         self._standardize(content)
         if not kobo_specific_types:
             self._expand_kobo_qs(content)
-            self._autoname(content, raise_on_error=raise_on_autoname_error)
+            self._autoname(content, handle_duplicates=handle_duplicates)
             self._populate_fields_with_autofields(content)
             self._strip_dollar_fields(content)
             revert_kobo_lock_structure(content)
