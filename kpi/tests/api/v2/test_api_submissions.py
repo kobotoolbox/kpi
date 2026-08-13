@@ -50,7 +50,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
-from kpi.models import Asset
+from kpi.models import Asset, AssetSnapshot
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.utils.mixins import (
     SubmissionDeleteTestCaseMixin,
@@ -1722,7 +1722,14 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         }
 
         self.asset.deployment.mock_submissions([submission])
+        self.submission = submission
         self._get_edit_link()
+
+        # `_get_edit_link()` only proves the endpoint answered 200; the XML the
+        # snapshot exposes to Enketo is what actually matters here
+        snapshot = AssetSnapshot.objects.filter(asset=self.asset).latest('date_created')
+        assert snapshot.details['status'] == 'success'
+        assert 'q1_001' in snapshot.xml
 
     @responses.activate
     def test_get_edit_submission_redirect_as_owner(self):

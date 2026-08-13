@@ -94,6 +94,7 @@ from kpi.serializers.v2.asset import (
 )
 from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.reports import ReportsDetailSerializer
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -1067,7 +1068,9 @@ class AssetViewSet(
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(
-            sa.ordered_xlsform_content(raise_on_autoname_error=False)
+            sa.ordered_xlsform_content(
+                handle_duplicates=HandleDuplicatesOptions.IGNORE
+            )
         )
         return Response('<!doctype html>\n<html><body><code><pre>' + md_table.strip())
 

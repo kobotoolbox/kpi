@@ -140,10 +140,11 @@ class AssetSnapshot(
         self._standardize(_source)
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
-        handle_duplicates = kwargs.pop(
-            'handle_duplicates', HandleDuplicatesOptions.IGNORE
-        )
-        self._autoname(_source, handle_duplicates=handle_duplicates)
+        # Snapshots are ephemeral XML used to preview and to edit existing
+        # content: duplicate names must be renamed exactly the way they were
+        # when the form was deployed, otherwise the XPaths would no longer
+        # match the ones the data was collected with
+        self._autoname(_source, HandleDuplicatesOptions.RENAME)
         self._remove_empty_expressions(_source)
         # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})

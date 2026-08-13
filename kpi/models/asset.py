@@ -1300,7 +1300,6 @@ class Asset(
         version_uid: Optional[str] = None,
         submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,
-        handle_duplicates: HandleDuplicatesOptions = HandleDuplicatesOptions.IGNORE,
     ) -> AssetSnapshot:
         if version_uid:
             asset_version = self.asset_versions.get(uid=version_uid)
@@ -1342,8 +1341,7 @@ class Asset(
             self._append(content, settings=settings_)
 
             snap_params['source'] = content
-            snapshot = AssetSnapshot(**snap_params)
-            snapshot.save(handle_duplicates=handle_duplicates)
+            snapshot = AssetSnapshot.objects.create(**snap_params)
 
         return snapshot
 

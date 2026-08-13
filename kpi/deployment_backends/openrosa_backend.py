@@ -75,7 +75,6 @@ from kpi.fields import KpiUidField
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
@@ -130,7 +129,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     'form_title': self.asset.name,
                 }
             },
-            handle_duplicates=HandleDuplicatesOptions.RAISE,
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
