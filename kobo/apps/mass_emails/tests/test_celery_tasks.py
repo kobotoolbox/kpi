@@ -1,6 +1,6 @@
 import random
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytz
@@ -507,3 +507,87 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         generate_mass_email_user_lists()
         email_config.refresh_from_db()
         assert not email_config.live
+
+
+class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
+    """
+    Cover how a send run handles its SMTP connection.
+    """
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        config = self._create_email_config(name='Config')
+        job = MassEmailJob.objects.create(email_config=config)
+        for user in (self.user1, self.user2, self.user3):
+            self._create_email_record(
+                user=user,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
+            )
+
+    def test_a_single_connection_is_reused_across_records(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send', return_value=True
+            ) as send_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 3
+        # One handshake for the whole run rather than one per record
+        assert connection.open.call_count == 1
+        assert connection.close.call_count == 1
+        # Every message travels on that one connection. Without this, a message
+        # falls back to `send_mail()` opening its own connection.
+        assert send_mock.call_count == 3
+        for call in send_mock.call_args_list:
+            assert call.kwargs['connection'] is connection
+
+    def test_dropped_connection_is_reset_and_the_record_retried(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[False, True, True, True],
+            ) as send_mock,
+            patch(
+                'kobo.apps.mass_emails.tasks.is_connection_alive', return_value=False
+            ),
+            patch('kobo.apps.mass_emails.tasks.reset_connection') as reset_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        assert reset_mock.call_count == 1
+        # Four sends for three records: the first one is retried on the fresh
+        # connection instead of being written off
+        assert send_mock.call_count == 4
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 3
+
+    def test_refused_recipient_does_not_reset_the_connection(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[False, True, True],
+            ) as send_mock,
+            patch(
+                'kobo.apps.mass_emails.tasks.is_connection_alive', return_value=True
+            ),
+            patch('kobo.apps.mass_emails.tasks.reset_connection') as reset_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        # The connection is still usable, so reconnecting would only cost a
+        # handshake and resend a message the server already refused
+        assert reset_mock.call_count == 0
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 1
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2

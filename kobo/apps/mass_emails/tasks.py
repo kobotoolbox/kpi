@@ -1,15 +1,12 @@
 from datetime import date, datetime, time, timedelta
 from enum import Enum
-from functools import wraps
 from math import ceil
-from smtplib import SMTPException
 from time import sleep
 from typing import Optional
 
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
-from django.core.mail import get_connection
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -25,7 +22,13 @@ from kobo.apps.mass_emails.models import (
 from kobo.apps.organizations.models import OrganizationUser
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-from kpi.utils.mailer import EmailMessage, Mailer
+from kpi.utils.mailer import (
+    EmailMessage,
+    Mailer,
+    is_connection_alive,
+    reset_connection,
+    with_smtp_connection,
+)
 
 if settings.STRIPE_ENABLED:
     from kobo.apps.stripe.utils.subscription_limits import get_plan_name
@@ -36,38 +39,6 @@ templates_placeholders = {
     '##plan_name##': 'plan_name',
     '##date_created##': 'date_created',
 }
-
-
-def with_smtp_connection(func):
-    """
-    Open a single SMTP connection for the whole duration of the decorated method
-
-    The connection is exposed as `self.connection` and closed on the way out.
-    Without it, every message goes through `send_mail()`, which opens and tears
-    down a connection per email. That handshake caps the real throughput far
-    below `MASS_EMAIL_THROTTLE_PER_SECOND` and makes large sends run into the
-    task time limit.
-    """
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        # `get_connection()` instantiates `settings.EMAIL_BACKEND`, so it either
-        # returns a backend or raises before the assignment. Every backend
-        # inherits `open()` and `close()` from `BaseEmailBackend`, where they
-        # are no-ops for the ones holding no socket.
-        self.connection = get_connection()
-        self.connection.open()
-        try:
-            return func(self, *args, **kwargs)
-        finally:
-            try:
-                self.connection.close()
-            except Exception as e:
-                logging.warning(f'Error while closing the email connection: {e}')
-            self.connection = None
-
-    return wrapper
-
 
 PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
 TASK_TIMEOUT = (
@@ -294,6 +265,9 @@ class MassEmailSender:
     @with_smtp_connection
     def send_day_emails(self):
         emails_sent = 0
+
+        batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
+
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
             if not limit:
@@ -305,7 +279,6 @@ class MassEmailSender:
             logging.info(
                 f'Processing {limit} records for MassEmailConfig({email_config})'
             )
-            batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
             for record in records:
                 if emails_sent > 0 and emails_sent % batch_size == 0:
                     logging.info(f'sleeping for {settings.MASS_EMAIL_SLEEP_SECONDS}')
@@ -340,9 +313,9 @@ class MassEmailSender:
                 # message the server simply refused. Only the former is worth
                 # reconnecting for, and it would otherwise fail every remaining
                 # record of the run.
-                if not self._connection_is_alive():
+                if not is_connection_alive(self.connection):
                     logging.warning('SMTP connection lost, reconnecting')
-                    self._reset_connection()
+                    reset_connection(self.connection)
                     sent = Mailer.send(message, connection=self.connection)
         except Exception as e:
             logging.exception(f'Error when attempting to send record {record}: {e}')
@@ -353,39 +326,6 @@ class MassEmailSender:
             record.status = EmailStatus.FAILED
 
         record.save()
-
-    def _connection_is_alive(self) -> bool:
-        """
-        Tell whether the SMTP socket can still carry another message.
-
-        Only an actual drop justifies reconnecting. A refused recipient or a
-        rejected message leaves the connection perfectly usable, and tearing it
-        down for those would cost a full handshake on every failure.
-        """
-
-        if not hasattr(self.connection, 'connection'):
-            # Not an SMTP backend. The file and console backends used outside
-            # production hold no socket that could have dropped.
-            return True
-        if self.connection.connection is None:
-            return False
-        try:
-            code, _ = self.connection.connection.noop()
-        except (OSError, SMTPException):
-            return False
-
-        return code == 250
-
-    def _reset_connection(self):
-        """
-        Close and reopen the SMTP connection.
-
-        Django leaves a connection it did not open itself untouched, so a
-        socket dropped mid-run stays broken until it is explicitly replaced.
-        """
-
-        close_connection_quietly(self.connection)
-        self.connection.open()
 
 
 @celery_app.task(

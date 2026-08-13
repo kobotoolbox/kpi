@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import wraps
 from smtplib import SMTPException
 from typing import Optional, Union
 
@@ -12,6 +13,86 @@ from django.utils.translation import activate
 from django.utils.translation import gettext as t
 
 from kpi.utils.log import logging
+
+SMTP_ALIVE_STATUS_CODE = 250
+
+
+def is_connection_alive(connection: BaseEmailBackend) -> bool:
+    """
+    Tell whether the connection can still carry another message
+
+    `Mailer.send()` reports every SMTP error as a plain `False`, so the caller
+    needs this to tell a dropped socket apart from a message the server merely
+    refused. Only the former is worth reconnecting for: a refused recipient
+    leaves the connection perfectly usable, and tearing it down would cost a
+    full handshake on every failure.
+    """
+
+    if not hasattr(connection, 'connection'):
+        # Not an SMTP backend. The file and console backends used outside
+        # production hold no socket that could have dropped.
+        return True
+
+    if connection.connection is None:
+        return False
+
+    try:
+        code, _ = connection.connection.noop()
+    except (OSError, SMTPException):
+        return False
+
+    return code == SMTP_ALIVE_STATUS_CODE
+
+
+def reset_connection(connection: BaseEmailBackend):
+    """
+    Close and reopen a connection in place
+
+    Django leaves a connection it did not open itself untouched, so a socket
+    dropped mid-run stays broken until it is explicitly replaced. Only the
+    underlying socket is renewed, so callers holding this backend keep a valid
+    reference.
+    """
+
+    try:
+        connection.close()
+    except Exception as e:
+        # Django re-raises when quitting a socket that has already dropped,
+        # which would mask the error that led us here in the first place.
+        logging.warning(f'Error while closing the email connection: {e}')
+
+    connection.open()
+
+
+def with_smtp_connection(func):
+    """
+    Open a single connection for the whole duration of the decorated method
+
+    The connection is exposed as `self.connection` and closed on the way out.
+    Without it, every message goes through `send_mail()`, which opens and tears
+    down a connection per email. That handshake caps the real throughput far
+    below what the provider allows and makes large sends run into their task
+    time limit.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # `get_connection()` instantiates `settings.EMAIL_BACKEND`, so it either
+        # returns a backend or raises before the assignment. Every backend
+        # inherits `open()` and `close()` from `BaseEmailBackend`, where they
+        # are no-ops for the ones holding no socket.
+        self.connection = get_connection()
+        self.connection.open()
+        try:
+            return func(self, *args, **kwargs)
+        finally:
+            try:
+                self.connection.close()
+            except Exception as e:
+                logging.warning(f'Error while closing the email connection: {e}')
+            self.connection = None
+
+    return wrapper
 
 
 class EmailBackend(UpstreamEmailBackend):
