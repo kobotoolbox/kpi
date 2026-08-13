@@ -9307,8 +9307,8 @@ paths:
         active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`),
         you cannot use an explicit boolean `OR` across different model fields in the
         same query (e.g., `q=user__email:luis@example.com OR invitee__email:luis@example.com`).
-        Doing so will cause the database query to fail for the invalid fields and
-        return an empty list.\n> \n> To search across both groups simultaneously,
+        Doing so will cause both query parsers to reject the invalid field, resulting
+        in a 400 Bad Request error.\n> \n> To search across both groups simultaneously,
         simply rely on the generic query (e.g., `q=luis@example.com`) without specifying
         prefixes. Use explicit field prefixes ONLY when you want to narrow the results
         to a specific group (e.g., `q=user__email:luis@example.com` to target only
