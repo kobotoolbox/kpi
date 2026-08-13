@@ -2326,6 +2326,30 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(object_permission_queries, [])
         self.assertEqual(access_types, ['owned'])
 
+    def test_table_view_with_duplicate_node_names(self):
+        """
+        `table_view` must keep rendering forms saved before duplicate names
+        were forbidden instead of raising
+        """
+        self.asset.content = {
+            'survey': [
+                {'name': 'g1', 'type': 'begin_group', 'label': 'Group 1'},
+                {'name': 'q1', 'type': 'text', 'label': 'Group 1 Q1'},
+                {'type': 'end_group'},
+                {'name': 'g2', 'type': 'begin_group', 'label': 'Group 2'},
+                {'name': 'q1', 'type': 'text', 'label': 'Group 2 Q1'},
+                {'type': 'end_group'},
+            ],
+        }
+        self.asset.save()
+
+        response = self.client.get(
+            reverse(self._get_endpoint('asset-table-view'), args=(self.asset.uid,))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert 'Group 1 Q1' in response.content.decode()
+        assert 'Group 2 Q1' in response.content.decode()
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
 
