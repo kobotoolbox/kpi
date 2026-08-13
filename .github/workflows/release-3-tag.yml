@@ -152,7 +152,10 @@ jobs:
         VERSION: ${{ needs.version.outputs.current_patch }}
         BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
-        if git diff-index --quiet HEAD; then
+        git status
+        git add .
+        if git diff --cached --quiet; then
+          echo "No translation changes to commit."
           exit 0
         fi
         # Abort if someone pushed to the branch while translations were being pulled
@@ -161,7 +164,6 @@ jobs:
           echo "::error::Unexpected commits on $BRANCH since checkout. Aborting."
           exit 1
         fi
-        git add .
         git commit -m "chore: pull transifex translations for $VERSION"
         git push
 
