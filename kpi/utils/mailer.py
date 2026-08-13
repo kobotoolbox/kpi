@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from smtplib import SMTPException
-from typing import Union
+from typing import Optional, Union
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
+from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail.backends.smtp import EmailBackend as UpstreamEmailBackend
 from django.template.loader import get_template
 from django.utils.translation import activate
@@ -89,7 +90,21 @@ class EmailMessage:
 class Mailer:
 
     @classmethod
-    def send(cls, email_messages: Union[EmailMessage, list[EmailMessage]]) -> bool:
+    def send(
+        cls,
+        email_messages: Union[EmailMessage, list[EmailMessage]],
+        connection: Optional[BaseEmailBackend] = None,
+    ) -> bool:
+        """
+        Send one or several messages, optionally reusing an existing connection.
+
+        When `connection` is omitted, a new one is opened and closed for every
+        call, which costs a full SMTP handshake per message. Callers sending in
+        bulk should open a connection once and pass it in: Django only closes
+        the connection it opened itself, so an already-open one stays up across
+        calls and each message still reports its own success.
+        """
+
         if isinstance(email_messages, EmailMessage):
             try:
                 send_mail(
@@ -99,16 +114,20 @@ class Mailer:
                     email_messages.to,
                     html_message=email_messages.html_message,
                     fail_silently=False,
+                    connection=connection,
                 )
             except SMTPException as e:
                 logging.error(str(e), exc_info=True)
                 return False
         else:
             # Django `send_mass_mail()` does not support HTML
-            email_messages = [em.to_multi_alternative() for em in email_messages]
+            messages = [em.to_multi_alternative() for em in email_messages]
             try:
-                with get_connection() as connection:
-                    connection.send_messages(email_messages)
+                if connection is not None:
+                    connection.send_messages(messages)
+                else:
+                    with get_connection() as new_connection:
+                        new_connection.send_messages(messages)
             except SMTPException as e:
                 logging.error(str(e), exc_info=True)
                 return False
