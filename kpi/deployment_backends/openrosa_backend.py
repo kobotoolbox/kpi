@@ -5,12 +5,12 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
+from xml.etree.ElementTree import ParseError
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
 from constance import config
-from xml.etree.ElementTree import ParseError
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
