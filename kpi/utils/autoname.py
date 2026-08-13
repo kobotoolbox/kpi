@@ -119,9 +119,10 @@ def autoname_fields_in_place(
             continue
 
         _attempt_count = 0
+        _given_name = _name
         while not is_valid_node_name(_name) or _name in other_names:
             # save original name
-            row['$given_name'] = _name
+            row['$given_name'] = _given_name
             _name = sluggify_label(_name, other_names=list(other_names.keys()))
             # _name shouldn't be empty at this point but there are some edge cases
             # for certain languages (eg Arabic)
