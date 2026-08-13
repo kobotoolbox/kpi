@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import pytz
+from celery.exceptions import SoftTimeLimitExceeded
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -263,6 +264,19 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         self._setup_common_test_data()
         send_emails()
         assert len(mail.outbox) == 0
+
+    def test_send_emails_stops_gracefully_on_soft_time_limit(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        with patch(
+            'kobo.apps.mass_emails.tasks.MassEmailSender.send_day_emails',
+            side_effect=SoftTimeLimitExceeded,
+        ):
+            # The task must swallow the soft time limit itself rather than
+            # surfacing as a task failure: it is an expected outcome of a
+            # capped, resumable run.
+            send_emails()
+        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
@@ -591,3 +605,24 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         assert send_mock.call_count == 3
         assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 1
         assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+
+    def test_soft_time_limit_closes_the_connection_and_leaves_records_enqueued(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[True, SoftTimeLimitExceeded()],
+            ) as send_mock,
+            pytest.raises(SoftTimeLimitExceeded),
+        ):
+            MassEmailSender().send_day_emails()
+
+        # `with_smtp_connection`'s `finally` still runs: the connection is not
+        # left dangling even though the run was interrupted
+        assert connection.close.call_count == 1
+        assert send_mock.call_count == 2
+        # The interrupted record, and the one never reached, stay enqueued
+        # rather than being written off as failed
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 1
+        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
