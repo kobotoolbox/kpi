@@ -6,6 +6,7 @@ from django.db.models import (
     Case,
     CharField,
     F,
+    IntegerField,
     OuterRef,
     Q,
     QuerySet,
@@ -581,6 +582,13 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             output_field=CharField(),
         )
 
+        role_sort_annotation = Case(
+            When(Exists(owner_subquery), then=Value(3)),
+            When(is_admin=True, then=Value(2)),
+            default=Value(1),
+            output_field=IntegerField(),
+        )
+
         # Annotate with the role based on organization ownership and admin status
         queryset = (
             OrganizationUser.objects.filter(
@@ -589,6 +597,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             .select_related('user__extra_details')
             .annotate(
                 role=role_annotation,
+                role_sort=role_sort_annotation,
                 has_mfa_enabled=Exists(mfa_subquery),
                 has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
@@ -615,6 +624,12 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
                 role=Lower(F('invitee_role')),
+                role_sort=Case(
+                    When(invitee_role='owner', then=Value(3)),
+                    When(invitee_role='admin', then=Value(2)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                ),
                 has_sso_enabled=Value(False),
                 ordering_date=F('created'),
                 model_type=Value('1_organization_invitation', output_field=CharField()),
@@ -631,7 +646,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 'date_joined': 'ordering_date',
                 'date_added': 'ordering_date',
                 'created': 'ordering_date',
-                'role': 'role',
+                'role': 'role_sort',
                 'user__has_sso_enabled': 'has_sso_enabled',
             }
 
