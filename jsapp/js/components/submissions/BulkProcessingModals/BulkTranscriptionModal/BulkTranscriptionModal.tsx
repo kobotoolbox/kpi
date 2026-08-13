@@ -24,7 +24,7 @@ import { useCalculateAudioDuration } from '#/components/submissions/useCalculate
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
-import { formatTimeFromSeconds, notify } from '#/utils'
+import { formatTimeFromSeconds, getSubmissionRootUuid, notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -135,18 +135,17 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const requiredSeconds =
     isTotalSelectedAudioDurationLoading || isTotalSelectedAudioDurationError ? undefined : totalSelectedAudioDuration
 
-  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
-    actionType: 'transcript',
-    selectedSubmissions: props.selectedSubmissions,
-    selectedLanguage: selectedLanguage || undefined,
-    selectedRegion: selectedRegion || undefined,
-    fieldXpath: props.fieldXpath,
-    requiredAmount: requiredSeconds,
-    serviceUsageData: serviceUsageData || undefined,
-    activeBulkActions: props.activeBulkActions,
-  })
-
-  const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions, eligibleSubmissionUuids } =
+    useBulkProcessingAlerts({
+      actionType: 'transcript',
+      selectedSubmissions: props.selectedSubmissions,
+      selectedLanguage: selectedLanguage || undefined,
+      selectedRegion: selectedRegion || undefined,
+      fieldXpath: props.fieldXpath,
+      requiredAmount: requiredSeconds,
+      serviceUsageData: serviceUsageData || undefined,
+      activeBulkActions: props.activeBulkActions,
+    })
 
   const alreadyTranscribedSubmissionUuids = useMemo(
     () => activeAlerts.find((alert) => alert.id === 'already-transcribed')?.filteredSubmissionUuids ?? [],
@@ -158,7 +157,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       return []
     }
     const uuids = new Set(alreadyTranscribedSubmissionUuids)
-    return props.selectedSubmissions.filter((submission) => uuids.has(submission._uuid))
+    return props.selectedSubmissions.filter((submission) => uuids.has(getSubmissionRootUuid(submission)))
   }, [alreadyTranscribedSubmissionUuids, props.selectedSubmissions])
 
   const {

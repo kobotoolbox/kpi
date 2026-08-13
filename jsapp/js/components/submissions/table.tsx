@@ -91,7 +91,7 @@ import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
+import { addDefaultUuidPrefix, getSubmissionRootUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import { openBulkApproveModal } from './BulkProcessingModals/BulkApproveModal'
@@ -262,8 +262,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
   }
 
-  refreshSubmissionsByUuids(submissionUuids: string[]) {
-    if (submissionUuids.length === 0) {
+  /** @param submissionRootUuids - From `getSubmissionRootUuid`, matching what bulk actions report. */
+  refreshSubmissionsByUuids(submissionRootUuids: string[]) {
+    if (submissionRootUuids.length === 0) {
       return
     }
 
@@ -271,7 +272,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // `dataInterface.getSubmissions` bridge with the Orval/react-query path.
     // Hooks are not available in this legacy class component.
 
-    const uniqueSubmissionUuids = [...new Set(submissionUuids)]
+    const uniqueSubmissionUuids = [...new Set(submissionRootUuids)]
+    // Two branches because the stored shapes differ: `meta/rootUuid` keeps the `uuid:` prefix, so put it back, and
+    // submissions predating that field have to be found by `_uuid` instead.
     const query = {
       $or: [
         {
@@ -322,11 +325,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const submissions = [...this.state.submissions]
 
     updatedSubmissions.forEach((updatedSubmission) => {
+      const updatedSubmissionRootUuid = getSubmissionRootUuid(updatedSubmission)
       const submissionIndex = submissions.findIndex(
         (submission) =>
-          matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
-          matchUuid(submission._uuid, updatedSubmission._uuid) ||
-          submission._id === updatedSubmission._id,
+          getSubmissionRootUuid(submission) === updatedSubmissionRootUuid || submission._id === updatedSubmission._id,
       )
 
       if (submissionIndex !== -1) {
