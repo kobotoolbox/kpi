@@ -334,7 +334,10 @@ class ServiceUsageCalculator(CachedClass):
         return total_submission_count
 
     def _get_cache_hash(self):
-        if self.organization is None:
+        # `organization` is falsy when the user belongs to no organization; keying
+        # on its `id` would then be `None` for every such user, and they would all
+        # share the same cache entry.
+        if not self.organization:
             return f'user-{self.user.id}'
         else:
             return f'organization-{self.organization.id}'
