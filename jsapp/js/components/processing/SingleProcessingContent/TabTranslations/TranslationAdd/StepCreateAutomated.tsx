@@ -1,8 +1,7 @@
-import React from 'react'
-
 import { Flex, Group, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import cx from 'classnames'
+import React from 'react'
 import { ServerError } from '#/api/ServerError'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
@@ -20,12 +19,11 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
-import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid, notify } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
@@ -170,7 +168,7 @@ export default function StepCreateAutomated({
         (translationVersion._data.status === 'failed' || translationVersion._data.status === 'in_progress')
       ) {
         if (translationVersion._data.status === 'in_progress') {
-          const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+          const submissionEditId = getSubmissionRootUuid(submission)
           goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, languageCode)
         }
         return

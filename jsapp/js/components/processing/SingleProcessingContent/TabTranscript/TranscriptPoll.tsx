@@ -4,13 +4,10 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
-import {
-  getSubmissionRootUuid,
-  isConflictingOngoingJobForSubmission,
-} from '#/components/processing/common/conflictingOngoingJob'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { useSupplementStatusPolling } from '#/components/processing/common/useSupplementStatusPolling'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, getEstimatedTranscriptionDurationSeconds } from '#/utils'
+import { getAudioDuration, getEstimatedTranscriptionDurationSeconds, getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from './transcript.utils'
 

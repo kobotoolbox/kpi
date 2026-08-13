@@ -131,15 +131,16 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     }, 0)
   }, [props.selectedSubmissions, props.fieldXpath, selectedLanguage, sourceRowPath])
 
-  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
-    actionType: 'translation',
-    selectedSubmissions: props.selectedSubmissions,
-    selectedLanguage: selectedLanguage || undefined,
-    fieldXpath: props.fieldXpath,
-    requiredAmount: requiredCharacters,
-    serviceUsageData: serviceUsageData || undefined,
-    activeBulkActions: props.activeBulkActions,
-  })
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions, eligibleSubmissionUuids } =
+    useBulkProcessingAlerts({
+      actionType: 'translation',
+      selectedSubmissions: props.selectedSubmissions,
+      selectedLanguage: selectedLanguage || undefined,
+      fieldXpath: props.fieldXpath,
+      requiredAmount: requiredCharacters,
+      serviceUsageData: serviceUsageData || undefined,
+      activeBulkActions: props.activeBulkActions,
+    })
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
@@ -149,7 +150,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
     return sum + supplementalValue.length
   }, 0)
-  const eligibleSubmissionUuids = eligibleSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
