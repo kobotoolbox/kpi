@@ -2369,6 +2369,10 @@ MAX_RESTARTED_TRANSFERS = 20
 # error is automatically restarted before it requires manual intervention
 TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 
+# How long `task_restarter` waits for the workers to say what they are running.
+# A worker which does not answer in time has its deletions left out of the count
+TASK_RESTARTER_INSPECT_TIMEOUT = 5
+
 # How long `task_restarter` stays locked while it runs. Only needs to outlive a
 # normal run, and must stay shorter than the interval it is scheduled at so a
 # run which died never skips the next one

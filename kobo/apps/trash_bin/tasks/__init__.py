@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Optional
+from uuid import uuid4
 
 from celery import Task
 from constance import config
@@ -78,8 +79,9 @@ def task_restarter():
     may be running at the same time
     """
 
+    lock_token = uuid4().hex
     if not cache.add(
-        TASK_RESTARTER_LOCK_KEY, True, timeout=settings.TASK_RESTARTER_LOCK_TTL
+        TASK_RESTARTER_LOCK_KEY, lock_token, timeout=settings.TASK_RESTARTER_LOCK_TTL
     ):
         logging.warning('task_restarter: another run is in progress, skipping')
         return
@@ -109,7 +111,10 @@ def task_restarter():
                 model, task, retention, available_slots
             )
     finally:
-        cache.delete(TASK_RESTARTER_LOCK_KEY)
+        # Only release our own lock: it may have expired while this run was still
+        # going and been taken over by another one, which must not be interrupted
+        if cache.get(TASK_RESTARTER_LOCK_KEY) == lock_token:
+            cache.delete(TASK_RESTARTER_LOCK_KEY)
 
 
 def _count_running_deletions(task_names: set[str]) -> Optional[int]:
@@ -119,9 +124,16 @@ def _count_running_deletions(task_names: set[str]) -> Optional[int]:
 
     Only running tasks are counted: the ones still waiting in the queue are not
     holding any lock yet, so they do not put the database under pressure
+
+    A worker which does not answer in time is indistinguishable from one which
+    is gone, so its deletions are not counted and this run may dispatch a few
+    too many. The timeout is therefore generous - this task runs every 30
+    minutes, waiting a few seconds for the answers costs nothing
     """
     # Broadcasts a request to every worker and waits for their answers
-    active_tasks_by_worker = celery_app.control.inspect().active()
+    active_tasks_by_worker = celery_app.control.inspect(
+        timeout=settings.TASK_RESTARTER_INSPECT_TIMEOUT
+    ).active()
 
     if active_tasks_by_worker is None:
         return None
