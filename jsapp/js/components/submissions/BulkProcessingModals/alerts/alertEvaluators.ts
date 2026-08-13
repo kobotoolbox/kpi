@@ -4,6 +4,7 @@ import { getSupplementalPathParts } from '#/components/processing/processingUtil
 import {
   getOngoingBulkActionSubmissionUuids,
   hasTranscribableAudio,
+  hasTranscriptInAnyLanguage,
   hasTranslatableTranscript,
 } from '#/components/submissions/bulkProcessingUtils'
 import { hasUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
@@ -214,7 +215,6 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
 
-  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
   const alreadyTranscribed: string[] = []
 
   submissions.forEach((submission) => {
@@ -223,10 +223,9 @@ export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): Ale
       return
     }
 
-    const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
-    const hasTranscript = Boolean(transcript?.value || transcript?.pendingReview)
-
-    if (hasTranscript) {
+    // Same check the transcription modal uses for its quota estimate, so the two
+    // can't disagree on which rows get skipped.
+    if (hasTranscriptInAnyLanguage(submission, fieldXpath)) {
       alreadyTranscribed.push(getSubmissionRootUuid(submission))
     }
   })
