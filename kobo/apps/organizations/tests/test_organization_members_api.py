@@ -482,7 +482,6 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         last_member = response.data['results'][-1]
         self.assertEqual(last_member['user__username'], 'alice')
         self.assertTrue(last_member['user__has_sso_enabled'])
-<<<<<<< HEAD
 
     def test_search_members_by_q(self):
         self._create_invite(self.someuser)
@@ -512,5 +511,3 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(f'{self.list_url}?q=nonexistentuser')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 0)
-=======
->>>>>>> origin/main
