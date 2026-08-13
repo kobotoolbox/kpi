@@ -1,9 +1,7 @@
-import React, { useCallback, useState } from 'react'
-
 import { useQueryClient } from '@tanstack/react-query'
+import React, { useCallback, useState } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
@@ -19,11 +17,10 @@ import {
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
-import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { notify } from '#/utils'
+import { getSubmissionRootUuid, notify } from '#/utils'
 import NlpUsageLimitBlockModal from '../../../components/nlpUsageLimitBlockModal'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
@@ -141,7 +138,6 @@ export default function AnalysisQuestionsList({
     .filter((questionParam) => questionParam.type !== 'qualAutoKeywordCount')
 
   const isAnyQuestionBeingEdited = !!qaQuestion
-  const submissionKey = submission['meta/rootUuid'] ?? submission._uuid
 
   const enableGenerateWithAIFeature = async () => {
     // Filter to get valid questions for AI generation (exclude tags and notes)
@@ -233,7 +229,7 @@ export default function AnalysisQuestionsList({
         <ul className={styles.root}>
           {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
             <AnalysisQuestionListItem
-              key={`${submissionKey}-${qaQuestion.uuid}`}
+              key={`${rootUuid}-${qaQuestion.uuid}`}
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}
@@ -250,7 +246,7 @@ export default function AnalysisQuestionsList({
           )}
           {qaQuestions.map((qaQuestionItem, index) => (
             <AnalysisQuestionListItem
-              key={`${submissionKey}-${qaQuestionItem.uuid}`}
+              key={`${rootUuid}-${qaQuestionItem.uuid}`}
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}

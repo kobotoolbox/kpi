@@ -8,7 +8,7 @@ import Icon from '#/components/common/icon'
 import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '#/utils'
 import { useAttachmentDuration } from '../AudioDurationsContext'
 import { shouldProcessingBeAccessible } from '../submissionUtils'
 
@@ -27,7 +27,7 @@ interface AudioCellProps {
  * component created with Processing View in mind. It omits the modal.
  */
 export default function AudioCell(props: AudioCellProps) {
-  const submissionEditId = removeDefaultUuidPrefix(props.submissionData['meta/rootUuid']) || props.submissionData._uuid
+  const submissionEditId = getSubmissionRootUuid(props.submissionData)
 
   const attachmentUid = typeof props.mediaAttachment === 'string' ? undefined : props.mediaAttachment?.uid
   const durationSeconds = useAttachmentDuration(attachmentUid)

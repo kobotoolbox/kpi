@@ -6,14 +6,12 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import {
-  getSubmissionRootUuid,
-  isConflictingOngoingJobForSubmission,
-} from '#/components/processing/common/conflictingOngoingJob'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { getSubmissionRootUuid } from '#/utils'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
