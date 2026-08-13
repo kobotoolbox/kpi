@@ -2373,9 +2373,9 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # A worker which does not answer in time has its deletions left out of the count
 TASK_RESTARTER_INSPECT_TIMEOUT = 5
 
-# How long `task_restarter` stays locked while it runs. Only needs to outlive a
-# normal run, and must stay shorter than the interval it is scheduled at so a
-# run which died never skips the next one
+# How long `task_restarter` stays locked. The lock is never released, so this is
+# the minimum delay between two runs: it must outlive a normal run and stay
+# shorter than the interval the task is scheduled at, otherwise runs are skipped
 TASK_RESTARTER_LOCK_TTL = 60 * 5
 
 # How long a trash bin object stays locked while it is being deleted. Must be

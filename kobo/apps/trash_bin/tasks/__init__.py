@@ -1,6 +1,5 @@
 from datetime import timedelta
 from typing import Optional
-from uuid import uuid4
 
 from celery import Task
 from constance import config
@@ -79,42 +78,37 @@ def task_restarter():
     may be running at the same time
     """
 
-    lock_token = uuid4().hex
+    # The lock is deliberately left to expire on its own. Releasing it means
+    # reading it back and deleting it, and another run may take it over in
+    # between, it would then be interrupted. Its timeout is far shorter than
+    # the interval this task is scheduled at, so expiring never skips a run
     if not cache.add(
-        TASK_RESTARTER_LOCK_KEY, lock_token, timeout=settings.TASK_RESTARTER_LOCK_TTL
+        TASK_RESTARTER_LOCK_KEY, True, timeout=settings.TASK_RESTARTER_LOCK_TTL
     ):
         logging.warning('task_restarter: another run is in progress, skipping')
         return
 
-    try:
-        models_tasks_retentions = (
-            (AccountTrash, empty_account, config.ACCOUNT_TRASH_RETENTION),
-            (ProjectTrash, empty_project, config.PROJECT_TRASH_RETENTION),
-            (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
-        )
+    models_tasks_retentions = (
+        (AccountTrash, empty_account, config.ACCOUNT_TRASH_RETENTION),
+        (ProjectTrash, empty_project, config.PROJECT_TRASH_RETENTION),
+        (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
+    )
 
-        running = _count_running_deletions(
-            {task.name for _, task, _ in models_tasks_retentions}
-        )
-        if running is None:
-            logging.warning('task_restarter: no worker answered, skipping this run')
-            return
+    running = _count_running_deletions(
+        {task.name for _, task, _ in models_tasks_retentions}
+    )
+    if running is None:
+        logging.warning('task_restarter: no worker answered, skipping this run')
+        return
 
-        # The three types of deletion compete for the same rows, therefore they
-        # share a single budget instead of getting one each
-        available_slots = settings.MAX_RESTARTED_TASKS - running
+    # The three types of deletion compete for the same rows, therefore they
+    # share a single budget instead of getting one each
+    available_slots = settings.MAX_RESTARTED_TASKS - running
 
-        for model, task, retention in models_tasks_retentions:
-            if available_slots <= 0:
-                break
-            available_slots -= _restart_stuck_tasks(
-                model, task, retention, available_slots
-            )
-    finally:
-        # Only release our own lock: it may have expired while this run was still
-        # going and been taken over by another one, which must not be interrupted
-        if cache.get(TASK_RESTARTER_LOCK_KEY) == lock_token:
-            cache.delete(TASK_RESTARTER_LOCK_KEY)
+    for model, task, retention in models_tasks_retentions:
+        if available_slots <= 0:
+            break
+        available_slots -= _restart_stuck_tasks(model, task, retention, available_slots)
 
 
 def _count_running_deletions(task_names: set[str]) -> Optional[int]:

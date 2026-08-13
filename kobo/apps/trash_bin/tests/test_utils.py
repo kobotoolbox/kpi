@@ -57,6 +57,10 @@ class IdleWorkersMixin:
 
     def setUp(self):
         super().setUp()
+        # The cache is not rolled back between tests, unlike the database, and
+        # `task_restarter` leaves its lock behind on purpose
+        cache.delete(TASK_RESTARTER_LOCK_KEY)
+        self.addCleanup(cache.delete, TASK_RESTARTER_LOCK_KEY)
         patcher = patch(
             'kobo.apps.trash_bin.tasks._count_running_deletions', return_value=0
         )
@@ -1304,9 +1308,9 @@ class TaskRestarterTestCase(IdleWorkersMixin, TestCase):
         cache.add(TASK_RESTARTER_LOCK_KEY, True, timeout=60)
         self.addCleanup(cache.delete, TASK_RESTARTER_LOCK_KEY)
 
-        assert self._run_restarter() == 0
+        assert self._run_restarter(release_lock=False) == 0
 
-        cache.delete(TASK_RESTARTER_LOCK_KEY)
+        # It has finished since, i.e.: its lock has expired
         assert self._run_restarter() == 1
 
     def _fail(self, account_trash, error):
@@ -1355,7 +1359,12 @@ class TaskRestarterTestCase(IdleWorkersMixin, TestCase):
 
         return AccountTrash.objects.get(user=self.someuser)
 
-    def _run_restarter(self):
+    def _run_restarter(self, release_lock=True):
+        # Stands for a separate scheduled run: in production they are far enough
+        # apart for the lock of the previous one to have expired
+        if release_lock:
+            cache.delete(TASK_RESTARTER_LOCK_KEY)
+
         with patch('kobo.apps.trash_bin.tasks.empty_account.delay') as patched_task:
             task_restarter()
 
