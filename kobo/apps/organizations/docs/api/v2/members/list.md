@@ -11,7 +11,7 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/m
 ```
 
 > [!WARNING]
-> **Explicit Field Searching:** Because this endpoint combines active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`), you cannot use an explicit boolean `OR` across different model fields in the same query (e.g., `q=user__email:luis@example.com OR invitee__email:luis@example.com`). Doing so will cause the database query to fail for the invalid fields and return an empty list.
+> **Explicit Field Searching:** Because this endpoint combines active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`), you cannot use an explicit boolean `OR` across different model fields in the same query (e.g., `q=user__email:luis@example.com OR invitee__email:luis@example.com`). Doing so will cause both query parsers to reject the invalid field, resulting in a 400 Bad Request error.
 > 
 > To search across both groups simultaneously, simply rely on the generic query (e.g., `q=luis@example.com`) without specifying prefixes. Use explicit field prefixes ONLY when you want to narrow the results to a specific group (e.g., `q=user__email:luis@example.com` to target only active members).
 

@@ -667,9 +667,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 except QueryParserNotSupportedFieldLookup as e:
                     user_unsupported_exception = e
                     queryset = queryset.none()
-                except (ParseError, FieldError, ValueError):
+                except (FieldError, ValueError):
                     queryset = queryset.none()
                 except (
+                    ParseError,
                     QueryParserBadSyntax,
                     SearchQueryTooShortException,
                 ) as e:
@@ -695,9 +696,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 except QueryParserNotSupportedFieldLookup as e:
                     invite_unsupported_exception = e
                     invitation_queryset = invitation_queryset.none()
-                except (ParseError, FieldError, ValueError):
+                except (FieldError, ValueError):
                     invitation_queryset = invitation_queryset.none()
                 except (
+                    ParseError,
                     QueryParserBadSyntax,
                     SearchQueryTooShortException,
                 ) as e:
