@@ -1,8 +1,12 @@
+import re
+
 from allauth.account.admin import EmailAddressAdmin as BaseEmailAddressAdmin
 from allauth.account.signals import email_confirmed
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.dispatch import receiver
 
+EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{2,}$')
 
 class EmailContent(models.Model):
     """
@@ -97,6 +101,11 @@ class SocialAppCustomData(models.Model):
         return f'{self.social_app.name} Custom Data'
 
 
+def validate_domain(value):
+    if EMAIL_DOMAIN_REGEX.fullmatch(value) is None:
+        raise ValidationError(f'Invalid email domain: {value}')
+
+
 class SocialAppManagedDomain(models.Model):
     """
     One-to-many model associating email domains with a given SSO provider
@@ -105,4 +114,4 @@ class SocialAppManagedDomain(models.Model):
     social_app = models.ForeignKey(
         SocialAppCustomData, related_name='domains', on_delete=models.CASCADE
     )
-    domain = models.CharField(unique=True, max_length=255)
+    domain = models.CharField(unique=True, max_length=255, validators=[validate_domain])
