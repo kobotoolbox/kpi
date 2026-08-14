@@ -471,7 +471,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                     'user__has_sso_enabled',
                     '-user__has_sso_enabled',
                 ],
-                description='Which field to use when ordering the results. Note: `role` sorts by privilege rank (`member` → `admin` → `owner`).',
+                description=(
+                    'Which field to use when ordering the results. '
+                    'Note: `role` sorts by privilege rank '
+                    '(`member` → `admin` → `owner`).'
+                ),
             ),
         ],
     ),
