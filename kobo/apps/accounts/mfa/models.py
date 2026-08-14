@@ -1,6 +1,6 @@
 # coding: utf-8
-from allauth.mfa.models import Authenticator
 from allauth.mfa.base.internal.flows import delete_and_cleanup
+from allauth.mfa.models import Authenticator
 from constance import config
 from django.conf import settings
 from django.core.exceptions import ValidationError
