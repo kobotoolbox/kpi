@@ -16,6 +16,4 @@ class MassEmailSendSettingsCheckTestCase(TestCase):
 
     def test_default_settings_pass(self):
         errors = run_checks()
-        assert not any(
-            e.id in ('mass_emails.E001', 'mass_emails.E002') for e in errors
-        )
+        assert not any(e.id in ('mass_emails.E001', 'mass_emails.E002') for e in errors)

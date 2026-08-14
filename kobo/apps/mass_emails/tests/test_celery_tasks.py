@@ -592,9 +592,7 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
                 'kobo.apps.mass_emails.tasks.Mailer.send',
                 side_effect=[False, True, True],
             ) as send_mock,
-            patch(
-                'kobo.apps.mass_emails.tasks.is_connection_alive', return_value=True
-            ),
+            patch('kobo.apps.mass_emails.tasks.is_connection_alive', return_value=True),
             patch('kobo.apps.mass_emails.tasks.reset_connection') as reset_mock,
         ):
             MassEmailSender().send_day_emails()
