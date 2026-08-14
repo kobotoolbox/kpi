@@ -10,4 +10,7 @@ class MassEmailsConfig(AppConfig):
         # Makes sure all signal handlers are connected
         from kobo.apps.mass_emails import signals  # noqa
 
+        # Makes sure system checks are registered
+        from kobo.apps.mass_emails import checks  # noqa
+
         super().ready()
