@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.dispatch import receiver
 
-EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{2,}$')
+EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9.-]+\.[a-zA-Z0-9_-]{2,}$')
 
 
 class EmailContent(models.Model):
