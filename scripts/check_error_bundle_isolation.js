@@ -47,11 +47,20 @@ if (jsAssets.length !== 1) {
 }
 
 const assetPath = path.resolve(__dirname, '../jsapp/compiled/', jsAssets[0])
-let sizeNote = ''
 
-if (fs.existsSync(assetPath)) {
-  const gzipped = zlib.gzipSync(fs.readFileSync(assetPath), { level: 9 }).length
-  sizeNote = ` (${(gzipped / 1024).toFixed(1)} KB gzipped)`
+// A missing file means the stats came from `webpack-dev-server`, which keeps
+// bundles in memory. Passing on those would be a false green: this check exists
+// to guard the production `splitChunks` config, and dev builds don't use it.
+if (!fs.existsSync(assetPath)) {
+  fail(
+    `"${jsAssets[0]}" is not in jsapp/compiled/.\n` +
+      '  The stats file was most likely written by `npm run watch`, which serves ' +
+      'bundles from memory.\n  Run `npm run build:app` and try again.',
+  )
 }
 
-console.log(`✔ ${ENTRY_NAME} is self-contained: ${jsAssets[0]}${sizeNote}`)
+const gzipped = zlib.gzipSync(fs.readFileSync(assetPath), { level: 9 }).length
+
+console.log(
+  `✔ ${ENTRY_NAME} is self-contained: ${jsAssets[0]} (${(gzipped / 1024).toFixed(1)} KB gzipped)`,
+)
