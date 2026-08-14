@@ -8,6 +8,7 @@ from django.dispatch import receiver
 
 EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{2,}$')
 
+
 class EmailContent(models.Model):
     """
     The EmailContent model stores the customized content for the emails.
