@@ -4,6 +4,7 @@ from math import ceil
 from time import sleep
 from typing import Optional
 
+from celery.exceptions import SoftTimeLimitExceeded
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
@@ -22,7 +23,13 @@ from kobo.apps.mass_emails.models import (
 from kobo.apps.organizations.models import OrganizationUser
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-from kpi.utils.mailer import EmailMessage, Mailer
+from kpi.utils.mailer import (
+    EmailMessage,
+    Mailer,
+    is_connection_alive,
+    reset_connection,
+    with_smtp_connection,
+)
 
 if settings.STRIPE_ENABLED:
     from kobo.apps.stripe.utils.subscription_limits import get_plan_name
@@ -38,6 +45,10 @@ PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
 TASK_TIMEOUT = (
     5 * 60 if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False) else 60 * 60
 )  # 5 minutes if condense send, otherwise 1h
+# Reserve a few seconds between the soft and hard time limits of `send_emails`
+# so a run that hits the soft limit mid-send has time to close the SMTP
+# connection gracefully instead of being SIGKILLed with the socket still open.
+SEND_EMAILS_SOFT_LIMIT_BUFFER = 10
 
 
 def enqueue_mass_email_records(email_config):
@@ -99,6 +110,7 @@ class MassEmailSender:
 
     def __init__(self):
         now = timezone.now()
+        self.connection = None
         self.today = now.date()
         cache_date = self.get_cache_key_date(send_date=now)
         self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
@@ -255,8 +267,12 @@ class MassEmailSender:
             plan_name = gettext('Not available')
         return plan_name
 
+    @with_smtp_connection
     def send_day_emails(self):
         emails_sent = 0
+
+        batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
+
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
             if not limit:
@@ -268,7 +284,6 @@ class MassEmailSender:
             logging.info(
                 f'Processing {limit} records for MassEmailConfig({email_config})'
             )
-            batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
             for record in records:
                 if emails_sent > 0 and emails_sent % batch_size == 0:
                     logging.info(f'sleeping for {settings.MASS_EMAIL_SLEEP_SECONDS}')
@@ -296,7 +311,21 @@ class MassEmailSender:
             html_content_or_template=content,
         )
         try:
-            sent = Mailer.send(message)
+            sent = Mailer.send(message, connection=self.connection)
+            if not sent and self.connection is not None:
+                # `Mailer.send()` reports any SMTP error as a plain `False`, so
+                # probe the socket to tell a dropped connection apart from a
+                # message the server simply refused. Only the former is worth
+                # reconnecting for, and it would otherwise fail every remaining
+                # record of the run.
+                if not is_connection_alive(self.connection):
+                    logging.warning('SMTP connection lost, reconnecting')
+                    reset_connection(self.connection)
+                    sent = Mailer.send(message, connection=self.connection)
+        except SoftTimeLimitExceeded:
+            # Let this propagate: it must not be recorded as a failure. The
+            # record stays `enqueued` and is picked up by the next run.
+            raise
         except Exception as e:
             logging.exception(f'Error when attempting to send record {record}: {e}')
             sent = False
@@ -309,8 +338,10 @@ class MassEmailSender:
 
 
 @celery_app.task(
-    time_limit=TASK_TIMEOUT - 2, soft_time_limit=TASK_TIMEOUT - 2
-)  # subtract 2 so we don't run in to the generate_send task
+    time_limit=TASK_TIMEOUT - 2,
+    soft_time_limit=TASK_TIMEOUT - 2 - SEND_EMAILS_SOFT_LIMIT_BUFFER,
+)  # subtract 2 from time_limit so this run finishes before the next
+# `generate_mass_email_user_lists` run, scheduled 59 minutes later
 def send_emails():
     """
     Send the emails for the current day. It schedules the emails if they have not
@@ -327,7 +358,15 @@ def send_emails():
         return
 
     sender = MassEmailSender()
-    sender.send_day_emails()
+    try:
+        sender.send_day_emails()
+    except SoftTimeLimitExceeded:
+        # Expected under load: the run is capped by design and the remaining
+        # `enqueued` records are simply picked up by the next hourly run.
+        logging.warning(
+            'send_emails hit its soft time limit, stopping early; remaining '
+            'enqueued records will be sent on the next run'
+        )
     finished_one_offs = (
         MassEmailConfig.objects.filter(
             pk__in=sender.config_ids, frequency=-1, live=True
