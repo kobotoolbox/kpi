@@ -86,7 +86,23 @@ class SocialAppCustomData(models.Model):
         related_name='custom_data',
     )
 
-    is_public = models.BooleanField(default=False, help_text='Display social login on login page')
+    is_public = models.BooleanField(
+        default=False, help_text='Display social login on login page'
+    )
+    managed = models.BooleanField(
+        default=False, help_text='Allow clients to manage users exclusively through SSO'
+    )
 
     def __str__(self):
         return f'{self.social_app.name} Custom Data'
+
+
+class SocialAppManagedDomain(models.Model):
+    """
+    One-to-many model associating email domains with a given SSO provider
+    """
+
+    social_app = models.ForeignKey(
+        SocialAppCustomData, related_name='domains', on_delete=models.CASCADE
+    )
+    domain = models.CharField(unique=True, max_length=255)
