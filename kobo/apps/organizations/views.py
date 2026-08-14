@@ -2,17 +2,7 @@ from operator import attrgetter
 
 from allauth.socialaccount.models import SocialAccount
 from django.db import transaction
-from django.db.models import (
-    Case,
-    CharField,
-    F,
-    IntegerField,
-    OuterRef,
-    Q,
-    QuerySet,
-    Value,
-    When,
-)
+from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.db.models.functions import Coalesce, Lower
 from django.utils.http import http_date
@@ -90,6 +80,8 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
+
+ROLE_RANKS = {'member': 1, 'admin': 2, 'owner': 3}
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -586,13 +578,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             output_field=CharField(),
         )
 
-        role_sort_annotation = Case(
-            When(Exists(owner_subquery), then=Value(3)),
-            When(is_admin=True, then=Value(2)),
-            default=Value(1),
-            output_field=IntegerField(),
-        )
-
         # Annotate with the role based on organization ownership and admin status
         queryset = (
             OrganizationUser.objects.filter(
@@ -601,7 +586,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             .select_related('user__extra_details')
             .annotate(
                 role=role_annotation,
-                role_sort=role_sort_annotation,
                 has_mfa_enabled=Exists(mfa_subquery),
                 has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
@@ -628,12 +612,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
                 role=Lower(F('invitee_role')),
-                role_sort=Case(
-                    When(invitee_role='owner', then=Value(3)),
-                    When(invitee_role='admin', then=Value(2)),
-                    default=Value(1),
-                    output_field=IntegerField(),
-                ),
                 has_sso_enabled=Value(False),
                 ordering_date=F('created'),
                 model_type=Value('1_organization_invitation', output_field=CharField()),
@@ -643,6 +621,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 status_sort=Value('invited'),
             )
             queryset = list(queryset) + list(invitees)
+
+            for row in queryset:
+                row.role_sort = ROLE_RANKS.get(row.role, 0)
 
             SORT_FIELDS = {
                 'user__username': 'username_sort',
