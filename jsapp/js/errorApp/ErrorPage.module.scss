@@ -1,0 +1,120 @@
+@use 'scss/colors';
+
+/*
+ * Colors come from the shared palette, not from Mantine CSS variables: this
+ * bundle skips the Kobo Mantine theme (see `errorTheme.ts`), so the only
+ * `--mantine-color-*` values available here would be Mantine's own defaults.
+ * Sass variables cost nothing at runtime - they're gone after compilation.
+ */
+
+.background {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  // Fills the area below the gradient shape, which only covers the top.
+  background-color: colors.$kobo-gray-100;
+  background-repeat: no-repeat;
+  // The default shape is a 1920x512 banner, so stretch it across the top edge.
+  background-size: 100% auto;
+  background-position: top center;
+}
+
+/*
+ * An admin-uploaded background is a photo rather than our gradient shape, so it
+ * covers the whole viewport and gets a dark overlay to keep the card and the
+ * footer links readable over whatever was uploaded.
+ */
+.background--custom {
+  background-size: cover;
+  background-position: center;
+}
+
+.background--custom::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: colors.$kobo-gray-900;
+  opacity: 0.4;
+}
+
+// Lifts content above the overlay pseudo-element.
+.header,
+.main,
+.footer {
+  position: relative;
+}
+
+.header {
+  padding: 24px;
+}
+
+.logo {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  // Design places the card near the top, not vertically centred.
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  padding: 32px;
+  background-color: colors.$kobo-white;
+  border-radius: 6px;
+}
+
+.title {
+  margin: 0 0 12px;
+  color: colors.$kobo-gray-800;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.message {
+  margin: 0;
+  color: colors.$kobo-gray-700;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  justify-content: center;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.footerLink {
+  // The plain `$kobo-blue` is too light to read on our near-white background.
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+}
+
+// On a custom background these links sit on top of the dark overlay instead.
+.footer--custom .footerLink {
+  color: colors.$kobo-white;
+}
+
+@media (width <= 600px) {
+  .card {
+    padding: 24px;
+  }
+
+  .title {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}

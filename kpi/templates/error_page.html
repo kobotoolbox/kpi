@@ -1,0 +1,27 @@
+{# Shell for the standalone error pages app (see `jsapp/js/errorApp/`). #}
+{# Extends `base_simple.html` on purpose: `base.html` would load the whole SPA bundle. #}
+{% extends 'base_simple.html' %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}• {{ error_code }}{% endblock %}
+
+{#
+  Deliberately empty, so `kpi_simple.css` is not loaded. It constrains `body` to
+  an 800px centred column with padding, which would box in this page's
+  full-bleed background. Mantine's `baseline.css` (imported by the bundle)
+  already resets margins, font and colors, so nothing here is missing.
+#}
+{% block head_stylesheets %}{% endblock %}
+
+{#
+    Configuration travels as data attributes, so the app can render without
+    making any API calls. `config` comes from `kpi.context_processors.config`,
+    which merges constance settings with `hub.ConfigurationFile` URLs. An empty
+    attribute means "not configured" and the app falls back to Kobo defaults.
+  #}
+{% block body %}
+<div id="kobo-error-app" data-error-code="{{ error_code }}" data-background-url="{{ config.login_background }}"
+  data-logo-url="{{ config.logo }}" data-terms-of-service-url="{{ config.TERMS_OF_SERVICE_URL }}"
+  data-privacy-policy-url="{{ config.PRIVACY_POLICY_URL }}"></div>
+{% render_bundle 'errorApp' 'js' %}
+{% endblock %}

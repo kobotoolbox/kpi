@@ -13,7 +13,12 @@ const prodConfig = WebpackCommon({
         commons: {
           test: /[\\/]node_modules[\\/]/,
           name: 'vendors',
-          chunks: 'all',
+          // Every entry but `errorApp` shares one `vendors` chunk. The error
+          // pages have to render when the main app can't load, so they must not
+          // depend on that (multi-MB) shared chunk - see
+          // `scripts/check_error_bundle_isolation.js`, which fails the build if
+          // this coupling ever comes back.
+          chunks: (chunk) => chunk.name !== 'errorApp',
         },
       },
     },
@@ -28,6 +33,8 @@ const prodConfig = WebpackCommon({
   },
   entry: {
     app: './jsapp/js/main.js',
+    // Standalone, self-contained bundle for the 404/50x pages.
+    errorApp: './jsapp/js/errorApp/main.tsx',
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),

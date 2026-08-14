@@ -1,0 +1,115 @@
+import { MantineProvider } from '@mantine/core'
+import { render, screen } from '@testing-library/react'
+import ErrorPage, { type ErrorPageProps } from './ErrorPage'
+import { errorTheme } from './errorTheme'
+
+/**
+ * Renders with the same slim theme the real entry uses, so these tests exercise
+ * the provider the bundle actually ships (not the full app theme).
+ */
+function renderErrorPage(props: Partial<ErrorPageProps> = {}) {
+  return render(
+    <MantineProvider theme={errorTheme}>
+      <ErrorPage errorCode={404} {...props} />
+    </MantineProvider>,
+  )
+}
+
+const CUSTOM_BACKGROUND = 'https://example.org/configurationfile/login_background/'
+
+/**
+ * Finds an element the way a11y queries can't: the background is picked by class
+ * (MantineProvider injects `<style>` tags ahead of our markup, so it isn't the
+ * container's first child), and the logo is decorative so it has no role.
+ */
+function getElement(container: HTMLElement, selector: string) {
+  const element = container.querySelector<HTMLElement>(selector)
+
+  if (!element) {
+    throw new Error(`No element matching "${selector}"`)
+  }
+
+  return element
+}
+
+describe('ErrorPage', () => {
+  it('renders the 404 copy', () => {
+    renderErrorPage({ errorCode: 404 })
+
+    chai.expect(screen.getByRole('heading', { level: 1 }).textContent).to.equal('Page not found (404)')
+    chai.expect(screen.queryByText(/This page does not exist on the server/)).to.not.equal(null)
+  })
+
+  it('renders the 500 copy', () => {
+    renderErrorPage({ errorCode: 500 })
+
+    chai.expect(screen.getByRole('heading', { level: 1 }).textContent).to.equal('Server error (500)')
+    chai.expect(screen.queryByText(/Something went wrong/)).to.not.equal(null)
+  })
+
+  it('uses the admin background when one is configured', () => {
+    const { container } = renderErrorPage({ backgroundUrl: CUSTOM_BACKGROUND })
+    const background = getElement(container, '.background')
+
+    chai.expect(background.style.backgroundImage).to.contain(CUSTOM_BACKGROUND)
+    // Custom (photo) backgrounds need the darkening overlay for legibility.
+    chai.expect(background.className).to.contain('background--custom')
+  })
+
+  it('falls back to the default background when none is configured', () => {
+    const { container } = renderErrorPage({ backgroundUrl: undefined })
+    const background = getElement(container, '.background')
+
+    chai.expect(background.style.backgroundImage).to.not.equal('')
+    // No overlay on our own background: it is a light gradient, not a photo.
+    chai.expect(background.className).to.not.contain('background--custom')
+  })
+
+  it('uses the admin logo when one is configured', () => {
+    const logoUrl = 'https://example.org/configurationfile/logo/'
+    const { container } = renderErrorPage({ logoUrl })
+
+    chai.expect(getElement(container, 'img').getAttribute('src')).to.equal(logoUrl)
+  })
+
+  it('falls back to the KoboToolbox logo when none is configured', () => {
+    const { container } = renderErrorPage({ logoUrl: undefined })
+
+    chai.expect(getElement(container, 'img').getAttribute('src')).to.not.equal('')
+  })
+
+  it('keeps the logo out of the accessibility tree', () => {
+    // It is decorative, and we can't write alt text for an admin's own logo.
+    renderErrorPage()
+
+    chai.expect(screen.queryByRole('img')).to.equal(null)
+  })
+
+  it('renders the terms and privacy links when configured', () => {
+    renderErrorPage({
+      termsOfServiceUrl: 'https://example.org/tos',
+      privacyPolicyUrl: 'https://example.org/privacy',
+    })
+
+    chai
+      .expect(screen.getByRole('link', { name: 'Terms of Service' }).getAttribute('href'))
+      .to.equal('https://example.org/tos')
+    chai
+      .expect(screen.getByRole('link', { name: 'Privacy Policy' }).getAttribute('href'))
+      .to.equal('https://example.org/privacy')
+  })
+
+  it('omits the footer links when they are not configured', () => {
+    renderErrorPage()
+
+    chai.expect(screen.queryAllByRole('link').length).to.equal(0)
+  })
+
+  it('has no "go back" affordance', () => {
+    // These pages are only reached by typing/pasting a bad URL, so there is no
+    // sensible previous page to return to.
+    renderErrorPage()
+
+    chai.expect(screen.queryByText(/go back/i)).to.equal(null)
+  })
+})
