@@ -2205,6 +2205,11 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 
+# Max to-many lookups in a single `q` search: each becomes its own EXISTS
+# subquery, so an unbounded count lets a search fan out.
+# See `kpi.utils.query_parser`.
+QUERY_PARSER_MAX_TO_MANY_FILTERS = 10
+
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

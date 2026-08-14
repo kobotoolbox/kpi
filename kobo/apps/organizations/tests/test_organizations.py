@@ -7,7 +7,7 @@ from kobo.apps.organizations.constants import (
     ORG_MEMBER_ROLE,
     ORG_OWNER_ROLE,
 )
-from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.models import EmptyOrganization, Organization
 
 
 class OrganizationTestCase(TestCase):
@@ -118,3 +118,48 @@ class OrganizationTestCase(TestCase):
         assert organization.name == 'AnotherUser Enterprises'
         assert organization.website == 'https://anotheruser.org/'
         assert organization.organization_type == 'commercial'
+
+
+class EmptyOrganizationTestCase(TestCase):
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        self.empty_organization = EmptyOrganization()
+
+    def test_is_falsy(self):
+        assert not self.empty_organization
+        assert bool(self.empty_organization) is False
+
+    def test_role_checks_do_not_raise(self):
+        assert self.empty_organization.is_mmo is False
+        assert self.empty_organization.is_admin(self.someuser) is False
+        assert self.empty_organization.is_admin_only(self.someuser) is False
+        assert self.empty_organization.is_owner(self.someuser) is False
+        assert self.empty_organization.get_user_role(self.someuser) == (
+            ORG_EXTERNAL_ROLE
+        )
+        assert self.empty_organization.owner_user_object is None
+        assert self.empty_organization.name == ''
+
+    def test_cannot_be_saved(self):
+        with self.assertRaises(NotImplementedError):
+            self.empty_organization.save()
+
+    def test_returned_for_inactive_user_without_organization(self):
+        self.someuser.organizations_organizationuser.all().delete()
+        self.someuser.is_active = False
+        self.someuser.save()
+
+        # `organization` is cached per request, so reload the user to bypass it
+        someuser = User.objects.get(username='someuser')
+        assert isinstance(someuser.organization, EmptyOrganization)
+        assert not someuser.organization
+
+    def test_organization_still_created_for_active_user(self):
+        self.someuser.organizations_organizationuser.all().delete()
+
+        someuser = User.objects.get(username='someuser')
+        assert not isinstance(someuser.organization, EmptyOrganization)
+        assert someuser.organization

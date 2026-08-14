@@ -9,7 +9,7 @@ import {
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
-import { getSubmissionRootUuid } from './conflictingOngoingJob'
+import { getSubmissionRootUuid } from '#/utils'
 
 const POLL_INTERVAL = 3000
 

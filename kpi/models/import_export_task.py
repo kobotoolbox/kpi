@@ -747,7 +747,8 @@ class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
 
         region_for_view = get_region_for_view(view)
         q = get_q(region_for_view, export_type)
-        queryset = config['queryset'].filter(q)
+        # queryset is a lambda function, then a callable
+        queryset = config['queryset']().filter(q)
 
         data = self.get_data(queryset)
         buff = create_data_export(export_type, data)

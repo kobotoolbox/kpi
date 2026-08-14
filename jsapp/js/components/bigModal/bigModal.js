@@ -6,7 +6,6 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
@@ -120,10 +119,6 @@ class BigModal extends React.Component {
         this.setState({
           modalClass: 'modal--large modal--large-shorter',
         })
-        break
-
-      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
-        // title is set by DataAttachmentColumnsForm
         break
 
       // TODO: Make a better generic modal component
@@ -258,13 +253,6 @@ class BigModal extends React.Component {
               onSetModalTitle={this.setModalTitle}
               onModalClose={this.onModalClose}
               asset={this.props.params.asset}
-              {...this.props.params}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS && (
-            <DataAttachmentColumnsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
               {...this.props.params}
             />
           )}
