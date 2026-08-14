@@ -66,26 +66,30 @@ def garbage_collector():
             ).delete()
 
 
-@celery_app.task
+@celery_app.task(
+    soft_time_limit=settings.TASK_RESTARTER_LOCK_TTL - 60 * 2,
+    time_limit=settings.TASK_RESTARTER_LOCK_TTL - 60,
+)
 def task_restarter():
     """
     This task restarts previous tasks which have been stopped accidentally,
     e.g.: docker container/k8s pod restart or OOM killed, and the ones which
-    failed on a transient (infrastructure) error
+    failed on a transient (infrastructure) error. It only dispatches as many as
+    the workers have room for, by asking them what they are already running
 
     Deletions decrease counters and lock rows which are also used when
     submissions come in, so no more than `settings.MAX_RESTARTED_TASKS` of them
     may be running at the same time
+
+    Its time limits are derived from the lock it holds: a run must never outlive
+    it, otherwise the next one would start alongside. Being stopped early is
+    harmless, whatever this run did not restart the next one picks up
     """
 
-    # The lock is deliberately left to expire on its own. Releasing it means
-    # reading it back and deleting it, and another run may take it over in
-    # between, it would then be interrupted. Its timeout is far shorter than
-    # the interval this task is scheduled at, so expiring never skips a run
     if not cache.add(
         TASK_RESTARTER_LOCK_KEY, True, timeout=settings.TASK_RESTARTER_LOCK_TTL
     ):
-        logging.warning('task_restarter: another run is in progress, skipping')
+        logging.info('task_restarter: another run is in progress, skipping')
         return
 
     models_tasks_retentions = (
@@ -98,7 +102,7 @@ def task_restarter():
         {task.name for _, task, _ in models_tasks_retentions}
     )
     if running is None:
-        logging.warning('task_restarter: no worker answered, skipping this run')
+        logging.info('task_restarter: no worker answered, skipping this run')
         return
 
     # The three types of deletion compete for the same rows, therefore they
