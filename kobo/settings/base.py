@@ -1844,9 +1844,25 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-MAX_MASS_EMAILS_PER_DAY = 1000
-MASS_EMAIL_THROTTLE_PER_SECOND = 40
-MASS_EMAIL_SLEEP_SECONDS = 1
+# To be set up based on the SMTP provider limits & quotas. On SES, keep
+# `MASS_EMAIL_THROTTLE_PER_SECOND` at or below the account `MaxSendRate`, and
+# `MAX_MASS_EMAILS_PER_DAY` below `Max24HourSend` minus the transactional
+# volume (both are returned by the SES `GetSendQuota` API).
+#
+# `MAX_MASS_EMAILS_PER_DAY` is a global ceiling shared by every live config and
+# split between them in proportion to their pending records, not a per-config
+# quota. Keep it above the number of records a single run enqueues across all
+# configs: a batch that cannot drain in one day keeps its config frozen, since
+# no recipient list is recomputed while records are still pending, so the
+# emails go out stale. Worse, anything still enqueued after
+# `MASS_EMAIL_ENQUEUED_RECORD_EXPIRY` days is marked as failed without ever
+# being sent.
+#
+# Raising it is not free: it also caps the blast radius of a user query that
+# selects far more people than intended.
+MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
+MASS_EMAIL_THROTTLE_PER_SECOND = env.int('MASS_EMAIL_THROTTLE_PER_SECOND', 40)
+MASS_EMAIL_SLEEP_SECONDS = env.int('MASS_EMAIL_SLEEP_SECONDS', 1)
 # change the interval between "daily" email sends for testing. this will set both
 # the frequency of the task and the expiry time of the cached email limits. should
 # only be True on small testing instances
