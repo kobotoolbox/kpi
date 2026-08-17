@@ -6,22 +6,6 @@ import styles from './ErrorPage.module.scss'
 /** HTTP status codes these pages know how to render. */
 export type ErrorCode = 404 | 500
 
-export interface ErrorPageProps {
-  errorCode: ErrorCode
-  /** Admin-uploaded background (`login_background`). Falls back to the Kobo gradient shape. */
-  backgroundUrl?: string
-  /** Admin-uploaded logo (`logo`). Falls back to the KoboToolbox logo. */
-  logoUrl?: string
-  /** Both links are dropped from the footer when the instance hasn't set them. */
-  termsOfServiceUrl?: string
-  privacyPolicyUrl?: string
-}
-
-/**
- * Copy is kept in a function (rather than a lookup keyed by code) so every `t()`
- * call gets a literal string: `ExtractTranslationKeysPlugin` fails the build on
- * dynamic ones, and translators need the literals to extract.
- */
 function getErrorContent(errorCode: ErrorCode) {
   if (errorCode === 500) {
     return {
@@ -34,6 +18,17 @@ function getErrorContent(errorCode: ErrorCode) {
     title: t('Page not found (404)'),
     message: t('This page does not exist on the server. Please check the URL or link that sent you here.'),
   }
+}
+
+export interface ErrorPageProps {
+  errorCode: ErrorCode
+  /** Admin-uploaded background (`login_background`). Falls back to the Kobo gradient shape. */
+  backgroundUrl?: string
+  /** Admin-uploaded logo (`logo`). Falls back to the KoboToolbox logo. */
+  logoUrl?: string
+  /** Both links are dropped from the footer when the instance hasn't set them. */
+  termsOfServiceUrl?: string
+  privacyPolicyUrl?: string
 }
 
 /**
@@ -54,10 +49,7 @@ export default function ErrorPage(props: ErrorPageProps) {
       style={hasCustomBackground ? { backgroundImage: `url('${backgroundUrl}')` } : undefined}
     >
       <header className={styles.header}>
-        {/*
-          Decorative, hence the empty alt: the heading already says what went
-          wrong, and we can't describe whatever logo an admin uploaded.
-        */}
+        {/* Decorative, hence the empty alt; also and we can't describe whatever logo an admin uploaded */}
         <img className={styles.logo} src={logoUrl ?? defaultLogoUrl} alt='' />
       </header>
 

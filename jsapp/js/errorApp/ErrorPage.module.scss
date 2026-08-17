@@ -35,14 +35,14 @@
   background-repeat: repeat, no-repeat;
 }
 
-// An admin photo replaces the wedge and covers the whole viewport, so it gets a dark
-// overlay to keep the card and footer links readable over anything uploaded.
 .background--custom {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
 }
 
+// An admin photo replaces the wedge and covers the whole viewport, so it gets a dark
+// overlay to keep the card and footer links readable over anything uploaded.
 .background--custom::before {
   content: '';
   position: absolute;
@@ -111,12 +111,11 @@
 }
 
 .footerLink {
-  // The plain `$kobo-blue` is too light to read on our near-white background.
   color: colors.$kobo-dark-blue;
   text-decoration: underline;
 }
 
-// On a custom background these links sit on top of the dark overlay instead.
+// On a custom background these links sit on top of the dark overlay.
 .footer--custom .footerLink {
   color: colors.$kobo-white;
 }

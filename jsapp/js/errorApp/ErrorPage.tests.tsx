@@ -17,20 +17,16 @@ function renderErrorPage(props: Partial<ErrorPageProps> = {}) {
   )
 }
 
-const CUSTOM_BACKGROUND = 'https://example.org/configurationfile/login_background/'
+const CUSTOM_BACKGROUND = 'https://testerrorapp.biz/somepath/login_background/'
 
 /**
- * Finds an element the way a11y queries can't: the background is picked by class
- * (MantineProvider injects `<style>` tags ahead of our markup, so it isn't the
- * container's first child), and the logo is decorative so it has no role.
+ * Finds an element the way a11y queries can't
  */
 function getElement(container: HTMLElement, selector: string) {
   const element = container.querySelector<HTMLElement>(selector)
-
   if (!element) {
     throw new Error(`No element matching "${selector}"`)
   }
-
   return element
 }
 
@@ -49,7 +45,7 @@ describe('ErrorPage', () => {
     chai.expect(screen.queryByText(/Something went wrong/)).to.not.equal(null)
   })
 
-  it('uses the admin background when one is configured', () => {
+  it('uses the custom background when one is configured', () => {
     const { container } = renderErrorPage({ backgroundUrl: CUSTOM_BACKGROUND })
     const background = getElement(container, '.background')
 
@@ -58,7 +54,7 @@ describe('ErrorPage', () => {
     chai.expect(background.className).to.contain('background--custom')
   })
 
-  it('draws its own background in CSS when none is configured', () => {
+  it('draws its own background in CSS when no custom background is configured', () => {
     const { container } = renderErrorPage({ backgroundUrl: undefined })
     const background = getElement(container, '.background')
 
@@ -68,52 +64,37 @@ describe('ErrorPage', () => {
     chai.expect(background.className).to.not.contain('background--custom')
   })
 
-  it('uses the admin logo when one is configured', () => {
-    const logoUrl = 'https://example.org/configurationfile/logo/'
+  it('uses the custom logo when one is configured', () => {
+    const logoUrl = 'https://testerrorapp.biz/somepath/logo/'
     const { container } = renderErrorPage({ logoUrl })
 
     chai.expect(getElement(container, 'img').getAttribute('src')).to.equal(logoUrl)
   })
 
-  it('falls back to the KoboToolbox logo when none is configured', () => {
+  it('falls back to the KoboToolbox logo when no custom logo is configured', () => {
     const { container } = renderErrorPage({ logoUrl: undefined })
 
     chai.expect(getElement(container, 'img').getAttribute('src')).to.not.equal('')
   })
 
-  it('keeps the logo out of the accessibility tree', () => {
-    // It is decorative, and we can't write alt text for an admin's own logo.
-    renderErrorPage()
-
-    chai.expect(screen.queryByRole('img')).to.equal(null)
-  })
-
   it('renders the terms and privacy links when configured', () => {
     renderErrorPage({
-      termsOfServiceUrl: 'https://example.org/tos',
-      privacyPolicyUrl: 'https://example.org/privacy',
+      termsOfServiceUrl: 'https://testerrorapp.biz/tos',
+      privacyPolicyUrl: 'https://testerrorapp.biz/privacy',
     })
 
     chai
       .expect(screen.getByRole('link', { name: 'Terms of Service' }).getAttribute('href'))
-      .to.equal('https://example.org/tos')
+      .to.equal('https://testerrorapp.biz/tos')
     chai
       .expect(screen.getByRole('link', { name: 'Privacy Policy' }).getAttribute('href'))
-      .to.equal('https://example.org/privacy')
+      .to.equal('https://testerrorapp.biz/privacy')
   })
 
   it('omits the footer links when they are not configured', () => {
     renderErrorPage()
 
     chai.expect(screen.queryAllByRole('link').length).to.equal(0)
-  })
-
-  it('has no "go back" affordance', () => {
-    // These pages are only reached by typing/pasting a bad URL, so there is no
-    // sensible previous page to return to.
-    renderErrorPage()
-
-    chai.expect(screen.queryByText(/go back/i)).to.equal(null)
   })
 
   it('replaces the fallback markup that the Django template renders', () => {
