@@ -1,13 +1,20 @@
 # coding: utf-8
+import random
 import re
 import string
-import random
 from collections import OrderedDict
 from copy import deepcopy
-
+from enum import Enum
 
 from formpack.utils.json_hash import json_hash
-from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_node_name
+from kpi.exceptions import DuplicateNameException
+from kpi.utils.sluggify import is_valid_node_name, sluggify, sluggify_label
+
+
+class HandleDuplicatesOptions(Enum):
+    RAISE = 'raise'
+    IGNORE = 'ignore'
+    RENAME = 'rename'
 
 
 def _increment(name):
@@ -55,7 +62,7 @@ def autoname_fields__depr(surv_content):
             if 'kuid' not in surv_row:
                 surv_row['kuid'] = _rand_id(8)
             if surv_row['kuid'] in kuid_names:
-                raise Exception("Duplicate kuid: %s" % surv_row['kuid'])
+                raise Exception('Duplicate kuid: %s' % surv_row['kuid'])
             surv_row['name'] = next_name
             kuid_names[surv_row['kuid']] = next_name
     # kuid is unused, and can't be compared with replacement method
@@ -83,34 +90,42 @@ def autoname_fields(surv_content, in_place=False):
         return _content_copy.get('survey')
 
 
-def autoname_fields_in_place(surv_content, destination_key):
+def autoname_fields_in_place(
+    surv_content,
+    destination_key,
+    handle_duplicates: HandleDuplicatesOptions = HandleDuplicatesOptions.RAISE,
+):
     surv_list = surv_content.get('survey')
     other_names = OrderedDict()
 
     def _assign_row_to_name(row, suggested_name):
-        if suggested_name in other_names:
-            raise ValueError('Duplicate name error: {}'.format(suggested_name))
+        if (
+            suggested_name in other_names
+            and handle_duplicates == HandleDuplicatesOptions.RAISE
+        ):
+            raise DuplicateNameException(
+                'Duplicate name error: {}'.format(suggested_name)
+            )
         other_names[suggested_name] = row
         row[destination_key] = suggested_name
 
     # rows_needing_names is all rows needing a valid and unique name
     # end_group, etc. do not need valid names
     rows_needing_names = [r for r in surv_list if not _is_group_end(r)]
-    # cycle through existing names ane ensure that names are valid and unique
     for row in [r for r in rows_needing_names if _has_name(r)]:
         _name = row['name']
+        if handle_duplicates != HandleDuplicatesOptions.RENAME:
+            _assign_row_to_name(row, _name)
+            continue
+
         _attempt_count = 0
+        _given_name = _name
         while not is_valid_node_name(_name) or _name in other_names:
-            # this will be necessary for untangling skip logic
-            row['$given_name'] = _name
-            _name = sluggify_label(_name,
-                                   other_names=list(other_names.keys()))
-            # We might be able to remove these next 4 lines because
-            # sluggify_label shouldn't be returning an empty string
-            # and these fields already have names (_has_name(r)==True).
-            # However, these lines were added when testing a large set
-            # of forms so it's possible some edge cases (e.g. arabic)
-            # still permit it
+            # save original name
+            row['$given_name'] = _given_name
+            _name = sluggify_label(_name, other_names=list(other_names.keys()))
+            # _name shouldn't be empty at this point but there are some edge cases
+            # for certain languages (eg Arabic)
             if _name == '' and '$kuid' in row:
                 _name = '{}_{}'.format(row['type'], row['$kuid'])
             elif _name == '':

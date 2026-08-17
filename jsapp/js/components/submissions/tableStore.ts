@@ -28,6 +28,39 @@ export interface TableStoreData {
 }
 
 /**
+ * Settings that a user without `change_asset` can change for themselves. These
+ * live in `data.overrides` for the session only and are never persisted.
+ */
+const OVERRIDABLE_SETTINGS = [
+  DATA_TABLE_SETTINGS.SELECTED_COLUMNS,
+  DATA_TABLE_SETTINGS.FROZEN_COLUMN,
+  DATA_TABLE_SETTINGS.SHOW_GROUP,
+  DATA_TABLE_SETTINGS.TRANSLATION,
+  DATA_TABLE_SETTINGS.SHOW_HXL,
+  DATA_TABLE_SETTINGS.SORT_BY,
+] as const
+
+/**
+ * Copies one setting from `source` to `target`, skipping it if `source` has no
+ * value for it.
+ *
+ * `null` counts as a value here: `selected-columns: null` means "all columns
+ * visible", `frozen-column: null` means "nothing frozen". Hence the `undefined`
+ * check rather than a falsiness one.
+ */
+function applySetting<SettingName extends keyof AssetTableSettings>(
+  target: AssetTableSettings,
+  source: AssetTableSettings,
+  settingName: SettingName,
+) {
+  if (typeof source[settingName] !== 'undefined') {
+    // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
+    // prepends the frozen column to the selected columns).
+    target[settingName] = clonedeep(source[settingName])
+  }
+}
+
+/**
  * NOTE: tableStore should be handling all data required by table.js, but as
  * this would mean a huge refactor (and most probably dropping react-table),
  * we will stick to providing a one way interface for changing things in asset
@@ -47,27 +80,41 @@ class TableStore extends Reflux.Store {
     overrides: {},
   }
 
+  /** The asset that `data.overrides` were set for, see `syncOverridesWithRoute` */
+  private overridesAssetUid: string | null = null
+
+  /**
+   * Overrides belong to a single asset, as some of them are field identifiers
+   * that mean nothing in another project. Moving to a different asset drops
+   * them, so returns the overrides that are safe to use for the current route.
+   *
+   * Routes without an asset (`null`) leave the overrides alone, so that they
+   * survive a trip outside the project.
+   */
+  private syncOverridesWithRoute() {
+    const routeAssetUid = getRouteAssetUid()
+
+    if (routeAssetUid !== null && routeAssetUid !== this.overridesAssetUid) {
+      this.overridesAssetUid = routeAssetUid
+      this.data.overrides = {}
+    }
+
+    return this.data.overrides
+  }
+
   /** Returns settings or empty object if no settings exist */
   getTableSettings() {
     const asset = this.getCurrentAsset()
+    const overrides = this.syncOverridesWithRoute()
 
     // We clone settings, as we will possibly overwrite some of them. If there
     // are no settings yet, we start with empty object.
-    const tableSettings: AssetTableSettings = clonedeep(asset?.settings[DATA_TABLE_SETTING]) || {}
+    const tableSettings: AssetTableSettings = clonedeep(asset?.settings?.[DATA_TABLE_SETTING]) || {}
 
     // overrides take precedense over asset endpoint settings
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP]
-    }
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION]
-    }
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL]
-    }
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.SORT_BY] = this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY]
-    }
+    OVERRIDABLE_SETTINGS.forEach((settingName) => {
+      applySetting(tableSettings, overrides, settingName)
+    })
 
     return tableSettings
   }
@@ -99,11 +146,10 @@ class TableStore extends Reflux.Store {
       // Cleanup all `null` settings, as we don't want to store `null`s and `null`
       // means "delete setting"
       const tableSettings = newSettings[DATA_TABLE_SETTING]
-      recordEntries(tableSettings).forEach((key, value) => {
-        if (value === null && typeof key === 'string') {
-          delete tableSettings[key]
-        }
-      })
+      const cleanedTableSettings = Object.fromEntries(
+        recordEntries(tableSettings).filter(([, value]) => value !== null),
+      ) as AssetTableSettings
+      newSettings[DATA_TABLE_SETTING] = cleanedTableSettings
       actions.table.updateSettings(asset.uid, newSettings)
     } else {
       // Case 2: user can't save, so we store temporary overrides as nested setting
@@ -112,21 +158,15 @@ class TableStore extends Reflux.Store {
   }
 
   /**
-   * @param {object} newOverrides
+   * Stores session-local settings for users who can't persist them to the asset.
+   * Only `OVERRIDABLE_SETTINGS` are picked up, the rest is ignored.
    */
   setOverrides(newOverrides: AssetTableSettings) {
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] = newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP]
-    }
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] = newOverrides[DATA_TABLE_SETTINGS.TRANSLATION]
-    }
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] = newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL]
-    }
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] = newOverrides[DATA_TABLE_SETTINGS.SORT_BY]
-    }
+    const overrides = this.syncOverridesWithRoute()
+
+    OVERRIDABLE_SETTINGS.forEach((settingName) => {
+      applySetting(overrides, newOverrides, settingName)
+    })
 
     this.trigger(this.data)
   }
@@ -145,7 +185,10 @@ class TableStore extends Reflux.Store {
   /** Returns a list of columns that user can hide */
   getHideableColumns(asset: AssetResponse, submissions: SubmissionResponse[], bulkActions?: BulkActionResponse[]) {
     const columns = getAllDataColumns(asset, submissions, bulkActions)
-    columns.push(VALIDATION_STATUS_ID_PROP)
+    // Validation status is not submission data, so `getAllDataColumns` doesn't
+    // return it, but users still get to hide this column. It goes first, to
+    // match its position in Data Table.
+    columns.unshift(VALIDATION_STATUS_ID_PROP)
     return columns
   }
 

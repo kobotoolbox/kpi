@@ -4,6 +4,12 @@ import type { UserReportsServiceUsageResponse } from '#/api/models/userReportsSe
  * Factory functions for creating mock usage data with different limit scenarios.
  * Useful in Storybook to test how the UI responds to warnings and exceeded limits.
  *
+ * Note: NOT migrated to Orval because this file provides valuable domain-specific
+ * presets (storageWarning, storageExceeded, etc.) that calculate percentage-based
+ * limits. These presets are more useful than raw Orval mocks because they encode
+ * business logic about when warnings/errors should trigger (80%, 100%, etc.).
+ * The helper functions make tests more readable than passing raw percentage values.
+ *
  * Instead of writing out full balance objects with calculated values, just call
  * the preset that matches your scenario:
  *   - storageWarning() for 95% storage used (triggers warning banner)

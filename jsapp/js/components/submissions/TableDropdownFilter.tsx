@@ -3,6 +3,10 @@ import type { Column, Filter, FilterRender } from 'react-table'
 import { getQuestionOrChoiceDisplayName } from '#/assetUtils'
 import Select from '#/components/common/Select'
 import type { TableColumn } from '#/components/submissions/table.types'
+import type { LabelValuePair, SurveyChoice } from '#/dataInterface'
+
+const getChoiceFilterValue = (item: SurveyChoice): string | undefined =>
+  item.name || item.$autoname || item.$autovalue || undefined
 
 interface TableDropdownFilterProps {
   column: TableColumn | Column<any>
@@ -26,17 +30,16 @@ const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
   const selectFromListName = 'selectFromListName' in props.column ? props.column.selectFromListName : undefined
   const translationIndex = 'translationIndex' in props.column ? props.column.translationIndex || 0 : 0
 
-  const data = [
-    { value: SHOW_ALL_VALUE, label: t('Show All') },
-    ...choices
-      .filter((choiceItem) => choiceItem.list_name === selectFromListName)
-      .map((item) => {
-        return {
-          value: item.name,
-          label: getQuestionOrChoiceDisplayName(item, translationIndex),
-        }
-      }),
-  ]
+  const seenValues = new Set<string>()
+  const choiceOptions = choices.reduce<LabelValuePair[]>((acc, item) => {
+    if (item.list_name !== selectFromListName) return acc
+    const value = getChoiceFilterValue(item)
+    if (!value || seenValues.has(value)) return acc
+    seenValues.add(value)
+    acc.push({ value, label: getQuestionOrChoiceDisplayName(item, translationIndex) })
+    return acc
+  }, [])
+  const data = [{ value: SHOW_ALL_VALUE, label: t('Show all') }, ...choiceOptions]
 
   // Map internal filter value (empty string) to our sentinel value for display
   const displayValue = !props.filter || props.filter.value === '' ? SHOW_ALL_VALUE : props.filter.value

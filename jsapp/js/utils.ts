@@ -186,6 +186,29 @@ export function formatSeconds(seconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`
 }
 
+/*
+ * Formats seconds into a "<hours> hours, <minutes> minutes" structure, with "…" as a fallback
+ */
+export const formatTimeFromSeconds = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (hours && !minutes) {
+    return t('##hours## hours').replace('##hours##', String(hours))
+  } else if (hours && minutes) {
+    return t('##hours## hours, ##minutes## minutes')
+      .replace('##hours##', String(hours))
+      .replace('##minutes##', String(minutes))
+  } else if (!hours && minutes) {
+    return t('##minutes## minutes').replace('##minutes##', String(minutes))
+  } else if (!hours && !minutes) {
+    return t('##seconds## seconds').replace('##seconds##', String(seconds))
+  } else {
+    // Fallback for typescript, should never happen.
+    return '…'
+  }
+}
+
 export function formatRelativeTime(timeStr: string, localize = true): string {
   let myMoment = moment.utc(timeStr)
   if (localize) {
@@ -603,6 +626,22 @@ export function addDefaultUuidPrefix(uuid: string) {
  */
 export function removeDefaultUuidPrefix(uuid: string) {
   return uuid.replace(/^uuid:/, '')
+}
+
+/**
+ * Returns the id that survives edits, prefix-less, the way the back end stores it.
+ *
+ * Use this to identify a submission, not `_uuid`. Editing a submission gives it a fresh `_uuid`, while
+ * `meta/rootUuid` keeps pointing at the original. Endpoints keyed by submission (supplements, bulk actions) store
+ * only the root uuid, so asking them about an edited submission by `_uuid` gets you "not found".
+ *
+ * The fallback covers submissions old enough to predate `meta/rootUuid`, whose `_uuid` never had a newer version to
+ * drift away from.
+ *
+ * 🐍 Mirrors `get_root_uuid_from_xml` on the backend.
+ */
+export function getSubmissionRootUuid(submission: { _uuid: string; 'meta/rootUuid'?: string }) {
+  return removeDefaultUuidPrefix(submission['meta/rootUuid'] || submission._uuid)
 }
 
 /**

@@ -26,6 +26,7 @@ module.exports = do ->
   templates['row.rowErrorView']             = row_templates.rowErrorView
   templates['row.xlfRowView']               = row_templates.xlfRowView
   templates['row.unsupportedRowView']       = row_templates.unsupportedRowView
+  templates['row.unsupportedRowNoticeView'] = row_templates.unsupportedRowNoticeView
   templates['row.scoreView']                = row_templates.scoreView
   templates['row.rankView']                 = row_templates.rankView
   templates['surveyApp']                    = surveyApp_templates.surveyApp

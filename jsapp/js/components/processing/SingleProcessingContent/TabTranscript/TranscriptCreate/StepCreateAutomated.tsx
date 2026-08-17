@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
-
 import { Flex, Group, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import cx from 'classnames'
+import React, { useState } from 'react'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -17,9 +16,10 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Button from '#/components/common/button'
 import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid, notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
@@ -28,6 +28,7 @@ interface Props {
   questionXpath: string
   languageCode: LanguageCode
   submission: DataResponse
+  hasConflictingOngoingJob: boolean
   onBack: () => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
@@ -37,6 +38,7 @@ export default function StepCreateAutomated({
   questionXpath,
   languageCode,
   submission,
+  hasConflictingOngoingJob,
   onBack,
   advancedFeatures,
 }: Props) {
@@ -91,6 +93,10 @@ export default function StepCreateAutomated({
   }
 
   async function handleCreateTranscript() {
+    // Keep a runtime guard in addition to disabled controls.
+    // Button state can lag behind fresh polling data for a moment.
+    if (hasConflictingOngoingJob) return
+
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
@@ -121,7 +127,7 @@ export default function StepCreateAutomated({
 
     await mutationCreateAutomaticTranscript.mutateAsync({
       uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+      rootUuid: getSubmissionRootUuid(submission),
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
@@ -186,6 +192,8 @@ export default function StepCreateAutomated({
         )}
       </p>
 
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mt='md' />}
+
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
           <Button type='secondary' size='m' label={t('cancel')} onClick={handleClickBack} isDisabled={anyPending} />
@@ -195,7 +203,7 @@ export default function StepCreateAutomated({
             size='m'
             label={t('create transcript')}
             onClick={handleCreateTranscript}
-            isDisabled={anyPending || locale === null}
+            isDisabled={anyPending || locale === null || hasConflictingOngoingJob}
           />
         </div>
       </footer>

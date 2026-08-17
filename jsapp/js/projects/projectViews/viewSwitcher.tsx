@@ -2,11 +2,11 @@ import React, { useState } from 'react'
 
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import KoboDropdown from '#/components/common/koboDropdown'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { HOME_VIEW, ORG_VIEW } from './constants'
 import projectViewsStore from './projectViewsStore'
@@ -27,17 +27,19 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   const [isMenuVisible, setIsMenuVisible] = useState(false)
   const [projectViews] = useState(() => projectViewsStore)
   const [organization] = useOrganizationAssumed()
-  const navigate = useNavigate()
 
-  const onOptionClick = (viewUid: string) => {
+  const getOptionRoute = (viewUid: string) => {
     if (viewUid === HOME_VIEW.uid || viewUid === null) {
-      navigate(PROJECTS_ROUTES.MY_PROJECTS)
-    } else if (viewUid === ORG_VIEW.uid) {
-      navigate(PROJECTS_ROUTES.MY_ORG_PROJECTS)
-    } else {
-      navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid))
-      // The store keeps a number of assets of each view, and that number
-      // might change after changing projects, so we make sure we get fresh data
+      return PROJECTS_ROUTES.MY_PROJECTS
+    }
+    if (viewUid === ORG_VIEW.uid) {
+      return PROJECTS_ROUTES.MY_ORG_PROJECTS
+    }
+    return PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid)
+  }
+
+  const onCustomViewClick = (viewUid: string) => {
+    if (viewUid !== props.selectedViewUid) {
       projectViews.fetchData()
     }
   }
@@ -66,8 +68,8 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   // this piece of UI interactive. We display a "simple" header instead.
   if (!hasMultipleOptions) {
     return (
-      <button className={cx(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
-        <label>{triggerLabel}</label>
+      <button type='button' className={cx(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
+        <span className={styles.triggerLabel}>{triggerLabel}</span>
       </button>
     )
   }
@@ -79,42 +81,48 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         [styles.isMenuVisible]: isMenuVisible,
       })}
     >
-      <KoboDropdown
-        name='projects_view_switcher'
-        placement={'down-left'}
-        hideOnMenuClick
-        onMenuVisibilityChange={setIsMenuVisible}
-        triggerContent={
-          <button className={styles.trigger} title={triggerLabel}>
-            <label>{triggerLabel}</label>
+      <Menu
+        closeOnItemClick
+        position='bottom-start'
+        offset={2}
+        onOpen={() => setIsMenuVisible(true)}
+        onClose={() => setIsMenuVisible(false)}
+      >
+        <Menu.Target>
+          <button type='button' className={styles.trigger} title={triggerLabel}>
+            <span className={styles.triggerLabel}>{triggerLabel}</span>
             <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>
-        }
-        menuContent={
-          <div className={styles.menu}>
-            {/* This is the "My projects" option - always there */}
-            <button key={HOME_VIEW.uid} className={styles.menuOption} onClick={() => onOptionClick(HOME_VIEW.uid)}>
-              {HOME_VIEW.name}
-            </button>
+        </Menu.Target>
 
-            {/* This is the organization view option - restricted to
-            MMO admins and owners */}
-            {displayMyOrgOption && (
-              <button key={ORG_VIEW.uid} className={styles.menuOption} onClick={() => onOptionClick(ORG_VIEW.uid)}>
-                {ORG_VIEW.name.replace('##organization name##', organizationName)}
-              </button>
-            )}
+        <Menu.Dropdown className={styles.menu}>
+          {/* This is the "My projects" option - always there */}
+          <Menu.Item key={HOME_VIEW.uid} component={Link} to={getOptionRoute(HOME_VIEW.uid)}>
+            {HOME_VIEW.name}
+          </Menu.Item>
 
-            {/* This is the list of all options for custom views. These are only
-            being added if custom views are defined (at least one). */}
-            {projectViews.views.map((view) => (
-              <button key={view.uid} className={styles.menuOption} onClick={() => onOptionClick(view.uid)}>
-                {view.name}
-              </button>
-            ))}
-          </div>
-        }
-      />
+          {/* This is the organization view option - restricted to
+          MMO admins and owners */}
+          {displayMyOrgOption && (
+            <Menu.Item key={ORG_VIEW.uid} component={Link} to={getOptionRoute(ORG_VIEW.uid)}>
+              {ORG_VIEW.name.replace('##organization name##', organizationName)}
+            </Menu.Item>
+          )}
+
+          {/* This is the list of all options for custom views. These are only
+          being added if custom views are defined (at least one). */}
+          {projectViews.views.map((view) => (
+            <Menu.Item
+              key={view.uid}
+              component={Link}
+              to={getOptionRoute(view.uid)}
+              onClick={() => onCustomViewClick(view.uid)}
+            >
+              {view.name}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
     </div>
   )
 }

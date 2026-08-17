@@ -1,7 +1,7 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
@@ -16,12 +16,12 @@ import {
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import ButtonNew from '#/components/common/ButtonNew'
-import Alert from '#/components/common/alert'
 import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
+import { getBlockedBulkTranslationLanguages } from '#/components/submissions/bulkProcessingUtils'
 import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -82,8 +82,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     },
   })
 
-  const navigate = useNavigate()
-
   // Get organization ID to check ASR limits
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
@@ -102,15 +100,47 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
+  // `fieldXpath` points at the transcript column being translated, so the source question is one level up from it.
+  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
+  const hiddenLanguages = useMemo(
+    () => getBlockedBulkTranslationLanguages(props.selectedSubmissions, props.fieldXpath),
+    [props.fieldXpath, props.selectedSubmissions],
+  )
+
   // Use bulk processing alerts hook
-  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
-    actionType: 'translation',
-    selectedSubmissions: props.selectedSubmissions,
-    selectedLanguage: selectedLanguage || undefined,
-    fieldXpath: props.fieldXpath,
-    serviceUsageData: serviceUsageData || undefined,
-    activeBulkActions: props.activeBulkActions,
-  })
+  // Near-limit should reflect only the submissions that still need translation.
+  // Rows that already have a translation in the selected language will be filtered
+  // out by the alert pipeline, so we exclude them here as well to keep the limit check aligned.
+  const requiredCharacters = useMemo(() => {
+    if (!selectedLanguage) {
+      return undefined
+    }
+
+    return props.selectedSubmissions.reduce((sum, sub) => {
+      const supplementalDetails = sub._supplementalDetails?.[sourceRowPath]
+      const translation = supplementalDetails?.translation?.[selectedLanguage]
+
+      if (translation?.value) {
+        // This row is already translated in the chosen language and won't consume MT quota.
+        return sum
+      }
+
+      const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
+      return sum + supplementalValue.length
+    }, 0)
+  }, [props.selectedSubmissions, props.fieldXpath, selectedLanguage, sourceRowPath])
+
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions, eligibleSubmissionUuids } =
+    useBulkProcessingAlerts({
+      actionType: 'translation',
+      selectedSubmissions: props.selectedSubmissions,
+      selectedLanguage: selectedLanguage || undefined,
+      fieldXpath: props.fieldXpath,
+      requiredAmount: requiredCharacters,
+      serviceUsageData: serviceUsageData || undefined,
+      activeBulkActions: props.activeBulkActions,
+    })
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
@@ -120,13 +150,8 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
     return sum + supplementalValue.length
   }, 0)
-  const eligibleSubmissionUuids = eligibleSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
-    // Extract the source row path from the transcript column path
-    // e.g., "_supplementalDetails/q1/transcript_en" -> "q1"
-    const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
-
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
     // that have been flagged by warning evaluators (e.g., already translated, no source)
     createBulkTranslation({
@@ -140,11 +165,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
         },
       },
     })
-  }
-
-  const handleNavigateToAddOn = () => {
-    navigate(ACCOUNT_ROUTES.ADD_ONS)
-    props.onRequestClose()
   }
 
   const handleWarningContinue = () => {
@@ -164,9 +184,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t(
-              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
-            )
+            {t('Your ##total_selected## transcripts are a total of ##total_characters## characters.')
               .replace('##total_selected##', String(eligibleSubmissions.length))
               .replace('##total_characters##', String(totalCharacters))}
           </Text>
@@ -178,19 +196,13 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               value={selectedLanguage}
               required
               suggestedLanguages={suggestedLanguages}
+              hiddenLanguages={hiddenLanguages}
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
             />
           </Group>
 
           <BulkProcessingAlerts activeAlerts={activeAlerts} />
-
-          {/* Legacy alert - will be removed once evaluators are implemented */}
-          {hasExceededLimit && activeAlerts.length === 0 && (
-            <Alert type='warning' iconName='information' mt={12} mb={12}>
-              {t("You've reached your automatic translation limit. Please purchase an add‑on to continue.")}
-            </Alert>
-          )}
 
           <Text size='xs'>
             {t('Automatic translation is provided by Google Cloud Platform.')}
@@ -218,7 +230,14 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               </ButtonNew>
             )}
             {hasExceededLimit && (
-              <ButtonNew loading={isLoadingUsage} type='button' onClick={handleNavigateToAddOn} variant='light'>
+              <ButtonNew
+                loading={isLoadingUsage}
+                type='button'
+                variant='light'
+                component={Link}
+                to={ACCOUNT_ROUTES.ADD_ONS}
+                onClick={props.onRequestClose}
+              >
                 {t('Purchase add-on')}
               </ButtonNew>
             )}

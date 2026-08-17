@@ -44,10 +44,6 @@ class GoogleTranslationService(GoogleService):
     API_VERSION = 'v3'
     API_RESOURCE = 'projects.locations.operations'
     MAX_SYNC_CHARS = 30720
-    ASYNC_RETRY_LATER_ERROR = (
-        'Timed out waiting for translation results. Translation may still be '
-        'running. Try again in 5 minutes.'
-    )
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
@@ -159,10 +155,19 @@ class GoogleTranslationService(GoogleService):
         """
         Translate one submission value using either sync or async Google APIs
 
+        Returns:
+        - `in_progress` while Google is still processing an async batch job
+        - `complete` with a translated value when results are available
+        - `failed` with a user-facing error for expected failures
+
         `bulk_action_uid` is an optional identifier for the SubsequenceBulkActionItem
         that is being processed. It is only relevant for async translations and if no
         bulk action item is available, async translations fall back to the existing
         cache-based operation tracking.
+
+        When this returns `in_progress`, `BaseAutomaticNLPAction.run_external_process()`
+        schedules the `poll_run_external_process` Celery task, which calls this method
+        again in the background until the batch job finishes.
         """
         try:
             content = params['_dependency']['value']
@@ -352,10 +357,10 @@ class GoogleTranslationService(GoogleService):
             )
             return {'status': 'complete', 'value': value}
         except TimeoutError:
-            return {
-                'status': 'failed',
-                'error': self.ASYNC_RETRY_LATER_ERROR,
-            }
+            # Google is still working. The operation reference was already
+            # saved above, so `poll_run_external_process` will pick up this
+            # same batch job on its next attempt instead of starting a new one
+            return {'status': 'in_progress'}
         except TranslationResultNotFound as err:
             logging.error(f'No translation output found for {xpath=}: {err}')
             self._clear_operation_reference(
@@ -376,14 +381,14 @@ class GoogleTranslationService(GoogleService):
             )
             raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
+            # Unable to reach Google to check on the operation, but the batch
+            # job itself may still be running. Report 'in_progress' so
+            # background polling retries instead of surfacing a hard failure
             logging.error(
                 'Google infrastructure error while starting translation for '
                 f'{xpath=}: {err}'
             )
-            return {
-                'status': 'failed',
-                'error': self.ASYNC_RETRY_LATER_ERROR,
-            }
+            return {'status': 'in_progress'}
 
     def _poll_async_translation(
         self,
@@ -422,14 +427,14 @@ class GoogleTranslationService(GoogleService):
                 target_language_code,
             )
         except SubsequenceTimeoutError:
+            # The batch job is not done yet. Keep the operation reference so
+            # `poll_run_external_process` resumes this same job on the next
+            # background attempt
             logging.info(
                 'Google batch translation still running for '
                 f'{xpath=}, {self.submission_root_uuid=}'
             )
-            return {
-                'status': 'failed',
-                'error': self.ASYNC_RETRY_LATER_ERROR,
-            }
+            return {'status': 'in_progress'}
         except TranslationResultNotFound as err:
             logging.error(f'No translation output found for {xpath=}: {err}')
             self._clear_operation_reference(
@@ -450,16 +455,13 @@ class GoogleTranslationService(GoogleService):
             )
             raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
-            # Keep the operation reference so a later manual retry can resume
-            # instead of recreating the Google job.
+            # Keep the operation reference so a later polling attempt can
+            # resume instead of recreating the Google job
             logging.error(
                 'Google infrastructure error while polling translation for '
                 f'{xpath=}: {err}'
             )
-            return {
-                'status': 'failed',
-                'error': self.ASYNC_RETRY_LATER_ERROR,
-            }
+            return {'status': 'in_progress'}
 
         self._clear_operation_reference(
             xpath,

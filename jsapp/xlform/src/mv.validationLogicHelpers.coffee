@@ -74,17 +74,19 @@ module.exports = do ->
       @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your validation logic in XLSForm code"), 'kobo-button kobo-button--blue'
 
   class validationLogicHelpers.ValidationLogicHandCodeHelper extends $skipLogicHelpers.SkipLogicHandCodeHelper
+    _onDeleteClick: () ->
+      @$handCode.replaceWith(@$destination)
+      @context.use_mode_selector_helper()
     render: ($destination) ->
-      $destination.replaceWith(@$handCode)
+      @$destination = $destination
+      @$destination.replaceWith(@$handCode)
       @button.render().attach_to @$handCode
-      @button.bind_event 'click', () =>
-        @$handCode.replaceWith($destination)
-        @context.use_mode_selector_helper()
-      @$handCode.on('change', () =>
+      @button.$el.off('click').on 'click', () => @_onDeleteClick()
+      @textarea.off('input').on 'input', () =>
+        @criteria = @textarea.val()
         @context.view_factory.survey.trigger('change')
-      )
     serialize: () ->
-      @textarea.val()
+      @criteria
     constructor: (criteria, builder, view_factory, context) ->
       super(criteria, builder, view_factory, context)
       @$handCode = $("""

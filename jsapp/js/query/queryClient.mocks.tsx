@@ -1,10 +1,10 @@
-import type { DecoratorFunction } from '@storybook/types'
+import type { Decorator } from '@storybook/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { applyManageProjectsMutationDefaults } from '#/api/mutation-defaults/manage-projects-and-library-content'
 import { applySurveyDataMutationDefaults } from '#/api/mutation-defaults/survey-data'
 import { applyUserTeamOrganizationMutationDefaults } from '#/api/mutation-defaults/user-team-organization-usage'
 
-export const queryClientDecorator: DecoratorFunction = (Story) => {
+export const queryClientDecorator: Decorator = (Story) => {
   // We define a new QueryClient for each story to avoid sharing state between stories.
   const mockQueryClient = new QueryClient({
     defaultOptions: {

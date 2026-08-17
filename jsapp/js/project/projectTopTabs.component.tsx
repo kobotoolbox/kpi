@@ -1,7 +1,6 @@
+import { Tabs } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
-
-import classnames from 'classnames'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import assetStore from '#/assetStore'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -14,7 +13,6 @@ import {
   isFormSummaryRoute,
 } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
-import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {
   // First check if uid is available
@@ -22,9 +20,6 @@ export default function ProjectTopTabs() {
   if (assetUid === null) {
     return null
   }
-
-  // Setup navigation
-  const navigate = useNavigate()
 
   const [asset, setAsset] = useState<AssetResponse | undefined>(undefined)
 
@@ -37,54 +32,54 @@ export default function ProjectTopTabs() {
   const isSettingsTabEnabled =
     sessionStore.isLoggedIn && (userCan('change_asset', asset) || userCan('change_metadata_asset', asset))
 
+  const summaryRoute = ROUTES.FORM_SUMMARY.replace(':uid', assetUid)
+  const formRoute = ROUTES.FORM_LANDING.replace(':uid', assetUid)
+  const dataRoute = ROUTES.FORM_DATA.replace(':uid', assetUid)
+  const settingsRoute = ROUTES.FORM_SETTINGS.replace(':uid', assetUid)
+
+  // Keep track of active tab via route to sync selected tab with browser forward/back navigation
+  let activeTab: string | null = null
+  if (isFormSummaryRoute(assetUid)) {
+    activeTab = summaryRoute
+  } else if (isFormLandingRoute(assetUid)) {
+    activeTab = formRoute
+  } else if (isAnyFormDataRoute(assetUid)) {
+    activeTab = dataRoute
+  } else if (isAnyFormSettingsRoute(assetUid)) {
+    activeTab = settingsRoute
+  }
+
   return (
-    // TODO: this list needs to be keyboard-navigable. To make it so, we need
-    // real `<button>`s here, not `<li>`s.
-    <nav className={styles.root}>
-      <ul className={styles.tabs}>
-        <li
-          onClick={() => navigate(ROUTES.FORM_SUMMARY.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.disabled]: !sessionStore.isLoggedIn,
-            [styles.active]: isFormSummaryRoute(assetUid),
-          })}
+    // Magic margin top to make the rounded corners visible
+    <Tabs mt='8px' size='lg' value={activeTab}>
+      <Tabs.List justify='center'>
+        <Tabs.Tab
+          value={summaryRoute}
+          disabled={!sessionStore.isLoggedIn}
+          renderRoot={(props) =>
+            sessionStore.isLoggedIn ? <Link to={summaryRoute} {...props} /> : <span {...props} />
+          }
         >
           {t('Summary')}
-        </li>
-
-        <li
-          onClick={() => navigate(ROUTES.FORM_LANDING.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.active]: isFormLandingRoute(assetUid),
-          })}
-        >
+        </Tabs.Tab>
+        <Tabs.Tab value={formRoute} renderRoot={(props) => <Link to={formRoute} {...props} />}>
           {t('Form')}
-        </li>
-
-        <li
-          onClick={() => navigate(ROUTES.FORM_DATA.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.disabled]: !isDataTabEnabled,
-            [styles.active]: isAnyFormDataRoute(assetUid),
-          })}
+        </Tabs.Tab>
+        <Tabs.Tab
+          value={dataRoute}
+          disabled={!isDataTabEnabled}
+          renderRoot={(props) => (isDataTabEnabled ? <Link to={dataRoute} {...props} /> : <span {...props} />)}
         >
           {t('Data')}
-        </li>
-
-        <li
-          onClick={() => navigate(ROUTES.FORM_SETTINGS.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.disabled]: !isSettingsTabEnabled,
-            [styles.active]: isAnyFormSettingsRoute(assetUid),
-          })}
+        </Tabs.Tab>
+        <Tabs.Tab
+          value={settingsRoute}
+          disabled={!isSettingsTabEnabled}
+          renderRoot={(props) => (isSettingsTabEnabled ? <Link to={settingsRoute} {...props} /> : <span {...props} />)}
         >
           {t('Settings')}
-        </li>
-      </ul>
-    </nav>
+        </Tabs.Tab>
+      </Tabs.List>
+    </Tabs>
   )
 }

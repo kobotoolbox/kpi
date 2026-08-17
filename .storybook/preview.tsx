@@ -17,6 +17,7 @@ import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { addons } from 'storybook/preview-api'
 import environmentMock from '#/endpoints/environment.mocks'
 import meMock from '#/endpoints/me.mocks'
+import { hydrateSessionStoreForStories } from '#/stores/session.mocks'
 import { cssVariablesResolverKobo, themeKobo } from '../jsapp/js/theme'
 
 // Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
@@ -57,6 +58,13 @@ const preview: Preview = {
     ),
   ],
   loaders: [mswAddon.mswLoader],
+  // `sessionStore` is a singleton that kicks off its `/me/` request on import,
+  // which can lose the race against the MSW worker starting up. Re-apply a
+  // settled logged-in state before each story so components gated on the session
+  // never get stuck on a loading spinner. See `session.mocks.ts` for details.
+  beforeEach: () => {
+    hydrateSessionStoreForStories()
+  },
   tags: ['autodocs'],
   parameters: {
     options: {
@@ -72,6 +80,8 @@ const preview: Preview = {
         date: /Date$/,
       },
     },
+    // Default: fail on a11y violations
+    // Stories can opt-out with a11y: { disable: true }
     a11y: { test: 'error' },
     verbose: false,
   },

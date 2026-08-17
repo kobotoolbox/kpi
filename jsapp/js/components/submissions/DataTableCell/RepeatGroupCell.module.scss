@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 
-.repeatGroupCell {
+.cell {
   @include mixins.textEllipsis;
 
   width: 100%;
@@ -13,7 +13,7 @@
 }
 
 @media print {
-  .repeatGroupCell {
+  .cell {
     // Avoid trimming data from cells
     @include mixins.undoTextEllipsis;
   }

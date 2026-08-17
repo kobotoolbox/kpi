@@ -2,13 +2,16 @@ import React, { useState } from 'react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { getSubmissionRootUuid } from '#/utils'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
@@ -21,6 +24,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   supplement: DataSupplementResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
@@ -30,6 +34,7 @@ export default function TranscriptCreate({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   supplement,
   onUnsavedWorkChange,
   advancedFeatures,
@@ -43,6 +48,18 @@ export default function TranscriptCreate({
     '##type##',
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
+
+  // No `selectedLanguage`: every job on this question rewrites the transcript, so
+  // for `transcript` the check ignores the language anyway. Previously this was
+  // additionally gated on a language being picked, which kept the "begin" step
+  // (where none is picked yet) from ever knowing about a running job.
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+  })
+
   const attachment = getAttachmentForProcessing(questionXpath, submission)
 
   function goBackToLanguageStep() {
@@ -54,7 +71,12 @@ export default function TranscriptCreate({
   return (
     <>
       {step === CreateSteps.Begin && (
-        <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep(CreateSteps.Language)} />
+        <StepBegin
+          asset={asset}
+          questionXpath={questionXpath}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
+          onNext={() => setStep(CreateSteps.Language)}
+        />
       )}
       {step === CreateSteps.Language && (
         <StepSelectLanguage
@@ -67,9 +89,11 @@ export default function TranscriptCreate({
           suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           titleOverride={languageSelectorTitle}
           singleManualButtonLabel={t('transcribe')}
+          disableManual={hasConflictingOngoingJob}
           disableAutomatic={
             !envStore.data.asr_mt_features_enabled || typeof attachment === 'string' || !!attachment.is_deleted
           }
+          showConflictingOngoingJobAlert={hasConflictingOngoingJob}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
@@ -80,6 +104,7 @@ export default function TranscriptCreate({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
         />
@@ -91,6 +116,7 @@ export default function TranscriptCreate({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
           advancedFeatures={advancedFeatures}
         />
       )}

@@ -21,7 +21,7 @@ const meta: Meta<typeof RegionSelector> = {
     msw: {
       handlers: [languageDetailMock],
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

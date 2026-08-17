@@ -241,7 +241,8 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         with self.assertRaises(ParseError) as context:
             self.client.get(xml_url)
 
-        # Check that the error message contains the expected substring
+        # Check that the error message contains the expected substring, Snapshots
+        # sluggify invalid node names, so `${fail}` is reported as `_fail`
         self.assertIn('_fail', str(context.exception))
 
     def test_anonymous_can_create_snapshot_when_asset_shared_public(self):

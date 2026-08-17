@@ -21,7 +21,7 @@ module.exports = do ->
     render: () ->
       tempId = _.uniqueId("skiplogic_expr")
       @$el.html("""
-        <p>
+        <p class="skipLogic__description">
           #{t("This question will only be displayed if the following conditions apply")}
         </p>
         <div class="skiplogic__criterialist"></div>

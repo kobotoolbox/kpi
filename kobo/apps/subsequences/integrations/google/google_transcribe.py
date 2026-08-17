@@ -42,7 +42,11 @@ from ...exceptions import (
     TranscriptionResultNotFound
 )
 from .base import GoogleService
-from .locations import get_speech_location_for_region, get_speech_location_for_model
+from .locations import (
+    get_asr_language_code_overrides,
+    get_speech_location_for_region,
+    get_speech_location_for_model
+)
 from .rate_limit import (
     GoogleServiceRateLimitExceeded,
     get_google_retry_after_seconds,
@@ -226,6 +230,23 @@ class GoogleTranscriptionService(GoogleService):
             return {'status': 'failed', 'error': message}
 
         source_language = language_config.language_code
+
+        # Apply any configured language-code override before sending the
+        # request to Google Speech-to-Text
+        #
+        # This allows temporary workarounds for Google side issues (for
+        # example, mapping 'sw' to 'auto') without changing Kobo's language
+        # definitions or requiring a code deployment
+        asr_overrides = get_asr_language_code_overrides()
+        if source_language in asr_overrides:
+            override_value = asr_overrides[source_language]
+            logging.info(
+                'Applying ASR language override: %s -> %s',
+                source_language,
+                override_value,
+            )
+            source_language = override_value
+
         speech_location = (
             get_speech_location_for_model(language_config.model_code)
             or language_config.location_code
@@ -310,9 +331,30 @@ class GoogleTranscriptionService(GoogleService):
             )
 
             try:
-                operation.result(
+                result = operation.result(
                     timeout=constance.config.ASR_MT_GOOGLE_REQUEST_TIMEOUT
                 )
+
+                # Google may complete the batch request within this synchronous wait,
+                # but individual input files can still fail even when the operation
+                # itself succeeds. Check the BatchRecognizeResponse for per-file
+                # errors before attempting to read transcription output from GCS
+                per_file_error = self._extract_per_file_error(result)
+                if per_file_error:
+                    logging.error(
+                        f'Google batch per-file error for {xpath=}, '
+                        f'{self.submission_root_uuid=}, '
+                        f'operation={operation_name}: {per_file_error}'
+                    )
+                    self._clear_operation_reference(
+                        xpath, source_language, bulk_action_uid
+                    )
+                    return {
+                        'status': 'failed',
+                        'error': (
+                            f'Transcription failed with error {per_file_error}'
+                        ),
+                    }
 
                 # If Google finished within the request timeout, read the
                 # output immediately and return a completed response
@@ -325,7 +367,11 @@ class GoogleTranscriptionService(GoogleService):
             except TimeoutError:
                 return {'status': 'in_progress'}
             except TranscriptionResultNotFound as err:
-                logging.error(f'No transcriptions found for {xpath=}: {err}')
+                logging.error(
+                    f'No transcription output written to GCS for {xpath=}, '
+                    f'{self.submission_root_uuid=}, operation={operation_name}: '
+                    f'{err}'
+                )
                 self._clear_operation_reference(
                     xpath, source_language, bulk_action_uid
                 )
@@ -378,6 +424,29 @@ class GoogleTranscriptionService(GoogleService):
                     'error': f'Transcription failed with error {error}',
                 }
 
+            # Even when the long-running operation completes successfully
+            # (`done=True` with no top-level error), individual input files may
+            # still fail. Those failures are reported under
+            # `response.results[<uri>].error`, and Google does not generate an
+            # output JSON for those files. Checking here lets us return actual
+            # error instead of a misleading 'no transcription output' message
+            per_file_error = self._extract_per_file_error(
+                operation_payload.get('response')
+            )
+            if per_file_error:
+                logging.error(
+                    f'Google batch per-file error while polling transcription '
+                    f'for {xpath=}, {self.submission_root_uuid=}, '
+                    f'operation={operation_name}: {per_file_error}'
+                )
+                self._clear_operation_reference(
+                    xpath, source_language, bulk_action_uid
+                )
+                return {
+                    'status': 'failed',
+                    'error': f'Transcription failed with error {per_file_error}',
+                }
+
             value = self._read_batch_result(xpath, source_language)
         except SubsequenceTimeoutError:
             logging.info(
@@ -386,7 +455,11 @@ class GoogleTranscriptionService(GoogleService):
             )
             return {'status': 'in_progress'}
         except TranscriptionResultNotFound as err:
-            logging.error(f'No transcriptions found for {xpath=}: {err}')
+            logging.error(
+                f'No transcription output written to GCS for {xpath=}, '
+                f'{self.submission_root_uuid=}, operation={operation_name}, '
+                f'payload={operation_payload}: {err}'
+            )
             self._clear_operation_reference(xpath, source_language, bulk_action_uid)
             return {
                 'status': 'failed',
@@ -560,6 +633,46 @@ class GoogleTranscriptionService(GoogleService):
             operation._pb if hasattr(operation, '_pb') else operation,
             preserving_proto_field_name=True,
         )
+
+    def _extract_per_file_error(self, response) -> str | None:
+        """
+        Return a user-facing error message if Google's BatchRecognizeResponse
+        reports a per-file error, otherwise None
+
+        In Speech-to-Text v2 batch mode, an operation can complete successfully
+        (`done=True`, no top-level error) while individual input files fail with
+        reasons stored in `response.results[<uri>].error`. Google does not write
+        a JSON output file for those inputs, so callers that only inspect GCS
+        will see a missing-result condition without knowing the cause.
+
+        Accepts either a `BatchRecognizeResponse` proto (as returned directly
+        by `operation.result()`) or a dict (from the polling path, where the
+        payload is already converted via `MessageToDict`).
+        """
+        if not response:
+            return None
+
+        # Normalise proto message to dict.
+        if hasattr(response, 'DESCRIPTOR') or hasattr(response, '_pb'):
+            response = MessageToDict(
+                response._pb if hasattr(response, '_pb') else response,
+                preserving_proto_field_name=True,
+            )
+
+        if not isinstance(response, dict):
+            return None
+
+        results = response.get('results') or {}
+        for file_result in results.values():
+            if not isinstance(file_result, dict):
+                continue
+            error = file_result.get('error')
+            if not error:
+                continue
+            if isinstance(error, dict):
+                return error.get('message') or str(error)
+            return str(error)
+        return None
 
     def _read_batch_result(self, xpath: str, source_lang: str) -> str:
         """

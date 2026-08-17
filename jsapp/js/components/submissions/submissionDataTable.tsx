@@ -4,7 +4,7 @@ import React from 'react'
 
 import { Group } from '@mantine/core'
 import autoBind from 'react-autobind'
-import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
+import { findRow, getRowName, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
@@ -19,7 +19,9 @@ import {
   shouldProcessingBeAccessible,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
-import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
+import { METADATA_COLUMN_LABELS } from '#/components/submissions/tableConstants'
+import { getMetadataColumns } from '#/components/submissions/tableUtils'
+import { QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { formatDate, formatTimeDate } from '#/utils'
@@ -152,22 +154,28 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
-            {item.data.split(' ').map((answer, answerIndex) => {
-              choice = this.findChoice(item.listName, answer)
-              if (choice) {
+            {/* Dropping empty pieces keeps stray spaces in the stored response from becoming blank bullets. */}
+            {item.data
+              .split(' ')
+              .filter((answer) => answer !== '')
+              .map((answer, answerIndex) => {
+                choice = this.findChoice(item.listName, answer)
+                if (!choice) {
+                  // Not always a bug: the choice may have been renamed or
+                  // removed after this submission came in.
+                  console.error(`Choice not found for "${item.listName}" and "${answer}".`)
+                }
+                // Unmatched answers still get their own `<li>` with the raw
+                // value, so the list accounts for everything that was selected.
+                // A bare string here would be invalid markup inside the `<ul>`.
                 return (
                   <li key={answerIndex}>
                     <bem.SubmissionDataTable__value>
-                      {choice.label?.[this.props.translationIndex] || choice.name}
+                      {choice?.label?.[this.props.translationIndex] || answer}
                     </bem.SubmissionDataTable__value>
                   </li>
                 )
-              } else {
-                console.error(`Choice not found for "${item.listName}" and "${answer}".`)
-                // fallback to raw data to display anything meaningful
-                return answer
-              }
-            })}
+              })}
           </ul>
         )
       case QUESTION_TYPES.date.id:
@@ -288,10 +296,14 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   }
 
   renderMetaResponse(dataName: MetaQuestionTypeName | string, label: string) {
+    // Only meta questions have a survey row (and thus an icon) - the additional
+    // submission properties like `_id` are added by Back end, so they get no icon.
+    const questionType = this.props.asset.content?.survey?.find((row) => getRowName(row) === dataName)?.type
+
     return (
-      <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']} dir='auto'>
+      <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']} key={dataName} dir='auto'>
         <bem.SubmissionDataTable__column m='type'>
-          {typeof dataName !== 'string' && renderQuestionTypeIcon(dataName)}
+          {questionType !== undefined && renderQuestionTypeIcon(questionType)}
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='label'>
@@ -313,22 +325,20 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       this.props.submissionData,
     )
 
+    // These rows used to be hardcoded here, which meant the modal showed rows
+    // the form doesn't even define (e.g. `audit`) and in an order of its own.
+    // Deriving them keeps this in sync with Data Table (see `orderColumns` in
+    // `tableUtils.ts`). We pass the submission in, so that a submission made
+    // with an older form version still shows its own metadata.
+    const metadataColumns = getMetadataColumns(this.props.asset, [this.props.submissionData])
+
     return (
       <bem.SubmissionDataTable>
         {this.renderGroup(displayData)}
 
-        {this.renderMetaResponse(META_QUESTION_TYPES.start, t('start'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.end, t('end'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.today, t('today'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.username, t('username'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.deviceid, t('device ID'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.phonenumber, t('phone number'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.audit, t('audit'))}
-        {this.renderMetaResponse('__version__', t('__version__'))}
-        {this.renderMetaResponse('_id', t('_id'))}
-        {this.renderMetaResponse('meta/instanceID', t('instanceID'))}
-        {this.renderMetaResponse('_submitted_by', t('Submitted by'))}
-        {this.renderMetaResponse('meta/rootUuid', t('rootUuid'))}
+        {metadataColumns.map((columnName) =>
+          this.renderMetaResponse(columnName, METADATA_COLUMN_LABELS[columnName] || columnName),
+        )}
       </bem.SubmissionDataTable>
     )
   }

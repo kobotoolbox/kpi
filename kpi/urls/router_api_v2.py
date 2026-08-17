@@ -17,6 +17,7 @@ from kobo.apps.project_views.views import ProjectViewViewSet
 from kobo.apps.subsequences.views import (
     BulkAcceptViewSet,
     BulkActionViewSet,
+    QATagTrackerViewSet,
     QuestionAdvancedFeatureViewSet,
 )
 from kobo.apps.user_reports.views import UserReportsViewSet
@@ -286,6 +287,18 @@ supplement_url_patterns = [
     ),
 ]
 
+# Declared here instead of nested under `asset_routes` because `uid_qa_question`
+# is not a real FK relation on QATagTracker's parent chain (QA questions aren't
+# stored as separate DB objects), so it can't be expressed via
+# `parents_query_lookups`
+qa_tag_tracker_url_patterns = [
+    path(
+        'assets/<uid_asset>/qual-questions/<uid_qa_question>/tags/',
+        QATagTrackerViewSet.as_view({'get': 'list'}),
+        name='qa-tag-tracker-list',
+    ),
+]
+
 kobo_scim_url_patterns = [
     path(
         'scim/v2/',
@@ -301,6 +314,7 @@ urls_patterns = (
     router_api_v2.urls
     + enketo_url_aliases
     + supplement_url_patterns
+    + qa_tag_tracker_url_patterns
     + kobo_scim_url_patterns
     + additional_urls
 )

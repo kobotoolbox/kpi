@@ -24,9 +24,14 @@ jest.mock('#/api/react-query/user-team-organization-usage', () => ({
 }))
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
-import { DeleteBlockerReason, getSurveyFlatPaths, userCanDeleteAssets } from '#/assetUtils'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import {
+  DeleteBlockerReason,
+  getSurveyFlatPaths,
+  injectSupplementalRowsIntoListOfRows,
+  userCanDeleteAssets,
+} from '#/assetUtils'
 import { surveyWithAllPossibleGroups, surveyWithGroups } from '#/assetUtils.mocks'
-import assetFactory from '#/endpoints/asset.factory'
 
 describe('getSurveyFlatPaths', () => {
   it('should return a list of paths for all questions', () => {
@@ -121,6 +126,115 @@ describe('getSurveyFlatPaths', () => {
 })
 
 // ---------------------------------------------------------------------------
+// injectSupplementalRowsIntoListOfRows
+// ---------------------------------------------------------------------------
+
+describe('injectSupplementalRowsIntoListOfRows', () => {
+  /**
+   * A form with one audio question that has a transcript and a qualitative
+   * analysis question.
+   *
+   * Back end points `qualNote` and `qualSource` fields at the qual question
+   * (`Record_a_sound/qual-uuid`), so they are only reachable through the nested
+   * lookup in the function. We list them pointing at the audio question too, as
+   * that shape is what would leak into Data Table if the type filtering ever
+   * broke - the passing test needs to prove both are dropped.
+   */
+  const assetWithNonDisplayableFields = getApiV2AssetsRetrieveResponseMock({
+    content: {
+      survey: [
+        {
+          name: 'Record_a_sound',
+          type: 'audio',
+          $kuid: 'audio-kuid',
+          $xpath: 'Record_a_sound',
+          $autoname: 'Record_a_sound',
+          label: ['Record a sound'],
+        },
+      ],
+    },
+    analysis_form_json: {
+      additional_fields: [
+        {
+          type: 'transcript',
+          name: 'Record_a_sound/transcript',
+          dtpath: 'Record_a_sound/transcript_en',
+          label: 'Record_a_sound - transcript',
+          language: 'en',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualText',
+          name: 'What_do_you_hear',
+          dtpath: 'Record_a_sound/qual-uuid',
+          label: 'What do you hear?',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualVerification',
+          name: 'Record_a_sound/qual-uuid/verified',
+          dtpath: 'Record_a_sound/qual-uuid/verified',
+          label: 'verified',
+          source: 'Record_a_sound/qual-uuid',
+        },
+        {
+          type: 'qualNote',
+          name: 'Some_note',
+          dtpath: 'Record_a_sound/note-uuid',
+          label: 'Some note',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualNote',
+          name: 'Record_a_sound/qual-uuid/note',
+          dtpath: 'Record_a_sound/qual-uuid/note',
+          label: 'note',
+          source: 'Record_a_sound/qual-uuid',
+        },
+        {
+          type: 'qualSource',
+          name: 'Record_a_sound/source',
+          dtpath: 'Record_a_sound/source',
+          label: 'source',
+          source: 'Record_a_sound',
+        },
+        {
+          type: 'qualSource',
+          name: 'Record_a_sound/qual-uuid/source',
+          dtpath: 'Record_a_sound/qual-uuid/source',
+          label: 'source',
+          source: 'Record_a_sound/qual-uuid',
+        },
+      ],
+    },
+  })
+
+  it('should inject supplemental columns right after their source question', () => {
+    const test = injectSupplementalRowsIntoListOfRows(assetWithNonDisplayableFields, [
+      'Record_a_sound',
+      'some_other_question',
+    ])
+
+    expect(test).to.deep.equal([
+      'Record_a_sound',
+      '_supplementalDetails/Record_a_sound/transcript_en',
+      '_supplementalDetails/Record_a_sound/qual-uuid',
+      '_supplementalDetails/Record_a_sound/qual-uuid/verified',
+      'some_other_question',
+    ])
+  })
+
+  it('should not inject the fields that are not meant to be displayed to users', () => {
+    const test = injectSupplementalRowsIntoListOfRows(assetWithNonDisplayableFields, ['Record_a_sound'])
+
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/note-uuid')
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/qual-uuid/note')
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/source')
+    expect(test).to.not.include('_supplementalDetails/Record_a_sound/qual-uuid/source')
+  })
+})
+
+// ---------------------------------------------------------------------------
 // userCanDeleteAssets
 // ---------------------------------------------------------------------------
 
@@ -164,15 +278,15 @@ describe('userCanDeleteAssets', () => {
 
     it('can delete any asset regardless of ownership or submissions', () => {
       const assets = [
-        assetFactory({ created_by: 'bob', deployment__submission_count: 100 }),
-        assetFactory({ created_by: null, deployment__submission_count: 0 }),
+        getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 100 }),
+        getApiV2AssetsRetrieveResponseMock({ created_by: null, deployment__submission_count: 0 }),
       ]
       const results = userCanDeleteAssets(assets)
       expect(results.every((r) => r.canDelete)).to.be.true
     })
 
     it('returns canDelete: true even when the project was created by someone else', () => {
-      const asset = assetFactory({ created_by: 'carol', deployment__submission_count: 999 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'carol', deployment__submission_count: 999 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
@@ -184,13 +298,13 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('can delete own project with no submissions', () => {
-      const asset = assetFactory({ created_by: 'alice', deployment__submission_count: 0 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'alice', deployment__submission_count: 0 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
 
     it('is blocked from deleting own project that has submissions', () => {
-      const asset = assetFactory({ created_by: 'alice', deployment__submission_count: 5 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'alice', deployment__submission_count: 5 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -199,7 +313,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it("is blocked from deleting another member's project (no submissions)", () => {
-      const asset = assetFactory({ created_by: 'bob', deployment__submission_count: 0 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 0 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -208,7 +322,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('permissions blocker takes priority when project belongs to another member and has submissions', () => {
-      const asset = assetFactory({ created_by: 'bob', deployment__submission_count: 10 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 10 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -217,7 +331,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('is blocked when created_by is null', () => {
-      const asset = assetFactory({ created_by: null, deployment__submission_count: 0 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: null, deployment__submission_count: 0 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -227,10 +341,10 @@ describe('userCanDeleteAssets', () => {
 
     it('returns per-asset results in input order for a mixed set', () => {
       const assets = [
-        assetFactory({ uid: 'a1', created_by: 'alice', deployment__submission_count: 0 }), // ok
-        assetFactory({ uid: 'a2', created_by: 'alice', deployment__submission_count: 3 }), // submissions
-        assetFactory({ uid: 'a3', created_by: 'bob', deployment__submission_count: 0 }), // permissions
-        assetFactory({ uid: 'a4', created_by: 'alice', deployment__submission_count: 0 }), // ok
+        getApiV2AssetsRetrieveResponseMock({ uid: 'a1', created_by: 'alice', deployment__submission_count: 0 }), // ok
+        getApiV2AssetsRetrieveResponseMock({ uid: 'a2', created_by: 'alice', deployment__submission_count: 3 }), // submissions
+        getApiV2AssetsRetrieveResponseMock({ uid: 'a3', created_by: 'bob', deployment__submission_count: 0 }), // permissions
+        getApiV2AssetsRetrieveResponseMock({ uid: 'a4', created_by: 'alice', deployment__submission_count: 0 }), // ok
       ]
       const results = userCanDeleteAssets(assets)
 
@@ -244,7 +358,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('preserves the original asset reference in each result', () => {
-      const asset = assetFactory({ uid: 'unique-uid', created_by: 'alice' })
+      const asset = getApiV2AssetsRetrieveResponseMock({ uid: 'unique-uid', created_by: 'alice' })
       const [result] = userCanDeleteAssets([asset])
       expect(result.asset).to.equal(asset)
     })
@@ -253,7 +367,7 @@ describe('userCanDeleteAssets', () => {
   describe('MMO owner', () => {
     it('can delete any asset (owner is not subject to MMO member restrictions)', () => {
       mockedGetQueryData.mockReturnValue(makeOrgResponse({ is_mmo: true, request_user_role: MemberRoleEnum.owner }))
-      const asset = assetFactory({ created_by: 'bob', deployment__submission_count: 50 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 50 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
@@ -263,8 +377,8 @@ describe('userCanDeleteAssets', () => {
     it('can delete all assets regardless of ownership or submissions', () => {
       mockedGetQueryData.mockReturnValue(makeOrgResponse({ is_mmo: false, request_user_role: MemberRoleEnum.member }))
       const assets = [
-        assetFactory({ created_by: 'bob', deployment__submission_count: 10 }),
-        assetFactory({ created_by: null }),
+        getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 10 }),
+        getApiV2AssetsRetrieveResponseMock({ created_by: null }),
       ]
       const results = userCanDeleteAssets(assets)
       expect(results.every((r) => r.canDelete)).to.be.true
@@ -274,21 +388,21 @@ describe('userCanDeleteAssets', () => {
   describe('edge cases', () => {
     it('treats missing org cache data as no restrictions', () => {
       mockedGetQueryData.mockReturnValue(undefined)
-      const asset = assetFactory({ created_by: 'bob', deployment__submission_count: 99 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 99 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
 
     it('treats a non-200 org response as no restrictions', () => {
       mockedGetQueryData.mockReturnValue({ status: 404, data: { detail: 'Not found' } })
-      const asset = assetFactory({ created_by: 'bob', deployment__submission_count: 5 })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 5 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
 
     it('treats an account with no organization property as no restrictions', () => {
       setAccount('alice')
-      const asset = assetFactory({ created_by: 'bob' })
+      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob' })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })

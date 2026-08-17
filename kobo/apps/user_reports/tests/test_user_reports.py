@@ -8,6 +8,7 @@ from constance.test import override_config
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -20,11 +21,16 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.user_reports.models import BillingAndUsageSnapshot
 from kobo.apps.user_reports.tasks import refresh_user_report_snapshots
-from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
+from kobo.apps.user_reports.utils.billing_and_usage_calculator import (
+    BillingAndUsageCalculator,
+)
+from kobo.apps.user_reports.utils.tasks.refresh_user_report_snapshots import (
     refresh_user_reports_materialized_view,
 )
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+
+TASK_UTILS = 'kobo.apps.user_reports.utils.tasks.refresh_user_report_snapshots'
 
 
 class UserReportsViewSetAPITestCase(BaseTestCase):
@@ -185,7 +191,10 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             counter=135,
         )
         NLPUsageCounter.objects.create(
-            user_id=self.someuser.id, date=timezone.now().date(), total_asr_seconds=100
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            total_asr_seconds=100,
+            total_llm_requests=3,
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
@@ -203,10 +212,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
                 f'{UsageType.STORAGE_BYTES}_limit': 500000000,
                 f'{UsageType.ASR_SECONDS}_limit': 120,
                 f'{UsageType.MT_CHARACTERS}_limit': 5,
+                f'{UsageType.LLM_REQUESTS}_limit': 1,
             }
         }
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            f'{TASK_UTILS}.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             cache.clear()
@@ -245,7 +255,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(balances['storage_bytes']['balance_value'], 300000000)
         self.assertEqual(balances['storage_bytes']['balance_percent'], 40)
 
-        # ASR Seconds balance: 0 / 120 = 0, so 0% and not exceeded.
+        # ASR Seconds balance: 100 / 120 = 0.83ish, so 83% and not exceeded.
         self.assertIsNotNone(balances['asr_seconds'])
         self.assertFalse(balances['asr_seconds']['exceeded'])
         self.assertEqual(balances['asr_seconds']['effective_limit'], 120)
@@ -258,6 +268,13 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(balances['mt_characters']['effective_limit'], 5)
         self.assertEqual(balances['mt_characters']['balance_value'], 5)
         self.assertEqual(balances['mt_characters']['balance_percent'], 0)
+
+        # LLM requests balance: 3 / 1 = 3, so 300% and exceeded.
+        self.assertIsNotNone(balances['llm_requests'])
+        self.assertTrue(balances['llm_requests']['exceeded'])
+        self.assertEqual(balances['llm_requests']['effective_limit'], 1)
+        self.assertEqual(balances['llm_requests']['balance_value'], -2)
+        self.assertEqual(balances['llm_requests']['balance_percent'], 300)
 
     def test_organization_data_is_correctly_returned(self):
         someuser_data = self._get_someuser_data()
@@ -295,10 +312,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
                 f'{UsageType.STORAGE_BYTES}_limit': 500000000,
                 f'{UsageType.ASR_SECONDS}_limit': 120,
                 f'{UsageType.MT_CHARACTERS}_limit': 5,
+                f'{UsageType.LLM_REQUESTS}_limit': 1,
             }
         }
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            f'{TASK_UTILS}.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             cache.clear()
@@ -368,15 +386,18 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
                 f'{UsageType.STORAGE_BYTES}_limit': float('inf'),
                 f'{UsageType.ASR_SECONDS}_limit': float('inf'),
                 f'{UsageType.MT_CHARACTERS}_limit': float('inf'),
+                f'{UsageType.LLM_REQUESTS}_limit': float('inf'),
             }
         }
 
         with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            f'{TASK_UTILS}.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             cache.clear()
             refresh_user_report_snapshots()
+            # need to re-log in after cache is cleared
+            self.client.login(username='adminuser', password='pass')
             someuser_data = self._get_someuser_data()
 
         balances = someuser_data['service_usage']['balances']
@@ -394,6 +415,9 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         self.assertIsNotNone(balances['mt_characters'])
         self.assertIsNone(balances['mt_characters']['effective_limit'])
+
+        self.assertIsNotNone(balances['llm_requests'])
+        self.assertIsNone(balances['llm_requests']['effective_limit'])
 
     def test_last_updated_fallback_for_users_without_snapshot(self):
         """
@@ -473,7 +497,6 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             assert len(results) == 10
 
     def _get_someuser_data(self):
-
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -569,9 +592,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
             user_id=self.someuser.id, date=timezone.now().date(), counter=1
         )
 
-        with patch(
-            'kobo.apps.user_reports.tasks.get_organizations_effective_limits'
-        ) as mock_limits:
+        with patch(f'{TASK_UTILS}.get_organizations_effective_limits') as mock_limits:
             mock_limits.return_value = {
                 self.someuser.organization.id: {
                     f'{UsageType.SUBMISSION}_limit': 5000,
@@ -614,3 +635,74 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
             {'q': f'subscriptions[]__status:{self.subscription.status}'}
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
+
+
+class SubmissionUsageBatchTestCase(TestCase):
+    """
+    Unit tests for `BillingAndUsageCalculator._get_submission_usage_batch`.
+
+    Guards the DEV-2567 rewrite that replaced hundreds of OR-ed
+    `(user_id=X AND date BETWEEN start AND end)` clauses with a single
+    union-window scan bucketed per user in Python.
+    """
+
+    def test_per_user_windows_are_bucketed_independently(self):
+        calc = BillingAndUsageCalculator()
+        user_a = baker.make(User)
+        user_b = baker.make(User)
+        today = timezone.now().date()
+
+        # Billing bounds are tz-aware datetimes in production (exercises the
+        # date normalization); each user has a different window.
+        a_start, a_end = timezone.now() - timedelta(days=10), timezone.now()
+        b_start = timezone.now() - timedelta(days=40)
+        b_end = timezone.now() - timedelta(days=30)
+
+        def counter(user, days_ago, count):
+            DailyXFormSubmissionCounter.objects.create(
+                user_id=user.id, date=today - timedelta(days=days_ago), counter=count
+            )
+
+        # user_a: in-window (incl. the exact start edge), and two rows outside
+        # its window (one just before the edge, one inside user_b's window).
+        counter(user_a, 0, 5)
+        counter(user_a, 10, 7)  # == a_start date -> edge included
+        counter(user_a, 11, 100)  # one day before the edge -> excluded
+        counter(user_a, 35, 50)  # inside user_b's window, but belongs to user_a
+
+        # user_b: both edges included, plus a row on `today` outside its window.
+        counter(user_b, 35, 3)
+        counter(user_b, 30, 4)  # == b_end date -> edge included
+        counter(user_b, 0, 999)  # outside user_b's window -> excluded
+
+        result = calc._get_submission_usage_batch(
+            [user_a.id, user_b.id],
+            {
+                user_a.id: {'start': a_start, 'end': a_end},
+                user_b.id: {'start': b_start, 'end': b_end},
+            },
+        )
+
+        # Current period counts only each user's own window (edges inclusive);
+        # rows outside the window and rows belonging to another user are ignored.
+        self.assertEqual(result[user_a.id]['current_period'], 12)  # 5 + 7
+        self.assertEqual(result[user_b.id]['current_period'], 7)  # 3 + 4
+
+        # All-time ignores the window entirely (retention-bounded elsewhere).
+        self.assertEqual(result[user_a.id]['all_time'], 162)  # 5 + 7 + 100 + 50
+        self.assertEqual(result[user_b.id]['all_time'], 1006)  # 3 + 4 + 999
+
+    def test_missing_or_partial_windows_yield_zero_current_period(self):
+        calc = BillingAndUsageCalculator()
+        user = baker.make(User)
+        today = timezone.now().date()
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=user.id, date=today, counter=42
+        )
+
+        # No usable window (missing `end`) -> current period is 0, all-time counts.
+        result = calc._get_submission_usage_batch(
+            [user.id], {user.id: {'start': timezone.now(), 'end': None}}
+        )
+        self.assertEqual(result[user.id]['current_period'], 0)
+        self.assertEqual(result[user.id]['all_time'], 42)

@@ -74,7 +74,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
         )}
 
         <bem.AssetsTableRow__column m='date-modified'>
-          {formatTime(this.props.asset.date_modified)}
+          {this.props.asset.date_modified ? formatTime(this.props.asset.date_modified) : '-'}
         </bem.AssetsTableRow__column>
       </bem.AssetsTableRow>
     )

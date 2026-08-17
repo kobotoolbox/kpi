@@ -182,6 +182,16 @@ class ProjectViewViewSet(
     search_default_field_lookups = [
         'name__icontains',
     ]
+    # Project views are configured by an admin and scoped to their members, so
+    # exposing the owner's email as a filterable field is acceptable here even
+    # though it is denied globally.
+    allowed_lookup_fields_override = {
+        'kobo_auth.user': frozenset({
+            'email',
+            'extra_details',
+            'username',
+        })
+    }
     min_search_characters = 2
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
@@ -378,6 +388,13 @@ class ProjectViewViewSet(
         region = get_region_for_view(uid)
 
         pv = ProjectView.objects.prefetch_related('organizations').get(uid=uid)
+
+        # Deactivated accounts, including the placeholders left behind by account
+        # removal, must not show up in project views, nor must their projects.
+        if obj_type == 'user':
+            queryset = queryset.filter(is_active=True)
+        else:
+            queryset = queryset.filter(owner__is_active=True)
 
         if '*' not in region:
             if obj_type == 'user':

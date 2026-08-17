@@ -22,6 +22,17 @@ class TransferStatusChoices(models.TextChoices):
     SUCCESS = 'success'
 
 
+class TransferStatusErrorLevelChoices(models.TextChoices):
+    """
+    `WARNING` records an intentional skip, e.g. a source file that no longer
+    exists. It is not a failure. `INFO` is reserved for future use.
+    """
+
+    ERROR = 'error'
+    INFO = 'info'
+    WARNING = 'warning'
+
+
 class TransferStatusTypeChoices(models.TextChoices):
 
     ATTACHMENTS = 'attachments'

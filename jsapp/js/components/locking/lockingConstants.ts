@@ -1,6 +1,8 @@
 export interface AssetLockingProfileDefinition {
   name: string
   restrictions: LockingRestrictionName[]
+  /** Allow additional properties for backend extensions */
+  [key: string]: unknown
 }
 
 export interface IndexedAssetLockingProfileDefinition extends AssetLockingProfileDefinition {

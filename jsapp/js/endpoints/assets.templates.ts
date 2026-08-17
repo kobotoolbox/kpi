@@ -1,13 +1,12 @@
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { AssetTypeName, QuestionTypeName } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
-import assetFactory from './asset.factory'
 
 /**
  * Template asset definitions for Storybook stories.
  * These are used by assets.mocks.ts when the query includes 'asset_type:template'
  */
 
-export const templateHealthSurvey: AssetResponse = assetFactory({
+export const templateHealthSurvey = getApiV2AssetsRetrieveResponseMock({
   uid: 'template1uid',
   name: 'Community Health Survey Template',
   asset_type: AssetTypeName.template,
@@ -30,7 +29,7 @@ export const templateHealthSurvey: AssetResponse = assetFactory({
   },
 })
 
-export const templateEducationAssessment: AssetResponse = assetFactory({
+export const templateEducationAssessment = getApiV2AssetsRetrieveResponseMock({
   uid: 'template2uid',
   name: 'Education Assessment Form',
   asset_type: AssetTypeName.template,
@@ -53,7 +52,7 @@ export const templateEducationAssessment: AssetResponse = assetFactory({
   },
 })
 
-export const templateFeedbackSurvey: AssetResponse = assetFactory({
+export const templateFeedbackSurvey = getApiV2AssetsRetrieveResponseMock({
   uid: 'template3uid',
   name: 'Quick Feedback Survey',
   asset_type: AssetTypeName.template,

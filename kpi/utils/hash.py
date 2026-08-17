@@ -1,4 +1,5 @@
 import hashlib
+import json
 import time
 from typing import BinaryIO, Optional, Union
 
@@ -134,3 +135,7 @@ def calculate_hash(
         return _finalize_hash(f'{content_type}:{content_length}', 'length')
 
     return _finalize_hash(source, 'url')
+
+
+def calculate_content_hash(asset_content: dict) -> str:
+    return calculate_hash(json.dumps(asset_content, sort_keys=True), 'sha1')

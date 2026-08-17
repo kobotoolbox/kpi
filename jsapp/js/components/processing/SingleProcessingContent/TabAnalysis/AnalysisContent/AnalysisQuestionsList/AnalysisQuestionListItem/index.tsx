@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-
 import { useDisclosure } from '@mantine/hooks'
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -25,7 +24,7 @@ import type { ManualQualValue } from '#/components/processing/common/types'
 import { getLatestQualVersionItem, getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getEmptyAnswer, isAnswerAIGenerated } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import ConfirmEditModal from './ConfirmEditModal'
@@ -79,7 +78,7 @@ export default function AnalysisQuestionListItem({
   isAnyQuestionBeingEdited,
   onGenerateWithAI,
 }: Props) {
-  const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
+  const rootUuid = getSubmissionRootUuid(submission)
 
   const hasTranscript = getLatestTranscriptVersionItem(supplement, questionXpath) !== undefined
 
@@ -414,7 +413,13 @@ export default function AnalysisQuestionListItem({
             hasTranscript={hasTranscript}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
           >
-            <TagsResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+            <TagsResponseForm
+              qaAnswer={queryAnswer.data}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+              assetUid={asset.uid}
+              qaQuestionUid={qaQuestion.uuid}
+            />
           </ResponseForm>
         )
       }

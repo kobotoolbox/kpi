@@ -1,10 +1,8 @@
 import { Dialog, Group, Stack, type TooltipProps } from '@mantine/core'
-// Leaflet
-// TODO: use something diifferent than leaflet-omnivore as it is not maintained
-// and last realease was 8(!) years ago.
-import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
+import { kml as toGeoJsonKml } from '@tmcw/togeojson'
 import JSZip from 'jszip'
-import L, { type LayerGroup } from 'leaflet'
+import L from 'leaflet'
+import Papa from 'papaparse'
 // Libraries
 import React from 'react'
 import bem from '../../../js/bem'
@@ -45,7 +43,6 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { fetchGetUrl } from '../../../js/api'
 
 const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
@@ -112,7 +109,17 @@ type MarkerMap = Array<{
 
 type MapValueCounts = Record<string, { count: number; id: number }>
 
-// Function to validate GeoJSON object
+function parseKmlDom(dom: Document): GeoJSON.GeoJsonObject {
+  if (dom.getElementsByTagName('parsererror').length > 0) {
+    throw new Error(t('Could not parse KML file'))
+  }
+  const result = toGeoJsonKml(dom)
+  if (!result.features.length) {
+    throw new Error(t('KML contained no features'))
+  }
+  return result as GeoJSON.GeoJsonObject
+}
+
 function isValidGeoJSON(geojson: string): boolean {
   try {
     return Boolean(check(geojson))
@@ -123,8 +130,6 @@ function isValidGeoJSON(geojson: string): boolean {
 }
 
 const OVERLAY_ERROR = t('Error loading overlay layer "##name##"')
-const OVERLAY_ERROR_INVALID_GEOJSON = t('Error loading overlay layer "##name##" (invalid GeoJSON)')
-const OVERLAY_ERROR_OMNIVORE = t('Error loading overlay layer "##name##" (omnivore error)')
 
 interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
@@ -334,113 +339,109 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
    */
   addNewLayers(files: AssetFileResponse[]) {
     files.forEach((layer) => {
-      // Step 1. Verify file type is ok - we are only interested in files that are map layers
       if (layer.file_type !== 'map_layer') {
         return
       }
 
-      // Step 2. Ensure the layer is not already loaded
       const hasLayer = this.controls._layers.some((controlLayer) => controlLayer.name === layer.description)
       if (hasLayer) {
         return
       }
 
-      // Step 3: Identify omnivore function to be used
-      let overlayLayer: LayerGroup | undefined
-      let omnivoreFn: OmnivoreFunction | undefined
-      switch (layer.metadata.type) {
-        case 'kml':
-          omnivoreFn = omnivore.kml
-          break
-        case 'csv':
-          omnivoreFn = omnivore.csv
-          break
-        case 'json':
-        case 'geojson':
-          // Step 3.1: Special case for GeoJSON files
-          // We need to ensure the file is valid before passing it to omnivore, as omnivore doesn't handle invalid
-          // GeoJSON well, resulting in UI crashing.
-          try {
-            fetchGetUrl<object>(layer.content)
-              .then((response) => {
-                if (isValidGeoJSON(JSON.stringify(response))) {
-                  overlayLayer = omnivore
-                    // We have already loaded file content, but unfortunately omnivore doesn't support parsing JSON
-                    // strings for GeoJSON (it does support most of other types though…). So unfortunately we need to
-                    // make it load the file second time (`.geojson` does a call to fetch URL)
-                    .geojson(layer.content)
-                    .on('error', () => {
-                      notify.error(OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
-                    })
-                    .on('ready', () => {
-                      this.onOmnivoreLayerReady(overlayLayer, layer.description)
-                    })
-                } else {
-                  notify.error(OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
-                }
-              })
-              .catch((err) => {
-                console.error(err)
-                notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 1')
-              })
-          } catch (err) {
-            notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 2')
-          }
-          break
-        case 'wkt':
-          omnivoreFn = omnivore.wkt
-          break
-        case 'kmz':
-          // Step 3.2: Special case for KMZ files
-          // KMZ files are zipped KMLs, therefore we need to unzip the KMZ file in the browser and then feed
-          // the resulting text to map and controls
-          fetch(layer.content)
-            .then((response) => {
-              if (response.status === 200 || response.status === 0) {
-                return Promise.resolve(response.blob())
-              } else {
-                return Promise.reject(new Error(response.statusText))
-              }
-            })
-            .then(JSZip.loadAsync)
-            .then((zip) => zip.file('doc.kml')?.async('string'))
-            .then((kmlContent) => {
-              if (kmlContent && this.state.map) {
-                // We don't need to react to `.on('ready')` here, as KML file is already loaded and we just need to
-                // parse it (works synchronously)
-                const parsedOverlayLayer = omnivore.kml.parse(kmlContent)
-                this.onOmnivoreLayerReady(parsedOverlayLayer, layer.description)
-              }
-            })
-            .catch((err) => {
-              console.error(err)
-              notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 3')
-            })
-          break
-        default:
-          notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 4')
-          break
-      }
-
-      // Step 4: If this wasn't a special case, `omnivoreFn` should be ready to be used here, `onOmnivoreLayerReady`
-      // function handles the rest
-      if (omnivoreFn) {
-        overlayLayer = omnivoreFn(layer.content)
-          .on('error', () => {
-            notify.error(OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
-          })
-          .on('ready', () => {
-            this.onOmnivoreLayerReady(overlayLayer, layer.description)
-          })
-      }
+      this.loadOverlayLayer(layer).catch((err) => {
+        console.error(err)
+        const detail = err instanceof Error ? err.message : undefined
+        const message = OVERLAY_ERROR.replace('##name##', layer.description)
+        notify.error(detail ? `${message}: ${detail}` : message)
+      })
     })
   }
 
-  /**
-   * Handle map layer successfully loaded by omnivore.
-   */
-  onOmnivoreLayerReady(overlayLayer: LayerGroup | undefined, description: string) {
-    if (overlayLayer && this.state.map) {
+  async loadOverlayLayer(layer: AssetFileResponse) {
+    let geoJson: GeoJSON.GeoJsonObject | undefined
+
+    switch (layer.metadata.type) {
+      case 'kml': {
+        const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
+        const text = await response.text()
+        const dom = new DOMParser().parseFromString(text, 'text/xml')
+        geoJson = parseKmlDom(dom)
+        break
+      }
+      case 'csv': {
+        const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
+        const text = await response.text()
+        const parsed = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: true })
+        const latField = parsed.meta.fields?.find((f) => /^lat/i.test(f))
+        const lonField = parsed.meta.fields?.find((f) => /^lo?n/i.test(f))
+        if (!latField || !lonField) {
+          throw new Error(t('No latitude/longitude columns found'))
+        }
+        geoJson = {
+          type: 'FeatureCollection',
+          features: parsed.data
+            .filter((row) => row[latField] && row[lonField])
+            .map((row) => {
+              return {
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: [Number.parseFloat(row[lonField]), Number.parseFloat(row[latField])],
+                },
+                properties: row,
+              }
+            }),
+        } as GeoJSON.GeoJsonObject
+        break
+      }
+      case 'json':
+      case 'geojson': {
+        const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
+        const text = await response.text()
+        if (!isValidGeoJSON(text)) {
+          throw new Error(t('Invalid GeoJSON'))
+        }
+        geoJson = JSON.parse(text) as GeoJSON.GeoJsonObject
+        break
+      }
+      case 'kmz': {
+        // KMZ files are zipped KMLs — unzip in the browser then parse as KML
+        const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
+        const blob = await response.blob()
+        const zip = await JSZip.loadAsync(blob)
+        // By convention, doc.kml is the main KML file, but if it doesn't exist, just take the first KML file
+        const kmlFile = zip.file('doc.kml') ?? zip.file(/\.kml$/i)[0]
+        const kmlContent = await kmlFile?.async('string')
+        if (!kmlContent) {
+          throw new Error(t('No KML file found in KMZ archive'))
+        }
+        const dom = new DOMParser().parseFromString(kmlContent, 'text/xml')
+        geoJson = parseKmlDom(dom)
+        break
+      }
+      default:
+        throw new Error(`Unsupported overlay file type: ${layer.metadata.type}`)
+    }
+
+    if (geoJson) {
+      this.onOverlayLayerReady(L.geoJSON(geoJson as GeoJSON.GeoJsonObject), layer.description)
+    }
+  }
+
+  onOverlayLayerReady(overlayLayer: L.GeoJSON, description: string) {
+    if (this.state.map) {
       this.controls.addOverlay(overlayLayer, description)
       overlayLayer.addTo(this.state.map)
 
@@ -448,12 +449,17 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       overlayLayer.eachLayer((l) => {
         const fprops = (l as LayerExtended).feature.properties
         const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
+        const el = document.createElement('div')
         if (name) {
-          l.bindPopup(name)
+          el.textContent = String(name)
         } else {
-          // when no name or title, load full list of feature's properties
-          l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
+          const pre = document.createElement('pre')
+          pre.textContent = Object.entries(fprops)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join('\n')
+          el.appendChild(pre)
         }
+        l.bindPopup(el)
       })
     }
   }

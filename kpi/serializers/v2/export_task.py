@@ -18,6 +18,7 @@ from formpack.constants import (
     EXPORT_SETTING_SUBMISSION_IDS,
     EXPORT_SETTING_TYPE,
     EXPORT_SETTING_XLS_TYPES_AS_TEXT,
+    EXPORT_TYPE_KML,
     REQUIRED_EXPORT_SETTINGS,
     VALID_DEFAULT_LANGUAGES,
     VALID_EXPORT_SETTINGS,
@@ -72,6 +73,17 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         )
 
         return export_task
+
+    def to_representation(self, instance: SubmissionExportTask) -> dict:
+        ret = super().to_representation(instance)
+
+        # Ensure any historical 'kml_legacy' type in data is safely returned as 'kml'
+        data_ = ret.get('data')
+        if isinstance(data_, dict) and data_.get(EXPORT_SETTING_TYPE) == 'kml_legacy':
+            data_[EXPORT_SETTING_TYPE] = EXPORT_TYPE_KML
+            ret['data'] = data_
+
+        return ret
 
     def validate(self, attrs: dict) -> dict:
         data_ = self.validate_data(self._get_request.data)
@@ -264,6 +276,20 @@ class ExportTaskSerializer(serializers.ModelSerializer):
                     )
                 }
             )
+
+        # KML-specific validation
+        if (
+            export_type == EXPORT_TYPE_KML
+            and EXPORT_SETTING_FLATTEN in data
+        ):
+            raise serializers.ValidationError(
+                {
+                    EXPORT_SETTING_FLATTEN: t(
+                        'The "flatten" option is not supported for KML exports.'
+                    )
+                }
+            )
+
         return export_type
 
     def get_url(self, obj: SubmissionExportTask) -> str:

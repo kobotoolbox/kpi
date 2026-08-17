@@ -21,6 +21,7 @@ from kpi.constants import (
 from kpi.exceptions import (
     QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
+    QueryParserTooManyRelationalFilters,
     SearchQueryTooShortException,
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
@@ -393,10 +394,12 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
                 q,
                 default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
                 model=Asset,
+                user=request.user,
             )
         except (
             ParseError,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ):
             # Let's `SearchFilter` handle errors
@@ -440,6 +443,12 @@ class SearchFilter(filters.BaseFilterBackend):
     parseable, references a field that does not exist, or specifies an invalid
     value for a field (e.g. text for an integer field), return an empty
     queryset to make the problem obvious.
+
+    Special notes:
+        * `allowed_lookup_fields_override` can be defined on a ViewSet as a
+        dictionary mapping model labels to a set of field names. This allows
+        specific views to securely augment the global `ALLOWED_LOOKUP_FIELDS`
+        with additional fields that are safe to expose in that context.
     """
 
     def filter_queryset(self, request, queryset, view):
@@ -460,13 +469,18 @@ class SearchFilter(filters.BaseFilterBackend):
                 min_search_characters=getattr(
                     view, 'min_search_characters', None
                 ),
+                allowed_lookup_fields=getattr(
+                    view, 'allowed_lookup_fields_override', None
+                ),
                 model=queryset.model,
+                user=request.user,
             )
         except ParseError:
             return queryset.model.objects.none()
         except (
             QueryParserBadSyntax,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ) as e:
             # raising an exception if the default search query without a
@@ -474,9 +488,7 @@ class SearchFilter(filters.BaseFilterBackend):
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
         try:
-            # If we are searching on an n-to-many field, we may get multiple results
-            # from the same model, so we need to de-duplicate with distinct(). Rely
-            # on the view to tell us if this is not necessary
+            # n-to-many joins can duplicate rows; de-dupe unless the view opts out
             if getattr(view, 'skip_distinct', False):
                 return queryset.filter(q_obj)
             else:

@@ -5,67 +5,44 @@ import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector
 import {
   EXPORT_TYPES,
   type ExportTypeDefinition,
-  type ExportTypeName,
+  type LegacyExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
-import exportsStore from '#/components/projectDownloads/exportsStore'
 import type { AssetResponse } from '#/dataInterface'
 
 interface LegacyExportsProps {
   asset: AssetResponse
-}
-
-interface LegacyExportsState {
-  selectedExportType: ExportTypeDefinition
+  selectedExportType: LegacyExportTypeDefinition
+  setSelectedExportType: (newType: ExportTypeDefinition) => void
 }
 
 /**
  * A component for displaying the legacy exports iframe with an export type selector.
  */
-export default class LegacyExports extends React.Component<LegacyExportsProps, LegacyExportsState> {
-  constructor(props: LegacyExportsProps) {
-    super(props)
-    this.state = { selectedExportType: exportsStore.getExportType() }
-  }
+export default function LegacyExports(props: LegacyExportsProps) {
+  const exportType = props.selectedExportType.value
 
-  private unlisteners: Function[] = []
+  return (
+    <bem.FormView__cell m={['box', 'padding']}>
+      <bem.ProjectDownloads__selectorRow>
+        <ExportTypeSelector
+          selectedExportType={props.selectedExportType}
+          onSelectedExportTypeChange={props.setSelectedExportType}
+        />
+      </bem.ProjectDownloads__selectorRow>
 
-  componentDidMount() {
-    this.unlisteners.push(exportsStore.listen(this.onExportsStoreChange.bind(this), this))
-  }
+      {exportType !== EXPORT_TYPES.zip_legacy.value && (
+        <InlineMessage
+          type='warning'
+          icon='alert'
+          message={t(
+            'This export format will not be supported in the future. Please consider using one of the other export types available.',
+          )}
+        />
+      )}
 
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
-  }
-
-  onExportsStoreChange() {
-    this.setState({ selectedExportType: exportsStore.getExportType() })
-  }
-
-  render() {
-    const exportType = this.state.selectedExportType.value as keyof typeof ExportTypeName
-
-    return (
-      <bem.FormView__cell m={['box', 'padding']}>
-        <bem.ProjectDownloads__selectorRow>
-          <ExportTypeSelector />
-        </bem.ProjectDownloads__selectorRow>
-
-        {exportType !== EXPORT_TYPES.zip_legacy.value && (
-          <InlineMessage
-            type='warning'
-            icon='alert'
-            message={t(
-              'This export format will not be supported in the future. Please consider using one of the other export types available.',
-            )}
-          />
-        )}
-
-        <div className='project-downloads__legacy-iframe-wrapper'>
-          <iframe src={this.props.asset.deployment__data_download_links?.[exportType]} />
-        </div>
-      </bem.FormView__cell>
-    )
-  }
+      <div className='project-downloads__legacy-iframe-wrapper'>
+        <iframe src={props.asset.deployment__data_download_links?.[exportType]} />
+      </div>
+    </bem.FormView__cell>
+  )
 }

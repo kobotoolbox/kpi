@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react'
 
-import { Box, Flex, Modal, ScrollArea, Stack, Text } from '@mantine/core'
+import { Box, Flex, Modal, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
@@ -192,9 +191,9 @@ export default function SidebarDisplaySettings({
 
                 return (
                   <Box key={entry}>
-                    <ToggleSwitch
-                      onChange={(isChecked) => {
-                        if (isChecked) {
+                    <Switch
+                      onChange={(event) => {
+                        if (event.currentTarget.checked) {
                           enableDisplay(entry)
                         } else {
                           disableDisplay(entry)
@@ -224,9 +223,9 @@ export default function SidebarDisplaySettings({
               } else {
                 return (
                   <Box key={entry}>
-                    <ToggleSwitch
-                      onChange={(isChecked) => {
-                        if (isChecked) {
+                    <Switch
+                      onChange={(event) => {
+                        if (event.currentTarget.checked) {
                           enableDisplay(entry)
                         } else {
                           disableDisplay(entry)

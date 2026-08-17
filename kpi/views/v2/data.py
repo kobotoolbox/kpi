@@ -52,6 +52,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -562,18 +563,17 @@ class DataViewSet(
         if request.method == 'PATCH' and is_automatic_qa_request(request.data):
             check_automatic_qa_throttle(request, self)
 
-        deployment = self._get_deployment()
-        try:
-            submission = list(
-                deployment.get_submissions(
-                    user=request.user,
-                    query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)},
-                )
-            )[0]
-        except IndexError:
-            raise Http404
+        submission = self._get_submission_by_id_or_root_uuid(
+            submission_root_uuid, request
+        )
 
-        submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+        # TODO remove the block below when LRM 0028 has completed
+        root_uuid_key = OpenRosaDeploymentBackend.SUBMISSION_ROOT_UUID_XPATH
+        instance_id_key = OpenRosaDeploymentBackend.SUBMISSION_CURRENT_UUID_XPATH
+        if not submission.get(root_uuid_key):
+            submission[root_uuid_key] = submission[instance_id_key]
+
+        submission_root_uuid = remove_uuid_prefix(submission[root_uuid_key])
 
         if request.method == 'GET':
             return Response(
@@ -1121,12 +1121,12 @@ class DataViewSet(
                     {'query': t('Value must be valid JSON.')}
                 )
             # Older data may have `meta/rootUuid` set to NULL.
-            # The long-running migration `0005` is responsible for backfilling
-            # `meta/rootUuid` for all existing submissions.
+            # The long-running migrations `0005`, `0027`, `0028`) are responsible for
+            # backfilling `meta/rootUuid` for all existing submissions.
             #
             # Until this migration is fully applied everywhere, we must fall back
-            # to `meta/instanceID`. This fallback is temporary and potentially
-            # unsafe because `instanceID` is NOT guaranteed to be unique per project.
+            # to `_uuid`. This fallback is temporary and potentially
+            # unsafe because `_uuid` is NOT guaranteed to be unique per project.
             #
             # Once all submissions have a populated `meta/rootUuid`, this `$or`
             # condition can be removed and lookups should rely exclusively on
@@ -1135,7 +1135,7 @@ class DataViewSet(
             uuid_query = {
                 '$or': [
                     {'meta/rootUuid': submission_id_or_root_uuid},
-                    {'meta/instanceID': submission_id_or_root_uuid},
+                    {'_uuid': remove_uuid_prefix(submission_id_or_root_uuid)},
                 ]
             }
 

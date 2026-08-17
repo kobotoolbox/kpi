@@ -443,8 +443,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='asset_export_settings'
     )
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    version_id = serializers.CharField(read_only=True)
-    version__content_hash = serializers.CharField(read_only=True)
+    version_id = serializers.CharField(read_only=True, allow_null=True)
+    version__content_hash = serializers.CharField(read_only=True, allow_null=True)
     has_deployment = ReadOnlyFieldWithSchemaField(
         schema_field=HasDeploymentField, read_only=True
     )
@@ -746,7 +746,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        kwargs=kwargs,
                        request=self.context.get('request', None))
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field({'type': 'string', 'nullable': True})
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return None
@@ -778,7 +778,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
-    @extend_schema_field(OpenApiTypes.DATETIME)
+    @extend_schema_field({'type': 'string', 'format': 'date-time', 'nullable': True})
     def get_deployment__last_submission_time(self, obj):
         if obj.has_deployment:
             return obj.deployment.last_submission_time
@@ -809,7 +809,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return None
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field({'type': 'string', 'nullable': True})
     def get_deployment__uuid(self, obj):
         return obj.deployment.form_uuid if obj.has_deployment else None
 
@@ -877,16 +877,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         self._set_asset_ids_cache(asset)
 
-        all_permissions = list(
-            asset.permissions.filter(deny=False, user__is_active=True)
-            .values(
-                'uid',
-                'user_id',
-                'user__username',
-                'permission__codename',
-            )
-            .order_by('user__username', 'permission__codename')
-        )
+        # Reuse the per-request assignments (shared with get_access_types);
+        # keep only active users, as this field did before.
+        all_permissions = [
+            assignment
+            for assignment in self._get_object_permission_assignments(asset)
+            if assignment['user__is_active']
+        ]
         # Users who have view_asset via a project view can see all permission
         # assignments, even without manage_asset on the asset directly.
         # Org admins are handled by `has_perm()` which checks `is_admin_only()`.
@@ -966,9 +963,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'object_permissions_per_asset'
             ].get(asset.pk, [])
         except KeyError:
-            # Detail view fallback: use .values() to return dicts like the cache
-            asset_permission_assignments = asset.permissions.filter(deny=False).values(
-                'user_id', 'permission__codename'
+            # Detail view fallback: reuse the assignments fetched by
+            # get_permissions instead of issuing a second query.
+            asset_permission_assignments = self._get_object_permission_assignments(
+                asset
             )
 
         # Check if the asset is public (anonymous has discover_asset).
@@ -1139,6 +1137,26 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _content(self, obj):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
+
+    def _get_object_permission_assignments(self, asset):
+        """
+        Fetch the asset's non-denied assignments once per request (memoized), so
+        get_permissions and get_access_types share one query in the detail view.
+        """
+        cache = self.__dict__.setdefault('_object_permission_assignments_cache', {})
+        if asset.pk not in cache:
+            cache[asset.pk] = list(
+                asset.permissions.filter(deny=False)
+                .values(
+                    'uid',
+                    'user_id',
+                    'user__username',
+                    'user__is_active',
+                    'permission__codename',
+                )
+                .order_by('user__username', 'permission__codename')
+            )
+        return cache[asset.pk]
 
     def _get_status(self, perm_assignments):
         """

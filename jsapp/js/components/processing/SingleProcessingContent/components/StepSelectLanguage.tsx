@@ -9,6 +9,7 @@ import {
 import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
@@ -26,7 +27,9 @@ interface Props {
   titleOverride: string
   /** The label for "create manual" button that is being displayed if automatic functionality is not being enabled */
   singleManualButtonLabel: string
+  disableManual?: boolean
   disableAutomatic: boolean
+  showConflictingOngoingJobAlert?: boolean
 }
 
 export default function StepSelectLanguage({
@@ -40,7 +43,9 @@ export default function StepSelectLanguage({
   suggestedLanguages,
   titleOverride,
   singleManualButtonLabel,
+  disableManual = false,
   disableAutomatic,
+  showConflictingOngoingJobAlert = false,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
   const usageLimitBlock = useMemo(
@@ -93,6 +98,8 @@ export default function StepSelectLanguage({
         value={languageCode}
       />
 
+      {showConflictingOngoingJobAlert && <ConflictingOngoingJobAlert mt='md' />}
+
       <footer className={bodyStyles.footer}>
         <Button type='text' size='m' label={t('back')} startIcon='caret-left' onClick={handleClickBack} />
 
@@ -102,13 +109,15 @@ export default function StepSelectLanguage({
             size='m'
             label={isAutoEnabled ? t('manual') : singleManualButtonLabel}
             onClick={handleClickNextManual}
-            isDisabled={languageCode === null}
+            // We disable both manual and automatic entry points for a conflicting
+            // job so users do not start edits that could be overwritten.
+            isDisabled={languageCode === null || disableManual || showConflictingOngoingJobAlert}
           />
           <TransxAutomaticButton
             onClick={handleClickNextAutomatic}
             selectedLanguage={languageCode}
             type='transcript'
-            disabled={disableAutomatic}
+            disabled={disableAutomatic || showConflictingOngoingJobAlert}
           />
         </div>
       </footer>

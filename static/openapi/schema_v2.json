@@ -1,5 +1,5 @@
 {
-    "openapi": "3.0.3",
+    "openapi": "3.1.0",
     "info": {
         "title": "KoboToolbox Primary API",
         "version": "2.0.0 (api_v2)",
@@ -560,16 +560,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -990,16 +988,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -1354,16 +1350,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -1486,10 +1480,12 @@
                                 },
                                 "DataSharingOfTheProject": {
                                     "value": {
-                                        "enabled": true,
-                                        "fields": [
-                                            "string"
-                                        ]
+                                        "data_sharing": {
+                                            "enabled": true,
+                                            "fields": [
+                                                "string"
+                                            ]
+                                        }
                                     },
                                     "summary": "Data sharing of the project"
                                 }
@@ -1556,16 +1552,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -2155,16 +2149,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -2817,16 +2809,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -2841,7 +2831,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
-                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
+                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nOptional query params:\n\n* `status`: Filter by parent job status. Accepts a comma-separated list,\n  for example `status=pending,in_progress`.\n* `submission_uuid`: Return only jobs that include this submission.\n* `question_xpath`: Return only jobs for this question xpath.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -2862,6 +2852,14 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "question_xpath",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs to this question xpath."
+                    },
+                    {
                         "name": "start",
                         "required": false,
                         "in": "query",
@@ -2869,6 +2867,22 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by parent job status. Accepts comma-separated values, e.g. \"pending,in_progress\"."
+                    },
+                    {
+                        "in": "query",
+                        "name": "submission_uuid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs to those containing this submission UUID."
                     },
                     {
                         "in": "path",
@@ -3256,16 +3270,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -3663,16 +3675,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -3786,16 +3796,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -5440,16 +5448,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -6146,16 +6152,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -6246,16 +6250,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -6347,16 +6349,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -6684,16 +6684,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -6980,16 +6978,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -7084,16 +7080,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -7257,16 +7251,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -7420,16 +7412,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -7572,16 +7562,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -7790,16 +7778,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -8163,16 +8149,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -8790,16 +8774,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -8963,16 +8945,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -9618,16 +9598,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -9781,16 +9759,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -10120,16 +10096,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -10395,16 +10369,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -10484,16 +10456,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -10594,18 +10564,68 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/assets/{uid_asset}/qual-questions/{uid_qa_question}/tags/": {
+            "get": {
+                "operationId": "api_v2_assets_qual_questions_tags_list",
+                "description": "## List available tags for a QA tags question\n\nLists the tag values previously submitted for a `qualTags` question on this asset, sorted alphabetically.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_qa_question",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UUID of the QA tags question",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/QATagTracker"
                                     }
                                 }
                             }
@@ -11543,16 +11563,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -11999,16 +12017,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -12452,16 +12468,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -12647,16 +12661,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -12747,7 +12759,7 @@
         "/api/v2/organizations/{uid_organization}/members/": {
             "get": {
                 "operationId": "api_v2_organizations_members_list",
-                "description": "## List Members\n\nRetrieves all members in the specified organization.\n",
+                "description": "## List Members\n\nRetrieves all members and pending invitations in the specified organization.\n\n### Sorting\n\nResults can be sorted with the `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`, `created`)\n- `role`\n- `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -12766,6 +12778,30 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "ordering",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "-created",
+                                "-date_added",
+                                "-date_joined",
+                                "-role",
+                                "-status",
+                                "-user__has_sso_enabled",
+                                "-user__username",
+                                "created",
+                                "date_added",
+                                "date_joined",
+                                "role",
+                                "status",
+                                "user__has_sso_enabled",
+                                "user__username"
+                            ]
+                        },
+                        "description": "Which field to use when ordering the results."
                     },
                     {
                         "name": "start",
@@ -12989,16 +13025,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -13246,7 +13280,7 @@
         "/api/v2/project-history-logs/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_list",
-                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters\n",
+                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n>       view-data\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -13611,16 +13645,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -13790,16 +13822,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -14233,16 +14263,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -14355,16 +14383,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -14468,16 +14494,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -16145,16 +16169,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -16406,82 +16428,6 @@
                                             "detail": "Authentication credentials were not provided."
                                         },
                                         "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/tags/{taguid__uid}/": {
-            "get": {
-                "operationId": "api_v2_tags_retrieve",
-                "description": "## Retrieve a tag's data\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "taguid__uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TagRetrieveResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
                                     }
                                 }
                             }
@@ -16858,16 +16804,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -16957,7 +16901,7 @@
         "/api/v2/user-reports/": {
             "get": {
                 "operationId": "api_v2_user_reports_list",
-                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__cumulative\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- active_project_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
+                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__llm_requests_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n- service_usage__total_nlp_usage__llm_requests_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__cumulative\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n- llm_requests\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- active_project_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes, llm_requests)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -17040,16 +16984,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -17307,16 +17249,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -17385,16 +17325,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -17538,16 +17476,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -21146,31 +21082,73 @@
                         "readOnly": true
                     },
                     "parent": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
-                        "nullable": true
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "settings": {
                         "type": "object",
                         "properties": {
                             "sector": {
-                                "type": "object"
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "nullable": true
                             },
                             "country": {
-                                "type": "array",
+                                "type": [
+                                    "array",
+                                    "null"
+                                ],
                                 "items": {
-                                    "type": "string"
-                                }
+                                    "type": "object",
+                                    "properties": {
+                                        "label": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "nullable": true
                             },
                             "description": {
                                 "type": "string"
                             },
                             "collects_pii": {
-                                "type": "string"
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "nullable": true
                             },
                             "organization": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "nullable": true
                             },
                             "country_codes": {
                                 "type": "array",
@@ -21179,7 +21157,19 @@
                                 }
                             },
                             "operational_purpose": {
-                                "type": "string"
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "nullable": true
                             }
                         }
                     },
@@ -21189,7 +21179,39 @@
                     "files": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "uid": {
+                                    "type": "string"
+                                },
+                                "url": {
+                                    "type": "string"
+                                },
+                                "asset": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "string"
+                                },
+                                "user__username": {
+                                    "type": "string"
+                                },
+                                "file_type": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "date_created": {
+                                    "type": "string"
+                                },
+                                "content": {
+                                    "type": "string"
+                                },
+                                "metadata": {
+                                    "type": "object"
+                                }
+                            }
                         },
                         "readOnly": true
                     },
@@ -21227,10 +21249,73 @@
                                 "type": "integer"
                             },
                             "name_quality": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "ok": {
+                                        "type": "integer"
+                                    },
+                                    "bad": {
+                                        "type": "integer"
+                                    },
+                                    "good": {
+                                        "type": "integer"
+                                    },
+                                    "total": {
+                                        "type": "integer"
+                                    },
+                                    "firsts": {
+                                        "type": "object",
+                                        "properties": {
+                                            "ok": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "index": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "bad": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "index": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             },
                             "default_translation": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "nullable": true
+                            },
+                            "naming_conflicts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
                             }
                         },
                         "readOnly": true
@@ -21244,16 +21329,24 @@
                         "format": "date-time"
                     },
                     "date_deployed": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
                     },
                     "version_id": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "readOnly": true
                     },
                     "version__content_hash": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "readOnly": true
                     },
                     "version_count": {
@@ -21265,7 +21358,10 @@
                         "readOnly": true
                     },
                     "deployed_version_id": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "readOnly": true
                     },
                     "deployed_versions": {
@@ -21275,10 +21371,18 @@
                                 "type": "integer"
                             },
                             "next": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "nullable": true
                             },
                             "previous": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "nullable": true
                             },
                             "results": {
                                 "type": "array",
@@ -21304,10 +21408,23 @@
                                             "type": "string",
                                             "format": "date-time"
                                         }
-                                    }
+                                    },
+                                    "required": [
+                                        "content_hash",
+                                        "date_deployed",
+                                        "date_modified",
+                                        "uid",
+                                        "url"
+                                    ]
                                 }
                             }
                         },
+                        "required": [
+                            "count",
+                            "next",
+                            "previous",
+                            "results"
+                        ],
                         "readOnly": true
                     },
                     "deployment__links": {
@@ -21320,6 +21437,36 @@
                     },
                     "deployment__data_download_links": {
                         "type": "object",
+                        "properties": {
+                            "csv_legacy": {
+                                "type": "string"
+                            },
+                            "csv": {
+                                "type": "string"
+                            },
+                            "geojson": {
+                                "type": "string"
+                            },
+                            "spss_labels": {
+                                "type": "string"
+                            },
+                            "xls_legacy": {
+                                "type": "string"
+                            },
+                            "xls": {
+                                "type": "string"
+                            },
+                            "zip_legacy": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "csv",
+                            "csv_legacy",
+                            "xls",
+                            "xls_legacy",
+                            "zip_legacy"
+                        ],
                         "readOnly": true
                     },
                     "deployment__submission_count": {
@@ -21327,7 +21474,10 @@
                         "readOnly": true
                     },
                     "deployment__last_submission_time": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
                         "readOnly": true
                     },
@@ -21336,7 +21486,10 @@
                         "readOnly": true
                     },
                     "deployment__uuid": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "readOnly": true
                     },
                     "deployment_status": {
@@ -21351,29 +21504,33 @@
                         "type": "object",
                         "properties": {
                             "default": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "groupDataBy": {
+                                        "type": "string"
+                                    },
+                                    "report_type": {
+                                        "type": "string"
+                                    },
+                                    "report_colors": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "translationIndex": {
+                                        "type": "integer"
+                                    },
+                                    "graphWidth": {
+                                        "type": "integer"
+                                    }
+                                }
                             },
                             "specified": {
-                                "type": "object",
-                                "properties": {
-                                    "end": {
-                                        "type": "object"
-                                    },
-                                    "start": {
-                                        "type": "object"
-                                    }
-                                }
+                                "type": "object"
                             },
                             "kuid_names": {
-                                "type": "object",
-                                "properties": {
-                                    "end": {
-                                        "type": "string"
-                                    },
-                                    "start": {
-                                        "type": "string"
-                                    }
-                                }
+                                "type": "object"
                             }
                         }
                     },
@@ -21381,10 +21538,150 @@
                         "type": "object"
                     },
                     "advanced_features": {
-                        "type": "object"
+                        "type": "object",
+                        "properties": {
+                            "transcript": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "translation": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "qual": {
+                                "type": "object",
+                                "properties": {
+                                    "qual_survey": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "labels": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "_default": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    },
+                                                    "required": [
+                                                        "_default"
+                                                    ]
+                                                },
+                                                "uuid": {
+                                                    "type": "string"
+                                                },
+                                                "options": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "deleted": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                },
+                                                "xpath": {
+                                                    "type": "string"
+                                                },
+                                                "scope": {
+                                                    "type": "string"
+                                                },
+                                                "choices": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "labels": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "_default": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "additionalProperties": {
+                                                                    "type": "string"
+                                                                },
+                                                                "required": [
+                                                                    "_default"
+                                                                ]
+                                                            },
+                                                            "uuid": {
+                                                                "type": "string"
+                                                            },
+                                                            "options": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "deleted": {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "labels",
+                                                            "uuid"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "labels",
+                                                "scope",
+                                                "type",
+                                                "xpath"
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            "_version": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "map_styles": {
-                        "type": "object"
+                        "type": "object",
+                        "properties": {
+                            "colorSet": {
+                                "type": "string"
+                            },
+                            "querylimit": {
+                                "type": "string"
+                            },
+                            "selectedQuestion": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "map_custom": {
                         "type": "object"
@@ -21398,11 +21695,171 @@
                             "survey": {
                                 "type": "array",
                                 "items": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "$kuid": {
+                                            "type": "string"
+                                        },
+                                        "type": {
+                                            "type": "string"
+                                        },
+                                        "$xpath": {
+                                            "type": "string"
+                                        },
+                                        "$autoname": {
+                                            "type": "string"
+                                        },
+                                        "calculation": {
+                                            "type": "string"
+                                        },
+                                        "label": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "nullable": true
+                                            }
+                                        },
+                                        "hint": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "nullable": true
+                                            }
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "required": {
+                                            "type": "boolean"
+                                        },
+                                        "appearance": {
+                                            "type": "string"
+                                        },
+                                        "parameters": {
+                                            "type": "string"
+                                        },
+                                        "kobo--matrix_list": {
+                                            "type": "string"
+                                        },
+                                        "kobo--rank-constraint-message": {
+                                            "type": "string"
+                                        },
+                                        "kobo--rank-items": {
+                                            "type": "string"
+                                        },
+                                        "kobo--score-choices": {
+                                            "type": "string"
+                                        },
+                                        "kobo--locking-profile": {
+                                            "type": "string"
+                                        },
+                                        "tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "select_from_list_name": {
+                                            "type": "string"
+                                        },
+                                        "body::accept": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true,
+                                    "required": [
+                                        "$kuid",
+                                        "type"
+                                    ]
+                                }
+                            },
+                            "choices": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "$autovalue": {
+                                            "type": "string"
+                                        },
+                                        "$kuid": {
+                                            "type": "string"
+                                        },
+                                        "label": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "nullable": true
+                                            }
+                                        },
+                                        "list_name": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "media::image": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "$autoname": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true,
+                                    "required": [
+                                        "$autovalue",
+                                        "$kuid",
+                                        "list_name",
+                                        "name"
+                                    ]
                                 }
                             },
                             "settings": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "version": {
+                                        "type": "string"
+                                    },
+                                    "id_string": {
+                                        "type": "string"
+                                    },
+                                    "style": {
+                                        "type": "string"
+                                    },
+                                    "form_id": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "kobo--lock_all": {
+                                        "type": "boolean"
+                                    },
+                                    "kobo--locking-profile": {
+                                        "type": "string"
+                                    },
+                                    "default_language": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "nullable": true
+                                    }
+                                }
                             },
                             "translated": {
                                 "type": "array",
@@ -21413,7 +21870,25 @@
                             "translations": {
                                 "type": "array",
                                 "items": {
-                                    "type": "string"
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
+                                }
+                            },
+                            "translations_0": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "nullable": true
+                            },
+                            "kobo--locking-profiles": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": {}
                                 }
                             }
                         }
@@ -21429,7 +21904,11 @@
                                 "url": {
                                     "type": "string"
                                 }
-                            }
+                            },
+                            "required": [
+                                "format",
+                                "url"
+                            ]
                         },
                         "readOnly": true
                     },
@@ -21444,7 +21923,11 @@
                                 "url": {
                                     "type": "string"
                                 }
-                            }
+                            },
+                            "required": [
+                                "format",
+                                "url"
+                            ]
                         },
                         "readOnly": true
                     },
@@ -21454,10 +21937,81 @@
                             "additional_fields": {
                                 "type": "array",
                                 "items": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                        "language": {
+                                            "type": "string"
+                                        },
+                                        "source": {
+                                            "type": "string"
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "transcript",
+                                                "translation",
+                                                "qualVerification",
+                                                "qualSource",
+                                                "qualInteger",
+                                                "qualTags",
+                                                "qualText",
+                                                "qualNote",
+                                                "qualAutoKeywordCount",
+                                                "qualSelectMultiple",
+                                                "qualSelectOne"
+                                            ]
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "dtpath": {
+                                            "type": "string"
+                                        },
+                                        "label": {
+                                            "type": "string"
+                                        },
+                                        "choices": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string"
+                                                    },
+                                                    "labels": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "_default": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "additionalProperties": {
+                                                            "type": "string"
+                                                        },
+                                                        "required": [
+                                                            "_default"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "labels",
+                                                    "uuid"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "dtpath",
+                                        "name",
+                                        "source",
+                                        "type"
+                                    ]
                                 }
                             }
                         },
+                        "required": [
+                            "additional_fields"
+                        ],
                         "readOnly": true
                     },
                     "xform_link": {
@@ -21496,14 +22050,116 @@
                     "assignable_permissions": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "default": {
+                                                    "type": "string"
+                                                },
+                                                "view_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "change_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "delete_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "validate_submissions": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "default"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "label",
+                                "url"
+                            ]
                         },
                         "readOnly": true
                     },
                     "permissions": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "string"
+                                },
+                                "permission": {
+                                    "type": "string"
+                                },
+                                "partial_permissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "filters": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "label": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "default": {
+                                                    "type": "string"
+                                                },
+                                                "view_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "change_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "delete_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "validate_submissions": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "default"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "permission",
+                                "url",
+                                "user"
+                            ]
                         },
                         "readOnly": true
                     },
@@ -21556,7 +22212,11 @@
                         "readOnly": true
                     },
                     "access_types": {
-                        "type": "array",
+                        "type": [
+                            "array",
+                            "null",
+                            "null"
+                        ],
                         "items": {
                             "type": "string"
                         },
@@ -21572,9 +22232,11 @@
                         "readOnly": true
                     },
                     "project_ownership": {
-                        "type": "object",
+                        "type": [
+                            "object",
+                            "null"
+                        ],
                         "additionalProperties": {},
-                        "nullable": true,
                         "readOnly": true
                     },
                     "owner_label": {
@@ -21582,14 +22244,18 @@
                         "readOnly": true
                     },
                     "last_modified_by": {
-                        "type": "string",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "created_by": {
-                        "type": "string",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "readOnly": true
                     }
                 },
                 "required": [
@@ -21645,8 +22311,10 @@
                         "type": "string"
                     },
                     "seconds": {
-                        "type": "integer",
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -21690,43 +22358,49 @@
             "AssetBulkRequest": {
                 "oneOf": [
                     {
+                        "$ref": "#/components/schemas/AssetBulkRequestWithUids"
+                    },
+                    {
+                        "$ref": "#/components/schemas/AssetBulkRequestWithConfirm"
+                    }
+                ]
+            },
+            "AssetBulkRequestWithConfirm": {
+                "type": "object",
+                "properties": {
+                    "confirm": {
+                        "type": "boolean"
+                    },
+                    "action": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "action",
+                    "confirm"
+                ]
+            },
+            "AssetBulkRequestWithUids": {
+                "type": "object",
+                "properties": {
+                    "asset_uids": {
                         "type": "object",
                         "properties": {
                             "asset_uids": {
-                                "type": "object",
-                                "properties": {
-                                    "asset_uids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
                                 }
-                            },
-                            "action": {
-                                "type": "string"
                             }
-                        },
-                        "required": [
-                            "action",
-                            "asset_uids"
-                        ]
+                        }
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "confirm": {
-                                "type": "boolean"
-                            },
-                            "action": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "action",
-                            "confirm"
-                        ]
+                    "action": {
+                        "type": "string"
                     }
+                },
+                "required": [
+                    "action",
+                    "asset_uids"
                 ]
             },
             "AssetBulkResponse": {
@@ -21763,57 +22437,63 @@
             "AssetCreateRequest": {
                 "oneOf": [
                     {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "clone_from": {
-                                "type": "string"
-                            },
-                            "asset_type": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "asset_type",
-                            "clone_from",
-                            "name"
-                        ]
+                        "$ref": "#/components/schemas/AssetCreateRequestClone"
                     },
                     {
+                        "$ref": "#/components/schemas/AssetCreateRequestSettings"
+                    }
+                ]
+            },
+            "AssetCreateRequestClone": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "clone_from": {
+                        "type": "string"
+                    },
+                    "asset_type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "asset_type",
+                    "clone_from",
+                    "name"
+                ]
+            },
+            "AssetCreateRequestSettings": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "settings": {
                         "type": "object",
                         "properties": {
-                            "name": {
+                            "description": {
                                 "type": "string"
                             },
-                            "settings": {
-                                "type": "object",
-                                "properties": {
-                                    "description": {
-                                        "type": "string"
-                                    },
-                                    "sector": {
-                                        "type": "string"
-                                    },
-                                    "country": {
-                                        "type": "string"
-                                    },
-                                    "share-metadata": {
-                                        "type": "boolean"
-                                    }
-                                }
-                            },
-                            "asset_type": {
+                            "sector": {
                                 "type": "string"
+                            },
+                            "country": {
+                                "type": "string"
+                            },
+                            "share-metadata": {
+                                "type": "boolean"
                             }
-                        },
-                        "required": [
-                            "asset_type",
-                            "name",
-                            "settings"
-                        ]
+                        }
+                    },
+                    "asset_type": {
+                        "type": "string"
                     }
+                },
+                "required": [
+                    "asset_type",
+                    "name",
+                    "settings"
                 ]
             },
             "AssetDeploymentStatusEnum": {
@@ -21956,6 +22636,24 @@
                     "deployment_status",
                     "name",
                     "uid"
+                ]
+            },
+            "AssetPatchRequestDataSharingFields": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "fields"
                 ]
             },
             "AssetSnapshotCreateRequest": {
@@ -22692,8 +23390,10 @@
                         "maxLength": 5000
                     },
                     "description": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "A description of this object."
                     },
                     "type": {
@@ -22845,12 +23545,14 @@
                         "format": "date-time"
                     },
                     "cancelled_by": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/BulkActionUserResponse"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     },
                     "skipped_uuids": {
                         "type": "array",
@@ -22881,12 +23583,16 @@
                         "type": "integer"
                     },
                     "next": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "previous": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "results": {
                         "type": "array",
@@ -22982,12 +23688,14 @@
                         "format": "date-time"
                     },
                     "cancelled_by": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/BulkActionUserResponse"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     }
                 },
                 "required": [
@@ -23024,8 +23732,10 @@
                         "$ref": "#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum"
                     },
                     "error": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -23691,25 +24401,99 @@
                     "_supplementalDetails": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsManualTranscription"
+                                "type": "object",
+                                "description": "Manual transcription supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manual_transcription": {
+                                            "$ref": "#/components/schemas/SupplementalDataManualTranscription"
+                                        }
+                                    },
+                                    "required": [
+                                        "manual_transcription"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsManualTranslation"
+                                "type": "object",
+                                "description": "Manual translation supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manual_translation": {
+                                            "$ref": "#/components/schemas/SupplementalDataManualTranslation"
+                                        }
+                                    },
+                                    "required": [
+                                        "manual_translation"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticTranscription"
+                                "type": "object",
+                                "description": "Automatic transcription supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "automatic_google_transcription": {
+                                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranscription"
+                                        }
+                                    },
+                                    "required": [
+                                        "automatic_google_transcription"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticTranslation"
+                                "type": "object",
+                                "description": "Automatic translation supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "automatic_google_translation": {
+                                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranslation"
+                                        }
+                                    },
+                                    "required": [
+                                        "automatic_google_translation"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsManualQual"
+                                "type": "object",
+                                "description": "Manual qualitative supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manual_qual": {
+                                            "$ref": "#/components/schemas/SupplementalDataManualQual"
+                                        }
+                                    },
+                                    "required": [
+                                        "manual_qual"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticQual"
+                                "type": "object",
+                                "description": "Automatic qualitative supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "automatic_bedrock_qual": {
+                                            "$ref": "#/components/schemas/SupplementalDataAutomaticQual"
+                                        }
+                                    },
+                                    "required": [
+                                        "automatic_bedrock_qual"
+                                    ]
+                                }
+                            },
+                            {
+                                "type": "null"
                             }
                         ],
-                        "nullable": true,
                         "description": "Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.",
                         "title": " supplementaldetails"
                     }
@@ -23859,7 +24643,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementAutomaticQualDataSelectMultipleResponse": {
                 "type": "object",
@@ -23913,7 +24700,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementAutomaticQualDataSelectOneResponse": {
                 "type": "object",
@@ -23964,7 +24754,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementAutomaticQualDataTextResponse": {
                 "type": "object",
@@ -24014,7 +24807,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementManualQualDataInteger": {
                 "type": "object",
@@ -24297,32 +25093,46 @@
                 "type": "object",
                 "properties": {
                     "terms_of_service_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "privacy_policy_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "source_code_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "support_email": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "support_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "academy_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "community_url": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "frontend_min_retry_time": {
                         "type": "integer"
@@ -24446,8 +25256,10 @@
                         "description": "Placeholder text for submissions"
                     },
                     "stripe_public_key": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "terms_of_service__sitewidemessage__exists": {
                         "type": "boolean",
@@ -24506,14 +25318,14 @@
                     "detail"
                 ]
             },
-            "ErrorObject": {
+            "ErrorValidation": {
                 "type": "object",
-                "properties": {
-                    "detail": {}
-                },
-                "required": [
-                    "detail"
-                ]
+                "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             },
             "ExportCreatePayload": {
                 "type": "object",
@@ -24668,7 +25480,7 @@
                     "result": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
+                        "example": "https://kf.kobotoolbox.org/user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
                     },
                     "data": {
                         "type": "object",
@@ -25343,8 +26155,10 @@
                         "maxLength": 255
                     },
                     "payload_template": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "pending_count": {
                         "type": "integer",
@@ -25439,9 +26253,11 @@
                         "type": "string"
                     },
                     "status_code": {
-                        "type": "integer",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "message": {
                         "type": "string",
@@ -25991,7 +26807,10 @@
                         "example": "https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40"
                     },
                     "last_login": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time"
                     },
                     "extra_details": {
@@ -26045,21 +26864,56 @@
                         }
                     },
                     "git_rev": {
-                        "type": "object",
-                        "properties": {
-                            "short": {
-                                "type": "string"
+                        "oneOf": [
+                            {
+                                "type": "boolean"
                             },
-                            "long": {
-                                "type": "string"
-                            },
-                            "branch": {
-                                "type": "string"
-                            },
-                            "tag": {
-                                "type": "string"
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "short": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    },
+                                    "long": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    },
+                                    "branch": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    },
+                                    "tag": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    }
+                                }
                             }
-                        }
+                        ]
                     },
                     "social_accounts": {
                         "type": "array",
@@ -26139,45 +26993,88 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "$ref": "#/components/schemas/MemberRoleEnum"
+                        "oneOf": [
+                            {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/MemberRoleEnum"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "url": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri",
                         "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/"
                     },
                     "user": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri",
                         "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
                     },
                     "user__username": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "user__email": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "email"
                     },
                     "user__extra_details__name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "user__has_mfa_enabled": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "user__has_sso_enabled": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "date_joined": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time"
                     },
                     "user__is_active": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "invite": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/InviteResponse"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     }
                 },
                 "required": [
@@ -26189,6 +27086,7 @@
                     "user__email",
                     "user__extra_details__name",
                     "user__has_mfa_enabled",
+                    "user__has_sso_enabled",
                     "user__is_active",
                     "user__username"
                 ]
@@ -26218,11 +27116,13 @@
                         "type": "boolean"
                     },
                     "options": {
-                        "type": "array",
+                        "type": [
+                            "array",
+                            "null"
+                        ],
                         "items": {
                             "$ref": "#/components/schemas/MetadataFieldOption"
-                        },
-                        "nullable": true
+                        }
                     }
                 },
                 "required": [
@@ -26306,12 +27206,16 @@
                         "description": "The amount of each of the add-on's individual limits left to use."
                     },
                     "organization": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "product": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -28294,50 +29198,42 @@
             "PatchedAssetPatchRequest": {
                 "oneOf": [
                     {
-                        "type": "object",
-                        "properties": {
-                            "content": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "content",
-                            "name"
-                        ]
+                        "$ref": "#/components/schemas/PatchedAssetPatchRequestContent"
                     },
                     {
-                        "type": "object",
-                        "properties": {
-                            "enabled": {
-                                "type": "boolean"
-                            },
-                            "fields": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "required": [
-                            "enabled",
-                            "fields"
-                        ]
+                        "$ref": "#/components/schemas/PatchedAssetPatchRequestDataSharing"
                     },
                     {
-                        "type": "object",
-                        "properties": {
-                            "tag_string": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "tag_string"
-                        ]
+                        "$ref": "#/components/schemas/PatchedAssetPatchRequestTagString"
                     }
                 ]
+            },
+            "PatchedAssetPatchRequestContent": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PatchedAssetPatchRequestDataSharing": {
+                "type": "object",
+                "properties": {
+                    "data_sharing": {
+                        "$ref": "#/components/schemas/AssetPatchRequestDataSharingFields"
+                    }
+                }
+            },
+            "PatchedAssetPatchRequestTagString": {
+                "type": "object",
+                "properties": {
+                    "tag_string": {
+                        "type": "string"
+                    }
+                }
             },
             "PatchedBulkActionPatchRequest": {
                 "type": "object",
@@ -28399,9 +29295,11 @@
                         "readOnly": true
                     },
                     "last_login": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
                     },
                     "extra_details": {
                         "type": "object",
@@ -28602,6 +29500,12 @@
                             },
                             "accepted": {
                                 "type": "boolean"
+                            },
+                            "value": {
+                                "enum": [
+                                    null
+                                ],
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
@@ -28620,6 +29524,12 @@
                             },
                             "accepted": {
                                 "type": "boolean"
+                            },
+                            "value": {
+                                "enum": [
+                                    null
+                                ],
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
@@ -28842,8 +29752,10 @@
                         "maxLength": 255
                     },
                     "payload_template": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "pending_count": {
                         "type": "integer",
@@ -28926,9 +29838,11 @@
                         "type": "string"
                     },
                     "status_code": {
-                        "type": "integer",
-                        "readOnly": true,
-                        "nullable": true
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "readOnly": true
                     },
                     "message": {
                         "type": "string",
@@ -29271,19 +30185,23 @@
                         "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
                     },
                     "recurring": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/Recurring"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     },
                     "unit_amount": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 9223372036854775807,
                         "minimum": -9223372036854775808,
                         "format": "int64",
-                        "nullable": true,
                         "description": "The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required."
                     },
                     "human_readable_price": {
@@ -29291,7 +30209,12 @@
                         "readOnly": true
                     },
                     "metadata": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
                     },
                     "active": {
@@ -29303,7 +30226,12 @@
                         "description": "The product this price is associated with."
                     },
                     "transform_quantity": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`."
                     }
                 },
@@ -29343,19 +30271,23 @@
                         "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
                     },
                     "recurring": {
-                        "allOf": [
+                        "oneOf": [
                             {
                                 "$ref": "#/components/schemas/Recurring"
+                            },
+                            {
+                                "type": "null"
                             }
-                        ],
-                        "nullable": true
+                        ]
                     },
                     "unit_amount": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 9223372036854775807,
                         "minimum": -9223372036854775808,
                         "format": "int64",
-                        "nullable": true,
                         "description": "The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required."
                     },
                     "human_readable_price": {
@@ -29363,7 +30295,12 @@
                         "readOnly": true
                     },
                     "metadata": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
                     },
                     "active": {
@@ -29374,7 +30311,12 @@
                         "$ref": "#/components/schemas/BaseProduct"
                     },
                     "transform_quantity": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`."
                     }
                 },
@@ -29401,8 +30343,10 @@
                         "maxLength": 5000
                     },
                     "description": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "A description of this object."
                     },
                     "type": {
@@ -30190,6 +31134,18 @@
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
             },
+            "QATagTracker": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "value"
+                ]
+            },
             "QualSelectQuestionParamsTypeEnum": {
                 "type": "string",
                 "enum": [
@@ -30217,8 +31173,10 @@
                         "type": "integer"
                     },
                     "meter": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "usage_type": {
                         "$ref": "#/components/schemas/StripeUsageType"
@@ -30970,8 +31928,10 @@
                         "type": "string"
                     },
                     "provider_id": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -31028,10 +31988,12 @@
                         "$ref": "#/components/schemas/SubscriptionSchedule"
                     },
                     "application_fee_percent": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "decimal",
-                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$",
-                        "nullable": true
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$"
                     },
                     "djstripe_created": {
                         "type": "string",
@@ -31049,39 +32011,59 @@
                         "maxLength": 255
                     },
                     "livemode": {
-                        "type": "boolean",
-                        "nullable": true,
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
                         "description": "Null here indicates that the livemode status is unknown or was previously unrecorded. Otherwise, this field indicates whether this record comes from Stripe test mode or live mode operation."
                     },
                     "created": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "The datetime this object was created in stripe."
                     },
                     "metadata": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
                     },
                     "description": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "A description of this object."
                     },
                     "billing_cycle_anchor": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "Determines the date of the first full invoice, and, for plans with `month` or `year` intervals, the day of the month for subsequent invoices."
                     },
                     "billing_thresholds": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period."
                     },
                     "cancel_at": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "A date in the future at which the subscription will automatically get canceled."
                     },
                     "cancel_at_period_end": {
@@ -31089,9 +32071,11 @@
                         "description": "If the subscription has been canceled with the ``at_period_end`` flag set to true, ``cancel_at_period_end`` on the subscription will be true. You can use this attribute to determine whether a subscription that has a status of active is scheduled to be canceled at the end of the current period."
                     },
                     "canceled_at": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has been canceled, the date of that cancellation. If the subscription was canceled with ``cancel_at_period_end``, canceled_at will still reflect the date of the initial cancellation request, not the end of the subscription period when the subscription is automatically moved to a canceled state."
                     },
                     "collection_method": {
@@ -31113,38 +32097,64 @@
                         "description": "Start of the current period for which the subscription has been invoiced."
                     },
                     "days_until_due": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 2147483647,
                         "minimum": -2147483648,
-                        "nullable": true,
                         "description": "Number of days a customer has to pay invoices generated by this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`."
                     },
                     "discount": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Describes the current discount applied to this subscription, if there is one. When billing, a discount applied to a subscription overrides a discount applied on a customer-wide basis."
                     },
                     "ended_at": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has ended (either because it was canceled or because the customer was switched to a subscription to a new plan), the date the subscription ended."
                     },
                     "next_pending_invoice_item_invoice": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "Specifies the approximate timestamp on which any pending invoice items will be billed according to the schedule provided at pending_invoice_item_interval."
                     },
                     "pause_collection": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "If specified, payment collection for this subscription will be paused."
                     },
                     "pending_invoice_item_interval": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Specifies an interval for how often to bill for any pending invoice items. It is analogous to calling Create an invoice for the given subscription at the specified interval."
                     },
                     "pending_update": {
-                        "nullable": true,
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "If specified, pending updates that will be applied to the subscription once the latest_invoice has been paid."
                     },
                     "proration_behavior": {
@@ -31159,22 +32169,28 @@
                         ]
                     },
                     "proration_date": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If set, the proration will be calculated as though the subscription was updated at the given time. This can be used to apply exactly the same proration that was previewed with upcoming invoice endpoint. It can also be used to implement custom proration logic, such as prorating by day instead of by second, by providing the time that you wish to use for proration calculations"
                     },
                     "quantity": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 2147483647,
                         "minimum": -2147483648,
-                        "nullable": true,
                         "description": "The quantity applied to this subscription. This value will be `null` for multi-plan subscriptions"
                     },
                     "start_date": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "Date when the subscription was first created. The date might differ from the created date due to backdating."
                     },
                     "status": {
@@ -31186,20 +32202,26 @@
                         "description": "The status of this subscription.\n\n* `active` - Active\n* `canceled` - Canceled\n* `incomplete` - Incomplete\n* `incomplete_expired` - Incomplete Expired\n* `past_due` - Past due\n* `trialing` - Trialing\n* `unpaid` - Unpaid"
                     },
                     "trial_end": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has a trial, the end of that trial."
                     },
                     "trial_start": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
-                        "nullable": true,
                         "description": "If the subscription has a trial, the beginning of that trial."
                     },
                     "djstripe_owner_account": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The Stripe Account this object belongs to."
                     },
                     "customer": {
@@ -31207,29 +32229,39 @@
                         "description": "The customer associated with this subscription."
                     },
                     "default_payment_method": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The default payment method for the subscription. It must belong to the customer associated with the subscription. If not set, invoices will use the default payment method in the customer's invoice settings."
                     },
                     "default_source": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The default payment source for the subscription. It must belong to the customer associated with the subscription and be in a chargeable state. If not set, defaults to the customer's default source."
                     },
                     "latest_invoice": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The most recent invoice this subscription has generated."
                     },
                     "pending_setup_intent": {
-                        "type": "string",
-                        "nullable": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "We can use this SetupIntent to collect user authentication when creating a subscription without immediate payment or updating a subscription's payment method, allowing you to optimize for off-session payments."
                     },
                     "plan": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "title": "ID",
-                        "nullable": true,
                         "description": "The plan associated with this subscription. This value will be `null` for multi-plan subscriptions"
                     },
                     "default_tax_rates": {
@@ -31266,10 +32298,12 @@
                         "$ref": "#/components/schemas/PriceWithProduct"
                     },
                     "quantity": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "maximum": 2147483647,
                         "minimum": 0,
-                        "nullable": true,
                         "description": "The quantity of the plan to which the customer should be subscribed."
                     }
                 },
@@ -31865,7 +32899,6 @@
                 "required": [
                     "_data",
                     "_dateCreated",
-                    "_dependency",
                     "_uuid"
                 ]
             },
@@ -31923,7 +32956,6 @@
                     "_data",
                     "_dateAccepted",
                     "_dateCreated",
-                    "_dependency",
                     "_uuid"
                 ]
             },
@@ -31996,147 +33028,19 @@
                     "_uuid"
                 ]
             },
-            "SupplementalDetailsAutomaticQual": {
-                "type": "object",
-                "description": "Automatic qualitative supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "automatic_bedrock_qual": {
-                            "$ref": "#/components/schemas/SupplementalDataAutomaticQual"
-                        }
-                    },
-                    "required": [
-                        "automatic_bedrock_qual"
-                    ]
-                }
-            },
-            "SupplementalDetailsAutomaticTranscription": {
-                "type": "object",
-                "description": "Automatic transcription supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "automatic_google_transcription": {
-                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranscription"
-                        }
-                    },
-                    "required": [
-                        "automatic_google_transcription"
-                    ]
-                }
-            },
-            "SupplementalDetailsAutomaticTranslation": {
-                "type": "object",
-                "description": "Automatic translation supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "automatic_google_translation": {
-                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranslation"
-                        }
-                    },
-                    "required": [
-                        "automatic_google_translation"
-                    ]
-                }
-            },
-            "SupplementalDetailsManualQual": {
-                "type": "object",
-                "description": "Manual qualitative supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "manual_qual": {
-                            "$ref": "#/components/schemas/SupplementalDataManualQual"
-                        }
-                    },
-                    "required": [
-                        "manual_qual"
-                    ]
-                }
-            },
-            "SupplementalDetailsManualTranscription": {
-                "type": "object",
-                "description": "Manual transcription supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "manual_transcription": {
-                            "$ref": "#/components/schemas/SupplementalDataManualTranscription"
-                        }
-                    },
-                    "required": [
-                        "manual_transcription"
-                    ]
-                }
-            },
-            "SupplementalDetailsManualTranslation": {
-                "type": "object",
-                "description": "Manual translation supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "manual_translation": {
-                            "$ref": "#/components/schemas/SupplementalDataManualTranslation"
-                        }
-                    },
-                    "required": [
-                        "manual_translation"
-                    ]
-                }
-            },
             "TagListResponse": {
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string"
                     },
-                    "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
-                    }
-                },
-                "required": [
-                    "name",
-                    "url"
-                ]
-            },
-            "TagRetrieveResponse": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
-                    },
-                    "assets": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/"
-                        }
-                    },
-                    "parent": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/"
-                    },
                     "uid": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "assets",
                     "name",
-                    "parent",
-                    "uid",
-                    "url"
+                    "uid"
                 ]
             },
             "TermsOfServiceResponse": {
@@ -33000,13 +33904,27 @@
                         "readOnly": true
                     },
                     "date_deployed": {
-                        "type": "string",
-                        "format": "date-time",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "boolean",
+                                "enum": [
+                                    false
+                                ]
+                            }
+                        ],
                         "readOnly": true
                     },
                     "date_modified": {
                         "type": "string",
                         "format": "date-time",
+                        "readOnly": true
+                    },
+                    "version_number": {
+                        "type": "string",
                         "readOnly": true
                     }
                 },
@@ -33015,7 +33933,8 @@
                     "date_deployed",
                     "date_modified",
                     "uid",
-                    "url"
+                    "url",
+                    "version_number"
                 ]
             },
             "VersionRetrieveResponse": {
@@ -33036,13 +33955,27 @@
                         "readOnly": true
                     },
                     "date_deployed": {
-                        "type": "string",
-                        "format": "date-time",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "boolean",
+                                "enum": [
+                                    false
+                                ]
+                            }
+                        ],
                         "readOnly": true
                     },
                     "date_modified": {
                         "type": "string",
                         "format": "date-time",
+                        "readOnly": true
+                    },
+                    "version_number": {
+                        "type": "string",
                         "readOnly": true
                     },
                     "content": {
@@ -33116,7 +34049,8 @@
                     "date_deployed",
                     "date_modified",
                     "uid",
-                    "url"
+                    "url",
+                    "version_number"
                 ]
             },
             "historyExportResponse": {

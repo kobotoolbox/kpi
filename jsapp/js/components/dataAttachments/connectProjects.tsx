@@ -9,15 +9,15 @@ import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
-import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
+import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
+import openDataAttachmentColumnsModal from './openDataAttachmentColumnsModal'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
@@ -148,7 +148,6 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       setNewSource(null)
     }
   }, [])
-
   const showColumnFilterModal = useCallback(
     (
       source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
@@ -156,8 +155,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       fields: string[],
       attachmentUrl?: string,
     ) => {
-      pageState.showModal({
-        type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
+      openDataAttachmentColumnsModal({
         asset,
         source,
         filename,
@@ -220,16 +218,14 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       patchDataSharingMutate(
         {
           uidAsset: asset.uid,
-          // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't model this, see:
-          // https://linear.app/kobotoolbox/issue/DEV-2003
-          data: { data_sharing: { enabled: data.enabled, fields: data.fields } } as any,
+          data: { data_sharing: { enabled: data.enabled, fields: data.fields } },
         },
         {
           onSuccess: (response) => {
             // Derive state from the canonical server value rather than the optimistic `data` object
             const serverSharing =
               response.status === 200
-                ? ((response.data as any).data_sharing as { enabled?: boolean; fields?: string[] } | undefined)
+                ? (response.data.data_sharing as { enabled?: boolean; fields?: string[] } | undefined)
                 : undefined
             const nextEnabled = serverSharing?.enabled ?? data.enabled
             const nextFields = serverSharing?.fields ?? data.fields

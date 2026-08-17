@@ -5,7 +5,7 @@ import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import type { CustomAssetUsage } from '#/api/models/customAssetUsage'
-import type { ErrorObject } from '#/api/models/errorObject'
+import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { OrganizationsAssetUsageListParams } from '#/api/models/organizationsAssetUsageListParams'
 import {
   getOrganizationsAssetUsageListQueryKey,
@@ -19,7 +19,7 @@ import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { ROUTES } from '#/router/routerConstants'
-import { convertSecondsToMinutes, notify } from '#/utils'
+import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
@@ -48,10 +48,6 @@ const ProjectBreakdown = () => {
     query: {
       queryKey: getOrganizationsAssetUsageListQueryKey(organization.id, getQueryParams()),
       placeholderData: keepPreviousData,
-      throwOnError: () => {
-        notify(t('There was an error getting the list.'), 'error') // TODO: update message in backend (DEV-1218).
-        return false
-      },
     },
   })
 
@@ -169,7 +165,7 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <UniversalTable<CustomAssetUsage, ErrorObject>
+      <UniversalTable<CustomAssetUsage, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}

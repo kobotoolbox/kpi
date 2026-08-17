@@ -1,6 +1,7 @@
 import cx from 'classnames'
 import React from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
@@ -13,6 +14,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   languageCode: LanguageCode
   onBack: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -25,6 +27,7 @@ export default function StepCreateManual({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   languageCode,
   onBack,
   onCreate,
@@ -38,6 +41,7 @@ export default function StepCreateManual({
         questionXpath={questionXpath}
         submission={submission}
         supplement={supplement}
+        activeBulkActions={activeBulkActions}
         translationVersion={{
           _uuid: '',
           _dateCreated: '',

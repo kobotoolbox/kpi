@@ -93,6 +93,10 @@ class Organization(AbstractOrganization):
         choices=OrganizationType,
     )
 
+    def __str__(self) -> str:
+        # Names are not unique: include the ID so the admin can tell homonyms apart
+        return f'{self.name} ({self.id})'
+
     def add_user(self, user, is_admin=False):
         if not self.is_mmo and self.users.all().count():
             raise NotMultiMemberOrganizationException
@@ -275,6 +279,28 @@ class Organization(AbstractOrganization):
             return self.owner.organization_user.user
         except ObjectDoesNotExist:
             return
+
+
+class EmptyOrganization(Organization):
+    """
+    Null object returned by `User.organization` for accounts which do not belong
+    to any organization, i.e. anonymous, inactive or removed users.
+
+    Being falsy keeps every `if organization` guard behaving as it did when the
+    property returned `None`, while attribute access such as `is_mmo` or
+    `is_admin_only()` no longer raises `AttributeError`. Since the instance is
+    never saved, its primary key stays `None` and every related lookup returns
+    an empty queryset, which makes all role checks resolve to `False`.
+    """
+
+    class Meta:
+        proxy = True
+
+    def __bool__(self) -> bool:
+        return False
+
+    def save(self, *args, **kwargs):
+        raise NotImplementedError('EmptyOrganization cannot be saved')
 
 
 class OrganizationUser(AbstractOrganizationUser):

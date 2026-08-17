@@ -20,7 +20,7 @@ class DeployableMixin:
         if always or self.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
         ).exists():
-            self.save(create_version=False, adjust_content=False)
+            self.save(adjust_content=False)
             # Not using .delay() due to circular import in tasks.py
             celery.current_app.send_task('kpi.tasks.sync_media_files', (self.uid,))
 
@@ -92,7 +92,6 @@ class DeployableMixin:
         if save:
             self.save(
                 update_fields=['date_deployed'],
-                create_version=False,
                 adjust_content=False,
             )
 

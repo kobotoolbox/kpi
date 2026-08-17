@@ -499,6 +499,7 @@ def test_transform_data_for_output():
             'regionCode': None,
             '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
             'pendingReview': True,
+            'value': '',
         },
     }
 

@@ -11,6 +11,7 @@ import {
   DROPDOWN_FILTER_QUESTION_TYPES,
   EXCLUDED_COLUMNS,
   FILTER_EXACT_TYPES,
+  LAST_COLUMNS_ORDER,
   SUBMISSION_ACTIONS_ID,
   TEXT_FILTER_QUESTION_IDS,
   TEXT_FILTER_QUESTION_TYPES,
@@ -18,7 +19,6 @@ import {
 } from '#/components/submissions/tableConstants'
 import { ValidationStatusAdditionalName } from '#/components/submissions/validationStatus.constants'
 import {
-  ADDITIONAL_SUBMISSION_PROPS,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
@@ -26,9 +26,21 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
+import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
+import type { TableColumn } from './table.types'
 
+const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
+  QUESTION_TYPES.audio.id,
+  QUESTION_TYPES['background-audio'].id,
+  QUESTION_TYPES.image.id,
+  QUESTION_TYPES.video.id,
+  QUESTION_TYPES.file.id,
+])
+
+/**
+ * Builds a human-readable Data Table column label
+ */
 export function getColumnLabel(
   asset: AssetResponse,
   key: string,
@@ -143,6 +155,9 @@ export function getColumnLabel(
   return label
 }
 
+/**
+ * Returns concatenated HXL tags for a column, or null when none exist
+ */
 export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   const colQuestion: SurveyRow | undefined = survey.find((question) => question.$autoname === key)
   if (!colQuestion || !colQuestion.tags) {
@@ -161,8 +176,286 @@ export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   }
 }
 
+/**
+ * Finds the field name used for background audio, if the form has one
+ */
 export function getBackgroundAudioQuestionName(asset: AssetResponse): string | null {
   return asset?.content?.survey?.find((item) => item.type === QUESTION_TYPES['background-audio'].id)?.name || null
+}
+
+/**
+ * Selects a value for a Data Table column key from submission data.
+ *
+ * For repeat/group data, some submissions store answers under a parent path
+ * (e.g. `group_a/group_b`) rather than the full question key
+ * (`group_a/group_b/question`). This helper returns the closest matching
+ * container payload in such cases.
+ */
+export function selectNestedRow(row: SubmissionResponse, key: string, rootParentGroup: string | undefined) {
+  // Supplemental details should always use exact keys.
+  if (key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return row[key]
+  }
+
+  // Prefer exact key lookup whenever available.
+  if (Object.prototype.hasOwnProperty.call(row, key)) {
+    return row[key]
+  }
+
+  // If exact key is missing, find the closest existing parent path.
+  // Example: key `group_a/group_b/question` with data stored at `group_a/group_b`.
+  const keyPathSegments = key.split('/')
+  for (let i = keyPathSegments.length - 1; i >= 1; i--) {
+    const parentPath = keyPathSegments.slice(0, i).join('/')
+    if (Object.prototype.hasOwnProperty.call(row, parentPath)) {
+      const parentValue = row[parentPath]
+
+      // Parent fallback is only valid for container-like values (repeat/group payloads).
+      // This avoids accidentally targeting an unrelated scalar from a shorter matching path.
+      if (Array.isArray(parentValue) || (typeof parentValue === 'object' && parentValue !== null)) {
+        return parentValue
+      }
+    }
+  }
+
+  // Backward-compatible fallback for root-level repeat groups.
+  if (rootParentGroup && Object.prototype.hasOwnProperty.call(row, rootParentGroup)) {
+    const rootParentValue = row[rootParentGroup]
+    if (Array.isArray(rootParentValue) || (typeof rootParentValue === 'object' && rootParentValue !== null)) {
+      return rootParentValue
+    }
+  }
+
+  return row[key]
+}
+
+/**
+ * Checks whether a value is meaningfully present in submission data
+ */
+function hasNonEmptyValue(value: unknown): boolean {
+  return value !== undefined && value !== null && value !== ''
+}
+
+/**
+ * Checks which path(s) attachment metadata links a basename to.
+ *
+ * Filename/value matches alone are unsafe for dedupe. We use
+ * `_attachments.question_xpath` to confirm whether evidence points to no path,
+ * one path, or both paths.
+ */
+function getAttachmentPathEvidence(
+  submission: SubmissionResponse,
+  legacyKey: string,
+  currentPath: string,
+  basename: string,
+): 'none' | 'single' | 'both' {
+  const matchingAttachments = (submission._attachments || []).filter(
+    (attachment) =>
+      !attachment.is_deleted &&
+      attachment.media_file_basename === basename &&
+      (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
+  )
+
+  const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
+  const hasCurrentPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === currentPath)
+
+  if (hasLegacyPathAttachment && hasCurrentPathAttachment) {
+    return 'both'
+  }
+
+  if (hasLegacyPathAttachment || hasCurrentPathAttachment) {
+    return 'single'
+  }
+
+  return 'none'
+}
+
+/**
+ * Decides if a legacy attachment column is safe to drop.
+ *
+ * We only collapse stale/current columns when metadata strongly suggests they
+ * are the same field. Any conflict (different values or evidence on both
+ * paths) keeps the legacy column.
+ */
+export function shouldDropLegacyAttachmentColumn(
+  submissions: SubmissionResponse[],
+  legacyKey: string,
+  matchingCurrentPaths: string[],
+): boolean {
+  // Only collapse legacy path when there is strong evidence from attachment
+  // metadata that old/new keys mirror the same field.
+  // Keep the legacy key if values differ, or if attachment metadata indicates
+  // both paths are genuinely present.
+  let hasMirroredAttachmentEvidence = false
+
+  for (const submission of submissions) {
+    const legacyValue = submission[legacyKey]
+    if (!hasNonEmptyValue(legacyValue)) {
+      continue
+    }
+
+    // If this submission only has legacy data and no current-path value,
+    // dropping legacy would hide data from pre-rename submissions.
+    const hasAnyCurrentValue = matchingCurrentPaths.some((currentPath) => hasNonEmptyValue(submission[currentPath]))
+    if (!hasAnyCurrentValue) {
+      return false
+    }
+
+    for (const currentPath of matchingCurrentPaths) {
+      const currentValue = submission[currentPath]
+      if (!hasNonEmptyValue(currentValue)) {
+        continue
+      }
+
+      if (legacyValue !== currentValue) {
+        return false
+      }
+
+      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath, String(legacyValue))
+      if (evidence === 'both') {
+        return false
+      }
+
+      if (evidence === 'single') {
+        hasMirroredAttachmentEvidence = true
+      }
+    }
+  }
+
+  return hasMirroredAttachmentEvidence
+}
+
+/**
+ * Indexes current attachment question paths by leaf question name.
+ *
+ * Old submissions may still contain stale paths from renamed groups. This map
+ * lets dedupe quickly find candidate current paths for a legacy key.
+ */
+function buildCurrentAttachmentPathsByLeaf(
+  asset: AssetResponse,
+  flatPaths: Record<string, string>,
+): Map<string, string[]> {
+  const currentAttachmentPathsByLeaf = new Map<string, string[]>()
+
+  asset.content?.survey?.forEach((row) => {
+    if (!ATTACHMENT_QUESTION_TYPES.has(row.type)) {
+      return
+    }
+
+    const rowName = getRowName(row)
+    const currentPath = flatPaths[rowName]
+    if (!currentPath) {
+      return
+    }
+
+    const existingPaths = currentAttachmentPathsByLeaf.get(rowName) || []
+    if (!existingPaths.includes(currentPath)) {
+      currentAttachmentPathsByLeaf.set(rowName, [...existingPaths, currentPath])
+    }
+  })
+
+  return currentAttachmentPathsByLeaf
+}
+
+/**
+ * Decides if a column should stay after stale attachment dedupe checks.
+ *
+ * Keeps `getAllDataColumns` readable by isolating the keep/drop decision for
+ * one column, including safety checks for missing submissions and no matches.
+ */
+function shouldKeepColumnAfterAttachmentDedupe(
+  key: string,
+  allColumns: string[],
+  currentAttachmentPathsByLeaf: Map<string, string[]>,
+  submissions?: SubmissionResponse[],
+): boolean {
+  const keyParts = key.split('/')
+  const leafName = keyParts[keyParts.length - 1]
+  const currentPaths = currentAttachmentPathsByLeaf.get(leafName)
+
+  if (!currentPaths || currentPaths.includes(key)) {
+    return true
+  }
+
+  const matchingCurrentPaths = currentPaths.filter((currentPath) => allColumns.includes(currentPath))
+  if (matchingCurrentPaths.length === 0 || !submissions || submissions.length === 0) {
+    return true
+  }
+
+  return !shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)
+}
+
+/**
+ * A column followed by the supplemental details columns that belong to it. We
+ * move whole blocks around while ordering.
+ */
+type ColumnsBlock = string[]
+
+function groupColumnsIntoBlocks(columns: string[]): ColumnsBlock[] {
+  const blocks: ColumnsBlock[] = []
+  columns.forEach((key) => {
+    // `injectSupplementalRowsIntoListOfRows` already put every supplemental
+    // details column right after its source, so the block being built is the
+    // one this column belongs to. The length check is only for the malformed
+    // case of a supplemental column with nothing in front of it.
+    if (key.startsWith(SUPPLEMENTAL_DETAILS_PROP) && blocks.length > 0) {
+      blocks[blocks.length - 1].push(key)
+    } else {
+      blocks.push([key])
+    }
+  })
+  return blocks
+}
+
+/**
+ * Moves the block of given key to the beginning of the list (only if the list
+ * has such block). Mutates given list.
+ */
+function moveBlockToFront(blocks: ColumnsBlock[], key: string) {
+  const blockIndex = blocks.findIndex((block) => block[0] === key)
+  if (blockIndex > -1) {
+    blocks.unshift(blocks.splice(blockIndex, 1)[0])
+  }
+}
+
+/**
+ * This is the single source of truth for the order of columns. Takes a list of
+ * columns (keys) and returns a new list ordered as:
+ *
+ * 1. `background-audio` question (if the form has one),
+ * 2. `start` and `end` meta questions,
+ * 3. all the form questions (in the order they appear in the form definition,
+ *    with supplemental details columns following their source question),
+ * 4. all the remaining meta questions and additional submission properties
+ *    (in `LAST_COLUMNS_ORDER` order, `meta/rootUuid` being the very last one).
+ *
+ * Columns outside of `LAST_COLUMNS_ORDER` keep the order they were given in,
+ * which is the form definition order, as that's how `getAllDataColumns` builds
+ * the list.
+ *
+ * Every place that shows users a list of columns has to use this, so that they
+ * agree with each other.
+ */
+export function orderColumns(asset: AssetResponse, columns: string[]): string[] {
+  const allBlocks = groupColumnsIntoBlocks(columns)
+
+  // Split off the tail columns, then sort them by their position in
+  // `LAST_COLUMNS_ORDER` - whatever order they arrived in doesn't matter, which
+  // is what lets us feed this function columns discovered from submission data.
+  const lastBlocks = allBlocks.filter((block) => LAST_COLUMNS_ORDER.includes(block[0]))
+  const blocks = allBlocks.filter((block) => !LAST_COLUMNS_ORDER.includes(block[0]))
+  lastBlocks.sort((blockA, blockB) => LAST_COLUMNS_ORDER.indexOf(blockA[0]) - LAST_COLUMNS_ORDER.indexOf(blockB[0]))
+
+  // Each of these moves to the front, so the order of the calls is reversed:
+  // `background-audio` goes last to end up first, then `start`, then `end`.
+  moveBlockToFront(blocks, META_QUESTION_TYPES.end)
+  moveBlockToFront(blocks, META_QUESTION_TYPES.start)
+  const backgroundAudioName = getBackgroundAudioQuestionName(asset)
+  if (backgroundAudioName !== null) {
+    moveBlockToFront(blocks, backgroundAudioName)
+  }
+
+  return [...blocks, ...lastBlocks].flat()
 }
 
 /**
@@ -195,25 +488,18 @@ export function getAllDataColumns(
     output = [...new Set([...output, ...dataKeys])]
   }
 
-  // Put `start` and `end` first
-  if (output.indexOf(META_QUESTION_TYPES.end)) {
-    output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0])
-  }
-  if (output.indexOf(META_QUESTION_TYPES.start)) {
-    output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0])
-  }
-
-  // In `table.tsx` we override the ordering of few columns, this one too. Some other places rely on ordering coming
-  // from this function, so we still want to ensure `meta/rootUuid` is the very last column
-  if (output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']) > -1) {
-    output.push(output.splice(output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']), 1)[0])
-  }
-  // TODO: Ordering of columns is being used in few places (columns of Data Table, "Hide fields" dropdown). Some places
-  // rely on order this function spits out, but some override it or user other means. Let's make SSOT for columns order
-  // please :pray: - see https://linear.app/kobotoolbox/issue/DEV-1480/make-order-and-list-of-columns-come-from-single-place
-
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
+
+  // Deduplicate stale attachment keys from old submissions when current schema
+  // has the same question under a different (usually renamed-group) path.
+  // Keep this conservative by collapsing only when old and current keys share
+  // a non-empty overlapping value in at least one submission.
+  const currentAttachmentPathsByLeaf = buildCurrentAttachmentPathsByLeaf(asset, flatPaths)
+
+  output = output.filter((key) =>
+    shouldKeepColumnAfterAttachmentDedupe(key, output, currentAttachmentPathsByLeaf, submissions),
+  )
 
   // exclude notes
   output = output.filter((key) => {
@@ -270,7 +556,41 @@ export function getAllDataColumns(
 
   const virtualSupplementalFields = getVirtualSupplementalFieldsForBulkActions(bulkActions)
   output = injectSupplementalRowsIntoListOfRows(asset, output, virtualSupplementalFields)
-  return output
+
+  // Ordering happens here, at the very end, rather than in each consumer - that
+  // way everything built on top of this function agrees on the order for free
+  // (see `orderColumns`).
+  return orderColumns(asset, output)
+}
+
+/**
+ * Returns a list of the metadata columns (keys) - i.e. the columns that are not
+ * responses to the form questions:
+ *
+ * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `audit`) - only
+ *    the ones that the form actually defines,
+ * 2. additional submission properties added by Back end (e.g. `_id`).
+ *
+ * We filter `getAllDataColumns` down instead of building a list of our own, so
+ * that these columns come in the same order as in Data Table and can never
+ * include something Data Table wouldn't show (see `orderColumns`).
+ *
+ * @param submissions - pass these to get the properties of the form version
+ * a submission was made with, not just the ones the current version defines
+ */
+export function getMetadataColumns(asset: AssetResponse, submissions?: SubmissionResponse[]) {
+  const metaRowNames = new Set(
+    (asset.content?.survey || [])
+      .filter((row) => Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type))
+      .map((row) => getRowName(row)),
+  )
+
+  // Two sources, because the two kinds of metadata are found in different
+  // places: meta questions come from the form definition, while the additional
+  // submission properties only ever show up in submission data.
+  return getAllDataColumns(asset, submissions).filter(
+    (key) => metaRowNames.has(key) || LAST_COLUMNS_ORDER.includes(key),
+  )
 }
 
 export interface TableFilterQuery {
@@ -339,6 +659,53 @@ export function buildFilterQuery(
   return output
 }
 
+export interface SelectResponseLabelOptions {
+  /** Raw response, as stored in submission data. */
+  value: string
+  questionType: AnyRowTypeName | undefined
+  /** The question's `select_from_list_name`. */
+  listName: string | undefined
+  /** All of the form's choices, not just the ones of this question's list. */
+  choices: SurveyChoice[]
+  /**
+   * Index into a choice `label` array. A negative one (the "Display XML Values"
+   * setting) matches no label, so every value comes back raw — but
+   * `select_multiple` values still get re-joined with commas, so callers that
+   * need the response exactly as stored don't come here.
+   */
+  translationIndex: number
+}
+
+/**
+ * Builds the human-readable value of a `select_one` or `select_multiple`
+ * response, i.e. the label(s) of the selected choice(s).
+ *
+ * Choices can be renamed in the Form Builder, while old submissions keep the
+ * `name` that was current when they came in. Any value that no longer matches a
+ * choice is shown raw, because dropping it would imply it was never selected.
+ */
+export function getSelectResponseLabel(options: SelectResponseLabelOptions): string {
+  const { value, questionType, listName, choices, translationIndex } = options
+
+  // `select_multiple` is the only type that packs several values into one
+  // string. Splitting any other type would mangle values that contain spaces.
+  let values = [value]
+  if (questionType === QUESTION_TYPES.select_multiple.id) {
+    // Filtering empties keeps stray spaces from becoming dangling separators.
+    values = value.split(' ').filter((valueItem) => valueItem !== '')
+  }
+
+  return values
+    .map((valueItem) => {
+      // Choice names are only unique within their own list, hence matching both.
+      const choice = choices.find((choiceItem) => choiceItem.list_name === listName && choiceItem.name === valueItem)
+      // A choice may exist but have no label in this translation, so this
+      // fallback covers more than just renamed choices.
+      return choice?.label?.[translationIndex] || valueItem
+    })
+    .join(', ')
+}
+
 /**
  * For checking if given column from Data Table should display a text input
  * filter. It works for columns associated with form questions and for other
@@ -356,4 +723,25 @@ export function isTableColumnFilterableByTextInput(questionType: AnyRowTypeName 
  */
 export function isTableColumnFilterableByDropdown(questionType: AnyRowTypeName | undefined) {
   return questionType && DROPDOWN_FILTER_QUESTION_TYPES.includes(questionType)
+}
+
+/**
+ * Returns xpaths of the audio question columns among the given Data Table
+ * columns. Pass the columns the table is rendering to get only the audio
+ * columns the user can actually see, which is how we avoid looking up durations
+ * for hidden columns.
+ */
+export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
+  const xpaths: string[] = []
+  columns.forEach((column) => {
+    const question = column.question
+    const xpath = question?.$xpath
+    if (
+      xpath &&
+      (question?.type === QUESTION_TYPES.audio.id || question?.type === QUESTION_TYPES['background-audio'].id)
+    ) {
+      xpaths.push(xpath)
+    }
+  })
+  return xpaths
 }

@@ -3,8 +3,12 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { ServiceUsageResponse } from '#/api/models/serviceUsageResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { SubmissionResponse } from '#/dataInterface'
+import { getSubmissionRootUuid } from '#/utils'
 import { getAlertDefinitions } from './alertDefinitions'
 import type { ActiveAlert, AlertEvaluationContext, BulkActionType } from './types'
+
+/** Kept outside the hook so skipping `activeBulkActions` doesn't re-run the evaluation on every render. */
+const NO_ACTIVE_BULK_ACTIONS: BulkActionResponse[] = []
 
 interface UseBulkProcessingAlertsProps {
   actionType: BulkActionType
@@ -13,8 +17,11 @@ interface UseBulkProcessingAlertsProps {
   /** Selected region (transcription only) */
   selectedRegion?: string
   fieldXpath: string
+  /** Required amount for full job in base units: seconds (transcription) or characters (translation). */
+  requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
-  activeBulkActions: BulkActionResponse[]
+  /** Only the `conflicting-job` alert uses these, so `approve` can leave them out. */
+  activeBulkActions?: BulkActionResponse[]
 }
 
 interface UseBulkProcessingAlertsReturn {
@@ -25,7 +32,10 @@ interface UseBulkProcessingAlertsReturn {
   hasBlockingError: boolean
   /** Submissions eligible after filtering */
   eligibleSubmissions: SubmissionResponse[]
-  /** UUIDs of eligible submissions */
+  /**
+   * Root uuids of the eligible submissions, ready to POST as `submission_uuids`. Send these rather than mapping
+   * `eligibleSubmissions` yourself, or edited rows get rejected as unknown.
+   */
   eligibleSubmissionUuids: string[]
 }
 
@@ -42,8 +52,9 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     fieldXpath,
+    requiredAmount,
     serviceUsageData,
-    activeBulkActions,
+    activeBulkActions = NO_ACTIVE_BULK_ACTIONS,
   } = props
 
   const alertDefinitions = useMemo(() => getAlertDefinitions(actionType), [actionType])
@@ -63,6 +74,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
       selectedLanguage,
       selectedRegion,
       actionType,
+      requiredAmount,
       serviceUsageData,
       activeBulkActions,
       previouslyFilteredSubmissionUuids: filteredSubmissionUuids,
@@ -72,7 +84,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     for (const alertDef of alertDefinitions) {
       const result = alertDef.evaluator(context)
 
-      if (result.shouldShow) {
+      if (result) {
         // Add filtered submission uuids to the set (for warnings)
         if (result.type === 'warning') {
           result.filteredSubmissionUuids.forEach((uuid) => filteredSubmissionUuids.add(uuid))
@@ -85,16 +97,17 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
           type: alertDef.type,
           message,
           computedValues: result.computedValues,
+          filteredSubmissionUuids: result.filteredSubmissionUuids,
         })
       }
     }
 
     // Compute eligible submissions (not filtered)
     const eligibleSubmissions = selectedSubmissions.filter(
-      (submission) => !filteredSubmissionUuids.has(submission._uuid),
+      (submission) => !filteredSubmissionUuids.has(getSubmissionRootUuid(submission)),
     )
 
-    const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
+    const eligibleSubmissionUuids = eligibleSubmissions.map(getSubmissionRootUuid)
 
     // Compute evaluation state
     const hasErrors = activeAlerts.some((alert) => alert.type === 'error')
@@ -118,6 +131,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     actionType,
+    requiredAmount,
     serviceUsageData,
     activeBulkActions,
     alertDefinitions,

@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import { Box, Group, Text } from '@mantine/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -87,11 +86,11 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     })
   }, [queryClient, tableQueryKey, tableRows, pagination.start, pagination.limit])
 
+  // tableRows is intentionally excluded from the queryKey: updates are pushed
+  // synchronously via setQueryData above, so the queryFn only runs on
+  // initial mount to seed the cache.
+  // eslint-disable-next-line @tanstack/query/exhaustive-deps -- tableRows is intentionally excluded
   const tableQuery = useQuery<PaginatedListResponse<TranslationRowItem>>({
-    // tableRows is intentionally excluded from the key: updates are pushed
-    // synchronously via setQueryData above, so the queryFn only runs on
-    // initial mount to seed the cache.
-    // eslint-disable-next-line @tanstack/query/exhaustive-deps
     queryKey: tableQueryKey,
     queryFn: async () => {
       return {
