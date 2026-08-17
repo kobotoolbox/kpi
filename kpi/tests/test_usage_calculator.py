@@ -431,6 +431,44 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    def test_submission_counters_chunked_queries_match_unchunked(self):
+        """
+        A billing window whose user list spans multiple chunks must return
+        the same totals as a single-query run.
+        """
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        shared_window = {'start': six_months_ago, 'end': six_months_from_now}
+        mock_billing_periods = {
+            self.someuser.organization.id: shared_window,
+            self.anotheruser.organization.id: shared_window,
+        }
+        asset_2 = self._create_asset(self.someuser)
+        three_months_ago = timezone.now() - relativedelta(months=3)
+        self.add_submissions(
+            count=2, asset=asset_2, username='someuser', date_override=three_months_ago
+        )
+
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            unchunked = get_submissions_for_current_billing_period_by_user_id()
+            # both users now share one window, so a chunk size of 1 forces the
+            # multi-chunk merge path
+            with override_settings(USAGE_QUERY_USER_ID_CHUNK_SIZE=1):
+                chunked = get_submissions_for_current_billing_period_by_user_id()
+            # a misconfigured chunk size must clamp to 1, not crash or skip
+            with override_settings(USAGE_QUERY_USER_ID_CHUNK_SIZE=0):
+                clamped = get_submissions_for_current_billing_period_by_user_id()
+
+        assert chunked == unchunked
+        assert clamped == unchunked
+        assert chunked[self.someuser.id] == 2
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_nlp_counters_current_period_all_orgs(self):
         six_months_ago = timezone.now() - relativedelta(months=6)
         six_months_from_now = six_months_ago + relativedelta(years=1)
