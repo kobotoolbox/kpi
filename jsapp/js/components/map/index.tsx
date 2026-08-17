@@ -964,10 +964,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Leaves the map for the clicked submission's own address. */
   goToClickedSubmission(evt: L.LeafletMouseEvent) {
-    // Markers only carry the `_id` they were built with, so the record it belongs
-    // to is looked up here to get at the root UUID (the form of the link that
-    // survives edits). The route understands a plain `_id` too, so a miss here is
-    // not fatal.
+    // Markers only carry an `_id`, so look the record up to get its root UUID -
+    // the form of the link that survives edits. A miss is not fatal, as the route
+    // understands a plain `_id` too.
     const submissionDbId: number = evt.layer.options.sId
     const submission = this.props.allData.find((item) => item._id === submissionDbId)
 

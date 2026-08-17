@@ -1,7 +1,7 @@
 import './submissionRoute.scss'
 
 import { useQueryClient } from '@tanstack/react-query'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
@@ -10,6 +10,7 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
 import SubmissionDetails from './submissionDetails'
@@ -34,6 +35,17 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
   const location = useLocation()
   const queryClient = useQueryClient()
 
+  // Shared with the data table (see `tableViewState`), so expanding one and moving
+  // to the other stays expanded. Also survives stepping between records, as only
+  // `SubmissionDetails` remounts.
+  const [isFullscreen, setIsFullscreen] = useState(() => getTableViewState(assetUid)?.isFullscreen ?? false)
+
+  const toggleFullscreen = () => {
+    const newIsFullscreen = !isFullscreen
+    setIsFullscreen(newIsFullscreen)
+    setTableViewState(assetUid, { isFullscreen: newIsFullscreen })
+  }
+
   // NOTE: This route component is being loaded with PermProtectedRoute so we
   // know that the call to backend to get asset was already made, and thus we can
   // safely assume asset data is present.
@@ -50,10 +62,9 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
-  // The route also accepts a numeric `_id`, for links made before submissions
-  // had an address and for callers that only have an `_id` (the REST Service
-  // logs). Swap it for the root UUID once we know it, so that the address bar
-  // always offers the form of the link that survives edits.
+  // The route also accepts a numeric `_id`, for older links and for callers that
+  // only have one (the REST Service logs). Swap it for the root UUID, so the
+  // address bar always shows the form of the link that survives edits.
   useEffect(() => {
     if (assetUid && rootUuid && rootUuid !== submissionId) {
       navigate(getSubmissionPath(assetUid, rootUuid), { replace: true, state: location.state })
@@ -68,7 +79,7 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const renderInLayout = (content: React.ReactNode, header?: React.ReactNode) => (
     <DocumentTitle title={pageTitle}>
-      <bem.FormView m='submission'>
+      <bem.FormView m={isFullscreen ? ['submission', 'fullscreen'] : ['submission']}>
         <div className='submission-route'>
           <header className='submission-route__header'>
             <Button
@@ -117,12 +128,13 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       // a pending "Refresh submission" prompt) from leaking into the next one.
       key={record._id}
       asset={asset}
-      // The submission endpoints are typed against the older `SubmissionResponse`
-      // while this route uses the generated `DataResponse`. They describe the same
-      // payload; the difference is that the former also allows arbitrary question
-      // names as keys.
+      // `DataResponse` and `SubmissionResponse` describe the same payload, but the
+      // submission endpoints are typed against the latter, which also allows
+      // arbitrary question names as keys.
       submission={record as unknown as SubmissionResponse}
       duplicatedFromUuid={routeState?.duplicatedFromUuid}
+      isFullscreen={isFullscreen}
+      onToggleFullscreen={toggleFullscreen}
       onRefreshRequested={() => {
         queryClient.invalidateQueries({ queryKey: lookupQueryKey })
       }}

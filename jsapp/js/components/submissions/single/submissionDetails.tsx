@@ -32,6 +32,9 @@ interface SubmissionDetailsProps {
    * as the user stays on the record the duplication produced.
    */
   duplicatedFromUuid?: string
+  /** Owned by the route, which renders the element that expands. */
+  isFullscreen: boolean
+  onToggleFullscreen: () => void
   /** Asks for a fresh copy of `submission`, e.g. after an edit in Enketo. */
   onRefreshRequested: () => void
   onDeleted: () => void
@@ -433,6 +436,16 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
             size='l'
             isDisabled={!this.isSubmissionEditable()}
             label={t('Duplicate')}
+          />
+
+          {/* There is no `collapse` icon, so `expand` covers both states - as in the data table. */}
+          <Button
+            onClick={this.props.onToggleFullscreen}
+            type='secondary'
+            size='l'
+            startIcon='expand'
+            tooltip={this.props.isFullscreen ? t('Exit fullscreen') : t('Toggle fullscreen')}
+            tooltipPosition='right'
           />
 
           <Button

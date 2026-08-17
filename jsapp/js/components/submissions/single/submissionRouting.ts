@@ -16,9 +16,9 @@ export interface SubmissionRouteState {
  * The address of a single submission record, e.g.
  * `#/forms/aBcDeF/data/submission/a1b2c3d4-…`.
  *
- * Prefer passing a root UUID: it survives edits, while `_id` is a database key.
- * Numeric ids are still understood, both for older links and for places that
- * only have an `_id` to hand (e.g. REST Service logs).
+ * Prefer a root UUID: it survives edits, while `_id` is a database key. Numeric
+ * ids still work, for older links and for callers that only have an `_id` (the
+ * REST Service logs).
  */
 export function getSubmissionPath(assetUid: string, submissionId: string | number) {
   return ROUTES.FORM_SUBMISSION.replace(':uid', assetUid).replace(':submissionId', String(submissionId))
@@ -69,18 +69,17 @@ export function getSubmissionLookupParams(submissionId: string): AssetsDataListP
 }
 
 /**
- * Query params that fetch the single neighbouring submission in either
- * direction, and - through the response's `count` - how many lie that way.
+ * Fetches the single neighbouring submission in either direction, and - through
+ * the response's `count` - how many lie that way.
  *
- * Submissions are listed newest first (the API's default sort is `{"_id":-1}`),
- * so "next" means an older record, i.e. a lower `_id`. Ordering by `_id` is what
- * makes a cursor possible at all: submission times are only accurate to the
- * second, so they cannot break ties. Same approach as the single processing
- * view, see `SelectSubmission`.
+ * Submissions are listed newest first (the API sorts by `{"_id":-1}`), so "next"
+ * means an older record, i.e. a lower `_id`. Cursoring on `_id` rather than time
+ * is what makes this possible at all: submission times are only accurate to the
+ * second, so they cannot break ties. `SelectSubmission` does the same.
  *
- * Note this walks *all* submissions the user can see, not the filtered subset
- * the data table may be showing - filters live in the table's own component
- * state and are not part of a submission's address.
+ * This walks *all* submissions the user can see, not the subset the data table
+ * may be filtered down to - filters live in the table's own component state and
+ * are not part of a submission's address.
  */
 export function getSubmissionNeighborParams(submissionDbId: number, direction: 'prev' | 'next'): AssetsDataListParams {
   const isNext = direction === 'next'

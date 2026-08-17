@@ -159,8 +159,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /**
    * How the table was last left (see `tableViewState`). Captured once, because
-   * `react-table` compares the `default*` props it is given against the previous
-   * ones and resets the table whenever they differ.
+   * `react-table` resets the table whenever the `default*` props it was given
+   * change.
    */
   private readonly initialPageSize: number
   private readonly initialFiltered: ReactTableStateFilteredItem[]
@@ -176,7 +176,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
-      isFullscreen: false,
+      isFullscreen: viewState?.isFullscreen ?? false,
       pageSize: this.initialPageSize,
       currentPage: 0,
       error: false,
@@ -997,7 +997,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   toggleFullscreen() {
-    this.setState({ isFullscreen: !this.state.isFullscreen })
+    const isFullscreen = !this.state.isFullscreen
+    this.setState({ isFullscreen })
+
+    // Shared with the submission route, so opening a record keeps the expanded view.
+    setTableViewState(this.props.asset.uid, { isFullscreen })
   }
 
   onSubmissionValidationStatusChange(result: ValidationStatusResponse, sid: string) {
@@ -1059,8 +1063,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       fetchInstance: tableInstance,
     })
 
-    // Remember how the table is set up, so that leaving it for a submission
-    // record and coming back doesn't drop the user's filters.
+    // Remembered so that leaving for a submission record and coming back keeps
+    // the user's filters.
     setTableViewState(this.props.asset.uid, {
       pageSize: tableInstance.state.pageSize,
       filtered: tableInstance.state.filtered,
@@ -1330,8 +1334,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <ReactTable
             data={this.state.submissions}
             columns={this.state.columns}
-            // Seeded from how the table was last left (see `tableViewState`), so
-            // that returning from a submission record keeps the user's filters.
+            // Held in fields, not state - see `initialPageSize`.
             defaultPageSize={this.initialPageSize}
             defaultFiltered={this.initialFiltered}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
