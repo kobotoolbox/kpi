@@ -148,6 +148,30 @@ class KobocatProfileException(Exception):
     pass
 
 
+class MailerError(Exception):
+    """
+    A message could not be sent
+    """
+
+
+class MailerProviderThrottledError(MailerError):
+    """
+    The provider's response matched a catalogued throttling/quota signature
+    """
+
+
+class MailerProviderQuotaExhaustedError(MailerProviderThrottledError):
+    """
+    The provider is refusing until a quota resets. Not worth retrying today.
+    """
+
+
+class MailerProviderRateThrottledError(MailerProviderThrottledError):
+    """
+    The provider is asking us to slow down. Safe to retry after a cooldown.
+    """
+
+
 class MissingXFormException(Exception):
     pass
 
