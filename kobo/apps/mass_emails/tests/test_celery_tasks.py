@@ -563,13 +563,13 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         for call in send_mock.call_args_list:
             assert call.kwargs['connection'] is connection
 
-    def test_dropped_connection_is_reset_and_the_record_retried(self):
+    def test_dropped_connection_is_reset_but_the_record_is_not_retried(self):
         connection = MagicMock()
         with (
             patch('kpi.utils.mailer.get_connection', return_value=connection),
             patch(
                 'kobo.apps.mass_emails.tasks.Mailer.send',
-                side_effect=[False, True, True, True],
+                side_effect=[False, True, True],
             ) as send_mock,
             patch(
                 'kobo.apps.mass_emails.tasks.is_connection_alive', return_value=False
@@ -579,10 +579,13 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
             MassEmailSender().send_day_emails()
 
         assert reset_mock.call_count == 1
-        # Four sends for three records: the first one is retried on the fresh
-        # connection instead of being written off
-        assert send_mock.call_count == 4
-        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 3
+        # Three sends for three records: the first one is not retried on the
+        # fresh connection, since we can't tell a dropped connection apart
+        # from one that dropped right after the server accepted the message -
+        # resending it would risk a duplicate
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 1
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
 
     def test_refused_recipient_does_not_reset_the_connection(self):
         connection = MagicMock()
