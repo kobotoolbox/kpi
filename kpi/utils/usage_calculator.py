@@ -62,7 +62,8 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
 
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
 
-    # clamp: 0 would make range() raise, a negative value would skip every chunk
+    # clamp: 0 would make range() raise, a negative value would skip
+    # every chunk
     chunk_size = max(1, settings.USAGE_QUERY_USER_ID_CHUNK_SIZE)
     results = {}
     for (start, end), user_ids in windows.items():
@@ -119,7 +120,8 @@ def get_submission_counts_in_date_range_by_user_id(
 ) -> dict[int, int]:
     windows = group_user_ids_by_date_range(date_ranges_by_user)
 
-    # clamp: 0 would make range() raise, a negative value would skip every chunk
+    # clamp: 0 would make range() raise, a negative value would skip
+    # every chunk
     chunk_size = max(1, settings.USAGE_QUERY_USER_ID_CHUNK_SIZE)
     results = {}
     for (start, end), user_ids in windows.items():
