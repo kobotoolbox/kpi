@@ -1,5 +1,7 @@
 import { MantineProvider } from '@mantine/core'
 import { render, screen } from '@testing-library/react'
+import { act } from 'react'
+import { createRoot } from 'react-dom/client'
 import ErrorPage, { type ErrorPageProps } from './ErrorPage'
 import { errorTheme } from './errorTheme'
 
@@ -111,5 +113,25 @@ describe('ErrorPage', () => {
     renderErrorPage()
 
     chai.expect(screen.queryByText(/go back/i)).to.equal(null)
+  })
+
+  it('replaces the fallback markup that the Django template renders', () => {
+    // `error_page.html` puts a plain-HTML copy of the message inside the mount
+    // node, so the page still says something when this bundle fails to load.
+    // Mounting has to clear it, or the message would appear twice.
+    const mountNode = document.createElement('div')
+    mountNode.innerHTML = '<div class="error-page-fallback"><h1>Page not found (404)</h1></div>'
+    document.body.appendChild(mountNode)
+
+    act(() => {
+      createRoot(mountNode).render(
+        <MantineProvider theme={errorTheme}>
+          <ErrorPage errorCode={404} />
+        </MantineProvider>,
+      )
+    })
+
+    chai.expect(mountNode.querySelector('.error-page-fallback')).to.equal(null)
+    chai.expect(mountNode.querySelectorAll('h1').length).to.equal(1)
   })
 })
