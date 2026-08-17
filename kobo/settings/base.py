@@ -1843,10 +1843,14 @@ if os.environ.get('EMAIL_USE_TLS'):
 # See kpi.utils.mailer.Mailer and kobo.apps.mass_emails.tasks.MassEmailSender.
 MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
 MASS_EMAIL_THROTTLE_PER_SECOND = env.int('MASS_EMAIL_THROTTLE_PER_SECOND', 40)
+# Some servers can share the same provider account and quota diluting their share of it
+# further than transactional email alone would.
 MASS_EMAIL_SEND_RATE_RATIO = env.float('MASS_EMAIL_SEND_RATE_RATIO', 0.35)
-# Cooldown after a provider rate-throttle response (see kpi.exceptions.MailerProviderRateThrottledError)  # noqa: E501
+# Cooldown after a provider rate-throttle response (see kpi.exceptions.MailerProviderRateThrottledError).  # noqa: E501
+# SMTP gives no Retry-After, so there's no real signal for how long to wait.
+# Defaults long: this should already be rare given the per-second budget.
 MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS = env.int(
-    'MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS', 60 * 5
+    'MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS', 60 * 60
 )
 # Margin under the provider's SMTP idle timeout.
 MAILER_CONNECTION_IDLE_TIMEOUT = env.int('MAILER_CONNECTION_IDLE_TIMEOUT', 10)

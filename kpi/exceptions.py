@@ -169,6 +169,12 @@ class MailerProviderQuotaExhaustedError(MailerProviderThrottledError):
 class MailerProviderRateThrottledError(MailerProviderThrottledError):
     """
     The provider is asking us to slow down. Safe to retry after a cooldown.
+
+    Should be rare in practice: `MassEmailSender.send_day_emails()` already
+    paces sends against a per-second budget kept under the provider's real
+    limit, so the provider itself shouldn't need to say "slow down" except
+    for unaccounted-for traffic sharing the same account (e.g. transactional
+    email) or a misconfigured `MASS_EMAIL_SEND_RATE_RATIO`.
     """
 
 
