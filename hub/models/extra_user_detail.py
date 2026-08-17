@@ -24,6 +24,11 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     password_date_changed = models.DateTimeField(null=True, blank=True)
     validated_password = models.BooleanField(default=True)
     last_project_activity = models.DateTimeField(null=True, blank=True, db_index=True)
+    sso_exempt = models.BooleanField(
+        default=False,
+        verbose_name='SSO exempt',
+        help_text='Exempt from managed-SSO-only login',
+    )
 
     def __str__(self):
         return "{}'s data: {}".format(self.user.__str__(), repr(self.data))

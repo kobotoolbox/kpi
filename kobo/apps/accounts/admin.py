@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from kobo.apps.accounts.models import EmailContent
-from .models import EmailAddressAdmin, SocialAppCustomData
+from .models import EmailAddressAdmin, SocialAppCustomData, SocialAppManagedDomain
 
 
 @admin.register(EmailContent)
@@ -60,7 +60,15 @@ class RequireProviderIdSocialAppAdmin(SocialAppAdmin):
         proxy = True
 
 
+class DomainInline(admin.TabularInline):
+    model = SocialAppManagedDomain
+    extra = 1
+
+
+@admin.register(SocialAppCustomData)
+class SocialAppCustomDataAdmin(admin.ModelAdmin):
+    inlines = [DomainInline]
+
+
 admin.site.unregister(SocialApp)
 admin.site.register(SocialApp, RequireProviderIdSocialAppAdmin)
-
-admin.site.register(SocialAppCustomData)
