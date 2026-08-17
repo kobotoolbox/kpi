@@ -58,12 +58,13 @@ describe('ErrorPage', () => {
     chai.expect(background.className).to.contain('background--custom')
   })
 
-  it('falls back to the default background when none is configured', () => {
+  it('draws its own background in CSS when none is configured', () => {
     const { container } = renderErrorPage({ backgroundUrl: undefined })
     const background = getElement(container, '.background')
 
-    chai.expect(background.style.backgroundImage).to.not.equal('')
-    // No overlay on our own background: it is a light gradient, not a photo.
+    // The default gradient wedge is a pseudo-element, so there is no inline image
+    // to set. No overlay either: it is a light gradient, not a photo.
+    chai.expect(background.style.backgroundImage).to.equal('')
     chai.expect(background.className).to.not.contain('background--custom')
   })
 

@@ -1,6 +1,5 @@
 import { Anchor, Paper } from '@mantine/core'
 import cx from 'classnames'
-import defaultBackgroundUrl from '../../img/kobo-default-bg.svg'
 import defaultLogoUrl from '../../img/kobo-logo-gray.svg'
 import styles from './ErrorPage.module.scss'
 
@@ -46,13 +45,13 @@ export default function ErrorPage(props: ErrorPageProps) {
   const { errorCode, backgroundUrl, logoUrl, termsOfServiceUrl, privacyPolicyUrl } = props
   const { title, message } = getErrorContent(errorCode)
   // A custom background is a photo, so it needs the darkening overlay. Our own
-  // gradient shape is already light enough and must not be overlaid.
+  // gradient wedge is drawn in CSS, is already light enough, and must not be overlaid.
   const hasCustomBackground = Boolean(backgroundUrl)
 
   return (
     <div
       className={cx(styles.background, { [styles['background--custom']]: hasCustomBackground })}
-      style={{ backgroundImage: `url('${backgroundUrl ?? defaultBackgroundUrl}')` }}
+      style={hasCustomBackground ? { backgroundImage: `url('${backgroundUrl}')` } : undefined}
     >
       <header className={styles.header}>
         {/*
