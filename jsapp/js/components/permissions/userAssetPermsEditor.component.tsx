@@ -5,9 +5,9 @@ import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { getSurveyFlatPaths } from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
+import Select from '#/components/common/Select'
 import AriaText from '#/components/common/ariaText'
-import KoboSelect from '#/components/common/koboSelect'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
+import type { ComboboxItem } from '#/components/common/select.types'
 import TextBox from '#/components/common/textBox'
 import { KEY_CODES } from '#/constants'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
@@ -353,8 +353,8 @@ export default class UserAssetPermsEditor extends React.Component<
     }
   }
 
-  getQuestionNameSelectOptions(): KoboSelectOption[] {
-    const output: KoboSelectOption[] = []
+  getQuestionNameSelectOptions(): Array<ComboboxItem<string>> {
+    const output: Array<ComboboxItem<string>> = []
     const foundAsset = assetStore.getAsset(this.props.asset.uid)
     if (foundAsset?.content?.survey) {
       const flatPaths = getSurveyFlatPaths(foundAsset.content?.survey, false, true)
@@ -385,14 +385,12 @@ export default class UserAssetPermsEditor extends React.Component<
           {this.state[checkboxName] === true && (
             <div className={styles.byResponsesInputs}>
               <span className={styles.questionSelectWrapper}>
-                <KoboSelect
-                  name={checkboxName}
-                  type='outline'
-                  size='m'
-                  isClearable
-                  options={this.getQuestionNameSelectOptions()}
-                  selectedOption={this.state[questionProp]}
-                  onChange={(newSelectedOption: string | null) => {
+                <Select
+                  size='sm'
+                  clearable
+                  data={this.getQuestionNameSelectOptions()}
+                  value={this.state[questionProp]}
+                  onChange={(newSelectedOption) => {
                     // Update state object in non mutable way
                     let output = clonedeep(this.state)
                     output = Object.assign(output, {
