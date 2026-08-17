@@ -9,7 +9,7 @@ from constance import config
 from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext
 
@@ -56,24 +56,32 @@ def enqueue_mass_email_records(email_config):
     Creates a email job and enqueues email records for users based on query
     """
     job = MassEmailJob.objects.create(email_config=email_config)
-    users = get_users_for_config(email_config)
+    user_ids = get_users_for_config(email_config)
     # edge case: if a one-off email has no recipients, store a warning and turn
     # it off
-    if len(users) == 0 and email_config.type == EmailType.ONE_TIME:
+    if len(user_ids) == 0 and email_config.type == EmailType.ONE_TIME:
         logging.warning(
             f'No recipients found for one-time email config'
             f' {email_config.uid}: {email_config.name}. Turning it off.'
         )
         email_config.live = False
         email_config.save()
-    records = [
-        MassEmailRecord(user=user, email_job=job, status=EmailStatus.ENQUEUED)
-        for user in users
-    ]
-    MassEmailRecord.objects.bulk_create(records)
+
+    # Instantiating millions of unsaved MassEmailRecord objects at once is ~1 GB,
+    # so build and insert them in batches instead.
+    batch_size = 10000
+    total_created = 0
+    for start_idx in range(0, len(user_ids), batch_size):
+        end_idx = start_idx + batch_size
+        records = [
+            MassEmailRecord(user_id=user_id, email_job=job, status=EmailStatus.ENQUEUED)
+            for user_id in user_ids[start_idx:end_idx]
+        ]
+        MassEmailRecord.objects.bulk_create(records, batch_size=batch_size)
+        total_created += len(records)
 
     logging.info(
-        f'Created {len(records)} MassEmailRecord(s) for {email_config.name} '
+        f'Created {total_created} MassEmailRecord(s) for {email_config.name} '
         f'with query {email_config.query}'
     )
 
@@ -392,7 +400,7 @@ def send_emails():
 
 def get_users_for_config(email_config):
     """
-    Get users based on query, excluding recent recipients
+    Get user ids based on query, excluding recent recipients
 
     frequency = -1: One time email
     frequency = 1: Daily emails
@@ -400,8 +408,16 @@ def get_users_for_config(email_config):
     """
     now = timezone.now()
     users = email_config.get_users_queryset()
+    # `get_users_queryset()` returns a QuerySet for real queries but a plain list
+    # (e.g. `[]`) from the default fallback; normalize to a list of ids without
+    # materializing full User instances.
+    if isinstance(users, QuerySet):
+        user_ids = list(users.values_list('id', flat=True))
+    else:
+        user_ids = [getattr(user, 'id', user) for user in users]
+
     if email_config.frequency == -1:
-        return users
+        return user_ids
     day_boundary = MassEmailSender.get_cache_key_date(now)
 
     cutoff_date = day_boundary - timedelta(days=email_config.frequency - 1)
@@ -416,7 +432,7 @@ def get_users_for_config(email_config):
             date_modified__gte=cutoff_date
         ).values_list('user_id', flat=True)
     )
-    return [user for user in users if user.id not in recent_recipients]
+    return [user_id for user_id in user_ids if user_id not in recent_recipients]
 
 
 @celery_app.task(time_limit=TASK_TIMEOUT, soft_time_limit=TASK_TIMEOUT)

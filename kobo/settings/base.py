@@ -2434,3 +2434,8 @@ ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
 LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
     'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
 )
+
+# Fleet-wide usage queries filter on `user_id__in=<all users>`; at full scale
+# that is a multi-million-element IN clause. Split it into chunks of this size
+# and run one query per chunk.
+USAGE_QUERY_USER_ID_CHUNK_SIZE = env.int('USAGE_QUERY_USER_ID_CHUNK_SIZE', 20000)

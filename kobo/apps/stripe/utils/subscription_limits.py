@@ -107,13 +107,16 @@ def get_organizations_subscription_limits(
 
     # determine which orgs we care about and get their ids
     if organizations is not None:
-        orgs = organizations
+        all_org_ids = [org.id for org in organizations]
     else:
-        orgs = Organization.objects.all()
-    all_org_ids = [org.id for org in orgs]
+        # Avoid loading millions of full Organization instances just to read ids.
+        all_org_ids = list(Organization.objects.values_list('id', flat=True))
 
-    # get paid subscription limits
-    subscription_limits = get_paid_subscription_limits(all_org_ids)
+    # get paid subscription limits; pass None through when we want all orgs so
+    # `get_paid_subscription_limits` skips building a giant IN clause
+    subscription_limits = get_paid_subscription_limits(
+        all_org_ids if organizations is not None else None
+    )
     subscription_limits_by_org_id = {}
     for row in subscription_limits:
         row_limits = subscription_limits_by_org_id.get(row['org_id'], {})
@@ -158,16 +161,31 @@ def get_organizations_subscription_limits(
         else:
             default_plan_limits[limit_key] = default_limit
 
+    # The vast majority of orgs have no subscription row and therefore identical, pure
+    # default limits. Build that dict once and share the same object across all
+    # such orgs instead of allocating millions of identical dicts. Callers that mutate
+    # a returned dict (e.g. the addon merge in
+    # `get_organizations_effective_limits`) MUST copy it first.
+    default_limits = {}
+    for usage_type, _ in UsageType.choices:
+        default_limits[f'{usage_type}_limit'] = determine_limit(
+            usage_type,
+            None,
+            None,
+            default_plan_limits[f'{usage_type}_limit'],
+            include_storage_addons,
+        )
+
     results = {}
     for org_id in all_org_ids:
+        org_subscription = subscription_limits_by_org_id.get(org_id)
+        if org_subscription is None:
+            results[org_id] = default_limits
+            continue
         all_org_limits = {}
         for usage_type, _ in UsageType.choices:
-            plan_limit = subscription_limits_by_org_id.get(org_id, {}).get(
-                f'{usage_type}_limit'
-            )
-            addon_limit = subscription_limits_by_org_id.get(org_id, {}).get(
-                'addon_storage_limit'
-            )
+            plan_limit = org_subscription.get(f'{usage_type}_limit')
+            addon_limit = org_subscription.get('addon_storage_limit')
             default_limit = default_plan_limits[f'{usage_type}_limit']
             limit = determine_limit(
                 usage_type,
@@ -209,24 +227,41 @@ def get_organizations_effective_limits(
     """
 
     if not settings.STRIPE_ENABLED:
-        orgs = organizations or Organization.objects.all()
-        return {org.id: _get_default_usage_limits() for org in orgs}
+        if organizations is not None:
+            org_ids = [org.id for org in organizations]
+        else:
+            # Avoid loading millions of full Organization instances just to read ids.
+            org_ids = Organization.objects.values_list('id', flat=True).iterator()
+        # Share one default-limits object across all orgs; callers that mutate a
+        # returned dict must copy it first.
+        shared_default_limits = _get_default_usage_limits()
+        return {org_id: shared_default_limits for org_id in org_ids}
 
     effective_limits = get_organizations_subscription_limits(
         include_storage_addons=include_storage_addons, organizations=organizations
     )
     if include_onetime_addons:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+        # `addon_limits` is keyed only by the (small) set of orgs holding addons.
         addon_limits = PlanAddOn.get_organizations_totals(organizations=organizations)
-        for org_id, limits in effective_limits.items():
+        for org_id, org_addons in addon_limits.items():
+            limits = effective_limits.get(org_id)
+            if limits is None:
+                continue
+            # `limits` may be the shared default object reused across orgs; copy
+            # before mutating so we don't corrupt every other org's limits.
+            limits = dict(limits)
             for usage_type, _ in UsageType.choices:
-                addon = addon_limits.get(org_id, {}).get(f'total_{usage_type}_limit', 0)
+                addon = org_addons.get(f'total_{usage_type}_limit', 0)
                 limits[f'{usage_type}_limit'] += addon
+            effective_limits[org_id] = limits
     return effective_limits
 
 
 @requires_stripe
-def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> QuerySet:
+def get_paid_subscription_limits(
+    organization_ids: list[str] | None = None, **kwargs
+) -> QuerySet:
     """
     Return the most recent limits for all usage types for given organizations based on
     their most recent subscriptions. If they have both a regular plan and an addon,
@@ -256,14 +291,15 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
         _get_subscription_metadata_fields_for_usage_type(UsageType.LOG_LOOKBACK_DAYS)
     )
 
-    # Get organizations we care about (either those in the 'organizations' param or all)
-    org_filter = Q(customer__subscriber_id__in=[org_id for org_id in organization_ids])
-
-    active_subscriptions = Subscription.objects.filter(
-        org_filter
-        & Q(status__in=ACTIVE_STRIPE_STATUSES)
-        & Q(items__price__product__metadata__product_type__in=['plan', 'addon'])
+    subscription_filter = Q(status__in=ACTIVE_STRIPE_STATUSES) & Q(
+        items__price__product__metadata__product_type__in=['plan', 'addon']
     )
+    # Restrict to the requested orgs only when a list is given: a multi-million-element
+    # `subscriber_id__in` IN clause is a multi-MB SQL string. `None` means all.
+    if organization_ids is not None:
+        subscription_filter &= Q(customer__subscriber_id__in=organization_ids)
+
+    active_subscriptions = Subscription.objects.filter(subscription_filter)
 
     most_recent_subs = (
         active_subscriptions.values(
