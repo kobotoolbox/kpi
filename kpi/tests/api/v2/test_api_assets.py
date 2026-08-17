@@ -1198,6 +1198,32 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         assert asset_detail_response.data['deployment__submission_count'] == 1
 
+    def test_project_view_assets_with_organization_less_owner(self):
+        """
+        A project view without `view_submissions` falls back to `has_perm()`,
+        which used to crash when the asset owner had no organization
+        """
+
+        someuser = User.objects.get(username='someuser')
+        someuser.organizations_organizationuser.all().delete()
+        # `date_removed` alone leaves the account active, so its projects are
+        # still listed and the serializer does reach the permission check
+        someuser.extra_details.date_removed = timezone.now()
+        someuser.extra_details.save()
+
+        self.client.force_login(self.anotheruser)
+        results = self.client.get(self.region_views_url).json()['results']
+        view = next(r for r in results if r['name'] == 'Test view 2')
+        assert view['permissions'] == [PERM_VIEW_ASSET]
+
+        regional_res = self.client.get(
+            view['assets'], headers={'accept': 'application/json'}
+        )
+        assert regional_res.status_code == status.HTTP_200_OK
+        regional_data = regional_res.json()
+        assert regional_data['count'] == 1
+        assert regional_data['results'][0]['deployment__submission_count'] is None
+
     def test_project_views_for_anotheruser(self):
         self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
@@ -2325,6 +2351,30 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         ]
         self.assertEqual(object_permission_queries, [])
         self.assertEqual(access_types, ['owned'])
+
+    def test_table_view_with_duplicate_node_names(self):
+        """
+        `table_view` must keep rendering forms saved before duplicate names
+        were forbidden instead of raising
+        """
+        self.asset.content = {
+            'survey': [
+                {'name': 'g1', 'type': 'begin_group', 'label': 'Group 1'},
+                {'name': 'q1', 'type': 'text', 'label': 'Group 1 Q1'},
+                {'type': 'end_group'},
+                {'name': 'g2', 'type': 'begin_group', 'label': 'Group 2'},
+                {'name': 'q1', 'type': 'text', 'label': 'Group 2 Q1'},
+                {'type': 'end_group'},
+            ],
+        }
+        self.asset.save()
+
+        response = self.client.get(
+            reverse(self._get_endpoint('asset-table-view'), args=(self.asset.uid,))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert 'Group 1 Q1' in response.content.decode()
+        assert 'Group 2 Q1' in response.content.decode()
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

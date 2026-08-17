@@ -1,7 +1,12 @@
+import re
+
 from allauth.account.admin import EmailAddressAdmin as BaseEmailAddressAdmin
 from allauth.account.signals import email_confirmed
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.dispatch import receiver
+
+EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9.-]+\.[a-zA-Z0-9_-]{2,}$')
 
 
 class EmailContent(models.Model):
@@ -86,7 +91,28 @@ class SocialAppCustomData(models.Model):
         related_name='custom_data',
     )
 
-    is_public = models.BooleanField(default=False, help_text='Display social login on login page')
+    is_public = models.BooleanField(
+        default=False, help_text='Display social login on login page'
+    )
+    managed = models.BooleanField(
+        default=False, help_text='Allow clients to manage users exclusively through SSO'
+    )
 
     def __str__(self):
         return f'{self.social_app.name} Custom Data'
+
+
+def validate_domain(value):
+    if EMAIL_DOMAIN_REGEX.fullmatch(value) is None:
+        raise ValidationError(f'Invalid email domain: {value}')
+
+
+class SocialAppManagedDomain(models.Model):
+    """
+    One-to-many model associating email domains with a given SSO provider
+    """
+
+    social_app = models.ForeignKey(
+        SocialAppCustomData, related_name='domains', on_delete=models.CASCADE
+    )
+    domain = models.CharField(unique=True, max_length=255, validators=[validate_domain])

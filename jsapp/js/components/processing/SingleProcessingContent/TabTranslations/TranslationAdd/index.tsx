@@ -8,14 +8,12 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import {
-  getSubmissionRootUuid,
-  isConflictingOngoingJobForSubmission,
-} from '#/components/processing/common/conflictingOngoingJob'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { getSubmissionRootUuid } from '#/utils'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import StepBegin from './StepBegin'

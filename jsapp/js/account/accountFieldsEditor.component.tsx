@@ -1,6 +1,5 @@
 import React from 'react'
 
-import cx from 'classnames'
 import Select from '#/components/common/Select'
 import { addRequiredToLabel } from '#/textUtils'
 import { recordValues } from '#/utils'
@@ -296,7 +295,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {isOrganizationTypeFieldToBeDisplayed() &&
           (fieldCount++,
           (
-            <div className={cx(styles.field, styles.orgTypeDropdown)}>
+            <div className={styles.field}>
               <Select
                 size='sm'
                 label={getLabel('organization_type')}

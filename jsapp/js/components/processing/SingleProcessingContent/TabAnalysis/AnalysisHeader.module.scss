@@ -1,11 +1,10 @@
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 @use 'scss/colors';
-@use 'js/components/common/koboSelect';
 
-// For now we just mimick the KoboSelect styles
-$option-height: koboSelect.$k-select-option-height;
-$menu-padding: koboSelect.$k-select-menu-padding;
+// For now we just mimick the dropdown option sizing
+$option-height: 36px;
+$menu-padding: 6px;
 
 .root {
   @include mixins.centerRowFlex;

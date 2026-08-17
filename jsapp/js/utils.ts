@@ -629,6 +629,22 @@ export function removeDefaultUuidPrefix(uuid: string) {
 }
 
 /**
+ * Returns the id that survives edits, prefix-less, the way the back end stores it.
+ *
+ * Use this to identify a submission, not `_uuid`. Editing a submission gives it a fresh `_uuid`, while
+ * `meta/rootUuid` keeps pointing at the original. Endpoints keyed by submission (supplements, bulk actions) store
+ * only the root uuid, so asking them about an edited submission by `_uuid` gets you "not found".
+ *
+ * The fallback covers submissions old enough to predate `meta/rootUuid`, whose `_uuid` never had a newer version to
+ * drift away from.
+ *
+ * 🐍 Mirrors `get_root_uuid_from_xml` on the backend.
+ */
+export function getSubmissionRootUuid(submission: { _uuid: string; 'meta/rootUuid'?: string }) {
+  return removeDefaultUuidPrefix(submission['meta/rootUuid'] || submission._uuid)
+}
+
+/**
  * Compare any two uuid's, accounting for the presence or absence of
  * the default `'uuid:'` prefix in `meta/instanceId` and `meta/rootUuid`.
  *
