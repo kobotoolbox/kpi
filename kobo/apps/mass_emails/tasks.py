@@ -345,11 +345,10 @@ class MassEmailSender:
             # run there. The record stays `enqueued` for the next run.
             raise
         except MailerProviderRateThrottledError as e:
-            logging.warning(
-                f'Provider rate limit hit, cooling down for '
-                f'{settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS}s: {e}'
-            )
-            sleep(settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS)
+            logging.warning(f'Provider rate limit hit, stopping this run: {e}')
+            # TODO(DEV-2693): needs its own non-blocking cooldown instead of
+            # being treated exactly like a quota-exhausted stop.
+            raise
         except MailerError as e:
             logging.warning(f'Error sending record {record}: {e}')
             record.status = EmailStatus.FAILED
@@ -386,7 +385,7 @@ def send_emails():
     sender = MassEmailSender()
     try:
         sender.send_day_emails()
-    except MailerProviderQuotaExhaustedError:
+    except (MailerProviderQuotaExhaustedError, MailerProviderRateThrottledError):
         # Already logged in `send_email()`. Nothing left to do this run: the
         # remaining `enqueued` records are picked up by the next hourly run.
         pass

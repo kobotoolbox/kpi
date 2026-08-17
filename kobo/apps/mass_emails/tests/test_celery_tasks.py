@@ -301,6 +301,17 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             send_emails()
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
 
+    def test_send_emails_stops_gracefully_on_rate_throttled(self):
+        # TODO(DEV-2693): currently the same treatment as quota-exhausted.
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        with patch(
+            'kobo.apps.mass_emails.tasks.MassEmailSender.send_day_emails',
+            side_effect=MailerProviderRateThrottledError('slow down'),
+        ):
+            send_emails()
+        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
+
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
         self._setup_common_test_data()
@@ -605,28 +616,26 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 1
         assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
 
-    def test_rate_throttled_error_cools_down_and_the_run_continues(self):
+    def test_rate_throttled_error_stops_the_run_immediately(self):
+        # TODO(DEV-2693): this currently matches quota-exhausted exactly -
+        # no blocking sleep fits inside the task's soft time limit. See the
+        # docstring on MailerProviderRateThrottledError.
         connection = MagicMock()
         with (
             patch('kpi.utils.mailer.get_connection', return_value=connection),
             patch(
                 'kobo.apps.mass_emails.tasks.Mailer.send',
-                side_effect=[
-                    MailerProviderRateThrottledError('slow down'),
-                    None,
-                    None,
-                ],
+                side_effect=[None, MailerProviderRateThrottledError('slow down')],
             ) as send_mock,
-            patch('kobo.apps.mass_emails.tasks.sleep') as sleep_mock,
+            pytest.raises(MailerProviderRateThrottledError),
         ):
             MassEmailSender().send_day_emails()
 
-        sleep_mock.assert_any_call(settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS)
-        assert send_mock.call_count == 3
-        # The throttled record is not written off: it stays enqueued for the
-        # next run instead of being marked failed
-        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 1
-        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+        assert send_mock.call_count == 2
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 1
+        # The throttled record, and the one never reached, stay enqueued
+        # rather than being written off as failed
+        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
 
     def test_quota_exhausted_error_stops_the_run_immediately(self):
         connection = MagicMock()

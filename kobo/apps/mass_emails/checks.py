@@ -46,20 +46,6 @@ def check_mass_email_send_settings(app_configs, **kwargs):
             )
         )
 
-    if settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS <= 0:
-        errors.append(
-            Error(
-                f'MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS is '
-                f'{settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS}, but must '
-                f'be greater than 0.',
-                hint=(
-                    'Set the MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS '
-                    'environment variable to a positive number.'
-                ),
-                id='mass_emails.E003',
-            )
-        )
-
     if settings.MAILER_CONNECTION_IDLE_TIMEOUT <= 0:
         errors.append(
             Error(
@@ -70,7 +56,7 @@ def check_mass_email_send_settings(app_configs, **kwargs):
                     'Set the MAILER_CONNECTION_IDLE_TIMEOUT environment '
                     'variable to a positive number.'
                 ),
-                id='mass_emails.E004',
+                id='mass_emails.E003',
             )
         )
 
