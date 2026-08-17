@@ -28,17 +28,47 @@ def check_mass_email_send_settings(app_configs, **kwargs):
             )
         )
 
-    if settings.MASS_EMAIL_SLEEP_SECONDS < 0:
+    if not (0 < settings.MASS_EMAIL_SEND_RATE_RATIO <= 0.5):
         errors.append(
             Error(
-                f'MASS_EMAIL_SLEEP_SECONDS is '
-                f'{settings.MASS_EMAIL_SLEEP_SECONDS}, but must not be '
-                f'negative.',
+                f'MASS_EMAIL_SEND_RATE_RATIO is '
+                f'{settings.MASS_EMAIL_SEND_RATE_RATIO}, but must be greater '
+                f'than 0 and at most 0.5.',
                 hint=(
-                    'Set the MASS_EMAIL_SLEEP_SECONDS environment variable '
-                    'to 0 or a positive integer.'
+                    'Set the MASS_EMAIL_SEND_RATE_RATIO environment variable '
+                    'to a value between 0 (exclusive) and 0.5 (inclusive), '
+                    'so two full budget windows landing back to back still '
+                    "can't exceed the provider's real rate limit."
                 ),
                 id='mass_emails.E002',
+            )
+        )
+
+    if settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS <= 0:
+        errors.append(
+            Error(
+                f'MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS is '
+                f'{settings.MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS}, but must '
+                f'be greater than 0.',
+                hint=(
+                    'Set the MASS_EMAIL_THROTTLE_COOLDOWN_SECONDS '
+                    'environment variable to a positive number.'
+                ),
+                id='mass_emails.E003',
+            )
+        )
+
+    if settings.MAILER_CONNECTION_IDLE_TIMEOUT <= 0:
+        errors.append(
+            Error(
+                f'MAILER_CONNECTION_IDLE_TIMEOUT is '
+                f'{settings.MAILER_CONNECTION_IDLE_TIMEOUT}, but must be '
+                f'greater than 0.',
+                hint=(
+                    'Set the MAILER_CONNECTION_IDLE_TIMEOUT environment '
+                    'variable to a positive number.'
+                ),
+                id='mass_emails.E004',
             )
         )
 
