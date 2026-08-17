@@ -62,10 +62,15 @@ export default function MembersRoute() {
     queryParams.ordering = `${orderPrefix}${order.fieldName}`
   }
 
-  /** Sorting affects which rows land on which page, so we go back to the first page whenever it changes. */
+  /**
+   * Sorting affects which rows land on which page, so we go back to the first page whenever it changes. Updating from
+   * the latest state, so we don't reset `limit` to a stale page size.
+   */
   function updateOrder(newOrder: SortableColumnOrder<MembersTableOrderableField>) {
     setOrder(newOrder)
-    setPagination({ ...pagination, start: 0 })
+    setPagination((currentPagination) => {
+      return { ...currentPagination, start: 0 }
+    })
   }
 
   const membersQuery = useOrganizationsMembersList(organization.id, queryParams, {
