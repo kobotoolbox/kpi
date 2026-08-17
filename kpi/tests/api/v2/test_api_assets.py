@@ -306,6 +306,94 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    def test_search_assets_by_multiple_tags(self):
+        # DEV-1581: AND on the to-many `tags` must mean "has both tags"
+        someuser = User.objects.get(username='someuser')
+        foo_asset = Asset.objects.create(
+            owner=someuser, name='foo only', asset_type='survey'
+        )
+        foo_asset.tags.add('foo')
+        bar_asset = Asset.objects.create(
+            owner=someuser, name='bar only', asset_type='survey'
+        )
+        bar_asset.tags.add('bar')
+        both_asset = Asset.objects.create(
+            owner=someuser, name='foo and bar', asset_type='survey'
+        )
+        both_asset.tags.add('foo', 'bar')
+        # Non-survey assets, to exercise the AND nested in an OR against a
+        # branch (`asset_type:survey`) they do not match
+        both_collection = Asset.objects.create(
+            owner=someuser, name='foo and bar collection', asset_type='collection'
+        )
+        both_collection.tags.add('foo', 'bar')
+        foo_collection = Asset.objects.create(
+            owner=someuser, name='foo collection', asset_type='collection'
+        )
+        foo_collection.tags.add('foo')
+
+        def uids(query):
+            return sorted(
+                r['uid']
+                for r in self.client.get(self.list_url, data={'q': query}).data[
+                    'results'
+                ]
+            )
+
+        # AND: only the assets carrying both tags
+        self.assertEqual(
+            uids('tags__name:foo AND tags__name:bar'),
+            sorted([both_asset.uid, both_collection.uid]),
+        )
+        # single tag: every asset carrying it (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo'),
+            sorted(
+                [foo_asset.uid, both_asset.uid, both_collection.uid, foo_collection.uid]
+            ),
+        )
+        # OR: any of the tags (regression guard)
+        self.assertEqual(
+            uids('tags__name:foo OR tags__name:bar'),
+            sorted(
+                [
+                    foo_asset.uid,
+                    bar_asset.uid,
+                    both_asset.uid,
+                    both_collection.uid,
+                    foo_collection.uid,
+                ]
+            ),
+        )
+        # OR nested inside an AND on the same to-many: with a single shared
+        # join this would wrongly return nothing
+        self.assertEqual(
+            uids('tags__name:foo AND (tags__name:bar OR name__icontains:zzz)'),
+            sorted([both_asset.uid, both_collection.uid]),
+        )
+        # AND-of-tags nested inside an OR must still match (Olivier's report).
+        # Assert membership rather than equality: the `asset_type:survey` branch
+        # also returns unrelated survey assets from the fixtures.
+        nested_or = uids('(tags__name:foo AND tags__name:bar) OR asset_type:survey')
+        # both-tagged collection is returned even though it is no survey
+        self.assertIn(both_collection.uid, nested_or)
+        # the foo-only collection matches neither branch and stays out
+        self.assertNotIn(foo_collection.uid, nested_or)
+
+    def test_search_rejects_disallowed_lookup_field(self):
+        # DEV-2417 / kpi#7243 regression: the allowlist must keep blocking
+        # sensitive lookup paths after the query-parser refactor
+        response = self.client.get(self.list_url, data={'q': 'owner__password:x'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_search_rejects_too_many_relational_filters(self):
+        # Over the to-many cap, the API must answer 400 like other parser
+        # errors, not 500
+        limit = settings.QUERY_PARSER_MAX_TO_MANY_FILTERS
+        query = ' OR '.join(f'tags__name:t{i}' for i in range(limit + 1))
+        response = self.client.get(self.list_url, data={'q': query})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_numeric_search_for_assets_does_not_crash(self):
         someuser = User.objects.get(username='someuser')
 
@@ -1109,6 +1197,32 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             asset['url'], headers={'accept': 'application/json'}
         )
         assert asset_detail_response.data['deployment__submission_count'] == 1
+
+    def test_project_view_assets_with_organization_less_owner(self):
+        """
+        A project view without `view_submissions` falls back to `has_perm()`,
+        which used to crash when the asset owner had no organization
+        """
+
+        someuser = User.objects.get(username='someuser')
+        someuser.organizations_organizationuser.all().delete()
+        # `date_removed` alone leaves the account active, so its projects are
+        # still listed and the serializer does reach the permission check
+        someuser.extra_details.date_removed = timezone.now()
+        someuser.extra_details.save()
+
+        self.client.force_login(self.anotheruser)
+        results = self.client.get(self.region_views_url).json()['results']
+        view = next(r for r in results if r['name'] == 'Test view 2')
+        assert view['permissions'] == [PERM_VIEW_ASSET]
+
+        regional_res = self.client.get(
+            view['assets'], headers={'accept': 'application/json'}
+        )
+        assert regional_res.status_code == status.HTTP_200_OK
+        regional_data = regional_res.json()
+        assert regional_data['count'] == 1
+        assert regional_data['results'][0]['deployment__submission_count'] is None
 
     def test_project_views_for_anotheruser(self):
         self.client.force_login(self.anotheruser)
@@ -2237,6 +2351,30 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         ]
         self.assertEqual(object_permission_queries, [])
         self.assertEqual(access_types, ['owned'])
+
+    def test_table_view_with_duplicate_node_names(self):
+        """
+        `table_view` must keep rendering forms saved before duplicate names
+        were forbidden instead of raising
+        """
+        self.asset.content = {
+            'survey': [
+                {'name': 'g1', 'type': 'begin_group', 'label': 'Group 1'},
+                {'name': 'q1', 'type': 'text', 'label': 'Group 1 Q1'},
+                {'type': 'end_group'},
+                {'name': 'g2', 'type': 'begin_group', 'label': 'Group 2'},
+                {'name': 'q1', 'type': 'text', 'label': 'Group 2 Q1'},
+                {'type': 'end_group'},
+            ],
+        }
+        self.asset.save()
+
+        response = self.client.get(
+            reverse(self._get_endpoint('asset-table-view'), args=(self.asset.uid,))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert 'Group 1 Q1' in response.content.decode()
+        assert 'Group 2 Q1' in response.content.decode()
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

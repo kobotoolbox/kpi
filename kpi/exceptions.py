@@ -176,6 +176,11 @@ class QueryParserNotSupportedFieldLookup(InvalidSearchException):
     default_code = 'not_supported_field_lookup'
 
 
+class QueryParserTooManyRelationalFilters(InvalidSearchException):
+    default_detail = t('Too many relational filters in the search query')
+    default_code = 'query_parser_too_many_relational_filters'
+
+
 class ReadOnlyModelError(Exception):
 
     def __init__(self, msg='This model is read only', *args, **kwargs):
