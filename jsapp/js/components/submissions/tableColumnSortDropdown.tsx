@@ -5,6 +5,7 @@ import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
 import { SortValues } from '#/components/submissions/tableConstants'
 import envStore from '#/envStore'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 interface TableColumnSortDropdownProps {
   /** one of table columns */
@@ -39,7 +40,9 @@ interface TableColumnSortDropdownProps {
  */
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const isBulkProcessingEnabled = envStore.data.asr_mt_features_enabled
+  const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
+  const isAsrMtFeaturesEnabled = envStore.data.asr_mt_features_enabled
+  const isBulkProcessingEnabled = isBulkProcessingFeatureEnabled && isAsrMtFeaturesEnabled
 
   const canTranscribeSelectedAudioFiles =
     isBulkProcessingEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)

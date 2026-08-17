@@ -7,6 +7,7 @@ import {
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
 import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
 
@@ -19,6 +20,15 @@ jest.mock('#/api/react-query/survey-data', () => {
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     ),
     useAssetsAdvancedFeaturesBulkActionsList: jest.fn(),
+  }
+})
+
+jest.mock('#/featureFlags', () => {
+  return {
+    FeatureFlag: {
+      bulkProcessingEnabled: 'bulkProcessingEnabled',
+    },
+    useFeatureFlag: jest.fn(),
   }
 })
 
@@ -65,6 +75,7 @@ function buildBulkAction(
 }
 
 describe('useDataTableBulkActions', () => {
+  const useFeatureFlagMock = useFeatureFlag as jest.MockedFunction<typeof useFeatureFlag>
   const useSessionMock = useSession as jest.MockedFunction<typeof useSession>
   const useBulkActionsListMock = useAssetsAdvancedFeaturesBulkActionsList as jest.MockedFunction<
     typeof useAssetsAdvancedFeaturesBulkActionsList
@@ -107,7 +118,22 @@ describe('useDataTableBulkActions', () => {
     envStore.data.asr_mt_features_enabled = true
   })
 
+  it('returns no active actions and false when feature flag is disabled', () => {
+    useFeatureFlagMock.mockReturnValue(false)
+    mockSession('zefir')
+    mockBulkActions([
+      buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user'),
+      buildBulkAction(BulkActionResponseStatusEnum.pending, 'other-user'),
+    ])
+
+    const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
+
+    chai.expect(result.current.activeBulkActions).to.deep.equal([])
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
+  })
+
   it('returns no active actions and false when ASR/MT features are disabled in env', () => {
+    useFeatureFlagMock.mockReturnValue(true)
     envStore.data.asr_mt_features_enabled = false
     mockSession('zefir')
     mockBulkActions([
@@ -122,6 +148,7 @@ describe('useDataTableBulkActions', () => {
   })
 
   it('filters to pending/in-progress actions and returns true when current user has an active action', () => {
+    useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
     mockBulkActions([
       buildBulkAction(BulkActionResponseStatusEnum.pending, 'zefir'),
@@ -139,6 +166,7 @@ describe('useDataTableBulkActions', () => {
   })
 
   it('returns true when all active actions were created by current user', () => {
+    useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
     mockBulkActions([
       buildBulkAction(BulkActionResponseStatusEnum.pending, 'zefir'),
@@ -152,6 +180,7 @@ describe('useDataTableBulkActions', () => {
   })
 
   it('returns false when current username is not available yet', () => {
+    useFeatureFlagMock.mockReturnValue(true)
     mockSession(undefined, true)
     mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user')])
 
@@ -162,6 +191,7 @@ describe('useDataTableBulkActions', () => {
   })
 
   it('returns true for hasActiveBulkActionsCreatedByCurrentUser when current user has active actions', () => {
+    useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
     mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir')])
 
@@ -172,6 +202,7 @@ describe('useDataTableBulkActions', () => {
   })
 
   it('returns false for hasActiveBulkActionsCreatedByCurrentUser when only other users have active actions', () => {
+    useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
     mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user')])
 
