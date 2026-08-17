@@ -2,9 +2,9 @@
  * Entry point of the standalone error pages app (404 / 50x), built as its own
  * webpack bundle so it renders even when the main app can't.
  *
- * ‼️ Keep this bundle self-contained: no imports from `#/theme`,
+ * NOTE: Keep this bundle self-contained: don't import from `#/theme`,
  * `#/components/common`, `#/utils`, any store, or anything touching the API
- * layer, because those barrels drag in most of the main app. Import Mantine
+ * layer, because those can drag in most of the main app. Import Mantine
  * primitives directly instead. `scripts/check_error_bundle_isolation.js` fails
  * the build if this entry starts sharing a chunk with the main app, but it can
  * only catch the worst case.
