@@ -9316,7 +9316,7 @@ paths:
         - `user__username`
         - `status`
         - `date_joined` (or `date_added`, `created`)
-        - `role`
+        - `role` (sorted by privilege rank: `member` → `admin` → `owner`)
         - `user__has_sso_enabled`
 
         Prefix field names with `-` for descending sort.
@@ -9352,7 +9352,8 @@ paths:
           - status
           - user__has_sso_enabled
           - user__username
-        description: Which field to use when ordering the results.
+        description: 'Which field to use when ordering the results. Note: `role` sorts
+          by privilege rank (`member` → `admin` → `owner`).'
       - name: start
         required: false
         in: query
