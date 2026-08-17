@@ -21,8 +21,15 @@ class MassEmailSendSettingsCheckTestCase(TestCase):
         errors = run_checks()
         assert any(e.id == 'mass_emails.E002' for e in errors)
 
-    @override_settings(MASS_EMAIL_SEND_RATE_RATIO=0.51)
-    def test_send_rate_ratio_above_half_fails(self):
+    @override_settings(MASS_EMAIL_SEND_RATE_RATIO=0.75)
+    def test_send_rate_ratio_above_half_is_allowed(self):
+        # Above 0.5 risks bursting past the provider's rate limit near a
+        # window boundary, but it's the admin's call, not a hard block.
+        errors = run_checks()
+        assert not any(e.id == 'mass_emails.E002' for e in errors)
+
+    @override_settings(MASS_EMAIL_SEND_RATE_RATIO=1.01)
+    def test_send_rate_ratio_above_one_fails(self):
         errors = run_checks()
         assert any(e.id == 'mass_emails.E002' for e in errors)
 

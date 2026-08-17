@@ -148,7 +148,9 @@ class Invite(AbstractTimeStampedModel):
         try:
             Mailer.send(email_message)
         except MailerError as e:
-            logging.warning(f'Failed to send project ownership transfer invite email: {e}')
+            logging.warning(
+                f'Failed to send project ownership transfer invite email: {e}'
+            )
 
     def send_refusal_email(self):
 

@@ -269,7 +269,7 @@ class TestClassifySmtpException(TestCase):
         exc = SMTPResponseException(
             550,
             b"5.1.90 Your message can't be sent because you've reached your "
-            b"daily limit for message recipients",
+            b"daily limit for message recipients",  # noqa Q000
         )
 
         error = Mailer._classify_smtp_exception(exc)
@@ -280,7 +280,7 @@ class TestClassifySmtpException(TestCase):
         exc = SMTPResponseException(
             550,
             b"5.2.121 Recipient's per hour message receive limit from "
-            b"specific sender exceeded",
+            b"specific sender exceeded",  # noqa Q000
         )
 
         error = Mailer._classify_smtp_exception(exc)

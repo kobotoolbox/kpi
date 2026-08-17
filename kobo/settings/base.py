@@ -1845,6 +1845,9 @@ MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
 MASS_EMAIL_THROTTLE_PER_SECOND = env.int('MASS_EMAIL_THROTTLE_PER_SECOND', 40)
 # Some servers can share the same provider account and quota diluting their share of it
 # further than transactional email alone would.
+# 0.5 or below is recommended so two full budget windows landing back to
+# back still can't exceed the provider's rate limit; higher is allowed if
+# an admin accepts the risk of bursting past it near a window boundary.
 MASS_EMAIL_SEND_RATE_RATIO = env.float('MASS_EMAIL_SEND_RATE_RATIO', 0.35)
 # Cooldown after a provider rate-throttle response (see kpi.exceptions.MailerProviderRateThrottledError).  # noqa: E501
 # SMTP gives no Retry-After, so there's no real signal for how long to wait.
