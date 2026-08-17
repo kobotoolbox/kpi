@@ -6,8 +6,10 @@ from django.db import models
 from django.utils.translation import gettext as t
 
 from kobo.apps.organizations.utils import get_real_owner
+from kpi.exceptions import MailerError
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 
 from .choices import InviteStatusChoices
@@ -102,7 +104,12 @@ class Invite(AbstractTimeStampedModel):
             language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(
+                f'Failed to send project ownership transfer acceptance email: {e}'
+            )
 
     def send_invite_email(self):
 
@@ -138,7 +145,10 @@ class Invite(AbstractTimeStampedModel):
             language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send project ownership transfer invite email: {e}')
 
     def send_refusal_email(self):
 
@@ -164,7 +174,12 @@ class Invite(AbstractTimeStampedModel):
             language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(
+                f'Failed to send project ownership transfer refusal email: {e}'
+            )
 
 
 class OrgMembershipAutoInviteManager(models.Manager):
