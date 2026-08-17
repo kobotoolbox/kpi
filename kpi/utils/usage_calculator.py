@@ -64,7 +64,7 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
 
     # clamp: 0 would make range() raise, a negative value would skip
     # every chunk
-    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_CHUNK_SIZE)
+    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
     results = {}
     for (start, end), user_ids in windows.items():
         for start_idx in range(0, len(user_ids), chunk_size):
@@ -122,7 +122,7 @@ def get_submission_counts_in_date_range_by_user_id(
 
     # clamp: 0 would make range() raise, a negative value would skip
     # every chunk
-    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_CHUNK_SIZE)
+    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
     results = {}
     for (start, end), user_ids in windows.items():
         for start_idx in range(0, len(user_ids), chunk_size):

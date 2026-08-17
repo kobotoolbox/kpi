@@ -456,11 +456,11 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             unchunked = get_submissions_for_current_billing_period_by_user_id()
             # both users now share one window, so a chunk size of 1 forces the
             # multi-chunk merge path
-            with override_settings(USAGE_QUERY_USER_ID_CHUNK_SIZE=1):
+            with override_settings(USAGE_QUERY_USER_ID_BATCH_SIZE=1):
                 chunked = get_submissions_for_current_billing_period_by_user_id()
             # a misconfigured chunk size must clamp to 1, not crash or
             # silently skip users
-            with override_settings(USAGE_QUERY_USER_ID_CHUNK_SIZE=0):
+            with override_settings(USAGE_QUERY_USER_ID_BATCH_SIZE=0):
                 clamped = get_submissions_for_current_billing_period_by_user_id()
 
         assert chunked == unchunked

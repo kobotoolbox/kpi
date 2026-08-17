@@ -2396,6 +2396,7 @@ LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
 S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
+USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
@@ -2434,8 +2435,3 @@ ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
 LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
     'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
 )
-
-# Fleet-wide usage queries filter on `user_id__in=<all users>`; at full scale
-# that is a multi-million-element IN clause. Split it into chunks of this size
-# and run one query per chunk.
-USAGE_QUERY_USER_ID_CHUNK_SIZE = env.int('USAGE_QUERY_USER_ID_CHUNK_SIZE', 20000)

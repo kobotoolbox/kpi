@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime
+from types import MappingProxyType
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -23,9 +24,11 @@ def get_current_billing_period_dates_by_org(
     first_of_next_month = first_of_this_month + relativedelta(months=1)
 
     if not settings.STRIPE_ENABLED:
-        # Callers only read these dates, so share one object across all orgs and
-        # stream ids to avoid loading millions of full Organization instances.
-        shared_dates = {'start': first_of_this_month, 'end': first_of_next_month}
+        # Share one read-only dates mapping across all orgs and stream ids to
+        # avoid loading millions of full Organization instances.
+        shared_dates = MappingProxyType(
+            {'start': first_of_this_month, 'end': first_of_next_month}
+        )
         results = {}
         if orgs is not None:
             for org in orgs:
@@ -81,9 +84,12 @@ def get_current_billing_period_dates_by_org(
             }
         return results
 
-    # Share one dates object across every default org and stream ids to avoid
-    # loading millions of full instances and shipping a giant NOT-IN clause.
-    shared_dates = {'start': first_of_this_month, 'end': first_of_next_month}
+    # Share one read-only dates mapping across every default org and stream ids
+    # to avoid loading millions of full instances and shipping a giant NOT-IN
+    # clause.
+    shared_dates = MappingProxyType(
+        {'start': first_of_this_month, 'end': first_of_next_month}
+    )
     for org_id in Organization.objects.values_list('id', flat=True).iterator():
         if org_id in already_seen:
             continue

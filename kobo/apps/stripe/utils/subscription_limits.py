@@ -1,4 +1,6 @@
+from copy import deepcopy
 from math import inf
+from types import MappingProxyType
 from typing import Optional
 
 from django.apps import apps
@@ -161,20 +163,21 @@ def get_organizations_subscription_limits(
         else:
             default_plan_limits[limit_key] = default_limit
 
-    # The vast majority of orgs have no subscription row and therefore identical, pure
-    # default limits. Build that dict once and share the same object across all
-    # such orgs instead of allocating millions of identical dicts. Callers that mutate
-    # a returned dict (e.g. the addon merge in
-    # `get_organizations_effective_limits`) MUST copy it first.
-    default_limits = {}
-    for usage_type, _ in UsageType.choices:
-        default_limits[f'{usage_type}_limit'] = determine_limit(
-            usage_type,
-            None,
-            None,
-            default_plan_limits[f'{usage_type}_limit'],
-            include_storage_addons,
-        )
+    # The vast majority of orgs have no subscription row and therefore identical,
+    # pure default limits: build them once and share one read-only mapping across
+    # all such orgs instead of allocating millions of identical dicts.
+    default_limits = MappingProxyType(
+        {
+            f'{usage_type}_limit': determine_limit(
+                usage_type,
+                None,
+                None,
+                default_plan_limits[f'{usage_type}_limit'],
+                include_storage_addons,
+            )
+            for usage_type, _ in UsageType.choices
+        }
+    )
 
     results = {}
     for org_id in all_org_ids:
@@ -232,9 +235,8 @@ def get_organizations_effective_limits(
         else:
             # Avoid loading millions of full Organization instances just to read ids.
             org_ids = Organization.objects.values_list('id', flat=True).iterator()
-        # Share one default-limits object across all orgs; callers that mutate a
-        # returned dict must copy it first.
-        shared_default_limits = _get_default_usage_limits()
+        # Share one read-only default-limits mapping across all orgs.
+        shared_default_limits = MappingProxyType(_get_default_usage_limits())
         return {org_id: shared_default_limits for org_id in org_ids}
 
     effective_limits = get_organizations_subscription_limits(
@@ -248,9 +250,9 @@ def get_organizations_effective_limits(
             limits = effective_limits.get(org_id)
             if limits is None:
                 continue
-            # `limits` may be the shared default object reused across orgs; copy
-            # before mutating so we don't corrupt every other org's limits.
-            limits = dict(limits)
+            # `limits` may be the read-only default mapping shared across orgs;
+            # copy before mutating (`dict()` first: deepcopy rejects mappingproxy)
+            limits = deepcopy(dict(limits))
             for usage_type, _ in UsageType.choices:
                 addon = org_addons.get(f'total_{usage_type}_limit', 0)
                 limits[f'{usage_type}_limit'] += addon
