@@ -1,11 +1,14 @@
 # coding: utf-8
 import constance
+from allauth.socialaccount.models import SocialApp
 from constance.test import override_config
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
 
+from kobo.apps.accounts.tests.constants import SOCIALACCOUNT_PROVIDERS
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.kobo_auth.shortcuts import User
 
 
@@ -147,3 +150,28 @@ class RegistrationTestCase(TestCase):
             response.content
         )
         self.assertFalse(User.objects.filter(username='alice').exists())
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
+    def test_managed_social_app(self):
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        extra = SocialAppCustomData.objects.create(social_app=social_app)
+        extra.domains.add(SocialAppManagedDomain(domain='example.com'))
+        data = self.valid_data.copy()
+        data['email'] = 'user@example.com'
+
+        response = self.client.post(
+            reverse('account_signup'), data=data
+        )
+        self.assertIn(
+            b'Account creation restricted for this server. '
+            b'Your organization uses a separate private KoboToolbox server. '
+            b'Please contact your organization support team for assistance.',
+            response.content
+        )
+        self.assertFalse(User.objects.filter(username='alice').exists())
+

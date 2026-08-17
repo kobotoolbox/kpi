@@ -1,11 +1,14 @@
 from allauth.socialaccount.models import SocialApp
+from constance.test import override_config
 from django.test import TestCase, override_settings
+from ddt import ddt, data, unpack
 
 from kobo.apps.accounts.models import SocialAppCustomData
-from kobo.apps.accounts.templatetags.get_provider_appname import get_social_apps
+from kobo.apps.accounts.templatetags.get_provider_appname import get_social_apps, get_social_only
 from .constants import SOCIALACCOUNT_PROVIDERS
+from ..models import SocialAppManagedDomain
 
-
+@ddt
 @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
 class TemplateTagsTestCase(TestCase):
     @classmethod
@@ -37,3 +40,24 @@ class TemplateTagsTestCase(TestCase):
         )
         custom_data.save()
         assert list(get_social_apps()) == [self.social_app]
+
+    @data(
+        # registration open, domain present, expected result
+        (True, True, False),
+        (True, False, False),
+        (False, True, True),
+        (False, False, False)
+    )
+    @unpack
+    def test_social_only(self, registration_open, domain_present, expected_result):
+        if domain_present:
+            custom_data = SocialAppCustomData.objects.create(
+                social_app=self.social_app,
+                is_public=True
+            )
+            SocialAppManagedDomain.objects.create(
+                domain='example.com',
+                social_app=custom_data,
+            )
+        with override_config(REGISTRATION_OPEN=registration_open):
+            assert get_social_only() is expected_result
