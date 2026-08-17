@@ -1,9 +1,9 @@
 import React from 'react'
 
+import type { MantineSize } from '@mantine/core'
 import isEqual from 'lodash.isequal'
-import type { ButtonSize } from '#/components/common/button'
-import KoboSelect from '#/components/common/koboSelect'
-import type { KoboSelectOption, KoboSelectType } from '#/components/common/koboSelect'
+import Select from '#/components/common/Select'
+import type { ComboboxItem } from '#/components/common/select.types'
 import languagesStore from '#/components/languages/languagesStore'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getLanguageDisplayLabel } from '#/components/languages/languagesUtils'
@@ -14,19 +14,17 @@ interface TransxSelectorProps {
   selectedLanguage?: LanguageCode
   onChange: (code: LanguageCode | null) => void
   disabled?: boolean
-  /** Same as KoboSelect sizing */
-  size: ButtonSize
-  /** Same as KoboSelect types */
-  type: KoboSelectType
+  /** Same as Select sizing */
+  size?: MantineSize
 }
 
 interface TransxSelectorState {
   selectedOption: LanguageCode | null
-  options?: KoboSelectOption[]
+  options?: Array<ComboboxItem<LanguageCode>>
 }
 
 /**
- * This is a wrapper component for `KoboSelect`. We need it because we only
+ * This is a wrapper component for `Select`. We need it because we only
  * have access to language codes, but we also need names for them, thus
  * `languagesStore` needs to be put into action.
  */
@@ -54,7 +52,7 @@ export default class TransxSelector extends React.Component<TransxSelectorProps,
     // Start by clearing the options
     this.setState({ options: undefined })
     if (this.props.languageCodes) {
-      const newOptions: KoboSelectOption[] = []
+      const newOptions: Array<ComboboxItem<LanguageCode>> = []
       this.props.languageCodes.forEach(async (languageCode) => {
         let languageName = languageCode
         try {
@@ -99,14 +97,13 @@ export default class TransxSelector extends React.Component<TransxSelectorProps,
   render() {
     if (this.state.options && this.isInitialised) {
       return (
-        <KoboSelect
-          name='transx-selector'
-          type={this.props.type}
+        <Select<LanguageCode>
           size={this.props.size}
-          selectedOption={this.state.selectedOption ? this.state.selectedOption : null}
-          options={this.state.options}
+          clearable={false}
+          value={this.state.selectedOption ? this.state.selectedOption : null}
+          data={this.state.options}
           onChange={this.onSelectChange.bind(this)}
-          isDisabled={this.props.disabled}
+          disabled={this.props.disabled}
         />
       )
     }

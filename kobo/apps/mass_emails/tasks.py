@@ -318,10 +318,18 @@ class MassEmailSender:
                 # message the server simply refused. Only the former is worth
                 # reconnecting for, and it would otherwise fail every remaining
                 # record of the run.
+                #
+                # Don't resend this particular message on the fresh
+                # connection: a dropped connection can happen right after the
+                # server already accepted the message but before we read its
+                # acknowledgement, so we can't tell a lost send apart from a
+                # lost confirmation. Resending would risk a duplicate. Just
+                # reconnect for the records still to come and report this one
+                # failed, same as before the connection was reused across the
+                # whole run.
                 if not is_connection_alive(self.connection):
                     logging.warning('SMTP connection lost, reconnecting')
                     reset_connection(self.connection)
-                    sent = Mailer.send(message, connection=self.connection)
         except SoftTimeLimitExceeded:
             # Let this propagate: it must not be recorded as a failure. The
             # record stays `enqueued` and is picked up by the next run.

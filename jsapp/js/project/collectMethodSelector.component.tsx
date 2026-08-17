@@ -1,6 +1,6 @@
 import React from 'react'
 
-import KoboSelect from '#/components/common/koboSelect'
+import Select from '#/components/common/Select'
 import { COLLECTION_METHODS, type CollectionMethodName } from '#/constants'
 import { recordEntries } from '#/utils'
 import styles from './collectMethodSelector.module.scss'
@@ -23,17 +23,14 @@ export default function CollectMethodSelector(props: CollectMethodSelectorProps)
   }
 
   return (
-    <KoboSelect
-      name='collect-method-selector'
-      type='outline'
-      size='m'
-      placement={'down-left'}
-      isClearable={false}
-      options={methodsList}
-      selectedOption={props.selectedMethod}
+    <Select
+      size='sm'
+      clearable={false}
+      data={methodsList}
+      value={props.selectedMethod}
       onChange={(newMethod) => {
         if (newMethod !== null) {
-          props.onChange(newMethod as CollectionMethodName)
+          props.onChange(newMethod)
         }
       }}
       className={styles.collectMethodSelector}
