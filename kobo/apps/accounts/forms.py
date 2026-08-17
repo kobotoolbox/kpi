@@ -15,6 +15,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as t
 
+from .models import SocialAppManagedDomain
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
@@ -239,6 +240,11 @@ class KoboSignupMixin(forms.Form):
                 constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
             )
 
+        managed = SocialAppManagedDomain.objects.filter(domain__iexact=domain).exists()
+        if managed:
+            raise forms.ValidationError('Your organization has restricted '
+                                        'the use of passwords. '
+                                        'Please sign up using SSO instead.')
         allowed_domains = (
             constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
         )
@@ -252,6 +258,7 @@ class KoboSignupMixin(forms.Form):
             raise forms.ValidationError(
                 constance.config.REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE
             )
+
 
 
 class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):

@@ -5,10 +5,12 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
+from .models import SocialAppManagedDomain
+
 
 class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
-        return config.REGISTRATION_OPEN
+        return config.REGISTRATION_OPEN or SocialAppManagedDomain.objects.exists()
 
     def login(self, request, user):
         # Override django-allauth login method to use specified authentication backend
