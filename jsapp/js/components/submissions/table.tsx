@@ -30,12 +30,13 @@ import {
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import { goToSubmission } from '#/components/submissions/single/submissionRouting'
 import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
   ReactTableState,
-  SubmissionPageName,
+  ReactTableStateFilteredItem,
   TableColumn,
 } from '#/components/submissions/table.types'
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
@@ -62,6 +63,7 @@ import {
   isTableColumnFilterableByTextInput,
   selectNestedRow,
 } from '#/components/submissions/tableUtils'
+import { getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
@@ -73,7 +75,7 @@ import {
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
-import { EnketoActions, GROUP_TYPES_BEGIN, MODAL_TYPES, QUESTION_TYPES } from '#/constants'
+import { EnketoActions, GROUP_TYPES_BEGIN, QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type {
   AssetResponse,
@@ -89,8 +91,6 @@ import type {
 import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
-import type { PageStateStoreState } from '#/pageState.store'
 import { addDefaultUuidPrefix, getSubmissionRootUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
@@ -127,7 +127,6 @@ interface DataTableState {
   /** A list of rows that are selected. */
   selectedRows: DataTableSelectedRows
   selectAll: boolean
-  submissionPager?: SubmissionPageName
   /** state of react-table table */
   fetchState?: ReactTableState
   /** instance data of react-table table */
@@ -158,14 +157,27 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   private unlisteners: Function[] = []
 
+  /**
+   * How the table was last left (see `tableViewState`). Captured once, because
+   * `react-table` compares the `default*` props it is given against the previous
+   * ones and resets the table whenever they differ.
+   */
+  private readonly initialPageSize: number
+  private readonly initialFiltered: ReactTableStateFilteredItem[]
+
   constructor(props: DataTableProps) {
     super(props)
+
+    const viewState = getTableViewState(props.asset.uid)
+    this.initialPageSize = viewState?.pageSize ?? DEFAULT_PAGE_SIZE
+    this.initialFiltered = viewState?.filtered ?? []
+
     this.state = {
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
       isFullscreen: false,
-      pageSize: 30,
+      pageSize: this.initialPageSize,
       currentPage: 0,
       error: false,
       errorNumber: null,
@@ -177,7 +189,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
-      submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
     }
@@ -186,7 +197,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   componentDidMount() {
     this.unlisteners.push(
       tableStore.listen(this.onTableStoreChange.bind(this), this),
-      pageState.listen(this.onPageStateUpdated.bind(this)),
       actions.resources.updateSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
@@ -194,7 +204,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         this.onSubmissionValidationStatusChange.bind(this),
       ),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
-      actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
       actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
@@ -390,19 +399,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   ) {
     const results = response.results
     if (results && results.length > 0) {
-      if (this.state.submissionPager === 'next') {
-        this.submissionModalProcessing(String(results[0]._id), results)
-      }
-      if (this.state.submissionPager === 'prev') {
-        this.submissionModalProcessing(String(results[results.length - 1]._id), results)
-      }
       this.setState(
         {
           loading: false,
           selectedRows: {},
           selectAll: false,
           submissions: results,
-          submissionPager: undefined,
           resultsTotal: response.count,
         },
         () => {
@@ -685,7 +687,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               iconName='view'
               size='sm'
               onClick={() => {
-                this.launchSubmissionModal(row.original._id)
+                this.goToSubmission(row.original)
               }}
             />
 
@@ -1017,15 +1019,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
   }
 
-  onDuplicateSubmissionCompleted({}, sid: string, duplicatedSubmission: SubmissionResponse) {
-    // Load fresh table of submissions
-    if (this.state.fetchInstance) {
-      this.fetchSubmissions(this.state.fetchInstance)
-    }
-    // Open submission modal
-    this.submissionModalProcessing(sid, this.state.submissions, true, duplicatedSubmission)
-  }
-
   onTableStoreChange(newData: TableStoreData) {
     // Note: closing the table settings modal after a save is owned by the modal
     // instance itself (see `TableSettings`), so it isn't handled here.
@@ -1065,41 +1058,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       fetchState: tableState,
       fetchInstance: tableInstance,
     })
+
+    // Remember how the table is set up, so that leaving it for a submission
+    // record and coming back doesn't drop the user's filters.
+    setTableViewState(this.props.asset.uid, {
+      pageSize: tableInstance.state.pageSize,
+      filtered: tableInstance.state.filtered,
+    })
+
     this.fetchSubmissions(tableInstance)
   }
 
-  /**
-   * Opens submission modal
-   * @param {object} row
-   */
-  launchSubmissionModal(sid: string) {
-    this.submissionModalProcessing(sid, this.state.submissions)
-  }
-
-  /**
-   * Opens (or updates data in an opened) submission modal
-   */
-  submissionModalProcessing(
-    sid: string,
-    submissions: SubmissionResponse[],
-    isDuplicated = false,
-    duplicatedSubmission: SubmissionResponse | null = null,
-  ) {
-    const ids = submissions.map((item) => item._id)
-
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: sid,
-      asset: this.props.asset,
-      ids: ids,
-      isDuplicated: isDuplicated,
-      duplicatedSubmission: duplicatedSubmission,
-      tableInfo: {
-        currentPage: this.state.currentPage,
-        pageSize: this.state.pageSize,
-        resultsTotal: this.state.resultsTotal,
-      },
-    })
+  /** Leaves the table for the submission's own address. */
+  goToSubmission(submission: SubmissionResponse) {
+    goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission))
   }
 
   showTableColumnsOptionsModal() {
@@ -1111,30 +1083,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   launchEditSubmission(sid: string) {
     enketoHandler.openSubmission(this.props.asset.uid, sid, EnketoActions.edit)
-  }
-
-  onPageStateUpdated(newPageState: PageStateStoreState) {
-    // This function serves purpose only for Submission Modal and only when
-    // user reaches the end of currently loaded submissions in the table with
-    // the "next" button (and similarly with "prev" button).
-    if (newPageState.modal && newPageState.modal.type === MODAL_TYPES.SUBMISSION && !newPageState.modal.sid) {
-      // HACK: this is our way of forcing `react-table` to switch page. There is
-      // a way to manually control pagination, but it would require some
-      // refactoring to happen. This hack (i.e. using internal `setState` of
-      // `react-table` component) will most definitely not work when we upgrade
-      // `react-table` to v7, but since that major version is a huge overhaul,
-      // we would be refactoring everything regardless.
-      let page = 0
-      if (newPageState.modal.page === 'next') {
-        page = this.state.currentPage + 1
-      } else if (newPageState.modal.page === 'prev') {
-        page = this.state.currentPage - 1
-      }
-      const fetchInstance = this.state.fetchInstance
-      fetchInstance?.setState({ page: page })
-
-      this.setState({ submissionPager: newPageState.modal.page }, this.fetchDataForCurrentInstance.bind(this))
-    }
   }
 
   /**
@@ -1382,7 +1330,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <ReactTable
             data={this.state.submissions}
             columns={this.state.columns}
-            defaultPageSize={DEFAULT_PAGE_SIZE}
+            // Seeded from how the table was last left (see `tableViewState`), so
+            // that returning from a submission record keeps the user's filters.
+            defaultPageSize={this.initialPageSize}
+            defaultFiltered={this.initialFiltered}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
             minRows={0}
             className={tableClasses.join(' ')}

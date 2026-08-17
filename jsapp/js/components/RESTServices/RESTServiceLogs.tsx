@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import { actions } from '#/actions'
-import assetStore from '#/assetStore'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { HOOK_LOG_STATUSES, MODAL_TYPES } from '#/constants'
+import { getSubmissionPath } from '#/components/submissions/single/submissionRouting'
+import { HOOK_LOG_STATUSES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
   ExternalServiceHookResponse,
@@ -17,9 +17,7 @@ import type {
   PaginatedResponse,
   RetryExternalServiceLogsResponse,
 } from '#/dataInterface'
-import pageState from '#/pageState.store'
 import { ROUTES } from '#/router/routerConstants'
-import { getRouteAssetUid } from '#/router/routerUtils'
 import { formatTime, notify } from '#/utils'
 import RESTServiceLogStatus from './RESTServiceLogStatus'
 import { openRESTServiceLogInfoModal } from './openRESTServiceLogInfoModal'
@@ -154,19 +152,6 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
     openRESTServiceLogInfoModal({ submissionId: log.submission_id, message: log.message })
   }
 
-  const openSubmissionModal = (log: ExternalServiceLogResponse) => {
-    const currentAssetUid = getRouteAssetUid()
-    if (currentAssetUid !== null) {
-      const currentAsset = assetStore.getAsset(currentAssetUid)
-      pageState.switchModal({
-        type: MODAL_TYPES.SUBMISSION,
-        sid: log.submission_id,
-        asset: currentAsset,
-        ids: [log.submission_id],
-      })
-    }
-  }
-
   const hasAnyFailedLogs = () => logs.some((log) => log.status === HOOK_LOG_STATUSES.FAILED)
 
   if (isLoadingHook || (isLoadingLogs && logs.length === 0)) {
@@ -180,7 +165,9 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
       grow: true,
       cellFormatter: (log) =>
         log.status === HOOK_LOG_STATUSES.SUCCESS ? (
-          <ButtonNew variant='transparent' onClick={() => openSubmissionModal(log)}>
+          // Logs only record the numeric `_id`; the submission route swaps it for
+          // the root UUID once it has resolved the record.
+          <ButtonNew variant='transparent' component={Link} to={getSubmissionPath(assetUid, log.submission_id)}>
             {log.submission_id}
           </ButtonNew>
         ) : (

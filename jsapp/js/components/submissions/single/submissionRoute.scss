@@ -1,0 +1,52 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+
+.submission-route {
+  padding: 20px;
+}
+
+.submission-route__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.submission-route__title {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: colors.$kobo-gray-800;
+}
+
+.submission-route__body {
+  padding: 20px;
+  background: colors.$kobo-white;
+  border-radius: 6px;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .submission-route {
+    padding: 10px;
+  }
+
+  .submission-route__header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media print {
+  // Only the record itself is worth putting on paper.
+  .submission-route__header {
+    display: none;
+  }
+
+  .submission-route,
+  .submission-route__body {
+    padding: 0;
+  }
+}

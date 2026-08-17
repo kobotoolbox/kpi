@@ -1,11 +1,7 @@
 @use 'scss/colors';
 
-.modal.modal-submission {
-  .modal__header {
-    background-color: colors.$kobo-gray-200;
-    color: colors.$kobo-gray-800;
-  }
-}
+// NOTE: the `submission-modal-*` class names are kept from when this was
+// a modal, so that the markup can be migrated to Mantine in one go later.
 
 .submission-modal-buttons {
   display: flex;
@@ -90,24 +86,11 @@
 }
 
 @media print {
+  // Only the record itself is worth putting on paper.
   .submission-modal-dropdowns,
   .submission-modal-buttons,
-  .modal__x {
+  .submission-route__header {
     display: none;
-  }
-
-  .modal__body,
-  .modal__title {
-    padding: 10px;
-  }
-
-  .modal__header {
-    min-height: auto;
-  }
-
-  .modal,
-  .modal__content {
-    overflow: visible;
   }
 
   .submission-data-table__row.submission-data-table__row--column-names {

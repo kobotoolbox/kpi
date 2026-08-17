@@ -35,6 +35,11 @@ export const ROUTES = Object.freeze({
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
+  /**
+   * A single submission record. Has: :uid, :submissionId - where the latter is
+   * a submission root UUID (preferred, as it survives edits) or a numeric `_id`.
+   */
+  FORM_SUBMISSION: '/forms/:uid/data/submission/:submissionId',
   /** Has: :uid, :xpath, :submissionEditId */
   FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:xpath/:submissionEditId',
   FORM_SETTINGS: '/forms/:uid/settings',

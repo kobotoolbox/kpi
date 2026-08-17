@@ -1,4 +1,4 @@
-import './submissionModal.scss'
+import './submissionDetails.scss'
 
 import React from 'react'
 
@@ -6,42 +6,36 @@ import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
 import Button from '#/components/common/button'
-import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
 import KoboSelect from '#/components/common/koboSelect'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
-import SubmissionDataTable from '#/components/submissions/submissionDataTable'
+import SubmissionDataTable from '#/components/submissions/single/submissionDataTable'
 import { getBackgroundAudioAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
-import type { SubmissionPageName } from '#/components/submissions/table.types'
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
-import { EnketoActions, MODAL_TYPES } from '#/constants'
-import { dataInterface } from '#/dataInterface'
-import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
+import { EnketoActions } from '#/constants'
+import type { AssetResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
-import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
 import SubmissionBackgroundAudio from './SubmissionBackgroundAudio'
 
-const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
-
-interface SubmissionModalProps {
-  sid: string
+interface SubmissionDetailsProps {
   asset: AssetResponse
-  ids: number[]
-  isDuplicated: boolean
-  duplicatedSubmission: SubmissionResponse | null
-  tableInfo:
-    | {
-        resultsTotal: number
-        pageSize: number
-        currentPage: number
-      }
-    | boolean
+  /** The record to display. Loading and error states are the route's business. */
+  submission: SubmissionResponse
+  /**
+   * Root UUID of the record this one was duplicated from, set only for as long
+   * as the user stays on the record the duplication produced.
+   */
+  duplicatedFromUuid?: string
+  /** Asks for a fresh copy of `submission`, e.g. after an edit in Enketo. */
+  onRefreshRequested: () => void
+  onDeleted: () => void
+  /** @param newSubmissionDbId - `_id` of the record the duplication produced. */
+  onDuplicated: (newSubmissionDbId: string, duplicatedFromUuid: string) => void
 }
 
 interface TranslationOption {
@@ -50,23 +44,15 @@ interface TranslationOption {
   label: string
 }
 
-interface SubmissionModalState {
-  /** Submission data. Is `null` when it's not loaded yet. */
-  submission: SubmissionResponse | null
-  isFetchingSubmissionData: boolean
-  /** 'false' (i.e. "no error") or error message */
-  submissionDataFetchError: string | boolean
-  // For previous and next:
-  // -1 means there is none,
-  // -2 means there is but on different table page.
-  previous: number
-  next: number
-  /** Submission uid. */
-  sid: string
+interface SubmissionDetailsState {
+  /**
+   * A working copy of `props.submission`. Some changes (a new validation status,
+   * a deleted attachment) come back to us in full from their own endpoint, so we
+   * apply them here instead of asking for the whole record again.
+   */
+  submission: SubmissionResponse
   isEnketoEditLoading: boolean
   isEnketoViewLoading: boolean
-  isDuplicated: boolean
-  duplicatedSubmission: SubmissionResponse | null
   isEditingDuplicate: boolean
   isRefreshNeeded: boolean
   translationIndex: number
@@ -76,15 +62,17 @@ interface SubmissionModalState {
 }
 
 /**
- * This is a modal component (to be used with `BigModal`) that displays details
- * of given submission.
- * It also handles flow of duplicating submission (TODO: this should be somehow
- * decoupled from this modal, as it increases already complex code).
+ * Displays the details of a single submission, and the actions that can be taken
+ * on it. Rendered by the submission route, which owns loading the record and
+ * moving between records.
+ *
+ * TODO: the duplicating flow should be somehow decoupled from this component, as
+ * it increases already complex code.
  */
-export default class SubmissionModal extends React.Component<SubmissionModalProps, SubmissionModalState> {
+export default class SubmissionDetails extends React.Component<SubmissionDetailsProps, SubmissionDetailsState> {
   private unlisteners: Function[] = []
 
-  constructor(props: SubmissionModalProps) {
+  constructor(props: SubmissionDetailsProps) {
     super(props)
     const translations = this.props.asset.content?.translations
     let translationOptions: TranslationOption[] = []
@@ -99,16 +87,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     }
 
     this.state = {
-      submission: null,
-      isFetchingSubmissionData: true,
-      submissionDataFetchError: false,
-      previous: -1,
-      next: -1,
-      sid: props.sid,
+      submission: props.submission,
       isEnketoEditLoading: false,
       isEnketoViewLoading: false,
-      isDuplicated: props.isDuplicated,
-      duplicatedSubmission: props.duplicatedSubmission || null,
       isEditingDuplicate: false,
       isRefreshNeeded: false,
       translationIndex: 0,
@@ -127,9 +108,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         this.refreshSubmissionValidationStatus.bind(this),
       ),
       actions.resources.deleteSubmission.completed.listen(this.onDeletedSubmissionCompleted.bind(this)),
+      actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
     )
-
-    this.getSubmission(this.props.asset.uid, this.state.sid)
   }
 
   componentWillUnmount() {
@@ -138,16 +118,28 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     })
   }
 
+  componentDidUpdate(prevProps: SubmissionDetailsProps) {
+    // A fresh record replaces whatever we had patched in the meantime.
+    if (prevProps.submission !== this.props.submission) {
+      this.setState({ submission: this.props.submission })
+    }
+  }
+
+  /** `_id` of the displayed record, in the string form the endpoints expect. */
+  get sid() {
+    return String(this.state.submission._id)
+  }
+
+  get isDuplicated() {
+    return Boolean(this.props.duplicatedFromUuid)
+  }
+
   /**
    * A callback for submission validation status changes. We use the response
    * to update the in-memory submission data (to avoid making another call).
    */
   refreshSubmissionValidationStatus(result: ValidationStatusResponse) {
     this.setState({ isValidationStatusChangePending: false })
-
-    if (!this.state.submission) {
-      return
-    }
 
     const newSubmissionData = clonedeep(this.state.submission)
 
@@ -166,91 +158,11 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
    */
   isSubmissionEditable() {
     return (
-      this.state.submission &&
       this.props.asset.deployment__active &&
       !this.state.isEnketoEditLoading &&
       (userCan('change_submissions', this.props.asset) ||
         userHasPermForSubmission('change_submissions', this.props.asset, this.state.submission))
     )
-  }
-
-  /**
-   * Loads fresh submission data. Has some error handling.
-   */
-  getSubmission(assetUid: string, sid: string) {
-    this.setState({ isFetchingSubmissionData: true })
-
-    dataInterface
-      .getSubmission(assetUid, sid)
-      .done((data: SubmissionResponse) => {
-        let prev = -1
-        let next = -1
-
-        if (this.props.ids && sid) {
-          const c = this.props.ids.findIndex((k) => k === Number.parseInt(sid))
-          const tableInfo = this.props.tableInfo || false
-          if (this.props.ids[c - 1]) {
-            prev = this.props.ids[c - 1]
-          }
-          if (this.props.ids[c + 1]) {
-            next = this.props.ids[c + 1]
-          }
-
-          // table submissions pagination
-          if (typeof tableInfo !== 'boolean') {
-            const nextAvailable = tableInfo.resultsTotal > (tableInfo.currentPage + 1) * tableInfo.pageSize
-            if (c + 1 === this.props.ids.length && nextAvailable) {
-              next = -2
-            }
-
-            if (tableInfo.currentPage > 0 && prev === -1) {
-              prev = -2
-            }
-          }
-        }
-
-        this.setState({
-          submission: data,
-          isFetchingSubmissionData: false,
-          next: next,
-          previous: prev,
-        })
-      })
-      .fail((error: FailResponse) => {
-        if (error.responseText) {
-          let error_message = error.responseText
-          if (error_message === DETAIL_NOT_FOUND) {
-            error_message = t(
-              'The submission could not be found. It may have been deleted. Submission ID: ##id##',
-            ).replace('##id##', sid)
-          }
-          this.setState({ submissionDataFetchError: error_message, isFetchingSubmissionData: false })
-        } else if (error.statusText) {
-          this.setState({ submissionDataFetchError: error.statusText, isFetchingSubmissionData: false })
-        } else {
-          this.setState({
-            submissionDataFetchError: t('Error: could not load data.'),
-            isFetchingSubmissionData: false,
-          })
-        }
-      })
-  }
-
-  static getDerivedStateFromProps(props: SubmissionModalProps, state: SubmissionModalState) {
-    if (!(state.sid === props.sid)) {
-      return {
-        sid: props.sid,
-        promptRefresh: false,
-      }
-    }
-    // Return null to indicate no change to state.
-    return null
-  }
-
-  componentDidUpdate(prevProps: SubmissionModalProps) {
-    if (this.props.asset && prevProps.sid !== this.props.sid) {
-      this.getSubmission(this.props.asset.uid, this.props.sid)
-    }
   }
 
   /**
@@ -267,7 +179,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: { ok: t('Delete'), cancel: t('Cancel') },
       onok: () => {
-        actions.resources.deleteSubmission(this.props.asset.uid, this.props.sid)
+        actions.resources.deleteSubmission(this.props.asset.uid, this.sid)
       },
       oncancel: () => {
         dialog.destroy()
@@ -277,15 +189,19 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   onDeletedSubmissionCompleted() {
-    // After successfull deletion of submission we close this modal.
-    pageState.hideModal()
+    // The record we are displaying is gone, so there is nothing to stay for.
+    this.props.onDeleted()
+  }
+
+  onDuplicateSubmissionCompleted(_assetUid: string, newSubmissionDbId: string, duplicatedFrom: SubmissionResponse) {
+    this.props.onDuplicated(String(newSubmissionDbId), duplicatedFrom['meta/rootUuid'] || duplicatedFrom._uuid)
   }
 
   /**
    * Opens current submission as editable in Enketo (in new browser tab). After
    * using Enketo and saving the submission, you will notice "Refresh" button
-   * appearing in this modal - please use it to ensure you see that submission
-   * data you've just modified.
+   * appearing - please use it to ensure you see that submission data you've
+   * just modified.
    */
   launchEditSubmission() {
     this.setState({
@@ -293,7 +209,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
       isEnketoEditLoading: true,
       isEditingDuplicate: true,
     })
-    enketoHandler.openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.edit).then(
+    enketoHandler.openSubmission(this.props.asset.uid, this.sid, EnketoActions.edit).then(
       () => {
         this.setState({ isEnketoEditLoading: false })
       },
@@ -308,7 +224,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
    */
   launchViewSubmission() {
     this.setState({ isEnketoViewLoading: true })
-    enketoHandler.openSubmission(this.props.asset.uid, this.state.sid, EnketoActions.view).then(
+    enketoHandler.openSubmission(this.props.asset.uid, this.sid, EnketoActions.view).then(
       () => {
         this.setState({ isEnketoViewLoading: false })
       },
@@ -319,54 +235,13 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   duplicateSubmission() {
-    // Due to how modals are created, we must close this modal and recreate
-    // an almost identical one to display the new submission with a different
-    // title bar
-    pageState.hideModal()
-    actions.resources.duplicateSubmission(this.props.asset.uid, this.state.sid, this.state.submission)
+    actions.resources.duplicateSubmission(this.props.asset.uid, this.sid, this.state.submission)
   }
 
-  /**
-   * Fetches fresh submission data and triggers reload of the Data Table.
-   */
+  /** Asks the route for fresh submission data. */
   triggerRefresh() {
-    this.getSubmission(this.props.asset.uid, this.props.sid)
     this.setState({ isRefreshNeeded: false })
-    // Prompt table to refresh submission list
-    actions.resources.refreshTableSubmissions()
-  }
-
-  /**
-   * Changes submission being displayed in here to the previous/next submission
-   * from the already loaded submissions in the Data Table.
-   */
-  switchSubmission(
-    /** This is a submission uid (a number) */
-    prevOrNext: number,
-  ) {
-    this.setState({ isFetchingSubmissionData: true })
-
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: prevOrNext,
-      asset: this.props.asset,
-      ids: this.props.ids,
-      tableInfo: this.props.tableInfo || false,
-    })
-  }
-
-  /**
-   * Triggers Data Table to load the previous/next page of submissions, and then
-   * changes submission being displayed in here to previous/next taking proper
-   * order into account.
-   */
-  switchSubmissionFromOtherTablePage(newPage: SubmissionPageName) {
-    this.setState({ isFetchingSubmissionData: true })
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: false,
-      page: newPage,
-    })
+    this.props.onRefreshRequested()
   }
 
   onShowXMLNamesChange(newValue: boolean) {
@@ -383,9 +258,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     this.setState({ isValidationStatusChangePending: true })
 
     if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
-      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, this.state.sid)
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, this.sid)
     } else {
-      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.sid, {
         'validation_status.uid': newValidationStatus,
       })
     }
@@ -399,26 +274,18 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   handleDeletedAttachment(attachmentUid: string) {
-    if (this.state.submission) {
-      // Override the attachment object in memory to mark it as deleted (without
-      // making an API call for fresh submission data)
-      this.setState({
-        submission: markAttachmentAsDeleted(this.state.submission, attachmentUid) as SubmissionResponse,
-      })
-
-      // Prompt table to refresh submission list
-      actions.resources.refreshTableSubmissions()
-      // TODO: IDEA: instead of doing this for every deleted attachment, mark
-      // state here as something like `isRefreshTableUponClosingNeeded`, and add
-      // some `onBeforeClose` functionality to the `bigModal`…
-    }
+    // Override the attachment object in memory to mark it as deleted (without
+    // making an API call for fresh submission data)
+    this.setState({
+      submission: markAttachmentAsDeleted(this.state.submission, attachmentUid) as SubmissionResponse,
+    })
   }
 
   /**
    * Displays language and validation status dropdowns.
    */
   renderDropdowns() {
-    if (!this.props.asset.deployment__active || !this.state.submission) {
+    if (!this.props.asset.deployment__active) {
       return null
     }
 
@@ -473,12 +340,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
    * action buttons.
    */
   renderDuplicatedSubmissionSubheader() {
-    // For TypeScript
-    if (!this.state.submission) {
-      return null
-    }
-
-    if (!this.state.isDuplicated || this.state.isEditingDuplicate) {
+    if (!this.isDuplicated || this.state.isEditingDuplicate) {
       return null
     }
 
@@ -494,7 +356,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
         <p className='submission-duplicate__text'>
           {t('Source submission uuid:' + ' ')}
-          <code>{this.state.duplicatedSubmission?._uuid}</code>
+          <code>{this.props.duplicatedFromUuid}</code>
         </p>
 
         <div className='submission-modal-buttons-group'>
@@ -537,63 +399,27 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   /**
-   * Displays few buttons that allows switching submission or making changes to it.
+   * Displays the buttons that allow making changes to the submission.
    */
   renderSubmissionActions() {
-    // For TypeScript
-    if (!this.state.submission) {
-      return null
-    }
-
     // We hide these elements of UI for duplicated submission flow.
     // TODO: displaying those might be a better UX, we just need to check if
-    // everything works, or if it requires some work to make it usable (e.g. for
-    // duplicated submission prev/next arrows might point to wrong submissions)
-    if (this.state.isDuplicated && !this.state.isEditingDuplicate) {
+    // everything works, or if it requires some work to make it usable.
+    if (this.isDuplicated && !this.state.isEditingDuplicate) {
       return null
     }
 
     return (
       <section className='submission-modal-buttons'>
         <div className='submission-modal-buttons-group'>
-          <Button
-            onClick={() => {
-              if (this.state.previous === -2) {
-                this.switchSubmissionFromOtherTablePage('prev')
-              } else {
-                this.switchSubmission(this.state.previous)
-              }
-            }}
-            isDisabled={this.state.previous === -1}
-            type='text'
-            size='l'
-            label={t('Previous')}
-            startIcon='angle-left'
-          />
-
-          <Button
-            onClick={() => {
-              if (this.state.next === -2) {
-                this.switchSubmissionFromOtherTablePage('next')
-              } else {
-                this.switchSubmission(this.state.next)
-              }
-            }}
-            isDisabled={this.state.next === -1}
-            type='text'
-            size='l'
-            label={t('Next')}
-            endIcon='angle-right'
-          />
-        </div>
-
-        <div className='submission-modal-buttons-group'>
           <Checkbox
             checked={this.state.showXMLNames}
             onChange={this.onShowXMLNamesChange.bind(this)}
             label={t('Display XML names')}
           />
+        </div>
 
+        <div className='submission-modal-buttons-group'>
           {this.renderEditButton()}
 
           <Button
@@ -657,19 +483,6 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   render() {
-    // Until we get all necessary data, we display a spinner
-    if (this.state.isFetchingSubmissionData) {
-      return <LoadingSpinner />
-    }
-
-    // Error handling
-    if (typeof this.state.submissionDataFetchError === 'string') {
-      return <CenteredMessage message={this.state.submissionDataFetchError} />
-    }
-    if (!this.state.submission) {
-      return <CenteredMessage message={t('Unknown error')} />
-    }
-
     // Get background audio
     // Note: we do this here to avoid a weird interaction with onDeleted if we pass the uid back up to this component
     // FIXME: This does not get the audio file if the form turns off background audio (even if there exist submissions)

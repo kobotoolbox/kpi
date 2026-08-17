@@ -9,36 +9,12 @@ import Modal from '#/components/common/modal'
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
-import SubmissionModal from '#/components/submissions/submissionModal'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
 import { stores } from '#/stores'
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals'
-
-function getSubmissionTitle(props) {
-  let title = t('Success!')
-  const p = props.params
-  const sid = Number.parseInt(p.sid)
-
-  if (!p.isDuplicated) {
-    title = t('Submission Record')
-    if (p.tableInfo) {
-      const index = p.ids.indexOf(sid) + p.tableInfo.pageSize * p.tableInfo.currentPage + 1
-      title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`
-    } else {
-      const index = p.ids.indexOf(sid)
-      if (p.ids.length === 1) {
-        title = `${t('Submission Record')}`
-      } else {
-        title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`
-      }
-    }
-  }
-
-  return title
-}
 
 /**
  * Custom modal component for displaying complex modals.
@@ -102,14 +78,6 @@ class BigModal extends React.Component {
         })
         break
 
-      case MODAL_TYPES.SUBMISSION:
-        this.setState({
-          title: getSubmissionTitle(this.props),
-          modalClass: 'modal--large modal-submission',
-          sid: this.props.params.sid,
-        })
-        break
-
       case MODAL_TYPES.REPLACE_PROJECT:
         // title is set by formEditors
         break
@@ -163,17 +131,8 @@ class BigModal extends React.Component {
 
   static getDerivedStateFromProps(props, state) {
     if (props.params) {
-      const newState = {}
-      if (props.params.sid) {
-        newState.title = getSubmissionTitle(props)
-        newState.sid = props.params.sid
-      } else {
-        newState.sid = false
-      }
-
       // store for later
-      newState.prevType = props.params.type
-      return newState
+      return { prevType: props.params.type }
     }
     return null
   }
@@ -233,21 +192,6 @@ class BigModal extends React.Component {
           )}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink && <LoadingSpinner />}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.error && <div>{this.state.message}</div>}
-          {this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid && (
-            <SubmissionModal
-              sid={this.state.sid}
-              asset={this.props.params.asset}
-              ids={this.props.params.ids}
-              isDuplicated={this.props.params.isDuplicated}
-              duplicatedSubmission={this.props.params.duplicatedSubmission}
-              tableInfo={this.props.params.tableInfo || false}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid && (
-            <div>
-              <LoadingSpinner message={false} />
-            </div>
-          )}
           {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
             <BulkEditSubmissionsForm
               onSetModalTitle={this.setModalTitle}

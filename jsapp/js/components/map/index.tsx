@@ -24,12 +24,11 @@ import { actions } from '../../../js/actions'
 import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 // Stores, hooks and utilities
 import { dataInterface } from '../../../js/dataInterface'
-import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
+import { findFirstGeopoint, getSubmissionRootUuid, notify, parseLatLng, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -43,6 +42,7 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { goToSubmission } from '#/components/submissions/single/submissionRouting'
 
 const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
@@ -736,7 +736,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers.addLayers(prepPoints)
       }
 
-      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
+      markers.on('click', this.goToClickedSubmission.bind(this)).addTo(map)
 
       if (prepPoints.length === 0) {
         if (boundsChanged) {
@@ -962,19 +962,16 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return map
   }
 
-  launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.props.allData
-    const ids: number[] = []
-    td.forEach((r) => {
-      ids.push(r._id)
-    })
+  /** Leaves the map for the clicked submission's own address. */
+  goToClickedSubmission(evt: L.LeafletMouseEvent) {
+    // Markers only carry the `_id` they were built with, so the record it belongs
+    // to is looked up here to get at the root UUID (the form of the link that
+    // survives edits). The route understands a plain `_id` too, so a miss here is
+    // not fatal.
+    const submissionDbId: number = evt.layer.options.sId
+    const submission = this.props.allData.find((item) => item._id === submissionDbId)
 
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: evt.layer.options.sId,
-      asset: this.props.asset,
-      ids: ids,
-    })
+    goToSubmission(this.props.asset.uid, submission ? getSubmissionRootUuid(submission) : submissionDbId)
   }
 
   toggleMapSettings() {
