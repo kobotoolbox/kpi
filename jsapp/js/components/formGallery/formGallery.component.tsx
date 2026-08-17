@@ -2,6 +2,7 @@ import './formGallery.component.scss'
 
 import { Box, Center, Flex, Image } from '@mantine/core'
 import React, { useEffect, useMemo, useReducer } from 'react'
+import DocumentTitle from 'react-document-title'
 import ReactSelect from 'react-select'
 import { fetchGet, fetchGetUrl } from '#/api'
 import { getFlatQuestionsList } from '#/assetUtils'
@@ -143,118 +144,122 @@ export default function FormGallery(props: FormGalleryProps) {
     formViewClass += ' form-view--fullscreen'
   }
 
+  const docTitle = props.asset.name || t('Untitled')
+
   return (
-    <bem.Gallery className={formViewClass}>
-      <bem.Gallery__wrapper>
-        <bem.Gallery__header>
-          <h1>{t('Image Gallery')}</h1>
-          <bem.Gallery__headerIcons>
-            <Button
-              type='text'
-              size='m'
-              startIcon='expand'
-              onClick={() => dispatch({ type: 'toggleFullscreen' })}
-              tooltip={t('Toggle fullscreen')}
-            />
-          </bem.Gallery__headerIcons>
-        </bem.Gallery__header>
-        <bem.GalleryFilters>
-          {t('From')}
-          <bem.GalleryFiltersSelect>
-            <ReactSelect
-              options={questionFilterOptions}
-              defaultValue={defaultOption}
-              onChange={(newValue) => dispatch({ type: 'setFilterQuestion', question: newValue!.value })}
-            />
-          </bem.GalleryFiltersSelect>
-          <bem.GalleryFiltersDates>
-            <label>
-              {t('Between')}
-              <input type='date' onChange={(e) => dispatch({ type: 'setStartDate', value: e.target.value })} />
-            </label>
-            <label>
-              {t('and')}
-              <input type='date' onChange={(e) => dispatch({ type: 'setEndDate', value: e.target.value })} />
-            </label>
-          </bem.GalleryFiltersDates>
-        </bem.GalleryFilters>
-        <bem.GalleryGrid>
-          {attachments.map((attachment, index) =>
-            attachment.is_deleted ? (
-              <Center key={attachment.uid} title={attachment.filename} className='gallery-grid-deleted-attachment'>
-                <DeletedAttachment />
-              </Center>
-            ) : (
-              <Box key={attachment.uid} onClick={() => handleImageClick(index)} style={{ cursor: 'pointer' }}>
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <bem.Gallery className={formViewClass}>
+        <bem.Gallery__wrapper>
+          <bem.Gallery__header>
+            <h1>{t('Image Gallery')}</h1>
+            <bem.Gallery__headerIcons>
+              <Button
+                type='text'
+                size='m'
+                startIcon='expand'
+                onClick={() => dispatch({ type: 'toggleFullscreen' })}
+                tooltip={t('Toggle fullscreen')}
+              />
+            </bem.Gallery__headerIcons>
+          </bem.Gallery__header>
+          <bem.GalleryFilters>
+            {t('From')}
+            <bem.GalleryFiltersSelect>
+              <ReactSelect
+                options={questionFilterOptions}
+                defaultValue={defaultOption}
+                onChange={(newValue) => dispatch({ type: 'setFilterQuestion', question: newValue!.value })}
+              />
+            </bem.GalleryFiltersSelect>
+            <bem.GalleryFiltersDates>
+              <label>
+                {t('Between')}
+                <input type='date' onChange={(e) => dispatch({ type: 'setStartDate', value: e.target.value })} />
+              </label>
+              <label>
+                {t('and')}
+                <input type='date' onChange={(e) => dispatch({ type: 'setEndDate', value: e.target.value })} />
+              </label>
+            </bem.GalleryFiltersDates>
+          </bem.GalleryFilters>
+          <bem.GalleryGrid>
+            {attachments.map((attachment, index) =>
+              attachment.is_deleted ? (
+                <Center key={attachment.uid} title={attachment.filename} className='gallery-grid-deleted-attachment'>
+                  <DeletedAttachment />
+                </Center>
+              ) : (
+                <Box key={attachment.uid} onClick={() => handleImageClick(index)} style={{ cursor: 'pointer' }}>
+                  <Image
+                    src={attachment.download_small_url}
+                    alt={attachment.filename}
+                    w={150}
+                    loading='lazy'
+                    fit='cover'
+                  />
+                </Box>
+              ),
+            )}
+            {attachments.length === 0 && !isLoading && t('No results')}
+          </bem.GalleryGrid>
+          {showLoadMore && (
+            <bem.GalleryFooter>
+              <Button
+                type='text'
+                size='m'
+                isPending={isLoading}
+                label={t('Load more')}
+                onClick={() => loadMoreSubmissions()}
+              />
+            </bem.GalleryFooter>
+          )}
+        </bem.Gallery__wrapper>
+        {currentAttachment && (
+          <ModalNew
+            opened={isModalOpen}
+            onClose={closeModal}
+            title={`Image ${currentModalImageIndex + 1} of ${totalSubmissions}`}
+            size='lg'
+            centered
+          >
+            <Flex align='center' gap='md' p='sm'>
+              {/* Previous button */}
+              <ActionIcon
+                variant='transparent'
+                color='gray'
+                size='md'
+                aria-label='Previous image'
+                onClick={() => navigateImage('prev')}
+                disabled={isLoading || currentModalImageIndex === 0}
+                iconName='angle-left'
+              />
+
+              {/* Current image */}
+              <Box style={{ flexGrow: 1, minWidth: 0 }}>
                 <Image
-                  src={attachment.download_small_url}
-                  alt={attachment.filename}
-                  w={150}
+                  src={currentAttachment.download_large_url || currentAttachment.download_url}
+                  alt={currentAttachment.filename}
+                  fit='contain'
+                  style={{ maxHeight: '70vh', width: '100%' }}
                   loading='lazy'
-                  fit='cover'
                 />
               </Box>
-            ),
-          )}
-          {attachments.length === 0 && !isLoading && t('No results')}
-        </bem.GalleryGrid>
-        {showLoadMore && (
-          <bem.GalleryFooter>
-            <Button
-              type='text'
-              size='m'
-              isPending={isLoading}
-              label={t('Load more')}
-              onClick={() => loadMoreSubmissions()}
-            />
-          </bem.GalleryFooter>
-        )}
-      </bem.Gallery__wrapper>
-      {currentAttachment && (
-        <ModalNew
-          opened={isModalOpen}
-          onClose={closeModal}
-          title={`Image ${currentModalImageIndex + 1} of ${totalSubmissions}`}
-          size='lg'
-          centered
-        >
-          <Flex align='center' gap='md' p='sm'>
-            {/* Previous button */}
-            <ActionIcon
-              variant='transparent'
-              color='gray'
-              size='md'
-              aria-label='Previous image'
-              onClick={() => navigateImage('prev')}
-              disabled={isLoading || currentModalImageIndex === 0}
-              iconName='angle-left'
-            />
 
-            {/* Current image */}
-            <Box style={{ flexGrow: 1, minWidth: 0 }}>
-              <Image
-                src={currentAttachment.download_large_url || currentAttachment.download_url}
-                alt={currentAttachment.filename}
-                fit='contain'
-                style={{ maxHeight: '70vh', width: '100%' }}
-                loading='lazy'
+              {/* Next button with loading state */}
+              <ActionIcon
+                variant='transparent'
+                color='gray'
+                size='md'
+                aria-label={isNextButtonLoading ? t('Loading next page') : t('Next image')}
+                onClick={() => navigateImage('next')}
+                disabled={!showLoadMore && isLastImage}
+                iconName='angle-right'
+                loading={isNextButtonLoading}
               />
-            </Box>
-
-            {/* Next button with loading state */}
-            <ActionIcon
-              variant='transparent'
-              color='gray'
-              size='md'
-              aria-label={isNextButtonLoading ? t('Loading next page') : t('Next image')}
-              onClick={() => navigateImage('next')}
-              disabled={!showLoadMore && isLastImage}
-              iconName='angle-right'
-              loading={isNextButtonLoading}
-            />
-          </Flex>
-        </ModalNew>
-      )}
-    </bem.Gallery>
+            </Flex>
+          </ModalNew>
+        )}
+      </bem.Gallery>
+    </DocumentTitle>
   )
 }

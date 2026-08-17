@@ -1,5 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
+import DocumentTitle from 'react-document-title'
 import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import type { WithRouterProps } from '#/router/legacy'
@@ -52,16 +53,20 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
   const totalCount =
     results[0]?.data?.status === 200 && !results[0]?.isFetching ? results[0].data.data.count : undefined
 
+  const docTitle = props.asset.name || t('Untitled')
+
   return (
-    <FormMap
-      asset={props.asset}
-      viewby={props.viewby ?? ''}
-      allData={allData}
-      isLoading={isLoading}
-      totalCount={totalCount}
-      pageCount={pageCount}
-      setPageCount={setPageCount}
-      setFields={setFields}
-    />
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <FormMap
+        asset={props.asset}
+        viewby={props.viewby ?? ''}
+        allData={allData}
+        isLoading={isLoading}
+        totalCount={totalCount}
+        pageCount={pageCount}
+        setPageCount={setPageCount}
+        setFields={setFields}
+      />
+    </DocumentTitle>
   )
 }
