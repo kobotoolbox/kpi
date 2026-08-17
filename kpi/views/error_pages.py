@@ -13,6 +13,4 @@ def dev_error_page_preview(request, error_code: int):
     Branding (logo, background, footer links) is not passed in here. It reaches
     the template through the global `kpi.context_processors.config` processor.
     """
-    return TemplateResponse(
-        request, 'error_page.html', {'error_code': int(error_code)}
-    )
+    return TemplateResponse(request, 'error_page.html', {'error_code': int(error_code)})
