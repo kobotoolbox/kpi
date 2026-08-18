@@ -1,9 +1,10 @@
 import random
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytz
+from celery.exceptions import SoftTimeLimitExceeded
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -22,6 +23,7 @@ from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     PROCESSED_EMAILS_CACHE_KEY,
     MassEmailSender,
+    enqueue_mass_email_records,
     generate_mass_email_user_lists,
     render_template,
     send_emails,
@@ -264,6 +266,19 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         send_emails()
         assert len(mail.outbox) == 0
 
+    def test_send_emails_stops_gracefully_on_soft_time_limit(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        with patch(
+            'kobo.apps.mass_emails.tasks.MassEmailSender.send_day_emails',
+            side_effect=SoftTimeLimitExceeded,
+        ):
+            # The task must swallow the soft time limit itself rather than
+            # surfacing as a task failure: it is an expected outcome of a
+            # capped, resumable run.
+            send_emails()
+        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
+
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
         self._setup_common_test_data()
@@ -408,6 +423,28 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         self.assertEqual(records.count(), enqueued_count)
         self.assertIn(email_config.id, cache.get(self.cache_key))
 
+    def test_enqueue_creates_records_via_id_path(self):
+        """
+        enqueue_mass_email_records builds records from user ids (not User
+        instances) and stores one enqueued row per recipient.
+        """
+        email_config = self._create_email_config('Test')
+
+        enqueue_mass_email_records(email_config)
+
+        job = MassEmailJob.objects.filter(email_config=email_config).latest(
+            'date_created'
+        )
+        records = MassEmailRecord.objects.filter(email_job=job)
+        self.assertEqual(records.count(), 2)
+        self.assertEqual(
+            set(records.values_list('user_id', flat=True)),
+            {self.user1.id, self.user2.id},
+        )
+        self.assertTrue(
+            all(record.status == EmailStatus.ENQUEUED for record in records)
+        )
+
     def test_new_email_records_are_created_when_no_enqueued_emails_exist(self):
         """
         Test that new jobs and records are created when no enqueued records exist
@@ -507,3 +544,109 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         generate_mass_email_user_lists()
         email_config.refresh_from_db()
         assert not email_config.live
+
+
+class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
+    """
+    Cover how a send run handles its SMTP connection.
+    """
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        config = self._create_email_config(name='Config')
+        job = MassEmailJob.objects.create(email_config=config)
+        for user in (self.user1, self.user2, self.user3):
+            self._create_email_record(
+                user=user,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
+            )
+
+    def test_a_single_connection_is_reused_across_records(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send', return_value=True
+            ) as send_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 3
+        # One handshake for the whole run rather than one per record
+        assert connection.open.call_count == 1
+        assert connection.close.call_count == 1
+        # Every message travels on that one connection. Without this, a message
+        # falls back to `send_mail()` opening its own connection.
+        assert send_mock.call_count == 3
+        for call in send_mock.call_args_list:
+            assert call.kwargs['connection'] is connection
+
+    def test_dropped_connection_is_reset_but_the_record_is_not_retried(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[False, True, True],
+            ) as send_mock,
+            patch(
+                'kobo.apps.mass_emails.tasks.is_connection_alive', return_value=False
+            ),
+            patch('kobo.apps.mass_emails.tasks.reset_connection') as reset_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        assert reset_mock.call_count == 1
+        # Three sends for three records: the first one is not retried on the
+        # fresh connection, since we can't tell a dropped connection apart
+        # from one that dropped right after the server accepted the message -
+        # resending it would risk a duplicate
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 1
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+
+    def test_refused_recipient_does_not_reset_the_connection(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[False, True, True],
+            ) as send_mock,
+            patch('kobo.apps.mass_emails.tasks.is_connection_alive', return_value=True),
+            patch('kobo.apps.mass_emails.tasks.reset_connection') as reset_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        # The connection is still usable, so reconnecting would only cost a
+        # handshake and resend a message the server already refused
+        assert reset_mock.call_count == 0
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 1
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+
+    def test_soft_time_limit_closes_the_connection_and_leaves_records_enqueued(self):
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[True, SoftTimeLimitExceeded()],
+            ) as send_mock,
+            pytest.raises(SoftTimeLimitExceeded),
+        ):
+            MassEmailSender().send_day_emails()
+
+        # `with_smtp_connection`'s `finally` still runs: the connection is not
+        # left dangling even though the run was interrupted
+        assert connection.close.call_count == 1
+        assert send_mock.call_count == 2
+        # The interrupted record, and the one never reached, stay enqueued
+        # rather than being written off as failed
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 1
+        assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2

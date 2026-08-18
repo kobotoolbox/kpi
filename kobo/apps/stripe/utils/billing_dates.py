@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime
+from types import MappingProxyType
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -23,28 +24,30 @@ def get_current_billing_period_dates_by_org(
     first_of_next_month = first_of_this_month + relativedelta(months=1)
 
     if not settings.STRIPE_ENABLED:
+        # Share one read-only dates mapping across all orgs and stream ids to
+        # avoid loading millions of full Organization instances.
+        shared_dates = MappingProxyType(
+            {'start': first_of_this_month, 'end': first_of_next_month}
+        )
         results = {}
         if orgs is not None:
             for org in orgs:
-                results[org.id] = {
-                    'start': first_of_this_month,
-                    'end': first_of_next_month,
-                }
+                results[org.id] = shared_dates
             return results
 
-        for org in Organization.objects.all():
-            results[org.id] = {'start': first_of_this_month, 'end': first_of_next_month}
+        for org_id in Organization.objects.values_list('id', flat=True).iterator():
+            results[org_id] = shared_dates
         return results
 
     # check 1: look for active subscriptions
     all_active_billing_dates = get_current_billing_period_dates_for_active_plans(orgs)
 
     results = {}
-    already_seen = []
+    already_seen = set()
     remaining_orgs = []
     for org_id, dates in all_active_billing_dates.items():
         results[org_id] = dates
-        already_seen.append(org_id)
+        already_seen.add(org_id)
 
     # check 2: look for canceled subscriptions
     if orgs is not None:
@@ -69,7 +72,7 @@ def get_current_billing_period_dates_by_org(
     for org_id, dates in all_canceled_billing_dates.items():
         # prioritize active subscriptions over canceled ones
         results[org_id] = results.get(org_id) or dates
-        already_seen.append(org_id)
+        already_seen.add(org_id)
 
     # default: beginning of this month and beginning of next month
     if orgs is not None:
@@ -81,11 +84,16 @@ def get_current_billing_period_dates_by_org(
             }
         return results
 
-    for org in Organization.objects.filter(~Q(id__in=already_seen)):
-        results[org.id] = {
-            'start': first_of_this_month,
-            'end': first_of_next_month,
-        }
+    # Share one read-only dates mapping across every default org and stream ids
+    # to avoid loading millions of full instances and shipping a giant NOT-IN
+    # clause.
+    shared_dates = MappingProxyType(
+        {'start': first_of_this_month, 'end': first_of_next_month}
+    )
+    for org_id in Organization.objects.values_list('id', flat=True).iterator():
+        if org_id in already_seen:
+            continue
+        results[org_id] = shared_dates
     return results
 
 
