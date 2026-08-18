@@ -9,23 +9,29 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   margin-bottom: 20px;
 }
 
+// Equally wide sides keep the title in the middle of the header, rather than in
+// the middle of whatever space the buttons happen to leave.
+.submission-route__header-side {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+}
+
+.submission-route__header-side--end {
+  justify-content: flex-end;
+}
+
 .submission-route__title {
-  flex: 1;
   margin: 0;
+  text-align: center;
+  white-space: nowrap;
   font-size: 18px;
   font-weight: 600;
   color: colors.$kobo-gray-800;
-}
-
-.submission-route__body {
-  padding: 20px;
-  background: colors.$kobo-white;
-  border-radius: 6px;
 }
 
 @include breakpoints.breakpoint(veryNarrow) {
@@ -45,8 +51,7 @@
     display: none;
   }
 
-  .submission-route,
-  .submission-route__body {
+  .submission-route {
     padding: 0;
   }
 }

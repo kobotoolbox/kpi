@@ -2,7 +2,7 @@ import './submissionDetails.scss'
 
 import React from 'react'
 
-import { Loader } from '@mantine/core'
+import { Group, Loader } from '@mantine/core'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
@@ -283,10 +283,30 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
     })
   }
 
-  /**
-   * Displays language and validation status dropdowns.
-   */
-  renderDropdowns() {
+  /** Only worth showing for a form that has more than one language. */
+  renderLanguageDropdown() {
+    if (!this.props.asset.deployment__active || this.state.translationOptions.length <= 1) {
+      return null
+    }
+
+    return (
+      <div className='submission-modal-dropdowns'>
+        <Select
+          label={t('Language')}
+          size='xs'
+          clearable={false}
+          data={this.state.translationOptions}
+          value={String(this.state.translationIndex)}
+          onChange={(newSelectedOption) => {
+            this.onLanguageChange(newSelectedOption)
+          }}
+        />
+      </div>
+    )
+  }
+
+  /** Rendered with the submission actions, as setting it is one of them. */
+  renderValidationStatusSelect() {
     if (!this.props.asset.deployment__active) {
       return null
     }
@@ -295,39 +315,25 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
       'uid' in this.state.submission._validation_status ? this.state.submission._validation_status.uid : null
 
     return (
-      <div className='submission-modal-dropdowns'>
-        {this.state.translationOptions.length > 1 && (
-          <Select
-            label={t('Language')}
-            size='xs'
-            clearable={false}
-            data={this.state.translationOptions}
-            value={String(this.state.translationIndex)}
-            onChange={(newSelectedOption) => {
-              this.onLanguageChange(newSelectedOption)
-            }}
-          />
-        )}
-
-        <Select<ValidationStatusOptionName>
-          label={t('Validation status:')}
-          size='xs'
-          clearable={false}
-          data={VALIDATION_STATUS_OPTIONS}
-          value={selectedOption}
-          onChange={(newSelectedOption) => {
-            this.onValidationStatusChange(newSelectedOption ?? ValidationStatusAdditionalName.no_status)
-          }}
-          rightSection={this.state.isValidationStatusChangePending ? <Loader size='xs' /> : undefined}
-          disabled={
-            this.state.isValidationStatusChangePending ||
-            !(
-              userCan('validate_submissions', this.props.asset) ||
-              userHasPermForSubmission('validate_submissions', this.props.asset, this.state.submission)
-            )
-          }
-        />
-      </div>
+      <Select<ValidationStatusOptionName>
+        className='submission-modal-validation-status'
+        label={t('Validation status:')}
+        size='xs'
+        clearable={false}
+        data={VALIDATION_STATUS_OPTIONS}
+        value={selectedOption}
+        onChange={(newSelectedOption) => {
+          this.onValidationStatusChange(newSelectedOption ?? ValidationStatusAdditionalName.no_status)
+        }}
+        rightSection={this.state.isValidationStatusChangePending ? <Loader size='xs' /> : undefined}
+        disabled={
+          this.state.isValidationStatusChangePending ||
+          !(
+            userCan('validate_submissions', this.props.asset) ||
+            userHasPermForSubmission('validate_submissions', this.props.asset, this.state.submission)
+          )
+        }
+      />
     )
   }
 
@@ -355,7 +361,7 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
           <code>{this.props.duplicatedFromUuid}</code>
         </p>
 
-        <div className='submission-modal-buttons-group'>
+        <Group gap='xs' justify='center'>
           {this.renderEditButton()}
 
           {(userCan('delete_submissions', this.props.asset) ||
@@ -369,7 +375,7 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
               tooltip={t('Discard duplicated submission')}
             />
           )}
-        </div>
+        </Group>
       </section>
     )
   }
@@ -395,83 +401,95 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
   }
 
   /**
-   * Displays the buttons that allow making changes to the submission.
+   * Displays the buttons that allow making changes to the submission, plus the
+   * two controls that share their row: validation status and the XML names
+   * toggle.
    */
   renderSubmissionActions() {
-    // We hide these elements of UI for duplicated submission flow.
+    // We hide these elements of UI for duplicated submission flow, which offers
+    // its own buttons in the subheader.
     // TODO: displaying those might be a better UX, we just need to check if
     // everything works, or if it requires some work to make it usable.
-    if (this.isDuplicated && !this.state.isEditingDuplicate) {
+    const isPendingDuplicate = this.isDuplicated && !this.state.isEditingDuplicate
+    const validationStatusSelect = this.renderValidationStatusSelect()
+
+    // Nothing to put in the row.
+    if (isPendingDuplicate && !validationStatusSelect) {
       return null
     }
 
     return (
-      <section className='submission-modal-buttons'>
-        <div className='submission-modal-buttons-group'>
-          <Checkbox
-            checked={this.state.showXMLNames}
-            onChange={this.onShowXMLNamesChange.bind(this)}
-            label={t('Display XML names')}
-          />
-        </div>
+      // The class name is only here for the print stylesheet.
+      <Group className='submission-modal-buttons' align='flex-end' gap='lg' mb='lg'>
+        {validationStatusSelect}
 
-        <div className='submission-modal-buttons-group'>
-          {this.renderEditButton()}
+        {!isPendingDuplicate && (
+          // Pushed to the end, so the row keeps its shape when there is no
+          // validation status dropdown to sit opposite it.
+          <Group gap='xs' ml='auto'>
+            <Checkbox
+              checked={this.state.showXMLNames}
+              onChange={this.onShowXMLNamesChange.bind(this)}
+              label={t('Display XML names')}
+            />
 
-          <Button
-            onClick={this.launchViewSubmission.bind(this)}
-            type='primary'
-            size='l'
-            isDisabled={
-              !userCan('view_submissions', this.props.asset) &&
-              !userHasPermForSubmission('view_submissions', this.props.asset, this.state.submission)
-            }
-            isPending={this.state.isEnketoViewLoading}
-            label={t('View')}
-          />
+            {this.renderEditButton()}
 
-          <Button
-            onClick={this.duplicateSubmission.bind(this)}
-            type='primary'
-            size='l'
-            isDisabled={!this.isSubmissionEditable()}
-            label={t('Duplicate')}
-          />
+            <Button
+              onClick={this.launchViewSubmission.bind(this)}
+              type='primary'
+              size='l'
+              isDisabled={
+                !userCan('view_submissions', this.props.asset) &&
+                !userHasPermForSubmission('view_submissions', this.props.asset, this.state.submission)
+              }
+              isPending={this.state.isEnketoViewLoading}
+              label={t('View')}
+            />
 
-          {/* There is no `collapse` icon, so `expand` covers both states - as in the data table. */}
-          <Button
-            onClick={this.props.onToggleFullscreen}
-            type='secondary'
-            size='l'
-            startIcon='expand'
-            tooltip={this.props.isFullscreen ? t('Exit fullscreen') : t('Toggle fullscreen')}
-            tooltipPosition='right'
-          />
+            <Button
+              onClick={this.duplicateSubmission.bind(this)}
+              type='primary'
+              size='l'
+              isDisabled={!this.isSubmissionEditable()}
+              label={t('Duplicate')}
+            />
 
-          <Button
-            onClick={launchPrinting}
-            type='secondary'
-            size='l'
-            startIcon='print'
-            className='report-button__print'
-            tooltip={t('Print')}
-            tooltipPosition='right'
-          />
+            {/* There is no `collapse` icon, so `expand` covers both states - as in the data table. */}
+            <Button
+              onClick={this.props.onToggleFullscreen}
+              type='secondary'
+              size='l'
+              startIcon='expand'
+              tooltip={this.props.isFullscreen ? t('Exit fullscreen') : t('Toggle fullscreen')}
+              tooltipPosition='right'
+            />
 
-          <Button
-            onClick={this.deleteSubmission.bind(this)}
-            type='secondary-danger'
-            size='l'
-            startIcon='trash'
-            tooltip={t('Delete submission')}
-            tooltipPosition='right'
-            isDisabled={
-              !userCan('delete_submissions', this.props.asset) &&
-              !userHasPermForSubmission('delete_submissions', this.props.asset, this.state.submission)
-            }
-          />
-        </div>
-      </section>
+            <Button
+              onClick={launchPrinting}
+              type='secondary'
+              size='l'
+              startIcon='print'
+              className='report-button__print'
+              tooltip={t('Print')}
+              tooltipPosition='right'
+            />
+
+            <Button
+              onClick={this.deleteSubmission.bind(this)}
+              type='secondary-danger'
+              size='l'
+              startIcon='trash'
+              tooltip={t('Delete submission')}
+              tooltipPosition='right'
+              isDisabled={
+                !userCan('delete_submissions', this.props.asset) &&
+                !userHasPermForSubmission('delete_submissions', this.props.asset, this.state.submission)
+              }
+            />
+          </Group>
+        )}
+      </Group>
     )
   }
 
@@ -503,7 +521,7 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
 
         {this.renderRefreshWarning()}
 
-        {this.renderDropdowns()}
+        {this.renderLanguageDropdown()}
 
         {this.renderSubmissionActions()}
 

@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
-import Button from '#/components/common/button'
+import Button from '#/components/common/ButtonNew'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
@@ -17,6 +17,7 @@ import SubmissionDetails from './submissionDetails'
 import SubmissionNeighborNav from './submissionNeighborNav'
 import type { SubmissionRouteState } from './submissionRouting'
 import { getDataTablePath, getSubmissionLookupParams, getSubmissionPath } from './submissionRouting'
+import { useSubmissionNeighbors } from './useSubmissionNeighbors'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -62,6 +63,9 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
+  // Drives both the heading's "(2 of 17)" and the prev/next buttons.
+  const neighbors = useSubmissionNeighbors(assetUid, record?._id)
+
   // The route also accepts a numeric `_id`, for older links and for callers that
   // only have one (the REST Service logs). Swap it for the root UUID, so the
   // address bar always shows the form of the link that survives edits.
@@ -77,22 +81,32 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const pageTitle = `${t('Submission Record')} | KoboToolbox`
 
+  // Reads as "Submission Record (2 of 17)", as the modal did. The position is
+  // dropped until we know it, rather than shown as a placeholder.
+  const heading =
+    neighbors.total === undefined
+      ? t('Submission Record')
+      : `${t('Submission Record')} (${neighbors.index} ${t('of')} ${neighbors.total})`
+
   const renderInLayout = (content: React.ReactNode, header?: React.ReactNode) => (
     <DocumentTitle title={pageTitle}>
       <bem.FormView m={isFullscreen ? ['submission', 'fullscreen'] : ['submission']}>
         <div className='submission-route'>
           <header className='submission-route__header'>
-            <Button
-              type='text'
-              size='m'
-              startIcon='angle-left'
-              label={t('Back to data table')}
-              onClick={goToDataTable}
-            />
+            <div className='submission-route__header-side'>
+              <Button
+                variant='transparent'
+                leftIcon='angle-left'
+                tooltip={t('Back to data table')}
+                onClick={goToDataTable}
+              >
+                {t('Back')}
+              </Button>
+            </div>
 
-            <h1 className='submission-route__title'>{t('Submission Record')}</h1>
+            <h1 className='submission-route__title'>{heading}</h1>
 
-            {header}
+            <div className='submission-route__header-side submission-route__header-side--end'>{header}</div>
           </header>
 
           <div className='submission-route__body'>{content}</div>
@@ -144,8 +158,7 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       }}
     />,
     <SubmissionNeighborNav
-      assetUid={assetUid}
-      submissionDbId={record._id}
+      neighbors={neighbors}
       onGoToSubmission={(neighborRootUuid) => {
         navigate(getSubmissionPath(assetUid, neighborRootUuid))
       }}
