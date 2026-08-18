@@ -35,6 +35,7 @@ from ...exceptions import (
     SubsequenceTimeoutError,
     TranslationResultNotFound,
 )
+from ...utils import get_default_language
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 from .locations import get_translate_endpoint, get_translate_location
@@ -43,7 +44,6 @@ from .rate_limit import (
     get_google_retry_after_seconds,
     require_google_service_quota,
 )
-
 
 # Matches the trailing `(code)` in a `default_language` setting like
 # 'English (en)'; falls back to the raw value when there are no parentheses.
@@ -512,9 +512,7 @@ class GoogleTranslationService(GoogleService):
         Falls back to the raw setting when it has no `(code)` suffix, and returns
         None when no default language is configured.
         """
-        content = self.asset.content or {}
-        settings_ = content.get('settings') or {}
-        default_language = settings_.get('default_language')
+        default_language = get_default_language(self.asset)
         if not default_language:
             return None
         match = _DEFAULT_LANGUAGE_CODE_RE.search(default_language)

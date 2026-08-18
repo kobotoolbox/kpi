@@ -530,9 +530,11 @@ def test_attach_action_dependency_for_text_source_question():
     xpath = 'text_question'
     params = [{'language': 'fr'}, {'language': 'es'}]
     mock_asset = MagicMock()
-    mock_asset.content = {
-        'survey': [{'type': 'text', 'name': xpath, '$xpath': xpath}]
-    }
+    mock_asset.content = {'survey': [{'type': 'text', 'name': xpath, '$xpath': xpath}]}
+    # A mock has no unset attributes, so spell out what the metadata helper
+    # relies on: nothing memoized yet, and no deployed version to cache against
+    mock_asset._survey_metadata = None
+    mock_asset.latest_deployed_version_uid = None
     action = AutomaticGoogleTranslationAction(
         xpath,
         params,

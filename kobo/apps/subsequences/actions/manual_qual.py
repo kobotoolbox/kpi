@@ -1,6 +1,6 @@
+from ..constants import QUAL_SOURCE_TYPES, SOURCE_TYPE_MANUAL
 from .base import ActionClassConfig, ReviewType
 from .qual import BaseQualAction
-from ..constants import QUAL_SOURCE_TYPES, SOURCE_TYPE_MANUAL
 
 
 class ManualQualAction(BaseQualAction):

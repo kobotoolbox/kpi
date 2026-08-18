@@ -474,11 +474,16 @@ class TestGoogleTranslate(TestCase):
     def test_default_language_code_extraction(self):
         service = self._build_service()
 
-        service.asset.content = {'settings': {'default_language': 'English (en)'}}
-        assert service._get_default_language_code() == 'en'
-
-        service.asset.content = {'settings': {'default_language': 'lang3'}}
-        assert service._get_default_language_code() == 'lang3'
-
-        service.asset.content = {'settings': {}}
-        assert service._get_default_language_code() is None
+        for default_language, expected in (
+            ('English (en)', 'en'),
+            ('lang3', 'lang3'),
+            (None, None),
+        ):
+            settings_ = {}
+            if default_language:
+                settings_['default_language'] = default_language
+            service.asset.content = {'settings': settings_}
+            # Survey metadata is memoized per asset instance; drop it so each
+            # case is resolved from the content set above
+            service.asset._survey_metadata = None
+            assert service._get_default_language_code() == expected
