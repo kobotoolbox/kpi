@@ -312,6 +312,48 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             send_emails()
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
 
+    def test_soft_time_limit_does_not_decrement_the_interrupted_record_s_quota(self):
+        # The record that triggered the interrupt was never actually sent, so
+        # the daily budget it was about to claim must not be spent on it:
+        # otherwise a resumable interruption quietly wastes quota.
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        with patch(
+            'kobo.apps.mass_emails.tasks.MassEmailSender.send_email',
+            side_effect=SoftTimeLimitExceeded,
+        ):
+            send_emails()
+
+        sender = MassEmailSender()
+        assert sum(sender.limits.values()) == 300
+        assert sender.total_limit == 300
+
+    def test_quota_exhausted_does_not_decrement_the_interrupted_record_s_quota(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        with patch(
+            'kobo.apps.mass_emails.tasks.MassEmailSender.send_email',
+            side_effect=MailerProviderQuotaExhaustedError('quota gone'),
+        ):
+            send_emails()
+
+        sender = MassEmailSender()
+        assert sum(sender.limits.values()) == 300
+        assert sender.total_limit == 300
+
+    def test_rate_throttled_does_not_decrement_the_interrupted_record_s_quota(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        with patch(
+            'kobo.apps.mass_emails.tasks.MassEmailSender.send_email',
+            side_effect=MailerProviderRateThrottledError('slow down'),
+        ):
+            send_emails()
+
+        sender = MassEmailSender()
+        assert sum(sender.limits.values()) == 300
+        assert sender.total_limit == 300
+
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
         self._setup_common_test_data()

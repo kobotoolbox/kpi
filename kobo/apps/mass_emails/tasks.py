@@ -306,9 +306,9 @@ class MassEmailSender:
                         sleep(remaining)
                     window_start = monotonic()
                     spent_in_window = 0
+                self.send_email(email_config, record)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
-                self.send_email(email_config, record)
                 spent_in_window += 1
 
     def send_email(self, email_config, record):

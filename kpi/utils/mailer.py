@@ -209,9 +209,11 @@ class Mailer:
             connection._mailer_last_used = monotonic()
 
     @classmethod
-    def _classify_smtp_exception(cls, exc: SMTPException) -> MailerError:
+    def _classify_smtp_exception(
+        cls, exc: Union[SMTPException, OSError]
+    ) -> MailerError:
         """
-        Turn a raw `smtplib` exception into a typed `MailerError`
+        Turn a raw `smtplib`/socket exception into a typed `MailerError`
 
         Only exceptions that carry an SMTP status code can be matched against
         `THROTTLE_SIGNATURES`. Everything else (e.g. a dropped connection)
@@ -228,8 +230,11 @@ class Mailer:
             return MailerError(str(exc))
 
         text = cls._decode_smtp_text(msg)
+        text_lower = text.lower()
         for signature_code, substring, exception_class in cls.THROTTLE_SIGNATURES:
-            if (signature_code is None or code == signature_code) and substring in text:
+            if (
+                signature_code is None or code == signature_code
+            ) and substring.lower() in text_lower:
                 return exception_class(f'{code} {text}')
 
         return MailerError(f'{code} {text}')
@@ -328,7 +333,7 @@ class Mailer:
             else:
                 with get_connection() as new_connection:
                     new_connection.send_messages(messages)
-        except SMTPException as e:
+        except (SMTPException, OSError) as e:
             # No retry here: Django's `send_messages()` gives no per-message
             # success/failure back, so retrying a partially-sent batch risks
             # re-sending messages that already went out.
@@ -340,7 +345,7 @@ class Mailer:
     ):
         try:
             cls._dispatch_single(email_message, connection)
-        except SMTPException as e:
+        except (SMTPException, OSError) as e:
             if connection is not None and not cls._is_connection_alive(connection):
                 # A dropped connection can happen right after the server
                 # already accepted the message but before we read its

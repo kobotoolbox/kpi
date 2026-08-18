@@ -220,6 +220,15 @@ class TestClassifySmtpException(TestCase):
         assert isinstance(error, MailerProviderQuotaExhaustedError)
         assert not isinstance(error, MailerProviderRateThrottledError)
 
+    def test_signature_matches_regardless_of_response_text_casing(self):
+        exc = SMTPResponseException(
+            454, b'Throttling failure: DAILY MESSAGE QUOTA exceeded.'
+        )
+
+        error = Mailer._classify_smtp_exception(exc)
+
+        assert isinstance(error, MailerProviderQuotaExhaustedError)
+
     def test_sendgrid_too_frequent_connects_signature_matches(self):
         exc = SMTPResponseException(
             450, b'too frequent connects from 1.2.3.4, please try again later.'
@@ -411,6 +420,24 @@ class TestMailerSendSingle(TestCase):
         assert reset_mock.call_count == 1
         assert send_mail_mock.call_count == 1
 
+    def test_dropped_socket_is_reset_and_classified_as_a_plain_error(self):
+        # A raw OSError (e.g. ConnectionResetError) carries no SMTP status
+        # code, but is still a dropped-connection signal like SMTPServerDisconnected.
+        connection = MagicMock()
+        with (
+            patch(
+                'kpi.utils.mailer.send_mail',
+                side_effect=ConnectionResetError(),
+            ) as send_mail_mock,
+            patch('kpi.utils.mailer.Mailer._is_connection_alive', return_value=False),
+            patch('kpi.utils.mailer.Mailer._reset_connection') as reset_mock,
+            self.assertRaises(MailerError),
+        ):
+            Mailer.send(self.message, connection=connection)
+
+        assert reset_mock.call_count == 1
+        assert send_mail_mock.call_count == 1
+
     def test_throttled_signature_propagates_its_specific_type(self):
         connection = MagicMock()
         with (
@@ -474,6 +501,21 @@ class TestMailerSendBatch(TestCase):
 
         # The batch branch never probes or resets: retrying risks
         # re-sending messages that already went out earlier in the list
+        assert alive_mock.call_count == 0
+        assert reset_mock.call_count == 0
+        assert connection.send_messages.call_count == 1
+
+    def test_batch_dropped_socket_is_classified_as_a_plain_error(self):
+        connection = MagicMock()
+        connection.send_messages.side_effect = ConnectionResetError()
+
+        with (
+            patch('kpi.utils.mailer.Mailer._is_connection_alive') as alive_mock,
+            patch('kpi.utils.mailer.Mailer._reset_connection') as reset_mock,
+            self.assertRaises(MailerError),
+        ):
+            Mailer.send(self.messages, connection=connection)
+
         assert alive_mock.call_count == 0
         assert reset_mock.call_count == 0
         assert connection.send_messages.call_count == 1
