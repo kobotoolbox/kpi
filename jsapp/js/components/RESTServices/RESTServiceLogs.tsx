@@ -165,8 +165,7 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
       grow: true,
       cellFormatter: (log) =>
         log.status === HOOK_LOG_STATUSES.SUCCESS ? (
-          // Logs only record the numeric `_id`; the submission route swaps it for
-          // the root UUID once it has resolved the record.
+          // Logs only record `_id`, the submission route swaps it for the root UUID once it has resolved the record.
           <ButtonNew variant='transparent' component={Link} to={getSubmissionPath(assetUid, log.submission_id)}>
             {log.submission_id}
           </ButtonNew>

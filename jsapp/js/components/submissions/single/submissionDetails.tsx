@@ -1,10 +1,8 @@
 import './submissionDetails.scss'
-
-import React from 'react'
-
 import { Group, Loader } from '@mantine/core'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
+import React from 'react'
 import { actions } from '#/actions'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
@@ -176,9 +174,10 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
   /**
    * Displays a prompt for confirming deletion.
    *
-   * TODO: use KoboPrompt instead of alertify. Also make the prompt delete
-   * button `isPending` while it waits for the call to finish, as currently
-   * there is no indication that app is doing anything in the meantime (bad UX).
+   * TODO: use Mantine confirm Modal instead of alertify. Also make the prompt
+   * delete button `isPending` while it waits for the call to finish,
+   * as currently there is no indication that app is doing anything
+   * in the meantime (bad UX).
    */
   deleteSubmission() {
     const dialog = alertify.dialog('confirm')
@@ -514,7 +513,8 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
 
     // Each of these `renderX()` functions handle the conditional rendering
     // by itself
-    // TODO: Move each of these render functions to a different component to shorten this file
+    // TODO: Move each of these render functions to a different component
+    // to shorten this file
     return (
       <>
         {this.renderDuplicatedSubmissionSubheader()}
