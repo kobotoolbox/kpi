@@ -404,3 +404,81 @@ class TestGoogleTranslate(TestCase):
                         )
 
         service.translate_client.translate_text.assert_not_called()
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_REGION='global',
+    )
+    def test_sync_translation_reads_source_from_submission_for_text_question(self):
+        """
+        A text-source translation reads the answer straight from the submission
+        and uses the form's default language as the source language
+        """
+        service = self._build_service()
+        service.asset.content = {'settings': {'default_language': 'English (en)'}}
+        service.submission['q1'] = 'Hello from the respondent'
+        service.translate_client.translate_text.return_value = 'Bonjour'
+
+        with patch.object(
+            service, '_get_source_language_code', return_value='en'
+        ) as source_code:
+            with patch.object(service, '_get_target_language_code', return_value='fr'):
+                with patch.object(service, 'update_counters'):
+                    response = service.process_data(
+                        'q1',
+                        {
+                            'language': 'fr',
+                            '_dependency': {'_actionId': 'submission'},
+                        },
+                    )
+
+        assert response == {'status': 'complete', 'value': 'Bonjour'}
+        # Source language was extracted from the 'English (en)' default language
+        source_code.assert_called_once_with('en')
+        request = service.translate_client.translate_text.call_args.kwargs['request']
+        assert request['contents'] == ['Hello from the respondent']
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_REGION='global',
+    )
+    def test_text_source_translation_fails_when_submission_answer_missing(self):
+        service = self._build_service()
+        service.asset.content = {'settings': {'default_language': 'English (en)'}}
+
+        response = service.process_data(
+            'q1',
+            {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+        )
+
+        assert response['status'] == 'failed'
+        assert 'no text' in response['error'].lower()
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_REGION='global',
+    )
+    def test_text_source_translation_fails_without_default_language(self):
+        service = self._build_service()
+        service.asset.content = {'settings': {}}
+        service.submission['q1'] = 'Hello'
+
+        response = service.process_data(
+            'q1',
+            {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+        )
+
+        assert response['status'] == 'failed'
+        assert 'default language' in response['error'].lower()
+
+    def test_default_language_code_extraction(self):
+        service = self._build_service()
+
+        service.asset.content = {'settings': {'default_language': 'English (en)'}}
+        assert service._get_default_language_code() == 'en'
+
+        service.asset.content = {'settings': {'default_language': 'lang3'}}
+        assert service._get_default_language_code() == 'lang3'
+
+        service.asset.content = {'settings': {}}
+        assert service._get_default_language_code() is None
