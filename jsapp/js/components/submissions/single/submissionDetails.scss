@@ -27,17 +27,12 @@
   }
 }
 
-.submission-modal-dropdowns:only-child {
-  width: 100%;
-}
-
 .submission-modal-dropdowns {
   display: flex;
   gap: 20px;
-  justify-content: space-between;
   margin-bottom: 20px;
 
-  // Keep the dropdowns wide enough for their labels and longest options
+  // Keep the dropdown wide enough for its label and longest options
   > * {
     min-width: 140px;
   }
