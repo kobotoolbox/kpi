@@ -517,18 +517,20 @@ class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
         record = MassEmailRecord.objects.get(user=self.user1)
         assert record.status == EmailStatus.SENT
 
-    def test_fresh_record_is_sent_without_a_recheck(self):
+    def test_fresh_record_is_sent_without_reevaluating_the_query(self):
         self._create_email_record(
             user=self.user1,
             email_config=self.email_config,
             status=EmailStatus.ENQUEUED,
             days_ago=0,
         )
-        with patch.object(MassEmailConfig, 'is_user_still_eligible') as mock_check:
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=True
+        ) as mock_check:
             sender = MassEmailSender()
             sender.send_day_emails()
 
-        mock_check.assert_not_called()
+        mock_check.assert_called_once_with(self.user1, reevaluate_query=False)
         assert len(mail.outbox) == 1
         record = MassEmailRecord.objects.get(user=self.user1)
         assert record.status == EmailStatus.SENT
@@ -569,7 +571,9 @@ class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
             days_ago=0,
         )
         with patch.object(
-            MassEmailConfig, 'is_user_still_eligible', return_value=False
+            MassEmailConfig,
+            'is_user_still_eligible',
+            side_effect=lambda user, reevaluate_query=True: not reevaluate_query,
         ):
             sender = MassEmailSender()
             original_limit = sender.limits[self.email_config.id]
@@ -617,7 +621,9 @@ class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
         )
 
         with patch.object(
-            MassEmailConfig, 'is_user_still_eligible', return_value=False
+            MassEmailConfig,
+            'is_user_still_eligible',
+            side_effect=lambda user, reevaluate_query=True: not reevaluate_query,
         ):
             sender = MassEmailSender()
             assert sender.limits[self.email_config.id] == 2
@@ -844,6 +850,65 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         assert send_mock.call_count == 3
         for call in send_mock.call_args_list:
             assert call.kwargs['connection'] is connection
+
+    def test_deactivated_user_record_is_marked_stale_and_not_sent(self):
+        # A user deactivated after enqueue must not receive the email; their
+        # record is marked stale up front by MassEmailSender.__init__
+        self.user1.is_active = False
+        self.user1.save()
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send', return_value=None
+            ) as send_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        user1_record = MassEmailRecord.objects.get(user=self.user1)
+        assert user1_record.status == EmailStatus.STALE
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+        sent_recipients = [call.args[0].to for call in send_mock.call_args_list]
+        assert self.user1.email not in sent_recipients
+
+    def test_orphaned_record_is_marked_stale_and_not_sent(self):
+        # Records whose user was deleted can never be sent; mark them stale
+        # so one-time configs still terminate
+        record = MassEmailRecord.objects.get(user=self.user1)
+        record.user = None
+        record.save()
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch('kobo.apps.mass_emails.tasks.Mailer.send', return_value=None),
+        ):
+            MassEmailSender().send_day_emails()
+
+        record.refresh_from_db()
+        assert record.status == EmailStatus.STALE
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+
+    def test_user_deactivated_mid_run_is_marked_stale_and_not_sent(self):
+        # The sender reads its batch (and runs its eager cleanup) while the
+        # user is still active, then the user is deactivated before their
+        # record is reached. The per-record guard catches it even though the
+        # record is far too young for the stale-threshold recheck.
+        sender = MassEmailSender()
+        self.user1.is_active = False
+        self.user1.save()
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send', return_value=None
+            ) as send_mock,
+        ):
+            sender.send_day_emails()
+
+        user1_record = MassEmailRecord.objects.get(user=self.user1)
+        assert user1_record.status == EmailStatus.STALE
+        sent_recipients = [call.args[0].to for call in send_mock.call_args_list]
+        assert self.user1.email not in sent_recipients
 
     def test_mailer_error_marks_the_record_failed_and_the_run_continues(self):
         connection = MagicMock()

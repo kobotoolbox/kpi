@@ -8,6 +8,7 @@ from import_export import fields, resources
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
+    _is_user_active_and_not_trashed,
     get_active_users,
     get_all_test_users,
     get_inactive_users,
@@ -123,13 +124,24 @@ class MassEmailConfig(AbstractTimeStampedModel):
         parameters = self._resolve_parameters(queryset_getter)
         return queryset_getter(**parameters)
 
-    def is_user_still_eligible(self, user: User) -> bool:
+    def is_user_still_eligible(
+        self, user: User | None, reevaluate_query: bool = True
+    ) -> bool:
         """
-        Cheap single-user recheck of `self.query`'s criteria, used before
-        sending a stale enqueued record to catch a recipient who stopped
-        matching while the record was sitting in the queue.
+        Whether a queued record's recipient may still be emailed.
+
+        A deleted, deactivated or trashed user is never eligible. With
+        `reevaluate_query`, the user is also re-checked against
+        `self.query`'s criteria - used for records that sat in the queue
+        long enough to go stale.
         """
 
+        # This also keeps the fail-open path below from applying to a
+        # deleted, deactivated or trashed user.
+        if not _is_user_active_and_not_trashed(user):
+            return False
+        if not reevaluate_query:
+            return True
         check = USER_ELIGIBILITY_CHECKS.get(self.query)
         if check is None:
             # Only reachable if an admin edits a live config's `query` while

@@ -131,6 +131,36 @@ class TestMassEmailConfigEligibility(TestCase):
         user = User.objects.create(username='u')
         assert email_config.is_user_still_eligible(user) is True
 
+    def test_reevaluate_query_false_skips_the_registered_check(self):
+        # The cheap active/trash guard still applies, but the query criteria
+        # are not re-evaluated
+        email_config = MassEmailConfig.objects.create(
+            name='no reevaluation', query='users_active_within_365_days'
+        )
+        stale_user = User.objects.create(
+            username='stale_no_reeval',
+            last_login=timezone.now() - timedelta(days=400),
+        )
+        assert email_config.is_user_still_eligible(stale_user) is False
+        assert (
+            email_config.is_user_still_eligible(stale_user, reevaluate_query=False)
+            is True
+        )
+
+    def test_never_eligible_when_user_is_none_or_deactivated(self):
+        # The guard beats both the registered check and the fail-open path
+        for query in ('users_active_within_365_days', 'does_not_exist'):
+            email_config = MassEmailConfig.objects.create(
+                name=f'guard {query}', query=query
+            )
+            deactivated = User.objects.create(
+                username=f'deactivated_{query}',
+                last_login=timezone.now() - timedelta(days=1),
+                is_active=False,
+            )
+            assert email_config.is_user_still_eligible(None) is False
+            assert email_config.is_user_still_eligible(deactivated) is False
+
     def test_delegates_to_registered_check(self):
         email_config = MassEmailConfig.objects.create(
             name='active check', query='users_active_within_365_days'
