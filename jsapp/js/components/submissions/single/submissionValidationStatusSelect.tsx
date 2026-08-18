@@ -1,5 +1,4 @@
 import { Loader } from '@mantine/core'
-import React from 'react'
 import Select from '#/components/common/Select'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import {

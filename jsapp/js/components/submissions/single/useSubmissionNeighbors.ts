@@ -29,28 +29,20 @@ export interface SubmissionNeighbors {
  * Where the given record sits among all the submissions the user can see, and
  * which records lie either side of it.
  *
- * Rather than working from a list, this asks the API for the single record on
- * each side plus how many lie that way - so it works the same whether the user
- * arrived from the data table, from the map, or from a link someone sent them.
- * Same approach as the single processing view's `SelectSubmission`.
- *
- * Note that it walks every submission the user can see. Filters applied in the
- * data table are that table's own state and have no bearing here.
- *
- * @param submissionDbId - `_id` of the record being displayed. Leave it out
- * while the record is still loading, and nothing is fetched.
+ * @param submissionId - `_id` of the record being displayed. Leave it out while
+ * the record is still loading, and nothing will be fetched.
  */
-export function useSubmissionNeighbors(assetUid: string, submissionDbId?: number): SubmissionNeighbors {
-  const isEnabled = submissionDbId !== undefined
+export function useSubmissionNeighbors(assetUid: string, submissionId?: number): SubmissionNeighbors {
+  const isEnabled = submissionId !== undefined
 
   // The params are still built when disabled, so that each record keeps its own
   // query key - the id is ignored until the query runs.
-  const prevParams = getSubmissionNeighborParams(submissionDbId ?? 0, 'prev')
+  const prevParams = getSubmissionNeighborParams(submissionId ?? 0, 'prev')
   const queryPrev = useAssetsDataList(assetUid, prevParams, {
     query: { queryKey: getAssetsDataListQueryKey(assetUid, prevParams), select: selectNeighbor, enabled: isEnabled },
   })
 
-  const nextParams = getSubmissionNeighborParams(submissionDbId ?? 0, 'next')
+  const nextParams = getSubmissionNeighborParams(submissionId ?? 0, 'next')
   const queryNext = useAssetsDataList(assetUid, nextParams, {
     query: { queryKey: getAssetsDataListQueryKey(assetUid, nextParams), select: selectNeighbor, enabled: isEnabled },
   })

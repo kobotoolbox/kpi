@@ -1,9 +1,9 @@
 @use 'scss/colors';
 
 // NOTE: the `submission-modal-*` class names are kept from when this was
-// a modal, so that the markup can be migrated to Mantine in one go later.
+// a modal, we will remove most of them when we migrate component to Mantine
 
-// Laid out with a Mantine `Group`; this is what the print stylesheet hides.
+// This is what the print stylesheet hides.
 .submission-modal-buttons {
   .checkbox__label {
     white-space: nowrap;

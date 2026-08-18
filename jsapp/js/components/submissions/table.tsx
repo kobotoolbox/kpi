@@ -158,9 +158,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   private unlisteners: Function[] = []
 
   /**
-   * How the table was last left (see `tableViewState`). Captured once, because
-   * `react-table` resets the table whenever the `default*` props it was given
-   * change.
+   * Page size and filters the user last left the table with, taken from
+   * `tableViewState` in the constructor and never read again.
+   *
+   * `react-table` seeds its internal state from the `default*` props, but it
+   * also keeps comparing them between renders: when `defaultFiltered` differs
+   * from what it saw last time, it drops the filters the user has set and
+   * applies the new default instead. We save filters back to `tableViewState`
+   * as the user changes them, so reading them on every render would push them
+   * straight back into the table and reset it mid-interaction.
    */
   private readonly initialPageSize: number
   private readonly initialFiltered: ReactTableStateFilteredItem[]
@@ -1073,7 +1079,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.fetchSubmissions(tableInstance)
   }
 
-  /** Leaves the table for the submission's own address. */
   goToSubmission(submission: SubmissionResponse) {
     goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission))
   }

@@ -1,5 +1,4 @@
 import './submissionRoute.scss'
-
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
@@ -63,7 +62,7 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
-  // Drives both the heading's "(2 of 17)" and the prev/next buttons.
+  // Drives both the heading's counter and the prev/next buttons.
   const neighbors = useSubmissionNeighbors(assetUid, record?._id)
 
   // The route also accepts a numeric `_id`, for older links and for callers that
@@ -81,8 +80,7 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const pageTitle = `${t('Submission Record')} | KoboToolbox`
 
-  // Reads as "Submission Record (2 of 17)", as the modal did. The position is
-  // dropped until we know it, rather than shown as a placeholder.
+  // Reads as "Submission Record" or "Submission Record (2 of 17)"  when we know the neighbors
   const heading =
     neighbors.total === undefined
       ? t('Submission Record')

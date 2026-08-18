@@ -16,17 +16,15 @@ export interface SubmissionRouteState {
  * The address of a single submission record, e.g.
  * `#/forms/aBcDeF/data/submission/a1b2c3d4-…`.
  *
- * Prefer a root UUID: it survives edits, while `_id` is a database key. Numeric
- * ids still work, for older links and for callers that only have an `_id` (the
- * REST Service logs).
+ * @param submissionId - `meta/rootUuid` (preferably) or `_id`
  */
 export function getSubmissionPath(assetUid: string, submissionId: string | number) {
   return ROUTES.FORM_SUBMISSION.replace(':uid', assetUid).replace(':submissionId', String(submissionId))
 }
 
 /**
- * Opens a submission record. Exists for the legacy class components that still
- * render the data table and the map, and so cannot use `useNavigate`.
+ * Opens a submission record. Exists for the legacy class components that cannot
+ * use `useNavigate`.
  */
 export function goToSubmission(
   assetUid: string,
@@ -44,7 +42,6 @@ export function goToSubmission(
   })
 }
 
-/** Where the "back to data" affordance of the submission route points. */
 export function getDataTablePath(assetUid: string) {
   return ROUTES.FORM_TABLE.replace(':uid', assetUid)
 }

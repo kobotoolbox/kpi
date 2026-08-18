@@ -14,7 +14,7 @@ interface SubmissionActionsProps {
   submission: SubmissionResponse
   /**
    * Set while the user is looking at a duplicate they have not accepted yet, in
-   * which case the banner above carries the actions instead.
+   * which case SubmissionDuplicateBanner carries the actions instead.
    *
    * TODO: displaying these might be a better UX, we just need to check if
    * everything works, or if it requires some work to make it usable.
@@ -96,7 +96,6 @@ export default function SubmissionActions({
 
           <Button onClick={onDuplicate} type='primary' size='l' isDisabled={!isEditable} label={t('Duplicate')} />
 
-          {/* There is no `collapse` icon, so `expand` covers both states - as in the data table. */}
           <Button
             onClick={onToggleFullscreen}
             type='secondary'
