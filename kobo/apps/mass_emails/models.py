@@ -11,18 +11,18 @@ from kobo.apps.mass_emails.user_queries import (
     get_active_users,
     get_all_test_users,
     get_inactive_users,
+    get_users_over_80_percent_of_auto_qa_limits,
     get_users_over_80_percent_of_nlp_limits,
     get_users_over_80_percent_of_storage_limit,
     get_users_over_80_percent_of_submission_limit,
+    get_users_over_90_percent_of_auto_qa_limits,
     get_users_over_90_percent_of_nlp_limits,
     get_users_over_90_percent_of_storage_limit,
     get_users_over_90_percent_of_submission_limit,
+    get_users_over_100_percent_of_auto_qa_limits,
     get_users_over_100_percent_of_nlp_limits,
     get_users_over_100_percent_of_storage_limit,
     get_users_over_100_percent_of_submission_limit,
-    get_users_over_80_percent_of_auto_qa_limits,
-    get_users_over_90_percent_of_auto_qa_limits,
-    get_users_over_100_percent_of_auto_qa_limits,
 )
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
