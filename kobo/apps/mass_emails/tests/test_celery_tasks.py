@@ -584,6 +584,57 @@ class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
         remaining = cache.get(f'{sender.cache_key_prefix}_{self.email_config.id}')
         assert remaining == original_limit - 1
 
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=2)
+    def test_stale_records_do_not_shrink_the_days_effective_capacity(self):
+        # Stale records created first, fresh ones after: with a plain
+        # `[:limit]` slice, the two stale records alone would fill the
+        # window and leave the fresh, eligible ones enqueued despite spare
+        # capacity. The fix must pull past them instead.
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user2,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user3,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        user4 = User.objects.create(username='user4', email='user4@test.com')
+        self._create_email_record(
+            user=user4,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ):
+            sender = MassEmailSender()
+            assert sender.limits[self.email_config.id] == 2
+            sender.send_day_emails()
+
+        assert len(mail.outbox) == 2
+        statuses = list(
+            MassEmailRecord.objects.filter(
+                email_job__email_config=self.email_config
+            ).values_list('status', flat=True)
+        )
+        assert statuses.count(EmailStatus.STALE) == 2
+        assert statuses.count(EmailStatus.SENT) == 2
+        assert not MassEmailRecord.objects.filter(
+            status=EmailStatus.ENQUEUED
+        ).exists()
+
     def test_mark_old_enqueued_record_as_failed_ignores_stale_records(self):
         self._create_email_record(
             user=self.user1,

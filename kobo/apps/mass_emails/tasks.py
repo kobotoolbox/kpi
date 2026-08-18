@@ -299,11 +299,16 @@ class MassEmailSender:
             records = MassEmailRecord.objects.filter(
                 status=EmailStatus.ENQUEUED,
                 email_job__email_config=email_config,
-            )[:limit]
-            logging.info(
-                f'Processing {limit} records for MassEmailConfig({email_config})'
             )
-            for record in records:
+            logging.info(
+                f'Processing up to {limit} records for MassEmailConfig({email_config})'
+            )
+            # No `[:limit]` slice: a stale record must not burn a slot without
+            # spending budget, so keep pulling records until `limit` is spent.
+            budget_used = 0
+            for record in records.iterator():
+                if budget_used >= limit:
+                    break
                 # Skip a stale record that no longer matches its config's criteria
                 if (
                     record.date_created < stale_threshold
@@ -333,6 +338,7 @@ class MassEmailSender:
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 spent_in_window += 1
+                budget_used += 1
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
