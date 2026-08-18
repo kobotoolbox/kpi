@@ -2,13 +2,13 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
-from django.contrib import messages
 from django.db import transaction
-from django.shortcuts import redirect, resolve_url
+from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
@@ -65,7 +65,6 @@ class AccountAdapter(DefaultAccountAdapter):
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
-
     def pre_social_login(self, request, sociallogin):
         """Allow only one linked SSO account per user."""
         # Only the connect flow links a new provider; login/signup are exempt.
@@ -82,15 +81,30 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
             provider=incoming.provider, uid=incoming.uid
         )
-        if blocking_accounts.exists():
-            messages.error(
+        if not blocking_accounts.exists():
+            return
+
+        # Reuse allauth's own error-rendering helper instead of a bespoke
+        # response. Passing `state` through makes this forward-compatible:
+        # once headless mode is enabled it'll redirect SPA callers with
+        # `?error=...` instead of rendering HTML, with no change needed here
+        raise ImmediateHttpResponse(
+            render_authentication_error(
                 request,
-                t(
-                    'You can only link one SSO account at a time. Disconnect '
-                    'your existing SSO account before linking a new one.'
-                ),
+                incoming.provider,
+                error='multiple_sso_not_allowed',
+                extra_context={
+                    'state': sociallogin.state,
+                    'error_title': t('SSO account already linked'),
+                    'error_message': t(
+                        'You can only link one SSO account at a time. '
+                        'Disconnect your existing SSO account before linking '
+                        'a new one.'
+                    ),
+                    # Already validated against ALLOWED_HOSTS by allauth when
+                    # it stashed the `next` parameter into the session state
+                    'back_url': sociallogin.get_redirect_url(request)
+                    or resolve_url(settings.LOGIN_REDIRECT_URL),
+                },
             )
-            next_url = sociallogin.get_redirect_url(request) or resolve_url(
-                settings.LOGIN_REDIRECT_URL
-            )
-            raise ImmediateHttpResponse(redirect(next_url))
+        )

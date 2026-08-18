@@ -1,16 +1,25 @@
+import json
+from unittest.mock import patch
+
+import responses
 from allauth.core.exceptions import ImmediateHttpResponse
-from allauth.socialaccount.models import SocialAccount, SocialLogin
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
+from django.test.utils import override_settings
 from django.urls import reverse
 from model_bakery import baker
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kobo.apps.accounts.adapter import SocialAccountAdapter
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.utils.fuzzy_int import FuzzyInt
+
+from .constants import SOCIALACCOUNT_PROVIDERS
 
 
 class AccountsEmailTestCase(APITestCase):
@@ -49,7 +58,8 @@ class SingleSocialAccountTestCase(TestCase):
     def _build_request(self):
         request = RequestFactory().get('/')
         request.user = self.user
-        # messages.error needs a session + message store
+        # Rendering the error page runs the context processors, which need a
+        # session and a message store
         SessionMiddleware(lambda r: None).process_request(request)
         request._messages = FallbackStorage(request)
         return request
@@ -70,9 +80,16 @@ class SingleSocialAccountTestCase(TestCase):
         request = self._build_request()
         sociallogin = self._build_connect_login(provider='microsoft', uid='new-uid')
 
-        with self.assertRaises(ImmediateHttpResponse):
+        with self.assertRaises(ImmediateHttpResponse) as cm:
             self.adapter.pre_social_login(request, sociallogin)
 
+        # The user is told why, rather than being bounced silently
+        response = cm.exception.response
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn(
+            'You can only link one SSO account at a time',
+            response.content.decode(),
+        )
         # No second account was created
         self.assertEqual(SocialAccount.objects.filter(user=self.user).count(), 1)
 
@@ -104,3 +121,110 @@ class SingleSocialAccountTestCase(TestCase):
         sociallogin.state['process'] = AuthProcess.LOGIN
 
         self.assertIsNone(self.adapter.pre_social_login(request, sociallogin))
+
+
+@override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
+class SingleSocialAccountConnectFlowTestCase(TestCase):
+    """
+    This test exercises the same guard through the real OAuth2 callback
+    URL, instead of calling the adapter directly. This is the path that was
+    actually exploitable in production: hidden SSO providers keep a working
+    `/accounts/oidc/<provider_id>/login/?process=connect` URL even when no
+    button is rendered for them, so a restriction enforced only on the
+    frontend was trivial to bypass by visiting the URL directly
+    """
+
+    def setUp(self):
+        self.user = baker.make(settings.AUTH_USER_MODEL)
+        UserProfile.objects.create(user=self.user)
+        self.client.force_login(self.user)
+        SocialApp.objects.all().delete()
+        self.callback_url = reverse('openid_connect_callback', args=('openid_connect',))
+
+    def _mock_provider_endpoints(self):
+        """
+        Mock `requests` responses to fool django-allauth
+        """
+        responses.add(
+            responses.GET,
+            'http://testserver/oauth/.well-known/openid-configuration',
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+            body=json.dumps(
+                {
+                    'token_endpoint': 'http://testserver/oauth/token',
+                    'authorization_endpoint': 'http://testserver/oauth/authorize',
+                    'userinfo_endpoint': 'http://testserver/oauth/userinfo',
+                }
+            ),
+        )
+        responses.add(
+            responses.POST,
+            'http://testserver/oauth/token',
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+            body=json.dumps(
+                {
+                    'access_token': 'mock_access_token',
+                    'refresh_token': 'mock_refresh_token',
+                }
+            ),
+        )
+        responses.add(
+            responses.GET,
+            'http://testserver/oauth/userinfo',
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+            body=json.dumps(
+                {
+                    'sub': 'incoming-uid',
+                    'preferred_username': 'incoming',
+                    'email': 'incoming@testserver',
+                }
+            ),
+        )
+
+    def _simulate_connect_callback(self):
+        self._mock_provider_endpoints()
+        # Simulate the SSO provider redirecting the user back to kpi
+        return self.client.get(
+            self.callback_url, data={'code': 'foobar', 'state': '12345'}
+        )
+
+    @responses.activate
+    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
+    def test_connect_is_blocked_when_another_account_is_linked(
+        self, mock_unstash_state
+    ):
+        mock_unstash_state.return_value = {'process': 'connect'}
+        already_linked = baker.make(
+            'socialaccount.SocialAccount',
+            user=self.user,
+            provider='another-app',
+            uid='another-uid',
+        )
+
+        response = self._simulate_connect_callback()
+
+        self.assertContains(
+            response,
+            'You can only link one SSO account at a time',
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+        # The second account was never created, and the first is untouched
+        accounts = SocialAccount.objects.filter(user=self.user)
+        self.assertEqual(accounts.count(), 1)
+        self.assertEqual(accounts.first().pk, already_linked.pk)
+
+    @responses.activate
+    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
+    def test_connect_succeeds_when_no_account_is_linked(self, mock_unstash_state):
+        mock_unstash_state.return_value = {'process': 'connect'}
+
+        response = self._simulate_connect_callback()
+
+        # The guard must not get in the way of the legitimate first link
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        account = SocialAccount.objects.get(user=self.user)
+        self.assertEqual(account.provider, 'test-app')
+        self.assertEqual(account.uid, 'incoming-uid')
