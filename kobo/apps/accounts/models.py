@@ -117,7 +117,7 @@ def validate_domain(value):
 
     allowed_domains = constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
     allowed_domain_list = [
-        domain.lower() for domain in allowed_domains.split('\n') if bool(domain)
+        domain.strip().lower() for domain in allowed_domains.split('\n') if bool(domain)
     ]
     if allowed_domain_list and normalized_value not in allowed_domain_list:
         raise ValidationError(f'Email domain not in allowed domain list {value}')
