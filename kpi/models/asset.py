@@ -65,6 +65,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -499,7 +500,7 @@ class Asset(
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
-        self._autoname(self.content, raise_on_error=False)
+        self._autoname(self.content, handle_duplicates=HandleDuplicatesOptions.IGNORE)
         self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)

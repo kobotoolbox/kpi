@@ -8,8 +8,7 @@ import { useParams } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { QueryKeys } from '#/query/queryKeys'
 import { formatTime } from '#/utils'
-import type { KoboSelectOption } from '../common/koboSelect'
-import KoboSelect from '../common/koboSelect'
+import Select from '../common/Select'
 import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component'
 import KoboModal from '../modals/koboModal'
 import KoboModalHeader from '../modals/koboModalHeader'
@@ -23,7 +22,7 @@ import { ActivityMessage } from './activityMessage.component'
  * of actions that users did on the project.
  */
 export default function FormActivity() {
-  const [selectedFilterOption, setSelectedFilterOption] = useState<KoboSelectOption | null>(null)
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null)
 
   const exportData = useExportActivityLogs()
 
@@ -32,10 +31,6 @@ export default function FormActivity() {
   const assetUid = uid as string
 
   const { data: filterOptions } = useActivityLogsFilterOptionsQuery(assetUid)
-
-  const handleFilterChange = (value: string | null) => {
-    setSelectedFilterOption(filterOptions?.find((option) => option.value === value) || null)
-  }
 
   // Modal is being displayed when data for it is set. To close modal, simply
   // set data to `null`.
@@ -46,11 +41,11 @@ export default function FormActivity() {
     start: 0,
   })
   const queryResult = useQuery({
-    queryKey: [QueryKeys.activityLogs, assetUid, selectedFilterOption?.value || '', pagination],
+    queryKey: [QueryKeys.activityLogs, assetUid, selectedFilter || '', pagination],
     queryFn: () =>
       getActivityLogs({
         assetUid: assetUid,
-        actionFilter: selectedFilterOption?.value || '',
+        actionFilter: selectedFilter || '',
         limit: pagination.limit,
         start: pagination.start,
       }),
@@ -105,16 +100,14 @@ export default function FormActivity() {
       <div className={styles.header}>
         <h1>{t('Recent project activity')}</h1>
         <div className={styles.headerActions}>
-          <KoboSelect
-            isClearable
+          <Select
+            clearable
             className={styles.filterSelect}
-            selectedOption={selectedFilterOption?.value || ''}
-            onChange={handleFilterChange}
-            type='outline'
-            name='filter'
-            size='m'
+            value={selectedFilter}
+            onChange={setSelectedFilter}
+            size='sm'
             placeholder={t('Filter by')}
-            options={filterOptions || []}
+            data={filterOptions || []}
           />
 
           <ExportToEmailButton label={t('Export all data')} exportFunction={() => exportData(assetUid)} />

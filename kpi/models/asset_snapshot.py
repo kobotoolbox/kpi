@@ -9,6 +9,7 @@ from kpi.constants import API_NAMESPACES
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.mixins import FormpackXLSFormUtilsMixin, XlsExportableMixin
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
@@ -139,7 +140,11 @@ class AssetSnapshot(
         self._standardize(_source)
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
-        self._autoname(_source)
+        # Snapshots are ephemeral XML used to preview and to edit existing
+        # content: duplicate names must be renamed exactly the way they were
+        # when the form was deployed, otherwise the XPaths would no longer
+        # match the ones the data was collected with
+        self._autoname(_source, HandleDuplicatesOptions.RENAME)
         self._remove_empty_expressions(_source)
         # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})
