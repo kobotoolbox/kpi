@@ -634,6 +634,14 @@ CONSTANCE_CONFIG = {
         'Number of days before enqueued mass email records are marked as failed.',
         'positive_int',
     ),
+    'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS': (
+        12,
+        'Number of hours an enqueued mass email record can sit before it is '
+        're-checked against its MassEmailConfig criteria at send time. '
+        'Records still matching are sent normally; records that no longer '
+        'match are marked stale.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -769,6 +777,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'USE_TEAM_LABEL',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
