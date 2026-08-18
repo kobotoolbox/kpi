@@ -1,5 +1,5 @@
 import { MantineProvider } from '@mantine/core'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import ErrorPage, { type ErrorPageProps } from './ErrorPage'
@@ -92,9 +92,10 @@ describe('ErrorPage', () => {
   })
 
   it('omits the footer links when they are not configured', () => {
-    renderErrorPage()
+    const { container } = renderErrorPage()
 
-    chai.expect(screen.queryAllByRole('link').length).to.equal(0)
+    // Scoped to the footer, because the logo is a link to the homepage.
+    chai.expect(within(getElement(container, 'footer')).queryAllByRole('link').length).to.equal(0)
   })
 
   it('replaces the fallback markup that the Django template renders', () => {
