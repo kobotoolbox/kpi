@@ -248,7 +248,6 @@ class KoboSignupMixin(forms.Form):
                 constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
             )
 
-
         allowed_domains = constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
         allowed_domain_list = [domain.lower() for domain in allowed_domains.split('\n')]
         # An empty domain list means all domains are allowed
