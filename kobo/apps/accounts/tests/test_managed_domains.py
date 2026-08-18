@@ -16,8 +16,10 @@ class SocialAppManagedDomainTestCase(BaseTestCase):
         (None, None, 'good.com', True),
         (None, None, 'bad', False),
         (None, 'bad.com\nworse.com', 'bad.com', False),
+        (None, 'bad.com\nworse.com', 'bAD.cOm', False),
         (None, 'bad.com\nworse.com', 'good.com', True),
         ('good.com\nbetter.com', None, 'good.com', True),
+        ('good.com\nbetter.com', None, 'gOOd.com', True),
         ('good.com\nbetter.com', None, 'bad.com', False),
     )
     @unpack
