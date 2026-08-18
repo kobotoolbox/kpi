@@ -17,12 +17,14 @@ from kobo.apps.subsequences.models import (
     SubsequenceBulkAction,
     SubsequenceBulkActionItem,
 )
+from kobo.apps.subsequences.utils import get_survey_question_type
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 
-# This message reaches the UI, so it must be translatable. Wrap here rather
+# These messages reach the UI, so they must be translatable. Wrap here rather
 # than at the call site: `makemessages` only extracts literal arguments, so
 # `t(CONSTANT)` would leave the string out of the catalogs entirely.
 INVALID_PARAMS_ERROR = t('Invalid parameters for this action')
+INVALID_SOURCE_TYPE_ERROR = t('This action is not supported for this question type')
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
@@ -76,7 +78,25 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
             # `str(ve)` is too verbose: it includes the whole schema and the
             # submitted instance
             raise serializers.ValidationError(INVALID_PARAMS_ERROR) from ve
+        self._validate_source_type(Action, attrs.get('question_xpath'))
         return data
+
+    def _validate_source_type(self, action_class, question_xpath):
+        """
+        Reject enabling an action on an unsupported source question type.
+
+        Skips silently when the xpath cannot be resolved in the survey (older
+        versions, group edge cases) so existing creation flows are not broken.
+        """
+        view = self.context.get('view')
+        asset = getattr(view, 'asset', None)
+        if asset is None or not action_class.allowed_source_types:
+            return
+        source_type = get_survey_question_type(asset, question_xpath)
+        if source_type is None:
+            return
+        if source_type not in action_class.allowed_source_types:
+            raise serializers.ValidationError(INVALID_SOURCE_TYPE_ERROR)
 
 
 class QATagTrackerSerializer(serializers.ModelSerializer):

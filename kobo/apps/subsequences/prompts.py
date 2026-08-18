@@ -116,6 +116,13 @@ PROMPTS_BY_QUESTION_TYPE = {
     'any additional text or comments.',
 }
 
+# Prompts are stored separately per input (source) question type so their wording
+# can diverge later (per product decision), even though they start out identical.
+# Transcript-based sources (audio/video) keep the shared dict object so callers
+# that patch `PROMPTS_BY_QUESTION_TYPE` in tests keep working.
+TRANSCRIPT_SOURCE_PROMPTS_BY_QUESTION_TYPE = PROMPTS_BY_QUESTION_TYPE
+TEXT_SOURCE_PROMPTS_BY_QUESTION_TYPE = dict(PROMPTS_BY_QUESTION_TYPE)
+
 
 def format_choices(choices: list[dict]) -> str:
     """
@@ -171,6 +178,21 @@ def get_example_format(question_type: str, num_choices: int) -> str:
         if num_choices > 1:
             response_array[1] = 'TRUE'
     return ','.join(response_array)
+
+
+def get_prompt_template(source_question_type: str | None, question_type: str) -> str:
+    """
+    Return the LLM prompt template for a QA question type.
+
+    Text survey questions use their own prompt store so the wording can later
+    diverge from the transcript-source prompts; every other source type (and an
+    unresolved source) falls back to the transcript-source prompts.
+    """
+    if source_question_type == 'text':
+        prompts = TEXT_SOURCE_PROMPTS_BY_QUESTION_TYPE
+    else:
+        prompts = TRANSCRIPT_SOURCE_PROMPTS_BY_QUESTION_TYPE
+    return prompts[question_type]
 
 
 def parse_choices_response(

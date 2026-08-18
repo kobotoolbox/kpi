@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import posixpath
+import re
 from concurrent.futures import TimeoutError
 from typing import Any
 
@@ -23,7 +24,12 @@ from kobo.apps.languages.exceptions import LanguageNotSupported
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
-from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
+from ...constants import (
+    DEPENDENCY_ACTION_ID_FIELD,
+    DEPENDENCY_SOURCE_SUBMISSION,
+    GOOGLE_CACHE_TIMEOUT,
+    GOOGLE_CODE,
+)
 from ...exceptions import (
     GoogleQuotaExceededError,
     SubsequenceTimeoutError,
@@ -37,6 +43,11 @@ from .rate_limit import (
     get_google_retry_after_seconds,
     require_google_service_quota,
 )
+
+
+# Matches the trailing `(code)` in a `default_language` setting like
+# 'English (en)'; falls back to the raw value when there are no parentheses.
+_DEFAULT_LANGUAGE_CODE_RE = re.compile(r'\(([^)]+)\)\s*$')
 
 
 class GoogleTranslationService(GoogleService):
@@ -170,13 +181,36 @@ class GoogleTranslationService(GoogleService):
         again in the background until the batch job finishes.
         """
         try:
-            content = params['_dependency']['value']
-            source_lang = params['_dependency']['language']
+            dependency = params['_dependency']
             target_lang = params['language']
+            if dependency.get(DEPENDENCY_ACTION_ID_FIELD) == (
+                DEPENDENCY_SOURCE_SUBMISSION
+            ):
+                # Direct-text source: read the answer straight from the submission
+                # and translate from the form's default language.
+                content = self.submission.get(xpath)
+                source_lang = self._get_default_language_code()
+            else:
+                content = dependency['value']
+                source_lang = dependency['language']
         except KeyError:
             message = 'Error while setting up translation'
             logging.exception(message)
             return {'status': 'failed', 'error': message}
+
+        if not content:
+            return {
+                'status': 'failed',
+                'error': 'The source question has no text to translate.',
+            }
+        if not source_lang:
+            return {
+                'status': 'failed',
+                'error': (
+                    'The form has no default language, which is required to '
+                    'translate a text question.'
+                ),
+            }
 
         try:
             source_language_code = self._get_source_language_code(source_lang)
@@ -470,6 +504,21 @@ class GoogleTranslationService(GoogleService):
             bulk_action_uid,
         )
         return {'status': 'complete', 'value': value}
+
+    def _get_default_language_code(self) -> str | None:
+        """
+        Return the form's default language code, e.g. 'en' from 'English (en)'.
+
+        Falls back to the raw setting when it has no `(code)` suffix, and returns
+        None when no default language is configured.
+        """
+        content = self.asset.content or {}
+        settings_ = content.get('settings') or {}
+        default_language = settings_.get('default_language')
+        if not default_language:
+            return None
+        match = _DEFAULT_LANGUAGE_CODE_RE.search(default_language)
+        return match.group(1) if match else default_language
 
     def _get_source_language_code(self, requested_language: str) -> str:
         """
