@@ -15,10 +15,10 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as t
 
-from .models import SocialAppManagedDomain
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
+from .models import SocialAppManagedDomain
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
@@ -240,7 +240,9 @@ class KoboSignupMixin(forms.Form):
                 constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
             )
 
-        managed = SocialAppManagedDomain.objects.filter(domain__iexact=domain).exists()
+        managed = SocialAppManagedDomain.objects.filter(
+            domain__iexact=domain, social_app__managed=True
+        ).exists()
         if managed:
             raise forms.ValidationError('Your organization has restricted '
                                         'the use of passwords. '

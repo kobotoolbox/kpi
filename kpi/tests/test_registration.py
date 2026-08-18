@@ -1,17 +1,20 @@
 # coding: utf-8
 import constance
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.adapter import get_adapter as get_social_adapter
+from allauth.socialaccount.models import SocialApp, SocialLogin
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
 
-from kobo.apps.accounts.tests.constants import SOCIALACCOUNT_PROVIDERS
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
+from kobo.apps.accounts.tests.constants import SOCIALACCOUNT_PROVIDERS
 from kobo.apps.kobo_auth.shortcuts import User
 
 
+@ddt
 class RegistrationTestCase(TestCase):
     @property
     def valid_data(self):
@@ -152,15 +155,19 @@ class RegistrationTestCase(TestCase):
         self.assertFalse(User.objects.filter(username='alice').exists())
 
     @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
-    def test_managed_social_app(self):
+    def test_cannot_use_password_with_managed_social_app(self):
         social_app = SocialApp.objects.create(
             client_id='test.service.id',
             secret='test.service.secret',
             name='Test App',
             provider='Test App',
         )
-        extra = SocialAppCustomData.objects.create(social_app=social_app)
-        extra.domains.add(SocialAppManagedDomain(domain='example.com'))
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=social_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            domain='example.com', social_app=custom_data
+        )
         data = self.valid_data.copy()
         data['email'] = 'user@example.com'
 
@@ -168,10 +175,56 @@ class RegistrationTestCase(TestCase):
             reverse('account_signup'), data=data
         )
         self.assertIn(
-            b'Account creation restricted for this server. '
-            b'Your organization uses a separate private KoboToolbox server. '
-            b'Please contact your organization support team for assistance.',
+            b'Your organization has restricted the use of passwords. Please sign up using SSO instead.',
             response.content
         )
         self.assertFalse(User.objects.filter(username='alice').exists())
 
+    @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
+    def test_can_use_password_with_unmanaged_social_app(self):
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        custom_data = SocialAppCustomData.objects.create(social_app=social_app)
+        SocialAppManagedDomain.objects.create(
+            domain='example.com', social_app=custom_data
+        )
+        data = self.valid_data.copy()
+        data['email'] = 'user@example.com'
+
+        self.client.post(reverse('account_signup'), data=data)
+        self.assertTrue(User.objects.filter(username='alice').exists())
+
+    @override_config(REGISTRATION_OPEN=False)
+    @data(
+        # managed, matching email, expect success
+        (True, True, True),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+    )
+    @unpack
+    def test_registration_closed_with_managed_sso(
+        self, managed, matching_email, expect_success
+    ):
+        email = 'uSeR@eXaMpLe.com' if matching_email else 'user@other.com'
+        social_login = SocialLogin(user=User(email=email))
+
+        request = RequestFactory().get(reverse('account_login'))
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=social_app, managed=managed
+        )
+        SocialAppManagedDomain.objects.create(
+            domain='example.com', social_app=custom_data
+        )
+        success = get_social_adapter().is_open_for_signup(request, social_login)
+        assert success is expect_success

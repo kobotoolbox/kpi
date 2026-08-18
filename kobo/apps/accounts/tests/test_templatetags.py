@@ -2,8 +2,9 @@ from allauth.socialaccount.models import SocialApp
 from django.test import TestCase, override_settings
 
 from kobo.apps.accounts.models import SocialAppCustomData
-from kobo.apps.accounts.templatetags.get_provider_appname import get_social_apps, get_social_only
+from kobo.apps.accounts.templatetags.get_provider_appname import get_social_apps
 from .constants import SOCIALACCOUNT_PROVIDERS
+
 
 @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
 class TemplateTagsTestCase(TestCase):

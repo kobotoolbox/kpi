@@ -1,5 +1,6 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from constance import config
 from django.conf import settings
 from django.db import transaction
@@ -8,11 +9,20 @@ from django.utils import timezone
 from .models import SocialAppManagedDomain
 
 
+class SocialAccountAdapter(DefaultSocialAccountAdapter):
+    def is_open_for_signup(self, request, sociallogin):
+        email = sociallogin.user.email
+        domain = email.split('@')[1].lower()
+        return (
+            config.REGISTRATION_OPEN
+            or SocialAppManagedDomain.objects.filter(
+                social_app__managed=True, domain__iexact=domain
+            ).exists()
+        )
+
+
 class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
-        if request.resolver_match.url_name == 'socialaccount_signup':
-            return config.REGISTRATION_OPEN or SocialAppManagedDomain.objects.exists()
-        else:
             return config.REGISTRATION_OPEN
 
     def login(self, request, user):
