@@ -23,6 +23,7 @@ from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     PROCESSED_EMAILS_CACHE_KEY,
     MassEmailSender,
+    enqueue_mass_email_records,
     generate_mass_email_user_lists,
     render_template,
     send_emails,
@@ -421,6 +422,28 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         )
         self.assertEqual(records.count(), enqueued_count)
         self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    def test_enqueue_creates_records_via_id_path(self):
+        """
+        enqueue_mass_email_records builds records from user ids (not User
+        instances) and stores one enqueued row per recipient.
+        """
+        email_config = self._create_email_config('Test')
+
+        enqueue_mass_email_records(email_config)
+
+        job = MassEmailJob.objects.filter(email_config=email_config).latest(
+            'date_created'
+        )
+        records = MassEmailRecord.objects.filter(email_job=job)
+        self.assertEqual(records.count(), 2)
+        self.assertEqual(
+            set(records.values_list('user_id', flat=True)),
+            {self.user1.id, self.user2.id},
+        )
+        self.assertTrue(
+            all(record.status == EmailStatus.ENQUEUED for record in records)
+        )
 
     def test_new_email_records_are_created_when_no_enqueued_emails_exist(self):
         """
