@@ -69,7 +69,7 @@ def enqueue_mass_email_records(email_config):
 
     # Instantiating millions of unsaved MassEmailRecord objects at once is ~1 GB,
     # so build and insert them in batches instead.
-    batch_size = 10000
+    batch_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
     total_created = 0
     for start_idx in range(0, len(user_ids), batch_size):
         end_idx = start_idx + batch_size
