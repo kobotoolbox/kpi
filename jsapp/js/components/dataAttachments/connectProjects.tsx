@@ -9,15 +9,15 @@ import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
-import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
+import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
+import openDataAttachmentColumnsModal from './openDataAttachmentColumnsModal'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
@@ -148,7 +148,6 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       setNewSource(null)
     }
   }, [])
-
   const showColumnFilterModal = useCallback(
     (
       source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
@@ -156,8 +155,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       fields: string[],
       attachmentUrl?: string,
     ) => {
-      pageState.showModal({
-        type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
+      openDataAttachmentColumnsModal({
         asset,
         source,
         filename,
