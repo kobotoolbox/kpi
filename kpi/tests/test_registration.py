@@ -40,9 +40,7 @@ class RegistrationTestCase(TestCase):
         self.assertEqual(
             constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS, ''
         )
-        response = self.client.post(
-            reverse('account_signup'), data=self.valid_data
-        )
+        response = self.client.post(reverse('account_signup'), data=self.valid_data)
         self.assertRedirects(response, '/accounts/confirm-email/')
 
     # use `override_config` decorator to deactivate all password validators
