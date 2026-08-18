@@ -2,7 +2,7 @@ import type { TabsVariant } from '@mantine/core'
 import { Tabs } from '@mantine/core'
 import classes from './Tabs.module.css'
 
-export type TabsVariantCustom = Extract<TabsVariant, 'default' | 'pills'> | 'bubble'
+export type TabsVariantCustom = Extract<TabsVariant, 'default' | 'pills'> | 'bubble' | 'folder'
 export type TabsSizeCustom = 'sm' | 'md' | 'lg'
 
 declare module '@mantine/core' {

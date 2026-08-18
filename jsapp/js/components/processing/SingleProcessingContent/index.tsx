@@ -77,11 +77,7 @@ export default function SingleProcessingContent({
 
   return (
     <section className={styles.root}>
-      <Tabs
-        size='lg'
-        value={activeTab}
-        classNames={{ root: styles.tabsRoot, list: styles.tabsList, tab: styles.tab }}
-      >
+      <Tabs variant={'folder'} value={activeTab} tt={'uppercase'} h={48}>
         <Tabs.List justify='left'>
           <Tabs.Tab value={PROCESSING_ROUTES.TRANSCRIPT} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSCRIPT)}>
             {t('Transcript')}
