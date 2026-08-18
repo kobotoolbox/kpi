@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                     ('enqueued', 'Enqueued'),
                     ('failed', 'Failed'),
                     ('sent', 'Sent'),
-                    ('stale_skipped', 'Stale Skipped'),
+                    ('stale', 'Stale'),
                 ],
                 null=True,
             ),
