@@ -8,8 +8,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  // Shows below the banner, which only covers the top of the viewport.
-  background-color: colors.$kobo-gray-100;
+  background-color: colors.$kobo-white;
 }
 
 // Default banner: a gradient wedge with grain, drawn here instead of shipped as an SVG.
@@ -20,7 +19,7 @@
   position: absolute;
   // Top edge only; `aspect-ratio` gives it the artwork's height.
   inset: 0 0 auto;
-  aspect-ratio: 1920 / 512;
+  aspect-ratio: 1280 / 480;
   // The wedge: full-height on the left, roughly half that on the right.
   clip-path: polygon(0 0, 100% 0, 100% 49%, 0 100%);
   // Grain on top, gradient below; the 80% stops are the artwork's fill opacity, so the
@@ -59,7 +58,18 @@
 }
 
 .header {
-  padding: 24px;
+  padding: 0;
+  height: 66px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 14px;
+}
+
+.logoLink {
+  display: inline-block;
+  padding: 16px;
 }
 
 .logo {
@@ -74,28 +84,42 @@
   justify-content: center;
   // Design places the card near the top, not vertically centred.
   align-items: flex-start;
-  padding: 24px;
+  padding: 0 20px;
 }
 
 .card {
   width: 100%;
-  max-width: 560px;
-  padding: 32px;
+  max-width: 440px;
+  padding: 40px;
   background-color: colors.$kobo-white;
-  border-radius: 6px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 4px 40.2px 0 rgba(156, 184, 214, 0.30);
+}
+
+.cardIllustration {
+  max-width: 252px;
+  height: auto;
+  width: 100%;
+  // Additional bottom spacing
+  margin: 0 auto 20px;
 }
 
 .title {
-  margin: 0 0 12px;
-  color: colors.$kobo-gray-800;
-  font-size: 24px;
-  line-height: 32px;
+  margin: 0 auto;
+  text-align: center;
+  color: colors.$kobo-gray-900;
+  font-size: 22px;
+  line-height: 30px;
   font-weight: 600;
 }
 
 .message {
-  margin: 0;
-  color: colors.$kobo-gray-700;
+  margin: 0 auto;
+  text-align: center;
+  color: colors.$kobo-gray-800;
   font-size: 16px;
   line-height: 24px;
 }
@@ -103,16 +127,25 @@
 .footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 24px;
+  gap: 16px;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   font-size: 14px;
   line-height: 20px;
+  margin-top: 20px;
 }
 
 .footerLink {
   color: colors.$kobo-dark-blue;
+  text-decoration: none;
+}
+
+.footerLink:hover {
   text-decoration: underline;
+}
+
+.footerMiddot {
+  font-weight: 800;
 }
 
 // On a custom background these links sit on top of the dark overlay.
@@ -122,11 +155,7 @@
 
 @media (width <= 600px) {
   .card {
-    padding: 24px;
-  }
-
-  .title {
-    font-size: 20px;
-    line-height: 28px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 }

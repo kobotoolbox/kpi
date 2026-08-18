@@ -1,5 +1,6 @@
 import { Anchor, Paper } from '@mantine/core'
 import cx from 'classnames'
+import errorIllustration from '../../img/error-illustration.svg'
 import defaultLogoUrl from '../../img/kobo-logo-gray.svg'
 import styles from './ErrorPage.module.scss'
 
@@ -50,11 +51,14 @@ export default function ErrorPage(props: ErrorPageProps) {
     >
       <header className={styles.header}>
         {/* Decorative, hence the empty alt; also and we can't describe whatever logo an admin uploaded */}
-        <img className={styles.logo} src={logoUrl ?? defaultLogoUrl} alt='' />
+        <a className={styles.logoLink} href='/'>
+          <img className={styles.logo} src={logoUrl ?? defaultLogoUrl} alt='' />
+        </a>
       </header>
 
       <main className={styles.main}>
         <Paper className={styles.card} component='section'>
+          <img className={styles.cardIllustration} src={errorIllustration} alt='' />
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.message}>{message}</p>
         </Paper>
@@ -66,6 +70,9 @@ export default function ErrorPage(props: ErrorPageProps) {
             {t('Terms of Service')}
           </Anchor>
         )}
+
+        {termsOfServiceUrl && privacyPolicyUrl && <span className={styles.footerMiddot}>&middot;</span>}
+
         {privacyPolicyUrl && (
           <Anchor className={styles.footerLink} href={privacyPolicyUrl}>
             {t('Privacy Policy')}
