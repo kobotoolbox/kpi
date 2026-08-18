@@ -7,6 +7,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_SELECT_MULTIPLE,
     QUESTION_TYPE_SELECT_ONE,
     QUESTION_TYPE_TEXT,
+    TEXT_SOURCE_TYPE,
 )
 
 response_placeholder = '{{interviewResponse}}'
@@ -188,7 +189,7 @@ def get_prompt_template(source_question_type: str | None, question_type: str) ->
     diverge from the transcript-source prompts; every other source type (and an
     unresolved source) falls back to the transcript-source prompts.
     """
-    if source_question_type == 'text':
+    if source_question_type == TEXT_SOURCE_TYPE:
         prompts = TEXT_SOURCE_PROMPTS_BY_QUESTION_TYPE
     else:
         prompts = TRANSCRIPT_SOURCE_PROMPTS_BY_QUESTION_TYPE

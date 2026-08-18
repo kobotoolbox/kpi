@@ -7,7 +7,7 @@ from ..constants import (
     DEPENDENCY_SOURCE_SUBMISSION,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
-    TRANSCRIBABLE_SOURCE_TYPES,
+    TEXT_SOURCE_TYPE,
 )
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
@@ -19,9 +19,9 @@ class RequiresTranscriptionMixin:
         """
         Attach the source this action depends on.
 
-        For a direct-text source question, attach a synthetic dependency that
-        points at the submission itself; the source text is read straight from
-        the submission later. Otherwise, attach the latest *accepted* transcript.
+        For a `text` source question, attach a synthetic dependency pointing at
+        the submission itself; the source text is read straight from the
+        submission later. Otherwise, attach the latest *accepted* transcript.
 
         Transcript selection logic:
           - Scan `self._action_dependencies` for prior transcription actions.
@@ -46,16 +46,15 @@ class RequiresTranscriptionMixin:
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        source_type = self.get_source_question_type()
-        if source_type is not None and source_type not in TRANSCRIBABLE_SOURCE_TYPES:
+        if self.get_source_question_type() == TEXT_SOURCE_TYPE:
             # Direct-text source: point the dependency at the submission. The
             # `_question_type` key is in-flight only; the sanitizer in
             # `revise_data` strips it before persistence.
-            raw_uuid = submission.get(SUBMISSION_UUID_FIELD) or submission.get('_uuid')
+            raw_uuid = submission.get(SUBMISSION_UUID_FIELD) or submission['_uuid']
             action_data[self.DEPENDENCY_FIELD] = {
                 self.UUID_FIELD: remove_uuid_prefix(raw_uuid),
                 self.ACTION_ID_FIELD: DEPENDENCY_SOURCE_SUBMISSION,
-                '_question_type': source_type,
+                '_question_type': TEXT_SOURCE_TYPE,
             }
             return action_data
 

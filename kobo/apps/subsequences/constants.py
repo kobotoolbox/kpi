@@ -6,8 +6,9 @@ SORT_BY_DATE_FIELD = '_sortByDate'
 
 # Could allow more types in the future? See
 # formpack.utils.replace_aliases.MEDIA_TYPES
+TEXT_SOURCE_TYPE = 'text'
 TRANSCRIBABLE_SOURCE_TYPES = ['audio', 'video', 'background-audio']
-TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + ['text']
+TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + [TEXT_SOURCE_TYPE]
 QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES
 
 # `_actionId` value of the synthetic dependency attached when the source is read
