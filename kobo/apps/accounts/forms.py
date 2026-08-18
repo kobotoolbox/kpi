@@ -228,6 +228,14 @@ class KoboSignupMixin(forms.Form):
     def clean_email(self):
         email = self.cleaned_data['email']
         domain = email.split('@')[1].lower()
+        managed = SocialAppManagedDomain.objects.filter(
+            domain__iexact=domain, social_app__managed=True
+        ).exists()
+        if managed:
+            raise forms.ValidationError(
+                'Your organization has restricted the use of passwords. '
+                'Please sign up using SSO instead.'
+            )
         blacklist_domains = constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS
         blacklist_domain_set = {
             d.strip().lower()
@@ -240,19 +248,9 @@ class KoboSignupMixin(forms.Form):
                 constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
             )
 
-        managed = SocialAppManagedDomain.objects.filter(
-            domain__iexact=domain, social_app__managed=True
-        ).exists()
-        if managed:
-            raise forms.ValidationError('Your organization has restricted '
-                                        'the use of passwords. '
-                                        'Please sign up using SSO instead.')
-        allowed_domains = (
-            constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
-        )
-        allowed_domain_list = [
-            domain.lower() for domain in allowed_domains.split('\n')
-        ]
+
+        allowed_domains = constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
+        allowed_domain_list = [domain.lower() for domain in allowed_domains.split('\n')]
         # An empty domain list means all domains are allowed
         if domain in allowed_domain_list or not allowed_domains:
             return email
@@ -260,7 +258,6 @@ class KoboSignupMixin(forms.Form):
             raise forms.ValidationError(
                 constance.config.REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE
             )
-
 
 
 class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):

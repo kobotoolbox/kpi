@@ -175,8 +175,9 @@ class RegistrationTestCase(TestCase):
             reverse('account_signup'), data=data
         )
         self.assertIn(
-            b'Your organization has restricted the use of passwords. Please sign up using SSO instead.',
-            response.content
+            b'Your organization has restricted the use of passwords.'
+            b' Please sign up using SSO instead.',
+            response.content,
         )
         self.assertFalse(User.objects.filter(username='alice').exists())
 
