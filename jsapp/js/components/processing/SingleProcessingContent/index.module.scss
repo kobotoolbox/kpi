@@ -8,6 +8,7 @@
   align-items: stretch;
   width: 100%;
   height: 100%;
+  padding-top: 12px; // Common padding for the content and settings sections
 }
 
 // Mantine draws the line under the tabs as `Tabs.List::before`, colored by
@@ -15,6 +16,7 @@
 // `.list` rule in Tabs.module.css, which has the same specificity.
 .tabsRoot .tabsList {
   --tab-border-color: transparent;
+  height: 48px; // Shared height with sidebar display settings row
 }
 
 .tabsRoot[data-variant='default'] .tabsList .tab {

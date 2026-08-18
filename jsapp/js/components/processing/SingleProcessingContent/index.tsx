@@ -78,7 +78,6 @@ export default function SingleProcessingContent({
   return (
     <section className={styles.root}>
       <Tabs
-        mt='8px'
         size='lg'
         value={activeTab}
         classNames={{ root: styles.tabsRoot, list: styles.tabsList, tab: styles.tab }}
