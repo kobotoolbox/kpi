@@ -25,6 +25,7 @@ import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '
 import pageState from '#/pageState.store'
 import { recordKeys, renderCheckbox } from '#/utils'
 import { buildFilterQuery } from './tableUtils'
+import openDataAttachmentColumnsModal from '../modalForms/openBulkEditSubmissionsFormModal'
 
 interface TableBulkOptionsProps {
   asset: AssetResponse
@@ -171,8 +172,14 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   }
 
   onEdit() {
-    pageState.showModal({
-      type: MODAL_TYPES.BULK_EDIT_SUBMISSIONS,
+    //pageState.showModal({
+    //  type: MODAL_TYPES.BULK_EDIT_SUBMISSIONS,
+    //  asset: this.props.asset,
+    //  data: this.props.data,
+    //  totalSubmissions: this.props.totalRowsCount,
+    //  selectedSubmissions: recordKeys(this.props.selectedRows),
+    //})
+    openDataAttachmentColumnsModal({
       asset: this.props.asset,
       data: this.props.data,
       totalSubmissions: this.props.totalRowsCount,
