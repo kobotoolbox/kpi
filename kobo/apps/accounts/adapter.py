@@ -10,7 +10,10 @@ from .models import SocialAppManagedDomain
 
 class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
-        return config.REGISTRATION_OPEN or SocialAppManagedDomain.objects.exists()
+        if request.resolver_match.url_name == 'socialaccount_signup':
+            return config.REGISTRATION_OPEN or SocialAppManagedDomain.objects.exists()
+        else:
+            return config.REGISTRATION_OPEN
 
     def login(self, request, user):
         # Override django-allauth login method to use specified authentication backend

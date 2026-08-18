@@ -39,7 +39,3 @@ def get_provider_appname(context, provider=None):
 @register.simple_tag()
 def get_social_apps():
     return SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))
-
-@register.simple_tag()
-def get_social_only():
-    return not config.REGISTRATION_OPEN

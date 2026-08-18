@@ -10,8 +10,6 @@
       {% block logo %}{{ block.super }}{% endblock %}
     </a>
   </div>
-  {% get_social_only as social_only %}
-  {% if not social_only %}
   <div class="registration__first-half">
     <h1>{% trans "Create an account" %}</h1>
       {% csrf_token %}
@@ -53,7 +51,6 @@
         {% trans "or" %} <a href="{{ login_url }}">{% trans "login" %}</a>
       </div>
   </div>
-  {% endif %}
 
   <div class="registration__second-half">
       {# SSO section #}
