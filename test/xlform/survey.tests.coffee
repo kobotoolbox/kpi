@@ -384,3 +384,146 @@ do ->
       expect(choiceList.options.at(0).get('name')).toBe('tomato')
       expect(choiceList.options.at(1).get('name')).toBe('cucumber')
       expect(choiceList.options.at(2).get('name')).toBe('corn')
+
+  describe 'survey.tests: selects without a choice list', () ->
+    beforeEach -> window.xlfHideWarnings = true
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'omits select_from_list_name instead of writing an empty one', () ->
+      # A select that has no list yet used to serialize `select_from_list_name`
+      # as undefined, which the constructor then read back as the literal type
+      # "select_one undefined"
+      survey = $model.Survey.loadDict({
+        survey: [{type: 'select_one', name: 'a', label: 'A'}]
+      })
+      rowJSON = survey.rows.at(0).toJSON2()
+      expect('select_from_list_name' of rowJSON).toBe(false)
+
+      reloaded = new $model.Survey()
+      reloaded.rows.add(rowJSON)
+      expect(reloaded.rows.at(0).get('type').get('value')).toBe('select_one')
+
+  describe 'survey.tests: select_one_external', () ->
+    # We can't edit this type (its choices live in the `external_choices` sheet,
+    # which Form Builder doesn't load), but loading it must not throw, and saving
+    # must give the row back unchanged.
+    beforeEach -> window.xlfHideWarnings = true
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'loads without becoming an error row', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'}
+        ]
+      })
+      row = survey.rows.at(0)
+      expect(row.isError()).toBe(false)
+      expect(row.get('type').get('typeId')).toBe('select_one_external')
+
+    it 'is marked as unsupported by UI', () ->
+      survey = $model.Survey.loadDict({
+        survey: [{type: 'select_one_external', name: 'region', label: 'Region'}]
+      })
+      expect(survey.rows.at(0).get('type').get('rowType').supportedByUI).toBe(false)
+
+    it 'keeps the type and list name through a save/reload', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'}
+        ]
+      })
+      surveyJSON = survey.toFlatJSON()
+      savedRow = surveyJSON.survey[0]
+      expect(savedRow.type).toBe('select_one_external')
+      expect(savedRow.select_from_list_name).toBe('regions')
+
+      reloadedSurvey = $model.Survey.loadDict(JSON.parse(JSON.stringify(surveyJSON)))
+      expect(reloadedSurvey.rows.at(0).isError()).toBe(false)
+
+    it 'does not invent a list name when there was none', () ->
+      survey = $model.Survey.loadDict({
+        survey: [{type: 'select_one_external', name: 'region', label: 'Region'}]
+      })
+      savedRow = survey.toFlatJSON().survey[0]
+      expect(savedRow.type).toBe('select_one_external')
+      expect(savedRow.select_from_list_name).toBeUndefined()
+
+    it 'is not treated as a select question, so it gets no choice list', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'}
+        ]
+      })
+      row = survey.rows.at(0)
+      expect(row._isSelectQuestion()).toBe(false)
+      expect(survey.toFlatJSON().choices).toBeUndefined()
+
+    it 'does not block the rest of the form from loading', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'text', name: 'q1', label: 'Q1'},
+          {type: 'select_one_external', select_from_list_name: 'regions', name: 'region', label: 'Region'},
+          {type: 'text', name: 'q2', label: 'Q2'}
+        ]
+      })
+      names = []
+      survey.forEachRow ((r) -> names.push r.getValue('name')), includeErrors: true
+      expect(names).toEqual(['q1', 'region', 'q2'])
+
+  describe 'survey.tests: types we know of but cannot edit', () ->
+    # These are valid XLSForm types that Form Builder has no editor for. Before
+    # they were registered, each one became a `RowError` and was then dropped
+    # from the survey on save, silently deleting the question from the form.
+    beforeEach -> window.xlfHideWarnings = true
+    afterEach -> window.xlfHideWarnings = false
+
+    UNEDITABLE_TYPES = [
+      'email'
+      'osm'
+      'percentage'
+      'phone number'
+      'number of days in last month'
+      'number of days in last six months'
+      'number of days in last year'
+      'q select'
+      'q select1'
+      'uri:deviceid'
+      'uri:email'
+      'uri:phonenumber'
+      'uri:simserial'
+      'uri:subscriberid'
+      'uri:username'
+    ]
+
+    loadWithType = (type) ->
+      return $model.Survey.loadDict({
+        survey: [
+          {type: 'text', name: 'before', label: 'Before'},
+          {type: type, name: 'q_x', label: 'X'},
+          {type: 'text', name: 'after', label: 'After'}
+        ]
+      })
+
+    UNEDITABLE_TYPES.forEach((type) ->
+      describe "'#{type}'", () ->
+        it 'loads without becoming an error row', () ->
+          row = loadWithType(type).rows.at(1)
+          expect(row.isError()).toBe(false)
+          expect(row.get('type').get('typeId')).toBe(type)
+
+        it 'is marked as unsupported by UI', () ->
+          row = loadWithType(type).rows.at(1)
+          expect(row.get('type').get('rowType').supportedByUI).toBe(false)
+
+        it 'is kept, with its type intact, when the form is saved', () ->
+          savedRows = loadWithType(type).toFlatJSON().survey
+          expect((row.type for row in savedRows)).toEqual(['text', type, 'text'])
+
+        it 'gets no choice list', () ->
+          survey = loadWithType(type)
+          # A type containing a space used to have its second word read as a list
+          # name, which is how these types failed to be found in the first place
+          expect(survey.rows.at(1).get('type').get('listName')).toBeUndefined()
+          expect(survey.toFlatJSON().choices).toBeUndefined()
+      return
+    )

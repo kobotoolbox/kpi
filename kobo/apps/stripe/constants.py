@@ -5,6 +5,7 @@ ACTIVE_STRIPE_STATUSES = [
     'active',
     'past_due',
     'trialing',
+    'unpaid',
 ]
 
 ORGANIZATION_USAGE_MAX_CACHE_AGE = timedelta(minutes=15)

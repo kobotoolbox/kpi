@@ -20,6 +20,7 @@ export const ButtonThemeKobo = Button.extend({
   classNames: classes,
   defaultProps: {
     variant: 'filled',
+    size: 'md',
   },
   vars: (theme, props) => {
     return {

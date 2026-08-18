@@ -520,10 +520,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
     def test_query_counts_for_list_submissions(self):
         # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(16, 18)):
+        with self.assertNumQueries(FuzzyInt(17, 19)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(FuzzyInt(16, 18)):
+        with self.assertNumQueries(FuzzyInt(17, 19)):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -3104,6 +3104,48 @@ class SubmissionDuplicateApiTests(
         # submission XML
         assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH not in response.data
         assert 'deprecatedID' not in duplicated_instance.xml
+
+    def test_duplicate_submission_attachment_uses_own_root_uuid(self):
+        """
+        The duplicate's attachment must be stored under a folder named
+        after the duplicate's own root_uuid, not the source submission's.
+        """
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'foo',
+            'meta/instanceID': f'uuid:{uuid.uuid4()}',
+            '_attachments': [{'filename': 'IMG_4266-11_38_22.jpg'}],
+        }
+        self.asset.deployment.mock_submissions([submission])
+
+        source_instance = Instance.objects.get(pk=submission['_id'])
+        source_attachment = source_instance.attachments.get()
+        assert (
+            source_attachment.media_file.name.split('/')[-2]
+            == source_instance.root_uuid
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+
+        duplicated_instance = Instance.objects.get(pk=response.data['_id'])
+        duplicated_attachment = duplicated_instance.attachments.get()
+
+        assert duplicated_instance.root_uuid != source_instance.root_uuid
+        assert (
+            duplicated_attachment.media_file.name.split('/')[-2]
+            == duplicated_instance.root_uuid
+        )
+        assert (
+            duplicated_attachment.media_file.name != source_attachment.media_file.name
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

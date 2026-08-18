@@ -167,6 +167,7 @@ MIDDLEWARE = [
     'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.OpenRosaTrailingSlashMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -1069,6 +1070,7 @@ SPECTACULAR_SETTINGS = {
         'user-facing application are represented in the API as "assets".'
     ),
     'VERSION': '2.0.0',
+    'OAS_VERSION': '3.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'POSTPROCESSING_HOOKS': [
         'drf_spectacular.hooks.postprocess_schema_enums',
@@ -1260,6 +1262,12 @@ TEMPLATES = [
 ]
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
+
+# Superusers submitting real survey data through the OpenRosa API tends to break
+# things (see DEV-32), so it is blocked by default. Self-hosters who really need
+# a superuser to submit can opt back into the risk by setting this to `True`;
+# consider yourself warned that bad things can happen.
+ALLOW_SUPERUSER_SUBMISSIONS = env.bool('ALLOW_SUPERUSER_SUBMISSIONS', False)
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
@@ -1566,12 +1574,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 30 minutes
-    'attachment-cleanup-for-users-exceeding-limits': {
-        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
-    },
     # Schedule every 5 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
@@ -1695,6 +1697,12 @@ if STRIPE_ENABLED:
     CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
         'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
         'schedule': crontab(minute='*/' + str(minute_interval)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
+
+    CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -2395,6 +2403,17 @@ USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of times a trash bin task that failed on a transient (infrastructure)
+# error is automatically restarted before it requires manual intervention
+TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
+
+# How long a trash bin object stays locked while it is being deleted. Must be
+# greater than or equal to the Celery hard time limit of the task
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+
+# Number of transfer log records rendered inline on a transfer admin page
+PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 
 # Maximum timeout (in minutes) for hook processing
 HOOK_STALLED_PENDING_TIMEOUT = 120

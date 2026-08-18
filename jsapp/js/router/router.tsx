@@ -4,7 +4,7 @@ import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'rea
 import accountRoutes from '#/account/routes'
 import App from '#/app'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'
-import AssetRoute from '#/components/library/assetRoute'
+import LibraryItemRoute from '#/components/library/LibraryItemRoute'
 import MyLibraryRoute from '#/components/library/myLibraryRoute'
 import PublicCollectionsRoute from '#/components/library/publicCollectionsRoute'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
@@ -61,7 +61,7 @@ export const router = createHashRouter(
           element={
             <PermProtectedRoute
               requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
-              protectedComponent={AssetRoute}
+              protectedComponent={LibraryItemRoute}
             />
           }
         />

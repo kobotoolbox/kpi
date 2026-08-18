@@ -70,7 +70,6 @@ export enum KeyNames {
 }
 
 export const MODAL_TYPES = {
-  SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
   LIBRARY_NEW_ITEM: 'library-new-item',
@@ -80,10 +79,7 @@ export const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_SETTINGS: 'table-settings',
-  REST_SERVICES: 'rest-services',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
-  TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }
@@ -623,7 +619,7 @@ export const DND_TYPES = {
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
 */
-export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing'])
+export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing', 'unpaid'])
 
 /*
   The ratio of current usage / usage limit at which we display soft 'warning' messages on the frontend

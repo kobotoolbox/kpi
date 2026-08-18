@@ -16,11 +16,11 @@ import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import NewFeatureDialog from '#/components/newFeatureDialog.component'
+import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
+import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
@@ -78,7 +78,7 @@ class FormLanding extends React.Component {
       })
     }
   }
-  enketoPreviewModal(evt) {
+  handleEnketoPreviewClick(evt) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
@@ -150,14 +150,11 @@ class FormLanding extends React.Component {
       </bem.FormView__cell>
     )
   }
-  showSharingModal(evt) {
+  handleShareClick(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.SHARING,
-      assetid: this.state.uid,
-    })
+    openSharingModal({ asset: this.state })
   }
-  showReplaceProjectModal(evt) {
+  handleReplaceFormClick(evt) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.REPLACE_PROJECT,
@@ -287,21 +284,10 @@ class FormLanding extends React.Component {
 
           {userCan('change_asset', this.state) && (
             <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
-              <NewFeatureDialog
-                content={t(
-                  'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.',
-                )}
-                supportArticle={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
-                featureKey='anonymousSubmissions'
-                disabled={pageState.state?.modal}
-                pointerClass='anonymousSubmissionPointer'
-                dialogClass='anonymousSubmissionDialog'
-              >
-                <AnonymousSubmission
-                  checked={this.state.anonymousSubmissions}
-                  onChange={() => this.updateAssetAnonymousSubmissions()}
-                />
-              </NewFeatureDialog>
+              <AnonymousSubmission
+                checked={this.state.anonymousSubmissions}
+                onChange={() => this.updateAssetAnonymousSubmissions()}
+              />
             </bem.FormView__cell>
           )}
         </bem.FormView__cell>
@@ -383,7 +369,7 @@ class FormLanding extends React.Component {
   goToProjectsList() {
     this.props.router.navigate(ROUTES.FORMS)
   }
-  nonOwnerSelfRemoval(evt) {
+  handleNonOwnerSelfRemovalClick(evt) {
     evt.preventDefault()
     // Listen for permission removal here to avoid manage_asset user removal
     // from triggering redirect
@@ -435,7 +421,7 @@ class FormLanding extends React.Component {
           startIcon='view'
           tooltip={t('Preview')}
           tooltipPosition='right'
-          onClick={this.enketoPreviewModal.bind(this)}
+          onClick={this.handleEnketoPreviewClick.bind(this)}
           isDisabled={!this.state.url}
         />
 
@@ -446,7 +432,7 @@ class FormLanding extends React.Component {
             startIcon='replace'
             tooltip={t('Replace form')}
             tooltipPosition='right'
-            onClick={this.showReplaceProjectModal.bind(this)}
+            onClick={this.handleReplaceFormClick.bind(this)}
           />
         )}
 
@@ -468,13 +454,16 @@ class FormLanding extends React.Component {
             ))}
 
             {userCanEdit && (
-              <Menu.Item onClick={this.showSharingModal} leftSection={<i className='k-icon k-icon-user-share' />}>
+              <Menu.Item onClick={this.handleShareClick} leftSection={<i className='k-icon k-icon-user-share' />}>
                 {t('Share this project')}
               </Menu.Item>
             )}
 
             {isLoggedIn && userCanRemoveSharedProject(this.state) && (
-              <Menu.Item onClick={this.nonOwnerSelfRemoval} leftSection={<i className='k-icon k-icon-trash' />}>
+              <Menu.Item
+                onClick={this.handleNonOwnerSelfRemovalClick}
+                leftSection={<i className='k-icon k-icon-trash' />}
+              >
                 {t('Remove shared project')}
               </Menu.Item>
             )}

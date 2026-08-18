@@ -146,7 +146,7 @@ const meta: Meta<typeof FormMapWrapper> = {
       },
       routing: { path: ROUTES.FORM_DATA },
     }),
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     chromatic: {
       delay: 1000,
     },

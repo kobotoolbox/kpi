@@ -372,7 +372,7 @@ const meta: Meta<typeof DataTableWrapper> = {
           '⚠️ **Docs view does NOT work reliably for these stories due to per-story MSW handler and asset/submission isolation issues. Use single stories (Default, and Processing Column) please.** Also note that many interactive elements of the table are not mocked and will not work.',
       },
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -399,7 +399,7 @@ export const Default: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -421,7 +421,7 @@ export const ProcessingColumnAndBanner: Story = {
     asset: processingAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(processingAsset.uid),
     msw: {
       handlers: [
@@ -444,7 +444,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
     asset: processingAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(processingAsset.uid),
     msw: {
       handlers: [
@@ -469,7 +469,7 @@ export const StorageLimitWarningBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -491,7 +491,7 @@ export const StorageExceededBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -513,7 +513,7 @@ export const SubmissionExceededBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -535,7 +535,7 @@ export const StorageAndSubmissionExceededBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [

@@ -41,10 +41,10 @@ jobs:
           - 6379:6379
     steps:
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -98,10 +98,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20.19.0  # version that's pinned in Dockerfile for kpi release. FYI v22 doesn't work out of box.
+          node-version-file: '.node-version' # single source of truth for our Node version
           check-latest: true # download newer semver match if available
           cache: 'npm'
 
@@ -109,11 +109,11 @@ jobs:
         id: resolved-node-version
         run: echo "NODE_VERSION=$(node --version)" >> "$GITHUB_OUTPUT"
       - name: Add "Node ${{ steps.resolved-node-version.outputs.NODE_VERSION }}" to summary
-        run: echo "22 → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
+        run: echo "\`.node-version\` → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
 
       # Cache: Use cache for node_modules
       #        Keyed on os, node version, package-lock, and patches
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         name: Check for cached node_modules
         id: cache-nodemodules
         env:

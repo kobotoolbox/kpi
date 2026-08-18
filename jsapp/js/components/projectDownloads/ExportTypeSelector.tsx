@@ -1,38 +1,25 @@
-import React, { useEffect, useState } from 'react'
-
+import React from 'react'
 import Select from 'react-select'
 import bem from '#/bem'
 import { EXPORT_TYPES, type ExportTypeDefinition } from '#/components/projectDownloads/exportsConstants'
-import exportsStore from '#/components/projectDownloads/exportsStore'
 
 interface ExportTypeSelectorProps {
+  selectedExportType: ExportTypeDefinition
+  onSelectedExportTypeChange: (newValue: ExportTypeDefinition) => void
   disabled?: boolean
   /** Hides legacy options */
   noLegacy?: boolean
 }
 
 /**
- * This is a selector that is handling the currently selected export type and
- * is storing it in exportsStore.
+ * This selector displays and updates the currently selected export type.
  */
 export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
-  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(exportsStore.getExportType())
-
-  useEffect(() => {
-    const unlisten = exportsStore.listen(() => {
-      setSelectedExportType(exportsStore.getExportType())
-    }, null)
-
-    return () => {
-      unlisten()
-    }
-  }, [])
-
   function onSelectedExportTypeChange(newValue: ExportTypeDefinition | null) {
     // It's not really possible to have `null` here, as Select requires a value
     // to always be set.
     if (newValue !== null) {
-      exportsStore.setExportType(newValue)
+      props.onSelectedExportTypeChange(newValue)
     }
   }
 
@@ -41,13 +28,13 @@ export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
     EXPORT_TYPES.xls,
     EXPORT_TYPES.csv,
     EXPORT_TYPES.geojson,
+    EXPORT_TYPES.kml,
     EXPORT_TYPES.spss_labels,
   ]
 
   // legacy options are optional
   if (!props.noLegacy) {
     exportTypesOptions.push(EXPORT_TYPES.csv_legacy)
-    exportTypesOptions.push(EXPORT_TYPES.kml_legacy)
     exportTypesOptions.push(EXPORT_TYPES.xls_legacy)
     exportTypesOptions.push(EXPORT_TYPES.zip_legacy)
   }
@@ -57,7 +44,7 @@ export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
       <bem.ProjectDownloads__title>{t('Select export type')}</bem.ProjectDownloads__title>
 
       <Select<ExportTypeDefinition>
-        value={selectedExportType}
+        value={props.selectedExportType}
         options={exportTypesOptions}
         onChange={onSelectedExportTypeChange}
         className='kobo-select'

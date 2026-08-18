@@ -19,9 +19,9 @@ import Alert from '#/components/common/alert'
 import RegionSelector from '#/components/languages/RegionSelector'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { useCalculateAudioDuration } from '#/components/submissions/useCalculateAudioDuration.hook'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useCalculateAudioDuration } from '#/hooks/useCalculateAudioDuration.hook'
 import { useSession } from '#/stores/useSession'
 import { formatTimeFromSeconds, notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
@@ -269,7 +269,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
           <Text size='sm'>
             {t(
-              'Your ##total_files## audio files is a total of ##total_length##. This may take longer to complete than the total duration of your files.',
+              'Your ##total_files## audio files are a total of ##total_length##. This may take longer to complete than the total duration of your files.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
               .replace(
@@ -318,7 +318,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
                 onClick={handleStartTranscription}
                 disabled={!selectedLanguage || isLoadingUsage || hasErrors}
               >
-                {t('Start Transcription')}
+                {t('Start transcription')}
               </ButtonNew>
             )}
             {hasExceededLimit && (

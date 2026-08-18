@@ -26,9 +26,21 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
+import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
+import type { TableColumn } from './table.types'
 
+const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
+  QUESTION_TYPES.audio.id,
+  QUESTION_TYPES['background-audio'].id,
+  QUESTION_TYPES.image.id,
+  QUESTION_TYPES.video.id,
+  QUESTION_TYPES.file.id,
+])
+
+/**
+ * Builds a human-readable Data Table column label
+ */
 export function getColumnLabel(
   asset: AssetResponse,
   key: string,
@@ -143,6 +155,9 @@ export function getColumnLabel(
   return label
 }
 
+/**
+ * Returns concatenated HXL tags for a column, or null when none exist
+ */
 export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   const colQuestion: SurveyRow | undefined = survey.find((question) => question.$autoname === key)
   if (!colQuestion || !colQuestion.tags) {
@@ -161,6 +176,9 @@ export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   }
 }
 
+/**
+ * Finds the field name used for background audio, if the form has one
+ */
 export function getBackgroundAudioQuestionName(asset: AssetResponse): string | null {
   return asset?.content?.survey?.find((item) => item.type === QUESTION_TYPES['background-audio'].id)?.name || null
 }
@@ -209,6 +227,162 @@ export function selectNestedRow(row: SubmissionResponse, key: string, rootParent
   }
 
   return row[key]
+}
+
+/**
+ * Checks whether a value is meaningfully present in submission data
+ */
+function hasNonEmptyValue(value: unknown): boolean {
+  return value !== undefined && value !== null && value !== ''
+}
+
+/**
+ * Checks which path(s) attachment metadata links a basename to.
+ *
+ * Filename/value matches alone are unsafe for dedupe. We use
+ * `_attachments.question_xpath` to confirm whether evidence points to no path,
+ * one path, or both paths.
+ */
+function getAttachmentPathEvidence(
+  submission: SubmissionResponse,
+  legacyKey: string,
+  currentPath: string,
+  basename: string,
+): 'none' | 'single' | 'both' {
+  const matchingAttachments = (submission._attachments || []).filter(
+    (attachment) =>
+      !attachment.is_deleted &&
+      attachment.media_file_basename === basename &&
+      (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
+  )
+
+  const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
+  const hasCurrentPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === currentPath)
+
+  if (hasLegacyPathAttachment && hasCurrentPathAttachment) {
+    return 'both'
+  }
+
+  if (hasLegacyPathAttachment || hasCurrentPathAttachment) {
+    return 'single'
+  }
+
+  return 'none'
+}
+
+/**
+ * Decides if a legacy attachment column is safe to drop.
+ *
+ * We only collapse stale/current columns when metadata strongly suggests they
+ * are the same field. Any conflict (different values or evidence on both
+ * paths) keeps the legacy column.
+ */
+export function shouldDropLegacyAttachmentColumn(
+  submissions: SubmissionResponse[],
+  legacyKey: string,
+  matchingCurrentPaths: string[],
+): boolean {
+  // Only collapse legacy path when there is strong evidence from attachment
+  // metadata that old/new keys mirror the same field.
+  // Keep the legacy key if values differ, or if attachment metadata indicates
+  // both paths are genuinely present.
+  let hasMirroredAttachmentEvidence = false
+
+  for (const submission of submissions) {
+    const legacyValue = submission[legacyKey]
+    if (!hasNonEmptyValue(legacyValue)) {
+      continue
+    }
+
+    // If this submission only has legacy data and no current-path value,
+    // dropping legacy would hide data from pre-rename submissions.
+    const hasAnyCurrentValue = matchingCurrentPaths.some((currentPath) => hasNonEmptyValue(submission[currentPath]))
+    if (!hasAnyCurrentValue) {
+      return false
+    }
+
+    for (const currentPath of matchingCurrentPaths) {
+      const currentValue = submission[currentPath]
+      if (!hasNonEmptyValue(currentValue)) {
+        continue
+      }
+
+      if (legacyValue !== currentValue) {
+        return false
+      }
+
+      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath, String(legacyValue))
+      if (evidence === 'both') {
+        return false
+      }
+
+      if (evidence === 'single') {
+        hasMirroredAttachmentEvidence = true
+      }
+    }
+  }
+
+  return hasMirroredAttachmentEvidence
+}
+
+/**
+ * Indexes current attachment question paths by leaf question name.
+ *
+ * Old submissions may still contain stale paths from renamed groups. This map
+ * lets dedupe quickly find candidate current paths for a legacy key.
+ */
+function buildCurrentAttachmentPathsByLeaf(
+  asset: AssetResponse,
+  flatPaths: Record<string, string>,
+): Map<string, string[]> {
+  const currentAttachmentPathsByLeaf = new Map<string, string[]>()
+
+  asset.content?.survey?.forEach((row) => {
+    if (!ATTACHMENT_QUESTION_TYPES.has(row.type)) {
+      return
+    }
+
+    const rowName = getRowName(row)
+    const currentPath = flatPaths[rowName]
+    if (!currentPath) {
+      return
+    }
+
+    const existingPaths = currentAttachmentPathsByLeaf.get(rowName) || []
+    if (!existingPaths.includes(currentPath)) {
+      currentAttachmentPathsByLeaf.set(rowName, [...existingPaths, currentPath])
+    }
+  })
+
+  return currentAttachmentPathsByLeaf
+}
+
+/**
+ * Decides if a column should stay after stale attachment dedupe checks.
+ *
+ * Keeps `getAllDataColumns` readable by isolating the keep/drop decision for
+ * one column, including safety checks for missing submissions and no matches.
+ */
+function shouldKeepColumnAfterAttachmentDedupe(
+  key: string,
+  allColumns: string[],
+  currentAttachmentPathsByLeaf: Map<string, string[]>,
+  submissions?: SubmissionResponse[],
+): boolean {
+  const keyParts = key.split('/')
+  const leafName = keyParts[keyParts.length - 1]
+  const currentPaths = currentAttachmentPathsByLeaf.get(leafName)
+
+  if (!currentPaths || currentPaths.includes(key)) {
+    return true
+  }
+
+  const matchingCurrentPaths = currentPaths.filter((currentPath) => allColumns.includes(currentPath))
+  if (matchingCurrentPaths.length === 0 || !submissions || submissions.length === 0) {
+    return true
+  }
+
+  return !shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)
 }
 
 /**
@@ -261,74 +435,15 @@ export function getAllDataColumns(
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
 
-  // Deduplicate stale audio keys from old submissions when current schema has
-  // the same question under a different (usually renamed-group) path.
-  // TODO DEV-2407: Evaluate extending this dedupe approach to other
-  // attachment question types (image/video/file) in main, with dedicated tests
-  // to avoid over-deduping distinct fields that share a leaf name.
-  const currentAudioPathsByLeaf = new Map<string, string[]>()
-  asset.content.survey.forEach((row) => {
-    if (row.type !== QUESTION_TYPES.audio.id && row.type !== QUESTION_TYPES['background-audio'].id) {
-      return
-    }
-    const rowName = getRowName(row)
-    const currentPath = flatPaths[rowName]
-    if (currentPath) {
-      const existingPaths = currentAudioPathsByLeaf.get(rowName) || []
-      if (!existingPaths.includes(currentPath)) {
-        currentAudioPathsByLeaf.set(rowName, [...existingPaths, currentPath])
-      }
-    }
-  })
+  // Deduplicate stale attachment keys from old submissions when current schema
+  // has the same question under a different (usually renamed-group) path.
+  // Keep this conservative by collapsing only when old and current keys share
+  // a non-empty overlapping value in at least one submission.
+  const currentAttachmentPathsByLeaf = buildCurrentAttachmentPathsByLeaf(asset, flatPaths)
 
-  output = output.filter((key) => {
-    const keyParts = key.split('/')
-    const leafName = keyParts[keyParts.length - 1]
-    const currentPaths = currentAudioPathsByLeaf.get(leafName)
-
-    if (!currentPaths || currentPaths.includes(key)) {
-      return true
-    }
-
-    const matchingCurrentPaths = currentPaths.filter((currentPath) => output.includes(currentPath))
-
-    if (matchingCurrentPaths.length === 0) {
-      return true
-    }
-
-    // Only collapse legacy path if we can observe it mirroring current path in
-    // at least one submission (same non-empty value on both keys). This avoids
-    // hiding distinct historical columns that merely share a leaf name.
-    if (!submissions || submissions.length === 0) {
-      return true
-    }
-
-    let hasMatchingOverlap = false
-    for (const submission of submissions) {
-      const legacyValue = submission[key]
-      const hasLegacyValue = legacyValue !== undefined && legacyValue !== null && legacyValue !== ''
-      if (!hasLegacyValue) {
-        continue
-      }
-
-      for (const currentPath of matchingCurrentPaths) {
-        const currentValue = submission[currentPath]
-        const hasCurrentValue = currentValue !== undefined && currentValue !== null && currentValue !== ''
-
-        if (!hasCurrentValue) {
-          continue
-        }
-
-        if (legacyValue !== currentValue) {
-          return true
-        }
-
-        hasMatchingOverlap = true
-      }
-    }
-
-    return !hasMatchingOverlap
-  })
+  output = output.filter((key) =>
+    shouldKeepColumnAfterAttachmentDedupe(key, output, currentAttachmentPathsByLeaf, submissions),
+  )
 
   // exclude notes
   output = output.filter((key) => {
@@ -454,6 +569,53 @@ export function buildFilterQuery(
   return output
 }
 
+export interface SelectResponseLabelOptions {
+  /** Raw response, as stored in submission data. */
+  value: string
+  questionType: AnyRowTypeName | undefined
+  /** The question's `select_from_list_name`. */
+  listName: string | undefined
+  /** All of the form's choices, not just the ones of this question's list. */
+  choices: SurveyChoice[]
+  /**
+   * Index into a choice `label` array. A negative one (the "Display XML Values"
+   * setting) matches no label, so every value comes back raw — but
+   * `select_multiple` values still get re-joined with commas, so callers that
+   * need the response exactly as stored don't come here.
+   */
+  translationIndex: number
+}
+
+/**
+ * Builds the human-readable value of a `select_one` or `select_multiple`
+ * response, i.e. the label(s) of the selected choice(s).
+ *
+ * Choices can be renamed in the Form Builder, while old submissions keep the
+ * `name` that was current when they came in. Any value that no longer matches a
+ * choice is shown raw, because dropping it would imply it was never selected.
+ */
+export function getSelectResponseLabel(options: SelectResponseLabelOptions): string {
+  const { value, questionType, listName, choices, translationIndex } = options
+
+  // `select_multiple` is the only type that packs several values into one
+  // string. Splitting any other type would mangle values that contain spaces.
+  let values = [value]
+  if (questionType === QUESTION_TYPES.select_multiple.id) {
+    // Filtering empties keeps stray spaces from becoming dangling separators.
+    values = value.split(' ').filter((valueItem) => valueItem !== '')
+  }
+
+  return values
+    .map((valueItem) => {
+      // Choice names are only unique within their own list, hence matching both.
+      const choice = choices.find((choiceItem) => choiceItem.list_name === listName && choiceItem.name === valueItem)
+      // A choice may exist but have no label in this translation, so this
+      // fallback covers more than just renamed choices.
+      return choice?.label?.[translationIndex] || valueItem
+    })
+    .join(', ')
+}
+
 /**
  * For checking if given column from Data Table should display a text input
  * filter. It works for columns associated with form questions and for other
@@ -471,4 +633,25 @@ export function isTableColumnFilterableByTextInput(questionType: AnyRowTypeName 
  */
 export function isTableColumnFilterableByDropdown(questionType: AnyRowTypeName | undefined) {
   return questionType && DROPDOWN_FILTER_QUESTION_TYPES.includes(questionType)
+}
+
+/**
+ * Returns xpaths of the audio question columns among the given Data Table
+ * columns. Pass the columns the table is rendering to get only the audio
+ * columns the user can actually see, which is how we avoid looking up durations
+ * for hidden columns.
+ */
+export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
+  const xpaths: string[] = []
+  columns.forEach((column) => {
+    const question = column.question
+    const xpath = question?.$xpath
+    if (
+      xpath &&
+      (question?.type === QUESTION_TYPES.audio.id || question?.type === QUESTION_TYPES['background-audio'].id)
+    ) {
+      xpaths.push(xpath)
+    }
+  })
+  return xpaths
 }

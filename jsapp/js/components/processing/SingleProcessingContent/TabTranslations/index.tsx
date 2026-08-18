@@ -13,11 +13,13 @@ import { CreateSteps } from '../../common/types'
 import {
   getAllTranslationsFromSupplementData,
   getLatestAutomaticTranslationVersionItem,
+  getTranslationSourceLanguages,
   isSupplementVersionAutomatic,
 } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
+import TranslationPoll from './TranslationPoll'
 
 interface Props {
   asset: AssetResponse
@@ -43,13 +45,29 @@ export default function TranslationTab({
     [supplement, questionXpath],
   )
 
+  // Languages already translated into, plus the source transcript's own language. Translating a transcript into its own
+  // language leaves behind an empty column that can't be deleted, so that language has to go too.
+  const unavailableLanguages = useMemo(
+    () => [
+      ...new Set([
+        ...translationVersions.map(({ _data }) => _data.language),
+        ...getTranslationSourceLanguages(supplement, questionXpath),
+      ]),
+    ],
+    [supplement, questionXpath, translationVersions],
+  )
+
   // Read languageCode from URL params if available (for direct navigation to specific translation)
   const params = useParams<{ languageCode?: string }>()
   const urlLanguageCode = params.languageCode as LanguageCode | undefined
 
   // Selected language code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
+  const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
+  const latestAutomaticTranslationVersion = languageCode
+    ? getLatestAutomaticTranslationVersionItem(supplement, questionXpath, languageCode)
+    : undefined
 
   useEffect(() => {
     if (translationVersion) return
@@ -57,14 +75,19 @@ export default function TranslationTab({
     // First priority: use languageCode from URL if available and valid
     if (urlLanguageCode) {
       const urlTranslation = translationVersions.find(({ _data }) => _data.language === urlLanguageCode)
-      if (urlTranslation) {
+      const urlInProgressTranslation = getLatestAutomaticTranslationVersionItem(
+        supplement,
+        questionXpath,
+        urlLanguageCode,
+      )
+      if (urlTranslation || urlInProgressTranslation) {
         setLanguageCode(urlLanguageCode)
         return
       }
     }
 
     // Second priority: get latest translation if current selected is not available
-    const latestTranslation = getLatestAutomaticTranslationVersionItem(supplement, questionXpath, undefined, false)
+    const latestTranslation = getLatestAutomaticTranslationVersionItem(supplement, questionXpath)
     if (!latestTranslation) {
       setLanguageCode(null)
       return
@@ -88,7 +111,25 @@ export default function TranslationTab({
     submission,
   ])
 
-  const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
+  if (
+    latestAutomaticTranslationVersion &&
+    isSupplementVersionAutomatic(latestAutomaticTranslationVersion) &&
+    latestAutomaticTranslationVersion._data.status === 'in_progress' &&
+    languageCode
+  ) {
+    return (
+      <TranslationPoll
+        key={`${submission._uuid}-${languageCode}`}
+        asset={asset}
+        questionXpath={questionXpath}
+        submission={submission}
+        supplement={supplement}
+        languageCode={languageCode}
+        activeBulkActions={activeBulkActions}
+      />
+    )
+  }
+
   const mode = (() => {
     if (translationVersion && isSupplementVersionAutomatic(translationVersion) && !translationVersion._dateAccepted) {
       // If automatic translation isn't accepted, go directly to edit mode to accept or edit it.
@@ -116,7 +157,7 @@ export default function TranslationTab({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
-          languagesExisting={translationVersions.map(({ _data }) => _data.language)}
+          languagesUnavailable={unavailableLanguages}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
           activeBulkActions={activeBulkActions}

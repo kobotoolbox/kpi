@@ -233,6 +233,15 @@ class SearchQueryTooShortException(InvalidSearchException):
     default_code = 'query_too_short'
 
 
+class SourceFileMissingError(Exception):
+    """
+    Raised by `ExtendedFieldFile.move()` when the source object no longer
+    exists (S3 NoSuchKey/404 or local FileNotFoundError).
+    """
+
+    pass
+
+
 class SubmissionIntegrityError(Exception):
     pass
 

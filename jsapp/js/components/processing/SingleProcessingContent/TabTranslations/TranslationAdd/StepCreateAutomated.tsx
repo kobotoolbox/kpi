@@ -23,8 +23,9 @@ import ConflictingOngoingJobAlert from '#/components/processing/common/Conflicti
 import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
+import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
@@ -147,7 +148,7 @@ export default function StepCreateAutomated({
     }
 
     try {
-      await mutationCreateAutomaticTranslation.mutateAsync({
+      const response = await mutationCreateAutomaticTranslation.mutateAsync({
         uidAsset: asset.uid,
         rootUuid: getSubmissionRootUuid(submission),
         data: {
@@ -157,12 +158,29 @@ export default function StepCreateAutomated({
           },
         },
       })
+
+      // This endpoint is expected to come back with 200 on success. If that ever changes,
+      // the API contract needs fixing instead of guessing our way through it here.
+      if (response.status !== 200) return
+
+      const translationVersion = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)
+      if (
+        translationVersion?._data &&
+        'status' in translationVersion._data &&
+        (translationVersion._data.status === 'failed' || translationVersion._data.status === 'in_progress')
+      ) {
+        if (translationVersion._data.status === 'in_progress') {
+          const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+          goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, languageCode)
+        }
+        return
+      }
+
+      onCreate(languageCode, 'automated')
     } catch {
       // Error is handled by the onError callback above
       return
     }
-
-    onCreate(languageCode, 'automated')
   }
 
   if (!languageCode) return null

@@ -67,7 +67,7 @@ class Invite(AbstractTimeStampedModel):
     all_objects = InviteAllManager()
 
     class Meta:
-        verbose_name = 'invitation'
+        verbose_name = 'invite'
 
     def __str__(self):
         return (

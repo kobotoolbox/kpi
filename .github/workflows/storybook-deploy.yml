@@ -11,7 +11,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     container:
-      image: node:20.19
+      image: node:22.23.1
     permissions:
       contents: read
       id-token: write
@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Build Storybook
         run: |

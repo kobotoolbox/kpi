@@ -1,6 +1,14 @@
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type { SubmissionResponse } from '#/dataInterface'
-import { getAllDataColumns, getColumnLabel, isTableColumnFilterableByTextInput, selectNestedRow } from './tableUtils'
+import type { AnyRowTypeName } from '#/constants'
+import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
+import {
+  getAllDataColumns,
+  getColumnLabel,
+  getSelectResponseLabel,
+  isTableColumnFilterableByTextInput,
+  selectNestedRow,
+  shouldDropLegacyAttachmentColumn,
+} from './tableUtils'
 import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
@@ -66,6 +74,84 @@ describe('tableUtils', () => {
     // that came to my mind.
   })
 
+  describe('getSelectResponseLabel', () => {
+    // The 'animals' list once had choices 'a', 'b' and 'c', then 'a' and 'b'
+    // were renamed to 'a1' and 'b1'. Only the current names are here, as that's
+    // all the latest form version gives us, so submissions storing 'a' or 'b'
+    // have nothing to match. 'other_list' guards against cross-list matches.
+    const animalChoices = [
+      { name: 'a1', label: ['archaeopteryx', 'archaeopteryks'], list_name: 'animals', $autovalue: 'a1', $kuid: 'k1' },
+      { name: 'b1', label: ['badger', 'borsuk'], list_name: 'animals', $autovalue: 'b1', $kuid: 'k2' },
+      { name: 'c', label: ['Crocodile', 'Krokodyl'], list_name: 'animals', $autovalue: 'c', $kuid: 'k3' },
+      { name: 'a', label: ['Apple'], list_name: 'other_list', $autovalue: 'a', $kuid: 'k4' },
+    ] as const satisfies SurveyChoice[]
+
+    /** Resolves a response against `animalChoices`, as every case here does. */
+    const getAnimalsLabel = (value: string, questionType: AnyRowTypeName, translationIndex = 0) =>
+      getSelectResponseLabel({
+        value,
+        questionType,
+        listName: 'animals',
+        choices: animalChoices,
+        translationIndex,
+      })
+
+    it('should return labels of all selected select_multiple choices', () => {
+      const test = getAnimalsLabel('a1 b1 c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, badger, Crocodile')
+    })
+
+    // Bug fixed: unmatched values were omitted, so this returned only
+    // 'Crocodile' with no hint that two more options were selected.
+    it('should fall back to raw values for select_multiple choices missing from the form', () => {
+      const test = getAnimalsLabel('a b c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('a, b, Crocodile')
+    })
+
+    it('should use labels of given translation for select_multiple', () => {
+      // Mixes a matched and an unmatched value, as the fallback should not
+      // depend on which translation was asked for.
+      const test = getAnimalsLabel('a b1 c', QuestionTypeName.select_multiple, 1)
+      chai.expect(test).to.equal('a, borsuk, Krokodyl')
+    })
+
+    it('should fall back to raw value when a translation has no label', () => {
+      // 'c' does match a choice, but index 5 is past the end of its labels,
+      // like a choice left untranslated in one language.
+      const test = getAnimalsLabel('c', QuestionTypeName.select_multiple, 5)
+      chai.expect(test).to.equal('c')
+    })
+
+    it('should not produce dangling separators for select_multiple stray whitespace', () => {
+      const test = getAnimalsLabel(' a1  c ', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, Crocodile')
+    })
+
+    it('should only match choices of the question own list', () => {
+      // 'a' is labelled 'Apple' in 'other_list' but absent from 'animals', so it
+      // must stay raw instead of borrowing that label.
+      const test = getAnimalsLabel('a', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('a')
+    })
+
+    it('should return label of selected select_one choice', () => {
+      const test = getAnimalsLabel('c', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('Crocodile')
+    })
+
+    it('should fall back to raw value for a select_one choice missing from the form', () => {
+      const test = getAnimalsLabel('a', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('a')
+    })
+
+    it('should not split select_one values on spaces', () => {
+      // A single value may contain spaces. Treating them as separators would
+      // mangle this into 'a, b, Crocodile'.
+      const test = getAnimalsLabel('a b c', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('a b c')
+    })
+  })
+
   describe('isTableColumnFilterableByTextInput', () => {
     it('should return true for hidden question type', () => {
       const test = isTableColumnFilterableByTextInput(QuestionTypeName.hidden, 'my_hidden_question')
@@ -75,6 +161,210 @@ describe('tableUtils', () => {
     it('should return false for a non-filterable question type', () => {
       const test = isTableColumnFilterableByTextInput(QuestionTypeName.audio, 'my_audio_question')
       chai.expect(test).to.equal(false)
+    })
+  })
+
+  describe('getAllDataColumns', () => {
+    const attachmentCases = [
+      {
+        title: 'audio',
+        currentKey: 'Secret_password_as_an_audio_file',
+        legacyKey: 'old_group/Secret_password_as_an_audio_file',
+        mirroredValue: 'secret-password.mp3',
+        currentOnlyValue: 'new-secret-password.mp3',
+        legacyOnlyValue: 'old-secret-password.mp3',
+      },
+      {
+        title: 'background-audio',
+        currentKey: 'background-audio',
+        legacyKey: 'old_group/background-audio',
+        mirroredValue: 'ambient.mp3',
+        currentOnlyValue: 'new-ambient.mp3',
+        legacyOnlyValue: 'old-ambient.mp3',
+      },
+      {
+        title: 'image',
+        currentKey: 'Your_selfie_goes_here',
+        legacyKey: 'old_group/Your_selfie_goes_here',
+        mirroredValue: 'selfie.jpg',
+        currentOnlyValue: 'new-selfie.jpg',
+        legacyOnlyValue: 'old-selfie.jpg',
+      },
+      {
+        title: 'video',
+        currentKey: 'A_video_WTF',
+        legacyKey: 'old_group/A_video_WTF',
+        mirroredValue: 'clip.mp4',
+        currentOnlyValue: 'new-clip.mp4',
+        legacyOnlyValue: 'old-clip.mp4',
+      },
+      {
+        title: 'file',
+        currentKey: 'Document_upload',
+        legacyKey: 'old_group/Document_upload',
+        mirroredValue: 'report.pdf',
+        currentOnlyValue: 'new-report.pdf',
+        legacyOnlyValue: 'old-report.pdf',
+      },
+    ]
+
+    const assetWithFileAttachment = (() => {
+      const clonedAsset = JSON.parse(JSON.stringify(assetWithBgAudioAndNLP))
+      clonedAsset.content.survey.push({
+        name: 'Document_upload',
+        type: 'file',
+        $kuid: 'file-row-kuid',
+        label: ['Document upload'],
+        $xpath: 'Document_upload',
+        required: false,
+        $autoname: 'Document_upload',
+      })
+      return clonedAsset
+    })()
+
+    const getAssetForCase = (questionType: string) => {
+      if (questionType === 'file') {
+        return assetWithFileAttachment
+      }
+      return assetWithBgAudioAndNLP
+    }
+
+    attachmentCases.forEach(({ title, currentKey, legacyKey, mirroredValue, currentOnlyValue, legacyOnlyValue }) => {
+      it(`should keep current ${title} key and drop legacy path duplicate`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.not.include(legacyKey)
+      })
+
+      it(`should keep both ${title} columns when same leaf points to distinct fields`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: currentKey,
+                media_file_basename: currentOnlyValue,
+                is_deleted: false,
+              },
+              {
+                question_xpath: legacyKey,
+                media_file_basename: legacyOnlyValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: currentOnlyValue,
+            [legacyKey]: legacyOnlyValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+
+      it(`should keep both ${title} columns when both paths have attachments with same basename`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: currentKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+
+      it(`should keep legacy ${title} column when some submissions have only legacy values`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [legacyKey]: mirroredValue,
+          },
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+    })
+
+    it('should keep legacy when one of several matching current paths has no value in a submission', () => {
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const currentPaths = ['Secret_password_as_an_audio_file', 'another_group/Secret_password_as_an_audio_file']
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+          Secret_password_as_an_audio_file: 'secret-password.mp3',
+        },
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const shouldDrop = shouldDropLegacyAttachmentColumn(submissions, legacyKey, currentPaths)
+
+      chai.expect(shouldDrop).to.equal(false)
     })
   })
 
