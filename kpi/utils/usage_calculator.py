@@ -62,38 +62,46 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
 
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
 
+    # clamp: 0 would make range() raise, a negative value would skip
+    # every chunk
+    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
     results = {}
     for (start, end), user_ids in windows.items():
-        nlp_tracking = (
-            NLPUsageCounter.objects.filter(
-                user_id__in=user_ids, date__range=[start, end]
+        for start_idx in range(0, len(user_ids), chunk_size):
+            end_idx = start_idx + chunk_size
+            chunk = user_ids[start_idx:end_idx]
+            nlp_tracking = (
+                NLPUsageCounter.objects.filter(
+                    user_id__in=chunk, date__range=[start, end]
+                )
+                .values('user_id')
+                .annotate(
+                    asr_seconds_current_period=Coalesce(
+                        Sum(f'total_{UsageType.ASR_SECONDS}'),
+                        0,
+                    ),
+                    mt_characters_current_period=Coalesce(
+                        Sum(f'total_{UsageType.MT_CHARACTERS}'),
+                        0,
+                    ),
+                    llm_requests_current_period=Coalesce(
+                        Sum(f'total_{UsageType.LLM_REQUESTS}'),
+                        0,
+                    ),
+                )
             )
-            .values('user_id')
-            .annotate(
-                asr_seconds_current_period=Coalesce(
-                    Sum(f'total_{UsageType.ASR_SECONDS}'),
-                    0,
-                ),
-                mt_characters_current_period=Coalesce(
-                    Sum(f'total_{UsageType.MT_CHARACTERS}'),
-                    0,
-                ),
-                llm_requests_current_period=Coalesce(
-                    Sum(f'total_{UsageType.LLM_REQUESTS}'),
-                    0,
-                ),
-            )
-        )
-        for row in nlp_tracking:
-            results[row['user_id']] = {
-                UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
-                UsageType.MT_CHARACTERS: row[
-                    f'{UsageType.MT_CHARACTERS}_current_period'
-                ],
-                UsageType.LLM_REQUESTS: row[
-                    f'{UsageType.LLM_REQUESTS}_current_period'
-                ],
-            }
+            for row in nlp_tracking:
+                results[row['user_id']] = {
+                    UsageType.ASR_SECONDS: row[
+                        f'{UsageType.ASR_SECONDS}_current_period'
+                    ],
+                    UsageType.MT_CHARACTERS: row[
+                        f'{UsageType.MT_CHARACTERS}_current_period'
+                    ],
+                    UsageType.LLM_REQUESTS: row[
+                        f'{UsageType.LLM_REQUESTS}_current_period'
+                    ],
+                }
     return results
 
 
@@ -112,17 +120,23 @@ def get_submission_counts_in_date_range_by_user_id(
 ) -> dict[int, int]:
     windows = group_user_ids_by_date_range(date_ranges_by_user)
 
+    # clamp: 0 would make range() raise, a negative value would skip
+    # every chunk
+    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
     results = {}
     for (start, end), user_ids in windows.items():
-        rows = (
-            DailyXFormSubmissionCounter.objects.filter(
-                user_id__in=user_ids, date__range=[start, end]
+        for start_idx in range(0, len(user_ids), chunk_size):
+            end_idx = start_idx + chunk_size
+            chunk = user_ids[start_idx:end_idx]
+            rows = (
+                DailyXFormSubmissionCounter.objects.filter(
+                    user_id__in=chunk, date__range=[start, end]
+                )
+                .values('user_id')
+                .annotate(total=Coalesce(Sum('counter'), 0))
             )
-            .values('user_id')
-            .annotate(total=Coalesce(Sum('counter'), 0))
-        )
-        for row in rows:
-            results[row['user_id']] = row['total']
+            for row in rows:
+                results[row['user_id']] = row['total']
     return results
 
 
