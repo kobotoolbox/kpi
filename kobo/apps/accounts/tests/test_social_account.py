@@ -18,7 +18,6 @@ from rest_framework.test import APITestCase
 from kobo.apps.accounts.adapter import SocialAccountAdapter
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.utils.fuzzy_int import FuzzyInt
-
 from .constants import SOCIALACCOUNT_PROVIDERS
 
 
