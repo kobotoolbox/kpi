@@ -115,7 +115,7 @@ export default function SubmissionActions({
             variant='light'
             size='md'
             icon={IconEyeFilled}
-            tooltip={t('View submission in form')}
+            tooltip={t('View submission')}
             disabled={!canView}
             loading={isViewPending}
           />
@@ -137,14 +137,7 @@ export default function SubmissionActions({
             tooltip={t('Copy link to this submission')}
           />
 
-          <ActionIcon
-            onClick={launchPrinting}
-            variant='light-gray'
-            size='md'
-            icon={IconPrinter}
-            className='report-button__print'
-            tooltip={t('Print')}
-          />
+          <ActionIcon onClick={launchPrinting} variant='light' size='md' icon={IconPrinter} tooltip={t('Print')} />
 
           <ActionIcon
             onClick={onDelete}
