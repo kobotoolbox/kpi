@@ -221,9 +221,8 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
     @pytest.mark.skipif(settings.STRIPE_ENABLED, reason='Test non-stripe functionality')
     def test_get_plan_name_stripe_disabled(self):
-        org_user = self.user1.organization.organization_users.get(user=self.user1)
         sender = MassEmailSender()
-        plan_name = sender.get_plan_name(org_user)
+        plan_name = sender.get_plan_name(self.user1.organization)
         assert plan_name == 'Not available'
 
     @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=4, MASS_EMAIL_SEND_RATE_RATIO=0.5)

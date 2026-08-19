@@ -20,7 +20,7 @@ from kobo.apps.mass_emails.models import (
     MassEmailJob,
     MassEmailRecord,
 )
-from kobo.apps.organizations.models import OrganizationUser
+from kobo.apps.organizations.models import Organization
 from kobo.celery import celery_app
 from kpi.exceptions import (
     MailerError,
@@ -276,10 +276,11 @@ class MassEmailSender:
                         day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
-    def get_plan_name(self, org_user: OrganizationUser) -> str:
+    def get_plan_name(self, organization: Organization) -> str:
         plan_name = None
-        if settings.STRIPE_ENABLED:
-            plan_name = get_plan_name(org_user)
+        if settings.STRIPE_ENABLED and organization is not None:
+            plan_name = get_plan_name(organization)
+
         if plan_name is None:
             plan_name = gettext('Not available')
         return plan_name
@@ -360,8 +361,7 @@ class MassEmailSender:
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
-        org_user = record.user.organization.organization_users.get(user=record.user)
-        plan_name = self.get_plan_name(org_user)
+        plan_name = self.get_plan_name(record.user.organization)
         data = {
             'username': record.user.username,
             'full_name': record.user.extra_details.data.get('name', None),
