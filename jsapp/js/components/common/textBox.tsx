@@ -41,7 +41,7 @@ interface TextBoxProps {
    * the error message(s).
    */
   errors?: string[] | boolean | string
-  label?: string
+  label?: React.ReactNode
   placeholder?: string
   readOnly?: boolean
   /**

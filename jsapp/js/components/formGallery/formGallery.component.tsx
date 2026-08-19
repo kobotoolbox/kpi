@@ -2,12 +2,12 @@ import './formGallery.component.scss'
 
 import { Box, Center, Flex, Image } from '@mantine/core'
 import React, { useEffect, useMemo, useReducer } from 'react'
-import ReactSelect from 'react-select'
 import { fetchGet, fetchGetUrl } from '#/api'
 import { getFlatQuestionsList } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import ModalNew from '../common/ModalNew'
@@ -26,6 +26,13 @@ bem.GalleryFooter = makeBem(bem.Gallery, 'footer')
 
 const PAGE_SIZE = 20
 
+/**
+ * Stands for "no question filter applied". `Select` works on strings and treats
+ * an empty string as no value at all, so the "all questions" option needs
+ * a sentinel of its own.
+ */
+const ALL_QUESTIONS_VALUE = '__all_questions__'
+
 interface FormGalleryProps {
   asset: AssetResponse
 }
@@ -40,8 +47,7 @@ export default function FormGallery(props: FormGalleryProps) {
       label: survey.parents.join(' / ') + (survey.parents.length ? ' / ' : '') + survey.label,
     }
   })
-  const defaultOption = { value: '', label: t('All questions') }
-  const questionFilterOptions = [defaultOption, ...(questions || [])]
+  const questionFilterOptions = [{ value: ALL_QUESTIONS_VALUE, label: t('All questions') }, ...(questions || [])]
 
   const [
     {
@@ -161,10 +167,16 @@ export default function FormGallery(props: FormGalleryProps) {
         <bem.GalleryFilters>
           {t('From')}
           <bem.GalleryFiltersSelect>
-            <ReactSelect
-              options={questionFilterOptions}
-              defaultValue={defaultOption}
-              onChange={(newValue) => dispatch({ type: 'setFilterQuestion', question: newValue!.value })}
+            <Select
+              data={questionFilterOptions}
+              value={filterQuestion ?? ALL_QUESTIONS_VALUE}
+              onChange={(newValue) =>
+                dispatch({
+                  type: 'setFilterQuestion',
+                  question: newValue === ALL_QUESTIONS_VALUE ? null : newValue,
+                })
+              }
+              clearable={false}
             />
           </bem.GalleryFiltersSelect>
           <bem.GalleryFiltersDates>

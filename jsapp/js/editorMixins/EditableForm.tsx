@@ -9,12 +9,12 @@ import last from 'lodash.last'
 import DocumentTitle from 'react-document-title'
 import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker } from 'react-router-dom'
-import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import Select from '#/components/common/Select'
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -39,7 +39,6 @@ import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
   AssetTypeName,
-  type FormStyleDefinition,
   type FormStyleName,
   NAME_MAX_LENGTH,
   QuestionTypeName,
@@ -77,6 +76,18 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
+/**
+ * `AVAILABLE_FORM_STYLES` stores the default style as an empty string, which
+ * `Select` can't tell apart from "nothing selected". This sentinel stands in for
+ * it in the dropdown.
+ */
+const DEFAULT_FORM_STYLE_VALUE = '__default__'
+
+const FORM_STYLE_OPTIONS = AVAILABLE_FORM_STYLES.map(({ value, label }) => ({
+  value: value === '' ? DEFAULT_FORM_STYLE_VALUE : value,
+  label,
+}))
+
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
 const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
@@ -299,11 +310,9 @@ export default function EditableForm(props: EditableFormProps) {
     }))
   }
 
-  function onStyleChange(newStyle: null | FormStyleDefinition) {
-    let settingsStyle: FormStyleName
-    if (newStyle !== null) {
-      settingsStyle = newStyle.value
-    }
+  function onStyleChange(newValue: string | null) {
+    const settingsStyle: FormStyleName =
+      newValue === null || newValue === DEFAULT_FORM_STYLE_VALUE ? '' : (newValue as FormStyleName)
 
     setState((currentState) => ({
       ...currentState,
@@ -313,7 +322,11 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function getStyleSelectVal(optionVal?: FormStyleName) {
-    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
+    const foundStyle = AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
+    if (foundStyle === undefined) {
+      return null
+    }
+    return foundStyle.value === '' ? DEFAULT_FORM_STYLE_VALUE : foundStyle.value
   }
 
   function onSurveyChange() {
@@ -983,26 +996,23 @@ export default function EditableForm(props: EditableFormProps) {
                 )}
               </bem.FormBuilderAside__header>
 
-              <label className='kobo-select__label' htmlFor='webform-style'>
-                {hasSettings
-                  ? t('Select the form style that you would like to use. This will only affect web forms.')
-                  : t(
-                      'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.',
-                    )}
-              </label>
-
               <Select
-                className='kobo-select'
-                classNamePrefix='kobo-select'
                 id='webform-style'
                 name='webform-style'
+                label={
+                  hasSettings
+                    ? t('Select the form style that you would like to use. This will only affect web forms.')
+                    : t(
+                        'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.',
+                      )
+                }
                 value={getStyleSelectVal(styleValue)}
                 onChange={onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
-                options={AVAILABLE_FORM_STYLES}
-                menuPlacement='bottom'
-                isDisabled={isChangingAppearanceRestricted()}
-                isSearchable={false}
+                data={FORM_STYLE_OPTIONS}
+                disabled={isChangingAppearanceRestricted()}
+                searchable={false}
+                clearable={false}
               />
             </bem.FormBuilderAside__row>
 

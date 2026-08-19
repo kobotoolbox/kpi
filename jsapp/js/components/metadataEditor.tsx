@@ -4,14 +4,16 @@ import React from 'react'
 
 import { Switch } from '@mantine/core'
 import autoBind from 'react-autobind'
-import Select from 'react-select'
 import bem, { makeBem } from '#/bem'
+import Select from '#/components/common/Select'
 import Checkbox from '#/components/common/checkbox'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
-import { FUNCTION_TYPE, META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
+import { META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
+import type { Survey } from '../../xlform/src/model.survey'
+import type { SurveyDetail } from '../../xlform/src/model.surveyDetail'
 
 bem.FormBuilderMeta = makeBem(null, 'form-builder-meta')
 bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns')
@@ -29,13 +31,22 @@ const AUDIO_QUALITY_OPTIONS = [
 ]
 const ODK_DEFAULT_AUDIO_QUALITY = AUDIO_QUALITY_OPTIONS[2]
 
-/**
- * @prop {object} survey
- * @prop {boolean} isDisabled whether everything is disabled
- * @prop {function} onChange
- */
-export default class MetadataEditor extends React.Component {
-  constructor(props) {
+/** A single row of the `surveyDetails` collection, detached from its model. */
+type MetaProperty = SurveyDetail['attributes']
+
+interface MetadataEditorProps {
+  survey?: Survey
+  /** Whether everything is disabled. */
+  isDisabled?: boolean
+  onChange?: () => void
+}
+
+interface MetadataEditorState {
+  metaProperties: MetaProperty[]
+}
+
+export default class MetadataEditor extends React.Component<MetadataEditorProps, MetadataEditorState> {
+  constructor(props: MetadataEditorProps) {
     super(props)
     this.state = {
       metaProperties: [],
@@ -48,7 +59,7 @@ export default class MetadataEditor extends React.Component {
   }
 
   rebuildState() {
-    const newState = { metaProperties: [] }
+    const newState: MetadataEditorState = { metaProperties: [] }
     recordKeys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType)
       if (detail) {
@@ -64,66 +75,64 @@ export default class MetadataEditor extends React.Component {
     this.setState(newState)
   }
 
-  getMetaProperty(metaType) {
+  getMetaProperty(metaType: string) {
     return this.state.metaProperties.find((metaProp) => metaProp.name === metaType)
   }
 
-  getSurveyDetail(sdId) {
-    return this.props.survey.surveyDetails.filter((sd) => sd.attributes.name === sdId)[0]
+  getSurveyDetail(sdId: string) {
+    return this.props.survey?.surveyDetails.filter((sd) => sd.attributes.name === sdId)[0]
   }
 
-  onCheckboxChange(name, isChecked) {
-    this.getSurveyDetail(name).set(SURVEY_DETAIL_ATTRIBUTES.value.id, isChecked)
+  onCheckboxChange(name: string, isChecked: boolean) {
+    this.getSurveyDetail(name)?.set(SURVEY_DETAIL_ATTRIBUTES.value.id, isChecked)
     // Append parameters column with ODK_DEFAULT_AUDIO_QUALITY by default for
     // background-audio type
     if (isChecked && name === QuestionTypeName['background-audio']) {
-      this.getSurveyDetail(name).set(SURVEY_DETAIL_ATTRIBUTES.parameters.id, ODK_DEFAULT_AUDIO_QUALITY.value)
+      this.getSurveyDetail(name)?.set(SURVEY_DETAIL_ATTRIBUTES.parameters.id, ODK_DEFAULT_AUDIO_QUALITY.value)
     }
 
     this.rebuildState()
-    if (typeof this.props.onChange === FUNCTION_TYPE.function.id) {
-      this.props.onChange()
-    }
+    this.props.onChange?.()
   }
 
-  onAuditParametersChange(newVal) {
-    this.getSurveyDetail(META_QUESTION_TYPES.audit).set(SURVEY_DETAIL_ATTRIBUTES.parameters.id, newVal)
+  onAuditParametersChange(newVal: string) {
+    this.getSurveyDetail(META_QUESTION_TYPES.audit)?.set(SURVEY_DETAIL_ATTRIBUTES.parameters.id, newVal)
     this.rebuildState()
-    if (typeof this.props.onChange === FUNCTION_TYPE.function.id) {
-      this.props.onChange()
-    }
+    this.props.onChange?.()
   }
 
   isAuditEnabled() {
     const metaProp = this.getMetaProperty(META_QUESTION_TYPES.audit)
-    return metaProp.value === true
+    return metaProp?.value === true
   }
 
-  onBackgroundAudioParametersChange(newVal) {
-    this.getSurveyDetail(QuestionTypeName['background-audio']).set(SURVEY_DETAIL_ATTRIBUTES.parameters.id, newVal.value)
-    this.rebuildState()
-    if (typeof this.props.onChange === FUNCTION_TYPE.function.id) {
-      this.props.onChange()
+  onBackgroundAudioParametersChange(newValue: string | null) {
+    // It's not really possible to have `null` here, as `Select` is not clearable.
+    if (newValue === null) {
+      return
     }
+
+    this.getSurveyDetail(QuestionTypeName['background-audio'])?.set(SURVEY_DETAIL_ATTRIBUTES.parameters.id, newValue)
+    this.rebuildState()
+    this.props.onChange?.()
   }
 
   isBackgroundAudioEnabled() {
     const metaProp = this.getMetaProperty(QuestionTypeName['background-audio'])
-    return metaProp.value === true
+    return metaProp?.value === true
   }
 
   getBackgroundAudioParameters() {
     const metaProp = this.getMetaProperty(QuestionTypeName['background-audio'])
-    let foundParams = ODK_DEFAULT_AUDIO_QUALITY
-    if (metaProp.parameters) {
-      foundParams = AUDIO_QUALITY_OPTIONS.find((option) => option.value === metaProp.parameters)
+    if (metaProp?.parameters) {
+      return AUDIO_QUALITY_OPTIONS.find((option) => option.value === metaProp.parameters)?.value ?? null
     }
-    return foundParams
+    return ODK_DEFAULT_AUDIO_QUALITY.value
   }
 
   getAuditParameters() {
     const metaProp = this.getMetaProperty(META_QUESTION_TYPES.audit)
-    return metaProp.parameters
+    return metaProp?.parameters ?? ''
   }
 
   renderAuditInputLabel() {
@@ -157,6 +166,24 @@ export default class MetadataEditor extends React.Component {
     )
   }
 
+  renderMetaCheckbox(metaType: string) {
+    const metaProp = this.getMetaProperty(metaType)
+
+    if (!metaProp) {
+      return null
+    }
+
+    return (
+      <Checkbox
+        key={`meta-${metaProp.name}`}
+        label={metaProp.label}
+        checked={metaProp.value}
+        disabled={this.props.isDisabled}
+        onChange={this.onCheckboxChange.bind(this, metaProp.name)}
+      />
+    )
+  }
+
   render() {
     if (this.state.metaProperties.length === 0) {
       return null
@@ -181,33 +208,11 @@ export default class MetadataEditor extends React.Component {
       <bem.FormBuilderMeta>
         <bem.FormBuilderMeta__columns>
           <bem.FormBuilderMeta__column>
-            {leftColumn.map((metaType) => {
-              const metaProp = this.getMetaProperty(metaType)
-              return (
-                <Checkbox
-                  key={`meta-${metaProp.name}`}
-                  label={metaProp.label}
-                  checked={metaProp.value}
-                  disabled={this.props.isDisabled}
-                  onChange={this.onCheckboxChange.bind(this, metaProp.name)}
-                />
-              )
-            })}
+            {leftColumn.map((metaType) => this.renderMetaCheckbox(metaType))}
           </bem.FormBuilderMeta__column>
 
           <bem.FormBuilderMeta__column>
-            {rightColumn.map((metaType) => {
-              const metaProp = this.getMetaProperty(metaType)
-              return (
-                <Checkbox
-                  key={`meta-${metaProp.name}`}
-                  label={metaProp.label}
-                  checked={metaProp.value}
-                  disabled={this.props.isDisabled}
-                  onChange={this.onCheckboxChange.bind(this, metaProp.name)}
-                />
-              )
-            })}
+            {rightColumn.map((metaType) => this.renderMetaCheckbox(metaType))}
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
@@ -223,36 +228,36 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__row>
         )}
 
-        <bem.FormBuilderMeta__row m='background-audio'>
-          <bem.FormBuilderAside__header>{this.renderBackgroundAudioLabel()}</bem.FormBuilderAside__header>
+        {backgroundAudioProp && (
+          <bem.FormBuilderMeta__row m='background-audio'>
+            <bem.FormBuilderAside__header>{this.renderBackgroundAudioLabel()}</bem.FormBuilderAside__header>
 
-          <bem.FormModal__item>
-            <Switch
-              checked={backgroundAudioProp.value}
-              onChange={(event) => this.onCheckboxChange(backgroundAudioProp.name, event.currentTarget.checked)}
-              label={
-                backgroundAudioProp.value
-                  ? t('This survey will be recorded')
-                  : t('Enable audio recording in the background')
-              }
-              disabled={this.props.isDisabled}
-            />
-          </bem.FormModal__item>
-        </bem.FormBuilderMeta__row>
+            <bem.FormModal__item>
+              <Switch
+                checked={backgroundAudioProp.value}
+                onChange={(event) => this.onCheckboxChange(backgroundAudioProp.name, event.currentTarget.checked)}
+                label={
+                  backgroundAudioProp.value
+                    ? t('This survey will be recorded')
+                    : t('Enable audio recording in the background')
+                }
+                disabled={this.props.isDisabled}
+              />
+            </bem.FormModal__item>
+          </bem.FormBuilderMeta__row>
+        )}
 
         {this.isBackgroundAudioEnabled() && (
           <bem.FormBuilderMeta__row>
             <bem.FormModal__item>
-              <label>{t('Audio quality')}</label>
-
               <Select
-                className='kobo-select'
-                classNamePrefix='kobo-select'
+                label={t('Audio quality')}
                 value={this.getBackgroundAudioParameters()}
-                defaultValue={ODK_DEFAULT_AUDIO_QUALITY}
-                options={AUDIO_QUALITY_OPTIONS}
+                data={AUDIO_QUALITY_OPTIONS}
                 onChange={this.onBackgroundAudioParametersChange}
-                isDisabled={this.props.isDisabled}
+                disabled={this.props.isDisabled}
+                searchable={false}
+                clearable={false}
               />
             </bem.FormModal__item>
           </bem.FormBuilderMeta__row>

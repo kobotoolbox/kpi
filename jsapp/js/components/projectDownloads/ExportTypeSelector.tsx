@@ -1,6 +1,6 @@
 import React from 'react'
-import Select from 'react-select'
 import bem from '#/bem'
+import Select from '#/components/common/Select'
 import { EXPORT_TYPES, type ExportTypeDefinition } from '#/components/projectDownloads/exportsConstants'
 
 interface ExportTypeSelectorProps {
@@ -15,14 +15,6 @@ interface ExportTypeSelectorProps {
  * This selector displays and updates the currently selected export type.
  */
 export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
-  function onSelectedExportTypeChange(newValue: ExportTypeDefinition | null) {
-    // It's not really possible to have `null` here, as Select requires a value
-    // to always be set.
-    if (newValue !== null) {
-      props.onSelectedExportTypeChange(newValue)
-    }
-  }
-
   // make xls topmost (as most popular)
   const exportTypesOptions: ExportTypeDefinition[] = [
     EXPORT_TYPES.xls,
@@ -43,15 +35,18 @@ export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
     <label>
       <bem.ProjectDownloads__title>{t('Select export type')}</bem.ProjectDownloads__title>
 
-      <Select<ExportTypeDefinition>
-        value={props.selectedExportType}
-        options={exportTypesOptions}
-        onChange={onSelectedExportTypeChange}
-        className='kobo-select'
-        classNamePrefix='kobo-select'
-        menuPlacement='auto'
-        isSearchable={false}
-        isDisabled={props.disabled}
+      <Select
+        value={props.selectedExportType.value}
+        data={exportTypesOptions.map(({ value, label }) => ({ value, label }))}
+        onChange={(newValue) => {
+          // It's not really possible to have `null` here, as Select is not clearable.
+          if (newValue !== null) {
+            props.onSelectedExportTypeChange(EXPORT_TYPES[newValue])
+          }
+        }}
+        searchable={false}
+        clearable={false}
+        disabled={props.disabled}
       />
     </label>
   )
