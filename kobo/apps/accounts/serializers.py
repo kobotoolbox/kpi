@@ -107,7 +107,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
                     f'Multiple social apps returned for provider {provider},'
                     f' returning first visible candidate'
                 )
-                app = visible_apps[0]
+            app = visible_apps[0]
         elif len(candidate_apps) == 0:
             logging.warn(f'No social app found for provider {provider}')
             return None
