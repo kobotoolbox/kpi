@@ -18,9 +18,8 @@ export interface OpenBulkEditSubmissionsFormProps {
    */
   selectedSubmissions: string[] | number[] | string | number
   /**
-   * Reports the label of the question being edited, or `null` when the form is
-   * back on the questions list. The form owns that navigation, so this is how
-   * the modal title can follow it.
+   * Label of the question being edited, or `null` when the form is
+   * back on the questions list
    */
   onSelectedQuestionChange: (questionLabel: string | null) => void
   onRequestClose: () => void
@@ -33,12 +32,10 @@ export type OpenBulkEditSubmissionsFormArgs = Omit<
 export default function openDataAttachmentColumnsModal(args: OpenBulkEditSubmissionsFormArgs) {
   const count = Array.isArray(args.selectedSubmissions) ? args.selectedSubmissions.length : 1
 
-  /** `questionLabel` is `null` while the form displays the questions list. */
   const getTitle = (questionLabel: string | null) => {
     if (questionLabel === null) {
       return t('Editing ##count## submission(s)').replace('##count##', count.toString())
     }
-    // The question label is user provided, so it needs clamping.
     return (
       <ClampedTitle>
         {t('Editing "##question##" for ##count## submissions')
