@@ -20,12 +20,10 @@ import type {
   ValidationStatusName,
   ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
-import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'
-import pageState from '#/pageState.store'
 import { recordKeys, renderCheckbox } from '#/utils'
-import { buildFilterQuery } from './tableUtils'
 import openDataAttachmentColumnsModal from '../modalForms/openBulkEditSubmissionsFormModal'
+import { buildFilterQuery } from './tableUtils'
 
 interface TableBulkOptionsProps {
   asset: AssetResponse

@@ -38,6 +38,9 @@ const EXCLUDED_TYPES = [
  * @prop {object[]} data - submissions data (all user responses)
  * @prop {number} totalSubmissions - number of all submissions
  * @prop {string|number[]} selectedSubmissions - list of ids of submissions selected for bulk editing
+ * @prop {function} onSelectedQuestionChange - called with the label of the question being edited, or `null` when
+ * back on the questions list; the modal wrapper uses it to keep the title in sync with the displayed step
+ * @prop {function} onRequestClose - causes the modal to close
  */
 class BulkEditSubmissionsForm extends React.Component {
   constructor(props) {
@@ -63,7 +66,6 @@ class BulkEditSubmissionsForm extends React.Component {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkPatchValuesCompleted),
       actions.submissions.bulkPatchValues.failed.listen(this.onBulkPatchValuesFailed),
     )
-    //this.setModalTitleToList()
   }
 
   componentWillUnmount() {
@@ -74,26 +76,12 @@ class BulkEditSubmissionsForm extends React.Component {
 
   onBulkPatchValuesCompleted() {
     this.setState({ isPending: false })
-    this.props.onModalClose()
+    this.props.onRequestClose()
   }
 
   onBulkPatchValuesFailed() {
     this.setState({ isPending: false })
   }
-
-  //setModalTitleToList() {
-  //  this.props.onSetModalTitle(
-  //    t('Editing ##count## submission(s)').replace('##count##', this.props.selectedSubmissions.length),
-  //  )
-  //}
-
-  //setModalTitleToSingleQuestion(questionName) {
-  //  this.props.onSetModalTitle(
-  //    t('Editing "##question##" for ##count## submissions')
-  //      .replace('##question##', questionName)
-  //      .replace('##count##', this.props.selectedSubmissions.length),
-  //  )
-  //}
 
   onRowOverrideChange(questionName, value) {
     if (questionName === this.state.selectedQuestion.name) {
@@ -136,7 +124,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: question,
       selectedQuestionOverride: this.state.overrides[question.name],
     })
-    //this.setModalTitleToSingleQuestion(question.label)
+    this.props.onSelectedQuestionChange(question.label)
   }
 
   goBackToList() {
@@ -144,7 +132,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: null,
       selectedQuestionOverride: null,
     })
-    //this.setModalTitleToList()
+    this.props.onSelectedQuestionChange(null)
   }
 
   saveOverride() {
