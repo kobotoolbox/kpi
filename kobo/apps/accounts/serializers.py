@@ -3,7 +3,7 @@ from allauth.socialaccount.adapter import get_adapter
 from allauth.socialaccount.models import SocialAccount
 from django.utils.translation import gettext as t
 from django_request_cache import cache_for_request
-from drf_spectacular.plumbing import build_array_type, build_basic_type
+from drf_spectacular.plumbing import build_array_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
