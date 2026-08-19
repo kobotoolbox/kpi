@@ -38,7 +38,7 @@ export default function SubmissionValidationStatusSelect({
   return (
     <Select<ValidationStatusOptionName>
       className='submission-modal-validation-status'
-      label={t('Validation status:')}
+      placeholder={t('Validation status')}
       size='xs'
       clearable={false}
       data={VALIDATION_STATUS_OPTIONS}
