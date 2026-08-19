@@ -23,7 +23,7 @@ export type OpenBulkEditSubmissionsFormArgs = Omit<OpenBulkEditSubmissionsFormPr
 export default function openDataAttachmentColumnsModal(args: OpenBulkEditSubmissionsFormArgs) {
   const modalId = modals.open({
     title: t('Import data from ##SOURCE_NAME##').replace('##SOURCE_NAME##', ''),
-    size: 'lg',
+    size: 'xl',
     children: (
       <BulkEditSubmissionsForm
         onRequestClose={() => {
