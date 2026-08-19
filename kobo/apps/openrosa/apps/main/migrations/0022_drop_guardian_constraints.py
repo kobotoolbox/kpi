@@ -34,6 +34,7 @@ def get_operations():
                         drop_index_queries.append(
                             f'ALTER TABLE public.{table} DROP CONSTRAINT {row[0]};'
                         )
+                drop_table_queries.append(f'DROP TABLE IF EXISTS public.{table};')
                 if drop_index_queries:
                     operations.append(
                         migrations.RunSQL(
@@ -42,6 +43,12 @@ def get_operations():
                         )
                     )
 
+            operations.append(
+                migrations.RunSQL(
+                    sql=''.join(drop_table_queries),
+                    reverse_sql=migrations.RunSQL.noop,
+                )
+            )
     except OperationalError as e:
         print(
             f'[0022_drop_guardian_tables] Could not connect to kobocat '
