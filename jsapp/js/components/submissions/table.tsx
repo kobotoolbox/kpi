@@ -63,6 +63,7 @@ import {
   isTableColumnFilterableByTextInput,
   selectNestedRow,
 } from '#/components/submissions/tableUtils'
+import type { TableFilterQuery } from '#/components/submissions/tableUtils'
 import { getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
 import type {
   ValidationStatusOption,
@@ -182,7 +183,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
-      isFullscreen: viewState?.isFullscreen ?? false,
+      isFullscreen: false,
       pageSize: this.initialPageSize,
       currentPage: 0,
       error: false,
@@ -370,6 +371,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const page = instance.state.page * instance.state.pageSize
     const filter = instance.state.filtered
     let filterQueryString = ''
+    let filterQueryObj: TableFilterQuery['queryObj'] | undefined
     // sort comes from outside react-table
     const sort = []
 
@@ -378,7 +380,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       if (filterQuery.queryString) {
         filterQueryString = `&query=${filterQuery.queryString}`
       }
+      filterQueryObj = filterQuery.queryObj
     }
+
+    // Remembered so that leaving for a submission record and coming back keeps
+    // the user's filters, and so that the record can step between neighbours the
+    // same way this table lists them.
+    setTableViewState(this.props.asset.uid, {
+      pageSize,
+      filtered: filter,
+      filterQuery: filterQueryObj,
+    })
 
     const sortBy = tableStore.getSortBy()
     if (sortBy !== null) {
@@ -1003,11 +1015,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   toggleFullscreen() {
-    const isFullscreen = !this.state.isFullscreen
-    this.setState({ isFullscreen })
-
-    // Shared with the submission route, so opening a record keeps the expanded view.
-    setTableViewState(this.props.asset.uid, { isFullscreen })
+    this.setState({ isFullscreen: !this.state.isFullscreen })
   }
 
   onSubmissionValidationStatusChange(result: ValidationStatusResponse, sid: string) {
@@ -1067,13 +1075,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       currentPage: tableInstance.state.page,
       fetchState: tableState,
       fetchInstance: tableInstance,
-    })
-
-    // Remembered so that leaving for a submission record and coming back keeps
-    // the user's filters.
-    setTableViewState(this.props.asset.uid, {
-      pageSize: tableInstance.state.pageSize,
-      filtered: tableInstance.state.filtered,
     })
 
     this.fetchSubmissions(tableInstance)

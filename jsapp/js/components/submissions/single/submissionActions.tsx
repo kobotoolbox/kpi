@@ -1,12 +1,21 @@
 import { Group } from '@mantine/core'
+import {
+  IconEyeFilled,
+  IconFilesFilled,
+  IconPencilFilled,
+  IconPrinter,
+  IconShare,
+  IconTrash,
+} from '@tabler/icons-react'
 import React from 'react'
-import Button from '#/components/common/button'
+import ActionIcon from '#/components/common/ActionIcon'
 import Checkbox from '#/components/common/checkbox'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
+import { ROOT_URL } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { launchPrinting } from '#/utils'
-import SubmissionEditButton from './submissionEditButton'
+import { copyToClipboard, getSubmissionRootUuid, launchPrinting, notify } from '#/utils'
+import { getSubmissionPath } from './submissionRouting'
 import SubmissionValidationStatusSelect from './submissionValidationStatusSelect'
 
 interface SubmissionActionsProps {
@@ -14,7 +23,7 @@ interface SubmissionActionsProps {
   submission: SubmissionResponse
   /**
    * Set while the user is looking at a duplicate they have not accepted yet, in
-   * which case SubmissionDuplicateBanner carries the actions instead.
+   * which case the banner above carries the actions instead.
    *
    * TODO: displaying these might be a better UX, we just need to check if
    * everything works, or if it requires some work to make it usable.
@@ -32,9 +41,6 @@ interface SubmissionActionsProps {
   onView: () => void
   onDuplicate: () => void
   onDelete: () => void
-  /** Owned by the route, which renders the element that expands. */
-  isFullscreen: boolean
-  onToggleFullscreen: () => void
 }
 
 /** Everything that can be done to the record on display, on one row. */
@@ -53,9 +59,20 @@ export default function SubmissionActions({
   onView,
   onDuplicate,
   onDelete,
-  isFullscreen,
-  onToggleFullscreen,
 }: SubmissionActionsProps) {
+  // Built rather than read off the address bar, so what gets shared is always the
+  // durable form of the link, whatever the route was originally opened with.
+  const shareRecord = async () => {
+    const recordUrl = `${ROOT_URL}/#${getSubmissionPath(asset.uid, getSubmissionRootUuid(submission))}`
+
+    if (await copyToClipboard(recordUrl)) {
+      // Same wording as the other copy buttons in the app.
+      notify.success(t('Copied to clipboard'))
+    } else {
+      notify.error(t('Could not copy the link, please copy it from the address bar'))
+    }
+  }
+
   // Nothing to put in the row: the banner has the only actions on offer, and an
   // archived form has no validation status to set either.
   if (isInDuplicateFlow && !asset.deployment__active) {
@@ -83,46 +100,59 @@ export default function SubmissionActions({
         <Group gap='xs' ml='auto'>
           <Checkbox checked={showXMLNames} onChange={onShowXMLNamesChange} label={t('Display XML names')} />
 
-          <SubmissionEditButton isDisabled={!isEditable} isPending={isEditPending} onClick={onEdit} />
+          <ActionIcon
+            onClick={onEdit}
+            variant='light'
+            size='md'
+            icon={IconPencilFilled}
+            tooltip={t('Edit submission')}
+            disabled={!isEditable}
+            loading={isEditPending}
+          />
 
-          <Button
+          <ActionIcon
             onClick={onView}
-            type='primary'
-            size='l'
-            isDisabled={!canView}
-            isPending={isViewPending}
-            label={t('View')}
+            variant='light'
+            size='md'
+            icon={IconEyeFilled}
+            tooltip={t('View submission in form')}
+            disabled={!canView}
+            loading={isViewPending}
           />
 
-          <Button onClick={onDuplicate} type='primary' size='l' isDisabled={!isEditable} label={t('Duplicate')} />
-
-          <Button
-            onClick={onToggleFullscreen}
-            type='secondary'
-            size='l'
-            startIcon='expand'
-            tooltip={isFullscreen ? t('Exit fullscreen') : t('Toggle fullscreen')}
-            tooltipPosition='right'
+          <ActionIcon
+            onClick={onDuplicate}
+            variant='light'
+            size='md'
+            icon={IconFilesFilled}
+            tooltip={t('Duplicate submission')}
+            disabled={!isEditable}
           />
 
-          <Button
+          <ActionIcon
+            onClick={shareRecord}
+            variant='light'
+            size='md'
+            icon={IconShare}
+            tooltip={t('Copy link to this submission')}
+          />
+
+          <ActionIcon
             onClick={launchPrinting}
-            type='secondary'
-            size='l'
-            startIcon='print'
+            variant='light-gray'
+            size='md'
+            icon={IconPrinter}
             className='report-button__print'
             tooltip={t('Print')}
-            tooltipPosition='right'
           />
 
-          <Button
+          <ActionIcon
             onClick={onDelete}
-            type='secondary-danger'
-            size='l'
-            startIcon='trash'
+            variant='danger-secondary'
+            size='md'
+            icon={IconTrash}
             tooltip={t('Delete submission')}
-            tooltipPosition='right'
-            isDisabled={!canDelete}
+            disabled={!canDelete}
           />
         </Group>
       )}

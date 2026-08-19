@@ -3,7 +3,6 @@ import React from 'react'
 import Button from '#/components/common/button'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import SubmissionEditButton from './submissionEditButton'
 
 interface SubmissionDuplicateBannerProps {
   asset: AssetResponse
@@ -48,8 +47,17 @@ export default function SubmissionDuplicateBanner({
         <code>{duplicatedFromUuid}</code>
       </p>
 
+      {/* Labelled buttons, unlike the icons in the actions row: this is a prompt,
+      and the user has to pick one of the two to leave it behind. */}
       <Group gap='xs' justify='center'>
-        <SubmissionEditButton isDisabled={!isEditable} isPending={isEditPending} onClick={onEdit} />
+        <Button
+          onClick={onEdit}
+          type='primary'
+          size='l'
+          isDisabled={!isEditable}
+          isPending={isEditPending}
+          label={t('Edit')}
+        />
 
         {canDelete && (
           <Button

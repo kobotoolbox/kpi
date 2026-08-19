@@ -1,4 +1,5 @@
 import type { AssetsDataListParams } from '#/api/models/assetsDataListParams'
+import type { TableFilterQuery } from '#/components/submissions/tableUtils'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { addDefaultUuidPrefix } from '#/utils'
@@ -66,25 +67,31 @@ export function getSubmissionLookupParams(submissionId: string): AssetsDataListP
 }
 
 /**
- * Fetches the single neighbouring submission in either direction, and - through
- * the response's `count` - how many lie that way.
+ * Fetches the single neighbouring submission in either direction.
  *
  * Submissions are listed newest first (the API sorts by `{"_id":-1}`), so "next"
  * means an older record, i.e. a lower `_id`. Cursoring on `_id` rather than time
  * is what makes this possible at all: submission times are only accurate to the
  * second, so they cannot break ties. `SelectSubmission` does the same.
  *
- * This walks *all* submissions the user can see, not the subset the data table
- * may be filtered down to - filters live in the table's own component state and
- * are not part of a submission's address.
+ * @param filterQuery - The data table's filters, so that stepping between records
+ * stays within the list the user was looking at. They are not part of the address,
+ * so a shared link steps through everything the recipient can see.
  */
-export function getSubmissionNeighborParams(submissionDbId: number, direction: 'prev' | 'next'): AssetsDataListParams {
+export function getSubmissionNeighborParams(
+  submissionDbId: number,
+  direction: 'prev' | 'next',
+  filterQuery?: TableFilterQuery['queryObj'],
+): AssetsDataListParams {
   const isNext = direction === 'next'
+  const cursorQuery = { _id: { [isNext ? '$lt' : '$gt']: submissionDbId } }
+  const hasFilters = filterQuery !== undefined && Object.keys(filterQuery).length > 0
 
   return {
     limit: 1,
     start: 0,
-    query: JSON.stringify({ _id: { [isNext ? '$lt' : '$gt']: submissionDbId } }),
+    // `$and` rather than one merged object, as the table can filter on `_id` too.
+    query: JSON.stringify(hasFilters ? { $and: [filterQuery, cursorQuery] } : cursorQuery),
     sort: JSON.stringify({ _id: isNext ? -1 : 1 }),
   }
 }

@@ -1,4 +1,5 @@
 import type { ReactTableStateFilteredItem } from '#/components/submissions/table.types'
+import type { TableFilterQuery } from '#/components/submissions/tableUtils'
 
 /**
  * How the data table was last left. This lives in component state, so it is lost
@@ -11,16 +12,18 @@ import type { ReactTableStateFilteredItem } from '#/components/submissions/table
  * cannot be seeded without asking for a second page of data - coming back to a
  * filtered table starts at its first page.
  *
- * `isFullscreen` is the one entry the submission route also reads and writes, so
- * that expanding either view and moving to the other stays expanded.
- *
  * In memory and per-tab only: returning to a project later, or through a link
  * someone sent, starts unfiltered.
  */
 export interface TableViewState {
   pageSize: number
   filtered: ReactTableStateFilteredItem[]
-  isFullscreen: boolean
+  /**
+   * The same filters as a Back end query. Kept ready-made because the submission
+   * route needs it to step between records the way the table lists them, and it
+   * has no `react-table` instance of its own to build it from.
+   */
+  filterQuery: TableFilterQuery['queryObj'] | undefined
 }
 
 /** Partial, because callers set only what they own. */

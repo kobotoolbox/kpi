@@ -1,6 +1,6 @@
 import './submissionRoute.scss'
 import { useQueryClient } from '@tanstack/react-query'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
@@ -9,7 +9,6 @@ import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
 import SubmissionDetails from './submissionDetails'
@@ -35,17 +34,6 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
   const location = useLocation()
   const queryClient = useQueryClient()
 
-  // Shared with the data table (see `tableViewState`), so expanding one and moving
-  // to the other stays expanded. Also survives stepping between records, as only
-  // `SubmissionDetails` remounts.
-  const [isFullscreen, setIsFullscreen] = useState(() => getTableViewState(assetUid)?.isFullscreen ?? false)
-
-  const toggleFullscreen = () => {
-    const newIsFullscreen = !isFullscreen
-    setIsFullscreen(newIsFullscreen)
-    setTableViewState(assetUid, { isFullscreen: newIsFullscreen })
-  }
-
   // NOTE: This route component is being loaded with PermProtectedRoute so we
   // know that the call to backend to get asset was already made, and thus we can
   // safely assume asset data is present.
@@ -62,7 +50,6 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
-  // Drives both the heading's counter and the prev/next buttons.
   const neighbors = useSubmissionNeighbors(assetUid, record?._id)
 
   // The route also accepts a numeric `_id`, for older links and for callers that
@@ -80,15 +67,12 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const pageTitle = `${t('Submission Record')} | KoboToolbox`
 
-  // Reads as "Submission Record" or "Submission Record (2 of 17)"  when we know the neighbors
-  const heading =
-    neighbors.total === undefined
-      ? t('Submission Record')
-      : `${t('Submission Record')} (${neighbors.index} ${t('of')} ${neighbors.total})`
+  // Reads as "Submission Record 1234", by the id the data table shows.
+  const heading = record ? `${t('Submission Record')} ${record._id}` : t('Submission Record')
 
   const renderInLayout = (content: React.ReactNode, header?: React.ReactNode) => (
     <DocumentTitle title={pageTitle}>
-      <bem.FormView m={isFullscreen ? ['submission', 'fullscreen'] : ['submission']}>
+      <bem.FormView m='submission'>
         <div className='submission-route'>
           <header className='submission-route__header'>
             <div className='submission-route__header-side'>
@@ -145,8 +129,6 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       // arbitrary question names as keys.
       submission={record as unknown as SubmissionResponse}
       duplicatedFromUuid={routeState?.duplicatedFromUuid}
-      isFullscreen={isFullscreen}
-      onToggleFullscreen={toggleFullscreen}
       onRefreshRequested={() => {
         queryClient.invalidateQueries({ queryKey: lookupQueryKey })
       }}

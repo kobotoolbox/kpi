@@ -26,9 +26,6 @@ interface SubmissionDetailsProps {
    * as the user stays on the record the duplication produced.
    */
   duplicatedFromUuid?: string
-  /** Owned by the route, which renders the element that expands. */
-  isFullscreen: boolean
-  onToggleFullscreen: () => void
   /** Asks for a fresh copy of `submission`, e.g. after an edit in Enketo. */
   onRefreshRequested: () => void
   onDeleted: () => void
@@ -296,8 +293,6 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
           onView={this.launchViewSubmission.bind(this)}
           onDuplicate={this.duplicateSubmission.bind(this)}
           onDelete={this.deleteSubmission.bind(this)}
-          isFullscreen={this.props.isFullscreen}
-          onToggleFullscreen={this.props.onToggleFullscreen}
         />
 
         {this.props.asset.content?.survey && bgAudio && (

@@ -89,5 +89,21 @@ describe('submissionRouting', () => {
       chai.expect(JSON.parse(String(params.query))).to.deep.equal({ _id: { $gt: 1234 } })
       chai.expect(JSON.parse(String(params.sort))).to.deep.equal({ _id: 1 })
     })
+
+    it('stays within the data table filters when given them', () => {
+      const params = getSubmissionNeighborParams(1234, 'next', {
+        Your_name: { $regex: 'ann', $options: 'i' },
+      })
+
+      chai.expect(JSON.parse(String(params.query))).to.deep.equal({
+        $and: [{ Your_name: { $regex: 'ann', $options: 'i' } }, { _id: { $lt: 1234 } }],
+      })
+    })
+
+    it('ignores an empty filter, rather than wrapping it', () => {
+      const params = getSubmissionNeighborParams(1234, 'next', {})
+
+      chai.expect(JSON.parse(String(params.query))).to.deep.equal({ _id: { $lt: 1234 } })
+    })
   })
 })
