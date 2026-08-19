@@ -1,4 +1,4 @@
-import { Paper, ScrollArea, Stack } from '@mantine/core'
+import { Group, Paper, Stack, Text } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
@@ -15,6 +15,7 @@ import sessionStore from '#/stores/session'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { currentLang } from '#/utils'
 import ButtonNew from '../common/ButtonNew'
+import KoboIcon from '../common/KoboIcon'
 import OrganizationBadge from './organizationBadge.component'
 
 /**
@@ -121,34 +122,41 @@ export default function AccountMenu() {
             )}
 
             <bem.AccountBox__menuLI m={'lang'} key='3'>
-              <ButtonNew
-                leftIcon={IconWorldFilled}
-                variant='transparent'
-                onClick={toggleLanguageSelector}
-                tabIndex={0}
-                disabled={isTouchDevice}
-              >
-                {t('Language')}
-              </ButtonNew>
+              {isTouchDevice && (
+                <Group gap={6}>
+                  <KoboIcon icon={IconWorldFilled} />
+                  <Text fw='600'>{t('Language')}</Text>
+                </Group>
+              )}
+              {!isTouchDevice && (
+                <ButtonNew
+                  leftIcon={IconWorldFilled}
+                  rightIcon={isLanguageSelectorVisible ? 'angle-down' : 'angle-up'}
+                  variant='transparent'
+                  onClick={toggleLanguageSelector}
+                  tabIndex={0}
+                  disabled={isTouchDevice}
+                >
+                  {t('Language')}
+                </ButtonNew>
+              )}
 
               {isLanguageSelectorVisible && (
                 <Paper mt='xs'>
-                  <ScrollArea p='xs' mah={400}>
-                    <Stack gap='xs'>
-                      {langs.map((lang) => (
-                        <ButtonNew
-                          variant={lang.value === currentLanguage ? 'light' : 'transparent'}
-                          aria-disabled={lang.value === currentLanguage}
-                          size='sm'
-                          key={lang.value}
-                          onClick={() => onLanguageChange(lang.value)}
-                          justify='flex-start'
-                        >
-                          {lang.label}
-                        </ButtonNew>
-                      ))}
-                    </Stack>
-                  </ScrollArea>
+                  <Stack gap='xs' p='xs'>
+                    {langs.map((lang) => (
+                      <ButtonNew
+                        variant={lang.value === currentLanguage ? 'light' : 'transparent'}
+                        aria-disabled={lang.value === currentLanguage}
+                        size='sm'
+                        key={lang.value}
+                        onClick={() => onLanguageChange(lang.value)}
+                        justify='flex-start'
+                      >
+                        {lang.label}
+                      </ButtonNew>
+                    ))}
+                  </Stack>
                 </Paper>
               )}
             </bem.AccountBox__menuLI>
