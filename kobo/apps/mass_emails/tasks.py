@@ -324,11 +324,9 @@ class MassEmailSender:
             for record in records.iterator():
                 if budget_used >= limit:
                     break
-                # A user deactivated, deleted or trashed after enqueue must
-                # never be emailed, no matter how fresh the record is;
-                # `record.user` is loaded here, so this reads their current
-                # state. A record older than the stale threshold is also
-                # re-checked against its config's criteria.
+                # `is_active` stays deferred (see the queryset above), so
+                # it's still read fresh here even though the rest of
+                # `record.user` came from the join.
                 if not email_config.is_user_still_eligible(
                     record.user,
                     reevaluate_query=record.date_created < stale_threshold,
