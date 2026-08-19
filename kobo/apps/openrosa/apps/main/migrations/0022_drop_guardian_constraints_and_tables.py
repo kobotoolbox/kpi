@@ -1,6 +1,5 @@
 from django.conf import settings
-from django.db import connections, migrations
-from django.db.utils import OperationalError
+from django.db import migrations
 
 GUARDIAN_TABLES = [
     'guardian_userobjectpermission',
@@ -8,9 +7,14 @@ GUARDIAN_TABLES = [
 ]
 
 
-def get_operations():
+def drop_guardian_tables_and_constraints(apps, schema_editor):
     if settings.TESTING:
-        return []
+        return
+
+    if schema_editor.connection.alias != settings.OPENROSA_DB_ALIAS:
+        return
+
+    connection = schema_editor.connection
 
     sql = """
         SELECT con.conname
@@ -22,51 +26,30 @@ def get_operations():
            WHERE nsp.nspname = 'public'
                  AND rel.relname = %s;
     """
-    operations = []
-    try:
-        with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
-            drop_table_queries = []
-            for table in GUARDIAN_TABLES:
-                cursor.execute(sql, [table])
-                drop_index_queries = []
-                for row in cursor.fetchall():
-                    drop_index_queries.append(
-                        f'ALTER TABLE public.{table} DROP CONSTRAINT {row[0]};'
-                    )
-                drop_table_queries.append(f'DROP TABLE IF EXISTS public.{table};')
-                if drop_index_queries:
-                    operations.append(
-                        migrations.RunSQL(
-                            sql=''.join(drop_index_queries),
-                            reverse_sql=migrations.RunSQL.noop,
-                        )
-                    )
 
-            operations.append(
-                migrations.RunSQL(
-                    sql=''.join(drop_table_queries),
-                    reverse_sql=migrations.RunSQL.noop,
+    with connection.cursor() as cursor:
+        for table in GUARDIAN_TABLES:
+            cursor.execute(sql, [table])
+            for row in cursor.fetchall():
+                constraint_name = row[0]
+                cursor.execute(
+                    f'ALTER TABLE public.{table} DROP CONSTRAINT {constraint_name};'
                 )
-            )
-    except OperationalError as e:
-        print(
-            f'[0022_drop_guardian_tables] Could not connect to kobocat '
-            f'database to build DROP operations: {e}'
-        )
-        raise
-
-    return operations
+            cursor.execute(f'DROP TABLE IF EXISTS public.{table};')
 
 
 class Migration(migrations.Migration):
     """
-    Drops the django-guardian tables from the kobocat database.
-
-    DROP TABLE is instantaneous in PostgreSQL regardless of row count.
+    Drops the django-guardian tables and constraints from the kobocat database.
     """
 
     dependencies = [
         ('main', '0021_drop_reversion_tables'),
     ]
 
-    operations = get_operations()
+    operations = [
+        migrations.RunPython(
+            drop_guardian_tables_and_constraints,
+            reverse_code=migrations.RunPython.noop,
+        ),
+    ]
