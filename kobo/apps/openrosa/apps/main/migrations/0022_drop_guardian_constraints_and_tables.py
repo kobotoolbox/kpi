@@ -54,6 +54,7 @@ def get_operations():
             f'[0022_drop_guardian_tables] Could not connect to kobocat '
             f'database to build DROP operations: {e}'
         )
+        raise
 
     return operations
 
