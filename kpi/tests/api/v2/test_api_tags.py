@@ -34,9 +34,7 @@ class TagListTestCase(BaseTagTestCase):
         assert result['uid'] == self.tag_uid.uid
 
     def test_tag_shared_by_several_assets_is_returned_once(self):
-        other_asset = Asset.objects.create(
-            owner=User.objects.get(username='someuser')
-        )
+        other_asset = Asset.objects.create(owner=User.objects.get(username='someuser'))
         other_asset.tags.add(self.tag)
 
         response = self.client.get(self.url)
