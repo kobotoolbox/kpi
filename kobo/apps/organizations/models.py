@@ -25,7 +25,9 @@ from organizations.abstract import (
 )
 from organizations.utils import create_organization as create_organization_base
 
+from kpi.exceptions import MailerError
 from kpi.fields import KpiUidField
+from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 from kpi.utils.placeholders import replace_placeholders
 from .constants import (
@@ -388,7 +390,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             language=sender_language,
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send organization invite acceptance email: {e}')
 
     def send_invite_email(self):
         is_registered_user = bool(self.invitee)
@@ -450,7 +455,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             language=invitee_language,
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send organization invite email: {e}')
 
     def send_refusal_email(self):
         """
@@ -480,7 +488,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             language=sender_language,
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send organization invite refusal email: {e}')
 
 
 create_organization = partial(create_organization_base, model=Organization)
