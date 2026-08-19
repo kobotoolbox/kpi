@@ -1,3 +1,5 @@
+import { Paper, ScrollArea, Stack } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -23,11 +25,16 @@ import OrganizationBadge from './organizationBadge.component'
  * Note: this displays a simplified content for user with invalidated password.
  */
 export default function AccountMenu() {
-  const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
+  const [isLanguageSelectorToggled, setIsLanguageSelectorToggled] = useState<boolean>(false)
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
+  // A collapsible list inside an already tapped-open menu is awkward on touch, so we keep the language list expanded
+  // there and drop the toggle in favour of a plain section label.
+  const isTouchDevice = useMediaQuery('(pointer: coarse)', false, { getInitialValueInEffect: false })
+  const isLanguageSelectorVisible = isTouchDevice || isLanguageSelectorToggled
+
   const toggleLanguageSelector = () => {
-    setIsLanguageSelectorVisible(!isLanguageSelectorVisible)
+    setIsLanguageSelectorToggled(!isLanguageSelectorToggled)
   }
 
   const shouldDisplayUrls =
@@ -52,24 +59,14 @@ export default function AccountMenu() {
     }
   }
 
-  const renderLangItem = (lang: LabelValuePair) => {
-    const currentLanguage = currentLang()
-    return (
-      <bem.AccountBox__menuLI key={lang.value}>
-        <bem.AccountBox__menuLink onClick={() => onLanguageChange(lang.value)}>
-          {lang.value === currentLanguage && <strong>{lang.label}</strong>}
-          {lang.value !== currentLanguage && lang.label}
-        </bem.AccountBox__menuLink>
-      </bem.AccountBox__menuLI>
-    )
-  }
-
   if (!sessionStore.isLoggedIn) {
     return null
   }
 
   const accountName = sessionStore.currentAccount.username
   const accountEmail = 'email' in sessionStore.currentAccount ? sessionStore.currentAccount.email : ''
+
+  const currentLanguage = currentLang()
 
   return (
     <bem.AccountBox>
@@ -124,11 +121,36 @@ export default function AccountMenu() {
             )}
 
             <bem.AccountBox__menuLI m={'lang'} key='3'>
-              <ButtonNew leftIcon={IconWorldFilled} variant='transparent' onClick={toggleLanguageSelector} tabIndex={0}>
+              <ButtonNew
+                leftIcon={IconWorldFilled}
+                variant='transparent'
+                onClick={toggleLanguageSelector}
+                tabIndex={0}
+                disabled={isTouchDevice}
+              >
                 {t('Language')}
               </ButtonNew>
 
-              {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
+              {isLanguageSelectorVisible && (
+                <Paper mt='xs'>
+                  <ScrollArea p='xs' mah={400}>
+                    <Stack gap='xs'>
+                      {langs.map((lang) => (
+                        <ButtonNew
+                          variant={lang.value === currentLanguage ? 'light' : 'transparent'}
+                          aria-disabled={lang.value === currentLanguage}
+                          size='sm'
+                          key={lang.value}
+                          onClick={() => onLanguageChange(lang.value)}
+                          justify='flex-start'
+                        >
+                          {lang.label}
+                        </ButtonNew>
+                      ))}
+                    </Stack>
+                  </ScrollArea>
+                </Paper>
+              )}
             </bem.AccountBox__menuLI>
 
             <bem.AccountBox__menuLI m={'logout'} key='4'>
