@@ -288,6 +288,9 @@ class MassEmailSender:
         )
         window_start = monotonic()
         spent_in_window = 0
+        stale_threshold = timezone.now() - timedelta(
+            hours=config.MASS_EMAIL_STALE_RECORD_RECHECK_HOURS
+        )
 
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
@@ -296,11 +299,28 @@ class MassEmailSender:
             records = MassEmailRecord.objects.filter(
                 status=EmailStatus.ENQUEUED,
                 email_job__email_config=email_config,
-            )[:limit]
-            logging.info(
-                f'Processing {limit} records for MassEmailConfig({email_config})'
             )
-            for record in records:
+            logging.info(
+                f'Processing up to {limit} records for MassEmailConfig({email_config})'
+            )
+            # No `[:limit]` slice: a stale record must not burn a slot without
+            # spending budget, so keep pulling records until `limit` is spent.
+            budget_used = 0
+            for record in records.iterator():
+                if budget_used >= limit:
+                    break
+                # Skip a stale record that no longer matches its config's criteria
+                if (
+                    record.date_created < stale_threshold
+                    and not email_config.is_user_still_eligible(record.user)
+                ):
+                    record.status = EmailStatus.STALE
+                    record.save(update_fields=['status', 'date_modified'])
+                    logging.info(
+                        f'Skipping stale MassEmailRecord({record}): recipient '
+                        f'no longer matches {email_config.query}'
+                    )
+                    continue
                 if spent_in_window >= budget_per_second:
                     # The provider counts in 1-second windows, so ours must
                     # too: sleep only what's left of the current one rather
@@ -318,6 +338,7 @@ class MassEmailSender:
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 spent_in_window += 1
+                budget_used += 1
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
@@ -360,14 +381,14 @@ class MassEmailSender:
         except MailerError as e:
             logging.warning(f'Error sending record {record}: {e}')
             record.status = EmailStatus.FAILED
-            record.save()
+            record.save(update_fields=['status', 'date_modified'])
         except Exception as e:
             logging.exception(f'Error when attempting to send record {record}: {e}')
             record.status = EmailStatus.FAILED
-            record.save()
+            record.save(update_fields=['status', 'date_modified'])
         else:
             record.status = EmailStatus.SENT
-            record.save()
+            record.save(update_fields=['status', 'date_modified'])
 
 
 @celery_app.task(

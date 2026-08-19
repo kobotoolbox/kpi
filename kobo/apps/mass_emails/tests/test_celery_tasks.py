@@ -24,12 +24,14 @@ from kpi.exceptions import (
     MailerProviderRateThrottledError,
 )
 from kpi.tests.base_test_case import BaseTestCase
+
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     PROCESSED_EMAILS_CACHE_KEY,
     MassEmailSender,
     enqueue_mass_email_records,
     generate_mass_email_user_lists,
+    mark_old_enqueued_mass_email_record_as_failed,
     render_template,
     send_emails,
 )
@@ -466,6 +468,183 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         # both emails were sent, both are no longer live
         assert not config_1.live
         assert not config_2.live
+
+
+class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        self.template = 'Username: ##username##'
+        self.email_config = self._create_email_config(
+            name='Stale config', template=self.template
+        )
+
+    def test_stale_ineligible_record_is_marked_stale(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once()
+        assert len(mail.outbox) == 0
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.STALE
+
+    def test_stale_still_eligible_record_is_sent_normally(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=True
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once()
+        assert len(mail.outbox) == 1
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.SENT
+
+    def test_fresh_record_is_sent_without_a_recheck(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        with patch.object(MassEmailConfig, 'is_user_still_eligible') as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_not_called()
+        assert len(mail.outbox) == 1
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.SENT
+
+    @override_config(MASS_EMAIL_STALE_RECORD_RECHECK_HOURS=1)
+    def test_recheck_threshold_is_read_from_constance(self):
+        # 2h old: not stale against the 12h default, but stale against the
+        # 1h threshold set here, proving the value is read live and not
+        # baked in at import time
+        job = MassEmailJob.objects.create(email_config=self.email_config)
+        MassEmailRecord.objects.create(
+            user=self.user1,
+            email_job=job,
+            status=EmailStatus.ENQUEUED,
+            date_created=timezone.now() - timedelta(hours=2),
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once()
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.STALE
+
+    def test_stale_record_does_not_consume_pacer_budget(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user2,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ):
+            sender = MassEmailSender()
+            original_limit = sender.limits[self.email_config.id]
+            sender.send_day_emails()
+
+        # only user2's fresh record was actually sent
+        assert len(mail.outbox) == 1
+
+        # both records are now processed, so the config drops out of a fresh
+        # MassEmailSender's `.limits` entirely (0 enqueued left); read the
+        # cached remaining budget directly instead
+        remaining = cache.get(f'{sender.cache_key_prefix}_{self.email_config.id}')
+        assert remaining == original_limit - 1
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=2)
+    def test_stale_records_do_not_shrink_the_days_effective_capacity(self):
+        # Stale records created first, fresh ones after: with a plain
+        # `[:limit]` slice, the two stale records alone would fill the
+        # window and leave the fresh, eligible ones enqueued despite spare
+        # capacity. The fix must pull past them instead.
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user2,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user3,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        user4 = User.objects.create(username='user4', email='user4@test.com')
+        self._create_email_record(
+            user=user4,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ):
+            sender = MassEmailSender()
+            assert sender.limits[self.email_config.id] == 2
+            sender.send_day_emails()
+
+        assert len(mail.outbox) == 2
+        statuses = list(
+            MassEmailRecord.objects.filter(
+                email_job__email_config=self.email_config
+            ).values_list('status', flat=True)
+        )
+        assert statuses.count(EmailStatus.STALE) == 2
+        assert statuses.count(EmailStatus.SENT) == 2
+        assert not MassEmailRecord.objects.filter(
+            status=EmailStatus.ENQUEUED
+        ).exists()
+
+    def test_mark_old_enqueued_record_as_failed_ignores_stale_records(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.STALE,
+            days_ago=30,
+        )
+        mark_old_enqueued_mass_email_record_as_failed()
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.STALE
 
 
 @ddt
