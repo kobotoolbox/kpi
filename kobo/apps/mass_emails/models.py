@@ -140,8 +140,10 @@ class MassEmailConfig(AbstractTimeStampedModel):
         # deleted, deactivated or trashed user.
         if not _is_user_active_and_not_trashed(user):
             return False
+
         if not reevaluate_query:
             return True
+
         check = USER_ELIGIBILITY_CHECKS.get(self.query)
         if check is None:
             # Only reachable if an admin edits a live config's `query` while

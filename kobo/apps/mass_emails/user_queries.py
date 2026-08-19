@@ -326,7 +326,7 @@ def is_user_within_usage_range(
     isn't worth the extra cost.
     """
 
-    if not settings.STRIPE_ENABLED or not _is_user_active_and_not_trashed(user):
+    if not settings.STRIPE_ENABLED:
         return False
 
     minimum = minimum or 0
@@ -345,7 +345,14 @@ def is_user_within_usage_range(
 
 
 def _is_user_active_and_not_trashed(user: User | None) -> bool:
-    # `None` means the user was deleted (records keep a nullable FK)
-    if user is None or not user.is_active:
+    # `None` means the user was deleted before the main query ran (records
+    # keep a nullable FK). A user deleted *after* the query ran raises
+    # DoesNotExist when the deferred `is_active` is re-fetched.
+    if user is None:
+        return False
+    try:
+        if not user.is_active:
+            return False
+    except User.DoesNotExist:
         return False
     return not hasattr(user, 'trash')

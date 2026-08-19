@@ -12,6 +12,7 @@ from kobo.apps.mass_emails.models import (
     MassEmailQueryParam,
 )
 from kobo.apps.mass_emails.user_queries import (
+    _is_user_active_and_not_trashed,
     is_user_active,
     is_user_inactive,
     is_user_within_usage_range,
@@ -105,18 +106,30 @@ class TestUsageEligibilityChecks(TestCase):
             )
         assert result is False
 
-    @override_settings(STRIPE_ENABLED=True)
-    def test_false_for_inactive_user_without_hitting_the_usage_calculator(self):
-        self.user.is_active = False
-        self.user.save()
-        with patch(
-            'kobo.apps.mass_emails.user_queries.ServiceUsageCalculator'
-        ) as mock_calc:
-            result = is_user_within_usage_range(
-                self.user, usage_types=[UsageType.STORAGE_BYTES], minimum=1
-            )
-        assert result is False
-        mock_calc.assert_not_called()
+
+class TestActiveAndNotTrashedGuard(TestCase):
+
+    def test_none_is_never_eligible(self):
+        assert _is_user_active_and_not_trashed(None) is False
+
+    def test_active_untrashed_user_is_eligible(self):
+        user = User.objects.create(username='fine')
+        assert _is_user_active_and_not_trashed(user) is True
+
+    def test_inactive_user_is_not_eligible(self):
+        user = User.objects.create(username='deactivated', is_active=False)
+        assert _is_user_active_and_not_trashed(user) is False
+
+    def test_deleted_between_the_main_query_and_the_check_is_not_eligible(self):
+        # Simulates select_related('user').defer('user__is_active'): the
+        # `user` object was already fetched (non-null) by an earlier query,
+        # but the row is gone by the time the deferred `is_active` is
+        # actually read, which raises DoesNotExist instead of returning
+        # None like a plain FK access would.
+        user = User.objects.create(username='deleted_mid_run')
+        stale_user = User.objects.defer('is_active').get(pk=user.pk)
+        user.delete()
+        assert _is_user_active_and_not_trashed(stale_user) is False
 
 
 class TestMassEmailConfigEligibility(TestCase):
@@ -148,8 +161,14 @@ class TestMassEmailConfigEligibility(TestCase):
         )
 
     def test_never_eligible_when_user_is_none_or_deactivated(self):
-        # The guard beats both the registered check and the fail-open path
-        for query in ('users_active_within_365_days', 'does_not_exist'):
+        # The guard beats both the registered check and the fail-open path.
+        # Includes a usage-range query: is_user_within_usage_range() no
+        # longer guards on its own, so this is the only thing protecting it.
+        for query in (
+            'users_active_within_365_days',
+            'users_above_100_percent_storage',
+            'does_not_exist',
+        ):
             email_config = MassEmailConfig.objects.create(
                 name=f'guard {query}', query=query
             )
