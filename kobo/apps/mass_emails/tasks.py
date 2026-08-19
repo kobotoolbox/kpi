@@ -20,7 +20,7 @@ from kobo.apps.mass_emails.models import (
     MassEmailJob,
     MassEmailRecord,
 )
-from kobo.apps.organizations.models import OrganizationUser
+from kobo.apps.organizations.models import Organization
 from kobo.celery import celery_app
 from kpi.exceptions import (
     MailerError,
@@ -276,10 +276,11 @@ class MassEmailSender:
                         day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
-    def get_plan_name(self, org_user: OrganizationUser) -> str:
+    def get_plan_name(self, organization: Organization) -> str:
         plan_name = None
-        if settings.STRIPE_ENABLED:
-            plan_name = get_plan_name(org_user)
+        if settings.STRIPE_ENABLED and organization is not None:
+            plan_name = get_plan_name(organization)
+
         if plan_name is None:
             plan_name = gettext('Not available')
         return plan_name
@@ -306,10 +307,14 @@ class MassEmailSender:
             limit = self.limits.get(email_config.id)
             if not limit:
                 continue
+            # `user__is_active` stays deferred so it's re-fetched fresh right
+            # when a record is processed, not batched with the rest of user
+            # at query time: a run can span close to an hour, long enough
+            # for a recipient to be deactivated in between.
             records = MassEmailRecord.objects.filter(
                 status=EmailStatus.ENQUEUED,
                 email_job__email_config=email_config,
-            )
+            ).select_related('user', 'user__extra_details').defer('user__is_active')
             logging.info(
                 f'Processing up to {limit} records for MassEmailConfig({email_config})'
             )
@@ -319,11 +324,9 @@ class MassEmailSender:
             for record in records.iterator():
                 if budget_used >= limit:
                     break
-                # A user deactivated, deleted or trashed after enqueue must
-                # never be emailed, no matter how fresh the record is;
-                # `record.user` is loaded here, so this reads their current
-                # state. A record older than the stale threshold is also
-                # re-checked against its config's criteria.
+                # `is_active` stays deferred (see the queryset above), so
+                # it's still read fresh here even though the rest of
+                # `record.user` came from the join.
                 if not email_config.is_user_still_eligible(
                     record.user,
                     reevaluate_query=record.date_created < stale_threshold,
@@ -356,8 +359,7 @@ class MassEmailSender:
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
-        org_user = record.user.organization.organization_users.get(user=record.user)
-        plan_name = self.get_plan_name(org_user)
+        plan_name = self.get_plan_name(record.user.organization)
         data = {
             'username': record.user.username,
             'full_name': record.user.extra_details.data.get('name', None),

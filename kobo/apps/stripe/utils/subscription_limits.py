@@ -9,7 +9,7 @@ from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 
 from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
-from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.import_management import requires_stripe
@@ -356,10 +356,10 @@ def get_paid_subscription_limits(
 
 
 @requires_stripe
-def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
+def get_plan_name(organization: Organization, **kwargs) -> str | None:
     Subscription = kwargs['subscription_model']
     subscriptions = Subscription.objects.filter(
-        customer__subscriber_id=org_user.organization.id,
+        customer__subscriber_id=organization.id,
         status__in=ACTIVE_STRIPE_STATUSES,
     )
 
