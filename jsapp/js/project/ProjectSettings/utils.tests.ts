@@ -3,7 +3,8 @@ import envStore from '#/envStore'
 import type { ProjectSettingsFields } from './types'
 import { getSettingsForEndpoint, validateProjectFields } from './utils'
 
-// Mock envStore to control metadata field configuration
+// Mocked so the tests control both which fields are required and the choices
+// that labels get looked up in.
 jest.mock('#/envStore', () => ({
   data: {
     getProjectMetadataField: jest.fn(),

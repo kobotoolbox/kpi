@@ -285,6 +285,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   function onSelectedDefinedExportChange(newValue: string | null) {
     const newDefinedExport = state.definedExports.find((definedExport) => definedExport.value === newValue)
 
+    // Nothing found means the "None" option was picked, so back to defaults.
     if (newDefinedExport === undefined) {
       setDefaultExportSettings()
       clearSelectedDefinedExport()

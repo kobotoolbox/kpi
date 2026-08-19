@@ -39,7 +39,7 @@ export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
         value={props.selectedExportType.value}
         data={exportTypesOptions.map(({ value, label }) => ({ value, label }))}
         onChange={(newValue) => {
-          // It's not really possible to have `null` here, as Select is not clearable.
+          // It's not really possible to have `null` here, as `Select` is not clearable.
           if (newValue !== null) {
             props.onSelectedExportTypeChange(EXPORT_TYPES[newValue])
           }

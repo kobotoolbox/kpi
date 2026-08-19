@@ -54,7 +54,7 @@ export function getInitialFieldsFromAsset(asset?: AssetResponse): ProjectSetting
       field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
         ? [] // Multi-select needs empty array (avoids "undefined is not an array" errors)
         : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
-          ? null // Single-select uses null for "no selection"
+          ? null // Single-select uses null, so the dropdown shows its placeholder
           : '' // Text fields use empty string for controlled input components
 
     fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
@@ -77,10 +77,9 @@ export function getFilenameFromURI(url: string): string {
 }
 
 /**
- * The choice fields are stored in the asset settings as `LabelValuePair`s (Back
- * end derives `country_codes` and sorts project lists on `sector.value`, and
- * Front end displays the stored labels), but the form only keeps track of the
- * values, so we need to pair them up with their labels again.
+ * The form only keeps track of the chosen values, but the asset settings need
+ * whole `LabelValuePair`s: Back end derives `country_codes` and sorts project
+ * lists on `sector.value`, and Front end displays the stored labels.
  */
 function toLabelValuePair(value: string, choices: LabelValuePair[]): LabelValuePair {
   // Fall back to the value itself for choices that are no longer offered, so
@@ -88,6 +87,7 @@ function toLabelValuePair(value: string, choices: LabelValuePair[]): LabelValueP
   return { value, label: choices.find((choice) => choice.value === value)?.label ?? value }
 }
 
+/** Builds the JSON string that the asset endpoint expects as its `settings`. */
 export function getSettingsForEndpoint(fields: ProjectSettingsFields): string {
   const settings = {
     description: fields.description,

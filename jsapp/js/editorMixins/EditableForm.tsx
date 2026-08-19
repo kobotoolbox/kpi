@@ -323,6 +323,8 @@ export default function EditableForm(props: EditableFormProps) {
 
   function getStyleSelectVal(optionVal?: FormStyleName) {
     const foundStyle = AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
+    // Styles we no longer offer leave the dropdown empty instead of adding an
+    // option that couldn't be picked again anyway.
     if (foundStyle === undefined) {
       return null
     }

@@ -35,9 +35,8 @@ interface ValidationStatusDropdownProps {
 export default function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
   const options = props.isForHeaderFilter ? VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL : VALIDATION_STATUS_OPTIONS
 
-  // When used as a table header filter we want to look like all the neighbouring
-  // column filters, i.e. a plain small select. The colorful pills are only for
-  // the data cells.
+  // The colorful pills are only for the data cells - as a table header filter
+  // this has to look like all the neighbouring column filters.
   const currentPillVariant = props.isForHeaderFilter ? undefined : PILL_VARIANTS[props.currentValue.value]
 
   return (
@@ -54,6 +53,8 @@ export default function ValidationStatusDropdown(props: ValidationStatusDropdown
         const variant = PILL_VARIANTS[option.value as ValidationStatusOptionName]
         return variant ? <Pill variant={variant}>{option.label}</Pill> : <span>{option.label}</span>
       }}
+      // `cellInputWithPill` hides the input's own text, so this pill is what the
+      // user actually reads.
       leftSection={currentPillVariant && <Pill variant={currentPillVariant}>{props.currentValue.label}</Pill>}
       classNames={{
         input: classNames({
@@ -62,6 +63,7 @@ export default function ValidationStatusDropdown(props: ValidationStatusDropdown
         }),
         section: props.isForHeaderFilter ? undefined : styles.cellSection,
       }}
+      // Narrower than the default, to leave the pill as much room as possible.
       rightSectionWidth={props.isForHeaderFilter ? undefined : 28}
       size='xs'
       disabled={props.isDisabled}

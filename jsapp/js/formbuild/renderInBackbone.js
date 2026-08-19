@@ -57,11 +57,10 @@ class KoboMatrixRow {
 export function renderKobomatrix(view, el) {
   const model = new KoboMatrixRow(view.model)
   const root = createRoot(el.get(0))
-  // Backbone gives us a detached React root, so the app's `MantineProvider`
-  // (see `basicLayout.component.tsx`) is not an ancestor here. Mantine
-  // components read their theme from context, so this root needs its own
-  // provider. `withCssVariables` is off because the app root already put the
-  // very same variables on `:root`.
+  // This is a detached React root, so the app's `MantineProvider` (in
+  // `basicLayout.component.tsx`) is not an ancestor and Mantine components here
+  // would find no theme in context. CSS variables are skipped because the app
+  // root already writes the same ones to `:root`.
   root.render(
     <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo} withCssVariables={false}>
       <KoboMatrix model={model} />

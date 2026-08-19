@@ -27,9 +27,8 @@ bem.GalleryFooter = makeBem(bem.Gallery, 'footer')
 const PAGE_SIZE = 20
 
 /**
- * Stands for "no question filter applied". `Select` works on strings and treats
- * an empty string as no value at all, so the "all questions" option needs
- * a sentinel of its own.
+ * Stands for "no question filter". `Select` treats an empty string as no value
+ * at all, so the "all questions" option needs a sentinel of its own.
  */
 const ALL_QUESTIONS_VALUE = '__all_questions__'
 

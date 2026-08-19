@@ -127,7 +127,6 @@ export default function StepProjectDetails({
               onChange={(newValue) => onAnyFieldChange('sector', newValue)}
               data={sectors}
               placeholder={t('Select…')}
-              maxDropdownHeight={220}
               clearable
               error={hasFieldError('sector') ? t('Please choose a sector') : undefined}
             />
@@ -143,7 +142,6 @@ export default function StepProjectDetails({
               onChange={(newValue) => onAnyFieldChange('country', newValue)}
               data={countries}
               placeholder={t('Select…')}
-              maxDropdownHeight={220}
               clearable
               error={hasFieldError('country') ? t('Please select at least one country') : undefined}
             />
@@ -159,7 +157,6 @@ export default function StepProjectDetails({
               onChange={(newValue) => onAnyFieldChange('operational_purpose', newValue)}
               data={operationalPurposes}
               placeholder={t('Select…')}
-              maxDropdownHeight={220}
               clearable
               error={
                 hasFieldError('operational_purpose')

@@ -36,7 +36,7 @@ type MetaProperty = SurveyDetail['attributes']
 
 interface MetadataEditorProps {
   survey?: Survey
-  /** Whether everything is disabled. */
+  /** Disables every control in the editor. */
   isDisabled?: boolean
   onChange?: () => void
 }
@@ -169,6 +169,7 @@ export default class MetadataEditor extends React.Component<MetadataEditorProps,
   renderMetaCheckbox(metaType: string) {
     const metaProp = this.getMetaProperty(metaType)
 
+    // Not every survey defines every meta property, so rendering nothing is fine.
     if (!metaProp) {
       return null
     }

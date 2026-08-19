@@ -10,16 +10,15 @@ import type { StepName } from './constants'
 export type ProjectSettingsContext = (typeof PROJECT_SETTINGS_CONTEXTS)[keyof typeof PROJECT_SETTINGS_CONTEXTS]
 
 /**
- * Form fields for project settings.
- * Note: `sector`, `country`, `operational_purpose` and `collects_pii` are stored
- * as `LabelValuePair`s in the asset settings, but here we only keep their values
- * around - see `getSettingsForEndpoint` for where they get paired up again.
+ * Form fields for project settings. Note that `sector`, `country`,
+ * `operational_purpose` and `collects_pii` are stored as `LabelValuePair`s in the
+ * asset settings, but here we only keep their values around.
+ * `getSettingsForEndpoint` pairs them up with their labels again.
  */
 export interface ProjectSettingsFields {
   name: string
   description: string
   sector: string | null
-  // Multi-select field - country can have multiple selections
   country: string[] | null
   operational_purpose: string | null
   collects_pii: string | null
