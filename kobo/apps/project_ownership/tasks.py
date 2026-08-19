@@ -14,6 +14,8 @@ from django.utils.translation import gettext as t
 
 from kobo.apps.project_ownership.models.invite import InviteType
 from kobo.celery import celery_app
+from kpi.exceptions import MailerError
+from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 from .exceptions import AsyncTaskException, TransferStillPendingException
 from .models.choices import (
@@ -191,7 +193,10 @@ def mark_as_expired():
             )
         )
 
-    Mailer.send(email_messages)
+    try:
+        Mailer.send(email_messages)
+    except MailerError as e:
+        logging.warning(f'Failed to send expired invite emails: {e}')
 
 
 @celery_app.task
@@ -244,7 +249,10 @@ def send_email_to_admins(invite_uid: str):
         ),
     )
 
-    Mailer.send(email_message)
+    try:
+        Mailer.send(email_message)
+    except MailerError as e:
+        logging.warning(f'Failed to send admin failure report email: {e}')
 
 
 @celery_app.task

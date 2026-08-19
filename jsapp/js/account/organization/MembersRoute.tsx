@@ -11,6 +11,7 @@ import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import type { MemberListResponse } from '#/api/models/memberListResponse'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import type { OrganizationsMembersListParams } from '#/api/models/organizationsMembersListParams'
 import {
   getOrganizationsMembersListQueryKey,
   useOrganizationsMembersList,
@@ -21,11 +22,25 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
 import envStore from '#/envStore'
+import SortableProjectColumnHeader, {
+  type SortableColumnOrder,
+} from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { formatDate } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
+
+/**
+ * API ordering names, not table column keys — the `Name` column orders by username (the endpoint cannot order by
+ * full name) and the `Status` column by `status`.
+ *
+ * These must stay a subset of `OrganizationsMembersListOrdering`; building `ordering` below from them means an
+ * invalid name here fails to typecheck. The 2FA column is absent because the endpoint cannot order by it.
+ */
+type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role'
+
+const ORDERABLE_FIELDS: MembersTableOrderableField[] = ['user__username', 'status', 'date_joined', 'role']
 
 export default function MembersRoute() {
   const [organization] = useOrganizationAssumed()
@@ -39,10 +54,28 @@ export default function MembersRoute() {
     limit: DEFAULT_PAGE_SIZE,
     start: 0,
   })
+  const [order, setOrder] = useState<SortableColumnOrder<MembersTableOrderableField>>({})
 
-  const membersQuery = useOrganizationsMembersList(organization.id, pagination, {
+  const queryParams: OrganizationsMembersListParams = { ...pagination }
+  if (order.fieldName && order.direction) {
+    const orderPrefix = order.direction === 'descending' ? '-' : ''
+    queryParams.ordering = `${orderPrefix}${order.fieldName}`
+  }
+
+  /**
+   * Sorting affects which rows land on which page, so we go back to the first page whenever it changes. Updating from
+   * the latest state, so we don't reset `limit` to a stale page size.
+   */
+  function updateOrder(newOrder: SortableColumnOrder<MembersTableOrderableField>) {
+    setOrder(newOrder)
+    setPagination((currentPagination) => {
+      return { ...currentPagination, start: 0 }
+    })
+  }
+
+  const membersQuery = useOrganizationsMembersList(organization.id, queryParams, {
     query: {
-      queryKey: getOrganizationsMembersListQueryKey(organization.id, pagination),
+      queryKey: getOrganizationsMembersListQueryKey(organization.id, queryParams),
       placeholderData: keepPreviousData,
       // We might want to improve this in future, for now let's not retry
       retry: false,
@@ -65,10 +98,24 @@ export default function MembersRoute() {
     return { invite, member }
   }
 
+  /** Renders a column label that opens the sorting menu on click. */
+  function renderSortableHeader(fieldName: MembersTableOrderableField, label: string) {
+    return (
+      <SortableProjectColumnHeader
+        styling={false}
+        field={{ name: fieldName, label }}
+        orderableFields={ORDERABLE_FIELDS}
+        order={order}
+        onChangeOrderRequested={updateOrder}
+        fixedWidth
+      />
+    )
+  }
+
   const columns: Array<UniversalTableColumn<MemberListResponse>> = [
     {
       key: 'user__extra_details__name',
-      label: t('Name'),
+      label: renderSortableHeader('user__username', t('Name')),
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         return (
@@ -87,7 +134,7 @@ export default function MembersRoute() {
     },
     {
       key: 'invite',
-      label: t('Status'),
+      label: renderSortableHeader('status', t('Status')),
       size: 120,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite } = getMemberOrInviteDetails(obj)
@@ -100,7 +147,7 @@ export default function MembersRoute() {
     },
     {
       key: 'date_joined',
-      label: t('Date added'),
+      label: renderSortableHeader('date_joined', t('Date added')),
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
@@ -109,7 +156,7 @@ export default function MembersRoute() {
     },
     {
       key: 'role',
-      label: t('Role'),
+      label: renderSortableHeader('role', t('Role')),
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
