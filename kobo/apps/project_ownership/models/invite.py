@@ -11,6 +11,7 @@ from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
+
 from .choices import InviteStatusChoices
 
 
