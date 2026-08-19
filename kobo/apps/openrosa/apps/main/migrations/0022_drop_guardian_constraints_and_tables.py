@@ -30,10 +30,9 @@ def get_operations():
                 cursor.execute(sql, [table])
                 drop_index_queries = []
                 for row in cursor.fetchall():
-                    if not row[0].endswith('_pkey'):
-                        drop_index_queries.append(
-                            f'ALTER TABLE public.{table} DROP CONSTRAINT {row[0]};'
-                        )
+                    drop_index_queries.append(
+                        f'ALTER TABLE public.{table} DROP CONSTRAINT {row[0]};'
+                    )
                 drop_table_queries.append(f'DROP TABLE IF EXISTS public.{table};')
                 if drop_index_queries:
                     operations.append(
