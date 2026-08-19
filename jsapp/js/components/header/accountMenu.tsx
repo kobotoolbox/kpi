@@ -41,6 +41,8 @@ export default function AccountMenu() {
 
   const onLanguageChange = (langCode: string) => {
     if (langCode) {
+      // TODO: migrate this to `useSetInterfaceLanguage`
+
       // use .always (instead of .done) here since Django 1.8 redirects the request
       dataInterface.setLanguage({ language: langCode }).always(() => {
         if ('reload' in window.location) {
