@@ -167,9 +167,7 @@ class RegistrationTestCase(TestCase):
         data = self.valid_data.copy()
         data['email'] = 'user@example.com'
 
-        response = self.client.post(
-            reverse('account_signup'), data=data
-        )
+        response = self.client.post(reverse('account_signup'), data=data)
         self.assertIn(
             b'Your organization has restricted the use of passwords.'
             b' Please sign up using SSO instead.',
