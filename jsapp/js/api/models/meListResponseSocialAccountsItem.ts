@@ -17,4 +17,6 @@ export type MeListResponseSocialAccountsItem = {
   date_joined?: string
   email?: string
   username?: string
+  managed?: boolean
+  managed_domains?: string[]
 }

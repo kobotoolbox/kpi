@@ -26940,6 +26940,15 @@
                                 },
                                 "username": {
                                     "type": "string"
+                                },
+                                "managed": {
+                                    "type": "boolean"
+                                },
+                                "managed_domains": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
                                 }
                             }
                         }
@@ -31904,12 +31913,25 @@
                     "username": {
                         "type": "string",
                         "readOnly": true
+                    },
+                    "managed": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "managed_domains": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "date_joined",
                     "email",
                     "last_login",
+                    "managed",
+                    "managed_domains",
                     "provider",
                     "uid",
                     "username"
@@ -33315,6 +33337,15 @@
                                 },
                                 "username": {
                                     "type": "string"
+                                },
+                                "managed": {
+                                    "type": "boolean"
+                                },
+                                "managed_domains": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
                                 }
                             }
                         }

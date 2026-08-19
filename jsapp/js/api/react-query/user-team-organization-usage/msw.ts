@@ -1360,6 +1360,13 @@ export const getMeRetrieveResponseMock = (overrideResponse: Partial<MeListRespon
     date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     email: faker.helpers.arrayElement([faker.internet.email(), undefined]),
     username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    managed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    managed_domains: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
   })),
   validated_password: faker.datatype.boolean(),
   accepted_tos: faker.datatype.boolean(),
@@ -1430,6 +1437,13 @@ export const getMePartialUpdateResponseMock = (overrideResponse: Partial<MeListR
     date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     email: faker.helpers.arrayElement([faker.internet.email(), undefined]),
     username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    managed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    managed_domains: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
   })),
   validated_password: faker.datatype.boolean(),
   accepted_tos: faker.datatype.boolean(),
@@ -1476,6 +1490,10 @@ export const getMeSocialAccountsListResponseMock = (
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     email: faker.internet.email(),
     username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    managed: faker.datatype.boolean(),
+    managed_domains: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
   })),
   ...overrideResponse,
 })
@@ -1489,6 +1507,10 @@ export const getMeSocialAccountsRetrieveResponseMock = (
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   email: faker.internet.email(),
   username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  managed: faker.datatype.boolean(),
+  managed_domains: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
   ...overrideResponse,
 })
 

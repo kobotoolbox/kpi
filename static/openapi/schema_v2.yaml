@@ -19247,6 +19247,12 @@ components:
                 format: email
               username:
                 type: string
+              managed:
+                type: boolean
+              managed_domains:
+                type: array
+                items:
+                  type: string
         validated_password:
           type: boolean
         accepted_tos:
@@ -22745,10 +22751,20 @@ components:
         username:
           type: string
           readOnly: true
+        managed:
+          type: boolean
+          readOnly: true
+        managed_domains:
+          type: array
+          items:
+            type: string
+          readOnly: true
       required:
       - date_joined
       - email
       - last_login
+      - managed
+      - managed_domains
       - provider
       - uid
       - username
@@ -23813,6 +23829,12 @@ components:
                 format: email
               username:
                 type: string
+              managed:
+                type: boolean
+              managed_domains:
+                type: array
+                items:
+                  type: string
         organizations:
           type: object
           properties:

@@ -1,5 +1,6 @@
 import re
 from datetime import timedelta
+from unittest.mock import patch
 
 import dateutil
 from constance.test import override_config
@@ -12,12 +13,15 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
 class CurrentUserAPITestCase(APITestCase):
     def setUp(self):
-        self.user = baker.make(settings.AUTH_USER_MODEL, username='spongebob', email='me@sponge.bob')
+        self.user = baker.make(
+            settings.AUTH_USER_MODEL, username='spongebob', email='me@sponge.bob'
+        )
         self.client.force_login(self.user)
         self.url = reverse('currentuser-detail')
 
@@ -28,7 +32,7 @@ class CurrentUserAPITestCase(APITestCase):
         other_social_account = baker.make('socialaccount.SocialAccount')
         # This modifies the user account
         self.client.get(self.url)
-        with self.assertNumQueries(FuzzyInt(3, 5)):
+        with self.assertNumQueries(FuzzyInt(4, 6)):
             res = self.client.get(self.url)
         for social_account in social_accounts:
             self.assertContains(res, social_account.uid)
@@ -38,17 +42,12 @@ class CurrentUserAPITestCase(APITestCase):
         extra_details = self.user.extra_details
         extra_details.data['name'] = 'SpongeBob'
         extra_details.save()
-        patch_data = {
-            'extra_details': {'organization': 'Trap Remix 10 Hours, Inc.'}
-        }
+        patch_data = {'extra_details': {'organization': 'Trap Remix 10 Hours, Inc.'}}
         response = self.client.patch(self.url, data=patch_data, format='json')
         assert response.status_code == status.HTTP_200_OK
         response_extra_details = response.json()['extra_details']
         # What we just set should obviously be there
-        assert (
-            response_extra_details['organization']
-            == 'Trap Remix 10 Hours, Inc.'
-        )
+        assert response_extra_details['organization'] == 'Trap Remix 10 Hours, Inc.'
         # …and what we didn't touch should still be there as well
         assert response_extra_details['name'] == 'SpongeBob'
 
@@ -62,16 +61,11 @@ class CurrentUserAPITestCase(APITestCase):
         assert response_extra_details['name'] == 'SpongeBob'
 
         # Make sure the validator accepts reasonable values
-        patch_data = {
-            'extra_details': {'organization': 'Trap Remix 10 Hours, Inc.'}
-        }
+        patch_data = {'extra_details': {'organization': 'Trap Remix 10 Hours, Inc.'}}
         response = self.client.patch(self.url, data=patch_data, format='json')
         assert response.status_code == status.HTTP_200_OK
         response_extra_details = response.json()['extra_details']
-        assert (
-            response_extra_details['organization']
-            == 'Trap Remix 10 Hours, Inc.'
-        )
+        assert response_extra_details['organization'] == 'Trap Remix 10 Hours, Inc.'
 
         # Make sure the validator, you know, validates and rejects empty
         # strings for required fields
@@ -128,9 +122,7 @@ class CurrentUserAPITestCase(APITestCase):
         # Ensure accepted_tos is initially False
         response = self.client.get(self.url)
         assert response.data['accepted_tos'] is False
-        assert (
-            'last_tos_accept_time' not in self.user.extra_details.private_data
-        )
+        assert 'last_tos_accept_time' not in self.user.extra_details.private_data
 
         def now_without_microseconds():
             return timezone.now().replace(microsecond=0)
@@ -140,9 +132,7 @@ class CurrentUserAPITestCase(APITestCase):
         response = self.client.post(reverse('tos'))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         self.user.refresh_from_db()
-        accept_time_str = (
-            self.user.extra_details.private_data['last_tos_accept_time']
-        )
+        accept_time_str = self.user.extra_details.private_data['last_tos_accept_time']
         accept_time = dateutil.parser.isoparse(accept_time_str)
         assert time_before_signup <= accept_time <= now_without_microseconds()
 
@@ -224,3 +214,44 @@ class CurrentUserAPITestCase(APITestCase):
         response_extra_details = response.json()['extra_details']
         assert response_extra_details['organization'] == 'sample'
         assert response_extra_details['organization_website'] == 'sample.org'
+
+    def test_sso_account_fields(self):
+        app = baker.make('socialaccount.SocialApp')
+        baker.make('socialaccount.SocialAccount', user=self.user, provider=app.provider)
+        custom_data = SocialAppCustomData.objects.create(social_app=app, managed=True)
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='example.com'
+        )
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        social_accounts = response.data['social_accounts']
+        social_account = social_accounts[0]
+        assert social_account['managed'] is True
+        assert social_account['managed_domains'] == ['example.com']
+
+    def test_sso_accounts_missing_social_app(self):
+        baker.make('socialaccount.SocialAccount', user=self.user)
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        social_accounts = response.data['social_accounts']
+        social_account = social_accounts[0]
+        assert social_account['managed'] is False
+        assert social_account['managed_domains'] == []
+
+    @patch('kpi.utils.log.logging.warning')
+    def test_sso_accounts_multiple_social_apps(self, mock_logging):
+        # extremely unlikely that we have 2 sso apps with the same provider
+        # so there's no real defined expeected behavior, just make sure the request
+        # doesn't fail
+        app = baker.make('socialaccount.SocialApp', provider='provider')
+        app2 = baker.make('socialaccount.SocialApp', provider='provider')
+        baker.make('socialaccount.SocialApp', provider='provider')
+        SocialAppCustomData.objects.create(social_app=app)
+        SocialAppCustomData.objects.create(social_app=app2)
+        baker.make('socialaccount.SocialAccount', user=self.user, provider='provider')
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        mock_logging.assert_called_once_with(
+            'Multiple social apps returned for provider provider,'
+            ' returning first visible candidate'
+        )

@@ -17,4 +17,6 @@ export type UserReportsListResponseSocialAccountsItem = {
   date_joined?: string
   email?: string
   username?: string
+  managed?: boolean
+  managed_domains?: string[]
 }

@@ -127,6 +127,8 @@ class SocialAccountFieldExtension(OpenApiSerializerFieldExtension):
                     'date_joined': build_basic_type(OpenApiTypes.DATETIME),
                     'email': build_basic_type(OpenApiTypes.EMAIL),
                     'username': GENERIC_STRING_SCHEMA,
+                    'managed': build_basic_type(OpenApiTypes.BOOL),
+                    'managed_domains': build_array_type(schema=GENERIC_STRING_SCHEMA),
                 }
             )
         )

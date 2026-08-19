@@ -22,4 +22,6 @@ export interface SocialAccount {
   readonly date_joined: string
   readonly email: string
   readonly username: string
+  readonly managed: boolean
+  readonly managed_domains: readonly string[]
 }

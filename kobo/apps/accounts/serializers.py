@@ -1,9 +1,16 @@
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.adapter import get_adapter
 from allauth.socialaccount.models import SocialAccount
 from django.utils.translation import gettext as t
+from django_request_cache import cache_for_request
+from drf_spectacular.plumbing import build_array_type, build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
+from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
+from kpi.utils.log import logging
 
 
 class EmailAddressSerializer(serializers.ModelSerializer):
@@ -56,6 +63,8 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
     email = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()
+    managed = serializers.SerializerMethodField()
+    managed_domains = serializers.SerializerMethodField()
 
     class Meta:
         model = SocialAccount
@@ -66,6 +75,8 @@ class SocialAccountSerializer(serializers.ModelSerializer):
             'date_joined',
             'email',
             'username',
+            'managed',
+            'managed_domains',
         )
 
     @extend_schema_field(OpenApiTypes.EMAIL)
@@ -79,3 +90,46 @@ class SocialAccountSerializer(serializers.ModelSerializer):
     def get_username(self, obj):
         if obj.extra_data:
             return obj.extra_data.get('username')
+
+    @cache_for_request
+    def get_social_app_custom_data(self, obj):
+        provider = obj.provider
+        candidate_apps = get_adapter().list_apps(
+            self.context.get('request'), provider=provider
+        )
+        if len(candidate_apps) > 1:
+            # mirror logic in allauth get_app(), but warn instead of raising an error
+            visible_apps = [
+                app for app in candidate_apps if not app.settings.get('hidden')
+            ]
+            if len(visible_apps) > 1:
+                logging.warn(
+                    f'Multiple social apps returned for provider {provider},'
+                    f' returning first visible candidate'
+                )
+                app = visible_apps[0]
+        elif len(candidate_apps) == 0:
+            logging.warn(f'No social app found for provider {provider}')
+            return None
+        else:
+            app = candidate_apps[0]
+        try:
+            return SocialAppCustomData.objects.get(social_app=app)
+        except SocialAppCustomData.DoesNotExist:
+            return None
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_managed(self, obj):
+        social_app_custom_data = self.get_social_app_custom_data(obj)
+        return bool(social_app_custom_data) and social_app_custom_data.managed
+
+    @extend_schema_field(build_array_type(schema=GENERIC_STRING_SCHEMA))
+    def get_managed_domains(self, obj):
+        social_app_custom_data = self.get_social_app_custom_data(obj)
+        if not social_app_custom_data:
+            return []
+        return list(
+            SocialAppManagedDomain.objects.filter(
+                social_app=social_app_custom_data
+            ).values_list('domain', flat=True)
+        )
