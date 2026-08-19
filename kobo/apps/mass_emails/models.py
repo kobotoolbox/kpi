@@ -27,12 +27,15 @@ from kobo.apps.mass_emails.user_queries import (
     is_user_a_test_user,
     is_user_active,
     is_user_inactive,
+    is_user_over_80_percent_of_auto_qa_limits,
     is_user_over_80_percent_of_nlp_limits,
     is_user_over_80_percent_of_storage_limit,
     is_user_over_80_percent_of_submission_limit,
+    is_user_over_90_percent_of_auto_qa_limits,
     is_user_over_90_percent_of_nlp_limits,
     is_user_over_90_percent_of_storage_limit,
     is_user_over_90_percent_of_submission_limit,
+    is_user_over_100_percent_of_auto_qa_limits,
     is_user_over_100_percent_of_nlp_limits,
     is_user_over_100_percent_of_storage_limit,
     is_user_over_100_percent_of_submission_limit,
@@ -73,6 +76,9 @@ USER_ELIGIBILITY_CHECKS: dict[str, Callable] = {
     'users_above_80_percent_nlp_usage': is_user_over_80_percent_of_nlp_limits,
     'users_above_90_percent_nlp_usage': is_user_over_90_percent_of_nlp_limits,
     'users_above_100_percent_nlp_usage': is_user_over_100_percent_of_nlp_limits,
+    'users_above_80_percent_autoqa_usage': is_user_over_80_percent_of_auto_qa_limits,
+    'users_above_90_percent_autoqa_usage': is_user_over_90_percent_of_auto_qa_limits,
+    'users_above_100_percent_autoqa_usage': is_user_over_100_percent_of_auto_qa_limits,  # noqa
     'test_users': is_user_a_test_user,
 }
 EmailType = Enum('EmailType', ['RECURRING', 'ONE_TIME'])
