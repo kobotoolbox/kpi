@@ -102,12 +102,19 @@ class SocialAccountSerializer(serializers.ModelSerializer):
             visible_apps = [
                 app for app in candidate_apps if not app.settings.get('hidden')
             ]
-            if len(visible_apps) > 1:
+            if len(visible_apps) == 0:
                 logging.warn(
                     f'Multiple social apps returned for provider {provider},'
-                    f' returning first visible candidate'
+                    f' returning first candidate'
                 )
-            app = visible_apps[0]
+                app = candidate_apps[0]
+            else:
+                if len(visible_apps) > 1:
+                    logging.warn(
+                        f'Multiple social apps returned for provider {provider},'
+                        f' returning first visible candidate'
+                    )
+                app = visible_apps[0]
         elif len(candidate_apps) == 0:
             logging.warn(f'No social app found for provider {provider}')
             return None
