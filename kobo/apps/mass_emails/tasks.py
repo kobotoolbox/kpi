@@ -122,6 +122,16 @@ class MassEmailSender:
         cache_date = self.get_cache_key_date(send_date=now)
         self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
 
+        # Users deactivated, deleted or trashed after enqueue must not be
+        # emailed. Mark their records stale up front so counts stay accurate
+        # and one-time configs can still finish and be turned off.
+        MassEmailRecord.objects.filter(
+            Q(user__isnull=True)
+            | Q(user__is_active=False)
+            | Q(user__trash__isnull=False),
+            status=EmailStatus.ENQUEUED,
+        ).update(status=EmailStatus.STALE)
+
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
         ).count()
@@ -309,16 +319,20 @@ class MassEmailSender:
             for record in records.iterator():
                 if budget_used >= limit:
                     break
-                # Skip a stale record that no longer matches its config's criteria
-                if (
-                    record.date_created < stale_threshold
-                    and not email_config.is_user_still_eligible(record.user)
+                # A user deactivated, deleted or trashed after enqueue must
+                # never be emailed, no matter how fresh the record is;
+                # `record.user` is loaded here, so this reads their current
+                # state. A record older than the stale threshold is also
+                # re-checked against its config's criteria.
+                if not email_config.is_user_still_eligible(
+                    record.user,
+                    reevaluate_query=record.date_created < stale_threshold,
                 ):
                     record.status = EmailStatus.STALE
                     record.save(update_fields=['status', 'date_modified'])
                     logging.info(
                         f'Skipping stale MassEmailRecord({record}): recipient '
-                        f'no longer matches {email_config.query}'
+                        f'is no longer eligible for {email_config.query}'
                     )
                     continue
                 if spent_in_window >= budget_per_second:
