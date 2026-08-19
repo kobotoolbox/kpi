@@ -17,7 +17,7 @@ import {
   isNewLibraryItemRoute,
   isPublicCollectionsRoute,
 } from '#/router/routerUtils'
-import { notify, recordKeys } from '#/utils'
+import { recordKeys } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES } from './constants'
 
@@ -62,7 +62,6 @@ interface DmixContext {
 // Note: This mixin assumes it will be mixed into a React.Component,
 // so props/state/setState will be available at runtime
 interface DmixMixin extends Mixin<DmixProps, DmixState> {
-  afterCopy: (this: DmixMixin & DmixContext) => void
   saveCloneAs: (this: DmixMixin & DmixContext, versionId?: string) => void
   toggleDeploymentHistory: (this: DmixMixin & DmixContext) => void
   summaryDetails: (this: DmixMixin & DmixContext) => JSX.Element
@@ -101,10 +100,6 @@ interface MixinsObject {
 const mixins: MixinsObject = {
   dmix: {
     // props, state, and setState are added by react-mixin when mixed into a component
-    afterCopy(this: DmixMixin & DmixContext) {
-      notify(t('copied to clipboard'))
-    },
-
     saveCloneAs(this: DmixMixin & DmixContext, versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`
 
