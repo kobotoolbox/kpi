@@ -25,6 +25,7 @@ def get_active_users(days: int = 365) -> QuerySet:
     Retrieve users who have been active within specified number of days.
 
     A user is considered active if:
+    - They are not deactivated (``is_active=True``) and not in the trash
     - They have logged in within the given period, or were recently created and never
       logged in
     - They have modified or created an asset within the given period
@@ -47,7 +48,7 @@ def get_active_users(days: int = 365) -> QuerySet:
         extra_details__last_project_activity__gt=inactivity_threshold
     )
     return User.objects.filter(recent_login_filter | recently_active).exclude(
-        pk=settings.ANONYMOUS_USER_ID
+        Q(pk=settings.ANONYMOUS_USER_ID) | Q(is_active=False) | Q(trash__isnull=False)
     )
 
 
@@ -349,7 +350,7 @@ def is_user_within_usage_range(
     isn't worth the extra cost.
     """
 
-    if not settings.STRIPE_ENABLED or not is_user_active_and_not_trashed(user):
+    if not settings.STRIPE_ENABLED:
         return False
 
     minimum = minimum or 0
@@ -367,7 +368,15 @@ def is_user_within_usage_range(
     return False
 
 
-def is_user_active_and_not_trashed(user: User) -> bool:
-    if not user.is_active:
+def _is_user_active_and_not_trashed(user: User | None) -> bool:
+    # `None` means the user was deleted before the main query ran (records
+    # keep a nullable FK). A user deleted *after* the query ran raises
+    # DoesNotExist when the deferred `is_active` is re-fetched.
+    if user is None:
+        return False
+    try:
+        if not user.is_active:
+            return False
+    except User.DoesNotExist:
         return False
     return not hasattr(user, 'trash')
