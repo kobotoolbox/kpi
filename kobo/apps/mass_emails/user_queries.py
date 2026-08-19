@@ -275,6 +275,24 @@ def is_user_inactive(user: User, days: int = 365) -> bool:
     return get_inactive_users(days=days).filter(pk=user.pk).exists()
 
 
+def is_user_over_80_percent_of_auto_qa_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.LLM_REQUESTS], minimum=0.8, maximum=0.9
+    )
+
+
+def is_user_over_90_percent_of_auto_qa_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.LLM_REQUESTS], minimum=0.9, maximum=1
+    )
+
+
+def is_user_over_100_percent_of_auto_qa_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.LLM_REQUESTS], minimum=1
+    )
+
+
 def is_user_over_80_percent_of_nlp_limits(user: User) -> bool:
     return is_user_within_usage_range(
         user,
