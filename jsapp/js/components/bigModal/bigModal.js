@@ -114,13 +114,6 @@ class BigModal extends React.Component {
         // title is set by formEditors
         break
 
-      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
-        // title is set by BulkEditSubmissionsForm
-        this.setState({
-          modalClass: 'modal--large modal--large-shorter',
-        })
-        break
-
       // TODO: Make a better generic modal component
       // See: https://github.com/kobotoolbox/kpi/issues/3643
       case MODAL_TYPES.MFA_MODALS:
@@ -247,14 +240,6 @@ class BigModal extends React.Component {
             <div>
               <LoadingSpinner message={false} />
             </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
-            <BulkEditSubmissionsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
-              asset={this.props.params.asset}
-              {...this.props.params}
-            />
           )}
           {this.props.params.type === MODAL_TYPES.MFA_MODALS && (
             <MFAModals onModalClose={this.onModalClose} {...this.props.params} />

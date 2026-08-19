@@ -32,7 +32,7 @@ const EXCLUDED_TYPES = [
 ]
 
 /**
- * The content of the BULK_EDIT_SUBMISSIONS modal
+ * The content of the bulk edit submissions modal
  *
  * @prop {object} asset
  * @prop {object[]} data - submissions data (all user responses)

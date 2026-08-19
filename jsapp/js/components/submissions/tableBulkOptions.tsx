@@ -170,13 +170,6 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   }
 
   onEdit() {
-    //pageState.showModal({
-    //  type: MODAL_TYPES.BULK_EDIT_SUBMISSIONS,
-    //  asset: this.props.asset,
-    //  data: this.props.data,
-    //  totalSubmissions: this.props.totalRowsCount,
-    //  selectedSubmissions: recordKeys(this.props.selectedRows),
-    //})
     openDataAttachmentColumnsModal({
       asset: this.props.asset,
       data: this.props.data,
