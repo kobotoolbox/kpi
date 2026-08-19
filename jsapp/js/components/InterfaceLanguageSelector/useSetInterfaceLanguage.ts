@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { ROOT_URL } from '#/constants'
+import { getCsrfToken } from '#/utils'
 
 /** Django's own `set_language` view, wired up by `django.conf.urls.i18n` (see `kpi/urls/__init__.py`). */
 const SET_LANGUAGE_URL = `${ROOT_URL}/i18n/setlang/`
@@ -8,9 +9,7 @@ async function setInterfaceLanguage(languageCode: string) {
   // `set_language` is a plain Django view, not one of our DRF endpoints, so it reads `request.POST`
   const body = new URLSearchParams({ language: languageCode })
 
-  // Same pattern as `#/api.ts` and `#/api/orval.mutator.ts`. Our Django writes a 32 character token;
-  // we allow 64 character too for older Django.
-  const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/)
+  const csrfToken = getCsrfToken()
 
   const response = await fetch(SET_LANGUAGE_URL, {
     method: 'POST',
@@ -19,7 +18,7 @@ async function setInterfaceLanguage(languageCode: string) {
       // page to be fetched for nothing. Now we will get `204 No Content` instead.
       Accept: 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
-      ...(csrfCookie ? { 'X-CSRFToken': csrfCookie[1] } : null),
+      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : null),
     },
     body,
   })
