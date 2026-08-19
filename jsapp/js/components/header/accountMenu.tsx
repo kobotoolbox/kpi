@@ -146,7 +146,7 @@ export default function AccountMenu() {
                     {langs.map((lang) => (
                       <ButtonNew
                         variant={lang.value === currentLanguage ? 'light' : 'transparent'}
-                        aria-disabled={lang.value === currentLanguage}
+                        disabled={lang.value === currentLanguage}
                         size='sm'
                         key={lang.value}
                         onClick={() => onLanguageChange(lang.value)}
