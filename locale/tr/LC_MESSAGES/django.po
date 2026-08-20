@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 14:15+0000\n"
+"POT-Creation-Date: 2026-08-20 13:14+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: zeeshan azmi <zishan.azmi@webaccessglobal.com>, 2017\n"
 "Language-Team: Turkish (http://app.transifex.com/kobotoolbox/kobotoolbox/language/tr/)\n"
@@ -40,23 +40,23 @@ msgstr "Kullanıcı oturumu açın"
 msgid "Please enter a valid URL"
 msgstr "Lütfen geçerli bir URL giriniz"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr "Kar amacı gütmeyen kuruluş"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr "Devlet kurumu"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr "Eğitim kuruluşu"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr "Ticari/kar amacı güden şirket"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr "Herhangi bir kuruluşla bağlantım yok"
 
@@ -636,7 +636,7 @@ msgstr ""
 msgid "Import"
 msgstr "İçe Aktar"
 
-#: kobo/apps/mass_emails/tasks.py:255
+#: kobo/apps/mass_emails/tasks.py:286
 msgid "Not available"
 msgstr ""
 
@@ -2031,15 +2031,15 @@ msgid ""
 "password at ##koboform_url##/accounts/password/reset/."
 msgstr "Erişiminiz kısıtlandı. ##koboform_url##/accounts/password/reset/ adresinden parolanızı değiştirerek yeniden erişim sağlayabilirsiniz."
 
-#: kobo/apps/organizations/models.py:377
+#: kobo/apps/organizations/models.py:404
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:377
+#: kobo/apps/organizations/models.py:404
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:418
+#: kobo/apps/organizations/models.py:445
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -2047,7 +2047,7 @@ msgstr ""
 msgid "Invalid role. Only 'admin' or 'member' are allowed"
 msgstr ""
 
-#: kobo/apps/organizations/tasks.py:84
+#: kobo/apps/organizations/tasks.py:86
 msgid "Organization invite has expired"
 msgstr ""
 
@@ -2199,15 +2199,15 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr ""
 
-#: kobo/apps/project_ownership/models/invite.py:98
+#: kobo/apps/project_ownership/models/invite.py:100
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "KoboToolbox proje sahipliğinin aktarımı kabul edildi"
 
-#: kobo/apps/project_ownership/models/invite.py:133
+#: kobo/apps/project_ownership/models/invite.py:140
 msgid "Action required: KoboToolbox project ownership transfer request"
 msgstr "Eylem gerekli: KoboToolbox proje sahipliği aktarım talebi"
 
-#: kobo/apps/project_ownership/models/invite.py:160
+#: kobo/apps/project_ownership/models/invite.py:172
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "KoboToolbox proje sahipliğinin aktarımı tamamlanmadı"
 
@@ -2249,7 +2249,7 @@ msgstr "Proje `##asset_uid##` aktarılamaz. Mevcut durum: ##status##"
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:186
+#: kobo/apps/project_ownership/tasks.py:188
 msgid "Invite has expired"
 msgstr "Davetin süresi doldu"
 
@@ -2766,23 +2766,23 @@ msgstr "Yayınlama işlemi beklenmedik bir KoboCAT XForm'a bağlanıyor"
 msgid "An error occurred trying to duplicate the submission"
 msgstr "Gönderimi çoğaltmaya çalışırken bir hata oluştu"
 
-#: kpi/exceptions.py:161
+#: kpi/exceptions.py:207
 msgid "The specified object has not been deployed"
 msgstr "Belirtilen nesne yayınlanmadı"
 
-#: kpi/exceptions.py:170
+#: kpi/exceptions.py:216
 msgid "Bad syntax"
 msgstr "Hatalı söz dizimi"
 
-#: kpi/exceptions.py:175
+#: kpi/exceptions.py:221
 msgid "Not supported field lookup"
 msgstr "Desteklenmeyen alan araması"
 
-#: kpi/exceptions.py:198
+#: kpi/exceptions.py:244
 msgid "Your query is too short"
 msgstr "Sorgunuz çok kısa"
 
-#: kpi/exceptions.py:212
+#: kpi/exceptions.py:258
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
@@ -2807,140 +2807,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Bu hesap için çok faktörlü kimlik doğrulama etkinleştirildi. "
 
-#: kpi/models/asset.py:307
+#: kpi/models/asset.py:308
 msgid "Can view asset"
 msgstr "Varlığı görüntüleyebilir"
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:309
 msgid "Can discover asset in public lists"
 msgstr "Herkese açık listelerdeki varlığı keşfedebilir"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:310
 msgid "Can manage all aspects of asset"
 msgstr "Varlığın tüm yönlerini yönetebilir"
 
-#: kpi/models/asset.py:311
+#: kpi/models/asset.py:312
 msgid "Can submit data to asset"
 msgstr "Varlığa veri gönderebilir"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:313
 msgid "Can view submitted data for asset"
 msgstr "Varlık için gönderilen verileri görüntüleyebilir"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:314
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Belirli kullanıcılar için varlığa gönderilen veriler üzerinde kısmi işlemler yapabilir"
 
-#: kpi/models/asset.py:316
+#: kpi/models/asset.py:317
 msgid "Can modify submitted data for asset"
 msgstr "Varlık için gönderilen verileri değiştirebilir"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:318
 msgid "Can delete submitted data for asset"
 msgstr "Varlık için gönderilen verileri silebilir"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:319
 msgid "Can validate submitted data asset"
 msgstr "Gönderilen veri varlığını doğrulayabilir"
 
-#: kpi/models/asset.py:337
+#: kpi/models/asset.py:338
 msgid "project"
 msgstr "proje"
 
-#: kpi/models/asset.py:337
+#: kpi/models/asset.py:338
 msgid "form"
 msgstr "form"
 
-#: kpi/models/asset.py:339
+#: kpi/models/asset.py:340
 msgid "template"
 msgstr "şablon"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:341
 msgid "block"
 msgstr "blok"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:342
 msgid "question"
 msgstr "soru"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:343
 msgid "text"
 msgstr "metin"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:344
 msgid "empty"
 msgstr "boş"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:345
 msgid "collection"
 msgstr "koleksiyon"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:352
 msgid "View ##asset_type_label##"
 msgstr "##asset_type_label## öğesini görüntüleyin"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:353
 msgid "Edit ##asset_type_label##"
 msgstr "##asset_type_label## öğesini düzenleyin"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:354
 msgid "Discover ##asset_type_label##"
 msgstr "##asset_type_label## öğesini keşfedin"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:355
 msgid "Manage ##asset_type_label##"
 msgstr "##asset_type_label## öğesini yönetin"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:356
 msgid "Add submissions"
 msgstr "Gönderim ekleyin"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:357
 msgid "View submissions"
 msgstr "Gönderimleri görüntüleyin"
 
-#: kpi/models/asset.py:359
+#: kpi/models/asset.py:360
 msgid "Act on submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimler üzerinde işlem yapın"
 
-#: kpi/models/asset.py:362
+#: kpi/models/asset.py:363
 msgid "View submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri görüntüleyin"
 
-#: kpi/models/asset.py:365
+#: kpi/models/asset.py:366
 msgid "Edit submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri düzenleyin"
 
-#: kpi/models/asset.py:368
+#: kpi/models/asset.py:369
 msgid "Delete submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri silin"
 
-#: kpi/models/asset.py:371
+#: kpi/models/asset.py:372
 msgid "Validate submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri doğrulayın"
 
-#: kpi/models/asset.py:374
+#: kpi/models/asset.py:375
 msgid "Edit submissions"
 msgstr "Gönderimleri düzenleyin"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:376
 msgid "Delete submissions"
 msgstr "Gönderimleri silin"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:377
 msgid "Validate submissions"
 msgstr "Gönderimleri doğrulayın"
 
-#: kpi/models/asset.py:690
+#: kpi/models/asset.py:691
 msgid "Only partial permissions for submissions are supported"
 msgstr "Gönderimler için yalnızca kısmi izinler desteklenmektedir"
 
-#: kpi/models/asset.py:1414
+#: kpi/models/asset.py:1415
 msgid "Can not assign '{}' permission to owner"
 msgstr "Bu kişiye '{}' izni atanamaz"
 
-#: kpi/models/asset.py:1418
+#: kpi/models/asset.py:1419
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Bu kişiye '{}' izni atanamaz. Kısmi izinler eksik."
 
@@ -2996,7 +2996,7 @@ msgstr ""
 msgid "Cannot access data"
 msgstr "Verilere erişilemiyor"
 
-#: kpi/models/import_export_task.py:830
+#: kpi/models/import_export_task.py:831
 msgid "This data does not exist or you do not have access to it"
 msgstr "Bu veriler mevcut değil veya bunlara erişiminiz yok"
 

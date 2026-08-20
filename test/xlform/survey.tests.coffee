@@ -385,6 +385,115 @@ do ->
       expect(choiceList.options.at(1).get('name')).toBe('cucumber')
       expect(choiceList.options.at(2).get('name')).toBe('corn')
 
+  describe 'survey.tests: unique row names for library items (DEV-2269)', () ->
+    # The names Formbuilder shows on the cards
+    rowNames = (survey) ->
+      names = []
+      survey.forEachRow ((row) -> names.push(row.getValue('name'))), includeGroups: true
+      return names
+
+    # The names that end up in the XLSForm. `toCsvJson()` finalizes the survey
+    # itself, so comparing the two catches the model drifting away from the export.
+    # Group-end rows are dropped - they close a group instead of being a column.
+    exportedNames = (survey) ->
+      rows = survey.toCsvJson().survey.rowObjects
+      return (row.name for row in rows when not /^end[ _]/.test(row.type))
+
+    beforeEach ->
+      window.xlfHideWarnings = true
+      # Factories, not shared instances: each drag from the Library fetches the
+      # asset again, so every insert gets its own freshly parsed Survey
+      @libraryQuestion = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one fruits', name: 'choose_a_fruit', label: 'Choose a fruit'}
+        ],
+        choices: [
+          {list_name: 'fruits', name: 'apple', label: 'Apple'},
+          {list_name: 'fruits', name: 'pear', label: 'Pear'}
+        ]
+      })
+      @libraryBlock = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'begin_group', name: 'fruit_block', label: 'Fruit block'},
+          {type: 'select_one fruits', name: 'choose_a_fruit', label: 'Choose a fruit'},
+          {type: 'text', name: 'fruit_notes', label: 'Notes'},
+          {type: 'end_group'}
+        ],
+        choices: [
+          {list_name: 'fruits', name: 'apple', label: 'Apple'},
+          {list_name: 'fruits', name: 'pear', label: 'Pear'}
+        ]
+      })
+      @targetSurvey = new $model.Survey()
+
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'gives each copy of a library question a unique name', () ->
+      @targetSurvey.insertSurvey(@libraryQuestion(), 0)
+      @targetSurvey.insertSurvey(@libraryQuestion(), 1)
+
+      expect(rowNames(@targetSurvey)).toEqual ['choose_a_fruit', 'choose_a_fruit_001']
+
+    it 'gives each copy of a library block a unique name, inside and out', () ->
+      @targetSurvey.insertSurvey(@libraryBlock(), 0)
+      @targetSurvey.insertSurvey(@libraryBlock(), 1)
+
+      expect(rowNames(@targetSurvey)).toEqual [
+        'fruit_block', 'choose_a_fruit', 'fruit_notes',
+        'fruit_block_001', 'choose_a_fruit_001', 'fruit_notes_001'
+      ]
+
+    it 'renames against questions already in the form, not just other library copies', () ->
+      survey = $model.Survey.loadDict({
+        survey: [
+          {type: 'text', name: 'choose_a_fruit', label: 'Typed by hand'}
+        ]
+      })
+      survey.insertSurvey(@libraryQuestion(), 1)
+
+      expect(rowNames(survey)).toEqual ['choose_a_fruit', 'choose_a_fruit_001']
+
+    it 'names library questions that only carry a label', () ->
+      # A library question saved without a name only has one in `$autoname`, which
+      # is not where the "Data column name" field reads from
+      unnamedQuestion = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'text', $autoname: 'choose_a_fruit', label: 'Choose a fruit'}
+        ]
+      })
+      @targetSurvey.insertSurvey(unnamedQuestion(), 0)
+      @targetSurvey.insertSurvey(unnamedQuestion(), 1)
+
+      expect(rowNames(@targetSurvey)).toEqual ['Choose_a_fruit', 'Choose_a_fruit_001']
+
+    it 'shows the same names Formbuilder will write to the XLSForm', () ->
+      @targetSurvey.insertSurvey(@libraryQuestion(), 0)
+      @targetSurvey.insertSurvey(@libraryQuestion(), 1)
+      @targetSurvey.insertSurvey(@libraryBlock(), 2)
+      @targetSurvey.insertSurvey(@libraryBlock(), 3)
+
+      # `start`/`end` are survey metadata rows that only the exporter adds
+      expect(exportedNames(@targetSurvey)).toEqual rowNames(@targetSurvey).concat(['start', 'end'])
+
+    it 'keeps names in sync through a save and reload', () ->
+      @targetSurvey.insertSurvey(@libraryQuestion(), 0)
+      @targetSurvey.insertSurvey(@libraryQuestion(), 1)
+
+      surveyJSON = @targetSurvey.toFlatJSON()
+      reloadedSurvey = $model.Survey.loadDict(JSON.parse(JSON.stringify(surveyJSON)))
+
+      expect(rowNames(reloadedSurvey)).toEqual ['choose_a_fruit', 'choose_a_fruit_001']
+
+    it 'leaves an already unique name untouched', () ->
+      # `deduplicate()` truncates at 30 characters, so names that don't clash must
+      # never go through it
+      longName = 'a_very_long_question_name_that_exceeds_thirty_characters'
+      @targetSurvey.insertSurvey($model.Survey.loadDict({
+        survey: [{type: 'text', name: longName, label: 'Long one'}]
+      }), 0)
+
+      expect(rowNames(@targetSurvey)).toEqual [longName]
+
   describe 'survey.tests: selects without a choice list', () ->
     beforeEach -> window.xlfHideWarnings = true
     afterEach -> window.xlfHideWarnings = false
