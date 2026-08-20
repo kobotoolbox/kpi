@@ -24,10 +24,11 @@ async function setInterfaceLanguage(languageCode: string) {
   })
 
   if (!response.ok) {
-    notify.error(
+    const errorMessage =
       t('Could not set language to ##language_code##').replace('##language_code##', languageCode) +
-        ` ${response.status} ${response.statusText}`,
-    )
+      ` ${response.status} ${response.statusText}`
+    notify.error(errorMessage)
+    throw new Error(errorMessage)
   }
 }
 
