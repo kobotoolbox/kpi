@@ -1,7 +1,7 @@
 from datetime import date, datetime, time, timedelta
 from enum import Enum
 from math import ceil
-from time import sleep
+from time import monotonic, sleep
 from typing import Optional
 
 from celery.exceptions import SoftTimeLimitExceeded
@@ -20,16 +20,15 @@ from kobo.apps.mass_emails.models import (
     MassEmailJob,
     MassEmailRecord,
 )
-from kobo.apps.organizations.models import OrganizationUser
+from kobo.apps.organizations.models import Organization
 from kobo.celery import celery_app
-from kpi.utils.log import logging
-from kpi.utils.mailer import (
-    EmailMessage,
-    Mailer,
-    is_connection_alive,
-    reset_connection,
-    with_smtp_connection,
+from kpi.exceptions import (
+    MailerError,
+    MailerProviderQuotaExhaustedError,
+    MailerProviderRateThrottledError,
 )
+from kpi.utils.log import logging
+from kpi.utils.mailer import EmailMessage, Mailer, with_smtp_connection
 
 if settings.STRIPE_ENABLED:
     from kobo.apps.stripe.utils.subscription_limits import get_plan_name
@@ -122,6 +121,16 @@ class MassEmailSender:
         self.today = now.date()
         cache_date = self.get_cache_key_date(send_date=now)
         self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
+
+        # Users deactivated, deleted or trashed after enqueue must not be
+        # emailed. Mark their records stale up front so counts stay accurate
+        # and one-time configs can still finish and be turned off.
+        MassEmailRecord.objects.filter(
+            Q(user__isnull=True)
+            | Q(user__is_active=False)
+            | Q(user__trash__isnull=False),
+            status=EmailStatus.ENQUEUED,
+        ).update(status=EmailStatus.STALE)
 
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
@@ -267,44 +276,94 @@ class MassEmailSender:
                         day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
-    def get_plan_name(self, org_user: OrganizationUser) -> str:
+    def get_plan_name(self, organization: Organization) -> str:
         plan_name = None
-        if settings.STRIPE_ENABLED:
-            plan_name = get_plan_name(org_user)
+        if settings.STRIPE_ENABLED and organization is not None:
+            plan_name = get_plan_name(organization)
+
         if plan_name is None:
             plan_name = gettext('Not available')
         return plan_name
 
     @with_smtp_connection
     def send_day_emails(self):
-        emails_sent = 0
-
-        batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
+        # Claim only a share of the provider's real per-second limit: it
+        # also carries transactional email, which draws on the same budget
+        # without going through this throttle.
+        budget_per_second = max(
+            1,
+            int(
+                settings.MASS_EMAIL_THROTTLE_PER_SECOND
+                * settings.MASS_EMAIL_SEND_RATE_RATIO
+            ),
+        )
+        window_start = monotonic()
+        spent_in_window = 0
+        stale_threshold = timezone.now() - timedelta(
+            hours=config.MASS_EMAIL_STALE_RECORD_RECHECK_HOURS
+        )
 
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
             if not limit:
                 continue
-            records = MassEmailRecord.objects.filter(
-                status=EmailStatus.ENQUEUED,
-                email_job__email_config=email_config,
-            )[:limit]
-            logging.info(
-                f'Processing {limit} records for MassEmailConfig({email_config})'
+            # `user__is_active` stays deferred so it's re-fetched fresh right
+            # when a record is processed, not batched with the rest of user
+            # at query time: a run can span close to an hour, long enough
+            # for a recipient to be deactivated in between.
+            records = (
+                MassEmailRecord.objects.filter(
+                    status=EmailStatus.ENQUEUED,
+                    email_job__email_config=email_config,
+                )
+                .select_related('user', 'user__extra_details')
+                .defer('user__is_active')
             )
-            for record in records:
-                if emails_sent > 0 and emails_sent % batch_size == 0:
-                    logging.info(f'sleeping for {settings.MASS_EMAIL_SLEEP_SECONDS}')
-                    sleep(settings.MASS_EMAIL_SLEEP_SECONDS)
+            logging.info(
+                f'Processing up to {limit} records for MassEmailConfig({email_config})'
+            )
+            # No `[:limit]` slice: a stale record must not burn a slot without
+            # spending budget, so keep pulling records until `limit` is spent.
+            budget_used = 0
+            for record in records.iterator():
+                if budget_used >= limit:
+                    break
+                # `is_active` stays deferred (see the queryset above), so
+                # it's still read fresh here even though the rest of
+                # `record.user` came from the join.
+                if not email_config.is_user_still_eligible(
+                    record.user,
+                    reevaluate_query=record.date_created < stale_threshold,
+                ):
+                    record.status = EmailStatus.STALE
+                    record.save(update_fields=['status', 'date_modified'])
+                    logging.info(
+                        f'Skipping stale MassEmailRecord({record}): recipient '
+                        f'is no longer eligible for {email_config.query}'
+                    )
+                    continue
+                if spent_in_window >= budget_per_second:
+                    # The provider counts in 1-second windows, so ours must
+                    # too: sleep only what's left of the current one rather
+                    # than a fixed amount.
+                    remaining = 1 - (monotonic() - window_start)
+                    if remaining > 0:
+                        logging.info(
+                            f'sleeping for {remaining:.3f}s to stay within '
+                            f'the per-second budget'
+                        )
+                        sleep(remaining)
+                    window_start = monotonic()
+                    spent_in_window = 0
+                self.send_email(email_config, record)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
-                self.send_email(email_config, record)
-                emails_sent += 1
+                spent_in_window += 1
+                budget_used += 1
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
-        org_user = record.user.organization.organization_users.get(user=record.user)
-        plan_name = self.get_plan_name(org_user)
+        plan_name = self.get_plan_name(record.user.organization)
         data = {
             'username': record.user.username,
             'full_name': record.user.extra_details.data.get('name', None),
@@ -319,38 +378,37 @@ class MassEmailSender:
             html_content_or_template=content,
         )
         try:
-            sent = Mailer.send(message, connection=self.connection)
-            if not sent and self.connection is not None:
-                # `Mailer.send()` reports any SMTP error as a plain `False`, so
-                # probe the socket to tell a dropped connection apart from a
-                # message the server simply refused. Only the former is worth
-                # reconnecting for, and it would otherwise fail every remaining
-                # record of the run.
-                #
-                # Don't resend this particular message on the fresh
-                # connection: a dropped connection can happen right after the
-                # server already accepted the message but before we read its
-                # acknowledgement, so we can't tell a lost send apart from a
-                # lost confirmation. Resending would risk a duplicate. Just
-                # reconnect for the records still to come and report this one
-                # failed, same as before the connection was reused across the
-                # whole run.
-                if not is_connection_alive(self.connection):
-                    logging.warning('SMTP connection lost, reconnecting')
-                    reset_connection(self.connection)
+            Mailer.send(
+                message,
+                connection=self.connection,
+                idle_timeout=settings.MAILER_CONNECTION_IDLE_TIMEOUT,
+            )
         except SoftTimeLimitExceeded:
             # Let this propagate: it must not be recorded as a failure. The
             # record stays `enqueued` and is picked up by the next run.
             raise
+        except MailerProviderQuotaExhaustedError as e:
+            logging.warning(f'Daily quota exhausted, stopping this run: {e}')
+            # Let this propagate, same as `SoftTimeLimitExceeded`: it must
+            # not be recorded as a failure, and `send_emails()` stops the
+            # run there. The record stays `enqueued` for the next run.
+            raise
+        except MailerProviderRateThrottledError as e:
+            logging.warning(f'Provider rate limit hit, stopping this run: {e}')
+            # TODO(DEV-2693): needs its own non-blocking cooldown instead of
+            # being treated exactly like a quota-exhausted stop.
+            raise
+        except MailerError as e:
+            logging.warning(f'Error sending record {record}: {e}')
+            record.status = EmailStatus.FAILED
+            record.save(update_fields=['status', 'date_modified'])
         except Exception as e:
             logging.exception(f'Error when attempting to send record {record}: {e}')
-            sent = False
-        if sent:
-            record.status = EmailStatus.SENT
-        else:
             record.status = EmailStatus.FAILED
-
-        record.save()
+            record.save(update_fields=['status', 'date_modified'])
+        else:
+            record.status = EmailStatus.SENT
+            record.save(update_fields=['status', 'date_modified'])
 
 
 @celery_app.task(
@@ -376,6 +434,10 @@ def send_emails():
     sender = MassEmailSender()
     try:
         sender.send_day_emails()
+    except (MailerProviderQuotaExhaustedError, MailerProviderRateThrottledError):
+        # Already logged in `send_email()`. Nothing left to do this run: the
+        # remaining `enqueued` records are picked up by the next hourly run.
+        pass
     except SoftTimeLimitExceeded:
         # Expected under load: the run is capped by design and the remaining
         # `enqueued` records are simply picked up by the next hourly run.

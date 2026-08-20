@@ -13,6 +13,7 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
 )
 from kpi.utils.usage_calculator import (
+    ServiceUsageCalculator,
     get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
     get_submissions_for_current_billing_period_by_user_id,
@@ -24,6 +25,7 @@ def get_active_users(days: int = 365) -> QuerySet:
     Retrieve users who have been active within specified number of days.
 
     A user is considered active if:
+    - They are not deactivated (``is_active=True``) and not in the trash
     - They have logged in within the given period, or were recently created and never
       logged in
     - They have modified or created an asset within the given period
@@ -46,7 +48,7 @@ def get_active_users(days: int = 365) -> QuerySet:
         extra_details__last_project_activity__gt=inactivity_threshold
     )
     return User.objects.filter(recent_login_filter | recently_active).exclude(
-        pk=settings.ANONYMOUS_USER_ID
+        Q(pk=settings.ANONYMOUS_USER_ID) | Q(is_active=False) | Q(trash__isnull=False)
     )
 
 
@@ -259,3 +261,140 @@ def get_all_test_users() -> QuerySet:
     # remove empty strings
     test_emails = [email for email in test_emails if len(email) > 0]
     return User.objects.filter(email__in=test_emails)
+
+
+def is_user_active(user: User, days: int = 365) -> bool:
+    return get_active_users(days=days).filter(pk=user.pk).exists()
+
+
+def is_user_a_test_user(user: User) -> bool:
+    return get_all_test_users().filter(pk=user.pk).exists()
+
+
+def is_user_inactive(user: User, days: int = 365) -> bool:
+    return get_inactive_users(days=days).filter(pk=user.pk).exists()
+
+
+def is_user_over_80_percent_of_auto_qa_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.LLM_REQUESTS], minimum=0.8, maximum=0.9
+    )
+
+
+def is_user_over_90_percent_of_auto_qa_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.LLM_REQUESTS], minimum=0.9, maximum=1
+    )
+
+
+def is_user_over_100_percent_of_auto_qa_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.LLM_REQUESTS], minimum=1
+    )
+
+
+def is_user_over_80_percent_of_nlp_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user,
+        usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS],
+        minimum=0.8,
+        maximum=0.9,
+    )
+
+
+def is_user_over_80_percent_of_storage_limit(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.STORAGE_BYTES], minimum=0.8, maximum=0.9
+    )
+
+
+def is_user_over_80_percent_of_submission_limit(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.SUBMISSION], minimum=0.8, maximum=0.9
+    )
+
+
+def is_user_over_90_percent_of_nlp_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user,
+        usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS],
+        minimum=0.9,
+        maximum=1,
+    )
+
+
+def is_user_over_90_percent_of_storage_limit(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.STORAGE_BYTES], minimum=0.9, maximum=1
+    )
+
+
+def is_user_over_90_percent_of_submission_limit(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.SUBMISSION], minimum=0.9, maximum=1
+    )
+
+
+def is_user_over_100_percent_of_nlp_limits(user: User) -> bool:
+    return is_user_within_usage_range(
+        user,
+        usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS],
+        minimum=1,
+    )
+
+
+def is_user_over_100_percent_of_storage_limit(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.STORAGE_BYTES], minimum=1
+    )
+
+
+def is_user_over_100_percent_of_submission_limit(user: User) -> bool:
+    return is_user_within_usage_range(
+        user, usage_types=[UsageType.SUBMISSION], minimum=1
+    )
+
+
+def is_user_within_usage_range(
+    user: User, usage_types: list[UsageType], minimum: float = 0, maximum: float = inf
+) -> bool:
+    """
+    Cheap single-user recheck of `get_users_within_range_of_usage_limit()`'s
+    criteria. Uses `ServiceUsageCalculator` (already built for the account
+    usage page) instead of the fleet-wide usage queries, so this stays a
+    single-org lookup regardless of how many users the config as a whole
+    targets. Its 15-minute cache is left enabled: it's well under the
+    staleness window this check runs against, so a fully fresh recompute
+    isn't worth the extra cost.
+    """
+
+    if not settings.STRIPE_ENABLED:
+        return False
+
+    minimum = minimum or 0
+    maximum = maximum or inf
+    balances = ServiceUsageCalculator(user).get_usage_balances()
+    for usage_type in usage_types:
+        balance = balances.get(usage_type)
+        # `None` means unlimited usage for that type, so it can never fall
+        # within a minimum/maximum range
+        if balance is None:
+            continue
+        percent = balance['balance_percent'] / 100
+        if minimum <= percent < maximum:
+            return True
+    return False
+
+
+def _is_user_active_and_not_trashed(user: User | None) -> bool:
+    # `None` means the user was deleted before the main query ran (records
+    # keep a nullable FK). A user deleted *after* the query ran raises
+    # DoesNotExist when the deferred `is_active` is re-fetched.
+    if user is None:
+        return False
+    try:
+        if not user.is_active:
+            return False
+    except User.DoesNotExist:
+        return False
+    return not hasattr(user, 'trash')
