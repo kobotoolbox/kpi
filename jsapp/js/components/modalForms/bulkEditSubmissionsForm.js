@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Text } from '@mantine/core'
+import { Group } from '@mantine/core'
 import Fuse from 'fuse.js'
 import clonedeep from 'lodash.clonedeep'
 import autoBind from 'react-autobind'
@@ -13,7 +14,6 @@ import TextBox from '#/components/common/textBox'
 import { FUSE_OPTIONS, QuestionTypeName } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
-import {Group} from '@mantine/core'
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d')

@@ -38,7 +38,7 @@ export default function openDataAttachmentColumnsModal(args: OpenBulkEditSubmiss
     }
     return (
       <ClampedTitle>
-        {t('Editing "##question##" for ##count## submissions')
+        {t('Editing "##question##" for ##count## submission(s)')
           .replace('##question##', questionLabel)
           .replace('##count##', count.toString())}
       </ClampedTitle>
