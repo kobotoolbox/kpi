@@ -75,6 +75,11 @@ jobs:
       - name: Build Production
         run: SKIP_TS_CHECK=true npm run build:app
 
+      # The error pages must render when the main app can't load, so their bundle
+      # must not end up sharing a chunk with it
+      - name: Check error pages bundle stays self-contained
+        run: npm run lint:error-bundle
+
       # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only
         run: npm run lint:eslint -- --quiet
