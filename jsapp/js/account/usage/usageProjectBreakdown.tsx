@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { Text } from '@mantine/core'
 import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
@@ -13,8 +14,6 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
-import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
@@ -24,9 +23,8 @@ import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
 const ProjectBreakdown = () => {
-  const [showIntervalBanner, setShowIntervalBanner] = useState(true)
   const [organization] = useOrganizationAssumed()
-  const { billingPeriod } = useBillingPeriod()
+  const { billingPeriod, hasActivePlan } = useBillingPeriod()
   const [order, setOrder] = useState<ProjectsTableOrder>({})
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
@@ -73,10 +71,6 @@ const ProjectBreakdown = () => {
 
   const updateOrder = (newOrder: ProjectsTableOrder) => {
     setOrder(newOrder)
-  }
-
-  function dismissIntervalBanner() {
-    setShowIntervalBanner(false)
   }
 
   const columns: Array<UniversalTableColumn<CustomAssetUsage>> = [
@@ -154,19 +148,13 @@ const ProjectBreakdown = () => {
 
   return (
     <div className={styles.root}>
-      {showIntervalBanner && (
-        <div className={styles.intervalBanner}>
-          <div className={styles.intervalBannerContent}>
-            <Icon name={'information'} size='m' color='blue' />
-            <div className={styles.intervalBannerText}>
-              {t(
-                'Track usage for the current ##INTERVAL## across your projects',
-              ).replace('##INTERVAL##', billingPeriod === 'year' ? t('year') : t('month'))}
-            </div>
-          </div>
-          <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
-        </div>
-      )}
+      {/* Margin bottom to match the padding top of parent */}
+      <Text mb={15}>
+        {t('Track usage for the current ##INTERVAL## across your projects').replace(
+          '##INTERVAL##',
+          billingPeriod === 'year' ? t('year') : hasActivePlan ? t('billing period') : t('month'),
+        )}
+      </Text>
       <UniversalTable<CustomAssetUsage, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}
