@@ -13,6 +13,7 @@ import TextBox from '#/components/common/textBox'
 import { FUSE_OPTIONS, QuestionTypeName } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
+import {Group} from '@mantine/core'
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d')
@@ -351,7 +352,7 @@ class BulkEditSubmissionsForm extends React.Component {
           minWidth={600}
         />
 
-        <bem.Modal__footer>
+        <Group mt='md' justify='flex-end'>
           <Button
             type='danger'
             size='l'
@@ -368,7 +369,7 @@ class BulkEditSubmissionsForm extends React.Component {
             isDisabled={this.state.isPending || recordKeys(this.state.overrides).length === 0}
             label={t('Confirm & close')}
           />
-        </bem.Modal__footer>
+        </Group>
       </React.Fragment>
     )
   }
