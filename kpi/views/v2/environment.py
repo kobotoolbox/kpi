@@ -1,8 +1,9 @@
 import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import MultipleObjectsReturned
-from django.db.models import Q
+from django.db.models import Case, F, Q, Value, When
 from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import extend_schema
 from markdown import markdown
@@ -167,15 +168,34 @@ class EnvironmentView(APIView):
     @staticmethod
     def process_other_configs(request):
         data = {}
-
-        data['social_apps'] = list(
-            (
-                SocialApp.objects.filter(
-                    Q(custom_data__is_public=True) | Q(custom_data__isnull=True)
+        social_apps = (
+            SocialApp.objects.select_related('custom_data')
+            .prefetch_related('custom_data__domains')
+            .filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))
+            # managed iff there exists a related SocialAppCustomData object with
+            # managed=True
+            .annotate(
+                managed=Case(
+                    When(
+                        custom_data__managed__isnull=False,
+                        then=F('custom_data__managed'),
+                    ),
+                    default=Value(False),
                 )
-            ).values('provider', 'name', 'client_id', 'provider_id')
+            )
+            .values('provider', 'name', 'client_id', 'provider_id', 'managed')
+            # list all managed domains associated with the SocialAppCustomData object.
+            # filter + default so we get an empty array if there are none rather than
+            # [None]
+            .annotate(
+                domains=ArrayAgg(
+                    'custom_data__domains__domain',
+                    filter=Q(custom_data__domains__domain__isnull=False),
+                    default=Value([]),
+                )
+            )
         )
-
+        data['social_apps'] = list(social_apps)
         data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
 

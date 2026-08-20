@@ -13,7 +13,7 @@ from rest_framework import status
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.accounts.models import SocialAppCustomData
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
@@ -167,13 +167,28 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        app = baker.make('socialaccount.SocialApp')
-        custom_data = SocialAppCustomData.objects.create(social_app=app, is_public=True)
+        managed_app = baker.make('socialaccount.SocialApp')
+        unmanaged_app = baker.make('socialaccount.SocialApp')
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=managed_app, is_public=True, managed=True
+        )
         custom_data.save()
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='example.com'
+        )
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
-        self.assertContains(response, app.name)
+        assert len(response.data['social_apps']) == 2
+        socialapps_response = sorted(
+            response.data['social_apps'], key=lambda k: k['managed']
+        )
+        assert socialapps_response[0]['managed'] == False
+        assert socialapps_response[0]['domains'] == []
+        assert socialapps_response[0]['name'] == unmanaged_app.name
+        assert socialapps_response[1]['managed'] == True
+        assert socialapps_response[1]['domains'] == ['example.com']
+        assert socialapps_response[1]['name'] == managed_app.name
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps_no_custom_data(self):
