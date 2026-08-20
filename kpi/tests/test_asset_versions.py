@@ -5,8 +5,8 @@ from zoneinfo import ZoneInfo
 
 from django.test import TestCase
 from django.utils import timezone
-
 from formpack.utils.expand_content import SCHEMA_VERSION
+
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.hash import calculate_hash
