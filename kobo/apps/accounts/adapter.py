@@ -1,7 +1,6 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.socialaccount.models import SocialApp
 from constance import config
 from django.conf import settings
 from django.db import transaction
