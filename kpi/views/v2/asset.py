@@ -1068,9 +1068,7 @@ class AssetViewSet(
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(
-            sa.ordered_xlsform_content(
-                handle_duplicates=HandleDuplicatesOptions.IGNORE
-            )
+            sa.ordered_xlsform_content(handle_duplicates=HandleDuplicatesOptions.IGNORE)
         )
         return Response('<!doctype html>\n<html><body><code><pre>' + md_table.strip())
 

@@ -311,10 +311,14 @@ class MassEmailSender:
             # when a record is processed, not batched with the rest of user
             # at query time: a run can span close to an hour, long enough
             # for a recipient to be deactivated in between.
-            records = MassEmailRecord.objects.filter(
-                status=EmailStatus.ENQUEUED,
-                email_job__email_config=email_config,
-            ).select_related('user', 'user__extra_details').defer('user__is_active')
+            records = (
+                MassEmailRecord.objects.filter(
+                    status=EmailStatus.ENQUEUED,
+                    email_job__email_config=email_config,
+                )
+                .select_related('user', 'user__extra_details')
+                .defer('user__is_active')
+            )
             logging.info(
                 f'Processing up to {limit} records for MassEmailConfig({email_config})'
             )

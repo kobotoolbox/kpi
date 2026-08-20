@@ -24,7 +24,6 @@ from kpi.exceptions import (
     MailerProviderRateThrottledError,
 )
 from kpi.tests.base_test_case import BaseTestCase
-
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     PROCESSED_EMAILS_CACHE_KEY,
@@ -636,9 +635,7 @@ class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
         )
         assert statuses.count(EmailStatus.STALE) == 2
         assert statuses.count(EmailStatus.SENT) == 2
-        assert not MassEmailRecord.objects.filter(
-            status=EmailStatus.ENQUEUED
-        ).exists()
+        assert not MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
 
     def test_mark_old_enqueued_record_as_failed_ignores_stale_records(self):
         self._create_email_record(
