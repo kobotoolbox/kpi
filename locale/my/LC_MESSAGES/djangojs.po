@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 14:15+0000\n"
+"POT-Creation-Date: 2026-08-13 13:05+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Sk.Humaun Kabir, 2021\n"
 "Language-Team: Burmese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/my/)\n"
@@ -2929,7 +2929,7 @@ msgstr "XLS တင်ပို့မှု ပြီးစီးပါပြီ"
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:176
 #: jsapp/js/dropzone.utils.tsx:240
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:594
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:609
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:611
 msgid "Import Failed!"
 msgstr "တင်ပို့မှု မအောင်မြင်ပါ။"
 
@@ -6277,19 +6277,19 @@ msgstr "တင်ပို့ပြီးနောက် ပရောဂျက�
 msgid "Could not initialize XLSForm import!"
 msgstr "XLSForm တင်ပို့မှုအား စတင်၍ မရပါ။"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:640
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:642
 msgid "Failed to reload project after upload!"
 msgstr "တင်ပြီးနောက် ပရောဂျက်အား ပြန်တင်ရန် ကျရှံးပါသည်"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:651
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:653
 msgid "Could not import XLSForm!"
 msgstr "XLSForm ကို တင်ပို့၍ မရပါ။"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:669
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:671
 msgid "Some fields contain errors!"
 msgstr "နေရာအချို့တွင် အမှားများ ပါဝင်နေပါသည်။"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:696
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:698
 msgid ""
 "Form replacing is not available due to form's Locking Profile restrictions."
 msgstr "ဖောင်၏ ပိတ်ထားသောပရိုဖိုင် ကန့်သတ်ချက်များကြောင့် ဖောင်လဲလှယ်၍ မရနိုင်ပါ။"
