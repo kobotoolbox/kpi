@@ -42,7 +42,7 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { goToSubmission } from '#/components/submissions/single/submissionRouting'
+import { getBackToCurrentScreen, goToSubmission } from '#/components/submissions/single/submissionRouting'
 
 const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
@@ -966,7 +966,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     // Markers only carry an `_id`, so we will try to get rootUuid and fall back to `_id` in edge cases
     const submissionId: number = evt.layer.options.sId
     const submission = this.props.allData.find((item) => item._id === submissionId)
-    goToSubmission(this.props.asset.uid, submission ? getSubmissionRootUuid(submission) : submissionId)
+    goToSubmission(this.props.asset.uid, submission ? getSubmissionRootUuid(submission) : submissionId, {
+      state: { backTo: getBackToCurrentScreen(t('Back to Map')) },
+    })
   }
 
   toggleMapSettings() {

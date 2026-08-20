@@ -7,7 +7,7 @@ import { actions } from '#/actions'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { getSubmissionPath } from '#/components/submissions/single/submissionRouting'
+import { getBackToCurrentScreen, getSubmissionPath } from '#/components/submissions/single/submissionRouting'
 import { HOOK_LOG_STATUSES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
@@ -166,7 +166,12 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
       cellFormatter: (log) =>
         log.status === HOOK_LOG_STATUSES.SUCCESS ? (
           // Logs only record `_id`, the submission route swaps it for the root UUID once it has resolved the record.
-          <ButtonNew variant='transparent' component={Link} to={getSubmissionPath(assetUid, log.submission_id)}>
+          <ButtonNew
+            variant='transparent'
+            component={Link}
+            to={getSubmissionPath(assetUid, log.submission_id)}
+            state={{ backTo: getBackToCurrentScreen(t('Back to REST Service Logs')) }}
+          >
             {log.submission_id}
           </ButtonNew>
         ) : (

@@ -4,13 +4,41 @@ import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { addDefaultUuidPrefix } from '#/utils'
 
+/** The screen a record was opened from, and what to call it. */
+export interface SubmissionBackTo {
+  path: string
+  /** Already translated - only the screen being left knows what it is called. */
+  label: string
+}
+
 /**
- * Extra state we hand to the submission route when we open it ourselves. It is
- * lost on reload, which is fine - it only drives a transient banner.
+ * Extra state we hand to the submission route when we open it ourselves. None of
+ * it is part of the address, so a shared or bookmarked link arrives without any
+ * of it - the route has to cope with each of these being missing.
  */
 export interface SubmissionRouteState {
   /** Set right after a duplicate was created, to explain what just happened. */
   duplicatedFromUuid?: string
+  /** Where "Back" should lead. Absent means the data table, see the route. */
+  backTo?: SubmissionBackTo
+}
+
+/**
+ * Describes the screen the user is on right now, to be passed as route state when
+ * opening a record from it. Captures the address as it stands, so returning also
+ * restores whatever it holds - the map's "view by" question, for one.
+ *
+ * Returns nothing before the app has rendered, in which case the record falls
+ * back to offering the data table.
+ */
+export function getBackToCurrentScreen(label: string): SubmissionBackTo | undefined {
+  const location = router?.state.location
+
+  if (!location) {
+    return undefined
+  }
+
+  return { path: location.pathname + location.search, label }
 }
 
 /**

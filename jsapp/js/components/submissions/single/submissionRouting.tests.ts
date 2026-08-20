@@ -1,5 +1,6 @@
 import { injectRouter } from '#/router/legacy'
 import {
+  getBackToCurrentScreen,
   getDataTablePath,
   getSubmissionLookupParams,
   getSubmissionNeighborParams,
@@ -49,6 +50,32 @@ describe('submissionRouting', () => {
         replace: true,
         state: { duplicatedFromUuid: 'abc' },
       })
+    })
+  })
+
+  describe('getBackToCurrentScreen', () => {
+    /** Stands in for the app's router sitting on the given address. */
+    const injectRouterAt = (pathname: string, search = '') => {
+      injectRouter({ navigate, state: { location: { pathname, search } } } as unknown as Parameters<
+        typeof injectRouter
+      >[0])
+    }
+
+    it('captures the address as it stands, so returning restores the screen', () => {
+      injectRouterAt('/forms/aBcDeF/data/map/Your_place')
+
+      chai.expect(getBackToCurrentScreen('Back to Map')).to.deep.equal({
+        path: '/forms/aBcDeF/data/map/Your_place',
+        label: 'Back to Map',
+      })
+    })
+
+    it('keeps the query string, for screens that store their state there', () => {
+      injectRouterAt('/forms/aBcDeF/settings/rest/hAbCdE', '?page=2')
+
+      chai
+        .expect(getBackToCurrentScreen('Back to REST Service Logs')?.path)
+        .to.equal('/forms/aBcDeF/settings/rest/hAbCdE?page=2')
     })
   })
 

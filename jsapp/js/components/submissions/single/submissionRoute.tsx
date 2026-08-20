@@ -61,8 +61,15 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
     }
   }, [assetUid, rootUuid, submissionId, navigate, location.state])
 
-  const goToDataTable = () => {
-    navigate(getDataTablePath(assetUid))
+  const routeState = location.state as SubmissionRouteState | null
+
+  // A record opened by its address has no screen to return to, so we offer the
+  // data table: it is the list this record belongs to, and the one place that can
+  // always show it.
+  const backTo = routeState?.backTo ?? { path: getDataTablePath(assetUid), label: t('Back to Data Table') }
+
+  const goBack = () => {
+    navigate(backTo.path)
   }
 
   const pageTitle = `${t('Submission Record')} | KoboToolbox`
@@ -76,12 +83,7 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
         <div className='submission-route'>
           <header className='submission-route__header'>
             <div className='submission-route__header-side'>
-              <Button
-                variant='transparent'
-                leftIcon='angle-left'
-                tooltip={t('Back to data table')}
-                onClick={goToDataTable}
-              >
+              <Button variant='transparent' leftIcon='angle-left' tooltip={backTo.label} onClick={goBack}>
                 {t('Back')}
               </Button>
             </div>
@@ -116,8 +118,6 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
     )
   }
 
-  const routeState = location.state as SubmissionRouteState | null
-
   return renderInLayout(
     <SubmissionDetails
       // Remounting on a different record keeps per-record UI state (such as
@@ -132,15 +132,19 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       onRefreshRequested={() => {
         queryClient.invalidateQueries({ queryKey: lookupQueryKey })
       }}
-      onDeleted={goToDataTable}
+      onDeleted={goBack}
       onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
-        navigate(getSubmissionPath(assetUid, newSubmissionDbId), { state: { duplicatedFromUuid } })
+        navigate(getSubmissionPath(assetUid, newSubmissionDbId), {
+          state: { duplicatedFromUuid, backTo: routeState?.backTo },
+        })
       }}
     />,
     <SubmissionNeighborNav
       neighbors={neighbors}
       onGoToSubmission={(neighborRootUuid) => {
-        navigate(getSubmissionPath(assetUid, neighborRootUuid))
+        // Stepping to another record keeps the way back, but not the duplicate
+        // banner - that only belongs to the record it was raised for.
+        navigate(getSubmissionPath(assetUid, neighborRootUuid), { state: { backTo: routeState?.backTo } })
       }}
     />,
   )
