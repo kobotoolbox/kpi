@@ -50,9 +50,7 @@ class RegistrationTestCase(TestCase):
         REGISTRATION_ALLOWED_EMAIL_DOMAINS='foo.bar\nexample.com'
     )
     def test_allowed_domain_can_register(self):
-        response = self.client.post(
-            reverse('account_signup'), data=self.valid_data
-        )
+        response = self.client.post(reverse('account_signup'), data=self.valid_data)
         self.assertRedirects(response, '/accounts/confirm-email/')
 
     # use `override_config` decorator to deactivate all password validators
