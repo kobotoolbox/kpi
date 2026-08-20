@@ -33,6 +33,8 @@ const ProjectBreakdown = () => {
     start: 0,
   })
 
+  console.log('testing billing period: ', billingPeriod)
+
   function getQueryParams() {
     // TODO: align props with backend pagination params to simplify away this helper
     const queryParams: OrganizationsAssetUsageListParams = { ...pagination }
@@ -158,7 +160,7 @@ const ProjectBreakdown = () => {
             <Icon name={'information'} size='m' color='blue' />
             <div className={styles.intervalBannerText}>
               {t(
-                'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.',
+                'Track usage for the current ##INTERVAL## across your projects',
               ).replace('##INTERVAL##', billingPeriod === 'year' ? t('year') : t('month'))}
             </div>
           </div>
