@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import migrations
+from django.db import connections, migrations
 
 GUARDIAN_TABLES = [
     'guardian_userobjectpermission',
@@ -7,15 +7,14 @@ GUARDIAN_TABLES = [
 ]
 
 
-def drop_guardian_tables_and_constraints(apps, schema_editor):
+def get_operations():
     if settings.TESTING:
-        return
+        return []
 
-    if schema_editor.connection.alias != settings.OPENROSA_DB_ALIAS:
-        return
+    tables = GUARDIAN_TABLES
+    operations = []
 
-    connection = schema_editor.connection
-
+    # SQL query to retrieve every constraint and foreign key of a specific table
     sql = """
         SELECT con.conname
            FROM pg_catalog.pg_constraint con
@@ -26,16 +25,32 @@ def drop_guardian_tables_and_constraints(apps, schema_editor):
            WHERE nsp.nspname = 'public'
                  AND rel.relname = %s;
     """
-
-    with connection.cursor() as cursor:
-        for table in GUARDIAN_TABLES:
+    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
+        drop_table_queries = []
+        for table in tables:
             cursor.execute(sql, [table])
+            drop_index_queries = []
             for row in cursor.fetchall():
-                constraint_name = row[0]
-                cursor.execute(
-                    f'ALTER TABLE public.{table} DROP CONSTRAINT {constraint_name};'
+                if not row[0].endswith('_pkey'):
+                    drop_index_queries.append(
+                        f'ALTER TABLE public.{table} DROP CONSTRAINT {row[0]};'
+                    )
+            drop_table_queries.append(f'DROP TABLE IF EXISTS public.{table};')
+            operations.append(
+                migrations.RunSQL(
+                    sql=''.join(drop_index_queries),
+                    reverse_sql=migrations.RunSQL.noop,
                 )
-            cursor.execute(f'DROP TABLE IF EXISTS public.{table};')
+            )
+
+        operations.append(
+            migrations.RunSQL(
+                sql=''.join(drop_table_queries),
+                reverse_sql=migrations.RunSQL.noop,
+            )
+        )
+
+    return operations
 
 
 class Migration(migrations.Migration):
@@ -47,9 +62,4 @@ class Migration(migrations.Migration):
         ('main', '0021_drop_reversion_tables'),
     ]
 
-    operations = [
-        migrations.RunPython(
-            drop_guardian_tables_and_constraints,
-            reverse_code=migrations.RunPython.noop,
-        ),
-    ]
+    operations = get_operations()
