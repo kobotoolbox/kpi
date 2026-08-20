@@ -174,7 +174,7 @@ class MailerProviderRateThrottledError(MailerProviderThrottledError):
     paces sends against a per-second budget kept under the provider's real
     limit, so the provider itself shouldn't need to say "slow down" except
     for unaccounted-for traffic sharing the same account (e.g. transactional
-    email) or a misconfigured `MASS_EMAIL_SEND_RATE_RATIO`.
+    email) or a misconfigured `MASS_EMAIL_THROTTLE_PER_SECOND`.
 
     TODO(DEV-2693): currently handled exactly like
     `MailerProviderQuotaExhaustedError`, which defeats the point of having
