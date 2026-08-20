@@ -22,6 +22,7 @@ interface AssetMoreActionsProps {
   onEditLanguages: () => void
   onMoveToCollection: (collectionUrl: string | null) => void
   onDelete: () => void
+  withinRow?: boolean
 }
 
 /**
@@ -42,24 +43,17 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
   const userCanEdit = userCan('change_asset', props.asset)
   const userCanDelete = userCan('delete_submissions', props.asset)
 
-  // Close menu when mouse leaves the row
+  // In the table row context, close the menu when the mouse leaves the row
   React.useEffect(() => {
-    if (!isMenuOpen) return
+    if (!isMenuOpen || !props.withinRow) return
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // Find the closest row element
-      const target = e.target as HTMLElement
-      const row = target.closest('.assets-table-row--asset')
+    const row = menuRef.current?.closest('.assets-table-row--asset')
+    if (!row) return
 
-      // If we're not hovering over the row anymore, close the menu
-      if (menuRef.current && !row?.contains(menuRef.current)) {
-        setIsMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    return () => document.removeEventListener('mousemove', handleMouseMove)
-  }, [isMenuOpen])
+    const handleMouseLeave = () => setIsMenuOpen(false)
+    row.addEventListener('mouseleave', handleMouseLeave)
+    return () => row.removeEventListener('mouseleave', handleMouseLeave)
+  }, [isMenuOpen, props.withinRow])
 
   // Only non-collection assets have downloads
   let downloads: AssetDownloads = []
@@ -88,7 +82,7 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
         opened={isMenuOpen}
         onChange={setIsMenuOpen}
         withinPortal={false}
-        closeOnClickOutside={false}
+        closeOnClickOutside={!props.withinRow}
         zIndex={50}
       >
         <Menu.Target>
