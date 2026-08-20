@@ -1,0 +1,55 @@
+{# Shell for the standalone error pages app (`jsapp/js/errorApp/`). #}
+{# Extends `base_simple.html` on purpose: `base.html` pulls in the whole SPA bundle. #}
+{% extends 'base_simple.html' %}
+{% load i18n %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}• {{ error_code }}{% endblock %}
+
+{% comment %}
+  Bare layout for the fallback below. Scoped to it rather than to the mount node,
+  which holds the app's full-bleed background and must not get a max width.
+{% endcomment %}
+{% block head_end %}
+  <style>
+    .error-page-fallback {
+      max-width: 35em;
+      margin: 3em auto;
+      padding: 0 1.5em;
+      font-family: sans-serif;
+    }
+  </style>
+{% endblock %}
+
+{% comment %}
+  Empty on purpose: `kpi_simple.css` boxes `body` into an 800px column, which would
+  crop the full-bleed background. Mantine's `baseline.css` covers the reset instead.
+{% endcomment %}
+{% block head_stylesheets %}{% endblock %}
+
+{% comment %}
+  Branding travels as data attributes, so the app makes no API calls. `config` comes
+  from `kpi.context_processors.config`; an empty value falls back to Kobo defaults.
+{% endcomment %}
+{% block body %}
+<div id="kobo-error-app" data-error-code="{{ error_code }}" data-background-url="{{ config.login_background }}"
+  data-logo-url="{{ config.logo }}" data-terms-of-service-url="{{ config.TERMS_OF_SERVICE_URL }}"
+  data-privacy-policy-url="{{ config.PRIVACY_POLICY_URL }}">
+  {% comment %}
+    Plain-HTML copy of the message, which React drops when it mounts. Not `<noscript>`:
+    that stays hidden when scripting works, and the failure to survive here is this
+    bundle not loading. Strings are duplicated from `ErrorPage.tsx` because they need
+    the server-side `django` catalog, not `djangojs`.
+  {% endcomment %}
+  <div class="error-page-fallback">
+    {% if error_code == 500 %}
+      <h1>{% trans 'Server error (500)' %}</h1>
+      <p>{% trans 'Something went wrong when trying to process your request.' %}</p>
+    {% else %}
+      <h1>{% trans 'Page not found (404)' %}</h1>
+      <p>{% trans 'This page does not exist on the server. Please check the URL or link that sent you here.' %}</p>
+    {% endif %}
+  </div>
+</div>
+{% render_bundle 'errorApp' 'js' %}
+{% endblock %}

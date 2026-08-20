@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
+
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kpi.utils.absolute_paths import insert_full_paths_in_place
 from kpi.utils.asset_translation_utils import (  # TRANSLATIONS_EQUAL,

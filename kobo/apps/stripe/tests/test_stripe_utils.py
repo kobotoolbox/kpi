@@ -639,8 +639,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             product = subscription.plan.product
             product.name = 'My addon'
             product.save()
-        org_user = self.organization.organization_users.first()
-        assert get_plan_name(org_user) == expected_name
+        assert get_plan_name(self.organization) == expected_name
 
     def test_get_default_plan_name(self):
         assert get_default_plan_name() is None

@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 14:15+0000\n"
+"POT-Creation-Date: 2026-08-13 13:05+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Yuliia Zakharchenko, 2022\n"
 "Language-Team: Ukrainian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/uk/)\n"
@@ -2930,7 +2930,7 @@ msgstr "Імпорт XLS завершено"
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:176
 #: jsapp/js/dropzone.utils.tsx:240
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:594
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:609
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:611
 msgid "Import Failed!"
 msgstr "Помилка імпорту!"
 
@@ -6278,19 +6278,19 @@ msgstr "Неможливо перезавантажити проєкт післ�
 msgid "Could not initialize XLSForm import!"
 msgstr "Не вдалося ініціалізувати імпорт XLSForm!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:640
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:642
 msgid "Failed to reload project after upload!"
 msgstr "Неможливо перезавантажити проєкт після завантаження!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:651
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:653
 msgid "Could not import XLSForm!"
 msgstr "Не вдалося імпортувати XLSForm!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:669
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:671
 msgid "Some fields contain errors!"
 msgstr "Деякі поля містять помилки!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:696
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:698
 msgid ""
 "Form replacing is not available due to form's Locking Profile restrictions."
 msgstr "Заміна форми недоступна через обмеження профілю блокування форми."
