@@ -19,9 +19,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             managed_domain = False
         else:
             managed_domain = SocialAppManagedDomain.objects.filter(
-                    social_app__social_app=app,
-                    social_app__managed=True,
-                    domain__iexact=domain,
+                social_app__social_app=app,
+                social_app__managed=True,
+                domain__iexact=domain,
             ).exists()
         return config.REGISTRATION_OPEN or managed_domain
 
