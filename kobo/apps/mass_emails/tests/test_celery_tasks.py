@@ -226,11 +226,11 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         plan_name = sender.get_plan_name(self.user1.organization)
         assert plan_name == 'Not available'
 
-    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=4, MASS_EMAIL_SEND_RATE_RATIO=0.5)
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
     def test_send_is_throttled(self):
-        # budget_per_second = 4 * 0.5 = 2. `monotonic` is pinned so every
-        # window looks fully elapsed instantly, isolating the trigger
-        # pattern (every 2 sends, sleep once) from real elapsed time.
+        # `monotonic` is pinned so every window looks fully elapsed
+        # instantly, isolating the trigger pattern (every 2 sends, sleep
+        # once) from real elapsed time.
         self._setup_common_test_data()
         calls = []
         with (
