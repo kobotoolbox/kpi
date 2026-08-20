@@ -225,17 +225,18 @@ class KoboSignupMixin(forms.Form):
 
         return self.cleaned_data
 
-    def clean_email(self):
+    def clean_email(self, allow_managed_domains=False):
         email = self.cleaned_data['email']
         domain = email.split('@')[1].lower()
-        managed = SocialAppManagedDomain.objects.filter(
-            domain__iexact=domain, social_app__managed=True
-        ).exists()
-        if managed:
-            raise forms.ValidationError(
-                'Your organization has restricted the use of passwords. '
-                'Please sign up using SSO instead.'
-            )
+        if not allow_managed_domains:
+            managed = SocialAppManagedDomain.objects.filter(
+                domain__iexact=domain, social_app__managed=True
+            ).exists()
+            if managed:
+                raise forms.ValidationError(
+                    'Your organization has restricted the use of passwords. '
+                    'Please sign up using SSO instead.'
+                )
         blacklist_domains = constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS
         blacklist_domain_set = {
             d.strip().lower()
@@ -280,7 +281,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 
     def clean_email(self):
         # do not allow any other email besides the one retrieved from the SSO server
-        email = super().clean_email()
+        email = super().clean_email(allow_managed_domains=True)
         if email != self.initial['email']:
             raise forms.ValidationError(t('Email must match SSO server email'))
         return email

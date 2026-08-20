@@ -1,6 +1,7 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.models import SocialApp
 from constance import config
 from django.conf import settings
 from django.db import transaction
@@ -13,12 +14,21 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request, sociallogin):
         email = sociallogin.user.email
         domain = email.split('@')[1].lower()
-        return (
-            config.REGISTRATION_OPEN
-            or SocialAppManagedDomain.objects.filter(
-                social_app__managed=True, domain__iexact=domain
+        # confusing: SocialApp.provider is different than SocialApp.provider_id,
+        # but both are just strings. 'provider' on SocialLogin is an object, so we
+        # have to match sociallogin.provider.id to SocialApp.provider
+        provider_id = sociallogin.provider.id
+        try:
+            app = SocialApp.objects.get(provider=provider_id)
+            managed_domain = SocialAppManagedDomain.objects.filter(
+                social_app__social_app=app,
+                social_app__managed=True,
+                domain__iexact=domain,
             ).exists()
-        )
+        except SocialApp.DoesNotExist:
+            managed_domain = False
+
+        return config.REGISTRATION_OPEN or managed_domain
 
 
 class AccountAdapter(DefaultAccountAdapter):
