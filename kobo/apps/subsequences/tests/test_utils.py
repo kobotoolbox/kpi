@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.core.cache import cache
 
 from kobo.apps.subsequences.utils import get_default_language, get_survey_question_type
@@ -21,6 +23,26 @@ class SurveyMetadataTestCase(BaseTestCase):
         assert get_default_language(self.asset) == (
             self.asset.content['settings'].get('default_language')
         )
+
+    def test_undeployed_draft_edits_do_not_affect_a_deployed_form(self):
+        # Submissions belong to the deployed version, so editing the draft must
+        # not change how their supplemental data is processed
+        xpath = 'settings_fixture_q1'
+        assert get_survey_question_type(self.asset, xpath) == 'text'
+
+        content = deepcopy(self.asset.content)
+        for question in content['survey']:
+            if question['name'] == xpath:
+                question['type'] = 'audio'
+        self.asset.content = content
+        self.asset.save()
+
+        edited_asset = Asset.objects.get(pk=self.asset.pk)
+        assert get_survey_question_type(edited_asset, xpath) == 'text'
+
+        edited_asset.deploy(backend='mock', active=True)
+        redeployed_asset = Asset.objects.get(pk=self.asset.pk)
+        assert get_survey_question_type(redeployed_asset, xpath) == 'audio'
 
     def test_deployed_asset_content_is_read_only_once(self):
         # This runs on every supplemental revision, including one celery task

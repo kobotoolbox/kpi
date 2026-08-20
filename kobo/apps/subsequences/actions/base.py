@@ -28,9 +28,6 @@ from ..type_aliases import (
 )
 from ..utils import get_survey_question_type
 
-# Sentinel marking `_source_question_type` as not yet looked up.
-_UNSET = object()
-
 """
 ### All actions must have the following components
 
@@ -219,7 +216,6 @@ class BaseAction:
         self.params = params
         self.asset = asset
         self._action_dependencies = prefetched_dependencies or {}
-        self._source_question_type = _UNSET
 
     def attach_action_dependency(self, action_data: dict, submission: dict):
         pass
@@ -352,18 +348,13 @@ class BaseAction:
         """
         Return the survey question type of this action's source question.
 
-        Result is cached on the instance; None means the xpath could not be
-        resolved in the asset survey.
+        None means the xpath could not be resolved in the asset survey. The
+        underlying survey metadata is memoized on the asset, so repeated calls
+        are cheap.
         """
-        if self._source_question_type is not _UNSET:
-            return self._source_question_type
         if self.asset is None:
-            self._source_question_type = None
-        else:
-            self._source_question_type = get_survey_question_type(
-                self.asset, self.source_question_xpath
-            )
-        return self._source_question_type
+            return None
+        return get_survey_question_type(self.asset, self.source_question_xpath)
 
     def transform_data_for_output(
         self, action_data: dict
