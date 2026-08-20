@@ -12,12 +12,13 @@ from django.core.mail import EmailMessage
 from django.test import TestCase, override_settings
 
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
 )
-from kpi.utils.mailer import Mailer, with_smtp_connection
 from kpi.utils.mailer import EmailMessage as MailerEmailMessage
+from kpi.utils.mailer import Mailer, with_smtp_connection
 
 
 def fake_send(email_message):
@@ -255,6 +256,18 @@ class TestClassifySmtpException(TestCase):
         error = Mailer._classify_smtp_exception(exc)
 
         assert isinstance(error, MailerProviderRateThrottledError)
+
+    def test_ses_max_message_count_per_session_signature_matches(self):
+        exc = SMTPResponseException(
+            421,
+            b'Connection closed by server. Maximum message count per '
+            b'session reached.',
+        )
+
+        error = Mailer._classify_smtp_exception(exc)
+
+        assert isinstance(error, MailerConnectionSessionLimitError)
+        assert not isinstance(error, MailerProviderRateThrottledError)
 
     def test_sendgrid_credits_exceeded_signature_matches(self):
         exc = SMTPResponseException(

@@ -18,6 +18,7 @@ from django.utils.translation import activate
 from django.utils.translation import gettext as t
 
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
@@ -164,6 +165,11 @@ class Mailer:
             MailerProviderRateThrottledError,
         ),
         (421, 'temporarily deferred', MailerProviderRateThrottledError),
+        (
+            421,
+            'Maximum message count per session reached',
+            MailerConnectionSessionLimitError,
+        ),
         # Office365
         (None, 'Submission quota exceeded', MailerProviderQuotaExhaustedError),
         (None, 'reached your daily limit', MailerProviderQuotaExhaustedError),

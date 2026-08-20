@@ -23,6 +23,7 @@ from kobo.apps.mass_emails.models import (
 from kobo.apps.organizations.models import Organization
 from kobo.celery import celery_app
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
@@ -351,7 +352,18 @@ class MassEmailSender:
                         sleep(remaining)
                     window_start = monotonic()
                     spent_in_window = 0
-                self.send_email(email_config, record)
+                try:
+                    self.send_email(email_config, record)
+                except MailerConnectionSessionLimitError as e:
+                    # The connection already reconnected inside
+                    # send_email(); skip this record without spending
+                    # budget on it and move straight to the next one
+                    # instead of stopping the whole run.
+                    logging.warning(
+                        f'Connection session limit hit on {record}, will '
+                        f'retry on a later run: {e}'
+                    )
+                    continue
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 spent_in_window += 1
@@ -393,6 +405,12 @@ class MassEmailSender:
             logging.warning(f'Provider rate limit hit, stopping this run: {e}')
             # TODO(DEV-2693): needs its own non-blocking cooldown instead of
             # being treated exactly like a quota-exhausted stop.
+            raise
+        except MailerConnectionSessionLimitError:
+            # Let this propagate: the connection is already reconnected
+            # (see Mailer._send_single()), so the caller should skip this
+            # one record and move on rather than stop the whole run or
+            # record it as a failure. The record stays `enqueued`.
             raise
         except MailerError as e:
             logging.warning(f'Error sending record {record}: {e}')

@@ -182,6 +182,18 @@ class MailerProviderRateThrottledError(MailerProviderThrottledError):
     """
 
 
+class MailerConnectionSessionLimitError(MailerError):
+    """
+    The provider closed the connection after hitting its per-session
+    message cap.
+
+    Not account-wide like a rate/quota throttle: the connection is already
+    reconnected by the time this is raised (see `Mailer._send_single()`),
+    so the caller should skip this one record and keep going, not stop the
+    whole run.
+    """
+
+
 class MissingXFormException(Exception):
     pass
 
