@@ -1,5 +1,6 @@
 import re
 
+import constance
 from allauth.account.admin import EmailAddressAdmin as BaseEmailAddressAdmin
 from allauth.account.signals import email_confirmed
 from django.core.exceptions import ValidationError
@@ -103,8 +104,23 @@ class SocialAppCustomData(models.Model):
 
 
 def validate_domain(value):
+    normalized_value = value.strip().lower()
     if EMAIL_DOMAIN_REGEX.fullmatch(value) is None:
         raise ValidationError(f'Invalid email domain: {value}')
+    blacklist_domains = constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS
+    blacklist_domain_set = {
+        d.strip().lower() for d in blacklist_domains.splitlines() if d.strip()
+    }
+
+    if normalized_value in blacklist_domain_set:
+        raise ValidationError(f'Cannot manage forbidden email domain: {value}')
+
+    allowed_domains = constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
+    allowed_domain_list = [
+        domain.strip().lower() for domain in allowed_domains.split('\n') if bool(domain)
+    ]
+    if allowed_domain_list and normalized_value not in allowed_domain_list:
+        raise ValidationError(f'Email domain not in allowed domain list {value}')
 
 
 class SocialAppManagedDomain(models.Model):
