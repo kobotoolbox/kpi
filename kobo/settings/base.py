@@ -1857,13 +1857,11 @@ if os.environ.get('EMAIL_USE_TLS'):
 # (one provider at a time).
 # See kpi.utils.mailer.Mailer and kobo.apps.mass_emails.tasks.MassEmailSender.
 MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
-MASS_EMAIL_THROTTLE_PER_SECOND = env.int('MASS_EMAIL_THROTTLE_PER_SECOND', 40)
-# Some servers can share the same provider account and quota diluting their share of it
-# further than transactional email alone would.
-# 0.5 or below is recommended so two full budget windows landing back to
-# back still can't exceed the provider's rate limit; higher is allowed if
-# an admin accepts the risk of bursting past it near a window boundary.
-MASS_EMAIL_SEND_RATE_RATIO = env.float('MASS_EMAIL_SEND_RATE_RATIO', 0.35)
+# This throttle applies only to mass email, not to transactional email
+# (e.g. forgot password). Set it well under the provider's real per-second
+# limit so there's still headroom left for transactional email, which
+# shares the same provider account but doesn't go through this throttle.
+MASS_EMAIL_THROTTLE_PER_SECOND = env.float('MASS_EMAIL_THROTTLE_PER_SECOND', 10)
 # Margin under the provider's SMTP idle timeout.
 MAILER_CONNECTION_IDLE_TIMEOUT = env.int('MAILER_CONNECTION_IDLE_TIMEOUT', 10)
 # change the interval between "daily" email sends for testing. this will set both

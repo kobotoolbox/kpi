@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 13:05+0000\n"
+"POT-Creation-Date: 2026-08-20 15:15+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: zeeshan azmi <zishan.azmi@webaccessglobal.com>, 2017\n"
 "Language-Team: Hindi (http://app.transifex.com/kobotoolbox/kobotoolbox/language/hi/)\n"
@@ -1331,7 +1331,7 @@ msgid "Clone of"
 msgstr "का क्लोन"
 
 #: jsapp/js/assetQuickActions.tsx:147
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:277
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:278
 #: jsapp/js/components/formLanding/FormHistory.tsx:154 jsapp/js/mixins.tsx:113
 msgid "Clone"
 msgstr "प्रतिरूप (क्लोन)"
@@ -2171,50 +2171,50 @@ msgid ""
 "account-wide setting. Click the icon to learn more."
 msgstr "इस प्रोजेक्ट के लिए अनाम सबमिशन की अनुमति दें। पहले, यह एक खाता-व्यापी सेटिंग थी। अधिक जानने के लिए आइकन पर क्लिक करें।"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:95
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:89
 msgid "More actions"
 msgstr "अधिक एक्शन"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:102
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:96
 msgid "Manage translations"
 msgstr "अनुवाद प्रबंधित (मैनेज) करें"
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:97
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:100
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:98
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:101
 msgid "Failed to load asset. Please try again."
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:193
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:194
 msgid "Subscribe"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:199
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:200
 msgid "Unsubscribe"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:235
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:236
 msgid "Edit in Form Builder"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:244
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:245
 msgid "Modify details"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:255
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:256
 msgid "Edit Tags"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:266
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:267
 msgid "Share"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:288
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:289
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:148
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:218
 msgid "Create project"
 msgstr "प्रोजेक्ट बनाएं"
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:302
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:303
 msgid "View containing Collection"
 msgstr ""
 
@@ -2818,30 +2818,30 @@ msgstr "गतिविधि"
 msgid "XForm is loading"
 msgstr "XForm लोड हो रहा है"
 
-#: jsapp/js/components/header/accountMenu.tsx:48
+#: jsapp/js/components/header/accountMenu.tsx:51
 msgid "Please refresh the page"
 msgstr "कृपया पृष्ठ को रीफ्रेश करें"
 
-#: jsapp/js/components/header/accountMenu.tsx:104
+#: jsapp/js/components/header/accountMenu.tsx:97
 msgid "Account Settings"
 msgstr "खाता (अकाउंट) सेटिंग"
 
-#: jsapp/js/components/header/accountMenu.tsx:114
+#: jsapp/js/components/header/accountMenu.tsx:107
 msgid "Terms of Service"
 msgstr "सेवा की शर्तें"
 
-#: jsapp/js/components/header/accountMenu.tsx:119
+#: jsapp/js/components/header/accountMenu.tsx:112
 msgid "Privacy Policy"
 msgstr "गोपनीयता नीति"
 
-#: jsapp/js/components/header/accountMenu.tsx:127
+#: jsapp/js/components/header/accountMenu.tsx:126
 #: jsapp/js/components/map/index.tsx:1279
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:235
 #: jsapp/js/components/submissions/submissionModal.tsx:432
 msgid "Language"
 msgstr "भाषा"
 
-#: jsapp/js/components/header/accountMenu.tsx:135
+#: jsapp/js/components/header/accountMenu.tsx:151
 msgid "Logout"
 msgstr "लॉगआउट"
 
