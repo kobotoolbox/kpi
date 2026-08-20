@@ -14,20 +14,15 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request, sociallogin):
         email = sociallogin.user.email
         domain = email.split('@')[1].lower()
-        # confusing: SocialApp.provider is different than SocialApp.provider_id,
-        # but both are just strings. 'provider' on SocialLogin is an object, so we
-        # have to match sociallogin.provider.id to SocialApp.provider
-        provider_id = sociallogin.provider.id
-        try:
-            app = SocialApp.objects.get(provider=provider_id)
-            managed_domain = SocialAppManagedDomain.objects.filter(
-                social_app__social_app=app,
-                social_app__managed=True,
-                domain__iexact=domain,
-            ).exists()
-        except SocialApp.DoesNotExist:
+        app = getattr(sociallogin.provider, 'app', None)
+        if app is None:
             managed_domain = False
-
+        else:
+            managed_domain = SocialAppManagedDomain.objects.filter(
+                    social_app__social_app=app,
+                    social_app__managed=True,
+                    domain__iexact=domain,
+            ).exists()
         return config.REGISTRATION_OPEN or managed_domain
 
 
