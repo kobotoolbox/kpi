@@ -241,7 +241,7 @@ class CurrentUserAPITestCase(APITestCase):
     @patch('kpi.utils.log.logging.warning')
     def test_sso_accounts_multiple_social_apps(self, mock_logging):
         # extremely unlikely that we have 2 sso apps with the same provider
-        # so there's no real defined expeected behavior, just make sure the request
+        # so there's no real defined expected behavior, just make sure the request
         # doesn't fail
         app = baker.make('socialaccount.SocialApp', provider='provider')
         app2 = baker.make('socialaccount.SocialApp', provider='provider')
