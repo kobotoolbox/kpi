@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 
-import { Group, LoadingOverlay } from '@mantine/core'
+import { Anchor, Group, LoadingOverlay } from '@mantine/core'
 import { when } from 'mobx'
 import { useLocation } from 'react-router-dom'
 import { getAccountLimits } from '#/account/stripe.api'
@@ -21,6 +21,8 @@ import {
   type OrganizationsServiceUsageSummary,
   useOrganizationsServiceUsageSummary,
 } from './useOrganizationsServiceUsageSummary'
+
+const USAGE_LIMITS_SUPPORT_URL = 'account_usage_limits.html'
 
 interface LimitState {
   storageByteRemainingLimit: LimitAmount
@@ -162,6 +164,16 @@ export default function Usage() {
       <LimitNotifications accountPage />
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Your usage')}</h2>
+        {envStore.data.support_url && (
+          <Anchor
+            href={envStore.data.support_url + USAGE_LIMITS_SUPPORT_URL}
+            target='_blank'
+            rel='noreferrer'
+            size='sm'
+          >
+            {t('Learn more about account usage')}
+          </Anchor>
+        )}
       </header>
       {limits.stripeEnabled && <YourPlan />}
       <Group align='stretch'>
