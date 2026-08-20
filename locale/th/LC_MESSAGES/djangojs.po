@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 14:15+0000\n"
+"POT-Creation-Date: 2026-08-13 13:05+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Thai (http://app.transifex.com/kobotoolbox/kobotoolbox/language/th/)\n"
@@ -2926,7 +2926,7 @@ msgstr "การนำเข้า XLS เสร็จสมบูรณ์"
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:176
 #: jsapp/js/dropzone.utils.tsx:240
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:594
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:609
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:611
 msgid "Import Failed!"
 msgstr "การนำเข้าไม่สำเร็จ!"
 
@@ -6274,19 +6274,19 @@ msgstr "ไม่สามารถโหลดโครงการซ้ำห
 msgid "Could not initialize XLSForm import!"
 msgstr "ไม่สามารถเริ่มการนำเข้า XLSForm ได้!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:640
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:642
 msgid "Failed to reload project after upload!"
 msgstr "ไม่สามารถโหลดโครงการซ้ำหลังจากอัปโหลด!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:651
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:653
 msgid "Could not import XLSForm!"
 msgstr "ไม่สามารถนำเข้า XLSForm ได้!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:669
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:671
 msgid "Some fields contain errors!"
 msgstr "บางฟิลด์มีข้อผิดพลาด!"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:696
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:698
 msgid ""
 "Form replacing is not available due to form's Locking Profile restrictions."
 msgstr "ไม่สามารถแทนที่แบบฟอร์มได้เนื่องจากข้อจำกัดในโพรไฟล์การล็อกของแบบฟอร์ม"

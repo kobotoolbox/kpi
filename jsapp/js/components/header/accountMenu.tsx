@@ -1,3 +1,4 @@
+import { Paper, Stack } from '@mantine/core'
 import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -23,6 +24,8 @@ import OrganizationBadge from './organizationBadge.component'
  * Note: this displays a simplified content for user with invalidated password.
  */
 export default function AccountMenu() {
+  // Collapsed by default on every device: an expanded list pushes the logout button below the menu's scroll area, and
+  // quick access to logout matters more than quick access to languages.
   const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
@@ -54,24 +57,14 @@ export default function AccountMenu() {
     }
   }
 
-  const renderLangItem = (lang: LabelValuePair) => {
-    const currentLanguage = currentLang()
-    return (
-      <bem.AccountBox__menuLI key={lang.value}>
-        <bem.AccountBox__menuLink onClick={() => onLanguageChange(lang.value)}>
-          {lang.value === currentLanguage && <strong>{lang.label}</strong>}
-          {lang.value !== currentLanguage && lang.label}
-        </bem.AccountBox__menuLink>
-      </bem.AccountBox__menuLI>
-    )
-  }
-
   if (!sessionStore.isLoggedIn) {
     return null
   }
 
   const accountName = sessionStore.currentAccount.username
   const accountEmail = 'email' in sessionStore.currentAccount ? sessionStore.currentAccount.email : ''
+
+  const currentLanguage = currentLang()
 
   return (
     <bem.AccountBox>
@@ -126,11 +119,34 @@ export default function AccountMenu() {
             )}
 
             <bem.AccountBox__menuLI m={'lang'} key='3'>
-              <ButtonNew leftIcon={IconWorldFilled} variant='transparent' onClick={toggleLanguageSelector} tabIndex={0}>
+              <ButtonNew
+                leftIcon={IconWorldFilled}
+                rightIcon={isLanguageSelectorVisible ? 'angle-up' : 'angle-down'}
+                variant='transparent'
+                onClick={toggleLanguageSelector}
+                tabIndex={0}
+              >
                 {t('Language')}
               </ButtonNew>
 
-              {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
+              {isLanguageSelectorVisible && (
+                <Paper mt='xs'>
+                  <Stack gap='xs' p='xs'>
+                    {langs.map((lang) => (
+                      <ButtonNew
+                        variant={lang.value === currentLanguage ? 'light' : 'transparent'}
+                        disabled={lang.value === currentLanguage}
+                        size='sm'
+                        key={lang.value}
+                        onClick={() => onLanguageChange(lang.value)}
+                        justify='flex-start'
+                      >
+                        {lang.label}
+                      </ButtonNew>
+                    ))}
+                  </Stack>
+                </Paper>
+              )}
             </bem.AccountBox__menuLI>
 
             <bem.AccountBox__menuLI m={'logout'} key='4'>

@@ -19,6 +19,7 @@ from model_bakery.recipe import seq
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
@@ -959,6 +960,38 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         # The record that hit the quota error, and the one never reached,
         # stay enqueued rather than being written off as failed
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
+
+    def test_connection_session_limit_error_skips_the_record_and_continues(self):
+        # Unlike rate-throttled/quota-exhausted, this must not stop the run:
+        # the connection is already reconnected by the time Mailer.send()
+        # raises it, so the next record should be attempted right away.
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[
+                    None,
+                    MailerConnectionSessionLimitError('session limit reached'),
+                    None,
+                ],
+            ) as send_mock,
+        ):
+            sender = MassEmailSender()
+            email_config = MassEmailConfig.objects.get(name='Config')
+            original_limit = sender.limits[email_config.id]
+            sender.send_day_emails()
+
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 0
+        # stays enqueued for a later run, not written off as failed
+        assert (
+            MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 1
+        )
+        # only the 2 real sends spend budget, not the skipped one
+        remaining = cache.get(f'{sender.cache_key_prefix}_{email_config.id}')
+        assert remaining == original_limit - 2
 
     def test_soft_time_limit_closes_the_connection_and_leaves_records_enqueued(self):
         connection = MagicMock()

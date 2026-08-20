@@ -176,7 +176,7 @@ class MassEmailConfig(AbstractTimeStampedModel):
             if (
                 param.name not in func.__annotations__
                 or func.__annotations__[param.name] not in (int, float, str)
-            ):
+            ):  # fmt: skip
                 continue
             try:
                 value = func.__annotations__[param.name](param.value)

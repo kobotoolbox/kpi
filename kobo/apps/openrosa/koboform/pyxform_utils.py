@@ -1,8 +1,8 @@
 # coding: utf-8
 import io
 import re
-import xlwt
 
+import xlwt
 from pyxform import xls2json_backends
 
 
