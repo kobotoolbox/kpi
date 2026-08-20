@@ -5,7 +5,7 @@ import { getCsrfToken, notify } from '#/utils'
 /** Django's own `set_language` view, wired up by `django.conf.urls.i18n` (see `kpi/urls/__init__.py`). */
 const SET_LANGUAGE_URL = `${ROOT_URL}/i18n/setlang/`
 
-async function setInterfaceLanguage(languageCode: string) {
+async function setUILanguage(languageCode: string) {
   // `set_language` is a plain Django view, not one of our DRF endpoints, so it reads `request.POST`
   const body = new URLSearchParams({ language: languageCode })
 
@@ -43,6 +43,6 @@ async function setInterfaceLanguage(languageCode: string) {
  * Note: the language dropdown in `#/components/header/accountMenu.tsx` still does this through the
  * legacy jQuery `dataInterface.setLanguage`, and can be migrated onto this hook.
  */
-export function useSetInterfaceLanguage() {
-  return useMutation({ mutationFn: setInterfaceLanguage })
+export function useSetUILanguage() {
+  return useMutation({ mutationFn: setUILanguage })
 }

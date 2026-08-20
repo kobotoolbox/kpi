@@ -11,10 +11,10 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { currentLang } from '#/utils'
-import styles from './InterfaceLanguageSelector.module.scss'
-import { useSetInterfaceLanguage } from './useSetInterfaceLanguage'
+import styles from './StandaloneUILanguageSelector.module.scss'
+import { useSetUILanguage } from './useSetUILanguage'
 
-interface InterfaceLanguage {
+interface UILanguage {
   /** A Django language code, e.g. `fr` or `zh-hans`. */
   code: string
   /** The language's name in that language, e.g. `français`. */
@@ -28,7 +28,7 @@ interface InterfaceLanguage {
  * `en-us` for our default `LANGUAGE_CODE`) while the server only offers base ones (`en`), so an
  * exact match is tried first and the base language second.
  */
-function findCurrentLanguage(languages: InterfaceLanguage[], currentCode: string) {
+function findCurrentLanguage(languages: UILanguage[], currentCode: string) {
   const baseCode = (code: string) => code.toLowerCase().split('-')[0]
   return (
     languages.find((language) => language.code.toLowerCase() === currentCode.toLowerCase()) ??
@@ -36,7 +36,7 @@ function findCurrentLanguage(languages: InterfaceLanguage[], currentCode: string
   )
 }
 
-export interface InterfaceLanguageSelectorProps {
+export interface StandaloneUILanguageSelectorProps {
   /**
    * Use over an admin-uploaded background (the `login_background` configuration file), which is a
    * photo darkened for legibility, and so needs the light-on-dark treatment.
@@ -52,16 +52,20 @@ export interface InterfaceLanguageSelectorProps {
 }
 
 /**
- * A dropdown for switching the language the interface is displayed in. Works for anonymous visitors,
- * so it can be used on the authentication views - see {@link useSetInterfaceLanguage} for how the
+ * A dropdown for switching the language the interface is displayed in. Standalone, i.e. it stands on
+ * the page by itself rather than being a section of a bigger menu - for the screens that have no
+ * navigation to put it in (the authentication and error views). The logged in app offers the same
+ * choice inside `#/components/header/accountMenu.tsx`.
+ *
+ * Works for anonymous visitors, which is the whole point - see {@link useSetUILanguage} for how the
  * choice is stored and why it survives logging in.
  *
  * The toggle button shows the current language as a two letter abbreviation (there is no room for
  * more in the corner of a page), while the dropdown lists the full names, each in its own language.
  */
-export default function InterfaceLanguageSelector(props: InterfaceLanguageSelectorProps) {
+export default function StandaloneUILanguageSelector(props: StandaloneUILanguageSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const setLanguageMutation = useSetInterfaceLanguage()
+  const setLanguageMutation = useSetUILanguage()
 
   const languagesQuery = useEnvironmentRetrieve({
     query: {

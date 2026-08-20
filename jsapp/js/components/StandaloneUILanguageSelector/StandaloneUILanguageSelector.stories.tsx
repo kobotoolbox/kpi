@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { fn } from 'storybook/test'
 import environmentMock from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import InterfaceLanguageSelector from './index'
+import StandaloneUILanguageSelector from './index'
 
 const onLanguageChanged = fn()
 const onLanguageRequested = fn()
@@ -45,9 +45,9 @@ const withPageFrame: Decorator = (Story, context) => {
   )
 }
 
-const meta: Meta<typeof InterfaceLanguageSelector> = {
-  title: 'Components/InterfaceLanguageSelector',
-  component: InterfaceLanguageSelector,
+const meta: Meta<typeof StandaloneUILanguageSelector> = {
+  title: 'Components/StandaloneUILanguageSelector',
+  component: StandaloneUILanguageSelector,
   args: {
     // Also keeps the component from reloading the Storybook iframe, which is what it does by default.
     onLanguageChanged,
@@ -61,7 +61,7 @@ const meta: Meta<typeof InterfaceLanguageSelector> = {
 
 export default meta
 
-type Story = StoryObj<typeof InterfaceLanguageSelector>
+type Story = StoryObj<typeof StandaloneUILanguageSelector>
 
 /** The toggle only has room for the current language as a two letter abbreviation. */
 export const Default: Story = {}
