@@ -87,6 +87,10 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
     name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     client_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     provider_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    managed: faker.datatype.boolean(),
+    domains: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
   })),
   asr_mt_features_enabled: faker.datatype.boolean(),
   submission_placeholder: faker.string.alpha({ length: { min: 10, max: 20 } }),

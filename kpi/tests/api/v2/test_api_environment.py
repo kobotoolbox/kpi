@@ -183,10 +183,10 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         socialapps_response = sorted(
             response.data['social_apps'], key=lambda k: k['managed']
         )
-        assert socialapps_response[0]['managed'] == False
+        assert socialapps_response[0]['managed'] is False
         assert socialapps_response[0]['domains'] == []
         assert socialapps_response[0]['name'] == unmanaged_app.name
-        assert socialapps_response[1]['managed'] == True
+        assert socialapps_response[1]['managed'] is True
         assert socialapps_response[1]['domains'] == ['example.com']
         assert socialapps_response[1]['name'] == managed_app.name
 
