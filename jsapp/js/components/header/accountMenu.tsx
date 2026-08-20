@@ -1,5 +1,4 @@
-import { Group, Paper, Stack, Text } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
+import { Paper, Stack } from '@mantine/core'
 import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -14,7 +13,6 @@ import { isAnyRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
 import ButtonNew from '../common/ButtonNew'
-import KoboIcon from '../common/KoboIcon'
 import OrganizationBadge from './organizationBadge.component'
 
 /**
@@ -25,16 +23,13 @@ import OrganizationBadge from './organizationBadge.component'
  * Note: this displays a simplified content for user with invalidated password.
  */
 export default function AccountMenu() {
-  const [isLanguageSelectorToggled, setIsLanguageSelectorToggled] = useState<boolean>(false)
+  // Collapsed by default on every device: an expanded list pushes the logout button below the menu's scroll area, and
+  // quick access to logout matters more than quick access to languages.
+  const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
-  // A collapsible list inside an already tapped-open menu is awkward on touch, so we keep the language list expanded
-  // there and drop the toggle in favour of a plain section label.
-  const isTouchDevice = useMediaQuery('(pointer: coarse)', false, { getInitialValueInEffect: false })
-  const isLanguageSelectorVisible = isTouchDevice || isLanguageSelectorToggled
-
   const toggleLanguageSelector = () => {
-    setIsLanguageSelectorToggled(!isLanguageSelectorToggled)
+    setIsLanguageSelectorVisible(!isLanguageSelectorVisible)
   }
 
   const shouldDisplayUrls =
@@ -121,24 +116,15 @@ export default function AccountMenu() {
             )}
 
             <bem.AccountBox__menuLI m={'lang'} key='3'>
-              {isTouchDevice && (
-                <Group gap={6}>
-                  <KoboIcon icon={IconWorldFilled} />
-                  <Text fw='600'>{t('Language')}</Text>
-                </Group>
-              )}
-              {!isTouchDevice && (
-                <ButtonNew
-                  leftIcon={IconWorldFilled}
-                  rightIcon={isLanguageSelectorVisible ? 'angle-up' : 'angle-down'}
-                  variant='transparent'
-                  onClick={toggleLanguageSelector}
-                  tabIndex={0}
-                  disabled={isTouchDevice}
-                >
-                  {t('Language')}
-                </ButtonNew>
-              )}
+              <ButtonNew
+                leftIcon={IconWorldFilled}
+                rightIcon={isLanguageSelectorVisible ? 'angle-up' : 'angle-down'}
+                variant='transparent'
+                onClick={toggleLanguageSelector}
+                tabIndex={0}
+              >
+                {t('Language')}
+              </ButtonNew>
 
               {isLanguageSelectorVisible && (
                 <Paper mt='xs'>
