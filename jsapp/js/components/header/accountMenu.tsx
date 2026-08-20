@@ -130,7 +130,7 @@ export default function AccountMenu() {
               {!isTouchDevice && (
                 <ButtonNew
                   leftIcon={IconWorldFilled}
-                  rightIcon={isLanguageSelectorVisible ? 'angle-down' : 'angle-up'}
+                  rightIcon={isLanguageSelectorVisible ? 'angle-up' : 'angle-down'}
                   variant='transparent'
                   onClick={toggleLanguageSelector}
                   tabIndex={0}
