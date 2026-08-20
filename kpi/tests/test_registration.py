@@ -222,6 +222,7 @@ class RegistrationTestCase(TestCase):
             name='Test App',
             provider=provider.id,
         )
+        provider.app = social_app
         social_login = SocialLogin(user=User(email=email), provider=provider)
 
         custom_data = SocialAppCustomData.objects.create(
@@ -239,11 +240,10 @@ class RegistrationTestCase(TestCase):
         # one that manages their domain
         email = 'uSeR@eXaMpLe.com'
         request = RequestFactory().get(reverse('account_login'))
-
         provider = MockProvider(request=request)
 
         # unrelated social app, used for login (matched by provider)
-        SocialApp.objects.create(
+        user_social_app = SocialApp.objects.create(
             client_id='test.service.id',
             secret='test.service.secret',
             name='Test Provider',
@@ -256,6 +256,8 @@ class RegistrationTestCase(TestCase):
             name='Test App 2',
             provider='Test App 2',
         )
+        provider.app = user_social_app
+
         social_login = SocialLogin(user=User(email=email), provider=provider)
 
         custom_data = SocialAppCustomData.objects.create(
