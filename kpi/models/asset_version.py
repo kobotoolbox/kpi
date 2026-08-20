@@ -2,8 +2,8 @@
 import datetime
 
 from django.db import models
-
 from formpack.utils.expand_content import expand_content
+
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_content_hash

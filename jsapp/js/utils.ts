@@ -528,6 +528,16 @@ export function csrfSafeMethod(method: string) {
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method)
 }
 
+/**
+ * The CSRF token Django gave this browser, for the `X-CSRFToken` header of any request whose method
+ * isn't a {@link csrfSafeMethod}. Returns `undefined` when there is no cookie yet - send no header at
+ * all in that case, rather than an empty one.
+ */
+export function getCsrfToken(): string | undefined {
+  // Our Django writes a 32 character token; we allow 64 character too for older Django.
+  return document.cookie.match(/csrftoken=(\w{32,64})/)?.[1]
+}
+
 export function downloadUrl(url: string) {
   const aEl = document.createElement('a')
   const splitUrl = url.split('/')
