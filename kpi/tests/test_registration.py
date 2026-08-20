@@ -2,6 +2,7 @@
 import constance
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialApp, SocialLogin
+from allauth.socialaccount.providers.base import Provider
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.contrib.auth import get_user_model
@@ -12,6 +13,12 @@ from django.utils.translation import gettext as t
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.accounts.tests.constants import SOCIALACCOUNT_PROVIDERS
 from kobo.apps.kobo_auth.shortcuts import User
+
+
+class MockProvider(Provider):
+    id = 'mock_provider'
+    uses_apps = False
+    name = 'Mock Provider'
 
 
 @ddt
@@ -206,15 +213,17 @@ class RegistrationTestCase(TestCase):
         self, managed, matching_email, expect_success
     ):
         email = 'uSeR@eXaMpLe.com' if matching_email else 'user@other.com'
-        social_login = SocialLogin(user=User(email=email))
-
         request = RequestFactory().get(reverse('account_login'))
+
+        provider = MockProvider(request=request)
         social_app = SocialApp.objects.create(
             client_id='test.service.id',
             secret='test.service.secret',
             name='Test App',
-            provider='Test App',
+            provider=provider.id,
         )
+        social_login = SocialLogin(user=User(email=email), provider=provider)
+
         custom_data = SocialAppCustomData.objects.create(
             social_app=social_app, managed=managed
         )
@@ -223,3 +232,37 @@ class RegistrationTestCase(TestCase):
         )
         success = get_social_adapter().is_open_for_signup(request, social_login)
         assert success is expect_success
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_registration_closed_with_different_sso(self):
+        # edge case: user tries to register with a different SSO than the
+        # one that manages their domain
+        email = 'uSeR@eXaMpLe.com'
+        request = RequestFactory().get(reverse('account_login'))
+
+        provider = MockProvider(request=request)
+
+        # unrelated social app, used for login (matched by provider)
+        SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test Provider',
+            provider=provider.id,
+        )
+
+        managed_social_app = SocialApp.objects.create(
+            client_id='test.service.id2',
+            secret='test.service.secret2',
+            name='Test App 2',
+            provider='Test App 2',
+        )
+        social_login = SocialLogin(user=User(email=email), provider=provider)
+
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=managed_social_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            domain='example.com', social_app=custom_data
+        )
+        success = get_social_adapter().is_open_for_signup(request, social_login)
+        assert success is False
