@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { ROOT_URL } from '#/constants'
-import { getCsrfToken } from '#/utils'
+import { getCsrfToken, notify } from '#/utils'
 
 /** Django's own `set_language` view, wired up by `django.conf.urls.i18n` (see `kpi/urls/__init__.py`). */
 const SET_LANGUAGE_URL = `${ROOT_URL}/i18n/setlang/`
@@ -24,7 +24,10 @@ async function setInterfaceLanguage(languageCode: string) {
   })
 
   if (!response.ok) {
-    throw new Error(`Could not set language to "${languageCode}": ${response.status} ${response.statusText}`)
+    notify.error(
+      t('Could not set language to ##language_code##').replace('##language_code##', languageCode) +
+        ` ${response.status} ${response.statusText}`,
+    )
   }
 }
 
