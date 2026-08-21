@@ -23,3 +23,29 @@
     }
   }
 }
+
+.root[data-variant='red-light'] {
+  background-color: var(--mantine-color-red-9);
+  color: var(--mantine-color-red-6);
+
+  .remove {
+    color: var(--mantine-color-red-6);
+
+    &:hover {
+      color: var(--mantine-color-red-5);
+    }
+  }
+}
+
+.root[data-variant='teal-light'] {
+  background-color: var(--mantine-color-teal-6);
+  color: var(--mantine-color-teal-2);
+
+  .remove {
+    color: var(--mantine-color-teal-2);
+
+    &:hover {
+      color: var(--mantine-color-teal-3);
+    }
+  }
+}
