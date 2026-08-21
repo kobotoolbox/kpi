@@ -68,7 +68,7 @@ class AccountAdapter(DefaultAccountAdapter):
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
-      def is_open_for_signup(self, request, sociallogin):
+    def is_open_for_signup(self, request, sociallogin):
         email = sociallogin.user.email
         domain = email.split('@')[1].lower()
         app = getattr(sociallogin.provider, 'app', None)
@@ -81,7 +81,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 domain__iexact=domain,
             ).exists()
         return config.REGISTRATION_OPEN or managed_domain
-    
+
     def pre_social_login(self, request, sociallogin):
         """Allow only one linked SSO account per user."""
         # Only the connect flow links a new provider; login/signup are exempt.
