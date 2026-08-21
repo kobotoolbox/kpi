@@ -112,7 +112,9 @@ class JobPeriodFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'all':
             return queryset
-        days = self.period_days[self.value()]
+        days = self.period_days.get(
+            self.value(), self.period_days[self.default_lookup]
+        )
         cutoff = timezone.now() - timedelta(days=days)
         return queryset.filter(date_created__gte=cutoff)
 
