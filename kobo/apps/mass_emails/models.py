@@ -94,7 +94,12 @@ class MassEmailConfig(AbstractTimeStampedModel):
     query = models.CharField(
         null=True, blank=True, max_length=100, choices=USER_QUERY_CHOICES
     )
-    frequency = models.IntegerField(default=-1)
+    frequency = models.IntegerField(
+        default=-1,
+        help_text='-1: one-time email<br />'
+        '1: recurring, sent daily<br />'
+        '&gt;1: recurring, sent every N days',
+    )
     live = models.BooleanField(default=False)
 
     def __str__(self):
