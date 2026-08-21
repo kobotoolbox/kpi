@@ -22765,8 +22765,16 @@ components:
           type:
           - string
           - 'null'
+        managed:
+          type: boolean
+        domains:
+          type: array
+          items:
+            type: string
       required:
       - client_id
+      - domains
+      - managed
       - name
       - provider
       - provider_id
