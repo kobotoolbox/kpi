@@ -1,25 +1,15 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { isSubmissionOngoingInBulkAction } from '#/components/submissions/bulkProcessingUtils'
-import { removeDefaultUuidPrefix } from '#/utils'
 
 interface IsConflictingOngoingJobArgs {
   activeBulkActions: BulkActionResponse[]
   actionType: 'transcript' | 'translation'
   fieldXpath: string
+  /** Must come from `getSubmissionRootUuid`; a raw `_uuid` won't match an edited submission's job. */
   submissionUuid: string
   selectedLanguage?: LanguageCode
-}
-
-/**
- * For lock checks and supplement mutations we use the root UUID form. In this
- * code path `submission` is a `DataResponse`, so `meta/rootUuid` is required,
- * and this helper is just the single place where we strip its prefix.
- */
-export function getSubmissionRootUuid(submission: DataResponse) {
-  return removeDefaultUuidPrefix(submission['meta/rootUuid'])
 }
 
 /**
@@ -40,8 +30,9 @@ function isConflictingAction(
 
   if (action.action_id === ActionIdEnum.automatic_google_translation) {
     // A translation job reads the transcript, so it clashes with editing it.
-    // For translations it only clashes with the language it writes to.
-    return actionType === 'transcript' || action.params.language === selectedLanguage
+    // For translations it clashes with the language it writes to, or with any of
+    // them when the caller hasn't settled on a language yet.
+    return actionType === 'transcript' || !selectedLanguage || action.params.language === selectedLanguage
   }
 
   return false
@@ -61,10 +52,6 @@ export function isConflictingOngoingJobForSubmission(args: IsConflictingOngoingJ
     return false
   }
 
-  if (actionType === 'translation' && !selectedLanguage) {
-    return false
-  }
-
   return activeBulkActions.some((action) => {
     // Different question xpath means a different write target.
     if (action.question_xpath !== fieldXpath) {
@@ -75,6 +62,6 @@ export function isConflictingOngoingJobForSubmission(args: IsConflictingOngoingJ
       return false
     }
 
-    return isSubmissionOngoingInBulkAction(action, [submissionUuid])
+    return isSubmissionOngoingInBulkAction(action, submissionUuid)
   })
 }

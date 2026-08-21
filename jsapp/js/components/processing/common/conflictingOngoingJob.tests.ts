@@ -138,6 +138,99 @@ describe('isConflictingOngoingJobForSubmission', () => {
     chai.expect(result).to.equal(false)
   })
 
+  // The translations tab warns before the user has picked a target language, so
+  // at that point any ongoing translation counts as a conflict.
+  it('returns true for translation with no selected language when any translation is ongoing', () => {
+    const result = isConflictingOngoingJobForSubmission({
+      activeBulkActions: [
+        buildBulkAction(submissionUuid, 'es', {
+          action_id: ActionIdEnum.automatic_google_translation,
+          question_xpath: fieldXpath,
+          status: BulkActionResponseStatusEnum.in_progress,
+        }),
+      ],
+      actionType: 'translation',
+      fieldXpath,
+      submissionUuid,
+    })
+
+    chai.expect(result).to.equal(true)
+  })
+
+  it('returns false for translation with no selected language when the only translation job is done', () => {
+    const result = isConflictingOngoingJobForSubmission({
+      activeBulkActions: [
+        buildBulkAction(submissionUuid, 'es', {
+          action_id: ActionIdEnum.automatic_google_translation,
+          question_xpath: fieldXpath,
+          status: BulkActionResponseStatusEnum.complete,
+        }),
+      ],
+      actionType: 'translation',
+      fieldXpath,
+      submissionUuid,
+    })
+
+    chai.expect(result).to.equal(false)
+  })
+
+  it('returns false for translation with no selected language when the job targets another question', () => {
+    const result = isConflictingOngoingJobForSubmission({
+      activeBulkActions: [
+        buildBulkAction(submissionUuid, 'es', {
+          action_id: ActionIdEnum.automatic_google_translation,
+          question_xpath: 'other_question',
+          status: BulkActionResponseStatusEnum.in_progress,
+        }),
+      ],
+      actionType: 'translation',
+      fieldXpath,
+      submissionUuid,
+    })
+
+    chai.expect(result).to.equal(false)
+  })
+
+  // Whether the target language already has a translation is deliberately not
+  // this helper's business - it only reports running jobs, and the language step
+  // hides already-translated languages. These two pin that down: same job, same
+  // verdict, regardless of what the submission has been translated into.
+  it('ignores whether the selected language already has a translation', () => {
+    const ongoingSpanishJob = [
+      buildBulkAction(submissionUuid, 'es', {
+        action_id: ActionIdEnum.automatic_google_translation,
+        question_xpath: fieldXpath,
+        status: BulkActionResponseStatusEnum.in_progress,
+      }),
+    ]
+
+    // Same language as the job, which is the case where a translation may already exist.
+    chai
+      .expect(
+        isConflictingOngoingJobForSubmission({
+          activeBulkActions: ongoingSpanishJob,
+          actionType: 'translation',
+          fieldXpath,
+          submissionUuid,
+          selectedLanguage: 'es',
+        }),
+      )
+      .to.equal(true)
+
+    // A language the job isn't touching stays free to translate into.
+    chai
+      .expect(
+        isConflictingOngoingJobForSubmission({
+          activeBulkActions: ongoingSpanishJob,
+          actionType: 'translation',
+          fieldXpath,
+          submissionUuid,
+          selectedLanguage: 'de',
+        }),
+      )
+      .to.equal(false)
+  })
+
   it('returns true for translation when ongoing transcription exists on same field and submission', () => {
     const result = isConflictingOngoingJobForSubmission({
       activeBulkActions: [

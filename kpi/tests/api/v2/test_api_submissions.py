@@ -50,7 +50,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
-from kpi.models import Asset
+from kpi.models import Asset, AssetSnapshot
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.utils.mixins import (
     SubmissionDeleteTestCaseMixin,
@@ -1666,6 +1666,72 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self._get_edit_link()
 
     @responses.activate
+    def test_get_edit_link_with_duplicates_in_content(self):
+        self.asset.content = {
+            'survey': [
+                {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'},
+                {
+                    'type': 'text',
+                    'label': 'fixture q1 duplicate',
+                    'name': 'q1',
+                    'kuid': 'def',
+                },
+            ]
+        }
+
+        def force_autoname_no_error(content, **kwargs):
+            # simulate old-style autonaming
+            content['survey'] = [
+                {
+                    'type': 'text',
+                    'label': ['fixture q1'],
+                    'name': 'q1',
+                    'kuid': 'abc',
+                    '$autoname': 'q1',
+                },
+                {
+                    'type': 'text',
+                    'label': ['fixture q1 duplicate'],
+                    'name': 'q1',
+                    'kuid': 'def',
+                    '$autoname': 'q1_001',
+                    '$given_name': 'q1',
+                },
+                {
+                    'name': '__version__',
+                    'calculation': "'vttkbu4G8hbjC8ST3s8B8S'",
+                    'type': 'calculate',
+                    '$autoname': '__version__',
+                },
+            ]
+
+        with mock.patch.object(
+            self.asset, '_autoname', side_effect=force_autoname_no_error
+        ):
+            self.asset.save()
+            self.asset.deploy()
+        uuid_ = uuid.uuid4()
+        submission = {
+            'q1': ''.join(random.choice(string.ascii_letters) for letter in range(10)),
+            'q1_001': ''.join(
+                random.choice(string.ascii_letters) for letter in range(10)
+            ),
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': 'someuser',
+        }
+
+        self.asset.deployment.mock_submissions([submission])
+        self.submission = submission
+        self._get_edit_link()
+
+        # `_get_edit_link()` only proves the endpoint answered 200; the XML the
+        # snapshot exposes to Enketo is what actually matters here
+        snapshot = AssetSnapshot.objects.filter(asset=self.asset).latest('date_created')
+        assert snapshot.details['status'] == 'success'
+        assert 'q1_001' in snapshot.xml
+
+    @responses.activate
     def test_get_edit_submission_redirect_as_owner(self):
         """
         someuser is the owner of the project.
@@ -1955,7 +2021,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # name will be the name saved in the settings of the asset version.
         snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=submission_root_uuid
+            submission_uuid=submission_root_uuid,
         )
 
         (
@@ -1986,7 +2052,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Validate a new snapshot has been generated for the same criteria
         new_snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=submission_root_uuid
+            submission_uuid=submission_root_uuid,
         )
         assert new_snapshot.pk != snapshot.pk
 
@@ -2295,9 +2361,9 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         snapshot = asset.snapshot(
             regenerate=True,
-            root_node_name=xml_root_node_name,
             version_uid=version_uid,
             submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+            root_node_name=xml_root_node_name,
         )
 
         edit_submission_xml(
@@ -3038,6 +3104,48 @@ class SubmissionDuplicateApiTests(
         # submission XML
         assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH not in response.data
         assert 'deprecatedID' not in duplicated_instance.xml
+
+    def test_duplicate_submission_attachment_uses_own_root_uuid(self):
+        """
+        The duplicate's attachment must be stored under a folder named
+        after the duplicate's own root_uuid, not the source submission's.
+        """
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'foo',
+            'meta/instanceID': f'uuid:{uuid.uuid4()}',
+            '_attachments': [{'filename': 'IMG_4266-11_38_22.jpg'}],
+        }
+        self.asset.deployment.mock_submissions([submission])
+
+        source_instance = Instance.objects.get(pk=submission['_id'])
+        source_attachment = source_instance.attachments.get()
+        assert (
+            source_attachment.media_file.name.split('/')[-2]
+            == source_instance.root_uuid
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+
+        duplicated_instance = Instance.objects.get(pk=response.data['_id'])
+        duplicated_attachment = duplicated_instance.attachments.get()
+
+        assert duplicated_instance.root_uuid != source_instance.root_uuid
+        assert (
+            duplicated_attachment.media_file.name.split('/')[-2]
+            == duplicated_instance.root_uuid
+        )
+        assert (
+            duplicated_attachment.media_file.name != source_attachment.media_file.name
+        )
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

@@ -148,6 +148,52 @@ class KobocatProfileException(Exception):
     pass
 
 
+class MailerError(Exception):
+    """
+    A message could not be sent
+    """
+
+
+class MailerProviderThrottledError(MailerError):
+    """
+    The provider's response matched a catalogued throttling/quota signature
+    """
+
+
+class MailerProviderQuotaExhaustedError(MailerProviderThrottledError):
+    """
+    The provider is refusing until a quota resets. Not worth retrying today.
+    """
+
+
+class MailerProviderRateThrottledError(MailerProviderThrottledError):
+    """
+    The provider is asking us to slow down, unlike a hard quota.
+
+    Should be rare in practice: `MassEmailSender.send_day_emails()` already
+    paces sends against a per-second budget kept under the provider's real
+    limit, so the provider itself shouldn't need to say "slow down" except
+    for unaccounted-for traffic sharing the same account (e.g. transactional
+    email) or a misconfigured `MASS_EMAIL_THROTTLE_PER_SECOND`.
+
+    TODO(DEV-2693): currently handled exactly like
+    `MailerProviderQuotaExhaustedError`, which defeats the point of having
+    two separate exceptions. Needs a real, non-blocking cooldown.
+    """
+
+
+class MailerConnectionSessionLimitError(MailerError):
+    """
+    The provider closed the connection after hitting its per-session
+    message cap.
+
+    Not account-wide like a rate/quota throttle: the connection is already
+    reconnected by the time this is raised (see `Mailer._send_single()`),
+    so the caller should skip this one record and keep going, not stop the
+    whole run.
+    """
+
+
 class MissingXFormException(Exception):
     pass
 
@@ -174,6 +220,11 @@ class QueryParserBadSyntax(InvalidSearchException):
 class QueryParserNotSupportedFieldLookup(InvalidSearchException):
     default_detail = t('Not supported field lookup')
     default_code = 'not_supported_field_lookup'
+
+
+class QueryParserTooManyRelationalFilters(InvalidSearchException):
+    default_detail = t('Too many relational filters in the search query')
+    default_code = 'query_parser_too_many_relational_filters'
 
 
 class ReadOnlyModelError(Exception):

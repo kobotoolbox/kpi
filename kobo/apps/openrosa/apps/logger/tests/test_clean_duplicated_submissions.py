@@ -3,7 +3,6 @@ import uuid as uuid_module
 
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.utils import timezone
 
@@ -55,16 +54,22 @@ class TestCleanDuplicatedSubmissions(TestBase):
 
     # ------------------------------------------------------------------ helpers
     def _add_attachment(self, instance):
-        fake_file = SimpleUploadedFile(
-            'test.txt', b'content', content_type='text/plain'
-        )
-        return Attachment.objects.create(
+        """
+        Insert an Attachment row directly via bulk_create, bypassing save()
+        (and its `generate_attachment_filename` call, which requires
+        `instance.root_uuid`) since these rows simulate attachments already
+        present in storage from before root_uuid existed.
+        """
+        attachment = Attachment(
             instance=instance,
             xform=self.xform,
-            media_file=fake_file,
+            user=self.user,
+            media_file=f'attachments/legacy-{uuid_module.uuid4()}.txt',
             mimetype='text/plain',
             media_file_size=7,
         )
+        Attachment.objects.bulk_create([attachment])
+        return attachment
 
     def _add_parsed_instance(self, instance):
         parsed, _ = ParsedInstance.objects.get_or_create(instance=instance)

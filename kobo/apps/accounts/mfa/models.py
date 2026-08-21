@@ -1,14 +1,12 @@
 # coding: utf-8
-from allauth.mfa.models import Authenticator
 from allauth.mfa.base.internal.flows import delete_and_cleanup
+from allauth.mfa.models import Authenticator
 from constance import config
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.http import HttpRequest
 from django.utils.timezone import now
-from trench.admin import MFAMethod as TrenchMFAMethod
-from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
@@ -103,10 +101,6 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
                     id=recovery_codes_id, user_id=user_id
                 ).delete()
 
-            # ToDo: Remove this Trench cleanup once the long-running MFA migration
-            #  is complete and Trench is fully removed from the codebase
-            MfaMethod.objects.filter(user_id=user_id, name=self.name).delete()
-
     def deactivate(self, request: HttpRequest | None = None):
         if config.SUPERUSER_AUTH_ENFORCEMENT and self.user.is_superuser:
             raise ValidationError(
@@ -139,64 +133,3 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         self.totp_id = None
         self.recovery_codes = None
         self.recovery_codes_id = None
-
-
-class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
-    """
-    Extend DjangoTrench model to add created, modified and last disabled date
-    """
-
-    class Meta:
-        verbose_name = 'Trench MFA Method'
-        verbose_name_plural = 'Trench MFA Methods'
-
-    date_disabled = models.DateTimeField(null=True)
-
-    def __str__(self):
-        return f'{self.user.username} #{self.user_id} (MFA Method: {self.name})'
-
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None,
-    ):
-        created = self.pk is None
-
-        if not self.is_active and not self.date_disabled:
-            self.date_disabled = now()
-
-        if self.is_active and self.date_disabled:
-            self.date_disabled = None
-
-        if update_fields:
-            update_fields += ['date_disabled']
-
-        super().save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
-
-        """
-        Update user's profile in KoBoCAT database.
-        """
-        if not settings.TESTING and not created:
-            UserProfile.set_mfa_status(user_id=self.user.pk, is_active=self.is_active)
-
-    def delete(self, using=None, keep_parents=False):
-        user_id = self.user.pk
-        super().delete(using, keep_parents)
-
-        """
-        Update user's profile in KoboCAT database.
-        """
-        if not settings.TESTING:
-            UserProfile.set_mfa_status(user_id=user_id, is_active=False)
-
-
-class ExtendedTrenchMfaMethodAdmin(TrenchMFAMethodAdmin):
-
-    search_fields = ('user__username',)
-    autocomplete_fields = ['user']
-
-    def has_add_permission(self, request, obj=None):
-        return False

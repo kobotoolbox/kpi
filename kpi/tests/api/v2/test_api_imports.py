@@ -117,6 +117,35 @@ class AssetImportTaskTest(BaseTestCase):
             task_data
         )
 
+    def _import_sheets(self, sheets, name, asset=None):
+        """
+        Import `sheets` into `asset`, or into a brand-new survey when no asset
+        is given, and return the asset as stored in the database.
+        """
+        task_data = self._construct_xlsx_for_import(sheets, name=name)
+        if asset is None:
+            empty_asset = self.client.post(
+                reverse(self._get_endpoint('asset-list')),
+                data={'asset_type': 'survey'},
+                headers={'accept': 'application/json'},
+            )
+            task_data['destination'] = empty_asset.json()['url']
+        else:
+            task_data['destination'] = reverse(
+                self._get_endpoint('asset-detail'),
+                kwargs={'uid_asset': asset.uid},
+            )
+
+        response = self.client.post(
+            reverse(self._get_endpoint('importtask-list')), task_data
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
+        return Asset.objects.get(
+            uid=detail_response.data['messages']['updated'][0]['uid']
+        )
+
     @responses.activate
     def test_import_asset_from_xls_url(self):
         # Host the XLS on a mock HTTP server
@@ -992,6 +1021,136 @@ class AssetImportTaskTest(BaseTestCase):
                 'but only these translations are present in the form:'
             )
         )
+
+    def test_reimport_xls_drops_language_removed_from_the_file(self):
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        [
+                            'type',
+                            'name',
+                            'label::English (en)',
+                            'label::French (fr)',
+                            'label::Spanish (es)',
+                        ],
+                        ['integer', 'age', 'Age?', 'Âge ?', '¿Edad?'],
+                    ],
+                ),
+            ),
+            'Three languages',
+        )
+        assert asset.content['translations'] == [
+            'English (en)',
+            'French (fr)',
+            'Spanish (es)',
+        ]
+
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'label::French (fr)'],
+                        ['integer', 'age', 'Age?', 'Âge ?'],
+                    ],
+                ),
+            ),
+            'Two languages',
+            asset=asset,
+        )
+        assert asset.content['translations'] == ['English (en)', 'French (fr)']
+        assert asset.summary['languages'] == ['English (en)', 'French (fr)']
+        assert asset.content['survey'][0]['label'] == ['Age?', 'Âge ?']
+
+    def test_reimport_xls_without_languages_resets_to_no_language(self):
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'label::French (fr)'],
+                        ['integer', 'age', 'Age?', 'Âge ?'],
+                    ],
+                ),
+            ),
+            'Two languages',
+        )
+        assert asset.content['translations'] == ['English (en)', 'French (fr)']
+
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label'],
+                        ['integer', 'age', 'Age?'],
+                    ],
+                ),
+            ),
+            'No language',
+            asset=asset,
+        )
+        assert asset.content['translations'] == [None]
+        # `[None]` is normalized to `[]` in the summary, i.e. no language
+        assert asset.summary['languages'] == []
+        assert asset.content['survey'][0]['label'] == ['Age?']
+
+    def test_reimport_xls_keeps_language_left_in_a_hint_column_only(self):
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'label::French (fr)'],
+                        ['integer', 'age', 'Age?', 'Âge ?'],
+                    ],
+                ),
+            ),
+            'Two languages',
+        )
+
+        # `label::French (fr)` is gone, but the language is still used by
+        # another column, so it must survive
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'hint::French (fr)'],
+                        ['integer', 'age', 'Age?', 'En années'],
+                    ],
+                ),
+            ),
+            'Partially translated',
+            asset=asset,
+        )
+        assert asset.content['translations'] == ['English (en)', 'French (fr)']
+        assert asset.content['survey'][0]['label'] == ['Age?', None]
+        assert asset.content['survey'][0]['hint'] == [None, 'En années']
+
+    def test_reimport_xls_ignores_language_suffix_in_settings_sheet(self):
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)'],
+                        ['integer', 'age', 'Age?'],
+                    ],
+                ),
+                (
+                    'settings',
+                    [
+                        ['form_title::French (fr)'],
+                        ['Mon projet'],
+                    ],
+                ),
+            ),
+            'Language in the settings sheet',
+        )
+        assert asset.content['translations'] == ['English (en)']
 
     def test_import_strip_newline_from_form_title_setting(self):
         survey_sheet_content = [

@@ -31,12 +31,13 @@ import {
   type ExportFormatOption,
   getContextualDefaultExportFormat,
   getExportFormatOptions,
+  preserveApiOnlySettings,
 } from '#/components/projectDownloads/exportsUtils'
 import { openDeleteExportSettingModal } from '#/components/projectDownloads/openDeleteExportSettingModal'
-import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { getColumnLabel, orderColumns } from '#/components/submissions/tableUtils'
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery } from '#/dataInterface'
-import { createDateQuery, formatTimeDate, notify, recordEntries, recordKeys, recordValues } from '#/utils'
+import { createDateQuery, formatTimeDate, notify, recordKeys, recordValues } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
@@ -108,7 +109,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
     allRows = new Set(injectSupplementalRowsIntoListOfRows(props.asset, allRows))
 
-    return allRows
+    // Order these the same way as Data Table does (see `orderColumns`), so that
+    // users pick fields from a familiar looking list. Note that the list itself
+    // is wider than Data Table's on purpose - some props are worth exporting
+    // even though we never show them as columns.
+    return new Set(orderColumns(props.asset, Array.from(allRows)))
   }
 
   function getInitialState(): ProjectExportsCreatorState {
@@ -223,9 +228,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       isSaveCustomExportEnabled: typeof data.name === 'string' && data.name.length >= 1,
       customExportName: data.name,
       isCustomSelectionEnabled: customSelectionEnabled,
-      isFlattenGeoJsonEnabled: data.export_settings.flatten,
-      isXlsTypesAsTextEnabled: data.export_settings.xls_types_as_text,
-      isIncludeMediaUrlEnabled: data.export_settings.include_media_url,
+      // Only some export types store these, so a setting saved for another type
+      // leaves them undefined - use the defaults instead.
+      isFlattenGeoJsonEnabled: data.export_settings.flatten ?? DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
+      isXlsTypesAsTextEnabled: data.export_settings.xls_types_as_text ?? DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
+      isIncludeMediaUrlEnabled: data.export_settings.include_media_url ?? DEFAULT_EXPORT_SETTINGS.INCLUDE_MEDIA_URL,
       selectedRows: newSelectedRows,
     }
 
@@ -372,14 +379,13 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       (definedExport) => definedExport.data?.name === payload.name,
     )
 
+    // We are about to overwrite that saved setting with this payload, so first
+    // take over the options it holds that this form has no field for.
     if (foundDefinedExport?.data) {
-      // Keep backend-only fields from existing settings payloads so updating one
-      // option does not accidentally drop older settings fields.
-      recordEntries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
-        if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
-          payload.export_settings[key] = value as never
-        }
-      })
+      payload.export_settings = preserveApiOnlySettings(
+        payload.export_settings,
+        foundDefinedExport.data.export_settings,
+      )
     }
 
     mergeState({ isPending: true })

@@ -1,6 +1,5 @@
 import logging
 import os
-import string
 import subprocess
 import warnings
 from datetime import timedelta
@@ -131,7 +130,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'trench',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -167,6 +165,7 @@ MIDDLEWARE = [
     'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.OpenRosaTrailingSlashMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -634,6 +633,14 @@ CONSTANCE_CONFIG = {
         'Number of days before enqueued mass email records are marked as failed.',
         'positive_int',
     ),
+    'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS': (
+        12,
+        'Number of hours an enqueued mass email record can sit before it is '
+        're-checked against its MassEmailConfig criteria at send time. '
+        'Records still matching are sent normally; records that no longer '
+        'match are marked stale.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -769,6 +776,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'USE_TEAM_LABEL',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
@@ -1793,6 +1801,7 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
+SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
@@ -1845,9 +1854,17 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-MAX_MASS_EMAILS_PER_DAY = 1000
-MASS_EMAIL_THROTTLE_PER_SECOND = 40
-MASS_EMAIL_SLEEP_SECONDS = 1
+# Size these to the SMTP provider actually configured for this deployment
+# (one provider at a time).
+# See kpi.utils.mailer.Mailer and kobo.apps.mass_emails.tasks.MassEmailSender.
+MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
+# This throttle applies only to mass email, not to transactional email
+# (e.g. forgot password). Set it well under the provider's real per-second
+# limit so there's still headroom left for transactional email, which
+# shares the same provider account but doesn't go through this throttle.
+MASS_EMAIL_THROTTLE_PER_SECOND = env.float('MASS_EMAIL_THROTTLE_PER_SECOND', 10)
+# Margin under the provider's SMTP idle timeout.
+MAILER_CONNECTION_IDLE_TIMEOUT = env.int('MAILER_CONNECTION_IDLE_TIMEOUT', 10)
 # change the interval between "daily" email sends for testing. this will set both
 # the frequency of the task and the expiry time of the cached email limits. should
 # only be True on small testing instances
@@ -2198,32 +2215,6 @@ MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
 
-TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
-    'USER_ACTIVE_FIELD': 'is_active',
-    'BACKUP_CODES_QUANTITY': 5,
-    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
-    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
-    'DEFAULT_VALIDITY_PERIOD': 30,
-    'ENCRYPT_BACKUP_CODES': True,
-    'SECRET_KEY_LENGTH': 32,
-    'CONFIRM_DISABLE_WITH_CODE': True,
-    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
-    'ALLOW_BACKUP_CODES_REGENERATION': True,
-    'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
-    },
-    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
-}
-
-
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
@@ -2231,6 +2222,11 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
+
+# Max to-many lookups in a single `q` search: each becomes its own EXISTS
+# subquery, so an unbounded count lets a search fan out.
+# See `kpi.utils.query_parser`.
+QUERY_PARSER_MAX_TO_MANY_FILTERS = 10
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -2387,6 +2383,7 @@ LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
 S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
+USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100

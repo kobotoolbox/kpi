@@ -4,10 +4,11 @@ import { getSupplementalPathParts } from '#/components/processing/processingUtil
 import {
   getOngoingBulkActionSubmissionUuids,
   hasTranscribableAudio,
+  hasTranscriptInAnyLanguage,
   hasTranslatableTranscript,
 } from '#/components/submissions/bulkProcessingUtils'
 import { hasUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 
 /**
@@ -149,14 +150,10 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     getOngoingBulkActionSubmissionUuids(job).forEach((uuid) => conflictingUuids.add(uuid))
   })
 
-  // Bulk actions are keyed by root uuid, so check both uuids of each submission.
+  // Job submission uuids are root uuids, so map before comparing.
   const filteredSubmissionUuids = submissions
-    .filter((submission) =>
-      [submission._uuid, submission['meta/rootUuid']].some(
-        (uuid) => uuid && conflictingUuids.has(removeDefaultUuidPrefix(uuid)),
-      ),
-    )
-    .map((submission) => submission._uuid)
+    .map(getSubmissionRootUuid)
+    .filter((submissionRootUuid) => conflictingUuids.has(submissionRootUuid))
 
   if (filteredSubmissionUuids.length === 0) {
     return null
@@ -183,7 +180,7 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
@@ -195,7 +192,7 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
         : hasTranslatableTranscript(submission, fieldXpath)
 
     if (!hasSource) {
-      missingSource.push(submission._uuid)
+      missingSource.push(getSubmissionRootUuid(submission))
     }
   })
 
@@ -218,20 +215,18 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
 
-  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
   const alreadyTranscribed: string[] = []
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
-    const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
-    const hasTranscript = Boolean(transcript?.value || transcript?.pendingReview)
-
-    if (hasTranscript) {
-      alreadyTranscribed.push(submission._uuid)
+    // Same check the transcription modal uses for its quota estimate, so the two
+    // can't disagree on which rows get skipped.
+    if (hasTranscriptInAnyLanguage(submission, fieldXpath)) {
+      alreadyTranscribed.push(getSubmissionRootUuid(submission))
     }
   })
 
@@ -270,7 +265,7 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
@@ -279,7 +274,7 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     const translation = supplementalDetails?.translation?.[selectedLanguage]
 
     if (translation?.value) {
-      alreadyTranslated.push(submission._uuid)
+      alreadyTranslated.push(getSubmissionRootUuid(submission))
       totalCharacters += translation.value.length
     }
   })
@@ -313,12 +308,12 @@ export function evaluateAlreadyApproved(context: AlertEvaluationContext): AlertE
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
     if (!hasUnacceptedAutomaticContent(submission, fieldXpath)) {
-      alreadyApproved.push(submission._uuid)
+      alreadyApproved.push(getSubmissionRootUuid(submission))
     }
   })
 

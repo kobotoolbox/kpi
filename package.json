@@ -210,7 +210,10 @@
     },
     "storybook": "$storybook",
     "coffee-script": "$coffeescript",
-    "minimist": "^1.2.6"
+    "minimist": "^1.2.6",
+    "orval": {
+      "js-yaml": "^4.3.1"
+    }
   },
   "scripts": {
     "preinstall": "npm run hint",
@@ -237,6 +240,7 @@
     "lint:types": "tsc -p tsconfig.json --noEmit",
     "lint:css": "stylelint 'jsapp/**/*.{css,scss}' --ip jsapp/compiled --ip jsapp/fonts",
     "lint:coffee": "coffeelint -f ./coffeelint.json jsapp/xlform/src test",
+    "lint:error-bundle": "node ./scripts/check_error_bundle_isolation.js",
     "fix": "npm run fix:biome && npm run fix:css && npm run fix:eslint",
     "fix:biome": "npm run lint:biome -- --fix",
     "fix:eslint": "npm run lint:eslint -- --fix",

@@ -14,7 +14,7 @@ from kpi.deployment_backends.kc_access.storage import (
 class Export(models.Model):
     class ExportTypeError(Exception):
         def __str__(self):
-            return t("Invalid export type specified")
+            return t('Invalid export type specified')
 
     XLS_EXPORT = 'xls'
     CSV_EXPORT = 'csv'
@@ -60,8 +60,8 @@ class Export(models.Model):
     export_url = models.URLField(null=True, default=None)
 
     class Meta:
-        app_label = "viewer"
-        unique_together = (("xform", "filename"),)
+        app_label = 'viewer'
+        unique_together = (('xform', 'filename'),)
 
     def save(self, *args, **kwargs):
         if not self.pk and self.xform:

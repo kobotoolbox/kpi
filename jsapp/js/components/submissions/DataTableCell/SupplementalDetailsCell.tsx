@@ -4,7 +4,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '#/utils'
 import { getSupplementalDetailsContent, hasUnacceptedAutomaticContent } from '../submissionUtils'
 import TextModalCell from './TextModalCell'
 
@@ -32,7 +32,7 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
 
   const handleReviewClick = () => {
     const pathParts = getSupplementalPathParts(props.columnKey)
-    const submissionEditId = removeDefaultUuidPrefix(props.submission['meta/rootUuid']) || props.submission._uuid
+    const submissionEditId = getSubmissionRootUuid(props.submission)
 
     // Determine the target tab based on content type
     const targetTab = pathParts.type === 'transcript' ? ProcessingTab.Transcript : ProcessingTab.Translations

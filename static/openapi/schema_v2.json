@@ -12759,7 +12759,7 @@
         "/api/v2/organizations/{uid_organization}/members/": {
             "get": {
                 "operationId": "api_v2_organizations_members_list",
-                "description": "## List Members\n\nRetrieves all members in the specified organization.\n",
+                "description": "## List Members\n\nRetrieves all members and pending invitations in the specified organization.\n\n### Sorting\n\nResults can be sorted with the `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`, `created`)\n- `role` (sorted by privilege rank: `member` → `admin` → `owner`)\n- `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -12778,6 +12778,30 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "ordering",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "-created",
+                                "-date_added",
+                                "-date_joined",
+                                "-role",
+                                "-status",
+                                "-user__has_sso_enabled",
+                                "-user__username",
+                                "created",
+                                "date_added",
+                                "date_joined",
+                                "role",
+                                "status",
+                                "user__has_sso_enabled",
+                                "user__username"
+                            ]
+                        },
+                        "description": "Which field to use when ordering the results. Note: `role` sorts by privilege rank (`member` → `admin` → `owner`)."
                     },
                     {
                         "name": "start",
@@ -26969,40 +26993,78 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "$ref": "#/components/schemas/MemberRoleEnum"
+                        "oneOf": [
+                            {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/MemberRoleEnum"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "url": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri",
                         "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/"
                     },
                     "user": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri",
                         "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
                     },
                     "user__username": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "user__email": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "email"
                     },
                     "user__extra_details__name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "user__has_mfa_enabled": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "user__has_sso_enabled": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "date_joined": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time"
                     },
                     "user__is_active": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "invite": {
                         "oneOf": [

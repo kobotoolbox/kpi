@@ -185,7 +185,10 @@ class TableStore extends Reflux.Store {
   /** Returns a list of columns that user can hide */
   getHideableColumns(asset: AssetResponse, submissions: SubmissionResponse[], bulkActions?: BulkActionResponse[]) {
     const columns = getAllDataColumns(asset, submissions, bulkActions)
-    columns.push(VALIDATION_STATUS_ID_PROP)
+    // Validation status is not submission data, so `getAllDataColumns` doesn't
+    // return it, but users still get to hide this column. It goes first, to
+    // match its position in Data Table.
+    columns.unshift(VALIDATION_STATUS_ID_PROP)
     return columns
   }
 

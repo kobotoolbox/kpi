@@ -236,6 +236,7 @@ export default class MetadataEditor extends React.Component {
                   : t('Enable audio recording in the background')
               }
               disabled={this.props.isDisabled}
+              className='form-builder-aside__switch'
             />
           </bem.FormModal__item>
         </bem.FormBuilderMeta__row>

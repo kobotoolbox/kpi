@@ -5,6 +5,7 @@ from collections.abc import Callable, Generator, Iterator
 from io import StringIO
 from typing import Any
 
+import formpack
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
@@ -14,10 +15,10 @@ from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework.request import Request
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
-import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.paginators import DefaultPagination
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -420,5 +421,5 @@ class XlsRenderer(renderers.BaseRenderer):
         return asset.to_xlsx_io(
             versioned=False,
             kobo_specific_types=self.kobo_specific_types,
-            raise_on_autoname_error=False,
+            handle_duplicates=HandleDuplicatesOptions.IGNORE,
         )

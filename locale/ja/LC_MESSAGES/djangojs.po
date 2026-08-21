@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 14:15+0000\n"
+"POT-Creation-Date: 2026-08-20 15:15+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
 "Language-Team: Japanese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ja/)\n"
@@ -1330,7 +1330,7 @@ msgid "Clone of"
 msgstr "の複製"
 
 #: jsapp/js/assetQuickActions.tsx:147
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:277
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:278
 #: jsapp/js/components/formLanding/FormHistory.tsx:154 jsapp/js/mixins.tsx:113
 msgid "Clone"
 msgstr "複製"
@@ -2170,50 +2170,50 @@ msgid ""
 "account-wide setting. Click the icon to learn more."
 msgstr "このプロジェクトで匿名提出を許可する。これは以前はアカウント単位の設定でした。アイコンをクリックして詳細をご確認ください。"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:95
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:89
 msgid "More actions"
 msgstr "その他の操作"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:102
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:96
 msgid "Manage translations"
 msgstr "翻訳の管理"
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:97
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:100
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:98
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:101
 msgid "Failed to load asset. Please try again."
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:193
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:194
 msgid "Subscribe"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:199
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:200
 msgid "Unsubscribe"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:235
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:236
 msgid "Edit in Form Builder"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:244
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:245
 msgid "Modify details"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:255
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:256
 msgid "Edit Tags"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:266
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:267
 msgid "Share"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:288
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:289
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:148
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:218
 msgid "Create project"
 msgstr "プロジェクトを作成"
 
-#: jsapp/js/components/assetsTable/assetActionButtons.tsx:302
+#: jsapp/js/components/assetsTable/assetActionButtons.tsx:303
 msgid "View containing Collection"
 msgstr ""
 
@@ -2817,30 +2817,30 @@ msgstr "活動"
 msgid "XForm is loading"
 msgstr "エクスフォームを読み込み中"
 
-#: jsapp/js/components/header/accountMenu.tsx:48
+#: jsapp/js/components/header/accountMenu.tsx:51
 msgid "Please refresh the page"
 msgstr "ページを更新してください"
 
-#: jsapp/js/components/header/accountMenu.tsx:104
+#: jsapp/js/components/header/accountMenu.tsx:97
 msgid "Account Settings"
 msgstr "アカウント設定"
 
-#: jsapp/js/components/header/accountMenu.tsx:114
+#: jsapp/js/components/header/accountMenu.tsx:107
 msgid "Terms of Service"
 msgstr "サービスの利用規約"
 
-#: jsapp/js/components/header/accountMenu.tsx:119
+#: jsapp/js/components/header/accountMenu.tsx:112
 msgid "Privacy Policy"
 msgstr "プライバシーポリシー"
 
-#: jsapp/js/components/header/accountMenu.tsx:127
+#: jsapp/js/components/header/accountMenu.tsx:126
 #: jsapp/js/components/map/index.tsx:1279
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:235
 #: jsapp/js/components/submissions/submissionModal.tsx:432
 msgid "Language"
 msgstr "言語"
 
-#: jsapp/js/components/header/accountMenu.tsx:135
+#: jsapp/js/components/header/accountMenu.tsx:151
 msgid "Logout"
 msgstr "ログアウト"
 
@@ -2931,7 +2931,7 @@ msgstr "XLSのインポートが完了しました"
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:176
 #: jsapp/js/dropzone.utils.tsx:240
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:594
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:609
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:611
 msgid "Import Failed!"
 msgstr "インポートに失敗しました！"
 
@@ -6279,19 +6279,19 @@ msgstr "インポート後、プロジェクトの再読み込みに失敗しま
 msgid "Could not initialize XLSForm import!"
 msgstr "XLSFormのインポートを初期化できませんでした！"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:640
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:642
 msgid "Failed to reload project after upload!"
 msgstr "アップロード後、プロジェクトの再読み込みに失敗しました！"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:651
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:653
 msgid "Could not import XLSForm!"
 msgstr "XLSFormをインポートできませんでした！"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:669
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:671
 msgid "Some fields contain errors!"
 msgstr "いくつかの項目にエラーが含まれています！"
 
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:696
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:698
 msgid ""
 "Form replacing is not available due to form's Locking Profile restrictions."
 msgstr "フォームのロックプロファイルの制限により、フォームの置き換えはできません。"
