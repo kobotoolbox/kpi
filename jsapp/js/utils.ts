@@ -177,13 +177,14 @@ export function formatMonth(timeStr: string, localize = true): string {
   return formatDate(timeStr, localize, 'MMMM YYYY')
 }
 
-/** Returns something like "07:59" */
+/** Returns something like "00:07:59" */
 export function formatSeconds(seconds: number) {
   // We don't care about milliseconds (sorry!).
   const secondsRound = Math.round(seconds)
-  const minutes = Math.floor(secondsRound / 60)
-  const secondsLeftover = secondsRound - minutes * 60
-  return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`
+  const hours = Math.floor(secondsRound / 3600)
+  const minutes = Math.floor((secondsRound % 3600) / 60)
+  const secondsLeftover = secondsRound % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`
 }
 
 /*
