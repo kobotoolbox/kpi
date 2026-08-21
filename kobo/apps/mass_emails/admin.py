@@ -135,6 +135,7 @@ class MassEmailJobAdmin(admin.ModelAdmin):
     list_filter = (JobPeriodFilter, 'email_config')
     list_select_related = ('email_config',)
     ordering = ('-date_created',)
+    show_facets = admin.ShowFacets.NEVER
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
