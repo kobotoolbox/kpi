@@ -1,7 +1,7 @@
 import './AudioCell.scss'
 
 import { Group, Text } from '@mantine/core'
-import { IconArrowsDiagonal, IconLanguage, IconPencilStar, IconVolume } from '@tabler/icons-react'
+import { IconArrowsDiagonal, IconPencilStar, IconVolume } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
@@ -25,6 +25,8 @@ interface AudioCellProps {
   submissionData: SubmissionResponse
   /** Required by the mini player. String passed is an error message */
   mediaAttachment: SubmissionAttachment | string
+  /** The question label, as displayed in the column header. */
+  questionLabel: string
 }
 
 /**
@@ -37,9 +39,7 @@ export default function AudioCell(props: AudioCellProps) {
   const attachmentUid = typeof props.mediaAttachment === 'string' ? undefined : props.mediaAttachment?.uid
   const durationSeconds = useAttachmentDuration(attachmentUid)
 
-  // TODO: temporary, for testing ProcessingPromptModal - remove once the real
-  // action button that opens this dialog is implemented (in another PR).
-  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const downloadUrl = typeof props.mediaAttachment === 'string' ? undefined : props.mediaAttachment?.download_url
 
   return (
@@ -62,8 +62,7 @@ export default function AudioCell(props: AudioCellProps) {
               tooltip={t('View details')}
               icon={IconArrowsDiagonal}
               size='sm'
-              // TODO(DEV-2370): open the audio response details dialog
-              onClick={() => {}}
+              onClick={() => setIsDetailsDialogOpen(true)}
               ms='sm'
             />
             <ActionIcon
@@ -78,36 +77,23 @@ export default function AudioCell(props: AudioCellProps) {
           </>
         )}
 
-      {/* TODO: temporary test button for ProcessingPromptModal - remove once the real action button lands. */}
       {downloadUrl && (
-        <>
-          <ActionIcon
-            variant='transparent'
-            tooltip={t('Test dialog')}
-            icon={IconVolume}
-            size='sm'
-            onClick={() => setIsTestDialogOpen(true)}
-          />
-
-          <ProcessingPromptModal
-            opened={isTestDialogOpen}
-            onClose={() => setIsTestDialogOpen(false)}
-            title={
-              <Group gap='xs'>
-                <KoboIcon icon={IconVolume} size='sm' color='storm' />
-                <Text fw={600}>{t('Tell us more about your experience')}</Text>
-              </Group>
-            }
-            actionLabel={t('Translate & analyze')}
-            actionIcon={IconLanguage}
-            onAction={() => {
-              setIsTestDialogOpen(false)
-              goToProcessing(props.assetUid, props.xpath, submissionEditId)
-            }}
-          >
-            <AudioPlayer mediaURL={downloadUrl} />
-          </ProcessingPromptModal>
-        </>
+        <ProcessingPromptModal
+          opened={isDetailsDialogOpen}
+          onClose={() => setIsDetailsDialogOpen(false)}
+          title={
+            <Group gap='xs'>
+              <KoboIcon icon={IconVolume} size='sm' color='storm' />
+              <Text fw={600}>{props.questionLabel}</Text>
+            </Group>
+          }
+          onAction={() => {
+            setIsDetailsDialogOpen(false)
+            goToProcessing(props.assetUid, props.xpath, submissionEditId)
+          }}
+        >
+          <AudioPlayer mediaURL={downloadUrl} />
+        </ProcessingPromptModal>
       )}
     </bem.AudioCell>
   )
