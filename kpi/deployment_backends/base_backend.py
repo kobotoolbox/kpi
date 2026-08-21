@@ -39,6 +39,7 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
@@ -929,7 +930,8 @@ class BaseDeploymentBackend(abc.ABC):
             )
 
             # Retrieve XPath and add it to attachment dictionary
-            basename = os.path.basename(attachment['filename'])
+            # Keys in `filenames_and_xpaths` are NFC; normalize the lookup too
+            basename = normalize_nfc(os.path.basename(attachment['filename']))
             attachment['question_xpath'] = filenames_and_xpaths.get(
                 basename,
                 filenames_and_xpaths.get(self._without_suffix(basename), ''),

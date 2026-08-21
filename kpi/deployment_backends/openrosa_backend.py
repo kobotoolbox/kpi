@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta
@@ -567,8 +568,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             if element is None:
                 raise XPathNotFoundException
             attachment_filename = element.text
+            # Legacy DB rows may store the basename in either normalization
+            # form, so match against both NFC and NFD variants
+            basenames = {attachment_filename}
+            if attachment_filename:
+                basenames.add(unicodedata.normalize('NFC', attachment_filename))
+                basenames.add(unicodedata.normalize('NFD', attachment_filename))
             filters = {
-                'media_file_basename': attachment_filename,
+                'media_file_basename__in': basenames,
             }
         else:
             filters = {}

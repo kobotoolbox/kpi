@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+import unicodedata
 import uuid
 from unittest.mock import patch
 
@@ -17,6 +18,7 @@ from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
+from kobo.apps.openrosa.libs.utils.logger_tools import get_soft_deleted_attachments
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
 
 
@@ -458,6 +460,68 @@ class TestFormSubmission(TestBase):
         edited_attachment = edited_attachments[0]
         assert edited_attachment.hash == attachment_hash
         assert edited_attachment.media_file_basename == attachment_basename
+
+    def test_attachment_with_mismatched_unicode_normalization(self):
+        """
+        The client references a media file in NFC while the uploaded file
+        arrives in NFD (e.g. from macOS). The attachment must be created,
+        stored in NFC and NOT immediately soft-deleted (DEV-2686).
+        """
+        nfc_name = unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        # Sanity check: the two forms differ byte-wise
+        self.assertNotEqual(nfc_name, nfd_name)
+
+        xml = (
+            "<?xml version='1.0' ?>"
+            '<tutorial id="tutorial">'
+            '<name>Larry</name>'
+            '<age>23</age>'
+            f'<picture>{nfc_name}</picture>'
+            '<has_children>0</has_children>'
+            '<web_browsers>firefox</web_browsers>'
+            f'<meta><instanceID>uuid:{uuid.uuid4().hex}</instanceID></meta>'
+            f'<formhub><uuid>{self.xform.uuid}</uuid></formhub>'
+            '</tutorial>'
+        )
+
+        source_media = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+            '1335783522563.jpg',
+        )
+        with open(source_media, 'rb') as f:
+            media_bytes = f.read()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            xml_path = os.path.join(tmp_dir, 'submission.xml')
+            with open(xml_path, 'w') as xml_file:
+                xml_file.write(xml)
+
+            # Write the uploaded file under an NFD filename
+            media_path = os.path.join(tmp_dir, nfd_name)
+            with open(media_path, 'wb') as media_file:
+                media_file.write(media_bytes)
+
+            with open(media_path, 'rb') as media_file:
+                self._make_submission(xml_path, media_file=media_file)
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
+        instance = Instance.objects.order_by('-pk')[0]
+        # Visible manager excludes soft-deleted attachments
+        attachments = Attachment.objects.filter(instance=instance)
+        self.assertEqual(attachments.count(), 1)
+        self.assertEqual(attachments[0].media_file_basename, nfc_name)
+
+        # The stored file name keeps the accent (NFC), not stripped by
+        # `get_valid_name`'s `\w` regex on NFD input
+        stored_basename = os.path.basename(attachments[0].media_file.name)
+        self.assertEqual(unicodedata.normalize('NFC', stored_basename), stored_basename)
+        self.assertIn(unicodedata.normalize('NFC', 'é'), stored_basename)
+
+        # A re-check finds nothing to soft delete
+        self.assertEqual(get_soft_deleted_attachments(instance), [])
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(

@@ -95,6 +95,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.utils.files import normalize_nfc
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -903,7 +904,10 @@ def save_attachments(
         # `MultiPartParserWithRawFilenames` to preserve the original filename
         # before Django’s sanitizing process.
         original_name = getattr(f, '_raw_filename', None) or f.name
-        media_file_basename = os.path.basename(original_name)
+        media_file_basename = normalize_nfc(os.path.basename(original_name))
+        # NFC-normalize the stored name too: `get_valid_name`'s `\w` regex drops
+        # NFD combining marks, stripping the accent from `media_file.name`.
+        f.name = normalize_nfc(f.name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(
@@ -987,7 +991,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
             # Only keep non-empty fields
             if basename:
-                basenames.append(basename)
+                basenames.append(normalize_nfc(basename))
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
@@ -1015,9 +1019,11 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     latest_attachments, remaining_attachments_ids = [], []
     basename_set = set(basenames)
     for attachment in queryset:
-        if attachment.media_file_basename in basename_set:
+        # Legacy rows may be stored in NFD; normalize both sides before comparing
+        normalized_basename = normalize_nfc(attachment.media_file_basename)
+        if normalized_basename in basename_set:
             latest_attachments.append(attachment)
-            basename_set.remove(attachment.media_file_basename)
+            basename_set.remove(normalized_basename)
         else:
             remaining_attachments_ids.append(attachment.id)
     remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)
