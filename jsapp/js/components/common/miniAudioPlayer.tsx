@@ -1,10 +1,11 @@
 import '#/components/common/miniAudioPlayer.scss'
 
+import { IconAlertCircleFilled, IconPlayerPlayFilled, IconPlayerStopFilled } from '@tabler/icons-react'
 import React, { createRef } from 'react'
 
 import bem, { makeBem } from '#/bem'
-import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
+import ActionIcon from '#/components/common/ActionIcon'
+import KoboIcon from '#/components/common/KoboIcon'
 import { formatSeconds, generateUuid, notify } from '#/utils'
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player')
@@ -32,6 +33,8 @@ interface MiniAudioPlayerState {
 }
 
 const PLAYER_STARTED_EVENT = 'MiniAudioPlayer:started'
+/** Shown while the real duration (backend or browser-decoded) isn't known yet. */
+const DURATION_PLACEHOLDER = '00:00:00'
 
 /** Custom audio player to be placed inline in small containers. */
 class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPlayerState> {
@@ -162,19 +165,20 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
 
     return (
       <React.Fragment>
-        <Button
-          type='text'
-          startIcon={this.state.isPlaying ? 'stop' : 'play'}
-          size='s'
+        <ActionIcon
+          variant='transparent'
+          icon={this.state.isPlaying ? IconPlayerStopFilled : IconPlayerPlayFilled}
+          size='sm'
           onClick={this.onButtonClick.bind(this)}
         />
 
-        {isTotalTimeKnown && (
-          <bem.MiniAudioPlayer__time dateTime={totalTime}>
-            {this.state.isPlaying && formatSeconds(this.state.currentTime)}
-            {!this.state.isPlaying && formatSeconds(totalTime)}
-          </bem.MiniAudioPlayer__time>
-        )}
+        <bem.MiniAudioPlayer__time dateTime={isTotalTimeKnown ? totalTime : undefined}>
+          {isTotalTimeKnown
+            ? this.state.isPlaying
+              ? formatSeconds(this.state.currentTime)
+              : formatSeconds(totalTime)
+            : DURATION_PLACEHOLDER}
+        </bem.MiniAudioPlayer__time>
       </React.Fragment>
     )
   }
@@ -182,7 +186,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderLoading() {
     return (
       <React.Fragment>
-        <Button type='text' startIcon='play' size='s' onClick={() => null} isDisabled />
+        <ActionIcon variant='transparent' icon={IconPlayerPlayFilled} size='sm' disabled />
 
         <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
       </React.Fragment>
@@ -192,7 +196,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderError() {
     return (
       <React.Fragment>
-        <Icon name='alert' size='s' />
+        <KoboIcon icon={IconAlertCircleFilled} size='sm' />
 
         <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
       </React.Fragment>
