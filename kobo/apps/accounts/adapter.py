@@ -12,6 +12,8 @@ from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
+from .models import SocialAppManagedDomain
+
 
 class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
@@ -65,6 +67,21 @@ class AccountAdapter(DefaultAccountAdapter):
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
+
+    def is_open_for_signup(self, request, sociallogin):
+        email = sociallogin.user.email
+        domain = email.split('@')[1].lower()
+        app = getattr(sociallogin.provider, 'app', None)
+        if app is None:
+            managed_domain = False
+        else:
+            managed_domain = SocialAppManagedDomain.objects.filter(
+                social_app__social_app=app,
+                social_app__managed=True,
+                domain__iexact=domain,
+            ).exists()
+        return config.REGISTRATION_OPEN or managed_domain
+
     def pre_social_login(self, request, sociallogin):
         """Allow only one linked SSO account per user."""
         # Only the connect flow links a new provider; login/signup are exempt.
