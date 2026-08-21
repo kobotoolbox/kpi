@@ -6,6 +6,7 @@ from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.management import call_command
 from django.db.models.signals import pre_delete
 from django.test import TestCase, override_settings
@@ -31,6 +32,8 @@ from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..tasks import (
+    TASK_RESTARTER_LOCK_KEY,
+    _count_running_deletions,
     empty_account,
     empty_attachment,
     empty_project,
@@ -45,8 +48,28 @@ from ..utils import (
 )
 
 
+class IdleWorkersMixin:
+    """
+    task_restarter asks the workers what they are currently running before it
+    dispatches anything. There is no worker in the test environment, so pretend
+    they are all idle unless a test says otherwise
+    """
+
+    def setUp(self):
+        super().setUp()
+        # The cache is not rolled back between tests, unlike the database, and
+        # `task_restarter` leaves its lock behind on purpose
+        cache.delete(TASK_RESTARTER_LOCK_KEY)
+        self.addCleanup(cache.delete, TASK_RESTARTER_LOCK_KEY)
+        patcher = patch(
+            'kobo.apps.trash_bin.tasks._count_running_deletions', return_value=0
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+
 @ddt
-class AccountTrashTestCase(TestCase):
+class AccountTrashTestCase(IdleWorkersMixin, TestCase):
 
     fixtures = ['test_data']
 
@@ -361,7 +384,7 @@ class AccountTrashTestCase(TestCase):
 
 
 @ddt
-class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
+class ProjectTrashTestCase(IdleWorkersMixin, TestCase, AssetSubmissionTestMixin):
 
     fixtures = ['test_data']
 
@@ -699,8 +722,9 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
 
 @ddt
-class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
+class AttachmentTrashTestCase(IdleWorkersMixin, TestCase, AssetSubmissionTestMixin):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create(username='user', password='password')
         self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
             self._create_test_asset_and_submission(user=self.user)
@@ -988,7 +1012,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
 
 @ddt
-class TaskRestarterTestCase(TestCase):
+class TaskRestarterTestCase(IdleWorkersMixin, TestCase):
     """
     Test the automatic restart of trash bin tasks which failed on a transient
     (infrastructure) error and only those
@@ -997,6 +1021,7 @@ class TaskRestarterTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
+        super().setUp()
         self.someuser = get_user_model().objects.get(username='someuser')
         self.admin = get_user_model().objects.get(username='adminuser')
 
@@ -1211,6 +1236,83 @@ class TaskRestarterTestCase(TestCase):
 
         assert self._run_restarter() == 1
 
+    def test_no_restart_when_the_workers_are_already_busy(self):
+        """
+        Deletions lock rows which are also used when submissions come in, so no
+        more than `settings.MAX_RESTARTED_TASKS` of them may run at a time
+        """
+        account_trash = self._move_account_to_trash()
+        self._fail(account_trash, 'deadlock detected')
+
+        with patch(
+            'kobo.apps.trash_bin.tasks._count_running_deletions',
+            return_value=settings.MAX_RESTARTED_TASKS,
+        ):
+            assert self._run_restarter() == 0
+
+        # One deletion has completed since, there is room for another one
+        with patch(
+            'kobo.apps.trash_bin.tasks._count_running_deletions',
+            return_value=settings.MAX_RESTARTED_TASKS - 1,
+        ):
+            assert self._run_restarter() == 1
+
+    def test_no_restart_when_the_workers_cannot_be_reached(self):
+        """
+        Without an answer from the workers there is no way to tell how busy they
+        are, and dispatching a full batch could be what brings them down
+        """
+        account_trash = self._move_account_to_trash()
+        self._fail(account_trash, 'deadlock detected')
+
+        with patch(
+            'kobo.apps.trash_bin.tasks._count_running_deletions', return_value=None
+        ):
+            assert self._run_restarter() == 0
+
+    def test_running_deletions_are_counted_across_every_trash_type(self):
+        """
+        The three types of deletion compete for the same rows, so they share a
+        single budget instead of getting one each
+        """
+        with patch(
+            'kobo.apps.trash_bin.tasks.celery_app.control.inspect'
+        ) as patched_inspect:
+            patched_inspect.return_value.active.return_value = {
+                'worker1': [
+                    {'name': empty_account.name},
+                    {'name': empty_project.name},
+                ],
+                'worker2': [
+                    {'name': empty_attachment.name},
+                    # Anything else the workers run is none of our business
+                    {'name': 'kobo.apps.trash_bin.tasks.garbage_collector'},
+                ],
+            }
+            running = _count_running_deletions(
+                {empty_account.name, empty_project.name, empty_attachment.name}
+            )
+
+        assert running == 3
+
+    def test_only_one_restarter_run_at_a_time(self):
+        """
+        `task_restarter` shares its queue with the deletions it dispatches, so
+        several runs can pile up and start at once. They would all see the same
+        headroom and each enqueue a full batch
+        """
+        account_trash = self._move_account_to_trash()
+        self._fail(account_trash, 'deadlock detected')
+
+        # A run is already in progress
+        cache.add(TASK_RESTARTER_LOCK_KEY, True, timeout=60)
+        self.addCleanup(cache.delete, TASK_RESTARTER_LOCK_KEY)
+
+        assert self._run_restarter(release_lock=False) == 0
+
+        # It has finished since, i.e.: its lock has expired
+        assert self._run_restarter() == 1
+
     def _fail(self, account_trash, error):
         """
         Simulate a failed task which has since gone quiet long enough to be
@@ -1257,7 +1359,12 @@ class TaskRestarterTestCase(TestCase):
 
         return AccountTrash.objects.get(user=self.someuser)
 
-    def _run_restarter(self):
+    def _run_restarter(self, release_lock=True):
+        # Stands for a separate scheduled run: in production they are far enough
+        # apart for the lock of the previous one to have expired
+        if release_lock:
+            cache.delete(TASK_RESTARTER_LOCK_KEY)
+
         with patch('kobo.apps.trash_bin.tasks.empty_account.delay') as patched_task:
             task_restarter()
 

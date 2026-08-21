@@ -1,8 +1,10 @@
 from datetime import timedelta
+from typing import Optional
 
 from celery import Task
 from constance import config
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -24,6 +26,9 @@ from ..utils import temporarily_disconnect_signals
 from .account import empty_account
 from .attachment import empty_attachment
 from .project import empty_project
+
+# Only one `task_restarter` may run at a time
+TASK_RESTARTER_LOCK_KEY = 'trash_bin_task_restarter'
 
 
 @celery_app.task
@@ -61,26 +66,91 @@ def garbage_collector():
             ).delete()
 
 
-@celery_app.task
+@celery_app.task(
+    soft_time_limit=settings.TASK_RESTARTER_LOCK_TTL - 60 * 2,
+    time_limit=settings.TASK_RESTARTER_LOCK_TTL - 60,
+)
 def task_restarter():
     """
     This task restarts previous tasks which have been stopped accidentally,
     e.g.: docker container/k8s pod restart or OOM killed, and the ones which
-    failed on a transient (infrastructure) error
+    failed on a transient (infrastructure) error. It only dispatches as many as
+    the workers have room for, by asking them what they are already running
+
+    Deletions decrease counters and lock rows which are also used when
+    submissions come in, so no more than `settings.MAX_RESTARTED_TASKS` of them
+    may be running at the same time
+
+    Its time limits are derived from the lock it holds: a run must never outlive
+    it, otherwise the next one would start alongside. Being stopped early is
+    harmless, whatever this run did not restart the next one picks up
     """
 
-    for model, task, retention in (
+    if not cache.add(
+        TASK_RESTARTER_LOCK_KEY, True, timeout=settings.TASK_RESTARTER_LOCK_TTL
+    ):
+        logging.info('task_restarter: another run is in progress, skipping')
+        return
+
+    models_tasks_retentions = (
         (AccountTrash, empty_account, config.ACCOUNT_TRASH_RETENTION),
         (ProjectTrash, empty_project, config.PROJECT_TRASH_RETENTION),
         (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
-    ):
-        _restart_stuck_tasks(model, task, retention)
+    )
+
+    running = _count_running_deletions(
+        {task.name for _, task, _ in models_tasks_retentions}
+    )
+    if running is None:
+        logging.info('task_restarter: no worker answered, skipping this run')
+        return
+
+    # The three types of deletion compete for the same rows, therefore they
+    # share a single budget instead of getting one each
+    available_slots = settings.MAX_RESTARTED_TASKS - running
+
+    for model, task, retention in models_tasks_retentions:
+        if available_slots <= 0:
+            break
+        available_slots -= _restart_stuck_tasks(model, task, retention, available_slots)
 
 
-def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
+def _count_running_deletions(task_names: set[str]) -> Optional[int]:
     """
-    Restart tasks which have been stopped accidentally, i.e.: they are still
-    flagged as pending or in progress but nothing has updated them for a while
+    Return how many trash bin deletions the workers are running right now, or
+    `None` if none of them answered
+
+    Only running tasks are counted: the ones still waiting in the queue are not
+    holding any lock yet, so they do not put the database under pressure
+
+    A worker which does not answer in time is indistinguishable from one which
+    is gone, so its deletions are not counted and this run may dispatch a few
+    too many. The timeout is therefore generous - this task runs every 30
+    minutes, waiting a few seconds for the answers costs nothing
+    """
+    # Broadcasts a request to every worker and waits for their answers
+    active_tasks_by_worker = celery_app.control.inspect(
+        timeout=settings.TASK_RESTARTER_INSPECT_TIMEOUT
+    ).active()
+
+    if active_tasks_by_worker is None:
+        return None
+
+    return sum(
+        1
+        for active_tasks in active_tasks_by_worker.values()
+        for active_task in active_tasks
+        if active_task.get('name') in task_names
+    )
+
+
+def _restart_stuck_tasks(
+    model: TrashBinModel, task: Task, retention: int, limit: int
+) -> int:
+    """
+    Restart at most `limit` tasks which have been stopped accidentally, i.e.:
+    they are still flagged as pending or in progress but nothing has updated
+    them for a while, and return how many have been restarted
 
     Tasks which failed on a transient (infrastructure) error are deliberately
     left in progress by `trash_bin_task_failure()`, so they are picked up here
@@ -112,9 +182,10 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
             started_objects | due_objects,
             date_modified__lte=stuck_threshold,
         )
-        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
+        .order_by('date_modified')[:limit]
     )
 
+    restarted = 0
     for stuck_id, date_modified in stuck_objects:
         # Claim the object, otherwise the next run would enqueue it again while
         # its restart is still waiting in the queue. And both would force the
@@ -130,6 +201,7 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
 
         try:
             task.delay(stuck_id, force=True)
+            restarted += 1
         except Exception:
             # If the task fails to enqueue, restore the original date_modified
             # so that it can be picked up again in the next run, and carry on
@@ -138,3 +210,5 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
                 date_modified=date_modified
             )
             logging.exception(f'Could not restart {model.__name__} #{stuck_id}')
+
+    return restarted
