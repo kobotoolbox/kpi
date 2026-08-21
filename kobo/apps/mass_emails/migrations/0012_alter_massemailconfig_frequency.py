@@ -15,7 +15,10 @@ class Migration(migrations.Migration):
             name='frequency',
             field=models.IntegerField(
                 default=-1,
-                help_text='-1: one-time email<br />1: recurring, sent daily<br />&gt;1: recurring, sent every N days',
+                help_text=(
+                    '-1: one-time email<br />1: recurring, sent daily<br />'
+                    '&gt;1: recurring, sent every N days'
+                ),
             ),
         ),
     ]
