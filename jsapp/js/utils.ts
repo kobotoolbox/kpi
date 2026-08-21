@@ -407,6 +407,44 @@ export function launchPrinting() {
 }
 
 /**
+ * Puts text on the clipboard, and says whether it worked.
+ *
+ * `navigator.clipboard` is missing outside a secure context, which is how a lot of
+ * self-hosted instances are served, so there is a fallback on the old
+ * `execCommand` route. Call this straight from a click handler - browsers only
+ * allow that fallback while the user's gesture is still fresh.
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch {
+      // It can refuse even in a secure context, e.g. when the document isn't
+      // focused, so let the fallback have a go before giving up.
+    }
+  }
+
+  // `execCommand` copies the selection, so the text has to be in the document and
+  // selected first. Off-screen and read-only, to keep it from being noticed.
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.top = '-1000px'
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  try {
+    return document.execCommand('copy')
+  } catch {
+    return false
+  } finally {
+    textarea.remove()
+  }
+}
+
+/**
  * Trunactes strings to specified length
  */
 export function truncateString(str: string, length: number): string {

@@ -24,12 +24,11 @@ import { actions } from '../../../js/actions'
 import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 // Stores, hooks and utilities
 import { dataInterface } from '../../../js/dataInterface'
-import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
+import { findFirstGeopoint, getSubmissionRootUuid, notify, parseLatLng, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -43,6 +42,7 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { getBackToCurrentScreen, goToSubmission } from '#/components/submissions/single/submissionRouting'
 
 const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
@@ -736,7 +736,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers.addLayers(prepPoints)
       }
 
-      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
+      markers.on('click', this.goToClickedSubmission.bind(this)).addTo(map)
 
       if (prepPoints.length === 0) {
         if (boundsChanged) {
@@ -962,18 +962,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return map
   }
 
-  launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.props.allData
-    const ids: number[] = []
-    td.forEach((r) => {
-      ids.push(r._id)
-    })
-
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: evt.layer.options.sId,
-      asset: this.props.asset,
-      ids: ids,
+  goToClickedSubmission(evt: L.LeafletMouseEvent) {
+    // Markers only carry an `_id`, so we will try to get rootUuid and fall back to `_id` in edge cases
+    const submissionId: number = evt.layer.options.sId
+    const submission = this.props.allData.find((item) => item._id === submissionId)
+    goToSubmission(this.props.asset.uid, submission ? getSubmissionRootUuid(submission) : submissionId, {
+      state: { backTo: getBackToCurrentScreen(t('Back to Map')) },
     })
   }
 
