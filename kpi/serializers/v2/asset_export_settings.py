@@ -1,7 +1,5 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
-from rest_framework import serializers
-from rest_framework.reverse import reverse
 from formpack.constants import (
     EXPORT_SETTING_FIELDS,
     EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
@@ -20,6 +18,8 @@ from formpack.constants import (
     VALID_EXPORT_TYPES,
     VALID_MULTIPLE_SELECTS,
 )
+from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from kpi.fields import WritableJSONField
 from kpi.models import Asset, AssetExportSettings

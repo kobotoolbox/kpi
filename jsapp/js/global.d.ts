@@ -266,6 +266,12 @@ declare module '*.svg?react' {
   export default ReactComponent
 }
 
+/** Importing an SVG without `?react` gives you its URL (see `webpack.common.js`). */
+declare module '*.svg' {
+  const url: string
+  export default url
+}
+
 declare module '*.scss'
 declare module '*.css'
 

@@ -633,6 +633,14 @@ CONSTANCE_CONFIG = {
         'Number of days before enqueued mass email records are marked as failed.',
         'positive_int',
     ),
+    'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS': (
+        12,
+        'Number of hours an enqueued mass email record can sit before it is '
+        're-checked against its MassEmailConfig criteria at send time. '
+        'Records still matching are sent normally; records that no longer '
+        'match are marked stale.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -768,6 +776,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'USE_TEAM_LABEL',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
@@ -1845,25 +1854,17 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-# To be set up based on the SMTP provider limits & quotas. On SES, keep
-# `MASS_EMAIL_THROTTLE_PER_SECOND` at or below the account `MaxSendRate`, and
-# `MAX_MASS_EMAILS_PER_DAY` below `Max24HourSend` minus the transactional
-# volume (both are returned by the SES `GetSendQuota` API).
-#
-# `MAX_MASS_EMAILS_PER_DAY` is a global ceiling shared by every live config and
-# split between them in proportion to their pending records, not a per-config
-# quota. Keep it above the number of records a single run enqueues across all
-# configs: a batch that cannot drain in one day keeps its config frozen, since
-# no recipient list is recomputed while records are still pending, so the
-# emails go out stale. Worse, anything still enqueued after
-# `MASS_EMAIL_ENQUEUED_RECORD_EXPIRY` days is marked as failed without ever
-# being sent.
-#
-# Raising it is not free: it also caps the blast radius of a user query that
-# selects far more people than intended.
+# Size these to the SMTP provider actually configured for this deployment
+# (one provider at a time).
+# See kpi.utils.mailer.Mailer and kobo.apps.mass_emails.tasks.MassEmailSender.
 MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
-MASS_EMAIL_THROTTLE_PER_SECOND = env.int('MASS_EMAIL_THROTTLE_PER_SECOND', 40)
-MASS_EMAIL_SLEEP_SECONDS = env.int('MASS_EMAIL_SLEEP_SECONDS', 1)
+# This throttle applies only to mass email, not to transactional email
+# (e.g. forgot password). Set it well under the provider's real per-second
+# limit so there's still headroom left for transactional email, which
+# shares the same provider account but doesn't go through this throttle.
+MASS_EMAIL_THROTTLE_PER_SECOND = env.float('MASS_EMAIL_THROTTLE_PER_SECOND', 10)
+# Margin under the provider's SMTP idle timeout.
+MAILER_CONNECTION_IDLE_TIMEOUT = env.int('MAILER_CONNECTION_IDLE_TIMEOUT', 10)
 # change the interval between "daily" email sends for testing. this will set both
 # the frequency of the task and the expiry time of the cached email limits. should
 # only be True on small testing instances
@@ -2382,6 +2383,7 @@ LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
 S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
+USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100

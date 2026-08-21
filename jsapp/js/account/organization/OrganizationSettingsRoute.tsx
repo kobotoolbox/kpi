@@ -11,9 +11,9 @@ import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsPartialUpdate,
 } from '#/api/react-query/user-team-organization-usage'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
-import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
@@ -150,20 +150,19 @@ export default function OrganizationSettingsRoute() {
       */}
       {isStripeEnabled && orgType && (
         <section className={styles.fieldsRow}>
-          <KoboSelect
+          <Select
             className={styles.fieldLong}
-            name='org-settings-type'
-            type='outline'
-            size='l'
-            isDisabled // always disabled
+            size='md'
+            disabled // always disabled
+            searchable={false}
             label={t('##TEAM_OR_ORGANIZATION## type').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
-            options={[
+            data={[
               {
                 value: 'orgType',
                 label: currentTypeLabel,
               },
             ]}
-            selectedOption='orgType'
+            value='orgType'
             onChange={() => null}
           />
         </section>

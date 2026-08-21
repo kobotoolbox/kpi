@@ -19,16 +19,20 @@ let devConfig = WebpackCommon({
         commons: {
           test: /[\\/]node_modules[\\/]/,
           name: 'vendors',
-          chunks: 'all',
+          // Keep `errorApp` out of the shared chunk; see prod.config.js.
+          chunks: (chunk) => chunk.name !== 'errorApp',
         },
       },
     },
   },
   entry: {
-    app: ['./jsapp/js/main.js'],
+    // `library` lives on this entry rather than on `output`, so that it applies
+    // only to the main app and not to every entry point.
+    app: { import: ['./jsapp/js/main.js'], library: { name: 'KPI', type: 'var' } },
+    // Standalone, self-contained bundle for the 404/50x pages.
+    errorApp: './jsapp/js/errorApp/main.tsx',
   },
   output: {
-    library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
     filename: '[name]-[contenthash].js',
