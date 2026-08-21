@@ -141,13 +141,30 @@ jobs:
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
         ref: ${{ needs.version.outputs.current_branch }}
 
+    - name: Skip if translations already pulled
+      id: check
+      env:
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+      run: |
+        # Skip if last commit is already a transifex pull (re-run after successful pull but failed tag)
+        if git log -1 --format='%s' | grep -q '^chore: pull transifex translations for '; then
+          echo "::notice::Translations already pulled (last commit is a transifex pull). Skipping."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        # Skip if the tag already exists (re-run after successful tag without a pull)
+        elif git rev-parse "refs/tags/$CURRENT_PATCH" &>/dev/null; then
+          echo "::notice::Tag $CURRENT_PATCH already exists. Skipping transifex pull to avoid moving branch past tag."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Pull Transifex translations
+      if: steps.check.outputs.skip != 'true'
       uses: transifex/cli-action@v2
       with:
         token: ${{ secrets.TRANSIFEX_API }}
         args: 'pull -a -f --mode reviewed'
 
     - name: Commit translations if changed
+      if: steps.check.outputs.skip != 'true'
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
         BRANCH: ${{ needs.version.outputs.current_branch }}
