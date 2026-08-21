@@ -523,6 +523,91 @@ class TestFormSubmission(TestBase):
         # A re-check finds nothing to soft delete
         self.assertEqual(get_soft_deleted_attachments(instance), [])
 
+    def test_edit_conflicts_with_legacy_nfd_attachment_basename(self):
+        """
+        A row saved before NFC normalization keeps an NFD basename. Editing it
+        with the same name in NFC but different content must still be rejected
+        instead of silently replacing the attachment (DEV-2686).
+        """
+        nfc_name = unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        fixture_dir = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+        )
+        instance_id = f'uuid:{uuid.uuid4().hex}'
+
+        def build_xml(instance_uuid: str, deprecated_uuid: str = None) -> str:
+            deprecated = (
+                f'<deprecatedID>{deprecated_uuid}</deprecatedID>'
+                if deprecated_uuid
+                else ''
+            )
+            return (
+                "<?xml version='1.0' ?>"
+                '<tutorial id="tutorial">'
+                '<name>Larry</name>'
+                '<age>23</age>'
+                f'<picture>{nfc_name}</picture>'
+                '<has_children>0</has_children>'
+                '<web_browsers>firefox</web_browsers>'
+                f'<meta><instanceID>{instance_uuid}</instanceID>{deprecated}</meta>'
+                f'<formhub><uuid>{self.xform.uuid}</uuid></formhub>'
+                '</tutorial>'
+            )
+
+        def write_media(tmp_dir: str, source_path: str) -> str:
+            """
+            Copy a fixture next to the submission, named as the XML expects.
+            """
+            media_path = os.path.join(tmp_dir, nfc_name)
+            with open(source_path, 'rb') as source:
+                with open(media_path, 'wb') as target:
+                    target.write(source.read())
+            return media_path
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            xml_path = os.path.join(tmp_dir, 'submission.xml')
+            with open(xml_path, 'w') as xml_file:
+                xml_file.write(build_xml(instance_id))
+            media_path = write_media(
+                tmp_dir, os.path.join(fixture_dir, '1335783522563.jpg')
+            )
+            with open(media_path, 'rb') as media:
+                self._make_submission(xml_path, media_file=media)
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        instance = Instance.objects.order_by('-pk')[0]
+
+        # Simulate a row saved before basenames were normalized
+        Attachment.objects.filter(instance=instance).update(
+            media_file_basename=nfd_name
+        )
+        attachment_hash = Attachment.objects.get(instance=instance).hash
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            xml_path = os.path.join(tmp_dir, 'edit.xml')
+            with open(xml_path, 'w') as xml_file:
+                xml_file.write(build_xml(f'uuid:{uuid.uuid4().hex}', instance_id))
+            media_path = write_media(
+                tmp_dir,
+                os.path.join(
+                    fixture_dir,
+                    'attachment_with_different_content',
+                    '1335783522563.jpg',
+                ),
+            )
+            with open(media_path, 'rb') as media:
+                self._make_submission(xml_path, media_file=media, assert_success=False)
+
+        self.assertEqual(self.response.status_code, status.HTTP_409_CONFLICT)
+
+        # The legacy attachment is untouched and no duplicate was created
+        attachments = Attachment.all_objects.filter(instance=instance)
+        self.assertEqual(attachments.count(), 1)
+        self.assertEqual(attachments[0].hash, attachment_hash)
+        self.assertEqual(attachments[0].media_file_basename, nfd_name)
+
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),

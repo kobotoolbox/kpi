@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import traceback
+import unicodedata
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
@@ -910,9 +911,13 @@ def save_attachments(
         f.name = normalize_nfc(f.name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
+        # Legacy rows may be stored in NFD, so match both forms.
         existing_attachment = Attachment.objects.filter(
             instance=instance,
-            media_file_basename=media_file_basename,
+            media_file_basename__in={
+                media_file_basename,
+                unicodedata.normalize('NFD', media_file_basename),
+            },
         ).first()
 
         uploaded_file_hash = calculate_hash(f, 'sha1')
