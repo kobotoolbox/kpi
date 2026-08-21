@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from google.api_core.exceptions import GoogleAPIError, InvalidArgument
 
+from kobo.apps.languages.exceptions import LanguageNotSupported
 from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationService,
 )
@@ -72,7 +73,9 @@ class TestGoogleTranslate(TestCase):
         )
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 response = service.process_data(
                     'mock_xpath',
                     {
@@ -104,7 +107,9 @@ class TestGoogleTranslate(TestCase):
         operation.result.side_effect = TimeoutError()
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch.object(
                     service,
                     'begin_google_operation',
@@ -144,7 +149,9 @@ class TestGoogleTranslate(TestCase):
         operation.result.side_effect = GoogleAPIError('temporarily unavailable')
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch.object(
                     service,
                     'begin_google_operation',
@@ -180,7 +187,9 @@ class TestGoogleTranslate(TestCase):
         cache.set(cache_key, 'operations/translate-1', timeout=300)
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch.object(
                     service,
                     '_get_operation_payload',
@@ -219,7 +228,9 @@ class TestGoogleTranslate(TestCase):
         cache.set(cache_key, 'operations/translate-1', timeout=300)
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch.object(
                     service,
                     '_get_operation_payload',
@@ -254,7 +265,9 @@ class TestGoogleTranslate(TestCase):
         cache.set(cache_key, 'operations/translate-1', timeout=300)
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch.object(
                     service,
                     '_get_operation_payload',
@@ -308,7 +321,9 @@ class TestGoogleTranslate(TestCase):
         operation.result.side_effect = TimeoutError()
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch(
                     'kobo.apps.subsequences.integrations.google.google_translate.apps.get_model',  # noqa
                     side_effect=LookupError(),
@@ -347,7 +362,9 @@ class TestGoogleTranslate(TestCase):
         service = self._build_service()
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch.object(
                     service,
                     'begin_google_operation',
@@ -383,7 +400,9 @@ class TestGoogleTranslate(TestCase):
         service = self._build_service()
 
         with patch.object(service, '_get_source_language_code', return_value='en-US'):
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
+            with patch.object(
+                service, '_get_translation_language_code', return_value='fr'
+            ):
                 with patch(
                     'kobo.apps.subsequences.integrations.google.google_translate.require_google_service_quota',  # noqa
                     side_effect=GoogleServiceRateLimitExceeded(
@@ -412,7 +431,7 @@ class TestGoogleTranslate(TestCase):
     def test_sync_translation_reads_source_from_submission_for_text_question(self):
         """
         A text-source translation reads the answer straight from the submission
-        and uses the form's default language as the source language
+        and uses the form's own language as the source language
         """
         service = self._build_service()
         service.asset.content = {'settings': {'default_language': 'English (en)'}}
@@ -420,23 +439,24 @@ class TestGoogleTranslate(TestCase):
         service.translate_client.translate_text.return_value = 'Bonjour'
 
         with patch.object(
-            service, '_get_source_language_code', return_value='en'
-        ) as source_code:
-            with patch.object(service, '_get_target_language_code', return_value='fr'):
-                with patch.object(service, 'update_counters'):
-                    response = service.process_data(
-                        'q1',
-                        {
-                            'language': 'fr',
-                            '_dependency': {'_actionId': 'submission'},
-                        },
-                    )
+            service, '_get_translation_language_code', side_effect=['en', 'fr']
+        ) as language_code:
+            with patch.object(service, 'update_counters'):
+                response = service.process_data(
+                    'q1',
+                    {
+                        'language': 'fr',
+                        '_dependency': {'_actionId': 'submission'},
+                    },
+                )
 
         assert response == {'status': 'complete', 'value': 'Bonjour'}
-        # Source language was extracted from the 'English (en)' default language
-        source_code.assert_called_once_with('en')
+        # Source language was extracted from the 'English (en)' form language,
+        # and resolved against the translation service, not the ASR one
+        assert language_code.call_args_list[0].args == ('en',)
         request = service.translate_client.translate_text.call_args.kwargs['request']
         assert request['contents'] == ['Hello from the respondent']
+        assert request['source_language_code'] == 'en'
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
@@ -458,32 +478,80 @@ class TestGoogleTranslate(TestCase):
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_text_source_translation_fails_without_default_language(self):
-        service = self._build_service()
-        service.asset.content = {'settings': {}}
-        service.submission['q1'] = 'Hello'
+    def test_google_detects_the_language_when_the_form_does_not_say(self):
+        """
+        Nothing declares the language of a typed response, so an unusable form
+        language must not block the translation
+        """
 
-        response = service.process_data(
-            'q1',
-            {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
-        )
+        def resolve(language):
+            if language != 'fr':
+                raise LanguageNotSupported
+            return 'fr'
+
+        for content in (
+            # Form language never named at all
+            {'settings': {}, 'translations': [None]},
+            # Named, but Google does not translate from it
+            {'settings': {'default_language': 'Klingon (tlh)'}},
+        ):
+            service = self._build_service()
+            service.asset.content = content
+            service.asset._survey_metadata = None
+            service.submission['q1'] = 'Hello'
+            service.translate_client.translate_text.return_value = 'Bonjour'
+
+            with patch.object(
+                service, '_get_translation_language_code', side_effect=resolve
+            ):
+                with patch.object(service, 'update_counters'):
+                    response = service.process_data(
+                        'q1',
+                        {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+                    )
+
+            assert response == {'status': 'complete', 'value': 'Bonjour'}
+            request = service.translate_client.translate_text.call_args.kwargs[
+                'request'
+            ]
+            # No source language is sent, which asks Google to detect it
+            assert 'source_language_code' not in request
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_REGION='global',
+    )
+    def test_long_text_source_translation_needs_the_form_language(self):
+        # Google's batch API has no language detection to fall back on
+        service = self._build_service()
+        service.asset.content = {'settings': {}, 'translations': [None]}
+        service.submission['q1'] = 'a' * (service.MAX_SYNC_CHARS + 1)
+
+        with patch.object(service, '_get_translation_language_code', return_value='fr'):
+            response = service.process_data(
+                'q1',
+                {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+            )
 
         assert response['status'] == 'failed'
-        assert 'default language' in response['error'].lower()
+        assert 'too long' in response['error'].lower()
+        service.translate_client.batch_translate_text.assert_not_called()
 
-    def test_default_language_code_extraction(self):
+    def test_form_language_falls_back_to_the_default_translation(self):
         service = self._build_service()
 
-        for default_language, expected in (
-            ('English (en)', 'en'),
-            ('lang3', 'lang3'),
-            (None, None),
+        for content, expected in (
+            ({'settings': {'default_language': 'English (en)'}}, 'en'),
+            ({'settings': {}, 'translations': ['Deutsch (de)']}, 'de'),
+            ({'settings': {}, 'translations': [None]}, None),
         ):
-            settings_ = {}
-            if default_language:
-                settings_['default_language'] = default_language
-            service.asset.content = {'settings': settings_}
+            service.asset.content = content
             # Survey metadata is memoized per asset instance; drop it so each
             # case is resolved from the content set above
             service.asset._survey_metadata = None
-            assert service._get_default_language_code() == expected
+            with patch.object(
+                service,
+                '_get_translation_language_code',
+                side_effect=lambda language: language,
+            ):
+                assert service._get_submission_language_code() == expected

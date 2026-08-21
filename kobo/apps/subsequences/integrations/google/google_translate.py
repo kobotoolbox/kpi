@@ -35,7 +35,7 @@ from ...exceptions import (
     SubsequenceTimeoutError,
     TranslationResultNotFound,
 )
-from ...utils import get_default_language
+from ...utils import get_form_language
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 from .locations import get_translate_endpoint, get_translate_location
@@ -45,9 +45,8 @@ from .rate_limit import (
     require_google_service_quota,
 )
 
-# Matches the trailing `(code)` in a `default_language` setting like
-# 'English (en)'; falls back to the raw value when there are no parentheses.
-_DEFAULT_LANGUAGE_CODE_RE = re.compile(r'\(([^)]+)\)\s*$')
+# Matches the trailing `(code)` in a form language like 'English (en)'
+_FORM_LANGUAGE_CODE_RE = re.compile(r'\(([^)]+)\)\s*$')
 
 
 class GoogleTranslationService(GoogleService):
@@ -183,13 +182,14 @@ class GoogleTranslationService(GoogleService):
         try:
             dependency = params['_dependency']
             target_lang = params['language']
-            if dependency.get(DEPENDENCY_ACTION_ID_FIELD) == (
-                DEPENDENCY_SOURCE_SUBMISSION
-            ):
+            from_submission = (
+                dependency.get(DEPENDENCY_ACTION_ID_FIELD)
+                == DEPENDENCY_SOURCE_SUBMISSION
+            )
+            if from_submission:
                 # Direct-text source: read the answer straight from the submission
-                # and translate from the form's default language.
                 content = self.submission.get(xpath)
-                source_lang = self._get_default_language_code()
+                source_lang = None
             else:
                 content = dependency['value']
                 source_lang = dependency['language']
@@ -203,21 +203,26 @@ class GoogleTranslationService(GoogleService):
                 'status': 'failed',
                 'error': 'The source question has no text to translate.',
             }
-        if not source_lang:
-            return {
-                'status': 'failed',
-                'error': (
-                    'The form has no default language, which is required to '
-                    'translate a text question.'
-                ),
-            }
 
         try:
-            source_language_code = self._get_source_language_code(source_lang)
-            target_language_code = self._get_target_language_code(target_lang)
+            if from_submission:
+                source_language_code = self._get_submission_language_code()
+            else:
+                source_language_code = self._get_source_language_code(source_lang)
+            target_language_code = self._get_translation_language_code(target_lang)
         except LanguageNotSupported as err:
             message = str(err) or 'Translation is not supported for this language.'
             return {'status': 'failed', 'error': message}
+
+        if len(content) > self.MAX_SYNC_CHARS and not source_language_code:
+            # Google's batch API cannot detect the source language on its own
+            return {
+                'status': 'failed',
+                'error': (
+                    'This response is too long to translate without knowing its '
+                    'language. Set the form language and try again.'
+                ),
+            }
 
         if len(content) <= self.MAX_SYNC_CHARS:
             return self._translate_sync(
@@ -267,16 +272,17 @@ class GoogleTranslationService(GoogleService):
         try:
             # Check Redis bucket and halt locally if we are exceeding allowed requests
             require_google_service_quota('translate_v3_translate_text')
-            response = self.translate_client.translate_text(
-                request={
-                    'contents': [content],
-                    'source_language_code': source_language_code,
-                    'target_language_code': target_language_code,
-                    'parent': self.translate_parent,
-                    'mime_type': 'text/plain',
-                    'labels': {'username': self.asset.owner.username},
-                }
-            )
+            request = {
+                'contents': [content],
+                'target_language_code': target_language_code,
+                'parent': self.translate_parent,
+                'mime_type': 'text/plain',
+                'labels': {'username': self.asset.owner.username},
+            }
+            if source_language_code:
+                # Omitting it entirely asks Google to detect the language
+                request['source_language_code'] = source_language_code
+            response = self.translate_client.translate_text(request=request)
         except GoogleServiceRateLimitExceeded as err:
             logging.info(
                 'Deferred Google sync translation because project quota is '
@@ -505,18 +511,31 @@ class GoogleTranslationService(GoogleService):
         )
         return {'status': 'complete', 'value': value}
 
-    def _get_default_language_code(self) -> str | None:
+    def _get_submission_language_code(self) -> str | None:
         """
-        Return the form's default language code, e.g. 'en' from 'English (en)'.
+        Return the Google code for the language a response is written in.
 
-        Falls back to the raw setting when it has no `(code)` suffix, and returns
-        None when no default language is configured.
+        Nothing declares the language of a response typed by a respondent, so
+        the form's own language is used as a hint. It is often unset or not a
+        language Google translates, in which case None asks Google to detect
+        the language instead of failing the translation.
         """
-        default_language = get_default_language(self.asset)
-        if not default_language:
+        form_language = get_form_language(self.asset)
+        if not form_language:
             return None
-        match = _DEFAULT_LANGUAGE_CODE_RE.search(default_language)
-        return match.group(1) if match else default_language
+
+        # e.g. 'en' from 'English (en)', or the raw value when it has no suffix
+        match = _FORM_LANGUAGE_CODE_RE.search(form_language)
+        language = match.group(1) if match else form_language
+
+        try:
+            return self._get_translation_language_code(language)
+        except LanguageNotSupported:
+            logging.info(
+                f'Google cannot translate from the form language {language!r} '
+                f'for {self.submission_root_uuid=}, letting it detect instead'
+            )
+            return None
 
     def _get_source_language_code(self, requested_language: str) -> str:
         """
@@ -532,9 +551,9 @@ class GoogleTranslationService(GoogleService):
             )
         return transcription_lang_service.get_language_code(requested_language)
 
-    def _get_target_language_code(self, requested_language: str) -> str:
+    def _get_translation_language_code(self, requested_language: str) -> str:
         """
-        Resolve the Google target language code from the translation record
+        Resolve a Google language code from the translation record
         """
         try:
             translation_lang_service = TranslationService.objects.get(

@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from django.core.cache import cache
 
-from kobo.apps.subsequences.utils import get_default_language, get_survey_question_type
+from kobo.apps.subsequences.utils import get_form_language, get_survey_question_type
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -17,12 +17,20 @@ class SurveyMetadataTestCase(BaseTestCase):
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
 
-    def test_reads_question_type_and_default_language(self):
+    def test_reads_question_type_and_form_language(self):
         assert get_survey_question_type(self.asset, 'settings_fixture_q1') == 'text'
         assert get_survey_question_type(self.asset, 'nonexistent') is None
-        assert get_default_language(self.asset) == (
-            self.asset.content['settings'].get('default_language')
-        )
+        assert get_form_language(self.asset) is None
+
+    def test_form_language_falls_back_to_the_default_translation(self):
+        content = deepcopy(self.asset.content)
+        content['settings'] = {}
+        content['translations'] = ['Deutsch (de)']
+        self.asset.content = content
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+
+        assert get_form_language(Asset.objects.get(pk=self.asset.pk)) == 'Deutsch (de)'
 
     def test_undeployed_draft_edits_do_not_affect_a_deployed_form(self):
         # Submissions belong to the deployed version, so editing the draft must
@@ -56,4 +64,4 @@ class SurveyMetadataTestCase(BaseTestCase):
             # The single query resolves the deployed version for the cache key
             question_type = get_survey_question_type(deferred_asset, xpath)
             assert question_type == 'text'
-            get_default_language(deferred_asset)
+            get_form_language(deferred_asset)
