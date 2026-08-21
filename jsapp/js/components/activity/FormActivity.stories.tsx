@@ -73,7 +73,9 @@ export const TestFilteringByActivityType: Story = {
         await expect(optionItem).toBeDefined()
         await userEvent.click(optionItem as HTMLElement)
       })
-      await expect(selectInput).toHaveValue('add media attachment')
+      await waitFor(async () => {
+        await expect(selectInput).toHaveValue('add media attachment')
+      })
     })
 
     await step('Verify that after applying filter the "add media attachment" action is loaded', async () => {
