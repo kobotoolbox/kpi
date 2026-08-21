@@ -110,6 +110,7 @@ export default function DataTableCell(props: DataTableCellProps) {
               xpath={audioXpath}
               submissionData={submission}
               mediaAttachment={mediaAttachment}
+              questionLabel={columnName}
             />
           )
         }

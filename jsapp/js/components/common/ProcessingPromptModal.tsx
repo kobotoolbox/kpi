@@ -1,19 +1,17 @@
-import type { ComponentType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import type { ModalProps } from '@mantine/core'
 import { Group, Stack } from '@mantine/core'
-import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
+import { IconPencilStar } from '@tabler/icons-react'
 import ButtonNew from '#/components/common/ButtonNew'
+import KoboIcon from '#/components/common/KoboIcon'
 import ModalNew from '#/components/common/ModalNew'
-import type { IconName } from '#/k-icons'
 
 export interface ProcessingPromptModalProps extends Omit<ModalProps, 'title'> {
   /** Rendered as-is, so callers can combine an icon with the title text. */
   title: ReactNode
   /** Main content of the dialog, e.g. a media preview relevant to the question type. */
   children: ReactNode
-  actionLabel: string
-  actionIcon?: IconName | TablerIcon | ComponentType<SvgIconProps>
   onAction: () => void
 }
 
@@ -25,7 +23,7 @@ export interface ProcessingPromptModalProps extends Omit<ModalProps, 'title'> {
  * question types other than audio in the future.
  */
 export default function ProcessingPromptModal(props: ProcessingPromptModalProps) {
-  const { title, children, actionLabel, actionIcon, onAction, ...modalProps } = props
+  const { title, children, onAction, ...modalProps } = props
 
   return (
     <ModalNew title={title} size='md' {...modalProps}>
@@ -33,8 +31,8 @@ export default function ProcessingPromptModal(props: ProcessingPromptModalProps)
         {children}
 
         <Group justify='flex-end'>
-          <ButtonNew size='md' rightIcon={actionIcon} onClick={onAction}>
-            {actionLabel}
+          <ButtonNew size='md' leftSection={<KoboIcon icon={IconPencilStar} size={16} />} onClick={onAction}>
+            {t('Translate & analyze')}
           </ButtonNew>
         </Group>
       </Stack>
