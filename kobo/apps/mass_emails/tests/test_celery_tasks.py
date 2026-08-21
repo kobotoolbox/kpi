@@ -225,11 +225,11 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         plan_name = sender.get_plan_name(self.user1.organization)
         assert plan_name == 'Not available'
 
-    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=4, MASS_EMAIL_SEND_RATE_RATIO=0.5)
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
     def test_send_is_throttled(self):
-        # budget_per_second = 4 * 0.5 = 2. `monotonic` is pinned so every
-        # window looks fully elapsed instantly, isolating the trigger
-        # pattern (every 2 sends, sleep once) from real elapsed time.
+        # `monotonic` is pinned so every window looks fully elapsed
+        # instantly, isolating the trigger pattern (every 2 sends, sleep
+        # once) from real elapsed time.
         self._setup_common_test_data()
         calls = []
         with (
@@ -252,6 +252,72 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             'send_email',
             'sleep',
             'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2.5)
+    def test_send_is_throttled_below_one_per_second(self):
+        # sends_per_window = floor(2.5) = 2, window_length stays clamped
+        # to 1.0 (2 / 2.5 = 0.8, under the floor): 2 sends per window, not
+        # the 4-per-window a shorter-than-1s window would allow.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=0.5)
+    def test_send_is_throttled_above_one_second_per_send(self):
+        # A budget under 1/s can't be enforced within a single second, so
+        # the window widens instead of rounding the achieved rate up to
+        # 1/s: one send per 2-second window here.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
             'send_email',
             'sleep',
             'send_email',
