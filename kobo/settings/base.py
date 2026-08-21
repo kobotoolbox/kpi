@@ -2406,6 +2406,10 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
 
+# Cache time-to-live (in seconds) for the survey question types and default
+# language used by NLP actions
+SURVEY_METADATA_CACHE_TTL = 86400
+
 # Configure the Referrer-Policy response header so OpenStreetMap tile servers
 # receive an acceptable referrer. See:
 # https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required

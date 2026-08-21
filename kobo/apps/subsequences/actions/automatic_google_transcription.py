@@ -1,4 +1,5 @@
 from kobo.apps.organizations.constants import UsageType
+from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
 from ..type_aliases import NLPExternalServiceClass
 from .base import ActionClassConfig, BaseAutomaticNLPAction, ReviewType
@@ -10,6 +11,7 @@ class AutomaticGoogleTranscriptionAction(
 ):
 
     ID = 'automatic_google_transcription'
+    allowed_source_types = TRANSCRIBABLE_SOURCE_TYPES
     action_class_config = ActionClassConfig(
         allow_multiple=False,
         automatic=True,

@@ -2,19 +2,28 @@ from copy import deepcopy
 
 from dateutil import parser
 
-from ..constants import SORT_BY_DATE_FIELD
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from ..constants import (
+    DEPENDENCY_SOURCE_SUBMISSION,
+    SORT_BY_DATE_FIELD,
+    SUBMISSION_UUID_FIELD,
+    TEXT_SOURCE_TYPE,
+)
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class RequiresTranscriptionMixin:
 
-    def attach_action_dependency(self, action_data: dict):
+    def attach_action_dependency(self, action_data: dict, submission: dict):
         """
-        Attach the latest *accepted* transcript as a dependency for a translation
-        action.
+        Attach the source this action depends on.
 
-        Selection logic:
+        For a `text` source question, attach a synthetic dependency pointing at
+        the submission itself; the source text is read straight from the
+        submission later. Otherwise, attach the latest *accepted* transcript.
+
+        Transcript selection logic:
           - Scan `self._action_dependencies` for prior transcription actions.
           - Consider only versions that have a non-empty `DATE_ACCEPTED_FIELD`.
           - Pick the version with the most recent acceptance timestamp.
@@ -22,26 +31,31 @@ class RequiresTranscriptionMixin:
 
         Side effects:
           - Mutates and returns `action_data` by setting `action_data[DEPENDENCY_FIELD]`
-            to a sanitized dependency payload.
+            to a dependency payload.
 
         Deletion guard:
-          - If the caller explicitly wants to delete the translation, i.e.:
-            `action_data['value']` equals `None`, this is treated no dependency is
-            attached.
-
-        Injected payload (sanitized):
-          - 'value'      : transcript text
-          - 'language'   : locale if present, else base language
-          - '_uuid'      : transcript UUID
-          - '_action_id' : source transcription action ID
+          - If the caller explicitly wants to delete the result, i.e.
+            `action_data['value']` equals `None`, no dependency is attached.
 
         Raises:
-          - TranscriptionNotFound: if no accepted transcript is available.
+          - TranscriptionNotFound: if a transcript source has no accepted transcript.
         """
         latest_version = latest_accepted_dt = latest_version_action_id = None
         latest_deletion_dt = None
 
         if 'value' in action_data and action_data['value'] is None:
+            return action_data
+
+        if self.get_source_question_type() == TEXT_SOURCE_TYPE:
+            # Direct-text source: point the dependency at the submission. The
+            # `_question_type` key is in-flight only; the sanitizer in
+            # `revise_data` strips it before persistence.
+            raw_uuid = submission.get(SUBMISSION_UUID_FIELD) or submission['_uuid']
+            action_data[self.DEPENDENCY_FIELD] = {
+                self.UUID_FIELD: remove_uuid_prefix(raw_uuid),
+                self.ACTION_ID_FIELD: DEPENDENCY_SOURCE_SUBMISSION,
+                '_question_type': TEXT_SOURCE_TYPE,
+            }
             return action_data
 
         for action_id, action_supplemental_data in self._action_dependencies[

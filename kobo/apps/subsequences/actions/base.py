@@ -26,6 +26,7 @@ from ..type_aliases import (
     NLPExternalServiceClass,
     SimplifiedOutputCandidatesByColumnKey,
 )
+from ..utils import get_survey_question_type
 
 """
 ### All actions must have the following components
@@ -199,6 +200,10 @@ class BaseAction:
 
     action_class_config: ActionClassConfig | None = None
 
+    # Survey question types this action may be enabled on. Empty means
+    # unrestricted (kept for backward compatibility).
+    allowed_source_types: list[str] = []
+
     def __init__(
         self,
         source_question_xpath: str,
@@ -212,7 +217,7 @@ class BaseAction:
         self.asset = asset
         self._action_dependencies = prefetched_dependencies or {}
 
-    def attach_action_dependency(self, action_data: dict):
+    def attach_action_dependency(self, action_data: dict, submission: dict):
         pass
 
     def check_limits(self, user: User, action_data: dict):
@@ -339,6 +344,18 @@ class BaseAction:
         """
         return []
 
+    def get_source_question_type(self) -> str | None:
+        """
+        Return the survey question type of this action's source question.
+
+        None means the xpath could not be resolved in the asset survey. The
+        underlying survey metadata is memoized on the asset, so repeated calls
+        are cheap.
+        """
+        if self.asset is None:
+            return None
+        return get_survey_question_type(self.asset, self.source_question_xpath)
+
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
@@ -437,7 +454,7 @@ class BaseAction:
             )[0]
         except IndexError:
             current_version = {}
-        self.attach_action_dependency(action_data)
+        self.attach_action_dependency(action_data, submission)
         current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
         # some actions cannot be performed unless there is already a completed version

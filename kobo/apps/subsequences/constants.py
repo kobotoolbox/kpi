@@ -6,9 +6,18 @@ SORT_BY_DATE_FIELD = '_sortByDate'
 
 # Could allow more types in the future? See
 # formpack.utils.replace_aliases.MEDIA_TYPES
+TEXT_SOURCE_TYPE = 'text'
 TRANSCRIBABLE_SOURCE_TYPES = ['audio', 'video', 'background-audio']
-TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + ['text']
+TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + [TEXT_SOURCE_TYPE]
 QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES
+
+# `_actionId` value of the synthetic dependency attached when the source is read
+# straight from a `text` survey question rather than from a transcript.
+DEPENDENCY_SOURCE_SUBMISSION = 'submission'
+# Field name shared with `BaseAction.ACTION_ID_FIELD`, duplicated here so the
+# Google integration can read it without importing the actions package (which
+# would create an import cycle: actions import integrations).
+DEPENDENCY_ACTION_ID_FIELD = '_actionId'
 
 ASYNC_TRANSLATION_DELAY_INTERVAL = 5
 
