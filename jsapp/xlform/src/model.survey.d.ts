@@ -105,6 +105,8 @@ export class Survey extends SurveyFragment {
   toCSV(): string
 
   _ensure_row_list_is_copied(row: any): void
+  _ensure_row_name_is_unique(row: any): void
+  _is_row_name_taken(nameDetail: any): boolean
   _insertRowInPlace(row: any, opts?: any): void
 
   off(eventName?: string, callback?: Function, context?: any): this

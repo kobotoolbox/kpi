@@ -1,0 +1,53 @@
+@use 'scss/colors';
+
+// Kobo's full-page backgrounds, shared by the standalone error pages and the auth views.
+// Kept as a Sass partial rather than a component so both can use it: the error pages ship
+// as their own bundle and can't import main-app code, but Sass compiles into each bundle
+// separately. Both mixins go on the element wrapping your page content and draw themselves
+// as its `::before`, so anything inside needs `position: relative` to sit on top.
+
+// The default: a grainy gradient wedge across the top of the page.
+// Set a light `background-color` on the same element - the gradient stops at 80% opacity
+// so the page colour shows through, and it only covers the top of the viewport anyway.
+@mixin gradientBackground() {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    // Top edge only; `aspect-ratio` supplies the height.
+    inset: 0 0 auto;
+    aspect-ratio: 1280 / 480;
+    // The wedge: full-height on the left, roughly half that on the right.
+    clip-path: polygon(0 0, 100% 0, 100% 49%, 0 100%);
+    // Grain on top, gradient below. Drawn here instead of shipped as one SVG because
+    // the grain used to scale with the image, and narrow windows resampled it into
+    // blank squares. Split apart, the gradient scales and the grain never does.
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='1' stitchTiles='stitch' seed='5490'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2' intercept='-.5'/%3E%3CfeFuncG type='linear' slope='2' intercept='-.5'/%3E%3CfeFuncB type='linear' slope='2' intercept='-.5'/%3E%3CfeFuncA type='discrete' tableValues='0 .07'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(184.3deg, rgb(211 238 255 / 80%), rgb(255 255 255 / 80%));
+    // Keep 200px an exact multiple of the noise wavelength (200 * 0.9 = 180 cycles), or
+    // the tile seams show up as a faint grid.
+    background-size: 200px 200px, 100% 100%;
+    background-repeat: repeat, no-repeat;
+  }
+}
+
+// For an admin-uploaded image (the `login_background` configuration file), which replaces
+// the wedge and covers the whole page. Set the image itself wherever you know the URL;
+// this only handles the fit and the dark overlay that keeps text readable over an
+// arbitrary upload.
+@mixin customImageBackground() {
+  position: relative;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: colors.$kobo-gray-900;
+    opacity: 0.4;
+  }
+}

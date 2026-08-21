@@ -23,6 +23,7 @@ from kobo.apps.mass_emails.models import (
 from kobo.apps.organizations.models import Organization
 from kobo.celery import celery_app
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
@@ -287,16 +288,16 @@ class MassEmailSender:
 
     @with_smtp_connection
     def send_day_emails(self):
-        # Claim only a share of the provider's real per-second limit: it
-        # also carries transactional email, which draws on the same budget
-        # without going through this throttle.
-        budget_per_second = max(
-            1,
-            int(
-                settings.MASS_EMAIL_THROTTLE_PER_SECOND
-                * settings.MASS_EMAIL_SEND_RATE_RATIO
-            ),
-        )
+        # A fractional budget can't be enforced within a single second (an
+        # integer count of sends can only round it up, never hit it
+        # exactly), so widen the window to whatever it takes to hold a
+        # whole number of sends at the configured rate. `sends_per_window`
+        # is the floor of the budget rather than a round(), so a partial
+        # window is never claimed: the achieved rate stays at or under
+        # what was configured, never over it.
+        budget_per_second = settings.MASS_EMAIL_THROTTLE_PER_SECOND
+        sends_per_window = max(1, int(budget_per_second))
+        window_length = max(1.0, sends_per_window / budget_per_second)
         window_start = monotonic()
         spent_in_window = 0
         stale_threshold = timezone.now() - timedelta(
@@ -342,11 +343,10 @@ class MassEmailSender:
                         f'is no longer eligible for {email_config.query}'
                     )
                     continue
-                if spent_in_window >= budget_per_second:
-                    # The provider counts in 1-second windows, so ours must
-                    # too: sleep only what's left of the current one rather
+                if spent_in_window >= sends_per_window:
+                    # Sleep only what's left of the current window rather
                     # than a fixed amount.
-                    remaining = 1 - (monotonic() - window_start)
+                    remaining = window_length - (monotonic() - window_start)
                     if remaining > 0:
                         logging.info(
                             f'sleeping for {remaining:.3f}s to stay within '
@@ -355,7 +355,18 @@ class MassEmailSender:
                         sleep(remaining)
                     window_start = monotonic()
                     spent_in_window = 0
-                self.send_email(email_config, record)
+                try:
+                    self.send_email(email_config, record)
+                except MailerConnectionSessionLimitError as e:
+                    # The connection already reconnected inside
+                    # send_email(); skip this record without spending
+                    # budget on it and move straight to the next one
+                    # instead of stopping the whole run.
+                    logging.warning(
+                        f'Connection session limit hit on {record}, will '
+                        f'retry on a later run: {e}'
+                    )
+                    continue
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 spent_in_window += 1
@@ -397,6 +408,12 @@ class MassEmailSender:
             logging.warning(f'Provider rate limit hit, stopping this run: {e}')
             # TODO(DEV-2693): needs its own non-blocking cooldown instead of
             # being treated exactly like a quota-exhausted stop.
+            raise
+        except MailerConnectionSessionLimitError:
+            # Let this propagate: the connection is already reconnected
+            # (see Mailer._send_single()), so the caller should skip this
+            # one record and move on rather than stop the whole run or
+            # record it as a failure. The record stays `enqueued`.
             raise
         except MailerError as e:
             logging.warning(f'Error sending record {record}: {e}')

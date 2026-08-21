@@ -19,6 +19,7 @@ from model_bakery.recipe import seq
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
@@ -224,11 +225,11 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         plan_name = sender.get_plan_name(self.user1.organization)
         assert plan_name == 'Not available'
 
-    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=4, MASS_EMAIL_SEND_RATE_RATIO=0.5)
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
     def test_send_is_throttled(self):
-        # budget_per_second = 4 * 0.5 = 2. `monotonic` is pinned so every
-        # window looks fully elapsed instantly, isolating the trigger
-        # pattern (every 2 sends, sleep once) from real elapsed time.
+        # `monotonic` is pinned so every window looks fully elapsed
+        # instantly, isolating the trigger pattern (every 2 sends, sleep
+        # once) from real elapsed time.
         self._setup_common_test_data()
         calls = []
         with (
@@ -251,6 +252,72 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             'send_email',
             'sleep',
             'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2.5)
+    def test_send_is_throttled_below_one_per_second(self):
+        # sends_per_window = floor(2.5) = 2, window_length stays clamped
+        # to 1.0 (2 / 2.5 = 0.8, under the floor): 2 sends per window, not
+        # the 4-per-window a shorter-than-1s window would allow.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=0.5)
+    def test_send_is_throttled_above_one_second_per_send(self):
+        # A budget under 1/s can't be enforced within a single second, so
+        # the window widens instead of rounding the achieved rate up to
+        # 1/s: one send per 2-second window here.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
             'send_email',
             'sleep',
             'send_email',
@@ -959,6 +1026,38 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         # The record that hit the quota error, and the one never reached,
         # stay enqueued rather than being written off as failed
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
+
+    def test_connection_session_limit_error_skips_the_record_and_continues(self):
+        # Unlike rate-throttled/quota-exhausted, this must not stop the run:
+        # the connection is already reconnected by the time Mailer.send()
+        # raises it, so the next record should be attempted right away.
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[
+                    None,
+                    MailerConnectionSessionLimitError('session limit reached'),
+                    None,
+                ],
+            ) as send_mock,
+        ):
+            sender = MassEmailSender()
+            email_config = MassEmailConfig.objects.get(name='Config')
+            original_limit = sender.limits[email_config.id]
+            sender.send_day_emails()
+
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 0
+        # stays enqueued for a later run, not written off as failed
+        assert (
+            MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 1
+        )
+        # only the 2 real sends spend budget, not the skipped one
+        remaining = cache.get(f'{sender.cache_key_prefix}_{email_config.id}')
+        assert remaining == original_limit - 2
 
     def test_soft_time_limit_closes_the_connection_and_leaves_records_enqueued(self):
         connection = MagicMock()
