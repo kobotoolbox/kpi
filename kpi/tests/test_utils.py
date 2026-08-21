@@ -1,5 +1,6 @@
 import os
 import re
+import unicodedata
 from copy import deepcopy
 
 import pytest
@@ -23,6 +24,7 @@ from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.strings import split_lines_to_list, strtobool
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -816,3 +818,20 @@ class XmlUtilsTestCase(TestCase):
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)
         self.assertEqual(re_source, re_target)
+
+
+class AttachmentFilenamesAndXpathsTestCase(TestCase):
+
+    def test_nfd_filename_maps_to_xpath_via_nfc_basename(self):
+        """
+        A submission value stored in NFD must be keyed under its NFC form so
+        an NFC basename lookup resolves the XPath (DEV-2686).
+        """
+        nfc_name = unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        self.assertNotEqual(nfc_name, nfd_name)
+
+        result = get_attachment_filenames_and_xpaths({'picture': nfd_name}, ['picture'])
+
+        self.assertEqual(result.get(nfc_name), 'picture')
+        self.assertNotIn(nfd_name, result)
