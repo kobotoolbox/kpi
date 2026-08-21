@@ -54,6 +54,7 @@ export default function AudioCell(props: AudioCellProps) {
               size='sm'
               // TODO(DEV-2370): open the audio response details dialog
               onClick={() => {}}
+              ms='sm'
             />
             <ActionIcon
               variant='transparent'
