@@ -6,6 +6,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { useSupplementStatusPolling } from '#/components/processing/common/useSupplementStatusPolling'
+import { SUPPLEMENT_MAX_FIRST_POLL_DELAY, SUPPLEMENT_MIN_FIRST_POLL_DELAY } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getAudioDuration, getEstimatedTranscriptionDurationSeconds, getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
@@ -13,15 +14,13 @@ import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from './tr
 
 /** Until the estimate is loaded we display dot dot dot. */
 const NO_ESTIMATED_MINUTES = '…'
-const MIN_FIRST_POLL_DELAY_MS = 3000
-const MAX_FIRST_POLL_DELAY_MS = 30000
 
 function getFirstPollDelayMs(sourceDurationSeconds: number): number {
   // Poll later for longer recordings to reduce unnecessary early refetches.
   const estimatedDurationSeconds = getEstimatedTranscriptionDurationSeconds(sourceDurationSeconds)
   return Math.max(
-    MIN_FIRST_POLL_DELAY_MS,
-    Math.min(MAX_FIRST_POLL_DELAY_MS, Math.round((estimatedDurationSeconds * 1000) / 3)),
+    SUPPLEMENT_MIN_FIRST_POLL_DELAY,
+    Math.min(SUPPLEMENT_MAX_FIRST_POLL_DELAY, Math.round((estimatedDurationSeconds * 1000) / 3)),
   )
 }
 
@@ -39,7 +38,7 @@ export default function AutomaticTranscriptionInProgress({
   activeBulkActions,
 }: Props) {
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
-  const [firstPollDelayMs, setFirstPollDelayMs] = useState<number>(MIN_FIRST_POLL_DELAY_MS)
+  const [firstPollDelayMs, setFirstPollDelayMs] = useState<number>(SUPPLEMENT_MIN_FIRST_POLL_DELAY)
 
   // Nothing is blocked here, but the spinner alone doesn't say who started the work.
   // Naming the bulk job explains why this appeared without the user asking for it.
