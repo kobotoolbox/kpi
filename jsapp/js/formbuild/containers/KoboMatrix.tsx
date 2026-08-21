@@ -668,7 +668,6 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                   clearable={false}
                   data={this.state.typeChoices}
                   onChange={this.colChangeType.bind(this)}
-                  searchable={false}
                   // Matches the sibling text inputs, which `_kobomatrix.scss`
                   // lays out as fixed-width inline blocks next to their label.
                   w={310}

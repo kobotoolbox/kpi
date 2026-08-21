@@ -78,8 +78,8 @@ export function getFilenameFromURI(url: string): string {
 
 /**
  * The form only keeps track of the chosen values, but the asset settings need
- * whole `LabelValuePair`s: Back end derives `country_codes` and sorts project
- * lists on `sector.value`, and Front end displays the stored labels.
+ * whole `LabelValuePair`s: Backend derives `country_codes` and sorts project
+ * lists on `sector.value`, and Frontend displays the stored labels.
  */
 function toLabelValuePair(value: string, choices: LabelValuePair[]): LabelValuePair {
   // Fall back to the value itself for choices that are no longer offered, so

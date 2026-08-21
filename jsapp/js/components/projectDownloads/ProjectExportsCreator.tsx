@@ -1,5 +1,6 @@
 import { Loader, Switch } from '@mantine/core'
 import * as Sentry from '@sentry/react'
+import { IconTrashFilled } from '@tabler/icons-react'
 import cx from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
@@ -38,6 +39,7 @@ import { getColumnLabel, orderColumns } from '#/components/submissions/tableUtil
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery } from '#/dataInterface'
 import { createDateQuery, formatTimeDate, notify, recordKeys, recordValues } from '#/utils'
+import ActionIcon from '../common/ActionIcon'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
@@ -45,7 +47,7 @@ const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
  * Stands for "no saved export settings applied". Mantine's `Select` works on
  * strings, so we can't use `null` as an option value.
  */
-const NO_DEFINED_EXPORT_VALUE = '__none__'
+const NO_DEFINED_EXPORT_VALUE = '__i_do_not_want_to_use_saved_settings__'
 
 interface ProjectExportsCreatorProps {
   asset: AssetResponse
@@ -533,7 +535,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                   mergeState({ selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS[newValue] })
                 }
               }}
-              placeholder={t('Select…')}
               searchable={false}
               clearable={false}
             />
@@ -840,16 +841,16 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                 </label>
 
                 {state.selectedDefinedExport && userCan(PERMISSIONS_CODENAMES.manage_asset, props.asset) && (
-                  <Button
-                    type='secondary-danger'
-                    size='m'
-                    onClick={(evt: React.TouchEvent) => {
+                  <ActionIcon
+                    variant='danger'
+                    size='lg'
+                    onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
                       evt.preventDefault()
                       if (state.selectedDefinedExport?.data.uid) {
                         safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
                       }
                     }}
-                    startIcon='trash'
+                    icon={IconTrashFilled}
                     className='project-downloads__delete-settings-button'
                   />
                 )}

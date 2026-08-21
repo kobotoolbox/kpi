@@ -44,7 +44,6 @@ export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
             props.onSelectedExportTypeChange(EXPORT_TYPES[newValue])
           }
         }}
-        searchable={false}
         clearable={false}
         disabled={props.disabled}
       />

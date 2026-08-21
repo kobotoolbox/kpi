@@ -30,7 +30,7 @@ const PAGE_SIZE = 20
  * Stands for "no question filter". `Select` treats an empty string as no value
  * at all, so the "all questions" option needs a sentinel of its own.
  */
-const ALL_QUESTIONS_VALUE = '__all_questions__'
+const ALL_QUESTIONS_VALUE = '__show_me_all_questions_pretty_please__'
 
 interface FormGalleryProps {
   asset: AssetResponse

@@ -81,12 +81,14 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
  * `Select` can't tell apart from "nothing selected". This sentinel stands in for
  * it in the dropdown.
  */
-const DEFAULT_FORM_STYLE_VALUE = '__default__'
+const DEFAULT_FORM_STYLE_VALUE = '__default_single_page__'
 
-const FORM_STYLE_OPTIONS = AVAILABLE_FORM_STYLES.map(({ value, label }) => ({
-  value: value === '' ? DEFAULT_FORM_STYLE_VALUE : value,
-  label,
-}))
+const FORM_STYLE_OPTIONS = AVAILABLE_FORM_STYLES.map(({ value, label }) => {
+  return {
+    value: value === '' ? DEFAULT_FORM_STYLE_VALUE : value,
+    label,
+  }
+})
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
@@ -1013,7 +1015,6 @@ export default function EditableForm(props: EditableFormProps) {
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 data={FORM_STYLE_OPTIONS}
                 disabled={isChangingAppearanceRestricted()}
-                searchable={false}
                 clearable={false}
               />
             </bem.FormBuilderAside__row>
