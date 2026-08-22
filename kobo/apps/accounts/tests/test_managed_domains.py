@@ -46,9 +46,7 @@ class SocialAppManagedDomainTestCase(BaseTestCase):
         app1 = SocialApp.objects.create(
             provider='google', name='Google', client_id='1', secret='s'
         )
-        custom_data1 = SocialAppCustomData.objects.create(
-            social_app=app1, managed=True
-        )
+        custom_data1 = SocialAppCustomData.objects.create(social_app=app1, managed=True)
 
         domain1 = SocialAppManagedDomain.objects.create(
             social_app=custom_data1, domain='example.com'
