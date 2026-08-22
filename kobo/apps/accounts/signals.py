@@ -65,11 +65,17 @@ def update_managed_sso_email_domains():
     """
     try:
         with transaction.atomic():
-            domains = SocialAppManagedDomain.objects.filter(
-                social_app__managed=True
-            ).values_list('domain', flat=True).order_by('domain')
+            domains = (
+                SocialAppManagedDomain.objects.filter(social_app__managed=True)
+                .values_list('domain', flat=True)
+                .order_by('domain')
+            )
             domain_string = '\n'.join(domains)
-            setattr(constance.config, 'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS', domain_string)
+            setattr(
+                constance.config,
+                'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+                domain_string,
+            )
     except Exception:
         pass
 

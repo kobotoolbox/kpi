@@ -55,8 +55,8 @@ class SocialAppManagedDomainTestCase(BaseTestCase):
             constance.config.REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS, 'example.com'
         )
 
-        domain2 = SocialAppManagedDomain.objects.create(
-            social_app=custom_data1, domain='alpha.com'
+        SocialAppManagedDomain.objects.create(
+                social_app=custom_data1, domain='alpha.com'
         )
         self.assertEqual(
             constance.config.REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS,
