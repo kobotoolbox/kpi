@@ -682,31 +682,6 @@ export function getSubmissionRootUuid(submission: { _uuid: string; 'meta/rootUui
   return removeDefaultUuidPrefix(submission['meta/rootUuid'] || submission._uuid)
 }
 
-/**
- * Compare any two uuid's, accounting for the presence or absence of
- * the default `'uuid:'` prefix in `meta/instanceId` and `meta/rootUuid`.
- *
- * Use this when comparing a `_uuid` with one of those `meta/` fields,
- * since the meta fields include the `uuid:` prefix but the _uuid field
- * strips them.
- *
- * Usage examples:
- *
- *     matchUuid( _uuid, rootUuid )   // ✅ true if equivalent
- *     matchUuid( _uuid, instanceId ) // ✅ true if equivalent
- *
- *     matchUuid( instanceId, rootUuid )  // ✔️ this works too
- *
- *     matchUuid( 'some-uuid-that-here-exists',
- *           'uuid:some-uuid-that-here-exists') // ✔️ match true
- *
- *     matchUuid(     'uuid-collision',
- *        'org.example:uuid-collision') // false (different namespace)
- */
-export function matchUuid(uuidA: string, uuidB: string) {
-  return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
-}
-
 export function createDateQuery(startDate: string, endDate: string): MongoQuery[] {
   // $and is necessary as repeating a json key is not valid
   const andQuery: MongoQuery[] = []

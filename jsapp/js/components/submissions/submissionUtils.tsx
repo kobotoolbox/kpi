@@ -29,7 +29,7 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
-import { recordEntries, recordKeys } from '#/utils'
+import { getSubmissionRootUuid, recordEntries, recordKeys } from '#/utils'
 import { getRepeatGroupAnswers } from './repeatGroupUtils'
 import { getMediaAttachment } from './submissionMediaUtils'
 export {
@@ -454,6 +454,33 @@ function populateMatrixData(
       matrixRowGroupObj.children.push(questionObj)
     }
   })
+}
+
+/**
+ * What to call a single submission in the UI, e.g. in a heading or a link.
+ *
+ * Form authors can name submissions themselves with the `instance_name` setting
+ * in the XLSForm, usually built out of a few answers ("Ann Smith - Nairobi").
+ * Where they did, that is the name people recognise the record by; where they did
+ * not, we fall back to the id that identifies it everywhere else.
+ *
+ * Do not use it as a key or in a query - the name is neither unique nor stable.
+ *
+ * `meta/instanceName` is typed loosely because it holds whatever the form
+ * calculated, and the type of a submission's question keys is just as loose.
+ */
+export function getSubmissionDisplayName(submission: {
+  _uuid: string
+  'meta/rootUuid'?: string
+  'meta/instanceName'?: unknown
+}): string {
+  const instanceName = submission['meta/instanceName']
+
+  if (typeof instanceName === 'string' && instanceName.trim() !== '') {
+    return instanceName
+  }
+
+  return getSubmissionRootUuid(submission)
 }
 
 /**
