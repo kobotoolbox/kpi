@@ -52,7 +52,7 @@ const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 par
 /** Room left around the plotted points, so that the outermost markers aren't drawn half way off the map. */
 const FIT_BOUNDS_PADDING: L.PointTuple = [32, 32]
 
-/** Class greying out the markers of the legend entries the user has filtered out. */
+/** Class hiding the markers of the legend entries the user has filtered out. */
 const UNSELECTED_MARKER_CLASS = 'unselected'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -772,7 +772,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         this.state.heatmap?.setLatLngs(drawnPoints)
         // A fresh copy comes with fresh icons, which know nothing about the legend filter
         if (this.state.filteredByMarker) {
-          this.dimUnselectedMarkers(group, this.state.filteredByMarker)
+          this.hideUnselectedMarkers(group, this.state.filteredByMarker)
         }
       })
 
@@ -1032,12 +1032,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     this.setState({ filteredByMarker: filteredByMarker })
     if (markers) {
-      this.dimUnselectedMarkers(markers, filteredByMarker)
+      this.hideUnselectedMarkers(markers, filteredByMarker)
     }
   }
 
-  /** Greys out every marker that is not of one of the selected legend types. */
-  private dimUnselectedMarkers(markers: FeatureGroupExtended, filteredByMarker: string[]) {
+  /**
+   * Based on filter selected by user. Hides markers on the map, dims the filter row in Legend menu.
+   */
+  private hideUnselectedMarkers(markers: FeatureGroupExtended, filteredByMarker: string[]) {
     markers.eachLayer((layer) => {
       // Markers of a group that isn't on the map (or that the marker clustering keeps out of sight) have no icon yet.
       if (!layer._icon) {
