@@ -101,7 +101,10 @@ function drawTile(zoom: number, tileX: number, tileY: number): string {
   })
 
   // Leaflet asks for the same tile in every copy of the world it draws, so the meridian ends up marked in each of them
-  const meridian = tileX === 0 ? `<path d="M0 0V${TILE_SIZE}" stroke="${MERIDIAN_COLOR}" stroke-dasharray="4 4"/>` : ''
+  const meridian =
+    tileX === 0
+      ? `<path d="M0 0V${TILE_SIZE}" stroke="${MERIDIAN_COLOR}" stroke-width="4" stroke-dasharray="4 4"/>`
+      : ''
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${TILE_SIZE}" height="${TILE_SIZE}">` +
