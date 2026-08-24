@@ -2,7 +2,6 @@
 import constance
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialApp, SocialLogin
-from allauth.socialaccount.providers.base import Provider
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.contrib.auth import get_user_model
@@ -12,13 +11,8 @@ from django.utils.translation import gettext as t
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.accounts.tests.constants import SOCIALACCOUNT_PROVIDERS
+from kobo.apps.accounts.tests.utils import MockProvider
 from kobo.apps.kobo_auth.shortcuts import User
-
-
-class MockProvider(Provider):
-    id = 'mock_provider'
-    uses_apps = False
-    name = 'Mock Provider'
 
 
 @ddt
@@ -138,7 +132,7 @@ class RegistrationTestCase(TestCase):
         REGISTRATION_BLACKLIST_EMAIL_DOMAINS='bad-domain.com'
     )
     def test_default_blacklist_error_message(self):
-        """
+        """MockProvi
         Test that if a blacklisted domain is used, and there is no custom error
         message set, registration should be blocked and the default error message
         should be shown

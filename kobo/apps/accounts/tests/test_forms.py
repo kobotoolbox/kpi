@@ -1,20 +1,21 @@
 import dateutil
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import translation
 from django.utils.timezone import now
 from model_bakery import baker
 from pyquery import PyQuery
 from rest_framework import status
-from allauth.accounts.models import SocialApp
-
 
 from hub.models.sitewide_message import SitewideMessage
-from kobo.apps.accounts.forms import SignupForm, SocialSignupForm, ResetPasswordForm
+from kobo.apps.accounts.forms import ResetPasswordForm, SignupForm, SocialSignupForm
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
+from kobo.apps.accounts.tests.utils import MockProvider
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class AccountFormsTestCase(TestCase):
@@ -396,31 +397,32 @@ class AccountFormsTestCase(TestCase):
             email=self.sociallogin.user.email,
         )
 
-class PasswordResetFormsTestCase(TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
+
+class PasswordResetFormTestCase(TestCase):
+
+    def test_password_reset_accepted(self):
+        form = ResetPasswordForm({'email': 'user@unmanaged.com'})
+        assert form.is_valid()
+
+    def test_password_reset_not_allowed_for_sso_managed_users(self):
+        provider = MockProvider(request=RequestFactory().get('/'))
         social_app = SocialApp.objects.create(
             client_id='test.service.id',
             secret='test.service.secret',
             name='Test App',
-            provider='Test App',
+            provider=provider.id,
         )
-        cls.custom_data = SocialAppCustomData.objects.create(
+        custom_data = SocialAppCustomData.objects.create(
             social_app=social_app, managed=True
         )
-        cls.managed_domain = 'example.com'
         SocialAppManagedDomain.objects.create(
-            domain='example.com', social_app=cls.custom_data
+            domain='example.com', social_app=custom_data
         )
-        cls.user = baker.make(settings.AUTH_USER_MODEL, email='email@email.com')
-
-    def test_password_reset_accepted(self):
-        form = ResetPasswordForm(email='user@unmanaged.com')
-        assert form.is_valid()
-
-    def test_password_reset_not_allowed_for_sso_managed_users(self):
-        baker.make('socialaccount.SocialAccount', user=self.user)
-
-
-        form = ResetPasswordForm(email=f'user@{self.managed_domain}')
-
+        user = User.objects.create(username='managed', email='user@example.com')
+        SocialAccount.objects.create(
+            user=user,
+            provider=provider.id,
+            uid='testuser',
+        )
+        form = ResetPasswordForm({'email': f'user@example.com'})
+        assert not form.is_valid()
