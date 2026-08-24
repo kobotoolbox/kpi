@@ -2,8 +2,8 @@ import L from 'leaflet'
 import { type PointsBounds, getPointsBounds, getWorldCopyOffsets } from './mapUtils'
 
 /**
- * Marker budget for the whole map, deliberately below the cap on submissions the map fetches (`MAX_SUBMISSIONS`):
- * copies multiply markers, so the biggest projects are better off with just the one copy closest to the view.
+ * Budget for the markers on the map, the plotted ones counted in, held below the cap on submissions the map fetches
+ * (`MAX_SUBMISSIONS`) on purpose: copies multiply markers, so the biggest projects get just the copy nearest the view.
  */
 const MAX_DRAWN_MARKERS = 20000
 

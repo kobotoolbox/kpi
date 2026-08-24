@@ -22,7 +22,10 @@ export interface PointsBounds extends LongitudeSpan {
   north: number
 }
 
-/** A submission with an answer for the selected geopoint question. `lng` can fall outside [-180, 180], see below. */
+/**
+ * A submission with an answer for the selected geopoint question. `lng` can fall outside [-180, 180], see
+ * `unwrapLongitudes()`.
+ */
 export interface PlottedPoint {
   submission: DataResponse
   lat: number
@@ -54,14 +57,17 @@ function wrapLongitude(longitude: number): number {
 }
 
 /**
- * Rewrites longitudes so that points on both sides of the 180th meridian can be displayed next to each other.
+ * Rewrites longitudes so that points on both sides of the 180th meridian read as neighbours.
  *
- * Vanuatu (168°) and Samoa (-172°) are either a 340° span across Africa or a 20° span across the Pacific. Leaflet
- * assumes the first, so we pick the narrowest reading, which puts some longitudes outside [-180, 180] (-172° becomes
- * 188°). Leaflet draws such a marker in the copy of the world east of the meridian, right next to Vanuatu.
+ * Longitude wraps around at that meridian, which makes nearby places look far apart: Vanuatu (168°) and Samoa (-172°)
+ * are 20° from each other on the ground, but 340° apart as plain numbers. Code that only compares the numbers — fitting
+ * the map to its points, say — reads that as opposite sides of the globe and zooms out to show all of it.
  *
- * Order is kept. Values that are not finite, and projects whose narrowest reading is the one Leaflet would have used
- * anyway (nearly all of them), are passed through untouched.
+ * So we add 360° to the points on the far side of the meridian, which leaves the numbers as close as the places are:
+ * -172° becomes 188°. Going past 180° is deliberate. Leaflet reads it as the copy of the world next door to the east
+ * and draws the marker there, right beside Vanuatu.
+ *
+ * Order is kept, and points nowhere near the meridian — nearly every project — come back untouched.
  */
 export function unwrapLongitudes(longitudes: number[]): number[] {
   const wrapped = longitudes.map((longitude) => (Number.isFinite(longitude) ? wrapLongitude(longitude) : longitude))
@@ -71,8 +77,9 @@ export function unwrapLongitudes(longitudes: number[]): number[] {
     return wrapped
   }
 
-  // Walking east, the narrowest span holding every point starts right after the widest gap between two neighbours. We
-  // start with the gap crossing the 180th meridian, so data that needs no shifting keeps its longitudes as they are.
+  // Picture the longitudes as marks around a circle: the tightest arc holding all of them begins right after the widest
+  // empty stretch between two neighbouring marks. The search starts from the stretch that crosses the 180th meridian,
+  // so that data needing no shift at all keeps the longitudes it came with.
   let spanStart = sorted[0]
   let widestGap = sorted[0] + FULL_ROTATION - sorted[sorted.length - 1]
   for (let index = 1; index < sorted.length; index++) {
@@ -83,32 +90,40 @@ export function unwrapLongitudes(longitudes: number[]): number[] {
     }
   }
 
+  // Whatever the widest gap leaves over is the span the points cover. Too wide, and no shifting can bring them together
   if (FULL_ROTATION - widestGap > MAX_UNWRAPPED_SPAN) {
     return wrapped
   }
 
-  // Everything west of the span start belongs to the next copy of the world, east of the 180th meridian.
+  // Points west of where the span starts are the ones on the far side of the meridian, so they move a rotation east
   return wrapped.map((longitude) => (longitude < spanStart ? longitude + FULL_ROTATION : longitude))
 }
 
 /**
- * Full rotations to add to the plotted longitudes, so that the points are drawn in every copy of the world on screen
- * (Leaflet repeats the base map east and west forever, markers it does not).
+ * Works out where to draw copies of the plotted points, as degrees to add to their longitudes.
  *
- * Sorted west to east, and never empty: with no copy near the view, the closest one is still worth drawing.
+ * Leaflet repeats the base map east and west without end, so panning past the 180th meridian brings the same world
+ * round again. A marker, though, only exists in the one copy it was plotted in, and panning leaves it behind. The way
+ * out is to draw extra sets of markers, each moved by a whole trip around the globe. A return of `[-360, 0, 360]` means
+ * three sets: one a rotation to the west, the plotted one where it already is, one a rotation to the east.
+ *
+ * Sorted west to east, and never empty — with no copy in sight the nearest one is drawn anyway, since the alternative
+ * is points nowhere on screen.
  *
  * @param view longitudes of the left and of the right edge of the map
  * @param maxCopies how many copies we can afford to draw; the ones closest to the middle of the map win
  */
 export function getWorldCopyOffsets(plotted: LongitudeSpan, view: LongitudeSpan, maxCopies: number): number[] {
-  // Without a span to compare against the view, the copy the points were plotted in is the only one we can place
+  // A missing or broken longitude leaves nothing to compare against the view, so stay with the copy already plotted
   if (![plotted.west, plotted.east, view.west, view.east].every(Number.isFinite)) {
     return [0]
   }
 
-  // The nth copy covers the plotted span moved by n full rotations, and is worth drawing when that overlaps the view.
+  // Copy number n sits n whole rotations east of where the points were plotted, and is worth drawing when it lands in
+  // the view. These two are the westmost and the eastmost copy that do.
   const westmostVisible = Math.ceil((view.west - plotted.east) / FULL_ROTATION)
   const eastmostVisible = Math.floor((view.east - plotted.west) / FULL_ROTATION)
+  // The copy whose middle is closest to the middle of the view. Comes in when the view has no copy in it at all.
   const nearest = Math.round((view.west + view.east - plotted.west - plotted.east) / (2 * FULL_ROTATION))
 
   const copies: number[] = []
@@ -119,6 +134,9 @@ export function getWorldCopyOffsets(plotted: LongitudeSpan, view: LongitudeSpan,
     copies.push(nearest)
   }
 
+  // More copies than we can afford: line them up by how far they are from the middle of the view, drop the far ones,
+  // then put the survivors back in west to east order. One always survives, so even a budget of none leaves the points
+  // somewhere the user can see them.
   if (copies.length > maxCopies) {
     copies.sort((a, b) => Math.abs(a - nearest) - Math.abs(b - nearest))
     copies.splice(Math.max(1, maxCopies))
@@ -130,8 +148,11 @@ export function getWorldCopyOffsets(plotted: LongitudeSpan, view: LongitudeSpan,
 }
 
 /**
- * Coordinates of the selected geopoint question, from every submission that has an answer for it. Longitudes come
- * unwrapped, see `unwrapLongitudes()`.
+ * Reads the answers to one geopoint question and turns them into points to plot. Submissions that skipped the question
+ * give `parseLatLng()` nothing to parse and are left out.
+ *
+ * Longitudes are unwrapped in one go rather than point by point, because how far each one has to move depends on where
+ * all the others are — see `unwrapLongitudes()`.
  */
 export function getPlottedPoints(submissions: DataResponse[], selectedQuestion: string | null): PlottedPoint[] {
   const points: PlottedPoint[] = []
