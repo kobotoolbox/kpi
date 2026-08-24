@@ -11,6 +11,7 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withMinHeightWrapper } from '#/storybookUtils'
 import FormMapWrapper from './formMapWrapper'
+import { mapTileHandlers } from './mapTiles.mocks'
 
 const mockAssetUid = 'aTestMapAssetUid123'
 
@@ -194,23 +195,26 @@ const submissionsAcrossAntimeridian: SubmissionResponse[] = [
   }),
 ]
 
-// Both of the 180th meridian stories are served the same asset and the same submissions
-const pacificHandlers = [
-  http.get(endpoints.ASSET_URL, ({ params }) => {
-    if (params.uid !== mockAssetUid) return undefined
-    return HttpResponse.json(assetWithPacificGeopoints)
-  }),
-  http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-    if (params.uid !== mockAssetUid) return undefined
-    const response: PaginatedResponse<SubmissionResponse> = {
-      count: submissionsAcrossAntimeridian.length,
-      next: null,
-      previous: null,
-      results: submissionsAcrossAntimeridian,
-    }
-    return HttpResponse.json(response)
-  }),
-]
+/** Everything a map story needs mocked: the asset, its submissions and the tiles the map is drawn on. */
+function mapHandlers(asset: AssetResponse, submissions: SubmissionResponse[]) {
+  return [
+    http.get(endpoints.ASSET_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      return HttpResponse.json(asset)
+    }),
+    http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      const response: PaginatedResponse<SubmissionResponse> = {
+        count: submissions.length,
+        next: null,
+        previous: null,
+        results: submissions,
+      }
+      return HttpResponse.json(response)
+    }),
+    ...mapTileHandlers,
+  ]
+}
 
 const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
@@ -237,15 +241,11 @@ const meta: Meta<typeof FormMapWrapper> = {
     withRouter,
     queryClientDecorator,
     withMinHeightWrapper(400, { height: 400 }),
-    // Hide map tiles for Chromatic tests - prevents flakiness from map images rendering differently (we had tiny
-    // differences causing tests to fail)
+    // Tiles are mocked (see `mapTiles.mocks.ts`), so this only fills the map while they are on their way in
     (Story) => (
       <>
         <style>
           {`
-            .leaflet-tile-pane {
-              opacity: 0 !important;
-            }
             #data-map {
               background: #a8e4f0 !important;
             }
@@ -262,24 +262,7 @@ type Story = StoryObj<typeof FormMapWrapper>
 
 export const WithOnlyStartGeopoint: Story = {
   parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoints.ASSET_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          return HttpResponse.json(assetWithOnlyStartGeopoint)
-        }),
-        http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          const response: PaginatedResponse<SubmissionResponse> = {
-            count: submissionsWithStartGeopoint.length,
-            next: null,
-            previous: null,
-            results: submissionsWithStartGeopoint,
-          }
-          return HttpResponse.json(response)
-        }),
-      ],
-    },
+    msw: { handlers: mapHandlers(assetWithOnlyStartGeopoint, submissionsWithStartGeopoint) },
   },
   args: {
     asset: assetWithOnlyStartGeopoint,
@@ -322,24 +305,7 @@ export const WithOnlyStartGeopoint: Story = {
 
 export const WithBothGeopointTypes: Story = {
   parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoints.ASSET_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          return HttpResponse.json(assetWithBothGeopointTypes)
-        }),
-        http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          const response: PaginatedResponse<SubmissionResponse> = {
-            count: submissionsWithBothGeopointTypes.length,
-            next: null,
-            previous: null,
-            results: submissionsWithBothGeopointTypes,
-          }
-          return HttpResponse.json(response)
-        }),
-      ],
-    },
+    msw: { handlers: mapHandlers(assetWithBothGeopointTypes, submissionsWithBothGeopointTypes) },
   },
   args: {
     asset: assetWithBothGeopointTypes,
@@ -413,7 +379,7 @@ export const WithBothGeopointTypes: Story = {
 
 export const WithPointsAcrossAntimeridian: Story = {
   parameters: {
-    msw: { handlers: pacificHandlers },
+    msw: { handlers: mapHandlers(assetWithPacificGeopoints, submissionsAcrossAntimeridian) },
   },
   args: {
     asset: assetWithPacificGeopoints,
@@ -453,7 +419,7 @@ export const WithPointsAcrossAntimeridian: Story = {
 
 export const WithPointsRepeatedInEveryWorldCopy: Story = {
   parameters: {
-    msw: { handlers: pacificHandlers },
+    msw: { handlers: mapHandlers(assetWithPacificGeopoints, submissionsAcrossAntimeridian) },
   },
   args: {
     asset: assetWithPacificGeopoints,
@@ -489,6 +455,7 @@ export const WithPointsRepeatedInEveryWorldCopy: Story = {
           // together to end up in a single cluster here, which leaves one marker icon per copy of the world on screen.
           const mapWidth = canvasElement.querySelector('#data-map')?.getBoundingClientRect().width ?? 0
           const worldWidth = 256
+          // Gather all visible clusters
           const centers = Array.from(canvasElement.querySelectorAll('.leaflet-marker-icon'))
             .map((marker) => {
               const { left, width } = marker.getBoundingClientRect()
