@@ -9,9 +9,12 @@ from django.utils.timezone import now
 from model_bakery import baker
 from pyquery import PyQuery
 from rest_framework import status
+from allauth.accounts.models import SocialApp
+
 
 from hub.models.sitewide_message import SitewideMessage
-from kobo.apps.accounts.forms import SignupForm, SocialSignupForm
+from kobo.apps.accounts.forms import SignupForm, SocialSignupForm, ResetPasswordForm
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 
 
 class AccountFormsTestCase(TestCase):
@@ -392,3 +395,32 @@ class AccountFormsTestCase(TestCase):
             form_kwargs={'sociallogin': self.sociallogin},
             email=self.sociallogin.user.email,
         )
+
+class PasswordResetFormsTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        cls.custom_data = SocialAppCustomData.objects.create(
+            social_app=social_app, managed=True
+        )
+        cls.managed_domain = 'example.com'
+        SocialAppManagedDomain.objects.create(
+            domain='example.com', social_app=cls.custom_data
+        )
+        cls.user = baker.make(settings.AUTH_USER_MODEL, email='email@email.com')
+
+    def test_password_reset_accepted(self):
+        form = ResetPasswordForm(email='user@unmanaged.com')
+        assert form.is_valid()
+
+    def test_password_reset_not_allowed_for_sso_managed_users(self):
+        baker.make('socialaccount.SocialAccount', user=self.user)
+
+
+        form = ResetPasswordForm(email=f'user@{self.managed_domain}')
+

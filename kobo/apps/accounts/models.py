@@ -132,3 +132,9 @@ class SocialAppManagedDomain(models.Model):
         SocialAppCustomData, related_name='domains', on_delete=models.CASCADE
     )
     domain = models.CharField(unique=True, max_length=255, validators=[validate_domain])
+
+    @classmethod
+    def is_managed(cls, domain):
+        return cls.objects.filter(
+            domain__iexact=domain, social_app__managed=True
+        ).exists()

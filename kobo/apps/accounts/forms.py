@@ -2,6 +2,9 @@ import constance
 from allauth.account import app_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
+from allauth.account.forms import ResetPasswordForm as BaseResetPasswordForm
+from allauth.account.forms import UserTokenForm as BaseUserTokenForm
+
 from allauth.account.forms import SignupForm as BaseSignupForm
 from allauth.account.utils import (
     get_user_model,
@@ -17,6 +20,8 @@ from django.utils.translation import gettext_lazy as t
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
+from kobo.apps.accounts.models import SocialAppManagedDomain
+from kobo.apps.accounts.utils import get_normalized_domain
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 from .models import SocialAppManagedDomain
 
@@ -340,3 +345,32 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                 )
 
         return self.cleaned_data
+
+
+class ResetPasswordForm(BaseResetPasswordForm):
+    def clean_email(self):
+        # do not allow users with managed SSO emails (who have at least one SSO linked)
+        # to re/set a password
+        cleaned = super().clean_email()
+        domain = get_normalized_domain(cleaned)
+        if SocialAppManagedDomain.is_managed(domain):
+            user = self.users[0] if self.users else None
+            if user:
+                has_social_accounts = user.socialaccount_set.exists()
+                if has_social_accounts:
+                    raise forms.ValidationError(
+                        t('Cannot set password for SSO-managed accounts')
+                    )
+        return cleaned
+
+class UserTokenForm(BaseUserTokenForm):
+    def clean(self):
+        cleaned = super().clean()
+        user = self.reset_user
+        if user:
+            has_social_accounts = user.socialaccount_set.exists()
+            if has_social_accounts:
+                raise forms.ValidationError(
+                    t('Cannot set password for SSO-managed accounts')
+                )
+        return cleaned

@@ -12,11 +12,13 @@ from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
+from django.http import HttpRequest
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
+from kobo.apps.accounts.models import SocialAppManagedDomain
 from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     USERNAME_MAX_LENGTH,
@@ -218,6 +220,16 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
     class Media:
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
+
+    def get_fieldsets(self, request: HttpRequest, obj=...):
+        fieldsets = super().get_fieldsets(request, obj)
+        if obj and obj.pk is not None:
+            # remove password field for managed domains
+            email = obj.email
+            domain = email.split('@')[1].lower()
+            if SocialAppManagedDomain.is_managed(domain):
+                fieldsets[0][1]['fields'] = ('username',)
+        return fieldsets
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):

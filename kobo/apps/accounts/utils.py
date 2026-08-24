@@ -29,3 +29,7 @@ def user_has_paid_subscription(username):
         organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
         organizations_organization__djstripe_customers__subscriptions__items__price__unit_amount__gt=0,
     ).exists()
+
+
+def get_normalized_domain(email):
+    return email.split('@')[1].strip().lower()
