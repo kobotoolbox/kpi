@@ -46,7 +46,7 @@ import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
 
-const SUBMISSIONS_PER_PAGE = 1000
+export const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
 
 /** Room left around the plotted points, so that the outermost markers aren't drawn half way off the map. */
