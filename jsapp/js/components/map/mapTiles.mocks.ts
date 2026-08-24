@@ -11,12 +11,12 @@ import { http, HttpResponse } from 'msw'
 /** Tile size Leaflet works with, in pixels. */
 const TILE_SIZE = 256
 
-const OCEAN_COLOR = '#a8e4f0'
-const LAND_COLOR = '#dfe8ce'
-const GRID_COLOR = '#8fc9da'
-const LABEL_COLOR = '#7f9aa6'
+const OCEAN_COLOR = '#94c7d1'
+const LAND_COLOR = '#dbdbbd'
+const GRID_COLOR = '#5999a6'
+const LABEL_COLOR = '#365c63'
 /** The 180th meridian, marked so that it is clear where one copy of the world ends and the next one begins. */
-const MERIDIAN_COLOR = '#6b7280'
+const MERIDIAN_COLOR = '#293a3d'
 
 /**
  * The world as boxes of `[south, west, north, east]` degrees. Nowhere near accurate, and small islands are drawn far
