@@ -8,6 +8,7 @@ from import_export import fields, resources
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
+    _is_user_active_and_not_trashed,
     get_active_users,
     get_all_test_users,
     get_inactive_users,
@@ -23,9 +24,25 @@ from kobo.apps.mass_emails.user_queries import (
     get_users_over_100_percent_of_nlp_limits,
     get_users_over_100_percent_of_storage_limit,
     get_users_over_100_percent_of_submission_limit,
+    is_user_a_test_user,
+    is_user_active,
+    is_user_inactive,
+    is_user_over_80_percent_of_auto_qa_limits,
+    is_user_over_80_percent_of_nlp_limits,
+    is_user_over_80_percent_of_storage_limit,
+    is_user_over_80_percent_of_submission_limit,
+    is_user_over_90_percent_of_auto_qa_limits,
+    is_user_over_90_percent_of_nlp_limits,
+    is_user_over_90_percent_of_storage_limit,
+    is_user_over_90_percent_of_submission_limit,
+    is_user_over_100_percent_of_auto_qa_limits,
+    is_user_over_100_percent_of_nlp_limits,
+    is_user_over_100_percent_of_storage_limit,
+    is_user_over_100_percent_of_submission_limit,
 )
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 
 USER_QUERIES: dict[str, Callable] = {
     'users_above_80_percent_storage': get_users_over_80_percent_of_storage_limit,
@@ -45,6 +62,25 @@ USER_QUERIES: dict[str, Callable] = {
     'test_users': get_all_test_users,
 }
 USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
+# One cheap single-user boolean check per USER_QUERIES entry, used to
+# re-validate a stale enqueued record without re-running the fleet-wide query
+USER_ELIGIBILITY_CHECKS: dict[str, Callable] = {
+    'users_above_80_percent_storage': is_user_over_80_percent_of_storage_limit,
+    'users_above_90_percent_storage': is_user_over_90_percent_of_storage_limit,
+    'users_above_100_percent_storage': is_user_over_100_percent_of_storage_limit,
+    'users_inactive_for_365_days': is_user_inactive,
+    'users_active_within_365_days': is_user_active,
+    'users_above_80_percent_submissions': is_user_over_80_percent_of_submission_limit,
+    'users_above_90_percent_submissions': is_user_over_90_percent_of_submission_limit,
+    'users_above_100_percent_submissions': is_user_over_100_percent_of_submission_limit,  # noqa
+    'users_above_80_percent_nlp_usage': is_user_over_80_percent_of_nlp_limits,
+    'users_above_90_percent_nlp_usage': is_user_over_90_percent_of_nlp_limits,
+    'users_above_100_percent_nlp_usage': is_user_over_100_percent_of_nlp_limits,
+    'users_above_80_percent_autoqa_usage': is_user_over_80_percent_of_auto_qa_limits,
+    'users_above_90_percent_autoqa_usage': is_user_over_90_percent_of_auto_qa_limits,
+    'users_above_100_percent_autoqa_usage': is_user_over_100_percent_of_auto_qa_limits,  # noqa
+    'test_users': is_user_a_test_user,
+}
 EmailType = Enum('EmailType', ['RECURRING', 'ONE_TIME'])
 
 
@@ -52,6 +88,7 @@ class EmailStatus(models.TextChoices):
     ENQUEUED = 'enqueued'
     FAILED = 'failed'
     SENT = 'sent'
+    STALE = 'stale'
 
 
 class MassEmailConfig(AbstractTimeStampedModel):
@@ -69,7 +106,12 @@ class MassEmailConfig(AbstractTimeStampedModel):
     query = models.CharField(
         null=True, blank=True, max_length=100, choices=USER_QUERY_CHOICES
     )
-    frequency = models.IntegerField(default=-1)
+    frequency = models.IntegerField(
+        default=-1,
+        help_text='-1: one-time email<br />'
+        '1: recurring, sent daily<br />'
+        '&gt;1: recurring, sent every N days',
+    )
     live = models.BooleanField(default=False)
 
     def __str__(self):
@@ -96,21 +138,59 @@ class MassEmailConfig(AbstractTimeStampedModel):
 
     def get_users_queryset(self):
         queryset_getter = USER_QUERIES.get(self.query, lambda: [])
+        parameters = self._resolve_parameters(queryset_getter)
+        return queryset_getter(**parameters)
+
+    def is_user_still_eligible(
+        self, user: User | None, reevaluate_query: bool = True
+    ) -> bool:
+        """
+        Whether a queued record's recipient may still be emailed.
+
+        A deleted, deactivated or trashed user is never eligible. With
+        `reevaluate_query`, the user is also re-checked against
+        `self.query`'s criteria - used for records that sat in the queue
+        long enough to go stale.
+        """
+
+        # This also keeps the fail-open path below from applying to a
+        # deleted, deactivated or trashed user.
+        if not _is_user_active_and_not_trashed(user):
+            return False
+
+        if not reevaluate_query:
+            return True
+
+        check = USER_ELIGIBILITY_CHECKS.get(self.query)
+        if check is None:
+            # Only reachable if an admin edits a live config's `query` while
+            # old records are still enqueued. Fail open rather than silently
+            # dropping mail an unrelated admin edit didn't intend to affect.
+            logging.warning(
+                f'No eligibility check registered for query {self.query!r} on '
+                f'MassEmailConfig {self.id}; treating {user} as still eligible.'
+            )
+            return True
+        queryset_getter = USER_QUERIES.get(self.query, lambda: [])
+        parameters = self._resolve_parameters(queryset_getter)
+        return check(user, **parameters)
+
+    def _resolve_parameters(self, func: Callable) -> dict:
         parameters = {}
         for param in self.parameters.all():
             if (
-                param.name not in queryset_getter.__annotations__
-                or queryset_getter.__annotations__[param.name] not in (int, float, str)
-            ):
+                param.name not in func.__annotations__
+                or func.__annotations__[param.name] not in (int, float, str)
+            ):  # fmt: skip
                 continue
             try:
-                value = queryset_getter.__annotations__[param.name](param.value)
+                value = func.__annotations__[param.name](param.value)
             except ValueError:
                 continue
 
             parameters[param.name] = value
 
-        return queryset_getter(**parameters)
+        return parameters
 
 
 class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):

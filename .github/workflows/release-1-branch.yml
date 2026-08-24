@@ -78,13 +78,13 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
       id: create
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_minor }}
         base_ref: origin/${{ needs.version.outputs.prev_branch }}
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
@@ -99,7 +99,7 @@ jobs:
       - linear
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
 

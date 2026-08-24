@@ -30,7 +30,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
         <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`} />
 
         <bem.AssetsTableRow__buttons>
-          <AssetActionButtons asset={this.props.asset} />
+          <AssetActionButtons asset={this.props.asset} withinRow />
         </bem.AssetsTableRow__buttons>
 
         <bem.AssetsTableRow__column m='icon-status'>

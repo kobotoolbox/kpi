@@ -19,6 +19,7 @@ from model_bakery.recipe import seq
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import (
+    MailerConnectionSessionLimitError,
     MailerError,
     MailerProviderQuotaExhaustedError,
     MailerProviderRateThrottledError,
@@ -30,6 +31,7 @@ from ..tasks import (
     MassEmailSender,
     enqueue_mass_email_records,
     generate_mass_email_user_lists,
+    mark_old_enqueued_mass_email_record_as_failed,
     render_template,
     send_emails,
 )
@@ -219,16 +221,15 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
     @pytest.mark.skipif(settings.STRIPE_ENABLED, reason='Test non-stripe functionality')
     def test_get_plan_name_stripe_disabled(self):
-        org_user = self.user1.organization.organization_users.get(user=self.user1)
         sender = MassEmailSender()
-        plan_name = sender.get_plan_name(org_user)
+        plan_name = sender.get_plan_name(self.user1.organization)
         assert plan_name == 'Not available'
 
-    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=4, MASS_EMAIL_SEND_RATE_RATIO=0.5)
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
     def test_send_is_throttled(self):
-        # budget_per_second = 4 * 0.5 = 2. `monotonic` is pinned so every
-        # window looks fully elapsed instantly, isolating the trigger
-        # pattern (every 2 sends, sleep once) from real elapsed time.
+        # `monotonic` is pinned so every window looks fully elapsed
+        # instantly, isolating the trigger pattern (every 2 sends, sleep
+        # once) from real elapsed time.
         self._setup_common_test_data()
         calls = []
         with (
@@ -251,6 +252,72 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             'send_email',
             'sleep',
             'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2.5)
+    def test_send_is_throttled_below_one_per_second(self):
+        # sends_per_window = floor(2.5) = 2, window_length stays clamped
+        # to 1.0 (2 / 2.5 = 0.8, under the floor): 2 sends per window, not
+        # the 4-per-window a shorter-than-1s window would allow.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=0.5)
+    def test_send_is_throttled_above_one_second_per_send(self):
+        # A budget under 1/s can't be enforced within a single second, so
+        # the window widens instead of rounding the achieved rate up to
+        # 1/s: one send per 2-second window here.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
             'send_email',
             'sleep',
             'send_email',
@@ -468,6 +535,187 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert not config_2.live
 
 
+class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        self.template = 'Username: ##username##'
+        self.email_config = self._create_email_config(
+            name='Stale config', template=self.template
+        )
+
+    def test_stale_ineligible_record_is_marked_stale(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once()
+        assert len(mail.outbox) == 0
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.STALE
+
+    def test_stale_still_eligible_record_is_sent_normally(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=True
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once()
+        assert len(mail.outbox) == 1
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.SENT
+
+    def test_fresh_record_is_sent_without_reevaluating_the_query(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=True
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once_with(self.user1, reevaluate_query=False)
+        assert len(mail.outbox) == 1
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.SENT
+
+    @override_config(MASS_EMAIL_STALE_RECORD_RECHECK_HOURS=1)
+    def test_recheck_threshold_is_read_from_constance(self):
+        # 2h old: not stale against the 12h default, but stale against the
+        # 1h threshold set here, proving the value is read live and not
+        # baked in at import time
+        job = MassEmailJob.objects.create(email_config=self.email_config)
+        MassEmailRecord.objects.create(
+            user=self.user1,
+            email_job=job,
+            status=EmailStatus.ENQUEUED,
+            date_created=timezone.now() - timedelta(hours=2),
+        )
+        with patch.object(
+            MassEmailConfig, 'is_user_still_eligible', return_value=False
+        ) as mock_check:
+            sender = MassEmailSender()
+            sender.send_day_emails()
+
+        mock_check.assert_called_once()
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.STALE
+
+    def test_stale_record_does_not_consume_pacer_budget(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user2,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        with patch.object(
+            MassEmailConfig,
+            'is_user_still_eligible',
+            side_effect=lambda user, reevaluate_query=True: not reevaluate_query,
+        ):
+            sender = MassEmailSender()
+            original_limit = sender.limits[self.email_config.id]
+            sender.send_day_emails()
+
+        # only user2's fresh record was actually sent
+        assert len(mail.outbox) == 1
+
+        # both records are now processed, so the config drops out of a fresh
+        # MassEmailSender's `.limits` entirely (0 enqueued left); read the
+        # cached remaining budget directly instead
+        remaining = cache.get(f'{sender.cache_key_prefix}_{self.email_config.id}')
+        assert remaining == original_limit - 1
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=2)
+    def test_stale_records_do_not_shrink_the_days_effective_capacity(self):
+        # Stale records created first, fresh ones after: with a plain
+        # `[:limit]` slice, the two stale records alone would fill the
+        # window and leave the fresh, eligible ones enqueued despite spare
+        # capacity. The fix must pull past them instead.
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user2,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=1,
+        )
+        self._create_email_record(
+            user=self.user3,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+        user4 = User.objects.create(username='user4', email='user4@test.com')
+        self._create_email_record(
+            user=user4,
+            email_config=self.email_config,
+            status=EmailStatus.ENQUEUED,
+            days_ago=0,
+        )
+
+        with patch.object(
+            MassEmailConfig,
+            'is_user_still_eligible',
+            side_effect=lambda user, reevaluate_query=True: not reevaluate_query,
+        ):
+            sender = MassEmailSender()
+            assert sender.limits[self.email_config.id] == 2
+            sender.send_day_emails()
+
+        assert len(mail.outbox) == 2
+        statuses = list(
+            MassEmailRecord.objects.filter(
+                email_job__email_config=self.email_config
+            ).values_list('status', flat=True)
+        )
+        assert statuses.count(EmailStatus.STALE) == 2
+        assert statuses.count(EmailStatus.SENT) == 2
+        assert not MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).exists()
+
+    def test_mark_old_enqueued_record_as_failed_ignores_stale_records(self):
+        self._create_email_record(
+            user=self.user1,
+            email_config=self.email_config,
+            status=EmailStatus.STALE,
+            days_ago=30,
+        )
+        mark_old_enqueued_mass_email_record_as_failed()
+        record = MassEmailRecord.objects.get(user=self.user1)
+        assert record.status == EmailStatus.STALE
+
+
 @ddt
 class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
 
@@ -666,6 +914,65 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         for call in send_mock.call_args_list:
             assert call.kwargs['connection'] is connection
 
+    def test_deactivated_user_record_is_marked_stale_and_not_sent(self):
+        # A user deactivated after enqueue must not receive the email; their
+        # record is marked stale up front by MassEmailSender.__init__
+        self.user1.is_active = False
+        self.user1.save()
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send', return_value=None
+            ) as send_mock,
+        ):
+            MassEmailSender().send_day_emails()
+
+        user1_record = MassEmailRecord.objects.get(user=self.user1)
+        assert user1_record.status == EmailStatus.STALE
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+        sent_recipients = [call.args[0].to for call in send_mock.call_args_list]
+        assert self.user1.email not in sent_recipients
+
+    def test_orphaned_record_is_marked_stale_and_not_sent(self):
+        # Records whose user was deleted can never be sent; mark them stale
+        # so one-time configs still terminate
+        record = MassEmailRecord.objects.get(user=self.user1)
+        record.user = None
+        record.save()
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch('kobo.apps.mass_emails.tasks.Mailer.send', return_value=None),
+        ):
+            MassEmailSender().send_day_emails()
+
+        record.refresh_from_db()
+        assert record.status == EmailStatus.STALE
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+
+    def test_user_deactivated_mid_run_is_marked_stale_and_not_sent(self):
+        # The sender reads its batch (and runs its eager cleanup) while the
+        # user is still active, then the user is deactivated before their
+        # record is reached. The per-record guard catches it even though the
+        # record is far too young for the stale-threshold recheck.
+        sender = MassEmailSender()
+        self.user1.is_active = False
+        self.user1.save()
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send', return_value=None
+            ) as send_mock,
+        ):
+            sender.send_day_emails()
+
+        user1_record = MassEmailRecord.objects.get(user=self.user1)
+        assert user1_record.status == EmailStatus.STALE
+        sent_recipients = [call.args[0].to for call in send_mock.call_args_list]
+        assert self.user1.email not in sent_recipients
+
     def test_mailer_error_marks_the_record_failed_and_the_run_continues(self):
         connection = MagicMock()
         with (
@@ -719,6 +1026,38 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         # The record that hit the quota error, and the one never reached,
         # stay enqueued rather than being written off as failed
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
+
+    def test_connection_session_limit_error_skips_the_record_and_continues(self):
+        # Unlike rate-throttled/quota-exhausted, this must not stop the run:
+        # the connection is already reconnected by the time Mailer.send()
+        # raises it, so the next record should be attempted right away.
+        connection = MagicMock()
+        with (
+            patch('kpi.utils.mailer.get_connection', return_value=connection),
+            patch(
+                'kobo.apps.mass_emails.tasks.Mailer.send',
+                side_effect=[
+                    None,
+                    MailerConnectionSessionLimitError('session limit reached'),
+                    None,
+                ],
+            ) as send_mock,
+        ):
+            sender = MassEmailSender()
+            email_config = MassEmailConfig.objects.get(name='Config')
+            original_limit = sender.limits[email_config.id]
+            sender.send_day_emails()
+
+        assert send_mock.call_count == 3
+        assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 2
+        assert MassEmailRecord.objects.filter(status=EmailStatus.FAILED).count() == 0
+        # stays enqueued for a later run, not written off as failed
+        assert (
+            MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 1
+        )
+        # only the 2 real sends spend budget, not the skipped one
+        remaining = cache.get(f'{sender.cache_key_prefix}_{email_config.id}')
+        assert remaining == original_limit - 2
 
     def test_soft_time_limit_closes_the_connection_and_leaves_records_enqueued(self):
         connection = MagicMock()

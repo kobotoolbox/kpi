@@ -7,12 +7,12 @@ import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
 import sessionStore from '#/stores/session'
 import { deleteSocialAccount } from './sso.api'
+import { getConnectedSsoAccounts, getSsoProviders, isSsoAvailable } from './sso.utils'
 import styles from './ssoSection.module.scss'
 
 const SsoSection = observer(() => {
-  const socialApps = envStore.isReady ? envStore.data.social_apps : []
-  const socialAccounts =
-    'social_accounts' in sessionStore.currentAccount ? sessionStore.currentAccount.social_accounts : []
+  const socialApps = getSsoProviders(envStore.data)
+  const socialAccounts = getConnectedSsoAccounts()
 
   const disconnectSocialAccount = () => {
     if (socialAccounts.length) {
@@ -36,7 +36,7 @@ const SsoSection = observer(() => {
     [sessionStore.currentAccount],
   )
 
-  if (socialApps.length === 0 && socialAccounts.length === 0) {
+  if (!isSsoAvailable(envStore.data) && socialAccounts.length === 0) {
     return <></>
   }
 
