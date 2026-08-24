@@ -1,10 +1,7 @@
-import tempfile
-
 import pytest
 from constance import config
 from constance.test import override_config
 from django.conf import settings
-from django.core.files.base import ContentFile
 from django.http import HttpRequest
 from django.template import RequestContext, Template
 from django.test import override_settings
@@ -14,7 +11,6 @@ from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
 
-from hub.models.configuration_file import ConfigurationFile, ConfigurationFileSlug
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.models import SocialAppCustomData
