@@ -19,6 +19,8 @@ import CenteredMessage from '../../../js/components/common/centeredMessage.compo
 import Modal from '../../../js/components/common/modal'
 // Partial components
 import MapSettings from './MapSettings'
+import { type PlottedPoint, getPlottedPoints, getPointsBounds } from './mapUtils'
+import { WorldCopies } from './worldCopies'
 
 import { actions } from '../../../js/actions'
 import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
@@ -26,7 +28,7 @@ import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 import { dataInterface } from '../../../js/dataInterface'
 import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
+import { findFirstGeopoint, notify, recordKeys } from '../../../js/utils'
 
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
@@ -46,6 +48,12 @@ import type { DataResponse } from '#/api/models/dataResponse'
 
 const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
+
+/** Room left around the plotted points, so that the outermost markers aren't drawn half way off the map. */
+const FIT_BOUNDS_PADDING: L.PointTuple = [32, 32]
+
+/** Class greying out the markers of the legend entries the user has filtered out. */
+const UNSELECTED_MARKER_CLASS = 'unselected'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -190,6 +198,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   private unlisteners: Function[] = []
   private lastRenderedBoundsSignature?: string
 
+  /** Repeats the markers across the copies of the world the map shows. Replaced whenever the marker group is. */
+  private worldCopies?: WorldCopies
+
   private syncLegendViewportListeners() {
     const shouldListen = Boolean(this.state.markerMap) && this.state.markersVisible && this.state.showExpandedLegend
     if (shouldListen === this.viewportListenersActive) {
@@ -239,6 +250,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (this.mapContainerEl) {
       this.mapContainerEl.removeEventListener('wheel', this.onMapPinchZoom)
     }
+    // Has to go before the map does, as it asks the map about its bounds
+    this.worldCopies?.destroy()
     if (this.state.map) {
       this.state.map.remove()
     }
@@ -567,6 +580,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.buildMarkers(map)
     // TODO: when heat map is selected and the user refteches data (changes question or selects a disaggregation) the
     // map will rebuild and display both markers and heat map. See DEV-1960
+    // The heat map covers the same points as the markers, copies of the world included, so it has to come second.
     this.buildHeatMap(map)
   }
 
@@ -590,6 +604,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   buildMarkers(map: L.Map) {
+    const points: PlottedPoint[] = getPlottedPoints(this.props.allData, this.state.foundSelectedQuestion)
     const prepPoints: L.Marker[] = []
     const viewby = this.props.viewby || undefined
     const colorSet = this.calcColorSet()
@@ -597,11 +612,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
     const submissions: DataResponse[] = this.props.allData
-    let pointCount = 0
-    let minLat = Number.POSITIVE_INFINITY
-    let maxLat = Number.NEGATIVE_INFINITY
-    let minLng = Number.POSITIVE_INFINITY
-    let maxLng = Number.NEGATIVE_INFINITY
+    const bounds = getPointsBounds(points)
 
     if (viewby) {
       mapMarkers = this.prepFilteredMarkers(submissions, this.props.viewby)
@@ -651,56 +662,46 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.setState({ markerMap: undefined })
     }
 
-    submissions.forEach((item) => {
+    points.forEach((point) => {
+      const item = point.submission
       let markerProps = {}
 
-      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
+      if (viewby && mM) {
+        const vb = this.nameOfFieldInGroup(viewby)
+        const itemId = String(item[vb])
+        let index: number | IconNoValue = mM.findIndex((m) => m.value === itemId)
 
-      if (!!parsedCoordinates.length) {
-        pointCount += 1
-        minLat = Math.min(minLat, parsedCoordinates[0])
-        maxLat = Math.max(maxLat, parsedCoordinates[0])
-        minLng = Math.min(minLng, parsedCoordinates[1])
-        maxLng = Math.max(maxLng, parsedCoordinates[1])
-
-        if (viewby && mM) {
-          const vb = this.nameOfFieldInGroup(viewby)
-          const itemId = String(item[vb])
-          let index: number | IconNoValue = mM.findIndex((m) => m.value === itemId)
-
-          // spread indexes to use full colorset gamut if necessary
-          if (colorSet !== undefined && colorSet !== 'a') {
-            index = this.calculateIconIndex(index, mM)
-          }
-
-          // Previously it was possible that `'-novalue' + 1` would happen resulting in code not knowing what to do.
-          // I've changed it to default to 1 in case `index` is not a number.
-          let iconNumber = 1
-          if (typeof index === 'number') {
-            iconNumber = index + 1
-          }
-
-          markerProps = {
-            icon: this.buildIcon(iconNumber),
-            sId: item._id,
-            typeId: mapMarkers[itemId].id,
-          }
-        } else {
-          markerProps = {
-            icon: this.buildIcon(),
-            sId: item._id,
-            typeId: null,
-          }
+        // spread indexes to use full colorset gamut if necessary
+        if (colorSet !== undefined && colorSet !== 'a') {
+          index = this.calculateIconIndex(index, mM)
         }
 
-        prepPoints.push(L.marker([parsedCoordinates[0], parsedCoordinates[1]], markerProps))
+        // Previously it was possible that `'-novalue' + 1` would happen resulting in code not knowing what to do.
+        // I've changed it to default to 1 in case `index` is not a number.
+        let iconNumber = 1
+        if (typeof index === 'number') {
+          iconNumber = index + 1
+        }
+
+        markerProps = {
+          icon: this.buildIcon(iconNumber),
+          sId: item._id,
+          typeId: mapMarkers[itemId].id,
+        }
+      } else {
+        markerProps = {
+          icon: this.buildIcon(),
+          sId: item._id,
+          typeId: null,
+        }
       }
+
+      prepPoints.push(L.marker([point.lat, point.lng], markerProps))
     })
 
-    const nextBoundsSignature =
-      pointCount === 0
-        ? 'empty'
-        : `${pointCount}:${minLat.toFixed(6)}:${maxLat.toFixed(6)}:${minLng.toFixed(6)}:${maxLng.toFixed(6)}`
+    const nextBoundsSignature = bounds
+      ? `${points.length}:${bounds.south.toFixed(6)}:${bounds.north.toFixed(6)}:${bounds.west.toFixed(6)}:${bounds.east.toFixed(6)}`
+      : 'empty'
     const boundsChanged = this.lastRenderedBoundsSignature !== nextBoundsSignature
     this.lastRenderedBoundsSignature = nextBoundsSignature
 
@@ -738,14 +739,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
-      if (prepPoints.length === 0) {
-        if (boundsChanged) {
-          // Legacy fallback location used when there are no plotted points.
-          // Single-point bounds around Cambridge, MA.
-          map.fitBounds([[42.373, -71.124]])
-        }
-        this.setState({ noData: true })
-      } else {
+      if (bounds) {
         // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
         // reset the zoom when switching between disaggregated questions. This is the reason for the first two guards.
         // The last condition is only possible if we are coming from having no points to having points in the same page,
@@ -753,14 +747,36 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         // Additionally, we now only auto-fit when plotted bounds actually changed between rebuilds.
         const shouldFitBounds = boundsChanged && (!viewby || !this.state.componentRefreshed || this.state.noData)
         if (shouldFitBounds) {
-          map.fitBounds(markers.getBounds())
+          // Fitting the plotted points rather than `markers.getBounds()`, as the latter grows with the copies of the
+          // world we are about to add to the group.
+          map.fitBounds(L.latLngBounds([bounds.south, bounds.west], [bounds.north, bounds.east]), {
+            padding: FIT_BOUNDS_PADDING,
+          })
         }
         this.setState({ noData: false })
+      } else {
+        if (boundsChanged) {
+          // Legacy fallback location used when there are no plotted points.
+          // Single-point bounds around Cambridge, MA.
+          map.fitBounds([[42.373, -71.124]])
+        }
+        this.setState({ noData: true })
       }
 
-      this.setState({
-        markers: markers as FeatureGroupExtended,
+      const group = markers as FeatureGroupExtended
+
+      // Only now that the view has been fitted do we know which copies of the world are in sight. The copies of the
+      // previous group went away with it, so this instance starts from scratch.
+      this.worldCopies?.destroy()
+      this.worldCopies = new WorldCopies(map, group, prepPoints, (drawnPoints) => {
+        this.state.heatmap?.setLatLngs(drawnPoints)
+        // A fresh copy comes with fresh icons, which know nothing about the legend filter
+        if (this.state.filteredByMarker) {
+          this.dimUnselectedMarkers(group, this.state.filteredByMarker)
+        }
       })
+
+      this.setState({ markers: group })
     } else {
       this.setState({ error: t('Error: could not load data.') })
     }
@@ -822,15 +838,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   buildHeatMap(map: L.Map) {
-    const heatmapPoints: Array<[number, number, number]> = []
-    const submissions: DataResponse[] = this.props.allData
-    submissions.forEach((item) => {
-      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
-      if (!!parsedCoordinates.length) {
-        heatmapPoints.push([parsedCoordinates[0], parsedCoordinates[1], 1])
-      }
-    })
-    const heatmap = L.heatLayer(heatmapPoints, {
+    // Same points the markers were built from, the copies of the world included
+    const heatmap = L.heatLayer(this.worldCopies?.getDrawnPoints() ?? [], {
       minOpacity: 0.25,
       radius: 20,
       blur: 8,
@@ -1012,7 +1021,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const id = String(markerId)
     const markers = this.state.markers
     let filteredByMarker = this.state.filteredByMarker
-    const unselectedClass = 'unselected'
 
     if (!filteredByMarker) {
       filteredByMarker = [id]
@@ -1023,11 +1031,22 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.setState({ filteredByMarker: filteredByMarker })
-    markers?.eachLayer((layer) => {
+    if (markers) {
+      this.dimUnselectedMarkers(markers, filteredByMarker)
+    }
+  }
+
+  /** Greys out every marker that is not of one of the selected legend types. */
+  private dimUnselectedMarkers(markers: FeatureGroupExtended, filteredByMarker: string[]) {
+    markers.eachLayer((layer) => {
+      // Markers of a group that isn't on the map (or that the marker clustering keeps out of sight) have no icon yet.
+      if (!layer._icon) {
+        return
+      }
       if (filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.remove(unselectedClass)
+        layer._icon.classList.remove(UNSELECTED_MARKER_CLASS)
       } else {
-        layer._icon.classList.add(unselectedClass)
+        layer._icon.classList.add(UNSELECTED_MARKER_CLASS)
       }
     })
   }
@@ -1036,7 +1055,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const markers = this.state.markers
     this.setState({ filteredByMarker: undefined })
     markers?.eachLayer((layer) => {
-      layer._icon.classList.remove('unselected')
+      layer._icon?.classList.remove(UNSELECTED_MARKER_CLASS)
     })
   }
 

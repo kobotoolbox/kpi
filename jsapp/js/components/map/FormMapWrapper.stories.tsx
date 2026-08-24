@@ -100,6 +100,46 @@ const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
   },
 }) as unknown as AssetResponse
 
+// Asset used to check how points collected on both sides of the 180th meridian are displayed
+const assetWithPacificGeopoints = getApiV2AssetsRetrieveResponseMock({
+  uid: mockAssetUid,
+  name: 'Test Form with Points Across the 180th Meridian',
+  deployment__active: true,
+  deployment__submission_count: 4,
+  has_deployment: true,
+  map_styles: {},
+  summary: {
+    geo: true,
+    labels: ['Your name', 'Where are you?'],
+    columns: ['type', 'label'],
+    lock_all: false,
+    lock_any: false,
+    languages: [],
+    row_count: 2,
+    name_quality: { ok: 2, bad: 0, good: 0, total: 2, firsts: {} },
+    default_translation: undefined,
+  },
+  content: {
+    survey: [
+      {
+        $kuid: 'q1',
+        type: QuestionTypeName.text,
+        name: 'your_name',
+        label: ['Your name'],
+        required: false,
+      },
+      {
+        $kuid: 'q2',
+        type: QuestionTypeName.geopoint,
+        name: 'location',
+        label: ['Where are you?'],
+        required: false,
+      },
+    ],
+    choices: [],
+  },
+}) as unknown as AssetResponse
+
 // Submission data with populated start-geopoint
 const submissionsWithStartGeopoint: SubmissionResponse[] = [
   assetDataFactory(1, {
@@ -127,6 +167,48 @@ const submissionsWithBothGeopointTypes: SubmissionResponse[] = [
     location: '-34.3757 18.8248 0 0', // slightly off the start
     'start-geopoint': '-34.3787 18.8278 0 0', // Moonlight Beach
     _geolocation: [-34.3757, 18.8248],
+  }),
+]
+
+// Two submissions in Vanuatu (east of the 180th meridian) and two in Samoa (west of it)
+const submissionsAcrossAntimeridian: SubmissionResponse[] = [
+  assetDataFactory(1, {
+    your_name: 'Alice',
+    location: '-17.7333 168.3273 0 0', // Port Vila
+    _geolocation: [-17.7333, 168.3273],
+  }),
+  assetDataFactory(2, {
+    your_name: 'Bob',
+    location: '-17.5667 168.1667 0 0', // Mele
+    _geolocation: [-17.5667, 168.1667],
+  }),
+  assetDataFactory(3, {
+    your_name: 'Carla',
+    location: '-13.8333 -171.7667 0 0', // Apia
+    _geolocation: [-13.8333, -171.7667],
+  }),
+  assetDataFactory(4, {
+    your_name: 'Dan',
+    location: '-14.0333 -171.4833 0 0', // Lotofaga
+    _geolocation: [-14.0333, -171.4833],
+  }),
+]
+
+// Both of the 180th meridian stories are served the same asset and the same submissions
+const pacificHandlers = [
+  http.get(endpoints.ASSET_URL, ({ params }) => {
+    if (params.uid !== mockAssetUid) return undefined
+    return HttpResponse.json(assetWithPacificGeopoints)
+  }),
+  http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
+    if (params.uid !== mockAssetUid) return undefined
+    const response: PaginatedResponse<SubmissionResponse> = {
+      count: submissionsAcrossAntimeridian.length,
+      next: null,
+      previous: null,
+      results: submissionsAcrossAntimeridian,
+    }
+    return HttpResponse.json(response)
   }),
 ]
 
@@ -322,6 +404,102 @@ export const WithBothGeopointTypes: Story = {
 
           expect(whereAreYouOption).toBeInTheDocument()
           expect(startGeopointOption).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
+    })
+  },
+}
+
+export const WithPointsAcrossAntimeridian: Story = {
+  parameters: {
+    msw: { handlers: pacificHandlers },
+  },
+  args: {
+    asset: assetWithPacificGeopoints,
+  },
+  play: async ({ canvasElement, step }) => {
+    await step('Verify that all of the points are plotted', async () => {
+      await waitFor(
+        async () => {
+          // Two icons at the very least: the points in Vanuatu and the ones in Samoa are too far apart to be clustered
+          // together
+          const markers = canvasElement.querySelectorAll('.leaflet-marker-icon')
+          expect(markers.length).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 5000 },
+      )
+    })
+
+    await step('Verify that the map zoomed in on the Pacific instead of the whole world', async () => {
+      await waitFor(
+        async () => {
+          // The zoom of the requested tiles tells us which of the two readings of these coordinates the map went with.
+          // Fitting the 20° span across the 180th meridian needs a zoom of 3 or more, while reading them as a 340° span
+          // the other way around (what Leaflet does on its own) forces the map out to zoom 0 or 1.
+          const tiles = Array.from(canvasElement.querySelectorAll<HTMLImageElement>('.leaflet-tile-pane img'))
+          const zooms = tiles
+            .map((tile) => Number(tile.src.match(/\/(\d+)\/\d+\/\d+\.png/)?.[1]))
+            .filter((zoom) => Number.isFinite(zoom))
+
+          expect(zooms.length).toBeGreaterThan(0)
+          expect(Math.max(...zooms)).toBeGreaterThanOrEqual(3)
+        },
+        { timeout: 5000 },
+      )
+    })
+  },
+}
+
+export const WithPointsRepeatedInEveryWorldCopy: Story = {
+  parameters: {
+    msw: { handlers: pacificHandlers },
+  },
+  args: {
+    asset: assetWithPacificGeopoints,
+  },
+  play: async ({ canvasElement, step }) => {
+    await step('Wait for the points to be plotted', async () => {
+      await waitFor(
+        async () => {
+          const markers = canvasElement.querySelectorAll('.leaflet-marker-icon')
+          expect(markers.length).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 5000 },
+      )
+    })
+
+    await step('Zoom the map out as far as it goes', async () => {
+      await waitFor(
+        async () => {
+          // One click per attempt, until the control tells us there is nowhere left to zoom out to
+          const zoomOutButton = canvasElement.querySelector<HTMLAnchorElement>('.leaflet-control-zoom-out')
+          zoomOutButton?.click()
+          expect(zoomOutButton).toHaveClass('leaflet-disabled')
+        },
+        { timeout: 10000 },
+      )
+    })
+
+    await step('Verify that the points are drawn in every copy of the world the map shows', async () => {
+      await waitFor(
+        async () => {
+          // The map repeats itself once every 256 pixels at this zoom, and so should the points drawn on it — that is
+          // what keeps them in sight when the user pans across the 180th meridian. All four of them are close enough
+          // together to end up in a single cluster here, which leaves one marker icon per copy of the world on screen.
+          const mapWidth = canvasElement.querySelector('#data-map')?.getBoundingClientRect().width ?? 0
+          const worldWidth = 256
+          const centers = Array.from(canvasElement.querySelectorAll('.leaflet-marker-icon'))
+            .map((marker) => {
+              const { left, width } = marker.getBoundingClientRect()
+              return left + width / 2
+            })
+            .sort((a, b) => a - b)
+
+          expect(centers.length).toBeGreaterThanOrEqual(Math.floor(mapWidth / worldWidth))
+          for (let copy = 1; copy < centers.length; copy++) {
+            expect(centers[copy] - centers[copy - 1]).toBeCloseTo(worldWidth, 0)
+          }
         },
         { timeout: 5000 },
       )
