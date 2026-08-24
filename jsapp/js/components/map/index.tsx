@@ -771,10 +771,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.worldCopies = new WorldCopies(map, group, prepPoints, (drawnPoints) => {
         this.state.heatmap?.setLatLngs(drawnPoints)
         // A fresh copy comes with fresh icons, which know nothing about the legend filter
-        if (this.state.filteredByMarker) {
-          this.hideUnselectedMarkers(group, this.state.filteredByMarker)
-        }
+        this.reapplyMarkerFilter(group)
       })
+      // Same for this whole group: a rebuild (new submissions came in, say) keeps the filter the legend is showing
+      this.reapplyMarkerFilter(group)
 
       this.setState({ markers: group })
     } else {
@@ -854,6 +854,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   showMarkers() {
     if (this.state.map && this.state.markers) {
       this.state.map.addLayer(this.state.markers)
+      // Leaving the map threw the icons away, and the ones Leaflet just built are missing the legend filter
+      this.reapplyMarkerFilter(this.state.markers)
     }
     if (this.state.map && this.state.heatmap) {
       this.state.map.removeLayer(this.state.heatmap)
@@ -1033,6 +1035,17 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.setState({ filteredByMarker: filteredByMarker })
     if (markers) {
       this.hideUnselectedMarkers(markers, filteredByMarker)
+    }
+  }
+
+  /**
+   * Puts the legend filter back on a group of markers that has just been given icons. Marker icons live only as long as
+   * the marker is on the map, and they come back without the class that hides them, while the legend goes on showing the
+   * filter as on. Does nothing when no filter is on, since then there is nothing to hide.
+   */
+  private reapplyMarkerFilter(markers: FeatureGroupExtended) {
+    if (this.state.filteredByMarker) {
+      this.hideUnselectedMarkers(markers, this.state.filteredByMarker)
     }
   }
 
