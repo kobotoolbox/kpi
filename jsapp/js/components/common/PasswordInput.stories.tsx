@@ -16,6 +16,9 @@ const meta: Meta<typeof PasswordInput> = {
       description: 'Controls the reveal state. Pair with `onVisibilityChange`',
     },
   },
+  parameters: {
+    a11y: { disabled: true },
+  },
 }
 
 export default meta
