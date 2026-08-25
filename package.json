@@ -51,7 +51,7 @@
     "lodash.union": "^4.6.0",
     "lodash.zip": "^4.2.0",
     "mobx": "^6.15.2",
-    "mobx-react": "^7.6.0",
+    "mobx-react": "^9.2.2",
     "normalize.css": "^8.0.1",
     "papaparse": "^5.5.4",
     "pretty-bytes": "^7.1.0",
