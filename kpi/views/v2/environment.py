@@ -256,9 +256,9 @@ class EnvironmentView(APIView):
                 'supporting_text': (
                     markdownify(supporting_text) if supporting_text else ''
                 ),
-                # Reported rather than configured: allauth validates the
-                # accepted login methods with a `Critical` system check at
-                # startup, so they cannot safely be toggled at runtime
+                # Reported, not configured: follows allauth's accepted
+                # login methods, so the form never offers a credential the
+                # server would reject
                 'allow_login_with_username': (
                     allauth_account_settings.LoginMethod.USERNAME
                     in allauth_account_settings.LOGIN_METHODS
