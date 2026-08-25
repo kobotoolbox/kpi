@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.test import RequestFactory, TestCase, override_settings
 
 from kpi.constants import API_NAMESPACES
+from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     SearchQueryTooShortException,
@@ -835,3 +836,21 @@ class AttachmentFilenamesAndXpathsTestCase(TestCase):
 
         self.assertEqual(result.get(nfc_name), 'picture')
         self.assertNotIn(nfd_name, result)
+
+    def test_nfd_filename_also_maps_to_legacy_stripped_basename(self):
+        """
+        On file system storage, `get_valid_name()` drops combining marks, so
+        attachments saved before normalization live under an accent-less name.
+        That name must resolve to the XPath too (DEV-2686).
+        """
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        legacy_name = default_kobocat_storage.get_valid_name(nfd_name)
+        nfc_name = default_kobocat_storage.get_valid_name(
+            unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        )
+        self.assertNotEqual(legacy_name, nfc_name)
+
+        result = get_attachment_filenames_and_xpaths({'picture': nfd_name}, ['picture'])
+
+        self.assertEqual(result.get(nfc_name), 'picture')
+        self.assertEqual(result.get(legacy_name), 'picture')
