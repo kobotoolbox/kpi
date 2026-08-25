@@ -415,6 +415,10 @@ class ImportTask(ImportExportTask):
         which would otherwise inject a null "Unnamed language" translation and
         break the formbuilder (DEV-2656). Mirrors the column classification in
         `formpack.utils.expand_content._get_special_survey_cols()`.
+
+        TODO: replace the patterns below with the compiled constants
+        (`MEDIA_COLUMN_WITH_LANG_RE`, `MEDIA_COLUMN_RE`,
+        `TRANSLATED_COLUMN_RE`) once they land in `formpack.constants`.
         """
         media_re = '|'.join(MEDIA_COLUMN_NAMES)
 
@@ -437,6 +441,8 @@ class ImportTask(ImportExportTask):
                 continue
             if column_name.startswith('bind:') or column_name.startswith('body:'):
                 continue
+            # translated media column,
+            # e.g. `image::English (en)` or `media::image::French (fr)`
             mtch = re.match(
                 rf'^(media\s*::?\s*)?({media_re})\s*::?\s*([^:]+)$',
                 column_name,
@@ -444,10 +450,13 @@ class ImportTask(ImportExportTask):
             if mtch:
                 languages.add(mtch.groups()[2])
                 continue
+            # untranslated media column, e.g. `image` or `media::image`
             mtch = re.match(rf'^(media\s*::?\s*)?({media_re})$', column_name)
             if mtch:
                 _mark_untranslated(column_name)
                 continue
+            # any other translated column,
+            # e.g. `label::English (en)` or `constraint_message::Français`
             mtch = re.match(r'^([^:]+)\s*::?\s*([^:]+)$', column_name)
             if mtch:
                 column_shortname = mtch.groups()[0]
