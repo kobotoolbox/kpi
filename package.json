@@ -82,7 +82,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.5",
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.5.10",
     "@eslint/compat": "^2.1.0",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.17.0",
