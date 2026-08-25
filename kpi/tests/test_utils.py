@@ -1,5 +1,6 @@
 import os
 import re
+import unicodedata
 from copy import deepcopy
 
 import pytest
@@ -8,6 +9,7 @@ from django.db.models import Q
 from django.test import RequestFactory, TestCase, override_settings
 
 from kpi.constants import API_NAMESPACES
+from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     SearchQueryTooShortException,
@@ -23,6 +25,7 @@ from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.strings import split_lines_to_list, strtobool
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -816,3 +819,38 @@ class XmlUtilsTestCase(TestCase):
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)
         self.assertEqual(re_source, re_target)
+
+
+class AttachmentFilenamesAndXpathsTestCase(TestCase):
+
+    def test_nfd_filename_maps_to_xpath_via_nfc_basename(self):
+        """
+        A submission value stored in NFD must be keyed under its NFC form so
+        an NFC basename lookup resolves the XPath (DEV-2686).
+        """
+        nfc_name = unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        self.assertNotEqual(nfc_name, nfd_name)
+
+        result = get_attachment_filenames_and_xpaths({'picture': nfd_name}, ['picture'])
+
+        self.assertEqual(result.get(nfc_name), 'picture')
+        self.assertNotIn(nfd_name, result)
+
+    def test_nfd_filename_also_maps_to_legacy_stripped_basename(self):
+        """
+        On file system storage, `get_valid_name()` drops combining marks, so
+        attachments saved before normalization live under an accent-less name.
+        That name must resolve to the XPath too (DEV-2686).
+        """
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        legacy_name = default_kobocat_storage.get_valid_name(nfd_name)
+        nfc_name = default_kobocat_storage.get_valid_name(
+            unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        )
+        self.assertNotEqual(legacy_name, nfc_name)
+
+        result = get_attachment_filenames_and_xpaths({'picture': nfd_name}, ['picture'])
+
+        self.assertEqual(result.get(nfc_name), 'picture')
+        self.assertEqual(result.get(legacy_name), 'picture')
