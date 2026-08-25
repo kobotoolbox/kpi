@@ -48,7 +48,10 @@ export function getBackToCurrentScreen(label: string): SubmissionBackTo | undefi
  * @param submissionId - `meta/rootUuid` (preferably) or `_id`
  */
 export function getSubmissionPath(assetUid: string, submissionId: string | number) {
-  return ROUTES.FORM_SUBMISSION.replace(':uid', assetUid).replace(':submissionId', String(submissionId))
+  return ROUTES.FORM_SUBMISSION.replace(':uid', assetUid).replace(
+    ':submissionId',
+    encodeURIComponent(String(submissionId)),
+  )
 }
 
 /**
