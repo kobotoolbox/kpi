@@ -6,6 +6,9 @@
 .input {
   border-color: var(--mantine-color-gray-6);
 
+  --input-disabled-bg: var(--mantine-color-gray-7);
+  --input-disabled-color: var(--mantine-color-gray-3);
+
   &::placeholder {
     color: var(--mantine-color-gray-3);
     opacity: 1;
@@ -13,9 +16,8 @@
 }
 
 .input[data-disabled] {
-  background-color: var(--mantine-color-gray-7);
+  /* Background and text come from the variables above. Border has no variable. */
   border-color: var(--mantine-color-gray-3);
-  color: var(--mantine-color-gray-3);
 
   &::placeholder {
     color: var(--mantine-color-gray-2);
