@@ -17,7 +17,7 @@ const meta: Meta<typeof PasswordInput> = {
     },
   },
   parameters: {
-    a11y: { disabled: true },
+    a11y: { disable: true },
   },
 }
 
