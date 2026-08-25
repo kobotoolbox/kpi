@@ -3815,6 +3815,11 @@ export type meSocialAccountsDestroyResponse401 = {
   status: 401
 }
 
+export type meSocialAccountsDestroyResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
 export type meSocialAccountsDestroyResponse404 = {
   data: ErrorDetail
   status: 404
@@ -3825,6 +3830,7 @@ export type meSocialAccountsDestroyResponseSuccess = meSocialAccountsDestroyResp
 }
 export type meSocialAccountsDestroyResponseError = (
   | meSocialAccountsDestroyResponse401
+  | meSocialAccountsDestroyResponse403
   | meSocialAccountsDestroyResponse404
 ) & {
   headers: Headers

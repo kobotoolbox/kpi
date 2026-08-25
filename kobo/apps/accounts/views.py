@@ -77,7 +77,7 @@ class EmailAddressViewSet(
     destroy=extend_schema(
         description=read_md('accounts', 'me/social/delete.md'),
         responses=open_api_204_empty_response(
-            raise_access_forbidden=False,
+            raise_access_forbidden=True,
             validate_payload=False,
         ),
     ),
