@@ -31,8 +31,6 @@ const ProjectBreakdown = () => {
     start: 0,
   })
 
-  console.log('testing billing period: ', billingPeriod)
-
   function getQueryParams() {
     // TODO: align props with backend pagination params to simplify away this helper
     const queryParams: OrganizationsAssetUsageListParams = { ...pagination }
