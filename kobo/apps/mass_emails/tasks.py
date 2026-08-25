@@ -106,7 +106,8 @@ def mark_old_enqueued_mass_email_record_as_failed():
         .distinct()
     )
 
-    # this won't actually be evaluated until we call update() so it's safe to declare it here
+    # this won't actually be evaluated until we call
+    # update() so it's safe to declare it here
     configs_to_update = (
         MassEmailConfig.objects.filter(uid__in=affected_one_time_campaigns)
         .annotate(
@@ -119,11 +120,13 @@ def mark_old_enqueued_mass_email_record_as_failed():
 
     with transaction.atomic():
         updated_records_count = records_to_update.update(status=EmailStatus.FAILED)
-        configs_to_update.update(live=False)
+        updated_configs_count = configs_to_update.update(live=False)
 
     logging.info(
-        f'Updated {updated_records_count} MassEmailRecord(s) from `enqueued` to `failed` '
+        f'Updated {updated_records_count} MassEmailRecord(s)'
+        ' from `enqueued` to `failed` '
         f'that were older than {threshold_date}.'
+        f' Turned {updated_configs_count} campaigns off.'
     )
 
 
