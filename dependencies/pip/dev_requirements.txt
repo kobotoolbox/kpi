@@ -251,7 +251,7 @@ flake8-quotes==3.4.0
     # via -r dependencies/pip/dev_requirements.in
 flower==2.0.1
     # via -r dependencies/pip/requirements.in
-formpack @ git+https://github.com/kobotoolbox/formpack.git@4ddb8bfa0f8dfb433cbddf6298257fe95f9ce2fb
+formpack @ git+https://github.com/kobotoolbox/formpack.git@f8cd2a19e2c39d85639004b5fcf85b8f69a48da4
     # via -r dependencies/pip/requirements.in
 freezegun==1.5.5
     # via -r dependencies/pip/dev_requirements.in
