@@ -22,7 +22,13 @@ from django.db.models.functions import Cast, Coalesce, Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
-from formpack.constants import KOBO_LOCK_SHEET, MEDIA_COLUMN_NAMES
+from formpack.constants import (
+    KOBO_LOCK_SHEET,
+    MEDIA_COLUMN_NAMES,
+    MEDIA_COLUMN_RE,
+    MEDIA_COLUMN_WITH_LANG_RE,
+    TRANSLATED_COLUMN_RE,
+)
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -415,13 +421,7 @@ class ImportTask(ImportExportTask):
         which would otherwise inject a null "Unnamed language" translation and
         break the formbuilder (DEV-2656). Mirrors the column classification in
         `formpack.utils.expand_content._get_special_survey_cols()`.
-
-        TODO: replace the patterns below with the compiled constants
-        (`MEDIA_COLUMN_WITH_LANG_RE`, `MEDIA_COLUMN_RE`,
-        `TRANSLATED_COLUMN_RE`) once they land in `formpack.constants`.
         """
-        media_re = '|'.join(MEDIA_COLUMN_NAMES)
-
         uniq_cols = OrderedDict()
         for sheet in ('survey', 'choices', 'library'):
             for row in survey_dict.get(sheet, []):
@@ -443,21 +443,18 @@ class ImportTask(ImportExportTask):
                 continue
             # translated media column,
             # e.g. `image::English (en)` or `media::image::French (fr)`
-            mtch = re.match(
-                rf'^(media\s*::?\s*)?({media_re})\s*::?\s*([^:]+)$',
-                column_name,
-            )
+            mtch = MEDIA_COLUMN_WITH_LANG_RE.match(column_name)
             if mtch:
                 languages.add(mtch.groups()[2])
                 continue
             # untranslated media column, e.g. `image` or `media::image`
-            mtch = re.match(rf'^(media\s*::?\s*)?({media_re})$', column_name)
+            mtch = MEDIA_COLUMN_RE.match(column_name)
             if mtch:
                 _mark_untranslated(column_name)
                 continue
             # any other translated column,
             # e.g. `label::English (en)` or `constraint_message::Français`
-            mtch = re.match(r'^([^:]+)\s*::?\s*([^:]+)$', column_name)
+            mtch = TRANSLATED_COLUMN_RE.match(column_name)
             if mtch:
                 column_shortname = mtch.groups()[0]
                 languages.add(mtch.groups()[1])
