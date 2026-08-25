@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { useState } from 'react'
 import PasswordInput from './PasswordInput'
 
 type Story = StoryObj<typeof PasswordInput>
@@ -25,17 +24,6 @@ export const Default: Story = {
   args: {
     label: 'Current Password',
     placeholder: 'Type your password',
-  },
-}
-
-export const Controlled: Story = {
-  args: {
-    label: 'New Password',
-    placeholder: 'Type your password',
-  },
-  render: (args) => {
-    const [value, setValue] = useState('')
-    return <PasswordInput {...args} value={value} onChange={(event) => setValue(event.currentTarget.value)} />
   },
 }
 
