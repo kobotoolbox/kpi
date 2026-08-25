@@ -8,20 +8,19 @@
 
   --input-disabled-bg: var(--mantine-color-gray-7);
   --input-disabled-color: var(--mantine-color-gray-3);
+  --input-placeholder-color: var(--mantine-color-gray-3);
 
   &::placeholder {
-    color: var(--mantine-color-gray-3);
+    color: var(--input-placeholder-color);
     opacity: 1;
   }
 }
 
 .input[data-disabled] {
-  /* Background and text come from the variables above. Border has no variable. */
+  /* Background, text and placeholder come from the variables. Border has none. */
   border-color: var(--mantine-color-gray-3);
 
-  &::placeholder {
-    color: var(--mantine-color-gray-2);
-  }
+  --input-placeholder-color: var(--mantine-color-gray-2);
 }
 
 .input[data-error] {
