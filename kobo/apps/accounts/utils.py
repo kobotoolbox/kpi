@@ -1,5 +1,5 @@
-from django.conf import settings
 from allauth.socialaccount.models import SocialAccount
+from django.conf import settings
 
 from kobo.apps.accounts.models import SocialAppManagedDomain
 from kobo.apps.kobo_auth.shortcuts import User
@@ -39,12 +39,15 @@ def get_normalized_domain(email):
 def user_is_managed_by_sso(user):
     email = user.email
     domain = get_normalized_domain(email)
-    managed_social_app = SocialAppManagedDomain.objects.filter(domain__iexact=domain).first()
+    managed_social_app = SocialAppManagedDomain.objects.filter(
+        domain__iexact=domain
+    ).first()
 
     if managed_social_app:
         provider_id = managed_social_app.social_app.social_app.provider_id
-        user_has_social_account = SocialAccount.objects.filter(provider=provider_id, user=user).exists()
-        breakpoint()
+        user_has_social_account = SocialAccount.objects.filter(
+            provider=provider_id, user=user
+        ).exists()
         return user_has_social_account
     return False
 

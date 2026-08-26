@@ -138,3 +138,7 @@ class SocialAppManagedDomain(models.Model):
         return cls.objects.filter(
             domain__iexact=domain, social_app__managed=True
         ).exists()
+
+    def save(self, *args, **kwargs):
+        self.domain = self.domain.strip().lower()
+        super().save(*args, **kwargs)
