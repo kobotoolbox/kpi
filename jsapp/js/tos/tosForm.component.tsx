@@ -64,10 +64,6 @@ export default function TOSForm() {
     requiredFields.push('newsletter_subscription')
   }
 
-  // Members of an MMO cannot edit organization fields (they are managed at the
-  // organization level), so we hide them here — the same way the account
-  // settings view does. Otherwise MMO members are shown org fields they cannot
-  // save, which blocks them from accepting the TOS. See DEV-2580.
   const fieldsToShow = organization?.is_mmo
     ? requiredFields.filter((fieldName) => !MMO_HIDDEN_FIELDS.includes(fieldName))
     : requiredFields
