@@ -25,7 +25,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 14:15+0000\n"
+"POT-Creation-Date: 2026-08-26 14:09+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Walter Shilman, 2022\n"
 "Language-Team: Spanish (http://app.transifex.com/kobotoolbox/kobotoolbox/language/es/)\n"
@@ -43,23 +43,23 @@ msgstr "Iniciar sesión como usuario"
 msgid "Please enter a valid URL"
 msgstr "Introduzca una URL válida"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr "Organización sin fines de lucro"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr "Institución gubernamental"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr "Organización educativa"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr "Una empresa comercial/con fines de lucro"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr "No estoy asociado/a con ninguna organización"
 
@@ -639,7 +639,7 @@ msgstr ""
 msgid "Import"
 msgstr "Importar"
 
-#: kobo/apps/mass_emails/tasks.py:255
+#: kobo/apps/mass_emails/tasks.py:310
 msgid "Not available"
 msgstr "No disponible"
 
@@ -2034,15 +2034,15 @@ msgid ""
 "password at ##koboform_url##/accounts/password/reset/."
 msgstr "Tu acceso está restringido. Recupera tu acceso mediante el cambio de tu contraseña en ##koboform_url##/accounts/password/reset/."
 
-#: kobo/apps/organizations/models.py:377
+#: kobo/apps/organizations/models.py:404
 msgid "an admin"
 msgstr "un administrador"
 
-#: kobo/apps/organizations/models.py:377
+#: kobo/apps/organizations/models.py:404
 msgid "a member"
 msgstr "un miembro"
 
-#: kobo/apps/organizations/models.py:418
+#: kobo/apps/organizations/models.py:445
 msgid "You're invited to join ##organization_name## organization"
 msgstr "Te invitamos a unirte a la organización ##organization_name## "
 
@@ -2050,7 +2050,7 @@ msgstr "Te invitamos a unirte a la organización ##organization_name## "
 msgid "Invalid role. Only 'admin' or 'member' are allowed"
 msgstr "Rol no válido. Solo se permiten \"administrador\" o \"miembro\"."
 
-#: kobo/apps/organizations/tasks.py:84
+#: kobo/apps/organizations/tasks.py:86
 msgid "Organization invite has expired"
 msgstr "La invitación a la organización ha expirado"
 
@@ -2202,15 +2202,15 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&amp;organization_id=%(organization_id)s"
 
-#: kobo/apps/project_ownership/models/invite.py:98
+#: kobo/apps/project_ownership/models/invite.py:100
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "Se acepta la transferencia de propiedad del proyecto KoboToolbox"
 
-#: kobo/apps/project_ownership/models/invite.py:133
+#: kobo/apps/project_ownership/models/invite.py:140
 msgid "Action required: KoboToolbox project ownership transfer request"
 msgstr "Acción obligatoria: Solicitud de transferencia de propiedad del proyecto KoboToolbox"
 
-#: kobo/apps/project_ownership/models/invite.py:160
+#: kobo/apps/project_ownership/models/invite.py:172
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Transferencia de la propiedad del proyecto KoboToolbox incompleta"
 
@@ -2252,7 +2252,7 @@ msgstr "El proyecto `##asset_uid##` no puede transferirse. Situación actual: ##
 msgid "Must not be in the same organization"
 msgstr "No deben pertenecer a la misma organización"
 
-#: kobo/apps/project_ownership/tasks.py:186
+#: kobo/apps/project_ownership/tasks.py:188
 msgid "Invite has expired"
 msgstr "La invitación expiró"
 
@@ -2770,23 +2770,23 @@ msgstr "Enlaces de implementación a un KoboCAT XForm inesperado"
 msgid "An error occurred trying to duplicate the submission"
 msgstr "Se produjo un error al intentar duplicar el envío"
 
-#: kpi/exceptions.py:161
+#: kpi/exceptions.py:207
 msgid "The specified object has not been deployed"
 msgstr "El objeto especificado no se implementó"
 
-#: kpi/exceptions.py:170
+#: kpi/exceptions.py:216
 msgid "Bad syntax"
 msgstr "Sintaxis incorrecta"
 
-#: kpi/exceptions.py:175
+#: kpi/exceptions.py:221
 msgid "Not supported field lookup"
 msgstr "Búsqueda de campos (lookup) no compatible"
 
-#: kpi/exceptions.py:198
+#: kpi/exceptions.py:244
 msgid "Your query is too short"
 msgstr "Tu consulta es demasiado corta"
 
-#: kpi/exceptions.py:212
+#: kpi/exceptions.py:258
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr "El propietario de este proyecto ha superado su límite de uso"
 
@@ -2811,140 +2811,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "La autenticación multifactor está habilitada para esta cuenta. "
 
-#: kpi/models/asset.py:307
+#: kpi/models/asset.py:308
 msgid "Can view asset"
 msgstr "Puede verse el recurso"
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:309
 msgid "Can discover asset in public lists"
 msgstr "Puede encontrarse el recurso en listas públicas"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:310
 msgid "Can manage all aspects of asset"
 msgstr "Pueden gestionarse todos los aspectos del recurso"
 
-#: kpi/models/asset.py:311
+#: kpi/models/asset.py:312
 msgid "Can submit data to asset"
 msgstr "Pueden enviarse datos al recurso"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:313
 msgid "Can view submitted data for asset"
 msgstr "Pueden verse los datos enviados para el recurso"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:314
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Pueden realizarse acciones parciales sobre los datos enviados para el recurso para usuarios específicos"
 
-#: kpi/models/asset.py:316
+#: kpi/models/asset.py:317
 msgid "Can modify submitted data for asset"
 msgstr "Pueden modificarse los datos enviados para el recurso"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:318
 msgid "Can delete submitted data for asset"
 msgstr "Puede eliminar los datos enviados para el recurso"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:319
 msgid "Can validate submitted data asset"
 msgstr "Puede validar el recurso de datos enviado"
 
-#: kpi/models/asset.py:337
+#: kpi/models/asset.py:338
 msgid "project"
 msgstr "proyecto"
 
-#: kpi/models/asset.py:337
+#: kpi/models/asset.py:338
 msgid "form"
 msgstr "formulario"
 
-#: kpi/models/asset.py:339
+#: kpi/models/asset.py:340
 msgid "template"
 msgstr "plantilla"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:341
 msgid "block"
 msgstr "bloque"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:342
 msgid "question"
 msgstr "pregunta"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:343
 msgid "text"
 msgstr "texto"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:344
 msgid "empty"
 msgstr "vacío"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:345
 msgid "collection"
 msgstr "recolección"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:352
 msgid "View ##asset_type_label##"
 msgstr "Ver ##asset_type_label##"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:353
 msgid "Edit ##asset_type_label##"
 msgstr "Editar ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:354
 msgid "Discover ##asset_type_label##"
 msgstr "Descubrir ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:355
 msgid "Manage ##asset_type_label##"
 msgstr "Gestionar ##asset_type_label##"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:356
 msgid "Add submissions"
 msgstr "Añadir envíos"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:357
 msgid "View submissions"
 msgstr "Ver envíos"
 
-#: kpi/models/asset.py:359
+#: kpi/models/asset.py:360
 msgid "Act on submissions only from specific users"
 msgstr "Actuar sobre los envíos solo de usuarios/as específicos/as"
 
-#: kpi/models/asset.py:362
+#: kpi/models/asset.py:363
 msgid "View submissions only from specific users"
 msgstr "Ver envíos solo de usuarios/as específicos/as"
 
-#: kpi/models/asset.py:365
+#: kpi/models/asset.py:366
 msgid "Edit submissions only from specific users"
 msgstr "Editar envíos solo de usuarios/as específicos/as"
 
-#: kpi/models/asset.py:368
+#: kpi/models/asset.py:369
 msgid "Delete submissions only from specific users"
 msgstr "Eliminar envíos solo de usuarios/as específicos/as"
 
-#: kpi/models/asset.py:371
+#: kpi/models/asset.py:372
 msgid "Validate submissions only from specific users"
 msgstr "Validar envíos solo de usuarios/as específicos/as"
 
-#: kpi/models/asset.py:374
+#: kpi/models/asset.py:375
 msgid "Edit submissions"
 msgstr "Editar envíos"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:376
 msgid "Delete submissions"
 msgstr "Eliminar envíos"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:377
 msgid "Validate submissions"
 msgstr "Validar envíos"
 
-#: kpi/models/asset.py:690
+#: kpi/models/asset.py:691
 msgid "Only partial permissions for submissions are supported"
 msgstr "Se admiten solo permisos parciales para los envíos"
 
-#: kpi/models/asset.py:1414
+#: kpi/models/asset.py:1415
 msgid "Can not assign '{}' permission to owner"
 msgstr "No puede asignarse el permiso '{}' al propietario"
 
-#: kpi/models/asset.py:1418
+#: kpi/models/asset.py:1419
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "No puede asignarse el permiso '{}'. Faltan permisos parciales."
 
@@ -3000,7 +3000,7 @@ msgstr ""
 msgid "Cannot access data"
 msgstr "No se puede acceder a los datos"
 
-#: kpi/models/import_export_task.py:830
+#: kpi/models/import_export_task.py:831
 msgid "This data does not exist or you do not have access to it"
 msgstr "Estos datos no existen o no tienes acceso a ellos"
 

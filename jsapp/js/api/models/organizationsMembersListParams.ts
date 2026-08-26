@@ -21,7 +21,7 @@ export type OrganizationsMembersListParams = {
    */
   offset?: number
   /**
-   * Which field to use when ordering the results.
+   * Which field to use when ordering the results. Note: `role` sorts by privilege rank (`member` → `admin` → `owner`).
    */
   ordering?: OrganizationsMembersListOrdering
   /**

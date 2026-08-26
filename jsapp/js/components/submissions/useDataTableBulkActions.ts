@@ -7,7 +7,6 @@ import {
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
 import envStore from '#/envStore'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 import { getEstimatedTranscriptionDurationSeconds } from '#/utils'
 
@@ -24,8 +23,8 @@ const MAX_POLL_INTERVAL_SECONDS = 30
 const DEFAULT_TRANSCRIPTION_SOURCE_SECONDS = 60
 const DEFAULT_TRANSLATION_PER_SUBMISSION_SECONDS = 8
 
-function getActiveBulkActions(bulkActions: BulkActionResponse[], isBulkProcessingFeatureEnabled: boolean) {
-  if (!isBulkProcessingFeatureEnabled) {
+function getActiveBulkActions(bulkActions: BulkActionResponse[], isBulkProcessingEnabled: boolean) {
+  if (!isBulkProcessingEnabled) {
     return []
   }
 
@@ -83,10 +82,7 @@ export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionRes
  * user has created any active bulk actions.
  */
 export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActionsResult {
-  // Feature flag keeps all bulk-processing logic disabled unless explicitly enabled.
-  const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
-  const isAsrMtFeaturesEnabled = envStore.data.asr_mt_features_enabled
-  const isBulkProcessingEnabled = isBulkProcessingFeatureEnabled && isAsrMtFeaturesEnabled
+  const isBulkProcessingEnabled = envStore.data.asr_mt_features_enabled
   const session = useSession()
   // While session is loading we avoid making user-specific decisions.
   const currentUsername = session.isPending ? undefined : session.currentLoggedAccount?.username

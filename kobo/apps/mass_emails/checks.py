@@ -14,29 +14,29 @@ def check_mass_email_send_settings(app_configs, **kwargs):
 
     errors = []
 
-    if settings.MASS_EMAIL_THROTTLE_PER_SECOND < 1:
+    if settings.MASS_EMAIL_THROTTLE_PER_SECOND < 0.1:
         errors.append(
             Error(
                 f'MASS_EMAIL_THROTTLE_PER_SECOND is '
                 f'{settings.MASS_EMAIL_THROTTLE_PER_SECOND}, but must be at '
-                f'least 1.',
+                f'least 0.1.',
                 hint=(
                     'Set the MASS_EMAIL_THROTTLE_PER_SECOND environment '
-                    'variable to a positive integer.'
+                    'variable to a positive number.'
                 ),
                 id='mass_emails.E001',
             )
         )
 
-    if settings.MASS_EMAIL_SLEEP_SECONDS < 0:
+    if settings.MAILER_CONNECTION_IDLE_TIMEOUT <= 0:
         errors.append(
             Error(
-                f'MASS_EMAIL_SLEEP_SECONDS is '
-                f'{settings.MASS_EMAIL_SLEEP_SECONDS}, but must not be '
-                f'negative.',
+                f'MAILER_CONNECTION_IDLE_TIMEOUT is '
+                f'{settings.MAILER_CONNECTION_IDLE_TIMEOUT}, but must be '
+                f'greater than 0.',
                 hint=(
-                    'Set the MASS_EMAIL_SLEEP_SECONDS environment variable '
-                    'to 0 or a positive integer.'
+                    'Set the MAILER_CONNECTION_IDLE_TIMEOUT environment '
+                    'variable to a positive number.'
                 ),
                 id='mass_emails.E002',
             )

@@ -1,3 +1,4 @@
+import { Group } from '@mantine/core'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -8,11 +9,13 @@ import {
   getRowTypeIcon,
   getTranslatedRowLabel,
 } from '#/assetUtils'
-import KoboSelect from '#/components/common/koboSelect'
+import Select from '#/components/common/Select'
+import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
+import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
 import styles from './index.module.scss'
 
@@ -49,23 +52,27 @@ export default function SelectQuestion({
   /**
    * We display all questions with audio response type
    */
-  const options = useMemo(() => {
+  const { options, icons } = useMemo(() => {
     const assetContent = asset.content
     const languageIndex = getLanguageIndex(asset, questionLabelLanguage)
 
     if (!assetContent?.survey) {
-      return []
+      return { options: [], icons: {} }
     }
 
     const isAudioRow = (type: string) =>
       type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id
 
+    // Mantine's Select has no per-option icon prop, so we keep them in a lookup
+    // that `renderOption` (and the left section) can use.
+    const icons: Record<string, IconName | undefined> = {}
+
     const buildOption = (optionXpath: string, row: SurveyRow) => {
       const rowName = getRowName(row)
+      icons[optionXpath] = getRowTypeIcon(row.type)
       return {
         value: optionXpath,
         label: getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName,
-        icon: getRowTypeIcon(row.type),
       }
     }
 
@@ -87,18 +94,29 @@ export default function SelectQuestion({
       result.push(buildOption(submissionXpath, foundRow))
     }
 
-    return result
+    return { options: result, icons }
   }, [asset.content, questionLabelLanguage, submission])
+
+  const selectedIcon = icons[xpath]
 
   return (
     <section className={classNames(styles.column, styles.columnMain)}>
-      <KoboSelect
-        name='single-processing-question-selector'
-        type='gray'
-        size='l'
-        options={options}
-        selectedOption={xpath}
+      <Select
+        size='md'
+        clearable={false}
+        data={options}
+        value={xpath}
         onChange={onQuestionSelectChange}
+        leftSection={selectedIcon && <Icon name={selectedIcon} size='s' />}
+        renderOption={({ option }) => {
+          const icon = icons[option.value]
+          return (
+            <Group gap='xs' wrap='nowrap'>
+              {icon && <Icon name={icon} size='s' />}
+              <span>{option.label}</span>
+            </Group>
+          )
+        }}
       />
     </section>
   )

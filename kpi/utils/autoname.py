@@ -7,6 +7,7 @@ from copy import deepcopy
 from enum import Enum
 
 from formpack.utils.json_hash import json_hash
+
 from kpi.exceptions import DuplicateNameException
 from kpi.utils.sluggify import is_valid_node_name, sluggify, sluggify_label
 
