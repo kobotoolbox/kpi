@@ -2,11 +2,11 @@ import React, { useMemo, useState } from 'react'
 
 import { Box, Flex, Modal, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
-import KoboSelect from '#/components/common/koboSelect'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
+import type { ComboboxItem } from '#/components/common/select.types'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
@@ -15,6 +15,13 @@ import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
 import { StaticDisplays } from '../common/utils'
+
+/**
+ * The default (no explicit language) option is an empty string internally, but
+ * our `Select` treats an empty string as "nothing selected", so we swap in this
+ * sentinel value for the dropdown.
+ */
+const DEFAULT_LANGUAGE_OPTION_VALUE = '__default__'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -41,14 +48,14 @@ export default function SidebarDisplaySettings({
 }: SidebarDisplaySettingsProps) {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
-  const assetLanguageOptions = useMemo<KoboSelectOption[]>(() => {
+  const assetLanguageOptions = useMemo<Array<ComboboxItem<string>>>(() => {
     const baseLabel = t('Labels')
     const languages = asset?.summary?.languages?.length ? asset?.summary?.languages : [null]
     return [
       { label: t('XML values'), value: XML_VALUES_OPTION_VALUE },
       ...languages.map((language) => ({
         label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
-        value: language ?? '',
+        value: language ?? DEFAULT_LANGUAGE_OPTION_VALUE,
       })),
     ]
   }, [asset?.summary?.languages])
@@ -168,16 +175,15 @@ export default function SidebarDisplaySettings({
 
           <Stack gap='lg'>
             <Box>
-              <KoboSelect
+              <Select
                 label={t('Display labels or XML values?')}
-                name='displayedLanguage'
-                type='outline'
-                size='s'
-                options={assetLanguageOptions}
-                selectedOption={questionLabelLanguage}
+                size='xs'
+                clearable={false}
+                data={assetLanguageOptions}
+                value={questionLabelLanguage || DEFAULT_LANGUAGE_OPTION_VALUE}
                 onChange={(languageCode) => {
                   if (languageCode !== null) {
-                    setQuestionLabelLanguage(languageCode)
+                    setQuestionLabelLanguage(languageCode === DEFAULT_LANGUAGE_OPTION_VALUE ? '' : languageCode)
                   }
                 }}
               />

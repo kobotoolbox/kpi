@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+import unicodedata
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
+from xml.etree.ElementTree import ParseError
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
 from constance import config
-from xml.etree.ElementTree import ParseError
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
@@ -567,8 +568,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             if element is None:
                 raise XPathNotFoundException
             attachment_filename = element.text
+            # Legacy DB rows may store the basename in either normalization
+            # form, so match against both NFC and NFD variants
+            basenames = {attachment_filename}
+            if attachment_filename:
+                basenames.add(unicodedata.normalize('NFC', attachment_filename))
+                basenames.add(unicodedata.normalize('NFD', attachment_filename))
             filters = {
-                'media_file_basename': attachment_filename,
+                'media_file_basename__in': basenames,
             }
         else:
             filters = {}

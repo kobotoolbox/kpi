@@ -141,18 +141,38 @@ jobs:
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
         ref: ${{ needs.version.outputs.current_branch }}
 
+    - name: Skip if translations already pulled
+      id: check
+      env:
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+      run: |
+        # Skip if last commit is already a transifex pull (re-run after successful pull but failed tag)
+        if git log -1 --format='%s' | grep -q '^chore: pull transifex translations for '; then
+          echo "::notice::Translations already pulled (last commit is a transifex pull). Skipping."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        # Skip if the tag already exists (re-run after successful tag without a pull)
+        elif git rev-parse "refs/tags/$CURRENT_PATCH" &>/dev/null; then
+          echo "::notice::Tag $CURRENT_PATCH already exists. Skipping transifex pull to avoid moving branch past tag."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Pull Transifex translations
+      if: steps.check.outputs.skip != 'true'
       uses: transifex/cli-action@v2
       with:
         token: ${{ secrets.TRANSIFEX_API }}
         args: 'pull -a -f --mode reviewed'
 
     - name: Commit translations if changed
+      if: steps.check.outputs.skip != 'true'
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
         BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
-        if git diff-index --quiet HEAD; then
+        git status
+        git add .
+        if git diff --cached --quiet; then
+          echo "No translation changes to commit."
           exit 0
         fi
         # Abort if someone pushed to the branch while translations were being pulled
@@ -161,7 +181,6 @@ jobs:
           echo "::error::Unexpected commits on $BRANCH since checkout. Aborting."
           exit 1
         fi
-        git add .
         git commit -m "chore: pull transifex translations for $VERSION"
         git push
 
@@ -412,13 +431,13 @@ jobs:
     # Final sync from prev_patch catches any unreleased commits from the prev
     # branch that were merged forward (the stabilize workflow uses branch tip
     # which excludes these).
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.prev_patch }}
 
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
@@ -437,7 +456,7 @@ jobs:
     outputs:
       issue-identifier: ${{ steps.create.outputs.issue-identifier }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 0

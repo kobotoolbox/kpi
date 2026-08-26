@@ -1,25 +1,15 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { isSubmissionOngoingInBulkAction } from '#/components/submissions/bulkProcessingUtils'
-import { removeDefaultUuidPrefix } from '#/utils'
 
 interface IsConflictingOngoingJobArgs {
   activeBulkActions: BulkActionResponse[]
   actionType: 'transcript' | 'translation'
   fieldXpath: string
+  /** Must come from `getSubmissionRootUuid`; a raw `_uuid` won't match an edited submission's job. */
   submissionUuid: string
   selectedLanguage?: LanguageCode
-}
-
-/**
- * For lock checks and supplement mutations we use the root UUID form. In this
- * code path `submission` is a `DataResponse`, so `meta/rootUuid` is required,
- * and this helper is just the single place where we strip its prefix.
- */
-export function getSubmissionRootUuid(submission: DataResponse) {
-  return removeDefaultUuidPrefix(submission['meta/rootUuid'])
 }
 
 /**
@@ -72,6 +62,6 @@ export function isConflictingOngoingJobForSubmission(args: IsConflictingOngoingJ
       return false
     }
 
-    return isSubmissionOngoingInBulkAction(action, [submissionUuid])
+    return isSubmissionOngoingInBulkAction(action, submissionUuid)
   })
 }

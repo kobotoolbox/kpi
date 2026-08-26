@@ -1,4 +1,5 @@
 from io import BytesIO
+
 from pyxform.constants import ALLOW_CHOICE_DUPLICATES
 
 

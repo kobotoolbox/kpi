@@ -1514,7 +1514,7 @@ Allowed ordering fields:
 - `user__username`
 - `status`
 - `date_joined` (or `date_added`, `created`)
-- `role`
+- `role` (sorted by privilege rank: `member` → `admin` → `owner`)
 - `user__has_sso_enabled`
 
 Prefix field names with `-` for descending sort.

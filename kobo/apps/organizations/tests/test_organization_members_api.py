@@ -442,23 +442,25 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self._create_invite(self.someuser)
         self.client.force_login(self.someuser)
 
-        # Ascending sort by role: admin, member, owner
+        ROLE_LEVELS = {'member': 1, 'admin': 2, 'owner': 3}
+
+        # Ascending sort by role privilege: member, admin, owner
         response = self.client.get(f'{self.list_url}?ordering=role')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        roles_asc = [
-            (r['role'] or r['invite']['invitee_role']).lower()
+        role_levels_asc = [
+            ROLE_LEVELS[(r['role'] or r['invite']['invitee_role']).lower()]
             for r in response.data['results']
         ]
-        self.assertEqual(roles_asc, sorted(roles_asc))
+        self.assertEqual(role_levels_asc, sorted(role_levels_asc))
 
-        # Descending sort by role
+        # Descending sort by role privilege: owner, admin, member
         response = self.client.get(f'{self.list_url}?ordering=-role')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        roles_desc = [
-            (r['role'] or r['invite']['invitee_role']).lower()
+        role_levels_desc = [
+            ROLE_LEVELS[(r['role'] or r['invite']['invitee_role']).lower()]
             for r in response.data['results']
         ]
-        self.assertEqual(roles_desc, sorted(roles_asc, reverse=True))
+        self.assertEqual(role_levels_desc, sorted(role_levels_asc, reverse=True))
 
     def test_sort_members_by_sso_enabled(self):
         # Create SSO account for alice

@@ -485,6 +485,23 @@ describe('hasUnacceptedAutomaticContent', () => {
     chai.expect(result).to.be.true
   })
 
+  it('should return false for a pending transcript in another language', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            languageCode: 'en',
+            pendingReview: true,
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_tr')
+
+    chai.expect(result).to.be.false
+  })
+
   it('should return false for accepted transcript (no pendingReview flag)', () => {
     const submission = assetDataFactory(1, {
       _supplementalDetails: {
@@ -560,6 +577,34 @@ describe('hasUnacceptedAutomaticContent', () => {
     })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/123-uuid')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for qual verification columns', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            languageCode: 'en',
+            pendingReview: true,
+          },
+          qual: {
+            '123-uuid': {
+              value: 'Some analysis',
+              type: 'qualText',
+              uuid: '123-uuid',
+              labels: { _default: 'Analysis' },
+              xpath: 'audio_question',
+              verified: false,
+              source: 'manual',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/123-uuid/verified')
 
     chai.expect(result).to.be.false
   })
@@ -695,6 +740,15 @@ describe('hasAnyUnacceptedAutomaticContent', () => {
     )
 
     chai.expect(result).to.be.true
+  })
+
+  it('should ignore transcripts awaiting approval in another language', () => {
+    const result = hasAnyUnacceptedAutomaticContent(
+      [acceptedTranscriptSubmission, pendingTranscriptSubmission],
+      '_supplementalDetails/audio_question/transcript_tr',
+    )
+
+    chai.expect(result).to.be.false
   })
 
   it('should return false when all translations are already accepted', () => {

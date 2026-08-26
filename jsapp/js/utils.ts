@@ -528,6 +528,16 @@ export function csrfSafeMethod(method: string) {
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method)
 }
 
+/**
+ * The CSRF token Django gave this browser, for the `X-CSRFToken` header of any request whose method
+ * isn't a {@link csrfSafeMethod}. Returns `undefined` when there is no cookie yet - send no header at
+ * all in that case, rather than an empty one.
+ */
+export function getCsrfToken(): string | undefined {
+  // Our Django writes a 32 character token; we allow 64 character too for older Django.
+  return document.cookie.match(/csrftoken=(\w{32,64})/)?.[1]
+}
+
 export function downloadUrl(url: string) {
   const aEl = document.createElement('a')
   const splitUrl = url.split('/')
@@ -626,6 +636,22 @@ export function addDefaultUuidPrefix(uuid: string) {
  */
 export function removeDefaultUuidPrefix(uuid: string) {
   return uuid.replace(/^uuid:/, '')
+}
+
+/**
+ * Returns the id that survives edits, prefix-less, the way the back end stores it.
+ *
+ * Use this to identify a submission, not `_uuid`. Editing a submission gives it a fresh `_uuid`, while
+ * `meta/rootUuid` keeps pointing at the original. Endpoints keyed by submission (supplements, bulk actions) store
+ * only the root uuid, so asking them about an edited submission by `_uuid` gets you "not found".
+ *
+ * The fallback covers submissions old enough to predate `meta/rootUuid`, whose `_uuid` never had a newer version to
+ * drift away from.
+ *
+ * 🐍 Mirrors `get_root_uuid_from_xml` on the backend.
+ */
+export function getSubmissionRootUuid(submission: { _uuid: string; 'meta/rootUuid'?: string }) {
+  return removeDefaultUuidPrefix(submission['meta/rootUuid'] || submission._uuid)
 }
 
 /**

@@ -9315,8 +9315,8 @@ paths:
         active members).\n\n### Sorting\n\nResults can be sorted with the `ordering`
         parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed
         ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`,
-        `created`)\n- `role`\n- `user__has_sso_enabled`\n\nPrefix field names with
-        `-` for descending sort.\n"
+        `created`)\n- `role` (sorted by privilege rank: `member` → `admin` → `owner`)\n-
+        `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n"
       parameters:
       - name: limit
         required: false
@@ -9349,7 +9349,8 @@ paths:
           - status
           - user__has_sso_enabled
           - user__username
-        description: Which field to use when ordering the results.
+        description: 'Which field to use when ordering the results. Note: `role` sorts
+          by privilege rank (`member` → `admin` → `owner`).'
       - in: query
         name: q
         schema:

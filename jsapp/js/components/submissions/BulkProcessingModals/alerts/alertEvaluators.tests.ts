@@ -426,6 +426,31 @@ describe('evaluateConflictingJob', () => {
     expect(result).to.not.equal(null)
     expect(result?.filteredSubmissionUuids).to.deep.equal(['mock-uuid-1'])
   })
+
+  // Matching on `_uuid` would report no conflict here and let a second job start on a submission already being worked
+  // on by the first one.
+  it('should match an edited submission by its root uuid, not its current uuid', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      activeBulkActions: [
+        bulkActionFactory('uuid-1', 'en', {
+          status: BulkActionResponseStatusEnum.in_progress,
+          question_xpath: 'audio_question',
+          action_id: ActionIdEnum.automatic_google_transcription,
+          submission_uuids: ['root-uuid-1'],
+          submission_statuses: [
+            { uuid: 'root-uuid-1', status: BulkActionSubmissionStatusResponseStatusEnum.in_progress, error: null },
+          ],
+        }),
+      ],
+      submissions: [assetDataFactory(1, { _uuid: 'edited-uuid-1', 'meta/rootUuid': 'uuid:root-uuid-1' })],
+    }
+
+    const result = evaluateConflictingJob(context)
+
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['root-uuid-1'])
+  })
 })
 
 describe('evaluateReachedLimit', () => {
@@ -971,6 +996,52 @@ describe('evaluateAlreadyTranscribed', () => {
       duration: 0,
     })
   })
+
+  // The uuids an evaluator reports end up in the POST body, so reporting `_uuid` here is what got whole jobs rejected
+  // with "Unknown submission UUIDs".
+  it('should report the root uuid of an edited submission, not its current uuid', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: [
+        assetDataFactory(1, {
+          _uuid: 'edited-uuid-1',
+          'meta/rootUuid': 'uuid:root-uuid-1',
+          _supplementalDetails: {
+            audio_question: {
+              transcript: { languageCode: 'en', value: 'hello' },
+            },
+          },
+        }),
+      ],
+    }
+
+    const result = evaluateAlreadyTranscribed(context)
+
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['root-uuid-1'])
+  })
+
+  // The cast is deliberate: `SubmissionResponse` types `meta/rootUuid` as always present, but submissions old enough
+  // to predate the field really do arrive without it.
+  it('should fall back to the uuid of a submission that has no root uuid', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: [
+        assetDataFactory(1, {
+          _uuid: 'legacy-uuid-1',
+          'meta/rootUuid': undefined as unknown as string,
+          _supplementalDetails: {
+            audio_question: {
+              transcript: { languageCode: 'en', value: 'hello' },
+            },
+          },
+        }),
+      ],
+    }
+
+    const result = evaluateAlreadyTranscribed(context)
+
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['legacy-uuid-1'])
+  })
 })
 
 describe('evaluateAlreadyApproved', () => {
@@ -1259,9 +1330,11 @@ describe('evaluateNoSource', () => {
   })
 
   describe('for translation', () => {
+    // Translation always runs off a transcript column, so the xpath is a supplemental path here, not a bare question
+    // name like in the transcription block above.
     const baseContext: AlertEvaluationContext = {
       submissions: [],
-      fieldXpath: 'audio_question',
+      fieldXpath: '_supplementalDetails/audio_question/transcript_en',
       actionType: 'translation',
       activeBulkActions: [],
       previouslyFilteredSubmissionUuids: new Set(),
@@ -1381,6 +1454,40 @@ describe('evaluateNoSource', () => {
 
       expect(result).to.not.equal(null)
       expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    })
+
+    it('should flag submissions transcribed in another language than the column', () => {
+      // The Spanish row is empty in the English column, so it has no source to translate and has to be filtered out
+      // rather than blocking the whole action.
+      const mockSubmissions = [
+        assetDataFactory(1, {
+          _uuid: 'uuid-1',
+          _supplementalDetails: {
+            audio_question: {
+              transcript: { languageCode: 'en', value: 'Hello world' },
+            },
+          },
+        }),
+        assetDataFactory(2, {
+          _uuid: 'uuid-2',
+          _supplementalDetails: {
+            audio_question: {
+              transcript: { languageCode: 'es', value: 'Hola mundo' },
+            },
+          },
+        }),
+      ]
+
+      const context: AlertEvaluationContext = {
+        ...baseContext,
+        submissions: mockSubmissions,
+      }
+
+      const result = evaluateNoSource(context)
+
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+      expect(result?.computedValues.count).to.equal(1)
     })
 
     it('should skip submissions already filtered by previous evaluators', () => {

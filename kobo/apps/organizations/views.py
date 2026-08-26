@@ -3,16 +3,7 @@ from operator import attrgetter
 from allauth.socialaccount.models import SocialAccount
 from django.core.exceptions import FieldError
 from django.db import transaction
-from django.db.models import (
-    Case,
-    CharField,
-    F,
-    OuterRef,
-    Q,
-    QuerySet,
-    Value,
-    When,
-)
+from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.db.models.functions import Coalesce, Lower
 from django.utils.http import http_date
@@ -97,6 +88,8 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
+
+ROLE_RANKS = {'member': 1, 'admin': 2, 'owner': 3}
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -485,7 +478,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                     'user__has_sso_enabled',
                     '-user__has_sso_enabled',
                 ],
-                description='Which field to use when ordering the results.',
+                description=(
+                    'Which field to use when ordering the results. '
+                    'Note: `role` sorts by privilege rank '
+                    '(`member` → `admin` → `owner`).'
+                ),
             ),
         ],
     ),
@@ -722,13 +719,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             )
             queryset = list(queryset) + list(invitees)
 
+            for row in queryset:
+                row.role_sort = ROLE_RANKS.get(row.role, 0)
+
             SORT_FIELDS = {
                 'user__username': 'username_sort',
                 'status': 'status_sort',
                 'date_joined': 'ordering_date',
                 'date_added': 'ordering_date',
                 'created': 'ordering_date',
-                'role': 'role',
+                'role': 'role_sort',
                 'user__has_sso_enabled': 'has_sso_enabled',
             }
 

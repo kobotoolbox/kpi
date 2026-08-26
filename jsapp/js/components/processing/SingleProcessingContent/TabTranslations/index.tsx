@@ -7,7 +7,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
-import { getSubmissionRootUuid } from '../../common/conflictingOngoingJob'
+import { getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import {
@@ -97,7 +97,7 @@ export default function TranslationTab({
 
     // If URL had a language code that doesn't exist in this submission, update URL to match the fallback
     if (urlLanguageCode && fallbackLanguage) {
-      const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
+      const submissionEditId = getSubmissionRootUuid(submission)
       goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, fallbackLanguage)
     }
   }, [
@@ -170,7 +170,7 @@ export default function TranslationTab({
             }
             setLanguageCode(newLanguageCode)
             // Update URL to reflect the newly created translation language
-            const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
+            const submissionEditId = getSubmissionRootUuid(submission)
             goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
           }}
           onBack={() => {
@@ -200,7 +200,7 @@ export default function TranslationTab({
             onAdd={() => setMode('add')}
             onChangeLanguageCode={(newLanguageCode: LanguageCode) => {
               // Update browser URL to reflect the new language selection
-              const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
+              const submissionEditId = getSubmissionRootUuid(submission)
               goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
               // Update local state (navigation will cause re-render, but this provides immediate feedback)
               setLanguageCode(newLanguageCode)

@@ -3,8 +3,8 @@ import get from 'lodash.get'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import {
-  QUAL_NOTE_TYPE,
   type SubmissionAnalysisResponse,
+  isDisplayableSupplementalField,
 } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { getBackgroundAudioQuestionName, getColumnLabel } from '#/components/submissions/tableUtils'
@@ -138,18 +138,16 @@ export class DisplayResponse {
 /**
  * Returns a sorted object of transcript/translation keys
  *
- * Note: we omit returning `qualNote` questions.
+ * Note: we omit the fields that belong to Single Processing route alone, i.e.
+ * `qualNote` and `qualSource` (see `isDisplayableSupplementalField`).
  */
 function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   const sortedBySource: { [key: string]: string[] } = {}
 
   additionalFields.forEach((field: AnalysisFormJsonField) => {
-    // Note questions make sense only in the context of writing responses to
-    // Qualitative Analysis questions. They bear no data, so there is no point
-    // displaying them outside of Single Processing route. As this function is
-    // part of Single Submission modal, we need to hide the notes.
-    // We also hide `qualSource` as they are not meant to be displayed to user.
-    if (field.type === QUAL_NOTE_TYPE || field.type === 'qualSource') {
+    // This function feeds Single Submission modal, so the fields that belong to
+    // Single Processing alone have to go.
+    if (!isDisplayableSupplementalField(field)) {
       return
     }
 
@@ -855,6 +853,13 @@ export function hasUnacceptedAutomaticContent(
   if (pathParts.type === 'transcript') {
     const transcriptData = sourceRowData.transcript
     if (!transcriptData || typeof transcriptData !== 'object') {
+      return false
+    }
+
+    // A question holds a single transcript, not one per language, so it belongs
+    // only to the column matching its language. Without this check a pending
+    // transcript puts a Review button in every transcript column of the row.
+    if (transcriptData.languageCode !== pathParts.languageCode) {
       return false
     }
 
