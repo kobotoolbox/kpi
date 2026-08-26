@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { Group, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -28,14 +28,22 @@ export default function ApiTokenDisplay() {
   // otherwise revealing it would just show the placeholder asterisks.
   const isTokenVisible = isVisible && !isFetching && token !== null
 
+  // Regenerating bumps this. A fetch that started before the bump is holding a
+  // revoked token, so it must not report it — or report its failure, which by
+  // then says nothing about the key on screen.
+  const tokenGeneration = useRef(0)
+
   useEffect(() => {
     if (isVisible && token === null) {
       const fetchToken = async () => {
+        const generation = tokenGeneration.current
         setIsFetching(true)
         try {
           const result = await dataInterface.apiToken()
+          if (tokenGeneration.current !== generation) return
           setToken(result.token)
         } catch {
+          if (tokenGeneration.current !== generation) return
           notify.error(t('Failed to get API token'))
           // Reset, so that toggling visibility again retries the fetch
           setIsVisible(false)
@@ -50,6 +58,7 @@ export default function ApiTokenDisplay() {
 
   const regenerateToken = async () => {
     setIsRegenerating(true)
+    tokenGeneration.current += 1
     // Clear any displayed token up front so a now-stale value is never shown
     setToken(null)
     try {
@@ -91,6 +100,9 @@ export default function ApiTokenDisplay() {
           visibilityToggleButtonProps={{
             'aria-label': isTokenVisible ? t('Hide API key') : t('Display API key'),
             tabIndex: 0,
+            // Nothing to reveal mid-rotation, and it keeps a second fetch from
+            // racing the one the rotation itself is doing.
+            disabled: isRegenerating,
           }}
           readOnly
           w='100%'
