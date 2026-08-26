@@ -14,35 +14,17 @@ def check_mass_email_send_settings(app_configs, **kwargs):
 
     errors = []
 
-    if settings.MASS_EMAIL_THROTTLE_PER_SECOND < 1:
+    if settings.MASS_EMAIL_THROTTLE_PER_SECOND < 0.1:
         errors.append(
             Error(
                 f'MASS_EMAIL_THROTTLE_PER_SECOND is '
                 f'{settings.MASS_EMAIL_THROTTLE_PER_SECOND}, but must be at '
-                f'least 1.',
+                f'least 0.1.',
                 hint=(
                     'Set the MASS_EMAIL_THROTTLE_PER_SECOND environment '
-                    'variable to a positive integer.'
+                    'variable to a positive number.'
                 ),
                 id='mass_emails.E001',
-            )
-        )
-
-    if not (0 < settings.MASS_EMAIL_SEND_RATE_RATIO <= 1.0):
-        errors.append(
-            Error(
-                f'MASS_EMAIL_SEND_RATE_RATIO is '
-                f'{settings.MASS_EMAIL_SEND_RATE_RATIO}, but must be greater '
-                f'than 0 and at most 1.',
-                hint=(
-                    'Set the MASS_EMAIL_SEND_RATE_RATIO environment variable '
-                    'to a value between 0 (exclusive) and 1 (inclusive). '
-                    '0.5 or below is recommended so two full budget windows '
-                    "landing back to back still can't exceed the provider's "
-                    'real rate limit; above that is allowed but at the risk '
-                    'of bursting past it near a window boundary.'
-                ),
-                id='mass_emails.E002',
             )
         )
 
@@ -56,7 +38,7 @@ def check_mass_email_send_settings(app_configs, **kwargs):
                     'Set the MAILER_CONNECTION_IDLE_TIMEOUT environment '
                     'variable to a positive number.'
                 ),
-                id='mass_emails.E003',
+                id='mass_emails.E002',
             )
         )
 
