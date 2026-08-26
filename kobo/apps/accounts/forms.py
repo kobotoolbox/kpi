@@ -3,9 +3,8 @@ from allauth.account import app_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import ResetPasswordForm as BaseResetPasswordForm
-from allauth.account.forms import UserTokenForm as BaseUserTokenForm
-
 from allauth.account.forms import SignupForm as BaseSignupForm
+from allauth.account.forms import UserTokenForm as BaseUserTokenForm
 from allauth.account.utils import (
     get_user_model,
     user_email,

@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
-from kobo.apps.accounts.models import SocialAppManagedDomain
+from kobo.apps.accounts.utils import user_is_managed_by_sso
 from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     USERNAME_MAX_LENGTH,
@@ -224,10 +224,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     def get_fieldsets(self, request: HttpRequest, obj=...):
         fieldsets = super().get_fieldsets(request, obj)
         if obj and obj.pk is not None:
-            # remove password field for managed domains
-            email = obj.email
-            domain = email.split('@')[1].lower()
-            if SocialAppManagedDomain.is_managed(domain):
+            if user_is_managed_by_sso(obj):
                 fieldsets[0][1]['fields'] = ('username',)
         return fieldsets
 

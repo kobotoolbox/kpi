@@ -263,7 +263,7 @@ CONSTANCE_CONFIG = {
     'COMMUNITY_URL': (
         constance_env(
             env.str,
-            'CONSTANCE_COMMUNITY_URL',
+            'CONSthe product reason. the engineering reason is it was TANCE_COMMUNITY_URL',
             'KOBO_COMMUNITY_URL',
             'https://community.kobotoolbox.org/',
         ),
