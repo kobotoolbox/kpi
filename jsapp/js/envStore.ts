@@ -72,6 +72,8 @@ export interface SocialApp {
   provider: string
   provider_id: string
   client_id: string
+  managed: boolean
+  domains: string[]
 }
 
 export interface ExtraProjectMetadataOption {

@@ -1,5 +1,7 @@
 import React from 'react'
 
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import envStore from '#/envStore'
 import AccessLogsSection from './accessLogs/accessLogsSection.component'
 import ApiTokenSection from './apiToken/apiTokenSection.component'
 import EmailSection from './email/emailSection.component'
@@ -9,6 +11,10 @@ import styles from './securityRoute.module.scss'
 import SsoSection from './sso/ssoSection.component'
 
 export default function securityRoute() {
+  if (!envStore.isReady) {
+    return <LoadingSpinner />
+  }
+
   return (
     <div className={styles.securityRouteRoot}>
       <header className={styles.securityHeader}>
