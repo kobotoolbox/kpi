@@ -100,8 +100,7 @@ def mark_old_enqueued_mass_email_record_as_failed():
     )
 
     affected_one_time_campaigns = list(
-        records_to_update.select_related('email_job__email_config')
-        .filter(email_job__email_config__frequency=-1)
+        records_to_update.filter(email_job__email_config__frequency=-1)
         .values_list('email_job__email_config__uid', flat=True)
         .distinct()
     )
@@ -112,7 +111,8 @@ def mark_old_enqueued_mass_email_record_as_failed():
         MassEmailConfig.objects.filter(uid__in=affected_one_time_campaigns)
         .annotate(
             enqueued_count=Count(
-                'jobs__records__id', filter=Q(jobs__records__status='enqueued')
+                'jobs__records__id',
+                filter=Q(jobs__records__status=EmailStatus.ENQUEUED),
             )
         )
         .filter(enqueued_count=0)
