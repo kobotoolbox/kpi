@@ -708,6 +708,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (prepPoints.length >= 0) {
       let markers
       if (viewby) {
+        // Disaggregated markers are never clustered: the legend colours stand for the answers, and a cluster would hide
+        // them behind a count. This is also why the legend filter never has to deal with clustered markers.
         markers = L.featureGroup(prepPoints)
       } else {
         markers = L.markerClusterGroup({
@@ -1054,7 +1056,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
    */
   private hideUnselectedMarkers(markers: FeatureGroupExtended, filteredByMarker: string[]) {
     markers.eachLayer((layer) => {
-      // Markers of a group that isn't on the map (or that the marker clustering keeps out of sight) have no icon yet.
+      // A marker only has an icon while its group is on the map, and the group is off it whenever the heat map is
+      // showing. `showMarkers()` puts the filter back on the icons Leaflet builds on the way in.
       if (!layer._icon) {
         return
       }
