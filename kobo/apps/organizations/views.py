@@ -644,7 +644,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     ),
                 }
 
-                user_unsupported_exception = None
+                user_invalid_exception = None
                 try:
                     q_obj_user = parse(
                         q,
@@ -662,9 +662,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
                     queryset = queryset.filter(q_obj_user)
                 except QueryParserNotSupportedFieldLookup as e:
-                    user_unsupported_exception = e
+                    user_invalid_exception = e
                     queryset = queryset.none()
-                except (FieldError, ValueError):
+                except (FieldError, ValueError) as e:
+                    user_invalid_exception = e
                     queryset = queryset.none()
                 except (
                     ParseError,
@@ -673,7 +674,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ) as e:
                     raise e
 
-                invite_unsupported_exception = None
+                invite_invalid_exception = None
                 try:
                     q_obj_invite = parse(
                         q,
@@ -691,9 +692,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                     )
                     invitation_queryset = invitation_queryset.filter(q_obj_invite)
                 except QueryParserNotSupportedFieldLookup as e:
-                    invite_unsupported_exception = e
+                    invite_invalid_exception = e
                     invitation_queryset = invitation_queryset.none()
-                except (FieldError, ValueError):
+                except (FieldError, ValueError) as e:
+                    invite_invalid_exception = e
                     invitation_queryset = invitation_queryset.none()
                 except (
                     ParseError,
@@ -702,8 +704,20 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ) as e:
                     raise e
 
-                if user_unsupported_exception and invite_unsupported_exception:
-                    raise user_unsupported_exception
+                if (
+                    user_invalid_exception is not None
+                    and invite_invalid_exception is not None
+                ):
+                    if isinstance(
+                        user_invalid_exception, QueryParserNotSupportedFieldLookup
+                    ):
+                        raise user_invalid_exception
+                    elif isinstance(
+                        invite_invalid_exception, QueryParserNotSupportedFieldLookup
+                    ):
+                        raise invite_invalid_exception
+                    else:
+                        raise QueryParserNotSupportedFieldLookup()
 
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
