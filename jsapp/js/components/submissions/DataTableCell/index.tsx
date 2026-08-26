@@ -15,6 +15,7 @@ import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'
 import SupplementalDetailsCell from './SupplementalDetailsCell'
+import TextCell from './TextCell'
 import TextModalCell from './TextModalCell'
 
 interface DataTableCellProps {
@@ -164,6 +165,18 @@ export default function DataTableCell(props: DataTableCellProps) {
   }
 
   if (props.question?.type === QUESTION_TYPES.text.id) {
+    if (props.question.$xpath !== undefined) {
+      return (
+        <TextCell
+          assetUid={props.asset.uid}
+          xpath={props.question.$xpath}
+          submissionData={submission}
+          text={props.reactTableRow.value}
+          questionLabel={columnName}
+        />
+      )
+    }
+
     return (
       <TextModalCell
         text={props.reactTableRow.value}
