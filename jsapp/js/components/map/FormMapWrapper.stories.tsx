@@ -11,6 +11,7 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withMinHeightWrapper } from '#/storybookUtils'
 import FormMapWrapper from './formMapWrapper'
+import { mapTileHandlers } from './mapTiles.mocks'
 
 const mockAssetUid = 'aTestMapAssetUid123'
 
@@ -100,6 +101,46 @@ const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
   },
 }) as unknown as AssetResponse
 
+// Asset used to check how points collected on both sides of the 180th meridian are displayed
+const assetWithPacificGeopoints = getApiV2AssetsRetrieveResponseMock({
+  uid: mockAssetUid,
+  name: 'Test Form with Points Across the 180th Meridian',
+  deployment__active: true,
+  deployment__submission_count: 4,
+  has_deployment: true,
+  map_styles: {},
+  summary: {
+    geo: true,
+    labels: ['Your name', 'Where are you?'],
+    columns: ['type', 'label'],
+    lock_all: false,
+    lock_any: false,
+    languages: [],
+    row_count: 2,
+    name_quality: { ok: 2, bad: 0, good: 0, total: 2, firsts: {} },
+    default_translation: undefined,
+  },
+  content: {
+    survey: [
+      {
+        $kuid: 'q1',
+        type: QuestionTypeName.text,
+        name: 'your_name',
+        label: ['Your name'],
+        required: false,
+      },
+      {
+        $kuid: 'q2',
+        type: QuestionTypeName.geopoint,
+        name: 'location',
+        label: ['Where are you?'],
+        required: false,
+      },
+    ],
+    choices: [],
+  },
+}) as unknown as AssetResponse
+
 // Submission data with populated start-geopoint
 const submissionsWithStartGeopoint: SubmissionResponse[] = [
   assetDataFactory(1, {
@@ -130,6 +171,51 @@ const submissionsWithBothGeopointTypes: SubmissionResponse[] = [
   }),
 ]
 
+// Two submissions in Vanuatu (east of the 180th meridian) and two in Samoa (west of it)
+const submissionsAcrossAntimeridian: SubmissionResponse[] = [
+  assetDataFactory(1, {
+    your_name: 'Alice',
+    location: '-17.7333 168.3273 0 0', // Port Vila
+    _geolocation: [-17.7333, 168.3273],
+  }),
+  assetDataFactory(2, {
+    your_name: 'Bob',
+    location: '-17.5667 168.1667 0 0', // Mele
+    _geolocation: [-17.5667, 168.1667],
+  }),
+  assetDataFactory(3, {
+    your_name: 'Carla',
+    location: '-13.8333 -171.7667 0 0', // Apia
+    _geolocation: [-13.8333, -171.7667],
+  }),
+  assetDataFactory(4, {
+    your_name: 'Dan',
+    location: '-14.0333 -171.4833 0 0', // Lotofaga
+    _geolocation: [-14.0333, -171.4833],
+  }),
+]
+
+/** Everything a map story needs mocked: the asset, its submissions and the tiles the map is drawn on. */
+function mapHandlers(asset: AssetResponse, submissions: SubmissionResponse[]) {
+  return [
+    http.get(endpoints.ASSET_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      return HttpResponse.json(asset)
+    }),
+    http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      const response: PaginatedResponse<SubmissionResponse> = {
+        count: submissions.length,
+        next: null,
+        previous: null,
+        results: submissions,
+      }
+      return HttpResponse.json(response)
+    }),
+    ...mapTileHandlers,
+  ]
+}
+
 const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
   component: FormMapWrapper,
@@ -151,17 +237,13 @@ const meta: Meta<typeof FormMapWrapper> = {
     withRouter,
     queryClientDecorator,
     withMinHeightWrapper(400, { height: 400 }),
-    // Hide map tiles for Chromatic tests - prevents flakiness from map images rendering differently (we had tiny
-    // differences causing tests to fail)
+    // Tiles are mocked (see `mapTiles.mocks.ts`), so this only fills the map while they are on their way in
     (Story) => (
       <>
         <style>
           {`
-            .leaflet-tile-pane {
-              opacity: 0 !important;
-            }
             #data-map {
-              background: #a8e4f0 !important;
+              background: #94c7d1 !important;
             }
           `}
         </style>
@@ -176,24 +258,7 @@ type Story = StoryObj<typeof FormMapWrapper>
 
 export const WithOnlyStartGeopoint: Story = {
   parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoints.ASSET_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          return HttpResponse.json(assetWithOnlyStartGeopoint)
-        }),
-        http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          const response: PaginatedResponse<SubmissionResponse> = {
-            count: submissionsWithStartGeopoint.length,
-            next: null,
-            previous: null,
-            results: submissionsWithStartGeopoint,
-          }
-          return HttpResponse.json(response)
-        }),
-      ],
-    },
+    msw: { handlers: mapHandlers(assetWithOnlyStartGeopoint, submissionsWithStartGeopoint) },
   },
   args: {
     asset: assetWithOnlyStartGeopoint,
@@ -236,24 +301,7 @@ export const WithOnlyStartGeopoint: Story = {
 
 export const WithBothGeopointTypes: Story = {
   parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoints.ASSET_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          return HttpResponse.json(assetWithBothGeopointTypes)
-        }),
-        http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          const response: PaginatedResponse<SubmissionResponse> = {
-            count: submissionsWithBothGeopointTypes.length,
-            next: null,
-            previous: null,
-            results: submissionsWithBothGeopointTypes,
-          }
-          return HttpResponse.json(response)
-        }),
-      ],
-    },
+    msw: { handlers: mapHandlers(assetWithBothGeopointTypes, submissionsWithBothGeopointTypes) },
   },
   args: {
     asset: assetWithBothGeopointTypes,
@@ -322,5 +370,49 @@ export const WithBothGeopointTypes: Story = {
         { timeout: 5000 },
       )
     })
+  },
+}
+
+export const WithPointsAcrossAntimeridian: Story = {
+  parameters: {
+    msw: { handlers: mapHandlers(assetWithPacificGeopoints, submissionsAcrossAntimeridian) },
+  },
+  args: {
+    asset: assetWithPacificGeopoints,
+  },
+  // Chromatic is what checks this story: the snapshot tells whether the map fitted the 20° span across the meridian, or
+  // read it as the 340° span the other way around and zoomed out to the whole world. Waiting for the markers only keeps
+  // the snapshot from being taken before the map has finished drawing itself.
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelectorAll('.leaflet-marker-icon').length).toBeGreaterThan(0), {
+      timeout: 5000,
+    })
+  },
+}
+
+export const WithPointsRepeatedInEveryWorldCopy: Story = {
+  parameters: {
+    msw: { handlers: mapHandlers(assetWithPacificGeopoints, submissionsAcrossAntimeridian) },
+  },
+  args: {
+    asset: assetWithPacificGeopoints,
+  },
+  // Zooming all the way out is what this story is about, so that part is not a check and has to stay — it is what puts
+  // several copies of the world on screen for Chromatic to snapshot. What the points then do is the snapshot's business:
+  // a cluster in every copy, one every 256 pixels. `getWorldCopyOffsets()` has the unit tests for the arithmetic.
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelectorAll('.leaflet-marker-icon').length).toBeGreaterThan(0), {
+      timeout: 5000,
+    })
+
+    await waitFor(
+      () => {
+        // One click per attempt, until the control tells us there is nowhere left to zoom out to
+        const zoomOutButton = canvasElement.querySelector<HTMLAnchorElement>('.leaflet-control-zoom-out')
+        zoomOutButton?.click()
+        expect(zoomOutButton).toHaveClass('leaflet-disabled')
+      },
+      { timeout: 10000 },
+    )
   },
 }
