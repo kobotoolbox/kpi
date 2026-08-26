@@ -1,6 +1,5 @@
 import './assetsTable.scss'
 import React from 'react'
-import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
 import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
@@ -88,12 +87,12 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
       scrollbarWidth: null,
       isFullscreen: false,
     }
-    this.bodyRef = React.createRef()
+    this.bodyRef = React.createRef<HTMLDivElement>()
   }
 
   private updateScrollbarWidthBound = this.updateScrollbarWidth.bind(this)
 
-  bodyRef: React.RefObject<any>
+  bodyRef: React.RefObject<HTMLDivElement>
 
   componentDidMount() {
     this.updateScrollbarWidth()
@@ -115,7 +114,7 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
   }
 
   updateScrollbarWidth() {
-    const bodyNode = ReactDOM.findDOMNode(this.bodyRef?.current) as HTMLElement
+    const bodyNode = this.bodyRef.current
     if (bodyNode && hasVerticalScrollbar(bodyNode)) {
       this.setState({ scrollbarWidth: getScrollbarWidth() })
     } else {
@@ -381,7 +380,9 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
           </bem.AssetsTableRow>
         </bem.AssetsTable__header>
 
-        <bem.AssetsTable__body ref={this.bodyRef}>
+        {/* Needed to drop bem component in order to drop ReactDOM.findDOMNode. We should de-bem this component in
+          the future anyways, see DEV-2739 and see AssetsNavigator which uses mantine compoents + refs */}
+        <div className='assets-table__body' ref={this.bodyRef}>
           {this.props.isLoading && <LoadingSpinner />}
 
           {!this.props.isLoading && this.props.assets.length === 0 && (
@@ -394,7 +395,7 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
             this.props.assets.map((asset) => (
               <AssetsTableRow asset={asset} key={asset.uid} context={this.props.context} />
             ))}
-        </bem.AssetsTable__body>
+        </div>
 
         {this.renderFooter()}
       </bem.AssetsTable>
