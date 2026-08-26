@@ -6,6 +6,8 @@ class SocialAppSerializer(serializers.Serializer):
     name = serializers.CharField()
     client_id = serializers.CharField()
     provider_id = serializers.CharField(allow_blank=True, allow_null=True)
+    managed = serializers.BooleanField()
+    domains = serializers.ListField(child=serializers.CharField())
 
 
 class MetadataFieldOptionSerializer(serializers.Serializer):
