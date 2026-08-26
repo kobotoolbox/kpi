@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { observer } from 'mobx-react-lite'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import AccessLogsSection from './accessLogs/accessLogsSection.component'
@@ -10,7 +11,7 @@ import PasswordSection from './password/passwordSection.component'
 import styles from './securityRoute.module.scss'
 import SsoSection from './sso/ssoSection.component'
 
-export default function securityRoute() {
+export default observer(function securityRoute() {
   if (!envStore.isReady) {
     return <LoadingSpinner />
   }
@@ -34,4 +35,4 @@ export default function securityRoute() {
       <AccessLogsSection />
     </div>
   )
-}
+})
