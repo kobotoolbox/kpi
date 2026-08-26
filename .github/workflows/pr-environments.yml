@@ -78,7 +78,8 @@ jobs:
         env:
           INPUT_TYPE: ${{ github.event.inputs.input_type }}
           INPUT_VALUE: ${{ github.event.inputs.input_value }}
-          PR_TITLE: ${{ steps.get_pr_info.outputs.title }}
+          PR_TITLE: ${{ steps.get_pr_info.outputs.title }} 
+          #testing this
         run: |
           if [ "$INPUT_TYPE" = "PR" ]; then
             CLEAN_TITLE=$(echo "$PR_TITLE" | tr -d '"')
