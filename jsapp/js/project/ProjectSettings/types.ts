@@ -1,5 +1,5 @@
 import type { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
-import type { AssetResponse, LabelValuePair } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import type { WithRouterProps } from '#/router/legacy'
 import type { StepName } from './constants'
 
@@ -10,18 +10,18 @@ import type { StepName } from './constants'
 export type ProjectSettingsContext = (typeof PROJECT_SETTINGS_CONTEXTS)[keyof typeof PROJECT_SETTINGS_CONTEXTS]
 
 /**
- * Form fields for project settings.
- * Note: Some fields use LabelValuePair for compatibility with react-select components.
+ * Form fields for project settings. Note that `sector`, `country`,
+ * `operational_purpose` and `collects_pii` are stored as `LabelValuePair`s in the
+ * asset settings, but here we only keep their values around.
+ * `getSettingsForEndpoint` pairs them up with their labels again.
  */
 export interface ProjectSettingsFields {
   name: string
   description: string
-  // Single-select fields use LabelValuePair (e.g., {value: 'health', label: 'Health'})
-  sector: LabelValuePair | null
-  // Multi-select field - country can have multiple selections
-  country: LabelValuePair[] | null
-  operational_purpose: LabelValuePair | null
-  collects_pii: LabelValuePair | null
+  sector: string | null
+  country: string[] | null
+  operational_purpose: string | null
+  collects_pii: string | null
   // Admin-configured custom fields can be text, single-select, or multi-select
   extra_metadata_fields: Record<string, string | string[] | null>
 }
@@ -34,10 +34,7 @@ export interface ProjectSettingsProps extends WithRouterProps {
   /** If provided, automatically applies this template when creating a new project */
   initialTemplateUid?: string | null
   /** Optional callback for listening to field changes (used by parent components) */
-  onProjectDetailsChange?: (data: {
-    fieldName: string
-    fieldValue: string | string[] | LabelValuePair | LabelValuePair[] | null
-  }) => void
+  onProjectDetailsChange?: (data: { fieldName: string; fieldValue: string | string[] | null }) => void
   /** Optional callback to update the modal title as user navigates between steps */
   onSetModalTitle?: (title: string) => void
 }

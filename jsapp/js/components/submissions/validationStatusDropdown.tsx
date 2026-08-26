@@ -1,18 +1,26 @@
-import './validationStatusDropdown.scss'
-
-import React from 'react'
-
-import Select, { components, type OptionProps, type SingleValueProps, type DropdownIndicatorProps } from 'react-select'
-import bem from '#/bem'
+import { Pill, type PillProps } from '@mantine/core'
+import classNames from 'classnames'
+import Select from '#/components/common/Select'
 import {
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL,
-  ValidationStatusAdditionalName,
+  ValidationStatusName,
 } from '#/components/submissions/validationStatus.constants'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
+import styles from './validationStatusDropdown.module.scss'
+
+/**
+ * Pill variant for each of the actual statuses. The remaining options ("-" and
+ * "Show all") mean "no status", so they stay plain text.
+ */
+const PILL_VARIANTS: Partial<Record<ValidationStatusOptionName, PillProps['variant']>> = {
+  [ValidationStatusName.validation_status_not_approved]: 'red-light',
+  [ValidationStatusName.validation_status_approved]: 'teal-light',
+  [ValidationStatusName.validation_status_on_hold]: 'amber-light',
+}
 
 interface ValidationStatusDropdownProps {
   /** Calls back with `value`, not option object */
@@ -25,90 +33,42 @@ interface ValidationStatusDropdownProps {
 }
 
 export default function ValidationStatusDropdown(props: ValidationStatusDropdownProps) {
-  // for rendering options as colorful badges
-  function CustomOption(innerProps: OptionProps<ValidationStatusOption>) {
-    const badgeModifiers = [String(innerProps.getValue())]
-    if (innerProps.isSelected) {
-      badgeModifiers.push('selected')
-    }
+  const options = props.isForHeaderFilter ? VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL : VALIDATION_STATUS_OPTIONS
 
-    return (
-      <bem.KoboSelect__optionWrapper>
-        <bem.KoboSelect__optionBadge m={badgeModifiers}>
-          <components.Option {...innerProps} />
-        </bem.KoboSelect__optionBadge>
-      </bem.KoboSelect__optionWrapper>
-    )
-  }
-
-  // for rendering the selected value as colorful badge
-  function CustomSingleValue({ children, ...innerProps }: SingleValueProps<ValidationStatusOption>) {
-    let value
-    const valueArray = innerProps.getValue()
-    if (valueArray && valueArray[0]) {
-      value = valueArray[0].value
-    }
-
-    const badgeModifiers = [String(value)]
-
-    return <bem.KoboSelect__optionBadge m={badgeModifiers}>{children}</bem.KoboSelect__optionBadge>
-  }
-
-  // for rendering the selected value as colorful badge
-  function CustomDropdownIndicator(innerProps: DropdownIndicatorProps<ValidationStatusOption>) {
-    return (
-      <components.DropdownIndicator {...innerProps}>
-        <i className='k-icon k-icon-caret-down' />
-      </components.DropdownIndicator>
-    )
-  }
-
-  // clone the original list array
-  let optionsArray = VALIDATION_STATUS_OPTIONS
-  if (props.isForHeaderFilter) {
-    optionsArray = VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL
-  }
-
-  const selectClassNames = ['kobo-select', 'kobo-select--validation']
-
-  if (props.isForHeaderFilter) {
-    selectClassNames.push('kobo-select--for-nonwhite-background')
-  }
+  // The colorful pills are only for the data cells - as a table header filter
+  // this has to look like all the neighbouring column filters.
+  const currentPillVariant = props.isForHeaderFilter ? undefined : PILL_VARIANTS[props.currentValue.value]
 
   return (
-    <Select
-      components={{
-        Option: CustomOption,
-        SingleValue: CustomSingleValue,
-        DropdownIndicator: CustomDropdownIndicator,
-      }}
-      isDisabled={props.isDisabled}
-      isClearable={false}
-      isSearchable={false}
-      value={props.currentValue}
-      options={optionsArray}
-      onChange={(newSelectedOption) => {
-        if (
-          // This should not happen, as we are dealing with `isClearable={false}`
-          newSelectedOption === null ||
-          // This should not happen, as we are dealing with not `isMulti`
-          Array.isArray(newSelectedOption)
-        ) {
-          //
-          if (props.isForHeaderFilter) {
-            props.onChange(ValidationStatusAdditionalName.show_all)
-          } else {
-            props.onChange(ValidationStatusAdditionalName.no_status)
-          }
-        }
-
-        if (newSelectedOption !== null && 'value' in newSelectedOption) {
-          props.onChange(newSelectedOption.value)
+    <Select<ValidationStatusOptionName>
+      data={options}
+      value={props.currentValue.value}
+      onChange={(newValue) => {
+        // It's not really possible to have `null` here, as `Select` is not clearable.
+        if (newValue !== null) {
+          props.onChange(newValue)
         }
       }}
-      className={selectClassNames.join(' ')}
-      classNamePrefix='kobo-select'
-      menuPlacement='auto'
+      renderOption={({ option }) => {
+        const variant = PILL_VARIANTS[option.value as ValidationStatusOptionName]
+        return variant ? <Pill variant={variant}>{option.label}</Pill> : <span>{option.label}</span>
+      }}
+      // `cellInputWithPill` hides the input's own text, so this pill is what the
+      // user actually reads.
+      leftSection={currentPillVariant && <Pill variant={currentPillVariant}>{props.currentValue.label}</Pill>}
+      classNames={{
+        input: classNames({
+          [styles.cellInput]: !props.isForHeaderFilter,
+          [styles.cellInputWithPill]: Boolean(currentPillVariant),
+        }),
+        section: props.isForHeaderFilter ? undefined : styles.cellSection,
+      }}
+      // Narrower than the default, to leave the pill as much room as possible.
+      rightSectionWidth={props.isForHeaderFilter ? undefined : 28}
+      size='xs'
+      disabled={props.isDisabled}
+      searchable={false}
+      clearable={false}
     />
   )
 }

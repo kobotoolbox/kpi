@@ -1,7 +1,7 @@
 import { Box, Group, type MantineSize, Pill, type PillProps, Stack, Title } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
-const pillVariants: Array<PillProps['variant']> = ['gray-light', 'amber-light']
+const pillVariants: Array<PillProps['variant']> = ['gray-light', 'amber-light', 'red-light', 'teal-light']
 
 const pillSizes: MantineSize[] = ['xs', 'sm', 'md', 'lg', 'xl']
 
