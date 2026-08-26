@@ -95,14 +95,38 @@ def mark_old_enqueued_mass_email_record_as_failed():
     threshold_date = timezone.now() - timedelta(
         days=config.MASS_EMAIL_ENQUEUED_RECORD_EXPIRY
     )
-    updated_records = MassEmailRecord.objects.filter(
-        status=EmailStatus.ENQUEUED,
-        date_created__lt=threshold_date
-    ).update(status=EmailStatus.FAILED)
+    records_to_update = MassEmailRecord.objects.filter(
+        status=EmailStatus.ENQUEUED, date_created__lt=threshold_date
+    )
+
+    affected_one_time_campaigns = list(
+        records_to_update.filter(email_job__email_config__frequency=-1)
+        .values_list('email_job__email_config__uid', flat=True)
+        .distinct()
+    )
+
+    # this won't actually be evaluated until we call
+    # update() so it's safe to declare it here
+    configs_to_update = (
+        MassEmailConfig.objects.filter(uid__in=affected_one_time_campaigns)
+        .annotate(
+            enqueued_count=Count(
+                'jobs__records__id',
+                filter=Q(jobs__records__status=EmailStatus.ENQUEUED),
+            )
+        )
+        .filter(enqueued_count=0)
+    )
+
+    with transaction.atomic():
+        updated_records_count = records_to_update.update(status=EmailStatus.FAILED)
+        updated_configs_count = configs_to_update.update(live=False)
 
     logging.info(
-        f'Updated {updated_records} MassEmailRecord(s) from `enqueued` to `failed` '
+        f'Updated {updated_records_count} MassEmailRecord(s)'
+        ' from `enqueued` to `failed` '
         f'that were older than {threshold_date}.'
+        f' Turned {updated_configs_count} campaigns off.'
     )
 
 
