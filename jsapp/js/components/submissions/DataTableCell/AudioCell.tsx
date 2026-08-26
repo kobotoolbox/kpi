@@ -1,9 +1,9 @@
 import './AudioCell.scss'
-import { IconArrowUpRight } from '@tabler/icons-react'
+import { IconArrowsDiagonal, IconPencilStar } from '@tabler/icons-react'
 import React from 'react'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
-import ButtonNew from '#/components/common/ButtonNew'
+import ActionIcon from '#/components/common/ActionIcon'
 import Icon from '#/components/common/icon'
 import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
 import { goToProcessing } from '#/components/processing/routes.utils'
@@ -46,16 +46,26 @@ export default function AudioCell(props: AudioCellProps) {
 
       {typeof props.mediaAttachment !== 'string' &&
         shouldProcessingBeAccessible(props.submissionData, props.mediaAttachment) && (
-          <ButtonNew
-            variant='filled'
-            size='sm'
-            rightIcon={IconArrowUpRight}
-            onClick={() => {
-              goToProcessing(props.assetUid, props.xpath, submissionEditId)
-            }}
-          >
-            {t('Open')}
-          </ButtonNew>
+          <>
+            <ActionIcon
+              variant='transparent'
+              tooltip={t('View details')}
+              icon={IconArrowsDiagonal}
+              size='sm'
+              // TODO(DEV-2370): open the audio response details dialog
+              onClick={() => {}}
+              ms='sm'
+            />
+            <ActionIcon
+              variant='transparent'
+              tooltip={t('Open')}
+              icon={IconPencilStar}
+              size='sm'
+              onClick={() => {
+                goToProcessing(props.assetUid, props.xpath, submissionEditId)
+              }}
+            />
+          </>
         )}
     </bem.AudioCell>
   )
