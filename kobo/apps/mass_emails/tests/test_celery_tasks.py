@@ -116,6 +116,7 @@ class BaseMassEmailsTestCase(BaseTestCase):
         MassEmailRecord.objects.filter(id=record.id).update(
             date_modified=timezone.now() - timedelta(days=days_ago)
         )
+        return record
 
     def _enqueue_records_for_config(self, email_config, count):
         job = MassEmailJob.objects.create(email_config=email_config)
@@ -225,11 +226,11 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         plan_name = sender.get_plan_name(self.user1.organization)
         assert plan_name == 'Not available'
 
-    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=4, MASS_EMAIL_SEND_RATE_RATIO=0.5)
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
     def test_send_is_throttled(self):
-        # budget_per_second = 4 * 0.5 = 2. `monotonic` is pinned so every
-        # window looks fully elapsed instantly, isolating the trigger
-        # pattern (every 2 sends, sleep once) from real elapsed time.
+        # `monotonic` is pinned so every window looks fully elapsed
+        # instantly, isolating the trigger pattern (every 2 sends, sleep
+        # once) from real elapsed time.
         self._setup_common_test_data()
         calls = []
         with (
@@ -252,6 +253,72 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             'send_email',
             'sleep',
             'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2.5)
+    def test_send_is_throttled_below_one_per_second(self):
+        # sends_per_window = floor(2.5) = 2, window_length stays clamped
+        # to 1.0 (2 / 2.5 = 0.8, under the floor): 2 sends per window, not
+        # the 4-per-window a shorter-than-1s window would allow.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=0.5)
+    def test_send_is_throttled_above_one_second_per_send(self):
+        # A budget under 1/s can't be enforced within a single second, so
+        # the window widens instead of rounding the achieved rate up to
+        # 1/s: one send per 2-second window here.
+        self._setup_common_test_data()
+        calls = []
+        with (
+            patch('kobo.apps.mass_emails.tasks.monotonic', return_value=0),
+            patch(
+                'kobo.apps.mass_emails.tasks.sleep',
+                side_effect=lambda *x: calls.append('sleep'),
+            ),
+            patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ),
+        ):
+            sender = MassEmailSender()
+            sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+            sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
+            'send_email',
+            'sleep',
             'send_email',
             'sleep',
             'send_email',
@@ -1013,3 +1080,59 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         # rather than being written off as failed
         assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 1
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
+
+
+class TestMarkOldRecordsAsFailed(BaseMassEmailsTestCase):
+
+    @override_config(MASS_EMAIL_ENQUEUED_RECORD_EXPIRY=5)
+    def test_mark_old_records_as_failed_expires_old_records(self):
+        config = self._create_email_config(name='test')
+        record_old = self._create_email_record(
+            user=self.user1, days_ago=10, status='enqueued', email_config=config
+        )
+        record_new = self._create_email_record(
+            user=self.user1, days_ago=3, status='enqueued', email_config=config
+        )
+
+        mark_old_enqueued_mass_email_record_as_failed()
+        record_old.refresh_from_db()
+        record_new.refresh_from_db()
+        assert record_old.status == 'failed'
+        assert record_new.status == 'enqueued'
+
+    @override_config(MASS_EMAIL_ENQUEUED_RECORD_EXPIRY=5)
+    def test_mark_old_records_as_failed_disables_failed_oneoff_sends(self):
+        config_to_expire = self._create_email_config(
+            name='test', frequency=-1, live=True
+        )
+        config_to_keep = self._create_email_config(
+            name='test2', frequency=-1, live=True
+        )
+
+        # create 2 old records for config_to_expire
+        self._create_email_record(
+            user=self.user1,
+            status='enqueued',
+            email_config=config_to_expire,
+            days_ago=10,
+        )
+        self._create_email_record(
+            user=self.user2,
+            status='enqueued',
+            email_config=config_to_expire,
+            days_ago=10,
+        )
+
+        # create 1 old record and 1 newer for config_to_keep
+        self._create_email_record(
+            user=self.user1, status='enqueued', email_config=config_to_keep, days_ago=10
+        )
+        self._create_email_record(
+            user=self.user2, status='enqueued', email_config=config_to_keep, days_ago=3
+        )
+
+        mark_old_enqueued_mass_email_record_as_failed()
+        config_to_expire.refresh_from_db()
+        config_to_keep.refresh_from_db()
+        assert not config_to_expire.live
+        assert config_to_keep.live
