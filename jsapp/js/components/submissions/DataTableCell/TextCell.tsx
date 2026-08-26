@@ -8,11 +8,12 @@ import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getSubmissionRootUuid } from '#/utils'
-import styles from './TextModalCell.module.scss'
+import styles from './TextCell.module.scss'
 
 interface TextCellProps {
   assetUid: string
-  xpath: string
+  /** Omit when there is no question to open in Processing for this cell (e.g. it's a supplemental detail itself), or it's missing on some legacy asset versions. */
+  xpath?: string
   submissionData: SubmissionResponse
   /** Text response for this question, `null`/empty renders a blank cell with no actions. */
   text: string | null | undefined
@@ -37,7 +38,19 @@ export default function TextCell(props: TextCellProps) {
     )
   }
 
+  // Some legacy asset versions lack `$xpath` on their survey rows, in which case
+  // there is no reliable question path to open Processing with.
+  const canOpenProcessing = isNlpTextActionsEnabled && props.xpath !== undefined
+  const xpath = props.xpath
+
   const submissionEditId = getSubmissionRootUuid(props.submissionData)
+
+  const openProcessing = () => {
+    if (xpath === undefined) {
+      return
+    }
+    goToProcessing(props.assetUid, xpath, submissionEditId)
+  }
 
   return (
     <div className={styles.cell} dir='auto'>
@@ -51,15 +64,13 @@ export default function TextCell(props: TextCellProps) {
           size='sm'
           onClick={() => setIsDetailsDialogOpen(true)}
         />
-        {isNlpTextActionsEnabled && (
+        {canOpenProcessing && (
           <ActionIcon
             variant='transparent'
             tooltip={t('Open')}
             icon={IconPencilStar}
             size='sm'
-            onClick={() => {
-              goToProcessing(props.assetUid, props.xpath, submissionEditId)
-            }}
+            onClick={openProcessing}
           />
         )}
       </Group>
@@ -73,10 +84,14 @@ export default function TextCell(props: TextCellProps) {
             <Text fw={600}>{props.questionLabel}</Text>
           </Group>
         }
-        onAction={() => {
-          setIsDetailsDialogOpen(false)
-          goToProcessing(props.assetUid, props.xpath, submissionEditId)
-        }}
+        onAction={
+          canOpenProcessing
+            ? () => {
+                setIsDetailsDialogOpen(false)
+                openProcessing()
+              }
+            : undefined
+        }
       >
         <ScrollArea.Autosize mah={300} type='auto' offsetScrollbars>
           <Text dir='auto' style={{ whiteSpace: 'pre-wrap' }}>
