@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 13:14+0000\n"
+"POT-Creation-Date: 2026-08-26 14:09+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jinso Raj, 2023\n"
 "Language-Team: Malayalam (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ml/)\n"
@@ -633,7 +633,7 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: kobo/apps/mass_emails/tasks.py:286
+#: kobo/apps/mass_emails/tasks.py:310
 msgid "Not available"
 msgstr ""
 

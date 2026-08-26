@@ -12,10 +12,13 @@ export const PasswordInputThemeKobo = PasswordInput.extend({
     },
     visibilityToggleButtonProps: {
       variant: 'transparent',
+      tabIndex: 0,
+      'aria-label': t('Toggle password visibility'),
     },
     classNames: {
       input: classes.input,
       section: classes.section,
+      visibilityToggle: classes.visibilityToggle,
     },
   },
 })
