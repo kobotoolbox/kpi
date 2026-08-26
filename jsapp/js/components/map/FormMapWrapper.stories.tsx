@@ -133,13 +133,9 @@ const submissionsWithBothGeopointTypes: SubmissionResponse[] = [
 const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
   component: FormMapWrapper,
+  // Docs view does NOT work reliably for these stories due to map initialization rule (there can be only one)
+  tags: ['!autodocs'],
   parameters: {
-    docs: {
-      description: {
-        component:
-          '⚠️ **Docs view does NOT work reliably for these stories due to map initialization rule (there can be only one). Use single stories please.** Also note that many interactive elements are not mocked and will not work.',
-      },
-    },
     reactRouter: reactRouterParameters({
       location: {
         pathParams: { uid: mockAssetUid },
