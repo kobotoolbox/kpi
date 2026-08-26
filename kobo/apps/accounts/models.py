@@ -140,5 +140,6 @@ class SocialAppManagedDomain(models.Model):
         ).exists()
 
     def save(self, *args, **kwargs):
-        self.domain = self.domain.strip().lower()
+        if self.domain:
+            self.domain = self.domain.strip().lower()
         super().save(*args, **kwargs)
