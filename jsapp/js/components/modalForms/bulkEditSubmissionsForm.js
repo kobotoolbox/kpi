@@ -8,8 +8,9 @@ import { actions } from '#/actions'
 import { getFlatQuestionsList, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
+import TextInput from '#/components/common/TextInput'
+import Textarea from '#/components/common/Textarea'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import { FUSE_OPTIONS, QuestionTypeName } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
@@ -259,16 +260,16 @@ class BulkEditSubmissionsForm extends React.Component {
   getFiltersRow() {
     return [
       '',
-      <TextBox
+      <TextInput
         key='filter-by-name'
         value={this.state.filterByName}
-        onChange={this.onFilterByNameChange}
+        onChange={(evt) => this.onFilterByNameChange(evt.currentTarget.value)}
         placeholder={t('Type to filter')}
       />,
-      <TextBox
+      <TextInput
         key='filter-by-value'
         value={this.state.filterByValue}
-        onChange={this.onFilterByValueChange}
+        onChange={(evt) => this.onFilterByValueChange(evt.currentTarget.value)}
         placeholder={t('Type to filter')}
       />,
       '',
@@ -528,11 +529,11 @@ class BulkEditRowForm extends React.Component {
           <bem.FormView__cell m='column-1'>
             <h2>{this.props.question.label}</h2>
 
-            <TextBox
-              className='bulk-edit-response-textbox'
-              type='text-multiline'
+            <Textarea
+              autosize
+              minRows={2}
               value={inputValue}
-              onChange={this.onChange}
+              onChange={(evt) => this.onChange(evt.currentTarget.value)}
               placeholder={this.getPlaceholderValue()}
             />
           </bem.FormView__cell>

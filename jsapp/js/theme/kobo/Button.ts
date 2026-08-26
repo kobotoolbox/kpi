@@ -20,14 +20,18 @@ export const ButtonThemeKobo = Button.extend({
   classNames: classes,
   defaultProps: {
     variant: 'filled',
+    // Keep in sync with `DEFAULT_SIZE` in components/common/ButtonNew.tsx, which
+    // needs the same value to pick an icon size.
     size: 'md',
   },
   vars: (theme, props) => {
     return {
       root: {
+        // Heights come from our Figma designs. Keep in sync with `min-width` in
+        // Button.module.css, which keeps icon-only buttons square.
         '--button-height-sm': rem(28),
-        '--button-height-md': rem(32),
-        '--button-height-lg': rem(38),
+        '--button-height-md': rem(34),
+        '--button-height-lg': rem(40),
         '--button-padding-x-sm': rem(11.2),
         '--button-padding-x-md': rem(12.8),
         '--button-padding-x-lg': rem(15.2),
