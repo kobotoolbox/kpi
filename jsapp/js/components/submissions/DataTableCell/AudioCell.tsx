@@ -56,15 +56,17 @@ export default function AudioCell(props: AudioCellProps) {
 
       {typeof props.mediaAttachment !== 'string' &&
         shouldProcessingBeAccessible(props.submissionData, props.mediaAttachment) && (
-          <>
-            <ActionIcon
-              variant='transparent'
-              tooltip={t('View details')}
-              icon={IconArrowsDiagonal}
-              size='sm'
-              onClick={() => setIsDetailsDialogOpen(true)}
-              ms='sm'
-            />
+          <Group ml='auto' gap={0} wrap='nowrap'>
+            {/* No audio to show if the attachment was deleted. */}
+            {!props.mediaAttachment.is_deleted && (
+              <ActionIcon
+                variant='transparent'
+                tooltip={t('View details')}
+                icon={IconArrowsDiagonal}
+                size='sm'
+                onClick={() => setIsDetailsDialogOpen(true)}
+              />
+            )}
             <ActionIcon
               variant='transparent'
               tooltip={t('Open')}
@@ -74,7 +76,7 @@ export default function AudioCell(props: AudioCellProps) {
                 goToProcessing(props.assetUid, props.xpath, submissionEditId)
               }}
             />
-          </>
+          </Group>
         )}
 
       {downloadUrl && (

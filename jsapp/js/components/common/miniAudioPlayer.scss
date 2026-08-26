@@ -1,5 +1,5 @@
-@use 'scss/colors';
-@use 'js/components/common/button';
+@use "scss/colors";
+@use "js/components/common/button";
 
 .mini-audio-player {
   display: flex;
@@ -7,6 +7,7 @@
   align-items: center;
   flex-direction: row;
   flex-wrap: nowrap;
+  min-width: 0;
   color: colors.$kobo-blue;
   height: button.$button-height-s;
 
@@ -30,5 +31,9 @@
 .mini-audio-player__time {
   font-size: 14px;
   margin-left: 2px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: colors.$kobo-gray-600;
 }
