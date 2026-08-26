@@ -13,7 +13,6 @@ import AssetsTableRow from './assetsTableRow'
 
 bem.AssetsTable = makeBem(null, 'assets-table')
 bem.AssetsTable__header = makeBem(bem.AssetsTable, 'header')
-bem.AssetsTable__body = makeBem(bem.AssetsTable, 'body')
 bem.AssetsTable__footer = makeBem(bem.AssetsTable, 'footer')
 bem.AssetsTableRow = makeBem(null, 'assets-table-row')
 bem.AssetsTableRow__link = makeBem(bem.AssetsTableRow, 'link', 'a')
