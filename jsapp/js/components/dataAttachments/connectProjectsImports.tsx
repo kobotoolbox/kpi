@@ -90,7 +90,6 @@ export default function ConnectProjectsImports({
             className='connect-projects-textbox'
             placeholder={t('Give a unique name to the import')}
             value={newFilename}
-            size='sm'
             onChange={(evt) => onFilenameChange(evt.currentTarget.value)}
             error={fieldsErrors.filename}
           />
