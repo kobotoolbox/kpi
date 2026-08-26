@@ -76,7 +76,6 @@
     "reflux-core": "^1.0.0",
     "rtl-detect": "^1.1.2",
     "select2": "^3.5.2-browserify",
-    "use-immer": "^0.10.0",
     "wretch": "^2.9.0",
     "zxcvbn": "^4.4.2"
   },
