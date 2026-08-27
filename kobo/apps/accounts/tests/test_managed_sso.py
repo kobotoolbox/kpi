@@ -76,9 +76,9 @@ class TestManagedSsoUsers(TestCase):
             username='unlinked', email='managed@example.com'
         )
         with patch.object(AccountAdapter, 'send_password_reset_mail') as patched:
-            response = self.client.post(
+            self.client.post(
                 reverse('account_reset_password'),
-                data={'email': f'managed@example.com'},
+                data={'email': 'managed@example.com'},
                 HTTP_ACCEPT='application/json',
             )
             breakpoint()
