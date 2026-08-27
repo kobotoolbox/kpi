@@ -1,10 +1,15 @@
 from allauth.account.models import EmailAddress
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
+from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.core.exceptions import MultipleObjectsReturned
+from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import mixins, status, viewsets
+from rest_framework import generics, mixins, status, viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
+from kpi.utils.log import logging
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -14,7 +19,11 @@ from kpi.utils.schema_extensions.response import (
 from kpi.versioning import APIV2Versioning
 from .extend_schemas.api.v2.email.serializers import EmailRequestPayload
 from .mixins import MultipleFieldLookupMixin
-from .serializers import EmailAddressSerializer, SocialAccountSerializer
+from .serializers import (
+    EmailAddressSerializer,
+    SocialAccountSerializer,
+    SocialAppDetailSerializer,
+)
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -128,3 +137,66 @@ class SocialAccountViewSet(
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+
+@extend_schema(tags=['Configuration'])
+class SocialAppView(generics.RetrieveAPIView):
+    """
+    Public, display-only detail view for a configured Social Application (SSO
+    provider)
+
+    Available actions:
+    - retrieve       → GET      /api/v2/social-apps/{provider_id}/
+
+    Documentation:
+    - docs/api/v2/social_apps/retrieve.md
+
+    Organizations with a provider that is deliberately hidden from the login page
+    (`SocialAppCustomData.is_public = False`) reach it through a direct link that
+    only varies by `provider_id`. The SPA rebuilds that screen client-side, so it
+    needs to turn a `provider_id` from the URL into a display name and to tell a
+    real provider from a typo, so it can render the right 404.
+
+    Hidden providers therefore resolve here, exactly as they already do at
+    `/accounts/oidc/{provider_id}/login/`. That URL is "not advertised, but usable
+    by anyone with the link", and a caller asking about a provider already knows
+    the only thing that link requires. Listing stays filtered to public providers
+    in `/environment`; there is deliberately no list route here.
+    """
+
+    serializer_class = SocialAppDetailSerializer
+    permission_classes = (AllowAny,)
+    versioning_class = APIV2Versioning
+    lookup_url_kwarg = 'provider_id'
+
+    def get_object(self):
+        provider_id = self.kwargs[self.lookup_url_kwarg]
+        # Resolve through allauth's adapter rather than querying `SocialApp`
+        # directly, so this endpoint agrees with the two flows it sits between:
+        # the legacy `/accounts/oidc/{provider_id}/login/` page, and allauth's
+        # headless `auth/provider/redirect`, which the SPA posts to next. Both
+        # look providers up this way, so a 200 here means the redirect will work
+        try:
+            return get_socialaccount_adapter().get_app(self.request, provider_id)
+        except SocialApp.DoesNotExist:
+            raise Http404
+        except MultipleObjectsReturned:
+            # Several apps share this id, so it cannot be resolved to one
+            # provider - the same misconfiguration would break the login flow
+            # itself. Report it as unresolvable and leave a trace for operators
+            logging.error(
+                'Multiple social applications match provider id "%s"', provider_id
+            )
+            raise Http404
+
+    @extend_schema(
+        description=read_md('accounts', 'social_apps/retrieve.md'),
+        responses=open_api_200_ok_response(
+            SocialAppDetailSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

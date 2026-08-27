@@ -14,6 +14,10 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { EnvironmentResponse } from '../../models/environmentResponse'
 
+import type { ErrorDetail } from '../../models/errorDetail'
+
+import type { SocialAppDetail } from '../../models/socialAppDetail'
+
 import { fetchWithAuth } from '../../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
@@ -88,6 +92,117 @@ export function useEnvironmentRetrieve<
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getEnvironmentRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Retrieve a single sign-on provider
+
+Resolves the `provider_id` used in single sign-on URLs into the provider's display
+name, so a client can render the "Log in with …" screen and tell a real provider
+from a typo.
+
+Returns display data only, never `client_id`, secrets, or the provider's server URL.
+
+Examples:
+```shell
+  curl -X GET https://kf.kobotoolbox.org/api/v2/social-apps/nca/
+```
+
+> Response 200
+```json
+{
+    "provider_id": "nca",
+    "name": "Norwegian Church Aid"
+}
+```
+
+Requires no authentication, and resolves providers that are hidden from the login
+page as well as those shown on it: a hidden provider is not advertised, but is
+usable by anyone holding its link, and that link already contains the
+`provider_id`. There is intentionally no endpoint listing all providers, the
+`social_apps` property of `/api/v2/environment/` lists the public ones only.
+
+An unknown `provider_id` returns `404`.
+
+ */
+export type socialAppsRetrieveResponse200 = {
+  data: SocialAppDetail
+  status: 200
+}
+
+export type socialAppsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type socialAppsRetrieveResponseSuccess = socialAppsRetrieveResponse200 & {
+  headers: Headers
+}
+export type socialAppsRetrieveResponseError = socialAppsRetrieveResponse404 & {
+  headers: Headers
+}
+
+export type socialAppsRetrieveResponse = socialAppsRetrieveResponseSuccess | socialAppsRetrieveResponseError
+
+export const getSocialAppsRetrieveUrl = (providerId: string) => {
+  return `/api/v2/social-apps/${providerId}/`
+}
+
+export const socialAppsRetrieve = async (
+  providerId: string,
+  options?: RequestInit,
+): Promise<socialAppsRetrieveResponse> => {
+  return fetchWithAuth<socialAppsRetrieveResponse>(getSocialAppsRetrieveUrl(providerId), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getSocialAppsRetrieveQueryKey = (providerId?: string) => {
+  return ['api', 'v2', 'social-apps', providerId] as const
+}
+
+export const getSocialAppsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof socialAppsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  providerId: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof socialAppsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getSocialAppsRetrieveQueryKey(providerId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof socialAppsRetrieve>>> = ({ signal }) =>
+    socialAppsRetrieve(providerId, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!providerId, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof socialAppsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type SocialAppsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof socialAppsRetrieve>>>
+export type SocialAppsRetrieveQueryError = ErrorDetail
+
+export function useSocialAppsRetrieve<TData = Awaited<ReturnType<typeof socialAppsRetrieve>>, TError = ErrorDetail>(
+  providerId: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof socialAppsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getSocialAppsRetrieveQueryOptions(providerId, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
