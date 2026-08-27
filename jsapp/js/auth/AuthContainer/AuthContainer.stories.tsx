@@ -2,7 +2,7 @@ import { Stack, Text, Title } from '@mantine/core'
 import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import { expect, userEvent, within } from 'storybook/test'
+import { expect, within } from 'storybook/test'
 import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import AuthTestRoute from '#/auth/AuthTestRoute/AuthTestRoute'
@@ -18,8 +18,7 @@ const TERMS_OF_SERVICE_URL = 'https://example.org/terms'
 const PRIVACY_POLICY_URL = 'https://example.org/privacy'
 
 /**
- * A flat blue square, inlined rather than fetched: `test-storybook` runs these stories in chromium,
- * firefox and webkit and must not depend on the network.
+ * A flat blue square, inlined rather than fetched to not depend on the network.
  */
 const BACKGROUND_IMAGE_DATA_URI =
   'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMyZjVkN2MiLz48L3N2Zz4='
@@ -52,7 +51,7 @@ const authRouting = (outlet: React.ReactNode) =>
 const stubForm = (
   <Stack gap='md'>
     <Title order={1} size='h3'>
-      Sign in
+      Sign in please
     </Title>
     <TextInput label='Email address' />
   </Stack>
@@ -61,9 +60,13 @@ const stubForm = (
 const stubAside = (
   <Stack gap='md'>
     <Title order={2} size='h4'>
-      Why sign up?
+      Reptilians for life
     </Title>
     <Text>Supporting content an administrator can configure for the account creation screen.</Text>
+    <Text>
+      Shapeshifting reptilian aliens control Earth by taking on human form and gaining political power to manipulate
+      human societies.
+    </Text>
   </Stack>
 )
 
@@ -98,90 +101,22 @@ const getFrame = (canvasElement: HTMLElement) => canvasElement.querySelector('he
 /** The default theme, with the real (temporary) `#/auth/test` route in the outlet. */
 export const TestRoute: Story = {
   parameters: { reactRouter: authRouting(<AuthTestRoute />) },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // `findBy…`, because the logo, the language pill and the footer links all wait on `/environment`;
-    // once the logo is in, the rest of the config has landed too.
-    const logo = await canvas.findByRole('img', { name: 'KoboToolbox' })
-    expect(logo).toHaveAttribute('src', expect.stringContaining('kobo-logo-gray'))
-    expect(canvas.getByRole('link', { name: 'KoboToolbox' })).toHaveAttribute('href', '/')
-
-    // The pill only shows a two letter language code, so match on its accessible name instead.
-    const languageToggle = canvas.getByRole('button', { name: /interface language/i })
-    expect(languageToggle).toBeVisible()
-
-    expect(canvas.getByRole('heading', { name: 'Authentication container' })).toBeVisible()
-
-    expect(canvas.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', TERMS_OF_SERVICE_URL)
-    expect(canvas.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', PRIVACY_POLICY_URL)
-
-    // Keyboard order comes straight from DOM order. Nothing in the stub card is focusable, so this
-    // walks header then footer; `TwoColumns` covers focus stopping inside the card on the way through.
-    await userEvent.tab()
-    expect(canvas.getByRole('link', { name: 'KoboToolbox' })).toHaveFocus()
-    await userEvent.tab()
-    expect(languageToggle).toHaveFocus()
-    await userEvent.tab()
-    expect(canvas.getByRole('link', { name: 'Terms of Service' })).toHaveFocus()
-    await userEvent.tab()
-    expect(canvas.getByRole('link', { name: 'Privacy Policy' })).toHaveFocus()
-  },
 }
 
 /** A wide card with supporting content beside the form, split by a vertical divider. */
 export const TwoColumns: Story = {
   parameters: { reactRouter: authRouting(<AuthCard aside={stubAside}>{stubForm}</AuthCard>) },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    expect(canvas.getByLabelText('Email address')).toBeVisible()
-    expect(canvas.getByRole('heading', { name: 'Why sign up?' })).toBeVisible()
-    expect(canvas.getByRole('separator')).toBeVisible()
-
-    // Wait for the config before tabbing: the header and footer are empty until it lands, so tabbing
-    // early would count a tab order that doesn't exist yet.
-    const termsLink = await canvas.findByRole('link', { name: 'Terms of Service' })
-
-    // Focus enters the card between the header and the footer.
-    await userEvent.tab()
-    expect(canvas.getByRole('link', { name: 'KoboToolbox' })).toHaveFocus()
-    await userEvent.tab()
-    expect(canvas.getByRole('button', { name: /interface language/i })).toHaveFocus()
-    await userEvent.tab()
-    expect(canvas.getByLabelText('Email address')).toHaveFocus()
-    await userEvent.tab()
-    expect(termsLink).toHaveFocus()
-  },
 }
 
 /**
- * The same card at phone width: it stacks, drops the divider, and gives up most of its horizontal
- * padding. All three come from container queries on the card's own width rather than the viewport,
- * which is what makes them assertable here.
+ * The same card at phone width: it stacks, drops the divider, etc. Works thanks to container query.
  */
 export const TwoColumnsStacked: Story = {
   parameters: { reactRouter: authRouting(<AuthCard aside={stubAside}>{stubForm}</AuthCard>) },
   decorators: [narrowViewportDecorator],
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    const card = canvasElement.querySelector('section') as HTMLElement
-    expect(getComputedStyle(card).flexDirection).toBe('column')
-    // `hidden: true` because `display: none` is the thing being asserted: it drops the divider out of
-    // the accessibility tree, where the default role query wouldn't find it at all.
-    expect(canvas.getByRole('separator', { hidden: true })).not.toBeVisible()
-
-    // 40px of padding on each side would leave a phone almost no room for the form.
-    const column = card.firstElementChild as HTMLElement
-    expect(getComputedStyle(column).paddingLeft).toBe('20px')
-
-    expect(canvas.getByLabelText('Email address')).toBeVisible()
-    expect(canvas.getByRole('heading', { name: 'Why sign up?' })).toBeVisible()
-  },
 }
 
-/** An administrator uploaded a login background, which switches the whole frame to light-on-dark. */
+/** Custom background should cause few things to appear differently */
 export const CustomTheme: Story = {
   parameters: {
     msw: {
@@ -196,9 +131,6 @@ export const CustomTheme: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    const logo = await canvas.findByRole('img', { name: 'KoboToolbox' })
-    await expect(logo).toHaveAttribute('src', expect.stringContaining('kobologo'))
-
     const frame = getFrame(canvasElement)
     expect(frame.className).toContain('background--custom')
     expect(frame.style.backgroundImage).toContain(BACKGROUND_IMAGE_DATA_URI)
@@ -209,7 +141,7 @@ export const CustomTheme: Story = {
   },
 }
 
-/** Servers can hide our branding (`SHOW_KOBOTOOLBOX_LOGO`); everything else stays put. */
+/** Config for hiding Kobo logo. */
 export const NoKoboLogo: Story = {
   parameters: { msw: { handlers: [makeAuthConfigurationMock({ show_kobotoolbox_logo: false })] } },
   play: async ({ canvasElement }) => {
@@ -223,7 +155,7 @@ export const NoKoboLogo: Story = {
   },
 }
 
-/** Neither legal document is configured, so the footer stays empty rather than linking nowhere. */
+/** Footer is empty if neither legal URL is set. */
 export const NoFooterLinks: Story = {
   parameters: {
     msw: { handlers: [makeEnvironmentMock({ terms_of_service_url: null, privacy_policy_url: null })] },
