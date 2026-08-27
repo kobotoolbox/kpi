@@ -58,7 +58,11 @@ def update_email(*args, **kwargs):
     )
 
 
-def update_managed_sso_email_domains():
+@receiver(post_save, sender=SocialAppManagedDomain)
+@receiver(post_delete, sender=SocialAppManagedDomain)
+@receiver(post_save, sender=SocialAppCustomData)
+@receiver(post_delete, sender=SocialAppCustomData)
+def sync_managed_sso_email_domains(sender, **kwargs):
     """
     Syncs the list of email domains across all managed SocialApps to the
     REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS Constance config setting.
@@ -74,11 +78,3 @@ def update_managed_sso_email_domains():
         'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         domain_string,
     )
-
-
-@receiver(post_save, sender=SocialAppManagedDomain)
-@receiver(post_delete, sender=SocialAppManagedDomain)
-@receiver(post_save, sender=SocialAppCustomData)
-@receiver(post_delete, sender=SocialAppCustomData)
-def sync_managed_sso_email_domains(sender, **kwargs):
-    update_managed_sso_email_domains()
