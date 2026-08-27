@@ -346,15 +346,19 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
 
 class ResetPasswordForm(BaseResetPasswordForm):
     def clean_email(self):
-        # do not allow users with managed SSO emails (who have at least one SSO linked)
-        # to re/set a password
+        # super().clean_email should set self.users to the list of users with this email
         cleaned = super().clean_email()
         domain = get_normalized_domain(cleaned)
         if SocialAppManagedDomain.is_managed(domain):
-            user = self.users[0] if self.users else None
-            if user:
-                has_social_accounts = user.socialaccount_set.exists()
-                if has_social_accounts:
+            if getattr(self, 'users', None):
+                # filtering self.users will ensure we do not send password-reset links
+                # to sso-managed users
+                self.users = [
+                    user for user in self.users if not user_is_managed_by_sso(user)
+                ]
+
+                # if the only user was an sso-managed user, raise an error
+                if self.users == []:
                     raise forms.ValidationError(
                         t('Cannot set password for SSO-managed accounts')
                     )
