@@ -8409,6 +8409,7 @@ paths:
         - Global static lists (sectors, countries, interface languages, operational purposes).
         - Metadata configuration (available project and user metadata fields).
         - Features configurations (MFA, password entropy meter, custom guidance text).
+        - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
         - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
       tags:
       - Configuration
@@ -16746,6 +16747,57 @@ components:
       - user
       - user_uid
       - username
+    AuthConfiguration:
+      type: object
+      description: Server branding and behaviour for the sign-in and account creation
+        screens
+      properties:
+        theme:
+          allOf:
+          - $ref: '#/components/schemas/AuthThemeEnum'
+          description: |-
+            Appearance of everything outside the sign-in container. `custom` whenever a login background image has been uploaded, `default` otherwise
+
+            * `default` - Default
+            * `custom` - Customizable
+        background_image_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the login background image, or `null` when
+            none has been uploaded
+        show_kobotoolbox_logo:
+          type: boolean
+          description: Whether to display the KoboToolbox logo outside the container
+        logo_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the logo shown inside the container, or `null`
+            when none has been uploaded
+        supporting_image_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the image displayed alongside the account creation
+            form, or `null` when none has been uploaded
+        supporting_text:
+          type: string
+          description: Rendered HTML displayed alongside the account creation form,
+            localized for the request language. Empty when unset
+        allow_login_with_username:
+          type: boolean
+          description: Whether this server accepts a username at sign-in. Reflects
+            the login methods the server is configured with, so the sign-in form never
+            offers a credential the server would reject
+      required:
+      - allow_login_with_username
+      - background_image_url
+      - logo_url
+      - show_kobotoolbox_logo
+      - supporting_image_url
+      - supporting_text
+      - theme
     AuthLevelEnum:
       enum:
       - no_auth
@@ -16754,6 +16806,14 @@ components:
       description: |-
         * `no_auth` - no_auth
         * `basic_auth` - basic_auth
+    AuthThemeEnum:
+      enum:
+      - default
+      - custom
+      type: string
+      description: |-
+        * `default` - Default
+        * `custom` - Customizable
     BaseProduct:
       type: object
       properties:
@@ -17946,6 +18006,9 @@ components:
     EnvironmentResponse:
       type: object
       properties:
+        registration_open:
+          type: boolean
+          description: Whether users may create their own accounts
         terms_of_service_url:
           type:
           - string
@@ -18038,6 +18101,8 @@ components:
         custom_password_localized_help_text:
           type: string
           description: Markdown string for custom password help text
+        auth_configuration:
+          $ref: '#/components/schemas/AuthConfiguration'
         project_metadata_fields:
           type: array
           items:
@@ -18075,6 +18140,7 @@ components:
       - academy_url
       - allow_self_account_deletion
       - asr_mt_features_enabled
+      - auth_configuration
       - community_url
       - country_choices
       - custom_password_localized_help_text
@@ -18092,6 +18158,7 @@ components:
       - privacy_policy_url
       - project_history_log_lifespan
       - project_metadata_fields
+      - registration_open
       - sector_choices
       - social_apps
       - source_code_url

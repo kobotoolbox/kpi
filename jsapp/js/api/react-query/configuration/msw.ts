@@ -14,11 +14,14 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 import type { RequestHandlerOptions } from 'msw'
 
+import { AuthThemeEnum } from '../../models/authThemeEnum'
+
 import type { EnvironmentResponse } from '../../models/environmentResponse'
 
 export const getApiV2EnvironmentRetrieveResponseMock = (
   overrideResponse: Partial<EnvironmentResponse> = {},
 ): EnvironmentResponse => ({
+  registration_open: faker.datatype.boolean(),
   terms_of_service_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   privacy_policy_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   source_code_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
@@ -59,6 +62,15 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
   enable_password_entropy_meter: faker.datatype.boolean(),
   enable_custom_password_guidance_text: faker.datatype.boolean(),
   custom_password_localized_help_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  auth_configuration: {
+    theme: faker.helpers.arrayElement(Object.values(AuthThemeEnum)),
+    background_image_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    show_kobotoolbox_logo: faker.datatype.boolean(),
+    logo_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    supporting_image_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    supporting_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    allow_login_with_username: faker.datatype.boolean(),
+  },
   project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     label: faker.string.alpha({ length: { min: 10, max: 20 } }),
