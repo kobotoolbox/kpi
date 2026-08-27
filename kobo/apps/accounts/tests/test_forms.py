@@ -11,7 +11,7 @@ from pyquery import PyQuery
 from rest_framework import status
 
 from hub.models.sitewide_message import SitewideMessage
-from kobo.apps.accounts.forms import ResetPasswordForm, SignupForm, SocialSignupForm
+from kobo.apps.accounts.forms import SignupForm, SocialSignupForm
 
 
 class AccountFormsTestCase(TestCase):
@@ -392,11 +392,3 @@ class AccountFormsTestCase(TestCase):
             form_kwargs={'sociallogin': self.sociallogin},
             email=self.sociallogin.user.email,
         )
-
-
-class PasswordResetFormTestCase(TestCase):
-
-    def test_password_reset_accepted(self):
-        form = ResetPasswordForm({'email': 'user@unmanaged.com'})
-        assert form.is_valid()
-

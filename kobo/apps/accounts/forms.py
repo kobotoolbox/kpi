@@ -12,7 +12,6 @@ from allauth.account.utils import (
 )
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
-from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as t
@@ -360,6 +359,7 @@ class ResetPasswordForm(BaseResetPasswordForm):
                         t('Cannot set password for SSO-managed accounts')
                     )
         return cleaned
+
 
 class UserTokenForm(BaseUserTokenForm):
     def clean(self):

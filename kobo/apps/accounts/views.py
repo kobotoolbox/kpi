@@ -1,6 +1,5 @@
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
-from allauth.account.views import PasswordResetFromKeyView as BasePasswordResetFromKeyView
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
@@ -130,7 +129,10 @@ class SocialAccountViewSet(
 
     def get_permissions(self):
         if self.action == 'destroy':
-            return (IsAuthenticated(), NotManagedSSOPermission(), )
+            return (
+                IsAuthenticated(),
+                NotManagedSSOPermission(),
+            )
         return super().get_permissions()
 
     def get_queryset(self):

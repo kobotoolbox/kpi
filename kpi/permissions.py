@@ -46,7 +46,6 @@ def get_perm_name(perm_name_prefix, model_instance):
     if not perm_name_prefix[-1] == '_':
         perm_name_prefix += '_'
 
-
     perm_name = perm_name_prefix + model_instance._meta.model_name
     return perm_name
 
