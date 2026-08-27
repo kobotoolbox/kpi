@@ -12,7 +12,8 @@ export interface ProcessingPromptModalProps extends Omit<ModalProps, 'title'> {
   title: ReactNode
   /** Main content of the dialog, e.g. a media preview relevant to the question type. */
   children: ReactNode
-  onAction: () => void
+  /** Omit to hide the action button, e.g. when Processing isn't reachable for this response. */
+  onAction?: () => void
 }
 
 /**
@@ -30,11 +31,13 @@ export default function ProcessingPromptModal(props: ProcessingPromptModalProps)
       <Stack>
         {children}
 
-        <Group justify='flex-end'>
-          <ButtonNew size='md' leftSection={<KoboIcon icon={IconPencilStar} size={16} />} onClick={onAction}>
-            {t('Translate & analyze')}
-          </ButtonNew>
-        </Group>
+        {onAction && (
+          <Group justify='flex-end'>
+            <ButtonNew size='md' leftSection={<KoboIcon icon={IconPencilStar} size={16} />} onClick={onAction}>
+              {t('Translate & analyze')}
+            </ButtonNew>
+          </Group>
+        )}
       </Stack>
     </ModalNew>
   )
