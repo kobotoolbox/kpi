@@ -237,18 +237,18 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
           (reason: ImportResponse) => {
             if (reason?.status === 'error') {
               const errLines = []
-              errLines.push(t('Import Failed!'))
+              errLines.push(<strong>{t('Import Failed!')}</strong>)
               if (name) {
-                errLines.push(<code>Name: {name}</code>)
+                errLines.push(<small>Name: {name}</small>)
               }
               if (reason.messages?.error) {
                 errLines.push(
-                  <code>
+                  <small>
                     {reason.messages.error_type}: {escapeHtml(reason.messages.error)}
-                  </code>,
+                  </small>,
                 )
               }
-              reject(<div>{join(errLines, <br />)}</div>)
+              reject(<div style={{ textAlign: 'left' }}>{join(errLines, <br />)}</div>)
             } else {
               reject(IMPORT_FAILED_GENERIC_MESSAGE)
             }

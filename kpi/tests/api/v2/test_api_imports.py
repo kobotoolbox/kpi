@@ -1000,14 +1000,25 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.data['status'], 'complete')
 
     def test_import_xls_with_default_language_not_in_translations(self):
-        asset = Asset.objects.get(pk=2)
-        xlsx_io = asset.to_xlsx_io(
-            append={'settings': {'default_language': 'English (en)'}}
+        task_data = self._construct_xlsx_for_import(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English'],
+                        ['text', 'q1', 'Question 1'],
+                    ],
+                ),
+                (
+                    'settings',
+                    [
+                        ['default_language'],
+                        ['English (en)'],
+                    ],
+                ),
+            ),
+            name='I was imported via XLS!',
         )
-        task_data = {
-            'file': xlsx_io,
-            'name': 'I was imported via XLS!',
-        }
         post_url = reverse('api_v2:importtask-list')
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1151,6 +1162,179 @@ class AssetImportTaskTest(BaseTestCase):
             'Language in the settings sheet',
         )
         assert asset.content['translations'] == ['English (en)']
+
+    def test_import_xls_blocks_untranslated_hint_column(self):
+        content = (
+            (
+                'survey',
+                [
+                    [
+                        'type',
+                        'name',
+                        'label::English (en)',
+                        'label::French (fr)',
+                        'hint',
+                    ],
+                    ['integer', 'age', 'Age?', 'Âge ?', 'in years'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Mixed translations', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `hint` column is not translated'
+        )
+
+    def test_reimport_xls_blocks_untranslated_column_and_keeps_translations(
+        self,
+    ):
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'label::French (fr)'],
+                        ['integer', 'age', 'Age?', 'Âge ?'],
+                    ],
+                ),
+            ),
+            'Two languages',
+        )
+        translations_before = asset.content['translations']
+        assert translations_before == ['English (en)', 'French (fr)']
+
+        task_data = self._construct_xlsx_for_import(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'hint'],
+                        ['integer', 'age', 'Age?', 'in years'],
+                    ],
+                ),
+            ),
+            name='Mixed reimport',
+        )
+        task_data['destination'] = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': asset.uid},
+        )
+        response = self.client.post(
+            reverse(self._get_endpoint('importtask-list')), task_data
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `hint` column is not translated'
+        )
+
+        asset.refresh_from_db()
+        assert asset.content['translations'] == translations_before
+
+    def test_import_xls_blocks_untranslated_media_column(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)', 'image'],
+                    ['integer', 'age', 'Age?', 'age.png'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Bare media column', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `image` column is not translated'
+        )
+
+    def test_import_xls_blocks_column_both_bare_and_translated(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label', 'label::English (en)'],
+                    ['integer', 'age', 'Age?', 'Age?'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Bare and translated label', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `label` column is not translated'
+        )
+
+    def test_import_xls_blocks_untranslated_column_in_choices_sheet(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['select_one gender', 'gender', 'Gender?'],
+                ],
+            ),
+            (
+                'choices',
+                [
+                    ['list_name', 'name', 'label'],
+                    ['gender', 'female', 'Female'],
+                    ['gender', 'male', 'Male'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Untranslated choices label', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `label` column is not translated'
+        )
+
+    def test_import_xls_allows_fully_untranslated_form(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label', 'hint'],
+                    ['integer', 'age', 'Age?', 'in years'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'No translations', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
+
+    def test_import_xls_allows_fully_translated_form(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)', 'hint::English (en)'],
+                    ['integer', 'age', 'Age?', 'in years'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Fully translated', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
 
     def test_import_strip_newline_from_form_title_setting(self):
         survey_sheet_content = [
