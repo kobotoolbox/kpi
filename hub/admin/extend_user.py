@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+
 from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
@@ -222,7 +224,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
 
     def get_fieldsets(self, request: HttpRequest, obj=...):
-        fieldsets = [fieldset for fieldset in super().get_fieldsets(request, obj)]
+        fieldsets = copy.deepcopy(super().get_fieldsets(request, obj))
         if obj and obj.pk is not None:
             if user_is_managed_by_sso(obj):
                 fieldsets[0][1]['fields'] = ('username',)
