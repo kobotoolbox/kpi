@@ -78,7 +78,7 @@ class TestManagedSsoUsers(TestCase):
             reverse(
                 'socialaccount-detail',
                 kwargs={
-                    'provider': self.provider.id,
+                    'provider': self.socialaccount.provider,
                     'uid_social_account': self.socialaccount.uid,
                 },
             ),
