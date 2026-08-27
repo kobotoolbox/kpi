@@ -11384,7 +11384,7 @@
         "/api/v2/environment/": {
             "get": {
                 "operationId": "api_v2_environment_retrieve",
-                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
+                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
                 "tags": [
                     "Configuration"
                 ],
@@ -23369,6 +23369,62 @@
                     "username"
                 ]
             },
+            "AuthConfiguration": {
+                "type": "object",
+                "description": "Server branding and behaviour for the sign-in and account creation screens",
+                "properties": {
+                    "theme": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AuthThemeEnum"
+                            }
+                        ],
+                        "description": "Appearance of everything outside the sign-in container. `custom` whenever a login background image has been uploaded, `default` otherwise\n\n* `default` - Default\n* `custom` - Customizable"
+                    },
+                    "background_image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Relative URL of the login background image, or `null` when none has been uploaded"
+                    },
+                    "show_kobotoolbox_logo": {
+                        "type": "boolean",
+                        "description": "Whether to display the KoboToolbox logo outside the container"
+                    },
+                    "logo_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Relative URL of the logo shown inside the container, or `null` when none has been uploaded"
+                    },
+                    "supporting_image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Relative URL of the image displayed alongside the account creation form, or `null` when none has been uploaded"
+                    },
+                    "supporting_text": {
+                        "type": "string",
+                        "description": "Rendered HTML displayed alongside the account creation form, localized for the request language. Empty when unset"
+                    },
+                    "allow_login_with_username": {
+                        "type": "boolean",
+                        "description": "Whether this server accepts a username at sign-in. Reflects the login methods the server is configured with, so the sign-in form never offers a credential the server would reject"
+                    }
+                },
+                "required": [
+                    "allow_login_with_username",
+                    "background_image_url",
+                    "logo_url",
+                    "show_kobotoolbox_logo",
+                    "supporting_image_url",
+                    "supporting_text",
+                    "theme"
+                ]
+            },
             "AuthLevelEnum": {
                 "enum": [
                     "no_auth",
@@ -23376,6 +23432,14 @@
                 ],
                 "type": "string",
                 "description": "* `no_auth` - no_auth\n* `basic_auth` - basic_auth"
+            },
+            "AuthThemeEnum": {
+                "enum": [
+                    "default",
+                    "custom"
+                ],
+                "type": "string",
+                "description": "* `default` - Default\n* `custom` - Customizable"
             },
             "BaseProduct": {
                 "type": "object",
@@ -25092,6 +25156,10 @@
             "EnvironmentResponse": {
                 "type": "object",
                 "properties": {
+                    "registration_open": {
+                        "type": "boolean",
+                        "description": "Whether users may create their own accounts"
+                    },
                     "terms_of_service_url": {
                         "type": [
                             "string",
@@ -25223,6 +25291,9 @@
                         "type": "string",
                         "description": "Markdown string for custom password help text"
                     },
+                    "auth_configuration": {
+                        "$ref": "#/components/schemas/AuthConfiguration"
+                    },
                     "project_metadata_fields": {
                         "type": "array",
                         "items": {
@@ -25275,6 +25346,7 @@
                     "academy_url",
                     "allow_self_account_deletion",
                     "asr_mt_features_enabled",
+                    "auth_configuration",
                     "community_url",
                     "country_choices",
                     "custom_password_localized_help_text",
@@ -25292,6 +25364,7 @@
                     "privacy_policy_url",
                     "project_history_log_lifespan",
                     "project_metadata_fields",
+                    "registration_open",
                     "sector_choices",
                     "social_apps",
                     "source_code_url",
@@ -31932,10 +32005,21 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "managed": {
+                        "type": "boolean"
+                    },
+                    "domains": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 },
                 "required": [
                     "client_id",
+                    "domains",
+                    "managed",
                     "name",
                     "provider",
                     "provider_id"
