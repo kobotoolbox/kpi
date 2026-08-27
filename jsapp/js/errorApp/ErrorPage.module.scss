@@ -4,6 +4,11 @@
 // Colors come from the palette, not Mantine CSS variables: this bundle skips the Kobo
 // Mantine theme (see `errorTheme.ts`), so `--mantine-color-*` would be Mantine's own.
 
+// The header, footer, logo and background rules below are duplicated in
+// `#/auth/AuthContainer/AuthContainer.module.scss` - same page frame, same design. This bundle can't
+// import main-app code, so Sass is all the two can share (hence `scss/backgrounds`). Change one, check
+// the other - or extract the rest into a shared partial.
+
 .background {
   min-height: 100vh;
   display: flex;

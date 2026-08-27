@@ -1,0 +1,106 @@
+@use 'scss/backgrounds';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+
+// The header, footer, logo and background rules here are deliberately near-identical to
+// `#/errorApp/ErrorPage.module.scss` - both implement the same page frame from the same design.
+// They can't share a stylesheet because the error pages ship as their own bundle, which is why the
+// two mixins in `scss/backgrounds` exist. Extracting the rest into a shared `scss/authShell` partial
+// is a sensible follow-up; it just means touching the error bundle too.
+
+.background {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  // Shows through the gradient, which is only 80% opaque and only covers the top.
+  background-color: colors.$kobo-white;
+}
+
+.background:not(.background--custom) {
+  @include backgrounds.gradientBackground;
+}
+
+// An admin photo replaces the wedge and covers the whole viewport, overlay included.
+.background--custom {
+  @include backgrounds.customImageBackground;
+}
+
+// Lifts content above the background pseudo-element.
+.header,
+.main,
+.footer {
+  position: relative;
+}
+
+.header {
+  min-height: 66px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  margin-bottom: 14px;
+}
+
+.logoLink {
+  display: inline-block;
+  padding: 16px 0;
+}
+
+.logo {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+// Pushed to the far end so it stays in the corner whether or not the logo is shown.
+.languageSelector {
+  margin-inline-start: auto;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  // Design places the card near the top, not vertically centred. Also keeps tall forms from clipping
+  // on short viewports.
+  align-items: flex-start;
+  padding: 0 20px;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  margin-top: 20px;
+}
+
+.footerLink {
+  color: colors.$kobo-dark-blue;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}
+
+.footerMiddot {
+  font-weight: 800;
+}
+
+// On a custom background the footer sits on top of the dark overlay. The separator inherits, so it
+// needs the rule too - `ErrorPage` only recolours the links and leaves its middot dark.
+.footer--custom,
+.footer--custom .footerLink {
+  color: colors.$kobo-white;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .main {
+    padding: 0 10px;
+  }
+}
