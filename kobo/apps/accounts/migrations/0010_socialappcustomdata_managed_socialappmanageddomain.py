@@ -8,6 +8,7 @@ import kobo.apps.accounts.models
 
 def populate_registration_sso_managed_email_domains(apps, schema_editor):
     from kobo.apps.accounts.signals import sync_managed_sso_email_domains
+
     sync_managed_sso_email_domains()
 
 
