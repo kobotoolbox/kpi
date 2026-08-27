@@ -63,7 +63,6 @@ class TestManagedSsoUsers(TestCase):
             HTTP_ACCEPT='application/json',
         )
         if expect_success:
-            breakpoint()
             assert response.status_code == status.HTTP_200_OK
         else:
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -81,7 +80,6 @@ class TestManagedSsoUsers(TestCase):
                 data={'email': 'managed@example.com'},
                 HTTP_ACCEPT='application/json',
             )
-            breakpoint()
             patched.assert_called_once_with(anotheruser, ANY, ANY)
 
     # the allauth password change view still returns 200s even with errors in the token
