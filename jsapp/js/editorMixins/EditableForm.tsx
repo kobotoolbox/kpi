@@ -76,20 +76,6 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
-/**
- * `AVAILABLE_FORM_STYLES` stores the default style as an empty string, which
- * `Select` can't tell apart from "nothing selected". This sentinel stands in for
- * it in the dropdown.
- */
-const DEFAULT_FORM_STYLE_VALUE = '__default_single_page__'
-
-const FORM_STYLE_OPTIONS = AVAILABLE_FORM_STYLES.map(({ value, label }) => {
-  return {
-    value: value === '' ? DEFAULT_FORM_STYLE_VALUE : value,
-    label,
-  }
-})
-
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
 const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
@@ -313,8 +299,7 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function onStyleChange(newValue: string | null) {
-    const settingsStyle: FormStyleName =
-      newValue === null || newValue === DEFAULT_FORM_STYLE_VALUE ? '' : (newValue as FormStyleName)
+    const settingsStyle = (newValue ?? '') as FormStyleName
 
     setState((currentState) => ({
       ...currentState,
@@ -324,13 +309,9 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function getStyleSelectVal(optionVal?: FormStyleName) {
-    const foundStyle = AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
     // Styles we no longer offer leave the dropdown empty instead of adding an
     // option that couldn't be picked again anyway.
-    if (foundStyle === undefined) {
-      return null
-    }
-    return foundStyle.value === '' ? DEFAULT_FORM_STYLE_VALUE : foundStyle.value
+    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)?.value ?? null
   }
 
   function onSurveyChange() {
@@ -1013,7 +994,7 @@ export default function EditableForm(props: EditableFormProps) {
                 value={getStyleSelectVal(styleValue)}
                 onChange={onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
-                data={FORM_STYLE_OPTIONS}
+                data={AVAILABLE_FORM_STYLES}
                 disabled={isChangingAppearanceRestricted()}
                 clearable={false}
               />

@@ -23,8 +23,6 @@ interface TableDropdownFilterProps {
  * the column object that React-Table passes in, allowing this component to be used
  * as a stable reference without wrapper functions.
  */
-const SHOW_ALL_VALUE = '__show_all__'
-
 const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
   const choices = 'choices' in props.column ? props.column.choices || [] : []
   const selectFromListName = 'selectFromListName' in props.column ? props.column.selectFromListName : undefined
@@ -39,19 +37,15 @@ const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
     acc.push({ value, label: getQuestionOrChoiceDisplayName(item, translationIndex) })
     return acc
   }, [])
-  const data = [{ value: SHOW_ALL_VALUE, label: t('Show all') }, ...choiceOptions]
-
-  // Map internal filter value (empty string) to our sentinel value for display
-  const displayValue = !props.filter || props.filter.value === '' ? SHOW_ALL_VALUE : props.filter.value
+  // React-Table spells "no filter on this column" as an empty string, which is
+  // also the value of the "Show all" option.
+  const data = [{ value: '', label: t('Show all') }, ...choiceOptions]
 
   return (
     <Select
       data={data}
-      value={displayValue}
-      onChange={(newValue) => {
-        // Map sentinel value back to empty string for React-Table
-        props.onChange(newValue === SHOW_ALL_VALUE ? '' : newValue || '')
-      }}
+      value={props.filter?.value ?? ''}
+      onChange={(newValue) => props.onChange(newValue ?? '')}
       size='xs'
       clearable={false}
     />

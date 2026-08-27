@@ -43,12 +43,6 @@ import ActionIcon from '../common/ActionIcon'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
-/**
- * Stands for "no saved export settings applied". Mantine's `Select` works on
- * strings, so we can't use `null` as an option value.
- */
-const NO_DEFINED_EXPORT_VALUE = '__i_do_not_want_to_use_saved_settings__'
-
 interface ProjectExportsCreatorProps {
   asset: AssetResponse
   selectedExportType: ExportTypeDefinition
@@ -302,7 +296,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   function getSelectedDefinedExportOptions() {
     return [
       {
-        value: NO_DEFINED_EXPORT_VALUE,
+        value: '',
         label: t('None'),
       },
       ...state.definedExports.map(({ value, label }) => ({ value, label })),
@@ -832,7 +826,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
                   <Select
                     rightSection={state.isUpdatingDefinedExportsList ? <Loader size='xs' /> : undefined}
-                    value={state.selectedDefinedExport?.value ?? NO_DEFINED_EXPORT_VALUE}
+                    value={state.selectedDefinedExport?.value ?? ''}
                     data={getSelectedDefinedExportOptions()}
                     onChange={onSelectedDefinedExportChange}
                     placeholder={t('No export settings selected')}

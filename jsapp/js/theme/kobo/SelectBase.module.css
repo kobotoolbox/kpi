@@ -56,8 +56,10 @@
   color: var(--mantine-color-gray-4);
 }
 
-/* Make the built in clear icon look the same as our icon */
+/* Make the built in clear icon smaller */
 .section button svg {
+  width: 1rem;
+  height: 1rem;
   stroke: currentcolor;
   stroke-width: 0.5;
 }

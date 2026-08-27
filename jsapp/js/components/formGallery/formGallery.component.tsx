@@ -26,12 +26,6 @@ bem.GalleryFooter = makeBem(bem.Gallery, 'footer')
 
 const PAGE_SIZE = 20
 
-/**
- * Stands for "no question filter". `Select` treats an empty string as no value
- * at all, so the "all questions" option needs a sentinel of its own.
- */
-const ALL_QUESTIONS_VALUE = '__show_me_all_questions_pretty_please__'
-
 interface FormGalleryProps {
   asset: AssetResponse
 }
@@ -46,7 +40,7 @@ export default function FormGallery(props: FormGalleryProps) {
       label: survey.parents.join(' / ') + (survey.parents.length ? ' / ' : '') + survey.label,
     }
   })
-  const questionFilterOptions = [{ value: ALL_QUESTIONS_VALUE, label: t('All questions') }, ...(questions || [])]
+  const questionFilterOptions = [{ value: '', label: t('All questions') }, ...(questions || [])]
 
   const [
     {
@@ -168,11 +162,13 @@ export default function FormGallery(props: FormGalleryProps) {
           <bem.GalleryFiltersSelect>
             <Select
               data={questionFilterOptions}
-              value={filterQuestion ?? ALL_QUESTIONS_VALUE}
+              value={filterQuestion ?? ''}
               onChange={(newValue) =>
                 dispatch({
                   type: 'setFilterQuestion',
-                  question: newValue === ALL_QUESTIONS_VALUE ? null : newValue,
+                  // The "All questions" option is an empty string, and the query
+                  // builder expects `null` for "don't filter by question".
+                  question: newValue || null,
                 })
               }
               clearable={false}
