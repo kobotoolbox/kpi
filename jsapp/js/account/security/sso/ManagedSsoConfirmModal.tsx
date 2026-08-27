@@ -1,8 +1,8 @@
 import { FocusTrap, Group, Stack, Text } from '@mantine/core'
 import React from 'react'
-import Alert from '#/components/common/alert'
 import ButtonNew from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
+import Alert from '#/components/common/alert'
 
 interface ManagedSsoConfirmModalProps {
   providerName: string
@@ -10,11 +10,7 @@ interface ManagedSsoConfirmModalProps {
   onClose: () => void
 }
 
-export default function ManagedSsoConfirmModal({
-  providerName,
-  connectHref,
-  onClose,
-}: ManagedSsoConfirmModalProps) {
+export default function ManagedSsoConfirmModal({ providerName, connectHref, onClose }: ManagedSsoConfirmModalProps) {
   return (
     <ModalNew
       opened
@@ -22,7 +18,6 @@ export default function ManagedSsoConfirmModal({
       title={t('Connecting with ##provider##').replace(/##provider##/g, providerName)}
       size='md'
     >
-      
       <FocusTrap.InitialFocus />
 
       <Stack>
@@ -33,7 +28,9 @@ export default function ManagedSsoConfirmModal({
         </Text>
 
         <Alert type='warning' iconName='alert'>
-          {t('Please note that your password will be deleted and you will only be able to log in using single-sign on (SSO).')}
+          {t(
+            'Please note that your password will be deleted and you will only be able to log in using single-sign on (SSO).',
+          )}
         </Alert>
 
         <Group justify='flex-end'>

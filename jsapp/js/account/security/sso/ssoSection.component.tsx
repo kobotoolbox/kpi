@@ -5,8 +5,8 @@ import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
 import { useSession } from '#/stores/useSession'
-import { deleteSocialAccount } from './sso.api'
 import ManagedSsoConfirmModal from './ManagedSsoConfirmModal'
+import { deleteSocialAccount } from './sso.api'
 import { getConnectedApp, getSsoProviders, isSsoAvailable } from './sso.utils'
 import styles from './ssoSection.module.scss'
 
@@ -72,7 +72,7 @@ export default function SsoSection() {
         </div>
       ) : (
         <div className={cx(styles.options, styles.ssoSetup)}>
-          {socialApps.map((socialApp) =>
+          {socialApps.map((socialApp) => (
             <Button
               key={socialApp.name}
               label={socialApp.name}
@@ -85,8 +85,8 @@ export default function SsoSection() {
                   window.location.href = providerLink(socialApp)
                 }
               }}
-            />,
-          )}
+            />
+          ))}
         </div>
       )}
 
