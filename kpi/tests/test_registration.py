@@ -132,7 +132,7 @@ class RegistrationTestCase(TestCase):
         REGISTRATION_BLACKLIST_EMAIL_DOMAINS='bad-domain.com'
     )
     def test_default_blacklist_error_message(self):
-        """MockProvi
+        """
         Test that if a blacklisted domain is used, and there is no custom error
         message set, registration should be blocked and the default error message
         should be shown
