@@ -8409,6 +8409,7 @@ paths:
         - Global static lists (sectors, countries, interface languages, operational purposes).
         - Metadata configuration (available project and user metadata fields).
         - Features configurations (MFA, password entropy meter, custom guidance text).
+        - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
         - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
       tags:
       - Configuration
@@ -9298,28 +9299,25 @@ paths:
   /api/v2/organizations/{uid_organization}/members/:
     get:
       operationId: api_v2_organizations_members_list
-      description: |
-        ## List Members
-
-        Retrieves all members and pending invitations in the specified organization.
-
-        ### Sorting
-
-        Results can be sorted with the `ordering` parameter, e.g.:
-
-        ```shell
-        curl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username
-        ```
-
-        Allowed ordering fields:
-
-        - `user__username`
-        - `status`
-        - `date_joined` (or `date_added`, `created`)
-        - `role` (sorted by privilege rank: `member` → `admin` → `owner`)
-        - `user__has_sso_enabled`
-
-        Prefix field names with `-` for descending sort.
+      description: "## List Members\n\nRetrieves all members and pending invitations
+        in the specified organization.\n\n### Searching\n\nSearch can be made with
+        the `q` parameter. It will implicitly match against the username, email, first
+        name, last name, and profile name (`extra_details__data__name`) of the members
+        or pending invitations.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?q=luis\n```\n\n>
+        [!WARNING]\n> **Explicit Field Searching:** Because this endpoint combines
+        active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`),
+        you cannot use an explicit boolean `OR` across different model fields in the
+        same query (e.g., `q=user__email:luis@example.com OR invitee__email:luis@example.com`).
+        Doing so will cause both query parsers to reject the invalid field, resulting
+        in a 400 Bad Request error.\n> \n> To search across both groups simultaneously,
+        simply rely on the generic query (e.g., `q=luis@example.com`) without specifying
+        prefixes. Use explicit field prefixes ONLY when you want to narrow the results
+        to a specific group (e.g., `q=user__email:luis@example.com` to target only
+        active members).\n\n### Sorting\n\nResults can be sorted with the `ordering`
+        parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed
+        ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`,
+        `created`)\n- `role` (sorted by privilege rank: `member` → `admin` → `owner`)\n-
+        `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n"
       parameters:
       - name: limit
         required: false
@@ -9354,6 +9352,11 @@ paths:
           - user__username
         description: 'Which field to use when ordering the results. Note: `role` sorts
           by privilege rank (`member` → `admin` → `owner`).'
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with a search query.
       - name: start
         required: false
         in: query
@@ -16746,6 +16749,57 @@ components:
       - user
       - user_uid
       - username
+    AuthConfiguration:
+      type: object
+      description: Server branding and behaviour for the sign-in and account creation
+        screens
+      properties:
+        theme:
+          allOf:
+          - $ref: '#/components/schemas/AuthThemeEnum'
+          description: |-
+            Appearance of everything outside the sign-in container. `custom` whenever a login background image has been uploaded, `default` otherwise
+
+            * `default` - Default
+            * `custom` - Customizable
+        background_image_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the login background image, or `null` when
+            none has been uploaded
+        show_kobotoolbox_logo:
+          type: boolean
+          description: Whether to display the KoboToolbox logo outside the container
+        logo_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the logo shown inside the container, or `null`
+            when none has been uploaded
+        supporting_image_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the image displayed alongside the account creation
+            form, or `null` when none has been uploaded
+        supporting_text:
+          type: string
+          description: Rendered HTML displayed alongside the account creation form,
+            localized for the request language. Empty when unset
+        allow_login_with_username:
+          type: boolean
+          description: Whether this server accepts a username at sign-in. Reflects
+            the login methods the server is configured with, so the sign-in form never
+            offers a credential the server would reject
+      required:
+      - allow_login_with_username
+      - background_image_url
+      - logo_url
+      - show_kobotoolbox_logo
+      - supporting_image_url
+      - supporting_text
+      - theme
     AuthLevelEnum:
       enum:
       - no_auth
@@ -16754,6 +16808,14 @@ components:
       description: |-
         * `no_auth` - no_auth
         * `basic_auth` - basic_auth
+    AuthThemeEnum:
+      enum:
+      - default
+      - custom
+      type: string
+      description: |-
+        * `default` - Default
+        * `custom` - Customizable
     BaseProduct:
       type: object
       properties:
@@ -17946,6 +18008,9 @@ components:
     EnvironmentResponse:
       type: object
       properties:
+        registration_open:
+          type: boolean
+          description: Whether users may create their own accounts
         terms_of_service_url:
           type:
           - string
@@ -18038,6 +18103,8 @@ components:
         custom_password_localized_help_text:
           type: string
           description: Markdown string for custom password help text
+        auth_configuration:
+          $ref: '#/components/schemas/AuthConfiguration'
         project_metadata_fields:
           type: array
           items:
@@ -18075,6 +18142,7 @@ components:
       - academy_url
       - allow_self_account_deletion
       - asr_mt_features_enabled
+      - auth_configuration
       - community_url
       - country_choices
       - custom_password_localized_help_text
@@ -18092,6 +18160,7 @@ components:
       - privacy_policy_url
       - project_history_log_lifespan
       - project_metadata_fields
+      - registration_open
       - sector_choices
       - social_apps
       - source_code_url

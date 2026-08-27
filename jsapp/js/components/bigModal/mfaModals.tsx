@@ -3,7 +3,7 @@ import './mfaModals.scss'
 import React from 'react'
 
 import { observer } from 'mobx-react'
-import QRCode from 'qrcode.react'
+import QRCode from 'react-qr-code'
 import type { MfaActivatedResponse, MfaBackupCodesResponse } from '#/actions/mfaActions'
 import mfaActions from '#/actions/mfaActions'
 import bem, { makeBem } from '#/bem'
