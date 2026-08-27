@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
@@ -6,6 +6,7 @@ import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { deleteSocialAccount } from './sso.api'
+import ManagedSsoConfirmModal from './ManagedSsoConfirmModal'
 import { getConnectedApp, getSsoProviders, isSsoAvailable } from './sso.utils'
 import styles from './ssoSection.module.scss'
 
@@ -14,6 +15,8 @@ export default function SsoSection() {
   const socialApps = getSsoProviders(envStore.data)
   const connectedApp = getConnectedApp(envStore.data, currentLoggedAccount)
   const isManaged = connectedApp?.managed ?? false
+
+  const [pendingManagedAppConfirm, setPendingManagedAppConfirm] = useState<SocialApp | null>(null)
 
   const connectedAccount =
     'social_accounts' in currentLoggedAccount ? currentLoggedAccount.social_accounts[0] : undefined
@@ -69,19 +72,30 @@ export default function SsoSection() {
         </div>
       ) : (
         <div className={cx(styles.options, styles.ssoSetup)}>
-          {socialApps.map((socialApp) => (
-            <a key={socialApp.name} href={providerLink(socialApp)}>
-              <Button
-                label={socialApp.name}
-                size='m'
-                type='primary'
-                onClick={() => {
-                  /*TODO: Handle NavLink and Button*/
-                }}
-              />
-            </a>
-          ))}
+          {socialApps.map((socialApp) =>
+            <Button
+              key={socialApp.name}
+              label={socialApp.name}
+              size='m'
+              type='primary'
+              onClick={() => {
+                if (socialApp.managed) {
+                  setPendingManagedAppConfirm(socialApp)
+                } else {
+                  window.location.href = providerLink(socialApp)
+                }
+              }}
+            />,
+          )}
         </div>
+      )}
+
+      {pendingManagedAppConfirm && (
+        <ManagedSsoConfirmModal
+          providerName={pendingManagedAppConfirm.name}
+          connectHref={providerLink(pendingManagedAppConfirm)}
+          onClose={() => setPendingManagedAppConfirm(null)}
+        />
       )}
     </section>
   )
