@@ -3,7 +3,6 @@ from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 from allauth.account.utils import cleanup_email_addresses
 from allauth.socialaccount.signals import social_account_added
-from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
@@ -62,7 +61,7 @@ def update_email(*args, **kwargs):
 @receiver(post_delete, sender=SocialAppManagedDomain)
 @receiver(post_save, sender=SocialAppCustomData)
 @receiver(post_delete, sender=SocialAppCustomData)
-def sync_managed_sso_email_domains(sender, **kwargs):
+def sync_managed_sso_email_domains(sender=None, **kwargs):
     """
     Syncs the list of email domains across all managed SocialApps to the
     REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS Constance config setting.

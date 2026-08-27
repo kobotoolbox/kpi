@@ -6,10 +6,16 @@ from django.db import migrations, models
 import kobo.apps.accounts.models
 
 
+def populate_registration_sso_managed_email_domains(apps, schema_editor):
+    from kobo.apps.accounts.signals import sync_managed_sso_email_domains
+    sync_managed_sso_email_domains()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0009_alter_socialappcustomdata_is_public'),
+        ('constance', '0003_drop_pickle'),
     ]
 
     operations = [
@@ -50,5 +56,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
+        ),
+        migrations.RunPython(
+            populate_registration_sso_managed_email_domains,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
