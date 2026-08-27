@@ -34,7 +34,11 @@ def user_has_paid_subscription(username):
 
 
 def get_normalized_domain(email):
-    return email.split('@')[1].strip().lower()
+    _, separator, domain = email.rpartition('@')
+    if not separator:
+        return ''
+    return domain.strip().lower()
+
 
 def user_is_managed_by_sso(user):
     email = user.email
@@ -50,4 +54,3 @@ def user_is_managed_by_sso(user):
         ).exists()
         return user_has_social_account
     return False
-

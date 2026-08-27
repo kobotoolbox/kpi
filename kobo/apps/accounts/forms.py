@@ -19,8 +19,7 @@ from django.utils.translation import gettext_lazy as t
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.accounts.models import SocialAppManagedDomain
-from kobo.apps.accounts.utils import get_normalized_domain
+from kobo.apps.accounts.utils import get_normalized_domain, user_is_managed_by_sso
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 from .models import SocialAppManagedDomain
 
@@ -367,8 +366,7 @@ class UserTokenForm(BaseUserTokenForm):
         cleaned = super().clean()
         user = self.reset_user
         if user:
-            has_social_accounts = user.socialaccount_set.exists()
-            if has_social_accounts:
+            if user_is_managed_by_sso(user):
                 raise forms.ValidationError(
                     t('Cannot set password for SSO-managed accounts')
                 )

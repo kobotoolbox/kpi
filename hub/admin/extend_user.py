@@ -222,7 +222,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
 
     def get_fieldsets(self, request: HttpRequest, obj=...):
-        fieldsets = super().get_fieldsets(request, obj)
+        fieldsets = [fieldset for fieldset in super().get_fieldsets(request, obj)]
         if obj and obj.pk is not None:
             if user_is_managed_by_sso(obj):
                 fieldsets[0][1]['fields'] = ('username',)
