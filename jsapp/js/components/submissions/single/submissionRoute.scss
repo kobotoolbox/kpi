@@ -28,12 +28,7 @@
 .submission-route__title {
   margin: 0;
   text-align: center;
-  // A submission can be named by the form, so the title has no length to speak
-  // of. `min-width` is what lets it give way instead of squashing the buttons.
-  min-width: 0;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 18px;
   font-weight: 600;
   color: colors.$kobo-gray-800;

@@ -2,7 +2,6 @@ import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   getMediaAttachment,
   getSubmissionDisplayData,
-  getSubmissionDisplayName,
   getSupplementalDetailsContent,
   hasAnyUnacceptedAutomaticContent,
   hasUnacceptedAutomaticContent,
@@ -786,28 +785,5 @@ describe('hasAnyUnacceptedAutomaticContent', () => {
     )
 
     chai.expect(result).to.be.false
-  })
-})
-
-describe('getSubmissionDisplayName', () => {
-  it('should use the name the form gave the submission', () => {
-    const test = getSubmissionDisplayName({
-      _uuid: 'some-uuid',
-      'meta/rootUuid': 'uuid:some-uuid',
-      'meta/instanceName': 'Ann Smith - Nairobi',
-    })
-    chai.expect(test).to.equal('Ann Smith - Nairobi')
-  })
-
-  it('should fall back to the root uuid when the form does not name submissions', () => {
-    const test = getSubmissionDisplayName({ _uuid: 'edited-uuid', 'meta/rootUuid': 'uuid:original-uuid' })
-    chai.expect(test).to.equal('original-uuid')
-  })
-
-  // The name is calculated from answers, so it can come out empty (or not as a
-  // string at all) without the form being at fault.
-  it('should fall back when the name has nothing in it', () => {
-    chai.expect(getSubmissionDisplayName({ _uuid: 'some-uuid', 'meta/instanceName': '   ' })).to.equal('some-uuid')
-    chai.expect(getSubmissionDisplayName({ _uuid: 'some-uuid', 'meta/instanceName': null })).to.equal('some-uuid')
   })
 })

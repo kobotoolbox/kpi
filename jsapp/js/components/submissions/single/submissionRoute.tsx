@@ -9,7 +9,6 @@ import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { getSubmissionDisplayName } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
 import SubmissionDetails from './submissionDetails'
@@ -75,7 +74,12 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const pageTitle = `${t('Submission Record')} | KoboToolbox`
 
-  const heading = record ? `${t('Submission Record')} ${getSubmissionDisplayName(record)}` : t('Submission Record')
+  // Reads as "Submission Record (2 of 17)", as the modal did, and drops back to
+  // the plain title until we know where the record sits.
+  const heading =
+    neighbors.index === undefined
+      ? t('Submission Record')
+      : `${t('Submission Record')} (${neighbors.index} ${t('of')} ${neighbors.total})`
 
   const renderInLayout = (content: React.ReactNode, header?: React.ReactNode) => (
     <DocumentTitle title={pageTitle}>
@@ -88,10 +92,7 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
               </Button>
             </div>
 
-            {/* The name can be as long as the form author made it, hence the `title`. */}
-            <h1 className='submission-route__title' title={heading}>
-              {heading}
-            </h1>
+            <h1 className='submission-route__title'>{heading}</h1>
 
             <div className='submission-route__header-side submission-route__header-side--end'>{header}</div>
           </header>
