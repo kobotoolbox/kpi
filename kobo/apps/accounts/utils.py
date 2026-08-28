@@ -46,7 +46,7 @@ def user_is_managed_by_sso(user):
     managed_social_app = SocialAppManagedDomain.objects.filter(
         domain__iexact=domain
     ).first()
-    if user.extra_details and user.extra_details.sso_exempt:
+    if getattr(user, 'extra_details', None) and user.extra_details.sso_exempt:
         return False
 
     if managed_social_app:
