@@ -217,6 +217,12 @@ CONSTANCE_CONFIG = {
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'SHOW_KOBOTOOLBOX_LOGO': (
+        True,
+        'Show the KoboToolbox logo on the sign-in and account creation pages. '
+        'Turn this off to display only the logo uploaded under '
+        'Configuration files',
+    ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
         '',
@@ -760,6 +766,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+        'SHOW_KOBOTOOLBOX_LOGO',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -1094,6 +1101,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
         'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
@@ -1795,6 +1803,8 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'user_token': 'kobo.apps.accounts.forms.UserTokenForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False

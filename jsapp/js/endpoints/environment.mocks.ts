@@ -1,3 +1,4 @@
+import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
@@ -5,6 +6,7 @@ import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/config
  * Contains complete lists of countries, languages, and sectors that the UI depends on.
  */
 const environmentResponse = {
+  registration_open: true,
   terms_of_service_url: '',
   privacy_policy_url: '',
   source_code_url: 'https://github.com/kobotoolbox/',
@@ -337,6 +339,15 @@ const environmentResponse = {
   enable_custom_password_guidance_text: false,
   custom_password_localized_help_text:
     '<p>The password must be at least 10 characters long and contain 3 or more of the following: uppercase letters, lowercase letters, numbers, and special characters. It cannot be similar to your name, username, or email address.</p>',
+  auth_configuration: {
+    theme: AuthThemeEnum.default,
+    background_image_url: null,
+    show_kobotoolbox_logo: true,
+    logo_url: null,
+    supporting_image_url: null,
+    supporting_text: '',
+    allow_login_with_username: true,
+  },
   project_metadata_fields: [
     {
       name: 'sector',

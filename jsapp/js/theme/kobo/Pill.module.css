@@ -1,3 +1,11 @@
+/* Make the "x" button on pills smaller, needs important */
+.remove {
+  --cb-size: 1.25em !important;
+  --cb-icon-size: 0.85em !important;
+
+  min-width: 1.5em;
+}
+
 .root[data-variant='gray-light'] {
   background-color: var(--mantine-color-gray-7);
   color: var(--mantine-color-gray-2);

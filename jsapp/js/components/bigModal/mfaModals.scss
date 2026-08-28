@@ -62,7 +62,7 @@ $mfa-paragraph-spacing: 18px;
 
 // Individual steps separeted out from parent for readability
 .mfa-modal--step-qr {
-  canvas {
+  svg {
     display: block;
     padding: 14px;
     border: 1px solid colors.$kobo-gray-400;
