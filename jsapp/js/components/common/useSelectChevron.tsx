@@ -3,12 +3,14 @@ import { useMemo, useState } from 'react'
 import type { IconSize } from './icon'
 import Icon from './icon'
 
+// Chevrons track the input's font size rather than its height, so they stay in
+// proportion with the label text next to them.
 const iconSizeMap: Record<string, IconSize> = {
   xs: 'xxs',
   sm: 'xs',
-  md: 's',
-  lg: 'm',
-  xl: 'l',
+  md: 'xs',
+  lg: 's',
+  xl: 'm',
 }
 
 interface UseSelectChevronParams {
@@ -37,7 +39,7 @@ export const useSelectChevron = ({
   // Keep local opened state so fallback chevron can reflect dropdown visibility.
   const [isOpened, setIsOpened] = useState(defaultDropdownOpened || false)
 
-  const iconSize = typeof size === 'string' ? iconSizeMap[size] : 's'
+  const iconSize = typeof size === 'string' ? iconSizeMap[size] : iconSizeMap.md
   // Respect caller-provided right section. If omitted, render Kobo chevron.
   const resolvedRightSection = useMemo(() => {
     if (rightSection) {

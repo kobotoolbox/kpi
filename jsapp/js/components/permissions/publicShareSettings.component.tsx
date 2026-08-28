@@ -1,7 +1,7 @@
 import { Checkbox, Stack } from '@mantine/core'
 import React from 'react'
 import { actions } from '#/actions'
-import TextBox from '#/components/common/textBox'
+import TextInput from '#/components/common/TextInput'
 import { ROOT_URL } from '#/constants'
 import type { PermissionResponse } from '#/dataInterface'
 import { ANON_USERNAME_URL } from '#/users/utils'
@@ -55,7 +55,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           label={t('Anyone can view submissions made to this form')}
         />
 
-        {anonCanView && <TextBox label={t('Shareable link')} type='text' readOnly value={url} />}
+        {anonCanView && <TextInput label={t('Shareable link')} readOnly value={url} />}
       </Stack>
     )
   }
