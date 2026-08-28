@@ -6,20 +6,18 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import { openLibraryAssetModal } from '#/components/modalForms/openLibraryAssetModal'
-import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
-import pageState from '#/pageState.store'
+import { ASSET_TYPES, } from '#/constants'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import KoboIcon from '../common/KoboIcon'
+import {openLibraryNewItemModal} from './openLibraryNewItemModal'
 
 export default function LibraryNewItemForm() {
   const session = useSession()
   const navigate = useNavigate()
 
   function goToAssetCreator() {
-    pageState.hideModal()
-
     let targetPath: string = ROUTES.NEW_LIBRARY_ITEM
     const assetUid = getRouteAssetUid()
     if (isAnyLibraryItemRoute() && assetUid) {
@@ -34,30 +32,22 @@ export default function LibraryNewItemForm() {
     navigate(targetPath)
   }
 
-  /** Mantine modals live outside `pageState`, so their "Back" button reopens this one. */
-  function reopenThisModal() {
-    pageState.showModal({ type: MODAL_TYPES.LIBRARY_NEW_ITEM })
-  }
-
   function goToCollection() {
-    pageState.hideModal()
     openLibraryAssetModal({
       assetType: ASSET_TYPES.collection.id,
-      onBack: reopenThisModal,
+      onBack: openLibraryNewItemModal,
     })
   }
 
   function goToTemplate() {
-    pageState.hideModal()
     openLibraryAssetModal({
       assetType: ASSET_TYPES.template.id,
-      onBack: reopenThisModal,
+      onBack: openLibraryNewItemModal,
     })
   }
 
   function goToUpload() {
-    pageState.hideModal()
-    openLibraryUploadModal({ onBack: reopenThisModal })
+    openLibraryUploadModal({ onBack: openLibraryNewItemModal })
   }
 
   if (!session.currentLoggedAccount) {
