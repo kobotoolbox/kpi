@@ -69,7 +69,6 @@
     "react-modal": "^3.15.1",
     "react-qr-code": "^2.2.0",
     "react-router-dom": "^7.14.2",
-    "react-select": "^5.10.2",
     "react-table": "^6.11.5",
     "reflux": "^6.4.1",
     "rtl-detect": "^1.1.2",
