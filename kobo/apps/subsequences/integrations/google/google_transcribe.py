@@ -39,13 +39,14 @@ from ...exceptions import (
     GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
-    TranscriptionResultNotFound
+    TranscriptionResultNotFound,
 )
+from ...utils.repetition import collapse_runaway_repetitions
 from .base import GoogleService
 from .locations import (
     get_asr_language_code_overrides,
+    get_speech_location_for_model,
     get_speech_location_for_region,
-    get_speech_location_for_model
 )
 from .rate_limit import (
     GoogleServiceRateLimitExceeded,
@@ -699,7 +700,17 @@ class GoogleTranscriptionService(GoogleService):
                 'No transcription JSON result files were found in Google Cloud Storage.'
             )
 
-        return ' '.join(transcript_parts).strip()
+        transcript = ' '.join(transcript_parts).strip()
+        collapsed = collapse_runaway_repetitions(
+            transcript, constance.config.ASR_MAX_CONSECUTIVE_REPEATS
+        )
+        if collapsed != transcript:
+            # Never log transcript content: it is user data
+            logging.warning(
+                'Collapsed runaway phrase repetition in automatic transcript '
+                f'for {xpath=}: {len(transcript)} -> {len(collapsed)} characters'
+            )
+        return collapsed
 
     def _get_bulk_action_item(self, bulk_action_uid: str | None):
         """

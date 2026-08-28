@@ -382,6 +382,16 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
+    'ASR_MAX_CONSECUTIVE_REPEATS': (
+        5,
+        (
+            'Maximum number of times a short phrase may repeat consecutively '
+            'in an automatic transcript before the extra repeats are trimmed. '
+            'Automatic speech recognition models can get stuck in a loop and '
+            'fill the transcript with one repeated phrase. Set to 0 to disable '
+            'trimming.'
+        ),
+    ),
     'ASR_MT_GOOGLE_PROJECT_ID': (
         env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
@@ -800,6 +810,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_LANGUAGE_CODE_OVERRIDES',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+        'ASR_MAX_CONSECUTIVE_REPEATS',
         'AUTOMATIC_QA_REQUESTS_PER_SECOND'
     ),
     'Security': (
