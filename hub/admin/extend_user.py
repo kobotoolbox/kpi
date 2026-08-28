@@ -227,7 +227,13 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         fieldsets = copy.deepcopy(super().get_fieldsets(request, obj))
         if obj and obj.pk is not None:
             if user_is_managed_by_sso(obj):
-                fieldsets[0][1]['fields'] = ('username',)
+                for fieldset_name, fieldset_options in fieldsets:
+                    fields = list(fieldset_options.get('fields', []))
+                    # Filter out password-related fields
+                    fields = [
+                        f for f in fields if f not in ('password', 'usable_password')
+                    ]
+                    fieldset_options['fields'] = tuple(fields)
         return fieldsets
 
     @admin.action(description='Remove selected users (delete everything but their username)')
