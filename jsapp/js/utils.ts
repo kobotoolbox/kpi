@@ -408,6 +408,44 @@ export function launchPrinting() {
 }
 
 /**
+ * Puts text on the clipboard, and says whether it worked.
+ *
+ * `navigator.clipboard` is missing outside a secure context, which is how a lot of
+ * self-hosted instances are served, so there is a fallback on the old
+ * `execCommand` route. Call this straight from a click handler - browsers only
+ * allow that fallback while the user's gesture is still fresh.
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch {
+      // It can refuse even in a secure context, e.g. when the document isn't
+      // focused, so let the fallback have a go before giving up.
+    }
+  }
+
+  // `execCommand` copies the selection, so the text has to be in the document and
+  // selected first. Off-screen and read-only, to keep it from being noticed.
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.top = '-1000px'
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  try {
+    return document.execCommand('copy')
+  } catch {
+    return false
+  } finally {
+    textarea.remove()
+  }
+}
+
+/**
  * Trunactes strings to specified length
  */
 export function truncateString(str: string, length: number): string {
@@ -653,31 +691,6 @@ export function removeDefaultUuidPrefix(uuid: string) {
  */
 export function getSubmissionRootUuid(submission: { _uuid: string; 'meta/rootUuid'?: string }) {
   return removeDefaultUuidPrefix(submission['meta/rootUuid'] || submission._uuid)
-}
-
-/**
- * Compare any two uuid's, accounting for the presence or absence of
- * the default `'uuid:'` prefix in `meta/instanceId` and `meta/rootUuid`.
- *
- * Use this when comparing a `_uuid` with one of those `meta/` fields,
- * since the meta fields include the `uuid:` prefix but the _uuid field
- * strips them.
- *
- * Usage examples:
- *
- *     matchUuid( _uuid, rootUuid )   // ✅ true if equivalent
- *     matchUuid( _uuid, instanceId ) // ✅ true if equivalent
- *
- *     matchUuid( instanceId, rootUuid )  // ✔️ this works too
- *
- *     matchUuid( 'some-uuid-that-here-exists',
- *           'uuid:some-uuid-that-here-exists') // ✔️ match true
- *
- *     matchUuid(     'uuid-collision',
- *        'org.example:uuid-collision') // false (different namespace)
- */
-export function matchUuid(uuidA: string, uuidB: string) {
-  return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
 }
 
 export function createDateQuery(startDate: string, endDate: string): MongoQuery[] {
