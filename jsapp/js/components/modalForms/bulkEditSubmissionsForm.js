@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Text } from '@mantine/core'
+import { Group } from '@mantine/core'
 import Fuse from 'fuse.js'
 import clonedeep from 'lodash.clonedeep'
 import autoBind from 'react-autobind'
@@ -8,8 +9,9 @@ import { actions } from '#/actions'
 import { getFlatQuestionsList, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
+import TextInput from '#/components/common/TextInput'
+import Textarea from '#/components/common/Textarea'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import { FUSE_OPTIONS, QuestionTypeName } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
@@ -32,14 +34,15 @@ const EXCLUDED_TYPES = [
 ]
 
 /**
- * The content of the BULK_EDIT_SUBMISSIONS modal
+ * The content of the bulk edit submissions modal
  *
- * @prop {function} onSetModalTitle - for changing the modal title by this component
- * @prop {function} onModalClose - causes the modal to close
  * @prop {object} asset
  * @prop {object[]} data - submissions data (all user responses)
  * @prop {number} totalSubmissions - number of all submissions
  * @prop {string|number[]} selectedSubmissions - list of ids of submissions selected for bulk editing
+ * @prop {function} onSelectedQuestionChange - called with the label of the question being edited, or `null` when
+ * back on the questions list; the modal wrapper uses it to keep the title in sync with the displayed step
+ * @prop {function} onRequestClose - causes the modal to close
  */
 class BulkEditSubmissionsForm extends React.Component {
   constructor(props) {
@@ -65,7 +68,6 @@ class BulkEditSubmissionsForm extends React.Component {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkPatchValuesCompleted),
       actions.submissions.bulkPatchValues.failed.listen(this.onBulkPatchValuesFailed),
     )
-    this.setModalTitleToList()
   }
 
   componentWillUnmount() {
@@ -76,25 +78,11 @@ class BulkEditSubmissionsForm extends React.Component {
 
   onBulkPatchValuesCompleted() {
     this.setState({ isPending: false })
-    this.props.onModalClose()
+    this.props.onRequestClose()
   }
 
   onBulkPatchValuesFailed() {
     this.setState({ isPending: false })
-  }
-
-  setModalTitleToList() {
-    this.props.onSetModalTitle(
-      t('Editing ##count## submission(s)').replace('##count##', this.props.selectedSubmissions.length),
-    )
-  }
-
-  setModalTitleToSingleQuestion(questionName) {
-    this.props.onSetModalTitle(
-      t('Editing "##question##" for ##count## submissions')
-        .replace('##question##', questionName)
-        .replace('##count##', this.props.selectedSubmissions.length),
-    )
   }
 
   onRowOverrideChange(questionName, value) {
@@ -138,7 +126,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: question,
       selectedQuestionOverride: this.state.overrides[question.name],
     })
-    this.setModalTitleToSingleQuestion(question.label)
+    this.props.onSelectedQuestionChange(question.label)
   }
 
   goBackToList() {
@@ -146,7 +134,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: null,
       selectedQuestionOverride: null,
     })
-    this.setModalTitleToList()
+    this.props.onSelectedQuestionChange(null)
   }
 
   saveOverride() {
@@ -259,16 +247,16 @@ class BulkEditSubmissionsForm extends React.Component {
   getFiltersRow() {
     return [
       '',
-      <TextBox
+      <TextInput
         key='filter-by-name'
         value={this.state.filterByName}
-        onChange={this.onFilterByNameChange}
+        onChange={(evt) => this.onFilterByNameChange(evt.currentTarget.value)}
         placeholder={t('Type to filter')}
       />,
-      <TextBox
+      <TextInput
         key='filter-by-value'
         value={this.state.filterByValue}
-        onChange={this.onFilterByValueChange}
+        onChange={(evt) => this.onFilterByValueChange(evt.currentTarget.value)}
         placeholder={t('Type to filter')}
       />,
       '',
@@ -365,7 +353,7 @@ class BulkEditSubmissionsForm extends React.Component {
           minWidth={600}
         />
 
-        <bem.Modal__footer>
+        <Group mt='md' justify='flex-end'>
           <Button
             type='danger'
             size='l'
@@ -382,7 +370,7 @@ class BulkEditSubmissionsForm extends React.Component {
             isDisabled={this.state.isPending || recordKeys(this.state.overrides).length === 0}
             label={t('Confirm & close')}
           />
-        </bem.Modal__footer>
+        </Group>
       </React.Fragment>
     )
   }
@@ -528,11 +516,11 @@ class BulkEditRowForm extends React.Component {
           <bem.FormView__cell m='column-1'>
             <h2>{this.props.question.label}</h2>
 
-            <TextBox
-              className='bulk-edit-response-textbox'
-              type='text-multiline'
+            <Textarea
+              autosize
+              minRows={2}
               value={inputValue}
-              onChange={this.onChange}
+              onChange={(evt) => this.onChange(evt.currentTarget.value)}
               placeholder={this.getPlaceholderValue()}
             />
           </bem.FormView__cell>

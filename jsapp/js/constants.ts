@@ -78,7 +78,6 @@ export const MODAL_TYPES = {
   LIBRARY_UPLOAD: 'library-upload',
   ENKETO_PREVIEW: 'enketo-preview',
   REPLACE_PROJECT: 'replace-project',
-  BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }
