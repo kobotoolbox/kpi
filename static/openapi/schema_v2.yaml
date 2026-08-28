@@ -12825,6 +12825,17 @@ paths:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
           description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
         '404':
           content:
             application/json:
