@@ -625,6 +625,34 @@ export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'tria
 */
 export const USAGE_WARNING_RATIO = 0.8
 
+/*
+  Polling time intervals (all in milliseconds). Used both with react-query
+  `refetchInterval` and with manual `setTimeout` polling loops.
+*/
+
+/** Activity logs table polling, while a bulk processing job is ongoing. */
+export const ACTIVITY_LOGS_POLL_INTERVAL = 5000
+
+/** Bulk actions polling in the Single Processing route. */
+export const PROCESSING_BULK_ACTIONS_POLL_INTERVAL = 10000
+
+/** Supplement (transcript/translation) status polling. */
+export const SUPPLEMENT_STATUS_POLL_INTERVAL = 3000
+
+/** Bounds for the first (delayed) supplement status poll, based on an estimate. */
+export const SUPPLEMENT_MIN_FIRST_POLL_DELAY = 3000
+export const SUPPLEMENT_MAX_FIRST_POLL_DELAY = 30000
+
+/** Bounds for the data table bulk actions polling, based on an estimate. */
+export const BULK_ACTIONS_MIN_POLL_INTERVAL = 5000
+export const BULK_ACTIONS_MAX_POLL_INTERVAL = 30000
+
+/** Import (XLSForm upload) status polling, until the import is complete or errored. */
+export const IMPORT_STATUS_POLL_INTERVAL = 1000
+
+/** In-app help messages polling. */
+export const HELP_MESSAGES_POLL_INTERVAL = 1 * 60 * 1000
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
@@ -652,6 +680,15 @@ const constants = {
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
   USAGE_WARNING_RATIO,
+  ACTIVITY_LOGS_POLL_INTERVAL,
+  PROCESSING_BULK_ACTIONS_POLL_INTERVAL,
+  SUPPLEMENT_STATUS_POLL_INTERVAL,
+  SUPPLEMENT_MIN_FIRST_POLL_DELAY,
+  SUPPLEMENT_MAX_FIRST_POLL_DELAY,
+  BULK_ACTIONS_MIN_POLL_INTERVAL,
+  BULK_ACTIONS_MAX_POLL_INTERVAL,
+  IMPORT_STATUS_POLL_INTERVAL,
+  HELP_MESSAGES_POLL_INTERVAL,
 }
 
 export const HELP_ARTICLE_ANON_SUBMISSIONS_URL =
