@@ -13,10 +13,10 @@ import {
 import { getFlatQuestionsList, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
 import bem from '#/bem'
 import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
 import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
-import TextBox from '#/components/common/textBox'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
@@ -564,13 +564,14 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                 {t('Group separator')}
               </span>
 
-              <TextBox
+              <TextInput
                 disabled={!state.isIncludeGroupsEnabled}
                 value={state.groupSeparator}
-                onChange={(newValue) => {
+                onChange={(evt) => {
                   clearSelectedDefinedExport()
-                  mergeState({ groupSeparator: newValue })
+                  mergeState({ groupSeparator: evt.currentTarget.value })
                 }}
+                size='sm'
               />
             </div>
           </bem.ProjectDownloads__columnRow>
@@ -626,15 +627,16 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
               label={t('Save selection as…')}
             />
 
-            <TextBox
+            <TextInput
               disabled={!state.isSaveCustomExportEnabled}
               value={state.customExportName}
-              onChange={(newValue) => {
+              onChange={(evt) => {
                 clearSelectedDefinedExport()
-                mergeState({ customExportName: newValue })
+                mergeState({ customExportName: evt.currentTarget.value })
               }}
               placeholder={t('Name your export settings')}
               className='custom-export-name-textbox'
+              size='sm'
             />
           </bem.ProjectDownloads__columnRow>
 

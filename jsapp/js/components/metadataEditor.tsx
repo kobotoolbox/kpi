@@ -6,9 +6,9 @@ import { Switch } from '@mantine/core'
 import autoBind from 'react-autobind'
 import bem, { makeBem } from '#/bem'
 import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Checkbox from '#/components/common/checkbox'
 import Icon from '#/components/common/icon'
-import TextBox from '#/components/common/textBox'
 import { META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
@@ -219,11 +219,11 @@ export default class MetadataEditor extends React.Component<MetadataEditorProps,
 
         {this.isAuditEnabled() && (
           <bem.FormBuilderMeta__row>
-            <TextBox
+            <TextInput
               label={this.renderAuditInputLabel()}
               value={this.getAuditParameters()}
               disabled={this.props.isDisabled}
-              onChange={this.onAuditParametersChange}
+              onChange={(evt) => this.onAuditParametersChange(evt.currentTarget.value)}
               placeholder={t('Enter audit settings here')}
             />
           </bem.FormBuilderMeta__row>

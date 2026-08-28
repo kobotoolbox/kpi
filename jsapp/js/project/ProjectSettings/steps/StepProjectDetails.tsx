@@ -4,8 +4,9 @@ import { queryClient } from '#/api/queryClient'
 import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/user-team-organization-usage'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
+import Textarea from '#/components/common/Textarea'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
 import { userCan } from '#/components/permissions/utils'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
@@ -95,10 +96,10 @@ export default function StepProjectDetails({
       <div className={styles.inputWrapper}>
         {/* Project Name */}
         <div className={styles.input}>
-          <TextBox
+          <TextInput
             value={fields.name}
-            onChange={onNameChange}
-            errors={hasFieldError('name') ? t('Please enter a title for your project!') : false}
+            onChange={(evt) => onNameChange(evt.currentTarget.value)}
+            error={hasFieldError('name') ? t('Please enter a title for your project!') : undefined}
             label={addRequiredToLabel(getNameInputLabel(fields.name))}
             placeholder={t('Enter title of project here')}
           />
@@ -107,11 +108,11 @@ export default function StepProjectDetails({
         {/* Description */}
         {descriptionField && (
           <div className={styles.input}>
-            <TextBox
-              type='text-multiline'
+            <Textarea
+              autosize
               value={fields.description}
-              onChange={onDescriptionChange}
-              errors={hasFieldError('description') ? t('Please enter a description for your project') : false}
+              onChange={(evt) => onDescriptionChange(evt.currentTarget.value)}
+              error={hasFieldError('description') ? t('Please enter a description for your project') : undefined}
               label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
               placeholder={t('Enter short description here')}
             />

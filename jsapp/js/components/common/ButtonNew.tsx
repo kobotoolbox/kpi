@@ -15,6 +15,11 @@ const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize
   lg: 'm',
 }
 
+// Mantine applies theme `defaultProps` internally, so `size` is still undefined here
+// when the caller omits it. Keep in sync with `ButtonThemeKobo`, or icons end up sized
+// for a different button than the one that renders.
+const DEFAULT_SIZE = 'md'
+
 // See boilerplate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
 
 export interface ButtonProps extends ButtonPropsMantine {
@@ -30,8 +35,8 @@ export interface ButtonProps extends ButtonPropsMantine {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ tooltip, tooltipProps, leftIcon, rightIcon, leftSection, rightSection, ...others }, ref) => {
-    const buttonSize = (others.size ?? 'sm') as MantineSize
-    const legacyIconSize = ButtonToIconMap[others.size ?? 'sm']
+    const buttonSize = (others.size ?? DEFAULT_SIZE) as MantineSize
+    const legacyIconSize = ButtonToIconMap[buttonSize]
 
     const resolvedLeftSection =
       leftSection ??
