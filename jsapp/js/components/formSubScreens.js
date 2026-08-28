@@ -47,25 +47,38 @@ export class FormSubScreens extends React.Component {
     }
 
     var iframeUrl = ''
+    var docTitle = this.state.name || t('Untitled')
 
     if (this.state.uid != undefined) {
       switch (this.props.router.location.pathname) {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return (
-            <Suspense fallback={null}>
-              <DataTable asset={this.state} />
-            </Suspense>
+            <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+              <Suspense fallback={null}>
+                <DataTable asset={this.state} />
+              </Suspense>
+            </DocumentTitle>
           )
         case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
           return (
-            <Suspense fallback={<div>Image Gallery</div>}>
-              <FormGallery asset={this.state} />
-            </Suspense>
+            <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+              <Suspense fallback={<div>Image Gallery</div>}>
+                <FormGallery asset={this.state} />
+              </Suspense>
+            </DocumentTitle>
           )
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
-          return <FormMapWrapper asset={this.state} />
+          return (
+            <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+              <FormMapWrapper asset={this.state} />
+            </DocumentTitle>
+          )
         case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(':viewby', this.props.params.viewby):
-          return <FormMapWrapper asset={this.state} viewby={this.props.params.viewby} />
+          return (
+            <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+              <FormMapWrapper asset={this.state} viewby={this.props.params.viewby} />
+            </DocumentTitle>
+          )
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={null}>
@@ -90,8 +103,6 @@ export class FormSubScreens extends React.Component {
           return <FormActivity />
       }
     }
-
-    var docTitle = this.state.name || t('Untitled')
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
