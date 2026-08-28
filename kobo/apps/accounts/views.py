@@ -140,6 +140,17 @@ class SocialAccountViewSet(
 
 
 @extend_schema(tags=['Configuration'])
+@extend_schema_view(
+    get=extend_schema(
+        description=read_md('accounts', 'social_apps/retrieve.md'),
+        responses=open_api_200_ok_response(
+            SocialAppDetailSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class SocialAppView(generics.RetrieveAPIView):
     """
     Public, display-only detail view for a configured Social Application (SSO
@@ -177,7 +188,7 @@ class SocialAppView(generics.RetrieveAPIView):
         # headless `auth/provider/redirect`, which the SPA posts to next. Both
         # look providers up this way, so a 200 here means the redirect will work
         try:
-            return get_socialaccount_adapter().get_app(self.request, provider_id)
+            social_app = get_socialaccount_adapter().get_app(self.request, provider_id)
         except SocialApp.DoesNotExist:
             raise Http404
         except MultipleObjectsReturned:
@@ -189,14 +200,7 @@ class SocialAppView(generics.RetrieveAPIView):
             )
             raise Http404
 
-    @extend_schema(
-        description=read_md('accounts', 'social_apps/retrieve.md'),
-        responses=open_api_200_ok_response(
-            SocialAppDetailSerializer,
-            require_auth=False,
-            raise_access_forbidden=False,
-            validate_payload=False,
-        ),
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        # A no-op under `AllowAny`, but overriding `get_object()` is what skips
+        # object-level checks. Kept so tightening `permission_classes` is enough
+        self.check_object_permissions(self.request, social_app)
+        return social_app
