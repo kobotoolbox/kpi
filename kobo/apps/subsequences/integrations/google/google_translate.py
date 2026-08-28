@@ -35,7 +35,7 @@ from ...exceptions import (
     SubsequenceTimeoutError,
     TranslationResultNotFound,
 )
-from ...utils import get_form_language
+from ...utils.survey import get_form_language
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 from .locations import get_translate_endpoint, get_translate_location

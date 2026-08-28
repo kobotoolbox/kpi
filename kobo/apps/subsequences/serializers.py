@@ -17,7 +17,7 @@ from kobo.apps.subsequences.models import (
     SubsequenceBulkAction,
     SubsequenceBulkActionItem,
 )
-from kobo.apps.subsequences.utils import get_survey_question_type
+from kobo.apps.subsequences.utils.survey import get_survey_question_type
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 
 # These messages reach the UI, so they must be translatable. Wrap here rather

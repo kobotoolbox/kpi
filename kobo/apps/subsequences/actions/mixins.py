@@ -50,9 +50,8 @@ class RequiresTranscriptionMixin:
             # Direct-text source: point the dependency at the submission. The
             # `_question_type` key is in-flight only; the sanitizer in
             # `revise_data` strips it before persistence.
-            raw_uuid = submission.get(SUBMISSION_UUID_FIELD) or submission['_uuid']
             action_data[self.DEPENDENCY_FIELD] = {
-                self.UUID_FIELD: remove_uuid_prefix(raw_uuid),
+                self.UUID_FIELD: remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD]),
                 self.ACTION_ID_FIELD: DEPENDENCY_SOURCE_SUBMISSION,
                 '_question_type': TEXT_SOURCE_TYPE,
             }

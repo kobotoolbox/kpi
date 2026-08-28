@@ -2,7 +2,10 @@ from copy import deepcopy
 
 from django.core.cache import cache
 
-from kobo.apps.subsequences.utils import get_form_language, get_survey_question_type
+from kobo.apps.subsequences.utils.survey import (
+    get_form_language,
+    get_survey_question_type,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -61,7 +64,9 @@ class SurveyMetadataTestCase(BaseTestCase):
 
         deferred_asset = Asset.objects.only('pk', 'uid').get(pk=self.asset.pk)
         with self.assertNumQueries(1):
-            # The single query resolves the deployed version for the cache key
-            question_type = get_survey_question_type(deferred_asset, xpath)
-            assert question_type == 'text'
+            # Only the first call queries anything, to resolve the deployed
+            # version for the cache key. Every later call, whichever helper it
+            # goes through, reads the metadata memoized on the asset
+            assert get_survey_question_type(deferred_asset, xpath) == 'text'
+            assert get_survey_question_type(deferred_asset, xpath) == 'text'
             get_form_language(deferred_asset)

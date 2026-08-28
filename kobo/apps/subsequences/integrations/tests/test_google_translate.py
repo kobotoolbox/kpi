@@ -451,8 +451,9 @@ class TestGoogleTranslate(TestCase):
                 )
 
         assert response == {'status': 'complete', 'value': 'Bonjour'}
-        # Source language was extracted from the 'English (en)' form language,
-        # and resolved against the translation service, not the ASR one
+        # 'English (en)' is the form language, and its code is looked up in
+        # the languages Google can translate. The transcription languages are
+        # the wrong list here: nothing was transcribed
         assert language_code.call_args_list[0].args == ('en',)
         request = service.translate_client.translate_text.call_args.kwargs['request']
         assert request['contents'] == ['Hello from the respondent']
@@ -537,10 +538,18 @@ class TestGoogleTranslate(TestCase):
         assert 'too long' in response['error'].lower()
         service.translate_client.batch_translate_text.assert_not_called()
 
-    def test_form_language_falls_back_to_the_default_translation(self):
+    def test_form_language_prefers_the_setting_over_the_default_translation(self):
         service = self._build_service()
 
         for content, expected in (
+            # The setting wins when a form carries both
+            (
+                {
+                    'settings': {'default_language': 'English (en)'},
+                    'translations': ['Deutsch (de)'],
+                },
+                'en',
+            ),
             ({'settings': {'default_language': 'English (en)'}}, 'en'),
             ({'settings': {}, 'translations': ['Deutsch (de)']}, 'de'),
             ({'settings': {}, 'translations': [None]}, None),

@@ -26,7 +26,7 @@ from ..type_aliases import (
     NLPExternalServiceClass,
     SimplifiedOutputCandidatesByColumnKey,
 )
-from ..utils import get_survey_question_type
+from ..utils.survey import get_survey_question_type
 
 """
 ### All actions must have the following components
