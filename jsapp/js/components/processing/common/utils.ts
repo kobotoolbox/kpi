@@ -10,6 +10,8 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type {
   DisplaysList,
   QualVersionItem,
@@ -365,6 +367,21 @@ export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
   [ProcessingTab.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
   [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
+
+/** Question types with nothing to transcribe from (no audio/video source). */
+const NON_TRANSCRIBABLE_QUESTION_TYPES: AnyRowTypeName[] = [QUESTION_TYPES.text.id]
+
+/**
+ * Returns the Processing tabs available for a given question type, in display
+ * order. Transcript is omitted for question types that have no audio/video
+ * response to transcribe (e.g. text).
+ */
+export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (questionType && NON_TRANSCRIBABLE_QUESTION_TYPES.includes(questionType)) {
+    return [ProcessingTab.Translations, ProcessingTab.Analysis]
+  }
+  return [ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis]
+}
 
 /**
  * Gets the default displays for a given processing tab.
