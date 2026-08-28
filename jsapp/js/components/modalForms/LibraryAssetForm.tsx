@@ -17,16 +17,16 @@ import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMeta
 import { ASSET_TYPES, type AssetTypeName } from '#/constants'
 import type { AssetResponse, AssetSettings, LabelValuePair } from '#/dataInterface'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
-import ModalBackButton from './ModalBackButton'
 
 interface LibraryAssetFormProps {
   asset?: AssetResponse
   assetType?: AssetTypeName
-  onSetModalTitle?: (title: string) => void
+  /** When given, a "Back" button is rendered in the footer. */
+  onBack?: () => void
+  onRequestClose: () => void
 }
 
 type ExtraMetadataValues = Record<string, string | string[] | null>
@@ -43,7 +43,8 @@ interface FormFields {
 }
 
 /**
- * Modal for creating or updating library asset (collection or template).
+ * Form for creating or updating a library asset (collection or template). It is
+ * rendered inside a modal owned by the caller — see `openLibraryAssetModal`.
  *
  * The displayed metadata fields (description, sector, country, operational
  * purpose, collects PII, plus any extra superuser-configured metadata) are
@@ -55,7 +56,7 @@ interface FormFields {
  * - AccountSettingsRoute
  * - LibraryAssetForm
  */
-export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModalTitle }: LibraryAssetFormProps) => {
+export const LibraryAssetForm = ({ asset, assetType, onBack, onRequestClose }: LibraryAssetFormProps) => {
   const navigate = useNavigate()
 
   const formAssetType: AssetTypeName | undefined = asset ? asset.asset_type : assetType
@@ -87,6 +88,8 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
   // Latest values for use inside long-lived reflux callbacks below.
   const formAssetTypeRef = useRef(formAssetType)
   formAssetTypeRef.current = formAssetType
+  const onRequestCloseRef = useRef(onRequestClose)
+  onRequestCloseRef.current = onRequestClose
 
   useEffect(() => {
     const disposeSessionWhen = when(
@@ -101,7 +104,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
           .replace('##type##', formAssetTypeRef.current ?? 'asset')
           .replace('##name##', response.name),
       )
-      pageState.hideModal()
+      onRequestCloseRef.current()
       if (formAssetTypeRef.current === ASSET_TYPES.collection.id) {
         navigate(`/library/asset/${response.uid}`)
       } else if (formAssetTypeRef.current === ASSET_TYPES.template.id) {
@@ -116,7 +119,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
 
     const onUpdateCompleted = () => {
       setIsPending(false)
-      pageState.hideModal()
+      onRequestCloseRef.current()
     }
 
     const onUpdateFailed = () => {
@@ -343,7 +346,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       </bem.FormModal__item>
 
       <bem.Modal__footer>
-        <ModalBackButton isDisabled={isPending} />
+        {onBack && <Button type='secondary' size='l' onClick={onBack} isDisabled={isPending} label={t('Back')} />}
 
         <Button type='primary' size='l' onClick={onSubmit} isDisabled={isPending} label={getSubmitButtonLabel()} />
       </bem.Modal__footer>
