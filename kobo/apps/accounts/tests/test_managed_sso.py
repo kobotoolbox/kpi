@@ -5,13 +5,24 @@ from ddt import data, ddt, unpack
 from django.contrib.admin.sites import site
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.accounts.admin import SocialAccountAdmin
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
+from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.tests.utils import baker_generators  # noqa
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
+from ..tasks import (
+    managed_sso_sweep,
+    notify_unlinked_users,
+    update_linked_user,
+    update_users,
+    users_needing_update,
+)
+from ..utils import SOCIAL_APP_IDENTIFIER
 from .utils import MockProvider
 
 
@@ -183,3 +194,177 @@ class TestManagedSsoUsers(TestCase):
                 'Cannot add a new SSO account for SSO-managed user'
                 in form.errors['user']
             )
+
+
+class TestManagedSsoCelery(TestCase):
+
+    def setUp(self):
+        self.provider = MockProvider(request=RequestFactory().get('/'))
+        self.social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider=self.provider.id,
+            provider_id='kobo',
+        )
+        self.default_domain = 'example.com'
+
+    def _create_user(
+        self,
+        username,
+        has_password,
+        has_managed_account,
+        has_unmanaged_account,
+        domain=None,
+    ):
+        domain = domain or self.default_domain
+        user = User.objects.create(username=username, email=f'{username}@{domain}')
+        if has_password:
+            user.set_password('password')
+        else:
+            user.set_unusable_password()
+        user.save()
+        if has_managed_account:
+            baker.make(
+                'socialaccount.SocialAccount',
+                user=user,
+                provider=self.social_app.provider_id,
+            )
+        if has_unmanaged_account:
+            baker.make(
+                'socialaccount.SocialAccount', user=user, provider='another_provider'
+            )
+        return user
+
+    def test_users_needing_update(self):
+        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+
+        user_with_password = self._create_user('with_password', True, True, False)
+        # has both managed and unmanaged social accounts
+        user_multiple_accounts = self._create_user(
+            'multiple_accounts', False, True, True
+        )
+        user_no_social_accounts = self._create_user('no_accounts', False, False, False)
+        user_only_unmanaged_account = self._create_user(
+            'only_unmanaged', False, False, True
+        )
+
+        # these users should not be flagged for update
+        user_only_managed_account = self._create_user(
+            'only_managed', False, True, False
+        )
+        user_wrong_domain = self._create_user(
+            'wrong_domain', True, False, True, 'different.com'
+        )
+        user_already_received_message = self._create_user(
+            'already_received', True, False, False
+        )
+        message = baker.make(
+            'help.InAppMessage',
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.id},
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+        )
+        InAppMessageUsers.objects.create(
+            user=user_already_received_message, in_app_message=message
+        )
+        user_sso_exempt = self._create_user('sso_exempt', True, False, True)
+        user_sso_exempt.extra_details.sso_exempt = True
+        user_sso_exempt.extra_details.save()
+
+        need_update = users_needing_update(custom_data, domain=self.default_domain)
+        need_update = [user.id for user in need_update]
+
+        assert user_with_password.id in need_update
+        assert user_multiple_accounts.id in need_update
+        assert user_no_social_accounts.id in need_update
+        assert user_only_unmanaged_account.id in need_update
+
+        assert user_only_managed_account.id not in need_update
+        assert user_wrong_domain.id not in need_update
+        assert user_sso_exempt.id not in need_update
+        assert user_already_received_message.id not in need_update
+
+    def test_update_linked_user(self):
+        user = self._create_user('needs_update', True, True, True)
+        update_linked_user(user, self.social_app.provider_id)
+        user.refresh_from_db()
+        assert not user.has_usable_password()
+        linked_accounts = SocialAccount.objects.filter(user=user)
+        assert linked_accounts.count() == 1
+        account = linked_accounts.first()
+        assert account.provider == self.social_app.provider_id
+
+    def test_message_unlinked_users(self):
+        requesting_user = User.objects.create(username='adminuser')
+        user = self._create_user('needs_update', True, False, False)
+        notify_unlinked_users([user.id], self.social_app, requesting_user)
+        # the following will fail if the message has not been created or if
+        # there are multiple
+        message = InAppMessage.objects.get(
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            generic_related_objects__contains={
+                SOCIAL_APP_IDENTIFIER: self.social_app.id
+            },
+        )
+        InAppMessageUsers.objects.get(user=user, in_app_message=message)
+
+    def test_update_users_only_updates_once(self):
+        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        self._create_user(
+            'multiple_accounts', False, True, True
+        )
+        self._create_user('no_accounts', True, False, False)
+        with patch('kobo.apps.accounts.tasks.update_linked_user', wraps=update_linked_user) as patched_update:
+            with patch('kobo.apps.accounts.tasks.notify_unlinked_users', wraps=notify_unlinked_users) as patched_notify:
+                update_users(custom_data, managed_domain.domain)
+                update_users(custom_data, managed_domain.domain)
+        patched_update.assert_called_once()
+        patched_notify.assert_called_once()
+
+    def test_managed_sso_sweep(self):
+        social_app_managed = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider=self.provider.id,
+            provider_id='managed',
+        )
+        social_app_unmanaged = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider=self.provider.id,
+            provider_id='unmanaged',
+        )
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        custom_data_managed = SocialAppCustomData.objects.create(
+            social_app=social_app_managed, managed=True
+        )
+
+        # unamanged domain should be skipped
+        SocialAppCustomData.objects.create(
+            social_app=social_app_unmanaged, managed=False
+        )
+
+        # update_users should be called for all three domains with the correct
+        # custom data object
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data_managed, domain='domain1.com'
+        )
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data_managed, domain='domain2.com'
+        )
+        with patch('kobo.apps.accounts.tasks.update_users') as patched_update:
+            managed_sso_sweep()
+        assert patched_update.call_count == 3
+        patched_update.assert_any_call(custom_data, self.default_domain)
+        patched_update.assert_any_call(custom_data_managed, 'domain1.com')
+        patched_update.assert_any_call(custom_data_managed, 'domain2.com')

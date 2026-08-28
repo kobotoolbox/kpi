@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from allauth.socialaccount.models import SocialApp
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from kobo.apps.project_ownership.models import Transfer
+from kpi.utils.log import logging
 from kpi.utils.object_permission import get_database_user
+from ..accounts.utils import SOCIAL_APP_IDENTIFIER
 from .models import InAppMessage, InAppMessageUserInteractions
 
 
@@ -108,13 +111,17 @@ class InAppMessageSerializer(serializers.ModelSerializer):
     def _replace_placeholders(
         self, in_app_message: InAppMessage, value: str
     ) -> str:
-        # This method only support transfers so far
+        # eventually this should be genericized, for now, just supports transfers
+        # and managed SSO warnings
         transfer_identifier = (
             f'{Transfer._meta.app_label}.{Transfer._meta.model_name}'
         )
         if transfer_identifier in in_app_message.generic_related_objects:
             transfer_id = in_app_message.generic_related_objects[transfer_identifier]
             return self._replace_placeholders_for_transfer(value, transfer_id)
+        if SOCIAL_APP_IDENTIFIER in in_app_message.generic_related_objects:
+            socialapp_id = in_app_message.generic_related_objects[SOCIAL_APP_IDENTIFIER]
+            return self._replace_placeholders_for_managed_sso(value, socialapp_id)
 
         return t(value)
 
@@ -142,3 +149,18 @@ class InAppMessageSerializer(serializers.ModelSerializer):
         value = value.replace('##new_owner##', new_owner)
 
         return value
+
+    def _replace_placeholders_for_managed_sso(self, value, social_app_pk: int):
+        request = self.context['request']
+        user = get_database_user(request.user)
+        value = value.replace('##username##', user.username)
+        try:
+            socialapp = SocialApp.objects.get(pk=social_app_pk)
+            value = value.replace('##sso_name##', socialapp.name)
+            return value
+        except SocialApp.DoesNotExist:
+            logging.warning(
+                f'No social app found with id {social_app_pk}. Cannot'
+                ' create in-app message'
+            )
+            return ''

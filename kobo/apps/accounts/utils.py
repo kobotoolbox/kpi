@@ -5,6 +5,7 @@ from kobo.apps.accounts.models import SocialAppManagedDomain
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
+SOCIAL_APP_IDENTIFIER = 'socialaccounts.SocialApp'
 
 def user_has_inactive_paid_subscription(username):
     if not settings.STRIPE_ENABLED:
@@ -56,3 +57,8 @@ def user_is_managed_by_sso(user):
         ).exists()
         return user_has_social_account
     return False
+
+
+def has_social_account(user, social_app: 'socialaccount.SocialApp') -> bool:
+    provider_id = social_app.provider_id
+    return user.socialaccount_set.filter(provider=provider_id).exists()
