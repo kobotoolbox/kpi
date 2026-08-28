@@ -1,4 +1,4 @@
-import { Stack } from '@mantine/core'
+import { Box, Stack } from '@mantine/core'
 import { when } from 'mobx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -345,11 +345,11 @@ export const LibraryAssetForm = ({ asset, assetType, onBack, onRequestClose }: L
         </Stack>
       </bem.FormModal__item>
 
-      <bem.Modal__footer>
+      <Box mt={20} ta={'right'}>
         {onBack && <Button type='secondary' size='l' onClick={onBack} isDisabled={isPending} label={t('Back')} />}
 
         <Button type='primary' size='l' onClick={onSubmit} isDisabled={isPending} label={getSubmitButtonLabel()} />
-      </bem.Modal__footer>
+      </Box>
     </bem.FormModal__form>
   )
 }
