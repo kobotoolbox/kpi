@@ -131,11 +131,14 @@ export const CustomTheme: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
+    // The footer links need `/environment` too, so waiting for one means the theme has landed - the
+    // frame starts out on the default theme and swaps when the request resolves.
+    const termsLink = await canvas.findByRole('link', { name: 'Terms of Service' })
+
     const frame = getFrame(canvasElement)
     expect(frame.className).toContain('background--custom')
     expect(frame.style.backgroundImage).toContain(BACKGROUND_IMAGE_DATA_URI)
 
-    const termsLink = canvas.getByRole('link', { name: 'Terms of Service' })
     expect(termsLink.parentElement?.className).toContain('footer--custom')
     expect(getComputedStyle(termsLink).color).toBe('rgb(255, 255, 255)')
   },

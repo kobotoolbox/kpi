@@ -1,8 +1,5 @@
 @use 'scss/breakpoints';
-
-// The card's natural width from the design. Doubles as the threshold below which it starts giving up
-// horizontal padding, so both live off one value.
-$single-column-width: 440px;
+@use 'scss/pageFrame';
 
 // Heads up: `container-type: inline-size` implies `contain: layout`, making this a containing block for
 // absolutely positioned descendants. Mantine portals its dropdowns to `<body>`, so nothing in the card
@@ -10,7 +7,7 @@ $single-column-width: 440px;
 .container {
   container-type: inline-size;
   width: 100%;
-  max-width: $single-column-width;
+  max-width: pageFrame.$card-width;
 }
 
 .container--twoColumns {
@@ -20,10 +17,7 @@ $single-column-width: 440px;
 .card {
   display: flex;
   flex-direction: row;
-  // A one-off blue-tinted glow from the design, matching no Mantine shadow token. It also can't go
-  // through Mantine's `shadow` prop, which resolves any non-numeric value to
-  // `var(--mantine-shadow-<value>)` and would silently render nothing.
-  box-shadow: 0 4px 40.2px 0 rgb(156 184 214 / 30%);
+  box-shadow: pageFrame.$card-shadow;
 }
 
 .column {
@@ -50,8 +44,8 @@ $single-column-width: 440px;
 }
 
 // Squeezed below its natural width, so the viewport is a phone: hand the horizontal padding back to
-// the content, same as `#/errorApp/ErrorPage.module.scss` does at its narrowest.
-@container (width < #{$single-column-width}) {
+// the content.
+@container (width < #{pageFrame.$card-width}) {
   .column {
     padding-inline: 20px;
   }
