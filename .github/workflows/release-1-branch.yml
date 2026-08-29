@@ -78,13 +78,13 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+    - uses: linear/linear-release-action@e1ca7cace602cb66768264790a2b316630877148 # v.0.17.0
       id: create
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_minor }}
         base_ref: origin/${{ needs.version.outputs.prev_branch }}
-    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+    - uses: linear/linear-release-action@e1ca7cace602cb66768264790a2b316630877148 # v.0.17.0
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
