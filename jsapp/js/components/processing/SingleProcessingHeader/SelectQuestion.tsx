@@ -13,7 +13,8 @@ import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
-import { QUESTION_TYPES } from '#/constants'
+import { findAttachmentByQuestionXpath, getAttachmentQuestionType } from '#/components/submissions/submissionMediaUtils'
+import { type AnyRowTypeName, QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -76,22 +77,42 @@ export default function SelectQuestion({
       }
     }
 
+    /**
+     * For an answer whose question is gone from the form definition. No label
+     * survives anywhere, so the path recorded at submission time has to do.
+     */
+    const buildOptionWithoutRow = (optionXpath: string, type: AnyRowTypeName) => {
+      icons[optionXpath] = getRowTypeIcon(type)
+      return {
+        value: optionXpath,
+        label: optionXpath.split('/').at(-1) ?? optionXpath,
+      }
+    }
+
     const result = assetContent.survey
       .filter((question): question is SurveyRow & { $xpath: NonNullable<SurveyRow['$xpath']> } => !!question.$xpath)
       .filter(({ type }) => isAudioRow(type))
       .map((question) => buildOption(question.$xpath, question))
 
-    // Add entries for audio questions answered in this submission but missing
-    // from the current schema (e.g. after a group rename).
+    // Answers can sit under a path the current schema no longer has - that is
+    // what a rename in a later form version leaves behind. Walking the
+    // submission's own keys guarantees every option added here has data to
+    // process, unlike walking e.g. attachment paths.
     for (const submissionXpath of Object.keys(submission)) {
       if (result.some((o) => o.value === submissionXpath)) {
         continue
       }
+      // Schema first: a renamed group still matches by leaf name. Only a renamed
+      // question matches nothing, and then the attachment's mimetype is the one
+      // clue left as to whether this is audio at all.
       const foundRow = findRowByXpathOrLeafName(assetContent, submissionXpath)
-      if (!foundRow || !isAudioRow(foundRow.type)) {
+      const attachment = foundRow ? undefined : findAttachmentByQuestionXpath(submission, submissionXpath)
+      const type = foundRow?.type ?? (attachment && getAttachmentQuestionType(attachment))
+
+      if (!type || !isAudioRow(type)) {
         continue
       }
-      result.push(buildOption(submissionXpath, foundRow))
+      result.push(foundRow ? buildOption(submissionXpath, foundRow) : buildOptionWithoutRow(submissionXpath, type))
     }
 
     return { options: result, icons }

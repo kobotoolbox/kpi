@@ -9,7 +9,7 @@ import {
 } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { formatTimeDateShort, recordKeys } from '#/utils'
-import { getMediaAttachment } from '../submissionUtils'
+import { findAttachmentByQuestionXpath, getAttachmentQuestionType, getMediaAttachment } from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
@@ -79,30 +79,38 @@ export default function DataTableCell(props: DataTableCellProps) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 
-  if (props.question && props.question.type && props.reactTableRow.value) {
-    if (recordKeys(TABLE_MEDIA_TYPES).includes(props.question.type)) {
-      let mediaAttachment = null
+  // A question renamed after this submission came in is gone from the form
+  // definition, so its column gets no `props.question` - even though the
+  // response and its file are right here. The attachment still records the path
+  // used back then, enough to display the media and open Single Processing.
+  const renamedQuestionAttachment = props.question
+    ? undefined
+    : findAttachmentByQuestionXpath(submission, props.columnKey)
 
-      const attachmentIndex: number = submission._attachments.findIndex(
-        (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
-      )
+  const questionType =
+    props.question?.type ?? (renamedQuestionAttachment && getAttachmentQuestionType(renamedQuestionAttachment))
+  const questionXpath = props.question?.$xpath ?? renamedQuestionAttachment?.question_xpath
 
-      if (props.question.type !== QUESTION_TYPES.text.id && submission._attachments[attachmentIndex]) {
-        mediaAttachment = getMediaAttachment(
-          submission,
-          props.reactTableRow.value,
-          submission._attachments[attachmentIndex].question_xpath,
-        )
-      }
+  if (questionType && props.reactTableRow.value) {
+    if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
+      // The cell value is only a basename, so the file has to be looked up by
+      // xpath - which for a renamed question no longer matches any column key.
+      const attachmentXpath =
+        renamedQuestionAttachment?.question_xpath ??
+        submission._attachments.find(
+          (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
+        )?.question_xpath
 
-      if (
-        props.question.type === QUESTION_TYPES.audio.id ||
-        props.question.type === QUESTION_TYPES['background-audio'].id
-      ) {
-        if (mediaAttachment !== null && props.question.$xpath !== undefined) {
+      const mediaAttachment =
+        attachmentXpath === undefined
+          ? null
+          : getMediaAttachment(submission, props.reactTableRow.value, attachmentXpath)
+
+      if (questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id) {
+        if (mediaAttachment !== null && questionXpath !== undefined) {
           const audioXpath =
             typeof mediaAttachment === 'string' || !mediaAttachment.question_xpath
-              ? props.question.$xpath
+              ? questionXpath
               : mediaAttachment.question_xpath
           return (
             <AudioCell
@@ -116,10 +124,10 @@ export default function DataTableCell(props: DataTableCellProps) {
         }
       }
 
-      if (mediaAttachment !== null && props.question.$xpath !== undefined) {
+      if (mediaAttachment !== null && questionXpath !== undefined) {
         return (
           <MediaCell
-            questionType={props.question.type}
+            questionType={questionType}
             mediaAttachment={mediaAttachment}
             displayValue={props.reactTableRow.value}
             submissionIndex={submissionIndex}
@@ -133,22 +141,21 @@ export default function DataTableCell(props: DataTableCellProps) {
 
     if (
       shouldShowSelectLabels &&
-      (props.question.type === QUESTION_TYPES.select_one.id ||
-        props.question.type === QUESTION_TYPES.select_multiple.id)
+      (questionType === QUESTION_TYPES.select_one.id || questionType === QUESTION_TYPES.select_multiple.id)
     ) {
       return (
         <span className='trimmed-text'>
           {getSelectResponseLabel({
             value: props.reactTableRow.value,
-            questionType: props.question.type,
-            listName: props.question.select_from_list_name,
+            questionType,
+            listName: props.question?.select_from_list_name,
             choices: props.choices,
             translationIndex: props.translationIndex,
           })}
         </span>
       )
     }
-    if (props.question.type === META_QUESTION_TYPES.start || props.question.type === META_QUESTION_TYPES.end) {
+    if (questionType === META_QUESTION_TYPES.start || questionType === META_QUESTION_TYPES.end) {
       return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
     }
   }
