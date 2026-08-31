@@ -9,13 +9,16 @@ from markdownx.models import MarkdownxField
 from kobo.apps.markdownx_uploader.models import (
     AbstractMarkdownxModel,
     MarkdownxUploaderFile,
-    MarkdownxUploaderFileReference,
 )
 from kpi.fields import KpiUidField
 from kpi.utils.markdown import markdownify
 
-
 EPOCH_BEGINNING = datetime.datetime.utcfromtimestamp(0)
+
+
+class MessageType(models.TextChoices):
+    TRANSFER = 'transfer'
+    MANAGED_SSO_REMINDER = 'managed_sso_reminder'
 
 
 class InAppMessage(AbstractMarkdownxModel):
@@ -23,7 +26,8 @@ class InAppMessage(AbstractMarkdownxModel):
     A message, composed in the Django admin interface, displayed to regular
     users within the application
     """
-    uid = KpiUidField(uid_prefix="iam")
+
+    uid = KpiUidField(uid_prefix='iam')
     title = models.CharField(max_length=255)
     snippet = MarkdownxField()
     body = MarkdownxField()
@@ -42,10 +46,15 @@ class InAppMessage(AbstractMarkdownxModel):
     # Make the author deliberately set these dates to something valid
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
-    last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    last_editor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     # We do not want to use a generic foreign key or tightly couple this model
     # with another one, so we use JSONField to store related object name and pk
     generic_related_objects = models.JSONField(default=dict)
+    message_type = models.CharField(
+        choices=MessageType.choices, null=True, blank=True, max_length=255
+    )
 
     markdown_fields = ['snippet', 'body']
 
