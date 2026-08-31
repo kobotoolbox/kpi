@@ -11,9 +11,6 @@ import ToasterConfig from '../toasterConfig'
  * Context the authentication screens need, mirroring what `#/router/basicLayout.component` sets up for
  * the logged in app. They can't reuse that layout - it also renders the main header, the drawer and the
  * route blockers, none of which belong on a sign-in page.
- *
- * Separate from `AuthContainer` so stories can render the container against a fresh `QueryClient`.
- * Sharing the app singleton would leak one story's `/environment` response into the next.
  */
 export default function AuthAppProviders({ children }: { children: React.ReactNode }) {
   return (

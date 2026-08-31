@@ -106,7 +106,7 @@ const commonOptions = {
         ],
       },
       {
-        test: /\.(png|jpg|gif|ttf|eot|woff(2)?)$/,
+        test: /\.(png|jpg|gif|webp|ttf|eot|woff(2)?)$/,
         type: 'asset/resource',
         generator: {
           filename: '[name][ext]',

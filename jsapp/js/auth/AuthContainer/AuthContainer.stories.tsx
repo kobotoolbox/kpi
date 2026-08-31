@@ -13,15 +13,12 @@ import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
 import AuthCard from './AuthCard'
 import AuthContainer from './AuthContainer'
+// Stand-in for the photo an administrator would upload. Storybook serves it from the same origin, so
+// the story tests stay offline. Photo by Salah Darwish.
+import backgroundImageUrl from './salah-darwish-story-bg.webp'
 
 const TERMS_OF_SERVICE_URL = 'https://example.org/terms'
 const PRIVACY_POLICY_URL = 'https://example.org/privacy'
-
-/**
- * A flat blue square, inlined rather than fetched to not depend on the network.
- */
-const BACKGROUND_IMAGE_DATA_URI =
-  'data:image/webp;base64,UklGRroBAABXRUJQVlA4IK4BAAAQCQCdASoZACAAPrVInUmnJCKhMAgA4BaJYgCsMoMzRJXdgECCZhgANw/vBlA8ANJey7vABzE2oTdmVyJGu45W2R0Wf8qvKgQFejSJjVCRNwAA/SMrqOJUTfgh4yg2Dv591MgB8R88x3siy+Tzh6kGD7Us1FJFKt5zMumfZ/F+R6A/vA6rtGYT5gjKt3GqpvkER51bLyPtr5ICZnxmtrym5LwrQY4Ry0lAzUX+3Ri8RsNFV9MkpGrd0mnb8rzGT0I5jGAKKgERH3pmIDb+0r+WRfUqZeNrcvD3eor6HvToBrH+y90Ko+yI8NzLvLwMUGVZhTNiE1XpT2/61r0/072w33hgdLB6Dr0uwGhq6vX94GB27g8Q1mJyA2b7TQ0aye7bz6frLvU7GWXPlxyP1fjTjqLTUV68TBF5mN2o3Sm+vFLnK3dx0o4d4yT3Bn6bnxKXp94qYt2bfyV+78//9pbP2U3d9ra/+G6GxpvCu0yzX0Xvp2Ibw79GIDlhiCUOvIFFNEXFF/KgezsZJ59/uZ7yz5RvCmUfS5gLanOXWdAyAbDc+rBz12IyPuIYuAAA'
 
 /** Both legal links configured, so the footer has something to show. */
 const environmentMockWithFooterLinks = makeEnvironmentMock({
@@ -123,7 +120,7 @@ export const CustomTheme: Story = {
       handlers: [
         makeAuthConfigurationMock({
           theme: AuthThemeEnum.custom,
-          background_image_url: BACKGROUND_IMAGE_DATA_URI,
+          background_image_url: backgroundImageUrl,
         }),
       ],
     },
@@ -137,7 +134,7 @@ export const CustomTheme: Story = {
 
     const frame = getFrame(canvasElement)
     expect(frame.className).toContain('background--custom')
-    expect(frame.style.backgroundImage).toContain(BACKGROUND_IMAGE_DATA_URI)
+    expect(frame.style.backgroundImage).toContain(backgroundImageUrl)
 
     expect(termsLink.parentElement?.className).toContain('footer--custom')
     expect(getComputedStyle(termsLink).color).toBe('rgb(255, 255, 255)')
