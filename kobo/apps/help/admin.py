@@ -23,7 +23,7 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         '##username##, ##user_uid##, and ##user_full_name## '
         '(defaults to `KoboToolbox user`).'
     )
-    readonly_fields = ['uid', 'last_editor']
+    readonly_fields = ['uid', 'last_editor', 'message_type']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
