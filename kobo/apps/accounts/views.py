@@ -19,12 +19,12 @@ from kpi.utils.schema_extensions.response import (
 from kpi.versioning import APIV2Versioning
 from .extend_schemas.api.v2.email.serializers import EmailRequestPayload
 from .mixins import MultipleFieldLookupMixin
+from .permissions import NotManagedSSOPermission
 from .serializers import (
     EmailAddressSerializer,
     SocialAccountSerializer,
     SocialAppDetailSerializer,
 )
-from .permissions import NotManagedSSOPermission
 
 
 @extend_schema(tags=['User / team / organization / usage'])
