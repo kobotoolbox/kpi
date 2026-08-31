@@ -8835,6 +8835,8 @@ paths:
         ## Retrieve organization asset usage tracker
 
         Tracks the total usage of each asset for the user in the given organization
+
+        Use the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long. The standard query syntax is supported (e.g. `?q=name:household`).
       parameters:
       - in: query
         name: limit
@@ -8846,6 +8848,11 @@ paths:
         schema:
           type: string
         description: Which field to use when ordering the results.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
       - in: query
         name: start
         schema:

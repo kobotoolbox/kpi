@@ -180,6 +180,13 @@ class OrganizationAssetViewSet(AssetViewSet):
         ),
         parameters=[
             OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=t('Filter the results with search query'),
+            ),
+            OpenApiParameter(
                 name='start',
                 type=int,
                 location=OpenApiParameter.QUERY,
@@ -300,6 +307,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = 'uid_organization'
     permission_classes = [HasOrgRolePermission]
     http_method_names = ['get', 'patch']
+    # Bare `q` terms search project names (see SearchFilter)
+    search_default_field_lookups = ['name__icontains']
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
@@ -398,10 +407,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             **self.get_serializer_context(),
         }
 
-        filtered_assets = (
-            filters.AssetOrganizationUsageFilter().filter_queryset(
-                request, assets, self
-            )
+        filtered_assets = SearchFilter().filter_queryset(request, assets, self)
+        filtered_assets = filters.AssetOrganizationUsageFilter().filter_queryset(
+            request, filtered_assets, self
         )
 
         page = self.paginate_queryset(filtered_assets)

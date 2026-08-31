@@ -12039,7 +12039,7 @@
         "/api/v2/organizations/{uid_organization}/asset_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_asset_usage_list",
-                "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n",
+                "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n\nUse the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long. The standard query syntax is supported (e.g. `?q=name:household`).\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -12056,6 +12056,14 @@
                             "type": "string"
                         },
                         "description": "Which field to use when ordering the results."
+                    },
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with search query"
                     },
                     {
                         "in": "query",
