@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-09 05:50+0000\n"
+"POT-Creation-Date: 2026-08-26 14:09+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
 "Language-Team: Burmese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/my/)\n"
@@ -32,23 +32,23 @@ msgstr "သုံးစွဲသူအဖြစ် ဝင်ရောက်ရ�
 msgid "Please enter a valid URL"
 msgstr "ကျေးဇူးပြု၍ မှန်ကန်သည့် URL ကိုထည့်သွင်းပါ"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr "အကျိုးအမြတ် မယူသော အဖွဲ့အစည်း"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr "အစိုးရ အဖွဲ့အစည်း"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr "ပညာ‌ရေး အဖွဲ့အစည်း"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr "စီးပွားဖြစ်/အမြတ်အစွန်းအတွက် ကုမ္ပဏီတစ်ခု"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr "ကျွန်ုပ်သည် မည်သည့်အဖွဲ့အစည်းနှင့်မျှ မပတ်သက်ပါ"
 
@@ -87,7 +87,6 @@ msgid "name@organization.org"
 msgstr "name@organization.org"
 
 #: kobo/apps/accounts/forms.py:223
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
 msgid "This field is required."
 msgstr "ဤအကွက်တွင် ဖြည့်သွင်းရန်လိုအပ်သည်။"
 
@@ -133,8 +132,12 @@ msgstr "သက်သေပြရတာတွင် အခက်အခဲမျ�
 msgid "Back"
 msgstr "နောက်သို့"
 
+#: kobo/apps/accounts/mfa/views.py:114
+msgid "Could not activate this method. Please try again later."
+msgstr ""
+
 #: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:320
+#: kpi/serializers/current_user.py:324
 msgid "This action is not allowed."
 msgstr ""
 
@@ -625,17 +628,9 @@ msgstr ""
 msgid "Import"
 msgstr "တင်ပို့သည်"
 
-#: kobo/apps/mass_emails/tasks.py:255
+#: kobo/apps/mass_emails/tasks.py:310
 msgid "Not available"
 msgstr ""
-
-#: kobo/apps/openrosa/apps/api/exceptions.py:12
-msgid "This is not supported by the legacy API anymore"
-msgstr "၎င်းကို စနစ်ဟောင်း API က ဆက်လက်မပံ့ပိုးထားပါ"
-
-#: kobo/apps/openrosa/apps/api/exceptions.py:19
-msgid "No confirmation provided"
-msgstr "အတည်ပြုမှု မပေးထားပါ"
 
 #: kobo/apps/openrosa/apps/api/tools.py:71
 #, python-format
@@ -651,72 +646,18 @@ msgstr "သုံးစွဲသူ %(user)s သည် ဤဖောင်ကိ�
 msgid "You do not have permission to view data from this form."
 msgstr "သင်သည် ဤဖောင်မှ ဒေတာကို ကြည့်ရှုခွင့်မရှိပါ။"
 
-#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:177
-#, python-format
-msgid "Filename '%s' not found."
-msgstr "ဖိုင်နာမည် '%s' ကို မတွေ့ပါ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
 #, python-format
 msgid "Invalid formId %s."
 msgstr "မမှန်ကန်သော formId %s။"
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
-#, python-format
-msgid "%s successfully published."
-msgstr "%s ကို အောင်မြင်စွာ ထုတ်ပြန်ပြီးပါပြီ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:205
-msgid "Missing xml file."
-msgstr "XML ဖိုင် မရှိပါ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:325
-#, python-format
-msgid "Invalid pk `%(pk)s`"
-msgstr "မမှန်ကန်သော pk`%(pk)s`"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:329
-#, python-format
-msgid "Invalid dataid `%(dataid)s`"
-msgstr "မမှန်ကန်သော ဒေတာအိုင်ဒီ `%(dataid)s`"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:344
-msgid "No data matches with given query."
-msgstr "ပေးပို့ထားသော မေးခွန်းနှင့် ကိုက်ညီသော ဒေတာမရှိပါ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:361
-#, python-format
-msgid "Invalid pk %(pk)s"
-msgstr "မမှန်ကန်သော pk%(pk)s"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:69
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
 msgid "No submission key provided."
 msgstr "တင်သွင်းမှု သော့ကို မပေးထားပါ။"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:296
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
 msgid "Unable to create submission."
 msgstr "တင်သွင်းမှု ဖန်တီး၍ မရပါ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:55
-#, python-format
-msgid "'%(export_type)s' format not known or not implemented!"
-msgstr "' %(export_type)s' ပုံစံကို မသိရှိပါ သို့မဟုတ် မတည်ဆောက်ထားပါ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:91
-msgid "Dates must be in the format YY_MM_DD_hh_mm_ss"
-msgstr "ရက်စွဲများသည် YY_MM_DD_hh_mm_ss ပုံစံ ဖြစ်ရမည်"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:109
-msgid "No records found to export"
-msgstr "ထုတ်ယူရန် မှတ်တမ်းများ မတွေ့ပါ"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:140
-msgid "No XLSForm found."
-msgstr "XLS ဖောင် မတွေ့ပါ။"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:585
-msgid "Only a form's owner can overwrite its contents"
-msgstr "ဖောင်၏ ပိုင်ရှင်သာ ၎င်း၏ အကြောင်းအရာများကို အစားထိုးနိုင်ပါသည်"
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:21
 msgid "Attachment with same name already exists"
@@ -731,7 +672,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1039
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1169
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -755,7 +696,7 @@ msgstr ""
 msgid "The instance could not be parsed"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:87
+#: kobo/apps/openrosa/apps/logger/exceptions.py:101
 msgid "Submission is currently being processed."
 msgstr ""
 
@@ -800,7 +741,7 @@ msgid "There should be a single title."
 msgstr "တစ်ခုတည်းသော ခေါင်းစဥ် ရှိရမည်။"
 
 #: kobo/apps/openrosa/apps/logger/views.py:68
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:111
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "အောင်မြင်သော တင်သွင်းမှု။"
 
@@ -829,19 +770,19 @@ msgid "No XLS file for your form %(id)s"
 msgstr "သင့်ဖောင်အတွက် XLS ဖိုင် မရှိပါ %(id)s"
 
 #: kobo/apps/openrosa/apps/logger/views.py:208
-#: kobo/apps/openrosa/apps/viewer/views.py:48
-#: kobo/apps/openrosa/apps/viewer/views.py:101
-#: kobo/apps/openrosa/apps/viewer/views.py:120
-#: kobo/apps/openrosa/apps/viewer/views.py:161
-#: kobo/apps/openrosa/apps/viewer/views.py:189
-#: kobo/apps/openrosa/apps/viewer/views.py:268
+#: kobo/apps/openrosa/apps/viewer/views.py:42
+#: kobo/apps/openrosa/apps/viewer/views.py:95
+#: kobo/apps/openrosa/apps/viewer/views.py:114
+#: kobo/apps/openrosa/apps/viewer/views.py:155
+#: kobo/apps/openrosa/apps/viewer/views.py:183
+#: kobo/apps/openrosa/apps/viewer/views.py:226
 msgid "Not shared."
 msgstr "မမျှဝေထားပါ။"
 
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:36
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:77
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:105
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:542
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:607
 msgid "XML string must have a survey element."
 msgstr "XML string သည် စစ်တမ်းအစိတ်အပိုင်းတစ်ခု ပါရမည်။"
 
@@ -885,17 +826,17 @@ msgstr ""
 msgid "Invalid export type specified"
 msgstr "မမှန်ကန်သော ထုတ်ယူမှုအမျိုးအစား သတ်မှတ်ထားသည်"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:142
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:194
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:140
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:192
 msgid "Invalid start/limit params"
 msgstr "မမှန်ကန်သော စတင်/ကန့်သတ် ပရိုပါမားများ"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:156
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr "မမှန်ကန်သော ပိုက်လိုင်း။ %s"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:160
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
 #, python-format
 msgid "Invalid query! %s"
 msgstr "မမှန်ကန်သော မေးခွန်း။ %s"
@@ -973,28 +914,19 @@ msgstr "ထုတ်ယူမှုကို ဖျက်ရန်"
 msgid "Are you sure you want to delete this export?"
 msgstr "ဤထုတ်ယူမှုကို ဖျက်လိုသည်မှာ သေချာသလား။"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:57
+#: kobo/apps/openrosa/apps/viewer/views.py:51
 #, python-format
 msgid "%s is not a valid delimiter"
 msgstr "%s သည် မမှန်ကန်သော ကန့်သတ်ချက်တစ်ခုဖြစ်သည်"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:77
+#: kobo/apps/openrosa/apps/viewer/views.py:71
 #, python-format
 msgid "%s is not a valid export type"
 msgstr "%s သည် မမှန်ကန်သော ထုတ်ယူမှုအမျိုးအစား ဖြစ်သည်"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:96
+#: kobo/apps/openrosa/apps/viewer/views.py:90
 msgid "Invalid export type"
 msgstr "မမှန်ကန်သော ထုတ်ယူမှုအမျိုးအစား"
-
-#: kobo/apps/openrosa/apps/viewer/views.py:242
-#: kobo/apps/openrosa/apps/viewer/views.py:246
-msgid "Attachment not found"
-msgstr "ပူးတွဲထားသော ဖိုင်မတွေ့ပါ"
-
-#: kobo/apps/openrosa/apps/viewer/views.py:307
-msgid "Error: Attachment not found"
-msgstr "ချို့ယွင်းချက်- ပူးတွဲထားသော ဖိုင်မတွေ့ပါ"
 
 #: kobo/apps/openrosa/libs/authentication.py:51
 msgid ""
@@ -1007,66 +939,6 @@ msgid ""
 "Multi-factor authentication is enabled for this account. ##authentication "
 "class## cannot be used."
 msgstr "ဤအကောင့်အတွက် အချက်ပေါင်းများစွာ အထောက်အထားစိစစ်ခြင်းကို ဖွင့်ထားသည်။  ##authentication class## ကို အသုံးမပြုနိုင်ပါ။"
-
-#: kobo/apps/openrosa/libs/serializers/clone_xform_serializer.py:34
-#, python-format
-msgid "User '%(value)s' does not exist."
-msgstr " သုံးစွဲသူ'%(value)s'  မရှိပါ။"
-
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:45
-#, python-format
-msgid "Invalid query: %(query)s"
-msgstr "မေးခွန်း အမှား-%(query)s"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:18
-msgid "Data License"
-msgstr "ဒေတာလိုင်စင်"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:19
-msgid "Form License"
-msgstr "ပုံစံ လိုင်စင်"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:20
-msgid "Media"
-msgstr "မီဒီယာ"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:21
-msgid "Public Link"
-msgstr "လူထုလင့်ခ်"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:22
-msgid "Source"
-msgstr "အရင်းအမြစ်"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:23
-msgid "Supporting Document"
-msgstr "အထောက်အထား စာရွက်စာတမ်း"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:24
-msgid "Paired Data"
-msgstr "ချိတ်ဆက်ထားသော ဒေတာ"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:72
-msgid "Project not found"
-msgstr "စီမံကိန်း မတွေ့ပါ"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:76
-msgid "You do not have sufficient permissions to perform this action"
-msgstr "ဤလုပ်ဆောင်ချက် ပြုလုပ်ရန် သင့်တွင် လုံလောက်သော ခွင့်ပြုချက် မရှိပါ။"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:122
-msgid "Invalid url {}"
-msgstr "url အမှား {}"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:156
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:167
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:174
-msgid "Cannot determine content type"
-msgstr "အကြောင်းအရာအမျိုးအစားကို မသတ်မှတ်နိုင်ပါ"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-msgid "Invalid content type"
-msgstr "အကြောင်းအရာ အမျိုးအစား အမှား"
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:8
 msgid "Afghanistan"
@@ -2070,91 +1942,96 @@ msgid ""
 "`deprecatedID` from the submission XML and try again."
 msgstr "တင်သွင်းမှုကို ပြင်ဆင်ရန် တားမြစ်မှု။ တင်သွင်းမှုအသစ်တစ်ခုပြုလုပ်ရန် တင်သွင်းမှု XML ထဲမှ `deprecatedID` ကို ဖယ်ရှားပြီး ထပ်မံကြိုးစားပါ။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:467
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:376
+msgid ""
+"Submission rejected: the form contains unsupported or invisible characters."
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:529
 msgid "Username or ID required."
 msgstr "အသုံးပြုသူနာမည် သို့မဟုတ် ID လိုအပ်သည်။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:532
 msgid "Received empty submission. No instance was created"
 msgstr "ဗလာတင်သွင်းမှုရရှိခဲ့ပါသည်။ နမူနာတစ်ခုမဖန်တီးခဲ့ပါ။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:473
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:535
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:482
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:544
 msgid "Form is not active"
 msgstr "ဖောင်သည် လုပ်ဆောင်နေခြင်းမရှိပါ"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:485
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:547
 msgid "Temporarily unavailable"
 msgstr "လက်တလော မရနိုင်ပါ"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:491
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:553
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:495
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:557
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:500
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:565
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:503
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:568
 msgid "Form does not exist on this account"
 msgstr "ဤအကောင့်တွင် ဖောင်မရှိပါ"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:506
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:571
 msgid "Improperly formatted XML."
 msgstr "သင့်လျောစွာ ပုံစံမချထားသည့် XML။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:524
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:589
 msgid "Access denied"
 msgstr "ဝင်‌ရောက်အသုံးပြုခွင့် ပိတ်ပင်ထားသည်"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:531
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:596
 msgid "File likely corrupted during transmission, please try later."
 msgstr "ဖိုင်သည် ပို့ဆောင်မှုအတွင်း ပျက်စီးခဲ့နိုင်ပါသည်၊ ကျေးဇူးပြုပြီး နောက်မှ ထပ်ကြိုးစားပါ။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:668
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:733
 msgid "Invalid URL format."
 msgstr "မမှန်ကန်သော URL ပုံစံ။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:680
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:745
 msgid "Form validation timeout, please try again."
 msgstr "ဖောင် အတည်ပြုခြင်း အချိန်ကုန်ပြီးပါသည်၊ ကျေးဇူးပြုပြီး ထပ်မံကြိုးစားပါ။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:739
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:804
 #: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "တောင်းဆိုမှုတွင် ခြွင်းချက်%(class)s- %(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:772
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:837
 msgid "The requested file could not be found."
 msgstr "တောင်းဆိုထားသော ဖိုင်ကို မတွေ့ပါ။"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1036
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1166
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:89
+#: kobo/apps/openrosa/libs/utils/middleware.py:185 kpi/exceptions.py:93
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
 msgstr "သင့်ဝင်ရောက်ကြည့်ရူခွင့်ကို တားမြစ်ထားပါသည်။ ကျေးဇူးပြု၍ သင့်စကားဝှက်အား ##koboform_url##/accounts/password/reset/ တွင် ပြောင်းခြင်းဖြင့် သင့်ဝင်ရောက်ကြည့်ရူခွင့်အား ပြန်လည်ပြန်တောင်းယူပါ။"
 
-#: kobo/apps/organizations/models.py:373
+#: kobo/apps/organizations/models.py:404
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:373
+#: kobo/apps/organizations/models.py:404
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:414
+#: kobo/apps/organizations/models.py:445
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -2162,7 +2039,7 @@ msgstr ""
 msgid "Invalid role. Only 'admin' or 'member' are allowed"
 msgstr ""
 
-#: kobo/apps/organizations/tasks.py:84
+#: kobo/apps/organizations/tasks.py:86
 msgid "Organization invite has expired"
 msgstr ""
 
@@ -2314,29 +2191,29 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr ""
 
-#: kobo/apps/project_ownership/models/invite.py:98
+#: kobo/apps/project_ownership/models/invite.py:100
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "Kobo ကိရိယာအကွက် စီမံကိန်း ပိုင်ဆိုင်မှုလွှဲပြောင်းခြင်းကို လက်ခံခဲ့သည်"
 
-#: kobo/apps/project_ownership/models/invite.py:133
+#: kobo/apps/project_ownership/models/invite.py:140
 msgid "Action required: KoboToolbox project ownership transfer request"
 msgstr "လုပ်ဆောင်ရန် လိုအပ်သည်- Kobo ကိရိယာအကွက် စီမံကိန်း ပိုင်ဆိုင်မှု လွှဲပြောင်းမှု တောင်းဆိုချက်"
 
-#: kobo/apps/project_ownership/models/invite.py:160
+#: kobo/apps/project_ownership/models/invite.py:172
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Kobo ကိရိယာအကွက် စီမံကိန်း ပိုင်ဆိုင်မှု လွှဲပြောင်းခြင်း မပြီးမြောက်ပါ"
 
-#: kobo/apps/project_ownership/models/transfer.py:251
+#: kobo/apps/project_ownership/models/transfer.py:250
 msgid "Project ownership transferred"
 msgstr "စီမံကိန်းပိုင်ဆိုင်မှုကို လွှဲပြောင်းထားသည်"
 
-#: kobo/apps/project_ownership/models/transfer.py:253
+#: kobo/apps/project_ownership/models/transfer.py:252
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "** ##project_name##** စီမံကိန်းပိုင်ဆိုင်မှုကို **##previous_owner## ** မှ ** ##new_owner##** သို့ လွှဲပြောင်းပေးထားကြောင်း ကျေးဇူးပြု၍ သတိပြုပါ။"
 
-#: kobo/apps/project_ownership/models/transfer.py:257
+#: kobo/apps/project_ownership/models/transfer.py:256
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2364,7 +2241,7 @@ msgstr "စီမံကိန်း `##asset_uid##`ကို လွှဲပြ�
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:186
+#: kobo/apps/project_ownership/tasks.py:188
 msgid "Invite has expired"
 msgstr "ဖိတ်ကြားချက် သက်တမ်းကုန်သွားပါပြီ"
 
@@ -2615,7 +2492,11 @@ msgid "%d plan add-on was created."
 msgid_plural "%d plan add-ons were created."
 msgstr[0] ""
 
-#: kobo/settings/base.py:301
+#: kobo/apps/subsequences/serializers.py:25
+msgid "Invalid parameters for this action"
+msgstr ""
+
+#: kobo/settings/base.py:326
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2623,7 +2504,7 @@ msgid ""
 "email##)."
 msgstr "သင်၏ အထောက်အထားစိစစ်ခြင်းအက်ပ်ကို သင်ဝင်ရောက်၍မရပါက ကျေးဇူးပြု၍ သင့်အရန်ကုတ်များထဲမှ တစ်ခုကို ထည့်ကာ ဝင်ရောက်ပါ။ ၎င်းတို့ကိုလည်း သင်ဝင်ရောက်၍မရပါက [##support email##](mailto:##support email##) သို့ ဆက်သွယ်ခြင်းဖြင့် အကူအညီတောင်းခံရန် လိုအပ်မည်။"
 
-#: kobo/settings/base.py:563
+#: kobo/settings/base.py:607
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2825,7 +2706,7 @@ msgstr "ဤသည်ကို `XML` ပုံစံတွင် မထောက�
 
 #: kpi/deployment_backends/base_backend.py:648
 #: kpi/deployment_backends/base_backend.py:677
-#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1103
+#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1121
 msgid "Value must be valid JSON."
 msgstr "တန်ဖိုးသည် မှန်ကန်သော JSON ဖြစ်ရမည်။"
 
@@ -2864,35 +2745,35 @@ msgstr "တင်သွင်းမှုများ၏အစုလိုက်
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "`asset.connect_deployment()` ကို အရင် ခေါ်ရမည်။"
 
-#: kpi/exceptions.py:98
+#: kpi/exceptions.py:102
 msgid "Invalid search. Please try again"
 msgstr "ရှာဖွေမှုမှာ မှားယွင်းနေပါသည်။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ"
 
-#: kpi/exceptions.py:103
+#: kpi/exceptions.py:107
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr "အသုံးပြုမှုသည် မမျှော်လင့်ထားသော KoboCAT XForm တစ်ခုကို ချိတ်ဆက်နေပါသည်"
 
-#: kpi/exceptions.py:139
+#: kpi/exceptions.py:143
 msgid "An error occurred trying to duplicate the submission"
 msgstr "တင်သွင်းမှုအား ပုံတူကူးရန် ကြိုးစားနေချိန်တွင် ချို့ယွင်းချက်တစ်ခုဖြစ်ပေါ်ခဲ့သည်"
 
-#: kpi/exceptions.py:157
+#: kpi/exceptions.py:207
 msgid "The specified object has not been deployed"
 msgstr "သတ်မှတ်ထားသော အရာဝတ္ထုကို အသုံးမပြုရသေးပါ"
 
-#: kpi/exceptions.py:166
+#: kpi/exceptions.py:216
 msgid "Bad syntax"
 msgstr "အထားအသို မကောင်းပါ"
 
-#: kpi/exceptions.py:171
+#: kpi/exceptions.py:221
 msgid "Not supported field lookup"
 msgstr "အကွက် ရှာဖွေခြင်းကို မထောက်ပံ့ထားပါ"
 
-#: kpi/exceptions.py:194
+#: kpi/exceptions.py:244
 msgid "Your query is too short"
 msgstr "သင့်မေးခွန်းက တိုလွန်းသည်"
 
-#: kpi/exceptions.py:208
+#: kpi/exceptions.py:258
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
@@ -2901,14 +2782,13 @@ msgstr ""
 msgid "Enter valid JSON."
 msgstr "မှန်ကန်သည့် JSON အား ထည့်သွင်းပါ။"
 
-#: kpi/fields/jsonschema_form_field.py:126
+#: kpi/fields/jsonschema_form_field.py:131
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "`##place_holder##` အကွက်ကို ဝှက်ထားလို့ မရပါ။"
 
-#: kpi/fields/writable_json.py:33
-#, python-brace-format
-msgid "Unable to parse JSON: {error}"
-msgstr "JSON ကို ခွဲခြမ်းစိတ်ဖြာ၍ မရပါ- {error} "
+#: kpi/fields/writable_json.py:36
+msgid "Unable to parse JSON"
+msgstr ""
 
 #: kpi/forms/extra_metadata_form.py:26
 msgid "Select fields require at least one option in JSON format."
@@ -2918,140 +2798,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "အချက်ပေါင်းများစွာ အထောက်အထားစိစစ်ခြင်းကို ဤအကောင့်အတွက် ဖွင့်ထားသည်။ "
 
-#: kpi/models/asset.py:306
+#: kpi/models/asset.py:308
 msgid "Can view asset"
 msgstr "ပိုင်ဆိုင်မှုကို ကြည့်နိုင်သည်"
 
-#: kpi/models/asset.py:307
+#: kpi/models/asset.py:309
 msgid "Can discover asset in public lists"
 msgstr "အများမြင် စာရင်းများတွင် ပိုင်ဆိုင်မှုကို ရှာဖွေနိုင်သည်"
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:310
 msgid "Can manage all aspects of asset"
 msgstr "ပိုင်ဆိုင်မှုအားလုံးကို စီမံခန့်ခွဲနိုင်သည်"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:312
 msgid "Can submit data to asset"
 msgstr "ပိုင်ဆိုင်မှုထံသို့ အချက်အလက် တင်သွင်းနိုင်သည်"
 
-#: kpi/models/asset.py:311
+#: kpi/models/asset.py:313
 msgid "Can view submitted data for asset"
 msgstr "ပိုင်ဆိုင်မှုအတွက် တင်သွင်းထားသော အချက်အလက်ကို ကြည့်နိုင်သည်"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:314
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "သီးသန့်အသုံးပြုသူများအတွက် ပိုင်ဆိုင်မှုများကို တင်သွင်းထားသော အချက်အလက်အပေါ် တစ်စိတ်တစ်ပိုင်း လုပ်ဆောင်မှုများ ပြုလုပ်နိုင်သည်"
 
-#: kpi/models/asset.py:315
+#: kpi/models/asset.py:317
 msgid "Can modify submitted data for asset"
 msgstr "ပိုင်ဆိုင်မှုအတွက် တင်ပြထားသော အချက်အလက်ကို မွမ်းမံနိုင်သည်"
 
-#: kpi/models/asset.py:316
+#: kpi/models/asset.py:318
 msgid "Can delete submitted data for asset"
 msgstr "ပိုင်ဆိုင်မှုအတွက် တင်ပြထားသော အချက်အလက်ကို ဖျက်ပစ်နိုင်သည်"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:319
 msgid "Can validate submitted data asset"
 msgstr "တင်ပြထားသော ဒေတာပိုင်ဆိုင်မှုကို အတည်ပြုနိုင်သည်"
 
-#: kpi/models/asset.py:336
+#: kpi/models/asset.py:338
 msgid "project"
 msgstr "စီမံကိန်း"
 
-#: kpi/models/asset.py:336
+#: kpi/models/asset.py:338
 msgid "form"
 msgstr "ဖောင်"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:340
 msgid "template"
 msgstr "နမူနာပုံစံ"
 
-#: kpi/models/asset.py:339
+#: kpi/models/asset.py:341
 msgid "block"
 msgstr "မေးခွန်းတွဲ"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:342
 msgid "question"
 msgstr "မေးခွန်း"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:343
 msgid "text"
 msgstr "စာသား"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:344
 msgid "empty"
 msgstr "အလွတ်"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:345
 msgid "collection"
 msgstr "စုစည်းမှု"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:352
 msgid "View ##asset_type_label##"
 msgstr "အမြင် ##asset_type_label##"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:353
 msgid "Edit ##asset_type_label##"
 msgstr "ပြင်ဆင်ရန် ##asset_type_label##"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:354
 msgid "Discover ##asset_type_label##"
 msgstr "ရှာဖွေရန် ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:355
 msgid "Manage ##asset_type_label##"
 msgstr "စီမံရန် ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:356
 msgid "Add submissions"
 msgstr "တင်သွင်းခြင်းများကို ပေါင်းထည့်ပါ"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:357
 msgid "View submissions"
 msgstr "တင်သွင်းခြင်းများကို ကြည့်ပါ"
 
-#: kpi/models/asset.py:358
+#: kpi/models/asset.py:360
 msgid "Act on submissions only from specific users"
 msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ဆောင်ရွက်ပါ"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:363
 msgid "View submissions only from specific users"
 msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ကြည့်ရှုပါ"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:366
 msgid "Edit submissions only from specific users"
 msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ပြင်ဆင်ပါ"
 
-#: kpi/models/asset.py:367
+#: kpi/models/asset.py:369
 msgid "Delete submissions only from specific users"
 msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ဖျက်သိမ်းပါ"
 
-#: kpi/models/asset.py:370
+#: kpi/models/asset.py:372
 msgid "Validate submissions only from specific users"
 msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ အတည်ပြုပါ"
 
-#: kpi/models/asset.py:373
+#: kpi/models/asset.py:375
 msgid "Edit submissions"
 msgstr "တင်သွင်းခြင်းများကို တည်းဖြတ်ပါ"
 
-#: kpi/models/asset.py:374
+#: kpi/models/asset.py:376
 msgid "Delete submissions"
 msgstr "တင်သွင်းခြင်းများကို ဖျက်ပစ်ပါ"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:377
 msgid "Validate submissions"
 msgstr "တင်သွင်းခြင်းများကို အတည်ပြုပါ"
 
-#: kpi/models/asset.py:689
+#: kpi/models/asset.py:691
 msgid "Only partial permissions for submissions are supported"
 msgstr "တင်သွင်းခြင်းများအတွက် တစ်စိတ်တစ်ပိုင်းခွင့်ပြုချက်များကိုသာ ပံ့ပိုးထားသည်"
 
-#: kpi/models/asset.py:1398
+#: kpi/models/asset.py:1415
 msgid "Can not assign '{}' permission to owner"
 msgstr "'{}' ခွင့်ပြုချက်အား ပိုင်ရှင်သို့ မသတ်မှတ်နိုင်ပါ"
 
-#: kpi/models/asset.py:1402
+#: kpi/models/asset.py:1419
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "'{}' ခွင့်ပြုချက်အား မသတ်မှတ်နိုင်ပါ။ တစ်စိတ်တစ်ပိုင်း ခွင့်ပြုချက်များမှာ ပျောက်ဆုံးနေပါသည်။"
 
@@ -3103,11 +2983,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:161
+#: kpi/models/import_export_task.py:166
 msgid "Cannot access data"
 msgstr "အချက်အလက်အား ရယူ၍ မရပါ"
 
-#: kpi/models/import_export_task.py:790
+#: kpi/models/import_export_task.py:831
 msgid "This data does not exist or you do not have access to it"
 msgstr "ဤအချက်အလက် မရှိပါ သို့မဟုတ် သင်အသုံးပြုခွင့် မရှိပါ"
 
@@ -3125,86 +3005,86 @@ msgid ""
 "characters."
 msgstr "စကားဝှက်သည် အနည်းဆုံး ကွဲပြားသည့် စာလုံးအမျိုးအစားများ ##number of rules## ခု ပါ၀င်သင့်သည်။"
 
-#: kpi/serializers/current_user.py:206
+#: kpi/serializers/current_user.py:210
 msgid "Incorrect current password."
 msgstr "လက်ရှိ စကားဝှက်သည် မှားယွင်းနေပါသည်။"
 
-#: kpi/serializers/current_user.py:226
+#: kpi/serializers/current_user.py:230
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` နှင့် `new_password` နှစ်ခုလုံး ဖြစ်ရမည်"
 
-#: kpi/serializers/current_user.py:264
+#: kpi/serializers/current_user.py:268
 #: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "ဤအကွက်သည် ကွက်လပ် မဖြစ်ရပါ။"
 
-#: kpi/serializers/v2/asset.py:165
+#: kpi/serializers/v2/asset.py:167
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "%(count)d ခု ပရောဂျက်ကို ဖျက်ပစ်ခဲ့ခြင်း မရှိပါ"
 
-#: kpi/serializers/v2/asset.py:171
+#: kpi/serializers/v2/asset.py:173
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "%(count)d ခု ပရောဂျက်ကို ဖျက်ပစ်ခဲ့သည်"
 
-#: kpi/serializers/v2/asset.py:178
+#: kpi/serializers/v2/asset.py:180
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "%(count)d ခု ပရောဂျက်ကို သိမ်းဆည်းခဲ့ခြင်းမရှိပါ"
 
-#: kpi/serializers/v2/asset.py:184
+#: kpi/serializers/v2/asset.py:186
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "%(count)d ခု ပရောဂျက်ကို သိမ်းဆည်းခဲ့ပါသည်"
 
-#: kpi/serializers/v2/asset.py:200
+#: kpi/serializers/v2/asset.py:202
 msgid "One or many projects have been deleted already!"
 msgstr "စီမံကိန်းတစ်ခု သို့မဟုတ် အများအပြားကို ဖျက်ပစ်ခဲ့ပြီးပါပြီ။"
 
-#: kpi/serializers/v2/asset.py:208
+#: kpi/serializers/v2/asset.py:210
 msgid "One or many projects are already being deleted!"
 msgstr "စီမံကိန်းတစ်ခု သို့မဟုတ် အများအပြားကို ဖျက်ပစ်ပြီးပြီ ဖြစ်သည်။"
 
-#: kpi/serializers/v2/asset.py:284
+#: kpi/serializers/v2/asset.py:352
 msgid "`action` parameter is required"
 msgstr "ကန့်သတ်ချက် `action` ခု လိုအပ်သည်"
 
-#: kpi/serializers/v2/asset.py:289
+#: kpi/serializers/v2/asset.py:357
 msgid "Supported values for `action` are: "
 msgstr "`action` အတွက် ပံ့ပိုးပေးထားသော တန်ဖိုးများမှာ-"
 
-#: kpi/serializers/v2/asset.py:311
+#: kpi/serializers/v2/asset.py:379
 msgid "Draft projects cannot be archived"
 msgstr "စီမံကိန်း မူကြမ်းများကို သိမ်းဆည်းထားနိုင်ခြင်းမရှိပါ"
 
-#: kpi/serializers/v2/asset.py:317 kpi/serializers/v2/data.py:61
+#: kpi/serializers/v2/asset.py:385 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "အတည်ပြုချက် လိုအပ်ပါသည်"
 
-#: kpi/serializers/v2/asset.py:992
+#: kpi/serializers/v2/asset.py:1066
 msgid "The property is required"
 msgstr "ပိုင်ဆိုင်မှု လိုအပ်သည်"
 
-#: kpi/serializers/v2/asset.py:996
+#: kpi/serializers/v2/asset.py:1070
 msgid "The property must be an array"
 msgstr "ပိုင်ဆိုင်မှုကို ခင်းကျင်းထားရမည်"
 
-#: kpi/serializers/v2/asset.py:1018
+#: kpi/serializers/v2/asset.py:1092
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "အချို့သော အကွက်များသည် မှန်ကန်မှု မရှိပါ၊ ရွေးချယ်မှုများမှာ-`{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1040
+#: kpi/serializers/v2/asset.py:1114
 msgid "User cannot update current parent collection"
 msgstr "အသုံးပြုသူသည် လက်ရှိ ပင်မစုစည်းမှုကို အဆင့်မမြှင့်တင်နိုင်ပါ"
 
-#: kpi/serializers/v2/asset.py:1050
+#: kpi/serializers/v2/asset.py:1124
 #: kpi/tests/api/v2/test_api_collections.py:476
 msgid "Target collection not found"
 msgstr "ပစ်မှတ် စုစည်းမှု မတွေ့ပါ"
 
-#: kpi/serializers/v2/asset.py:1054
+#: kpi/serializers/v2/asset.py:1128
 #: kpi/tests/api/v2/test_api_collections.py:466
 msgid "User cannot update target parent collection"
 msgstr "အသုံးပြုသူသည် ပစ်မှတ် ပင်မစုစည်းမှုကို အဆင့်မမြှင့်တင်နိုင်ပါ"
@@ -3234,12 +3114,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "`lang` ဤပိုင်ဆိုင်မှုအတွက် {}သော်လည်းကောင်း ဖြစ်ရမည်"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:233
+#: kpi/serializers/v2/export_task.py:234
 msgid "Must be a JSON object"
 msgstr "JSON အရာဝတ္ထုတစ်ခုဖြစ်ရမည်"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:251
+#: kpi/serializers/v2/export_task.py:252
 msgid "All values in the array must be integers"
 msgstr "အခင်းအကျင်းရှိ တန်ဖိုးများ အားလုံးသည် ကိန်းပြည့် ဖြစ်ရပါမည်"
 
@@ -3324,6 +3204,14 @@ msgstr "မှန်ကန်သောစာရင်း မဟုတ်ပါ�
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "မမှန်ကန်သော hyperlink - အရာဝတ္ထု မရှိပါ။"
 
+#: kpi/serializers/v2/attachment_audio_duration.py:13
+msgid "List of attachment UIDs whose audio duration to retrieve "
+msgstr ""
+
+#: kpi/serializers/v2/attachment_audio_duration.py:22
+msgid "Too many attachments requested. "
+msgstr ""
+
 #: kpi/serializers/v2/attachment_delete.py:12
 msgid "The attachment UID to delete"
 msgstr ""
@@ -3352,7 +3240,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:867
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
 msgid "The specified asset has not been deployed"
 msgstr "သတ်မှတ်ထားသော ပိုင်ဆိုင်မှုကို အသုံးမပြုရသေးပါ"
 
@@ -3372,75 +3260,79 @@ msgstr "`data` လိုအပ်သည်"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid` လိုအပ်သည်"
 
-#: kpi/serializers/v2/export_task.py:127
+#: kpi/serializers/v2/export_task.py:128
 msgid "Must contain all the following required keys: {}"
 msgstr "အောက်ပါ လိုအပ်သောကီးများ အားလုံးပါဝင်ရမည်- {} "
 
-#: kpi/serializers/v2/export_task.py:141
+#: kpi/serializers/v2/export_task.py:142
 msgid "Can contain only the following valid keys: {}"
 msgstr "အောက်ပါ မှန်ကန်သော ကီးများသာ ပါ၀င်နိုင်သည်- {}"
 
-#: kpi/serializers/v2/export_task.py:156 kpi/serializers/v2/export_task.py:241
+#: kpi/serializers/v2/export_task.py:157 kpi/serializers/v2/export_task.py:242
 msgid "Must be an array"
 msgstr "ခင်းကျင်းမှုတစ်ခု ဖြစ်ရမည်"
 
-#: kpi/serializers/v2/export_task.py:163
+#: kpi/serializers/v2/export_task.py:164
 msgid "All values in the array must be strings"
 msgstr "ခင်းကျင်းမှုထဲမှ တန်ဖိုးများအားလုံးသည်စာကြောင်းများ ဖြစ်ရမည်"
 
-#: kpi/serializers/v2/export_task.py:173
+#: kpi/serializers/v2/export_task.py:174
 msgid "Must be a non-empty value"
 msgstr "အလွတ်မဟုတ်သည့် တန်ဖိုးတစ်ခုဖြစ်ရမည်"
 
-#: kpi/serializers/v2/export_task.py:186
+#: kpi/serializers/v2/export_task.py:187
 msgid "For this asset must be either {}"
 msgstr "ဤပိုင်ဆိုင်မှုအတွက် {} ဖြစ်ရမည်"
 
-#: kpi/serializers/v2/export_task.py:198 kpi/serializers/v2/export_task.py:262
+#: kpi/serializers/v2/export_task.py:199 kpi/serializers/v2/export_task.py:263
 msgid "Must be either {}"
 msgstr "{} ဖြစ်ရမည်"
 
-#: kpi/serializers/v2/export_task.py:208
+#: kpi/serializers/v2/export_task.py:209
 msgid "The asset must be deployed."
 msgstr "ပိုင်ဆိုင်မှုကို အသုံးချရမည်။"
 
-#: kpi/serializers/v2/export_task.py:225
+#: kpi/serializers/v2/export_task.py:226
 msgid "The export name must be a string."
 msgstr "တင်ပို့သည့်အမည်မှာ စာကြောင်းတစ်ကြောင်း ဖြစ်ရမည်။"
 
-#: kpi/serializers/v2/paired_data.py:92
+#: kpi/serializers/v2/export_task.py:277
+msgid "The \"flatten\" option is not supported for KML exports."
+msgstr ""
+
+#: kpi/serializers/v2/paired_data.py:96
 msgid "Source cannot be changed"
 msgstr "အရင်းအမြစ်ကို ပြောင်းလဲ၍ မရနိုင်ပါ"
 
-#: kpi/serializers/v2/paired_data.py:98
+#: kpi/serializers/v2/paired_data.py:102
 #, python-brace-format
 msgid "Data sharing for `{source_uid}` is not enabled"
 msgstr "`{source_uid}`အတွက် အချက်အလက် မျှဝေခြင်းကို ဖွင့်မထားပါ"
 
-#: kpi/serializers/v2/paired_data.py:110
+#: kpi/serializers/v2/paired_data.py:114
 #, python-brace-format
 msgid "Pairing data with `{source_uid}` is not allowed"
 msgstr "`{source_uid}` နှင့် အချက်အလက် ပေါင်းစပ်ခြင်းအား ခွင့်ပြုမထားပါ"
 
-#: kpi/serializers/v2/paired_data.py:115
+#: kpi/serializers/v2/paired_data.py:119
 #, python-brace-format
 msgid "Source `{source}` is already paired"
 msgstr "အရင်းအမြစ်`{source}` အား ပေါင်းစပ်ပြီးဖြစ်ပါသည်"
 
-#: kpi/serializers/v2/paired_data.py:157
+#: kpi/serializers/v2/paired_data.py:179
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{source_fields}`"
 msgstr "အချို့သော အကွက်များသည် မှန်ကန်မှု မရှိပါ၊ ရွေးချယ်မှုများမှာ-`{source_fields}`"
 
-#: kpi/serializers/v2/paired_data.py:182
+#: kpi/serializers/v2/paired_data.py:204
 msgid "Only letters, numbers and `-` are allowed"
 msgstr "အက္ခရာများ၊ နံပါတ်များနှင့် `-` ကိုသာ ခွင့်ပြုသည်"
 
-#: kpi/serializers/v2/paired_data.py:189
+#: kpi/serializers/v2/paired_data.py:211
 msgid "Extension must be `xml`"
 msgstr "လိုင်းခွဲမှာ `xml` ဖြစ်ရမည်"
 
-#: kpi/serializers/v2/paired_data.py:222
+#: kpi/serializers/v2/paired_data.py:244
 #, python-brace-format
 msgid "`{basename}` is already used"
 msgstr "`{basename}`အား အသုံးပြုထားပြီးပါပြီ"
@@ -3557,6 +3449,12 @@ msgstr "မမှန်ကန်သော အတည်ပြုချက်"
 msgid "You still own projects. Delete or transfer them first."
 msgstr ""
 
+#: kpi/views/v1_api_gone.py:35
+msgid ""
+"The V1 API has been removed. Please read the migration article at "
+"https://support.kobotoolbox.org/migrating_api.html"
+msgstr ""
+
 #: kpi/views/v2/asset_export_settings.py:206
 msgid "Only the following formats are available: ##format list##"
 msgstr " အောက်ပါ ပုံစံများသာ ရရှိနိုင်ပါသည်- ##format list##"
@@ -3590,6 +3488,10 @@ msgstr "ကူးပြောင်းနေစဉ် ချို့ယွင�
 msgid "Conversion is not supported for {}"
 msgstr "ကူးပြောင်းခြင်းကို {} အတွက် မပံ့ပိုထားပါ"
 
-#: kpi/views/v2/data.py:853
+#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+msgid "One or more submission ids are invalid"
+msgstr ""
+
+#: kpi/views/v2/data.py:871
 msgid "A positive integer is required"
 msgstr "အပေါင်းကိန်းပြည့်တစ်ခု လိုအပ်သည်"

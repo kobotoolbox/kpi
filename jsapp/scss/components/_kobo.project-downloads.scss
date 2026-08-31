@@ -51,12 +51,6 @@
     }
   }
 
-  .kobo-select {
-    .kobo-select__control {
-      border: 1px solid colors.$kobo-gray-300;
-    }
-  }
-
   .project-downloads-group-textbox {
     @include mixins.centerRowFlex;
     gap: 10px;
@@ -122,7 +116,7 @@
         align-items: center;
         gap: 10px;
 
-        .toggle-switch {
+        .mantine-Switch-root {
           flex: 1;
         }
 

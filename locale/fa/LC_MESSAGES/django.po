@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-09 05:50+0000\n"
+"POT-Creation-Date: 2026-08-26 14:09+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
 "Language-Team: Persian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/fa/)\n"
@@ -33,23 +33,23 @@ msgstr "به عنوان کاربر وارد شوید"
 msgid "Please enter a valid URL"
 msgstr "لطفاً یک URL معتبر وارد کنید"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr "مؤسسه غیر انتفاعی"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr "موسسه دولتی"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr "موسسه آموزشی"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr "یک شرکت تجاری/انتفاعی"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr "من با هیچ سازمانی ارتباط ندارم"
 
@@ -88,7 +88,6 @@ msgid "name@organization.org"
 msgstr "name@organization.org"
 
 #: kobo/apps/accounts/forms.py:223
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
 msgid "This field is required."
 msgstr "این فیلد اجباری است."
 
@@ -134,8 +133,12 @@ msgstr "مشکلات احراز هویت"
 msgid "Back"
 msgstr "قبلی"
 
+#: kobo/apps/accounts/mfa/views.py:114
+msgid "Could not activate this method. Please try again later."
+msgstr ""
+
 #: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:320
+#: kpi/serializers/current_user.py:324
 msgid "This action is not allowed."
 msgstr ""
 
@@ -626,17 +629,9 @@ msgstr ""
 msgid "Import"
 msgstr "ورودی"
 
-#: kobo/apps/mass_emails/tasks.py:255
+#: kobo/apps/mass_emails/tasks.py:310
 msgid "Not available"
 msgstr ""
-
-#: kobo/apps/openrosa/apps/api/exceptions.py:12
-msgid "This is not supported by the legacy API anymore"
-msgstr "این گزینه دیگر توسط API قدیمی پشتیبانی نمی شود"
-
-#: kobo/apps/openrosa/apps/api/exceptions.py:19
-msgid "No confirmation provided"
-msgstr "هیچ تاییدیه ای ارایه نشده است"
 
 #: kobo/apps/openrosa/apps/api/tools.py:71
 #, python-format
@@ -652,72 +647,18 @@ msgstr "کاربر %(user)s مجاز به تغییر این فرم نمی باش
 msgid "You do not have permission to view data from this form."
 msgstr "شما مجاز به بازدید اطلاعات از این فرم نمی باشید."
 
-#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:177
-#, python-format
-msgid "Filename '%s' not found."
-msgstr "نام فایل '%s' یافت نشد."
-
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
 #, python-format
 msgid "Invalid formId %s."
 msgstr "شناسه فرم '%s' نامعتبر است."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
-#, python-format
-msgid "%s successfully published."
-msgstr "%s با موفقیت منتشر شد."
-
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:205
-msgid "Missing xml file."
-msgstr "فایل xml موجود نیست."
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:325
-#, python-format
-msgid "Invalid pk `%(pk)s`"
-msgstr "`%(pk)s` pk نامعتبر"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:329
-#, python-format
-msgid "Invalid dataid `%(dataid)s`"
-msgstr "شناسه داده نامعتبر `%(dataid)s`"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:344
-msgid "No data matches with given query."
-msgstr "هیچ داده ای با جستار داده شده، مطابقت ندارد."
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:361
-#, python-format
-msgid "Invalid pk %(pk)s"
-msgstr "%(pk)s pk نامعتبر"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:69
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
 msgid "No submission key provided."
 msgstr "کلید ارسال ارایه نشده است."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:296
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
 msgid "Unable to create submission."
 msgstr "ایجاد ارسال امکان پذیر نمی باشد."
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:55
-#, python-format
-msgid "'%(export_type)s' format not known or not implemented!"
-msgstr "'%(export_type)s' فرمت ناشناخته است و یا اجرا نشده است!"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:91
-msgid "Dates must be in the format YY_MM_DD_hh_mm_ss"
-msgstr "فرمت تاریخ باید به صورت YY_MM_DD_hh_mm_ss باشد"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:109
-msgid "No records found to export"
-msgstr "هیچ رکوردی برای خروجی یافت نشد"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:140
-msgid "No XLSForm found."
-msgstr "هیچ فرم XLS یافت نشد."
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:585
-msgid "Only a form's owner can overwrite its contents"
-msgstr "فقط مالک یک فرم می تواند محتویات آن را بازنویسی کند"
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:21
 msgid "Attachment with same name already exists"
@@ -732,7 +673,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1039
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1169
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -756,7 +697,7 @@ msgstr ""
 msgid "The instance could not be parsed"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:87
+#: kobo/apps/openrosa/apps/logger/exceptions.py:101
 msgid "Submission is currently being processed."
 msgstr ""
 
@@ -801,7 +742,7 @@ msgid "There should be a single title."
 msgstr "باید یک عنوان واحد وجود داشته باشد."
 
 #: kobo/apps/openrosa/apps/logger/views.py:68
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:111
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "ارسال با موفقیت انجام شد."
 
@@ -830,19 +771,19 @@ msgid "No XLS file for your form %(id)s"
 msgstr "%(id)s فایل XLS ناموجود برای فرم شما"
 
 #: kobo/apps/openrosa/apps/logger/views.py:208
-#: kobo/apps/openrosa/apps/viewer/views.py:48
-#: kobo/apps/openrosa/apps/viewer/views.py:101
-#: kobo/apps/openrosa/apps/viewer/views.py:120
-#: kobo/apps/openrosa/apps/viewer/views.py:161
-#: kobo/apps/openrosa/apps/viewer/views.py:189
-#: kobo/apps/openrosa/apps/viewer/views.py:268
+#: kobo/apps/openrosa/apps/viewer/views.py:42
+#: kobo/apps/openrosa/apps/viewer/views.py:95
+#: kobo/apps/openrosa/apps/viewer/views.py:114
+#: kobo/apps/openrosa/apps/viewer/views.py:155
+#: kobo/apps/openrosa/apps/viewer/views.py:183
+#: kobo/apps/openrosa/apps/viewer/views.py:226
 msgid "Not shared."
 msgstr "به اشتراک گذاشته نشد."
 
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:36
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:77
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:105
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:542
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:607
 msgid "XML string must have a survey element."
 msgstr "رشته XML می بایست دارای یک عنصر بازرسی باشد.."
 
@@ -886,17 +827,17 @@ msgstr ""
 msgid "Invalid export type specified"
 msgstr "نوع خروجی درخواستی نامعتبر"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:142
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:194
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:140
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:192
 msgid "Invalid start/limit params"
 msgstr "پارامترهای شروع/محدود کردن نامعتبر"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:156
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr "پایپ لاین نامعتبر! %s"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:160
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
 #, python-format
 msgid "Invalid query! %s"
 msgstr "درخواست نامعتبر! %s"
@@ -974,28 +915,19 @@ msgstr "حذف خروجی"
 msgid "Are you sure you want to delete this export?"
 msgstr "آیا مطمئن به حذف این خروجی هستید؟"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:57
+#: kobo/apps/openrosa/apps/viewer/views.py:51
 #, python-format
 msgid "%s is not a valid delimiter"
 msgstr "%s یک جداکننده معتبر نمی باشد"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:77
+#: kobo/apps/openrosa/apps/viewer/views.py:71
 #, python-format
 msgid "%s is not a valid export type"
 msgstr "%s یک نوع خروجی معتبر نمی باشد"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:96
+#: kobo/apps/openrosa/apps/viewer/views.py:90
 msgid "Invalid export type"
 msgstr "نوع خروجی نامعتبر"
-
-#: kobo/apps/openrosa/apps/viewer/views.py:242
-#: kobo/apps/openrosa/apps/viewer/views.py:246
-msgid "Attachment not found"
-msgstr "پیوست یافت نشد"
-
-#: kobo/apps/openrosa/apps/viewer/views.py:307
-msgid "Error: Attachment not found"
-msgstr "خطا: پیوست یافت نشد"
 
 #: kobo/apps/openrosa/libs/authentication.py:51
 msgid ""
@@ -1008,66 +940,6 @@ msgid ""
 "Multi-factor authentication is enabled for this account. ##authentication "
 "class## cannot be used."
 msgstr "احراز هویت چند عاملی برای این حساب فعال است. ##authentication class##قابل استفاده نمی باشد."
-
-#: kobo/apps/openrosa/libs/serializers/clone_xform_serializer.py:34
-#, python-format
-msgid "User '%(value)s' does not exist."
-msgstr "کاربر '%(value)s' موجود نیست."
-
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:45
-#, python-format
-msgid "Invalid query: %(query)s"
-msgstr "درخواست نامعتبر: %(query)s"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:18
-msgid "Data License"
-msgstr "مجوز داده"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:19
-msgid "Form License"
-msgstr "مجوز فرم"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:20
-msgid "Media"
-msgstr "رسانه ها"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:21
-msgid "Public Link"
-msgstr "لینک عمومی"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:22
-msgid "Source"
-msgstr "منبع"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:23
-msgid "Supporting Document"
-msgstr "سند پشتیبانی"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:24
-msgid "Paired Data"
-msgstr "داده جفت شده"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:72
-msgid "Project not found"
-msgstr "پروژه پیدا نشد"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:76
-msgid "You do not have sufficient permissions to perform this action"
-msgstr "شما مجوز کافی برای اجرای این کار را ندارید"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:122
-msgid "Invalid url {}"
-msgstr "url {} نامعتبر است"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:156
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:167
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:174
-msgid "Cannot determine content type"
-msgstr "نمی توان نوع محتوا را تعیین کرد"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-msgid "Invalid content type"
-msgstr "نوع محتوای نامعتبر"
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:8
 msgid "Afghanistan"
@@ -2071,91 +1943,96 @@ msgid ""
 "`deprecatedID` from the submission XML and try again."
 msgstr "این تلاش برای ویرایش یک ارسال ممنوع است. برای ایجاد یک ارسال جدید، `deprecatedID` را از XML ارسال حذف نموده و دوباره امتحان کنید."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:467
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:376
+msgid ""
+"Submission rejected: the form contains unsupported or invisible characters."
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:529
 msgid "Username or ID required."
 msgstr "نام کاربری یا شناسه مورد نیاز است."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:532
 msgid "Received empty submission. No instance was created"
 msgstr "ارسال خالی دریافت شد. هیچ نمونه ای ایجاد نشد"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:473
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:535
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:482
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:544
 msgid "Form is not active"
 msgstr "فرم فعال نمی باشد"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:485
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:547
 msgid "Temporarily unavailable"
 msgstr "به طور موقت در دسترس نیست"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:491
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:553
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:495
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:557
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:500
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:565
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:503
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:568
 msgid "Form does not exist on this account"
 msgstr "فرم در این حساب موجود نیست"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:506
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:571
 msgid "Improperly formatted XML."
 msgstr "فرمت نادرست XML."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:524
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:589
 msgid "Access denied"
 msgstr "عدم دسترسی"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:531
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:596
 msgid "File likely corrupted during transmission, please try later."
 msgstr "احتمالاً فایل به در هنگام انتقال خراب شده است، لطفاً بعداً امتحان کنید."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:668
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:733
 msgid "Invalid URL format."
 msgstr "url نامعتبر است."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:680
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:745
 msgid "Form validation timeout, please try again."
 msgstr "مهلت زمان تایید فرم تمام شد، لطفاً دوباره امتحان کنید."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:739
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:804
 #: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "استثنا در درخواست: %(class)s : %(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:772
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:837
 msgid "The requested file could not be found."
 msgstr "فایل درخواستی یافت نشد."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1036
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1166
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:89
+#: kobo/apps/openrosa/libs/utils/middleware.py:185 kpi/exceptions.py:93
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
 msgstr "دسترسی شما محدود شده است لطفاً با تغییر رمز عبور خود در ##koboform_url##/accounts/password/reset/ دسترسی خود را مجددا درخواست کنید."
 
-#: kobo/apps/organizations/models.py:373
+#: kobo/apps/organizations/models.py:404
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:373
+#: kobo/apps/organizations/models.py:404
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:414
+#: kobo/apps/organizations/models.py:445
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -2163,7 +2040,7 @@ msgstr ""
 msgid "Invalid role. Only 'admin' or 'member' are allowed"
 msgstr ""
 
-#: kobo/apps/organizations/tasks.py:84
+#: kobo/apps/organizations/tasks.py:86
 msgid "Organization invite has expired"
 msgstr ""
 
@@ -2315,29 +2192,29 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr ""
 
-#: kobo/apps/project_ownership/models/invite.py:98
+#: kobo/apps/project_ownership/models/invite.py:100
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "انتقال مالکیت پروژه KoboToolbox پذیرفته شده است"
 
-#: kobo/apps/project_ownership/models/invite.py:133
+#: kobo/apps/project_ownership/models/invite.py:140
 msgid "Action required: KoboToolbox project ownership transfer request"
 msgstr "اقدام لازم : درخواست انتقال مالکیت پروژه koboToolbox"
 
-#: kobo/apps/project_ownership/models/invite.py:160
+#: kobo/apps/project_ownership/models/invite.py:172
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "انتقال مالکیت پروژه KoboToolbox ناقص است"
 
-#: kobo/apps/project_ownership/models/transfer.py:251
+#: kobo/apps/project_ownership/models/transfer.py:250
 msgid "Project ownership transferred"
 msgstr "مالکیت پروژه منتقل شد"
 
-#: kobo/apps/project_ownership/models/transfer.py:253
+#: kobo/apps/project_ownership/models/transfer.py:252
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "لطفا توجه داشته باشید که مالکیت پروژه **##project_name##**از**##previous_owner##**به **##new_owner##** منتقل شده است ."
 
-#: kobo/apps/project_ownership/models/transfer.py:257
+#: kobo/apps/project_ownership/models/transfer.py:256
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2365,7 +2242,7 @@ msgstr "پروژه `##asset_uid##` قابل انتقال نیست. وضیعت ف
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:186
+#: kobo/apps/project_ownership/tasks.py:188
 msgid "Invite has expired"
 msgstr "دعوت منقضی شد"
 
@@ -2617,7 +2494,11 @@ msgid_plural "%d plan add-ons were created."
 msgstr[0] "%d افزونه طرح ایجاد شد."
 msgstr[1] "%d افزونه طرح ایجاد شد."
 
-#: kobo/settings/base.py:301
+#: kobo/apps/subsequences/serializers.py:25
+msgid "Invalid parameters for this action"
+msgstr ""
+
+#: kobo/settings/base.py:326
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2625,7 +2506,7 @@ msgid ""
 "email##)."
 msgstr "اگر نمی توانید به برنامه احراز هویت خود دسترسی پیدا کنید، لطفاً به جای آن یکی از کدهای پشتیبان خود را وارد کنید. اگر نمی توانید به آنها نیز دسترسی داشته باشید، باید با تماس با [##support email##] (mailto:##support email##) درخواست کمک کنید."
 
-#: kobo/settings/base.py:563
+#: kobo/settings/base.py:607
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2827,7 +2708,7 @@ msgstr "این در قالب `XML` پذیرفته نمی شود"
 
 #: kpi/deployment_backends/base_backend.py:648
 #: kpi/deployment_backends/base_backend.py:677
-#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1103
+#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1121
 msgid "Value must be valid JSON."
 msgstr "مقدار باید JSON معتبر باشد."
 
@@ -2866,35 +2747,35 @@ msgstr "محموله نامعتبر برای به‌روزرسانی انبوه 
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "ابتدا باید `asset.connect_deployment()` را فراخوانی کند"
 
-#: kpi/exceptions.py:98
+#: kpi/exceptions.py:102
 msgid "Invalid search. Please try again"
 msgstr "جستجو نامعتبر است. لطفا دوباره تلاش کنید"
 
-#: kpi/exceptions.py:103
+#: kpi/exceptions.py:107
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr "به کار اندازی به یک KoboCAT XForm غیر منتظره پیوند می خورد"
 
-#: kpi/exceptions.py:139
+#: kpi/exceptions.py:143
 msgid "An error occurred trying to duplicate the submission"
 msgstr "هنگام تلاش برای کپی کردن ارسال، خطایی روی داد"
 
-#: kpi/exceptions.py:157
+#: kpi/exceptions.py:207
 msgid "The specified object has not been deployed"
 msgstr "شی مشخص شده منتشر نشده است"
 
-#: kpi/exceptions.py:166
+#: kpi/exceptions.py:216
 msgid "Bad syntax"
 msgstr "ساینتکس -ساختار بد"
 
-#: kpi/exceptions.py:171
+#: kpi/exceptions.py:221
 msgid "Not supported field lookup"
 msgstr "جستجوی میدانی پشتیبانی نمی شود"
 
-#: kpi/exceptions.py:194
+#: kpi/exceptions.py:244
 msgid "Your query is too short"
 msgstr "درخواست شما خیلی کوتاه است"
 
-#: kpi/exceptions.py:208
+#: kpi/exceptions.py:258
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
@@ -2903,14 +2784,13 @@ msgstr ""
 msgid "Enter valid JSON."
 msgstr "JSON معتبر وارد کنید."
 
-#: kpi/fields/jsonschema_form_field.py:126
+#: kpi/fields/jsonschema_form_field.py:131
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "فیلد `##place_holder##` را نمی توان پنهان کرد."
 
-#: kpi/fields/writable_json.py:33
-#, python-brace-format
-msgid "Unable to parse JSON: {error}"
-msgstr "تجزیه JSON ممکن نیست: {error}"
+#: kpi/fields/writable_json.py:36
+msgid "Unable to parse JSON"
+msgstr ""
 
 #: kpi/forms/extra_metadata_form.py:26
 msgid "Select fields require at least one option in JSON format."
@@ -2920,140 +2800,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "احراز هویت چندعاملی برای این حساب کاربری فعال است. "
 
-#: kpi/models/asset.py:306
+#: kpi/models/asset.py:308
 msgid "Can view asset"
 msgstr "می تواند دارایی را مشاهده کند"
 
-#: kpi/models/asset.py:307
+#: kpi/models/asset.py:309
 msgid "Can discover asset in public lists"
 msgstr "می تواند دارایی را در لیست های عمومی کشف کند"
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:310
 msgid "Can manage all aspects of asset"
 msgstr "می تواند تمام جنبه های دارایی را مدیریت کند"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:312
 msgid "Can submit data to asset"
 msgstr "می تواند داده ها را به دارایی ارسال کند"
 
-#: kpi/models/asset.py:311
+#: kpi/models/asset.py:313
 msgid "Can view submitted data for asset"
 msgstr "می تواند داده های ارسال شده برای دارایی را مشاهده کند"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:314
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "می تواند اقدامات جزئی را روی داده های ارسالی برای دارایی برای کاربران خاص انجام دهد"
 
-#: kpi/models/asset.py:315
+#: kpi/models/asset.py:317
 msgid "Can modify submitted data for asset"
 msgstr "می تواند داده های ارسالی را برای دارایی تغییر دهد"
 
-#: kpi/models/asset.py:316
+#: kpi/models/asset.py:318
 msgid "Can delete submitted data for asset"
 msgstr "می تواند داده های ارسال شده برای دارایی را حذف کند"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:319
 msgid "Can validate submitted data asset"
 msgstr "می تواند دارایی داده ارسال شده را تأیید کند"
 
-#: kpi/models/asset.py:336
+#: kpi/models/asset.py:338
 msgid "project"
 msgstr "پروژه"
 
-#: kpi/models/asset.py:336
+#: kpi/models/asset.py:338
 msgid "form"
 msgstr "فرم"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:340
 msgid "template"
 msgstr "نمونه"
 
-#: kpi/models/asset.py:339
+#: kpi/models/asset.py:341
 msgid "block"
 msgstr "مسدود کردن"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:342
 msgid "question"
 msgstr "سوال"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:343
 msgid "text"
 msgstr "متن"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:344
 msgid "empty"
 msgstr "خالی"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:345
 msgid "collection"
 msgstr "مجموعه"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:352
 msgid "View ##asset_type_label##"
 msgstr "نمایش ##asset_type_label##"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:353
 msgid "Edit ##asset_type_label##"
 msgstr "ویرایش ##asset_type_label##"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:354
 msgid "Discover ##asset_type_label##"
 msgstr "كشف کنید ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:355
 msgid "Manage ##asset_type_label##"
 msgstr "مدیریت کنید ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:356
 msgid "Add submissions"
 msgstr "موارد ارسالی را اضافه کنید"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:357
 msgid "View submissions"
 msgstr "موارد ارسالی را مشاهده کنید"
 
-#: kpi/models/asset.py:358
+#: kpi/models/asset.py:360
 msgid "Act on submissions only from specific users"
 msgstr "فقط بر مورد ارسالی از کاربران خاص اقدام کنید"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:363
 msgid "View submissions only from specific users"
 msgstr "موارد ارسالی را فقط از کاربران خاص مشاهده کنید"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:366
 msgid "Edit submissions only from specific users"
 msgstr "موارد ارسالی را فقط از کاربران خاص ویرایش کنید"
 
-#: kpi/models/asset.py:367
+#: kpi/models/asset.py:369
 msgid "Delete submissions only from specific users"
 msgstr "موارد ارسالی را فقط از کاربران خاص حذف کنید"
 
-#: kpi/models/asset.py:370
+#: kpi/models/asset.py:372
 msgid "Validate submissions only from specific users"
 msgstr "ارسال‌ها را فقط از کاربران خاص تأیید کنید"
 
-#: kpi/models/asset.py:373
+#: kpi/models/asset.py:375
 msgid "Edit submissions"
 msgstr "موارد ارسالی را ویرایش کنید"
 
-#: kpi/models/asset.py:374
+#: kpi/models/asset.py:376
 msgid "Delete submissions"
 msgstr "حذف مواد ارسالی"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:377
 msgid "Validate submissions"
 msgstr "تأیید صحت موارد ارسالی"
 
-#: kpi/models/asset.py:689
+#: kpi/models/asset.py:691
 msgid "Only partial permissions for submissions are supported"
 msgstr "فقط مجوزهای جزئی برای ارسال ها پشتیبانی می شود"
 
-#: kpi/models/asset.py:1398
+#: kpi/models/asset.py:1415
 msgid "Can not assign '{}' permission to owner"
 msgstr "نمی توان مجوز '{}' را به مالک اختصاص داد"
 
-#: kpi/models/asset.py:1402
+#: kpi/models/asset.py:1419
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "نمی توان مجوز '{}' را اختصاص داد. مجوزهای جزئی وجود ندارد."
 
@@ -3105,11 +2985,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:161
+#: kpi/models/import_export_task.py:166
 msgid "Cannot access data"
 msgstr "دسترسی به داده ها امکان پذیر نیست"
 
-#: kpi/models/import_export_task.py:790
+#: kpi/models/import_export_task.py:831
 msgid "This data does not exist or you do not have access to it"
 msgstr "این داده وجود ندارد یا شما به آن دسترسی ندارید"
 
@@ -3127,86 +3007,86 @@ msgid ""
 "characters."
 msgstr "رمز عبور باید حداقل ##number of rules## کاراکتر باشد."
 
-#: kpi/serializers/current_user.py:206
+#: kpi/serializers/current_user.py:210
 msgid "Incorrect current password."
 msgstr "رمز عبور فعلی نادرست است."
 
-#: kpi/serializers/current_user.py:226
+#: kpi/serializers/current_user.py:230
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` و `new_password` هر دو باید باشند"
 
-#: kpi/serializers/current_user.py:264
+#: kpi/serializers/current_user.py:268
 #: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "این فیلد ممکن است خالی نباشد."
 
-#: kpi/serializers/v2/asset.py:165
+#: kpi/serializers/v2/asset.py:167
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "%(count)d پروژه حذف نشده است"
 
-#: kpi/serializers/v2/asset.py:171
+#: kpi/serializers/v2/asset.py:173
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "%(count)d پروژه حذف شده است"
 
-#: kpi/serializers/v2/asset.py:178
+#: kpi/serializers/v2/asset.py:180
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "%(count)d پروژه از بایگانی خارج نشده است"
 
-#: kpi/serializers/v2/asset.py:184
+#: kpi/serializers/v2/asset.py:186
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "%(count)d پروژه بایگانی شده است"
 
-#: kpi/serializers/v2/asset.py:200
+#: kpi/serializers/v2/asset.py:202
 msgid "One or many projects have been deleted already!"
 msgstr "یک یا چند پروژه قبلاً حذف شده اند!"
 
-#: kpi/serializers/v2/asset.py:208
+#: kpi/serializers/v2/asset.py:210
 msgid "One or many projects are already being deleted!"
 msgstr "یک یا چند پروژه در حال حاضر حذف شده اند!"
 
-#: kpi/serializers/v2/asset.py:284
+#: kpi/serializers/v2/asset.py:352
 msgid "`action` parameter is required"
 msgstr "پارامتر `action` مورد نیاز است"
 
-#: kpi/serializers/v2/asset.py:289
+#: kpi/serializers/v2/asset.py:357
 msgid "Supported values for `action` are: "
 msgstr "مقادیر پذیرفته شده برای `action` عبارتند از: "
 
-#: kpi/serializers/v2/asset.py:311
+#: kpi/serializers/v2/asset.py:379
 msgid "Draft projects cannot be archived"
 msgstr "پروژه های پیش نویس را نمی توان بایگانی کرد"
 
-#: kpi/serializers/v2/asset.py:317 kpi/serializers/v2/data.py:61
+#: kpi/serializers/v2/asset.py:385 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "تایید لازم است"
 
-#: kpi/serializers/v2/asset.py:992
+#: kpi/serializers/v2/asset.py:1066
 msgid "The property is required"
 msgstr "ویژگی مورد نیاز است"
 
-#: kpi/serializers/v2/asset.py:996
+#: kpi/serializers/v2/asset.py:1070
 msgid "The property must be an array"
 msgstr "ویژگی باید یک آرایه باشد"
 
-#: kpi/serializers/v2/asset.py:1018
+#: kpi/serializers/v2/asset.py:1092
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "برخی از بخش ها باطل هستند، گزینه ها عبارتند از: `{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1040
+#: kpi/serializers/v2/asset.py:1114
 msgid "User cannot update current parent collection"
 msgstr "کاربر نمی تواند مجموعه والد فعلی را به روز کند"
 
-#: kpi/serializers/v2/asset.py:1050
+#: kpi/serializers/v2/asset.py:1124
 #: kpi/tests/api/v2/test_api_collections.py:476
 msgid "Target collection not found"
 msgstr "مجموعه هدف یافت نشد"
 
-#: kpi/serializers/v2/asset.py:1054
+#: kpi/serializers/v2/asset.py:1128
 #: kpi/tests/api/v2/test_api_collections.py:466
 msgid "User cannot update target parent collection"
 msgstr "کاربر نمی تواند مجموعه والد هدف را به روز کند"
@@ -3236,12 +3116,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "`lang` برای این دارایی باید یا {} باشید"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:233
+#: kpi/serializers/v2/export_task.py:234
 msgid "Must be a JSON object"
 msgstr "باید یک شی JSON باشد"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:251
+#: kpi/serializers/v2/export_task.py:252
 msgid "All values in the array must be integers"
 msgstr "تمام مقادیر موجود در آرایه باید اعداد صحیح باشند"
 
@@ -3326,6 +3206,14 @@ msgstr "لیست معتبری نیست."
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "پیوند نامعتبر - شی وجود ندارد."
 
+#: kpi/serializers/v2/attachment_audio_duration.py:13
+msgid "List of attachment UIDs whose audio duration to retrieve "
+msgstr ""
+
+#: kpi/serializers/v2/attachment_audio_duration.py:22
+msgid "Too many attachments requested. "
+msgstr ""
+
 #: kpi/serializers/v2/attachment_delete.py:12
 msgid "The attachment UID to delete"
 msgstr ""
@@ -3354,7 +3242,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:867
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
 msgid "The specified asset has not been deployed"
 msgstr "دارایی مشخص شده به کار گرفته نشده است"
 
@@ -3374,75 +3262,79 @@ msgstr "`data` الزامی"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid` الزامی"
 
-#: kpi/serializers/v2/export_task.py:127
+#: kpi/serializers/v2/export_task.py:128
 msgid "Must contain all the following required keys: {}"
 msgstr "باید شامل تمام کلیدهای مورد نیاز زیر باشد: {}"
 
-#: kpi/serializers/v2/export_task.py:141
+#: kpi/serializers/v2/export_task.py:142
 msgid "Can contain only the following valid keys: {}"
 msgstr "فقط می تواند حاوی کلیدهای معتبر زیر باشد: {}"
 
-#: kpi/serializers/v2/export_task.py:156 kpi/serializers/v2/export_task.py:241
+#: kpi/serializers/v2/export_task.py:157 kpi/serializers/v2/export_task.py:242
 msgid "Must be an array"
 msgstr "باید یک آرایه باشد"
 
-#: kpi/serializers/v2/export_task.py:163
+#: kpi/serializers/v2/export_task.py:164
 msgid "All values in the array must be strings"
 msgstr "تمام مقادیر آرایه باید رشته ای باشند"
 
-#: kpi/serializers/v2/export_task.py:173
+#: kpi/serializers/v2/export_task.py:174
 msgid "Must be a non-empty value"
 msgstr "باید یک مقدار غیر خالی باشد"
 
-#: kpi/serializers/v2/export_task.py:186
+#: kpi/serializers/v2/export_task.py:187
 msgid "For this asset must be either {}"
 msgstr "برای این دارایی باید یا {} باشید"
 
-#: kpi/serializers/v2/export_task.py:198 kpi/serializers/v2/export_task.py:262
+#: kpi/serializers/v2/export_task.py:199 kpi/serializers/v2/export_task.py:263
 msgid "Must be either {}"
 msgstr "باید یا {} باشد"
 
-#: kpi/serializers/v2/export_task.py:208
+#: kpi/serializers/v2/export_task.py:209
 msgid "The asset must be deployed."
 msgstr "دارایی باید منتشر شود."
 
-#: kpi/serializers/v2/export_task.py:225
+#: kpi/serializers/v2/export_task.py:226
 msgid "The export name must be a string."
 msgstr "نام صادرات باید یک رشته باشد."
 
-#: kpi/serializers/v2/paired_data.py:92
+#: kpi/serializers/v2/export_task.py:277
+msgid "The \"flatten\" option is not supported for KML exports."
+msgstr ""
+
+#: kpi/serializers/v2/paired_data.py:96
 msgid "Source cannot be changed"
 msgstr "منبع قابل تغییر نیست"
 
-#: kpi/serializers/v2/paired_data.py:98
+#: kpi/serializers/v2/paired_data.py:102
 #, python-brace-format
 msgid "Data sharing for `{source_uid}` is not enabled"
 msgstr "اشتراک گذاری داده برای `{source_uid}` فعال نیست"
 
-#: kpi/serializers/v2/paired_data.py:110
+#: kpi/serializers/v2/paired_data.py:114
 #, python-brace-format
 msgid "Pairing data with `{source_uid}` is not allowed"
 msgstr "اتصال داده ها با `{source_uid}` مجاز نیست"
 
-#: kpi/serializers/v2/paired_data.py:115
+#: kpi/serializers/v2/paired_data.py:119
 #, python-brace-format
 msgid "Source `{source}` is already paired"
 msgstr "منبع `{source}` قبلاً متصل شده است"
 
-#: kpi/serializers/v2/paired_data.py:157
+#: kpi/serializers/v2/paired_data.py:179
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{source_fields}`"
 msgstr "برخی از بخش ها باطل هستند، گزینه ها عبارتند از: `{source_fields}`"
 
-#: kpi/serializers/v2/paired_data.py:182
+#: kpi/serializers/v2/paired_data.py:204
 msgid "Only letters, numbers and `-` are allowed"
 msgstr "فقط حروف، اعداد و `-` مجاز هستند"
 
-#: kpi/serializers/v2/paired_data.py:189
+#: kpi/serializers/v2/paired_data.py:211
 msgid "Extension must be `xml`"
 msgstr "پسوند باید `xml` باشد"
 
-#: kpi/serializers/v2/paired_data.py:222
+#: kpi/serializers/v2/paired_data.py:244
 #, python-brace-format
 msgid "`{basename}` is already used"
 msgstr "`{basename}` قبلاً استفاده شده است"
@@ -3559,6 +3451,12 @@ msgstr "تایید نامعتبر"
 msgid "You still own projects. Delete or transfer them first."
 msgstr ""
 
+#: kpi/views/v1_api_gone.py:35
+msgid ""
+"The V1 API has been removed. Please read the migration article at "
+"https://support.kobotoolbox.org/migrating_api.html"
+msgstr ""
+
 #: kpi/views/v2/asset_export_settings.py:206
 msgid "Only the following formats are available: ##format list##"
 msgstr "فقط فرمت های زیر موجود است: ##format list##"
@@ -3592,6 +3490,10 @@ msgstr "خطا در هنگام تبدیل رخ داد"
 msgid "Conversion is not supported for {}"
 msgstr "تبدیل برای {} پشتیبانی نمی شود"
 
-#: kpi/views/v2/data.py:853
+#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+msgid "One or more submission ids are invalid"
+msgstr ""
+
+#: kpi/views/v2/data.py:871
 msgid "A positive integer is required"
 msgstr "یک عدد صحیح مثبت مورد نیاز است"

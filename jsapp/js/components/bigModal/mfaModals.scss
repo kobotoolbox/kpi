@@ -26,11 +26,10 @@ $mfa-paragraph-spacing: 18px;
   }
 }
 
-// HACK override for TextBox component
+// The MFA code is short and numeric, so it gets its own oversized, centered treatment
 .mfa-modals-textbox input {
   text-align: center;
   font-size: 18px !important;
-  font-weight: 400 !important;
 }
 
 .mfa-modal__body {
@@ -63,7 +62,7 @@ $mfa-paragraph-spacing: 18px;
 
 // Individual steps separeted out from parent for readability
 .mfa-modal--step-qr {
-  canvas {
+  svg {
     display: block;
     padding: 14px;
     border: 1px solid colors.$kobo-gray-400;

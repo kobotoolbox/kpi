@@ -7,12 +7,13 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
-import { getSubmissionRootUuid } from '../../common/conflictingOngoingJob'
+import { getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import {
   getAllTranslationsFromSupplementData,
   getLatestAutomaticTranslationVersionItem,
+  getTranslationSourceLanguages,
   isSupplementVersionAutomatic,
 } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
@@ -42,6 +43,18 @@ export default function TranslationTab({
   const translationVersions = useMemo(
     () => getAllTranslationsFromSupplementData(supplement, questionXpath, false),
     [supplement, questionXpath],
+  )
+
+  // Languages already translated into, plus the source transcript's own language. Translating a transcript into its own
+  // language leaves behind an empty column that can't be deleted, so that language has to go too.
+  const unavailableLanguages = useMemo(
+    () => [
+      ...new Set([
+        ...translationVersions.map(({ _data }) => _data.language),
+        ...getTranslationSourceLanguages(supplement, questionXpath),
+      ]),
+    ],
+    [supplement, questionXpath, translationVersions],
   )
 
   // Read languageCode from URL params if available (for direct navigation to specific translation)
@@ -84,7 +97,7 @@ export default function TranslationTab({
 
     // If URL had a language code that doesn't exist in this submission, update URL to match the fallback
     if (urlLanguageCode && fallbackLanguage) {
-      const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
+      const submissionEditId = getSubmissionRootUuid(submission)
       goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, fallbackLanguage)
     }
   }, [
@@ -112,6 +125,7 @@ export default function TranslationTab({
         submission={submission}
         supplement={supplement}
         languageCode={languageCode}
+        activeBulkActions={activeBulkActions}
       />
     )
   }
@@ -143,7 +157,7 @@ export default function TranslationTab({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
-          languagesExisting={translationVersions.map(({ _data }) => _data.language)}
+          languagesUnavailable={unavailableLanguages}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
           activeBulkActions={activeBulkActions}
@@ -156,7 +170,7 @@ export default function TranslationTab({
             }
             setLanguageCode(newLanguageCode)
             // Update URL to reflect the newly created translation language
-            const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
+            const submissionEditId = getSubmissionRootUuid(submission)
             goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
           }}
           onBack={() => {
@@ -186,7 +200,7 @@ export default function TranslationTab({
             onAdd={() => setMode('add')}
             onChangeLanguageCode={(newLanguageCode: LanguageCode) => {
               // Update browser URL to reflect the new language selection
-              const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
+              const submissionEditId = getSubmissionRootUuid(submission)
               goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
               // Update local state (navigation will cause re-render, but this provides immediate feedback)
               setLanguageCode(newLanguageCode)

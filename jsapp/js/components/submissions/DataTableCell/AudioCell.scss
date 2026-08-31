@@ -4,7 +4,10 @@
   @include mixins.centerRowFlex;
   height: 100%;
 
-  > *:not(:first-child) {
-    margin-left: 10px;
+  // Let the player/text section shrink and ellipsis instead of pushing the
+  // action buttons onto a new line when the cell is narrow.
+  > :first-child {
+    min-width: 0;
+    overflow: hidden;
   }
 }

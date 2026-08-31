@@ -9,9 +9,9 @@ import type { FilesResponseMetadata } from '#/api/models/filesResponseMetadata'
 import { useAssetsFilesCreate, useAssetsFilesDestroy, useAssetsFilesList } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
+import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import TextBox from '#/components/common/textBox'
 import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
@@ -264,12 +264,13 @@ export default function FormMedia(props: FormMediaProps) {
             <Text className='form-media-upload-url__label'>{t('You can also add files using a URL')}</Text>
 
             <Group className='form-media-upload-url__form' wrap='nowrap' align='flex-start'>
-              <TextBox
+              <TextInput
                 type='url'
+                flex={1}
                 placeholder={t('Paste URL here')}
-                errors={fieldsErrors?.metadata}
+                error={Array.isArray(fieldsErrors.metadata) ? fieldsErrors.metadata.join(' ') : fieldsErrors.metadata}
                 value={inputURL}
-                onChange={setInputURL}
+                onChange={(evt) => setInputURL(evt.currentTarget.value)}
               />
 
               <Button
@@ -321,7 +322,7 @@ export default function FormMedia(props: FormMediaProps) {
 
                 <ActionIcon
                   size='md'
-                  variant='subtle'
+                  variant='danger-secondary'
                   color='red'
                   aria-label={t('Delete file')}
                   onClick={() => onDeleteMedia(item.uid)}

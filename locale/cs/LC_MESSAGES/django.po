@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-09 05:50+0000\n"
+"POT-Creation-Date: 2026-08-26 14:09+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jiří Podhorecký <jirka.p@volny.cz>, 2021-2026\n"
 "Language-Team: Czech (http://app.transifex.com/kobotoolbox/kobotoolbox/language/cs/)\n"
@@ -29,23 +29,23 @@ msgstr "Přihlásit se jako uživatel"
 msgid "Please enter a valid URL"
 msgstr "Zadejte prosím platnou adresu URL"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr "Nezisková organizace"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr "Vládní instituce"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr "Vzdělávací instituce"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr "Komerční/zisková společnost"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr "Nejsem napojen/a na žádnou organizaci"
 
@@ -84,7 +84,6 @@ msgid "name@organization.org"
 msgstr "name@organization.org"
 
 #: kobo/apps/accounts/forms.py:223
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
 msgid "This field is required."
 msgstr "Toto pole je povinné."
 
@@ -130,8 +129,12 @@ msgstr "Problémy s ověřením"
 msgid "Back"
 msgstr "Zpět"
 
+#: kobo/apps/accounts/mfa/views.py:114
+msgid "Could not activate this method. Please try again later."
+msgstr ""
+
 #: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:320
+#: kpi/serializers/current_user.py:324
 msgid "This action is not allowed."
 msgstr ""
 
@@ -622,17 +625,9 @@ msgstr ""
 msgid "Import"
 msgstr "Import"
 
-#: kobo/apps/mass_emails/tasks.py:255
+#: kobo/apps/mass_emails/tasks.py:310
 msgid "Not available"
 msgstr ""
-
-#: kobo/apps/openrosa/apps/api/exceptions.py:12
-msgid "This is not supported by the legacy API anymore"
-msgstr "Toto již není podporováno starším rozhraním API."
-
-#: kobo/apps/openrosa/apps/api/exceptions.py:19
-msgid "No confirmation provided"
-msgstr "Nebylo poskytnuto žádné potvrzení"
 
 #: kobo/apps/openrosa/apps/api/tools.py:71
 #, python-format
@@ -648,72 +643,18 @@ msgstr "Uživatel %(user)s nemá oprávnění měnit tento formulář."
 msgid "You do not have permission to view data from this form."
 msgstr "Nemáte oprávnění zobrazit data z tohoto formuláře."
 
-#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:177
-#, python-format
-msgid "Filename '%s' not found."
-msgstr "Název souboru '%s' nebyl nalezen."
-
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
 #, python-format
 msgid "Invalid formId %s."
 msgstr "Neplatné formId %s."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
-#, python-format
-msgid "%s successfully published."
-msgstr "%s úspěšně publikován."
-
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:205
-msgid "Missing xml file."
-msgstr "Chybějící soubor xml."
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:325
-#, python-format
-msgid "Invalid pk `%(pk)s`"
-msgstr "Neplatné pk `%(pk)s`"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:329
-#, python-format
-msgid "Invalid dataid `%(dataid)s`"
-msgstr "Neplatné dataid `%(dataid)s`"
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:344
-msgid "No data matches with given query."
-msgstr "Žádná data neodpovídají zadanému dotazu."
-
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:361
-#, python-format
-msgid "Invalid pk %(pk)s"
-msgstr "Neplatné pk %(pk)s"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:69
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
 msgid "No submission key provided."
 msgstr "Nebyl poskytnut klíč k odeslaným datům."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:296
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
 msgid "Unable to create submission."
 msgstr "Nelze vytvořit příspěvek."
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:55
-#, python-format
-msgid "'%(export_type)s' format not known or not implemented!"
-msgstr "Formát '%(export_type)s' není znám nebo není implementován!"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:91
-msgid "Dates must be in the format YY_MM_DD_hh_mm_ss"
-msgstr "Data musí být ve formátu RR_MM_DD_hh_mm_ss."
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:109
-msgid "No records found to export"
-msgstr "Nebyly nalezeny žádné záznamy pro export"
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:140
-msgid "No XLSForm found."
-msgstr "Nebyl nalezen žádný formulář XLSForm."
-
-#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:585
-msgid "Only a form's owner can overwrite its contents"
-msgstr "Obsah formuláře může přepsat pouze jeho vlastník."
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:21
 msgid "Attachment with same name already exists"
@@ -728,7 +669,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1039
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1169
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -752,7 +693,7 @@ msgstr ""
 msgid "The instance could not be parsed"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:87
+#: kobo/apps/openrosa/apps/logger/exceptions.py:101
 msgid "Submission is currently being processed."
 msgstr ""
 
@@ -797,7 +738,7 @@ msgid "There should be a single title."
 msgstr "Měl by zde být uveden jediný název."
 
 #: kobo/apps/openrosa/apps/logger/views.py:68
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:111
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "Úspěšné odeslání dat z formuláře."
 
@@ -826,19 +767,19 @@ msgid "No XLS file for your form %(id)s"
 msgstr "Chybí soubor XLS pro váš formulář %(id)s"
 
 #: kobo/apps/openrosa/apps/logger/views.py:208
-#: kobo/apps/openrosa/apps/viewer/views.py:48
-#: kobo/apps/openrosa/apps/viewer/views.py:101
-#: kobo/apps/openrosa/apps/viewer/views.py:120
-#: kobo/apps/openrosa/apps/viewer/views.py:161
-#: kobo/apps/openrosa/apps/viewer/views.py:189
-#: kobo/apps/openrosa/apps/viewer/views.py:268
+#: kobo/apps/openrosa/apps/viewer/views.py:42
+#: kobo/apps/openrosa/apps/viewer/views.py:95
+#: kobo/apps/openrosa/apps/viewer/views.py:114
+#: kobo/apps/openrosa/apps/viewer/views.py:155
+#: kobo/apps/openrosa/apps/viewer/views.py:183
+#: kobo/apps/openrosa/apps/viewer/views.py:226
 msgid "Not shared."
 msgstr "Není sdíleno."
 
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:36
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:77
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:105
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:542
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:607
 msgid "XML string must have a survey element."
 msgstr "Řetězec XML musí obsahovat prvek průzkumu."
 
@@ -882,17 +823,17 @@ msgstr ""
 msgid "Invalid export type specified"
 msgstr "Zadán neplatný typ exportu"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:142
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:194
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:140
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:192
 msgid "Invalid start/limit params"
 msgstr "Neplatné parametry start/limit"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:156
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr "Neplatný pipeline! %s"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:160
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
 #, python-format
 msgid "Invalid query! %s"
 msgstr "Neplatný dotaz! %s"
@@ -970,28 +911,19 @@ msgstr "Smazat export"
 msgid "Are you sure you want to delete this export?"
 msgstr "Opravdu chcete tento export smazat?"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:57
+#: kobo/apps/openrosa/apps/viewer/views.py:51
 #, python-format
 msgid "%s is not a valid delimiter"
 msgstr "%s není platný oddělovač"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:77
+#: kobo/apps/openrosa/apps/viewer/views.py:71
 #, python-format
 msgid "%s is not a valid export type"
 msgstr "%s není platný typ exportu"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:96
+#: kobo/apps/openrosa/apps/viewer/views.py:90
 msgid "Invalid export type"
 msgstr "Neplatný typ exportu"
-
-#: kobo/apps/openrosa/apps/viewer/views.py:242
-#: kobo/apps/openrosa/apps/viewer/views.py:246
-msgid "Attachment not found"
-msgstr "Příloha nebyla nalezena"
-
-#: kobo/apps/openrosa/apps/viewer/views.py:307
-msgid "Error: Attachment not found"
-msgstr "Chyba: Příloha nebyla nalezena"
 
 #: kobo/apps/openrosa/libs/authentication.py:51
 msgid ""
@@ -1004,66 +936,6 @@ msgid ""
 "Multi-factor authentication is enabled for this account. ##authentication "
 "class## cannot be used."
 msgstr "Pro tento účet je povoleno vícefaktorové ověřování. ##authentication class## nelze použít."
-
-#: kobo/apps/openrosa/libs/serializers/clone_xform_serializer.py:34
-#, python-format
-msgid "User '%(value)s' does not exist."
-msgstr "Uživatel ‚%(value)s‘ neexistuje."
-
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:45
-#, python-format
-msgid "Invalid query: %(query)s"
-msgstr "Neplatný dotaz: %(query)s"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:18
-msgid "Data License"
-msgstr "Datová licence"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:19
-msgid "Form License"
-msgstr "Formulářová licence"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:20
-msgid "Media"
-msgstr "Média"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:21
-msgid "Public Link"
-msgstr "Veřejný odkaz"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:22
-msgid "Source"
-msgstr "Zdroj"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:23
-msgid "Supporting Document"
-msgstr "Podpůrný dokument"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:24
-msgid "Paired Data"
-msgstr "Párová data"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:72
-msgid "Project not found"
-msgstr "Projekt nebyl nalezen"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:76
-msgid "You do not have sufficient permissions to perform this action"
-msgstr "K provedení této akce nemáte dostatečná oprávnění."
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:122
-msgid "Invalid url {}"
-msgstr "Neplatné url {}"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:156
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:167
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:174
-msgid "Cannot determine content type"
-msgstr "Nelze určit typ obsahu"
-
-#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-msgid "Invalid content type"
-msgstr "Neplatný typ obsahu"
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:8
 msgid "Afghanistan"
@@ -2067,91 +1939,96 @@ msgid ""
 "`deprecatedID` from the submission XML and try again."
 msgstr "Zakázaný pokus o úpravu odeslaných dat. Chcete-li provést nové odeslání dat, odstraňte `deprecatedID` z odeslaného XML a zkuste to znovu."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:467
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:376
+msgid ""
+"Submission rejected: the form contains unsupported or invisible characters."
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:529
 msgid "Username or ID required."
 msgstr "Je vyžadováno uživatelské jméno nebo ID."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:532
 msgid "Received empty submission. No instance was created"
 msgstr "Přijata prázdná data. Nebyla vytvořena žádná instance."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:473
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:535
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:482
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:544
 msgid "Form is not active"
 msgstr "Formulář není aktivní"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:485
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:547
 msgid "Temporarily unavailable"
 msgstr "Dočasně nedostupné"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:491
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:553
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:495
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:557
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:500
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:565
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:503
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:568
 msgid "Form does not exist on this account"
 msgstr "Formulář v tomto účtu neexistuje"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:506
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:571
 msgid "Improperly formatted XML."
 msgstr "Nesprávně naformátované XML."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:524
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:589
 msgid "Access denied"
 msgstr "Přístup odepřen"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:531
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:596
 msgid "File likely corrupted during transmission, please try later."
 msgstr "Soubor byl při přenosu pravděpodobně poškozen, zkuste to prosím později."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:668
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:733
 msgid "Invalid URL format."
 msgstr "Neplatný formát adresy URL."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:680
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:745
 msgid "Form validation timeout, please try again."
 msgstr "Vypršel časový limit ověření formuláře, zkuste to prosím znovu."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:739
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:804
 #: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "Výjimka v požadavku: %(class)s: %(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:772
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:837
 msgid "The requested file could not be found."
 msgstr "Požadovaný soubor se nepodařilo najít."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1036
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1166
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:89
+#: kobo/apps/openrosa/libs/utils/middleware.py:185 kpi/exceptions.py:93
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
 msgstr "Váš přístup je omezený. Obnovte prosím svá přístupová práva změnou hesla na ##koboform_url##/accounts/password/reset/."
 
-#: kobo/apps/organizations/models.py:373
+#: kobo/apps/organizations/models.py:404
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:373
+#: kobo/apps/organizations/models.py:404
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:414
+#: kobo/apps/organizations/models.py:445
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -2159,7 +2036,7 @@ msgstr ""
 msgid "Invalid role. Only 'admin' or 'member' are allowed"
 msgstr ""
 
-#: kobo/apps/organizations/tasks.py:84
+#: kobo/apps/organizations/tasks.py:86
 msgid "Organization invite has expired"
 msgstr ""
 
@@ -2311,29 +2188,29 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr ""
 
-#: kobo/apps/project_ownership/models/invite.py:98
+#: kobo/apps/project_ownership/models/invite.py:100
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "Přenos vlastnictví projektu KoboToolbox přijat"
 
-#: kobo/apps/project_ownership/models/invite.py:133
+#: kobo/apps/project_ownership/models/invite.py:140
 msgid "Action required: KoboToolbox project ownership transfer request"
 msgstr "Je vyžadována akce: Žádost o přenos vlastnictví projektu KoboToolbox"
 
-#: kobo/apps/project_ownership/models/invite.py:160
+#: kobo/apps/project_ownership/models/invite.py:172
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Přenos vlastnictví projektu KoboToolbox nebyl dokončen"
 
-#: kobo/apps/project_ownership/models/transfer.py:251
+#: kobo/apps/project_ownership/models/transfer.py:250
 msgid "Project ownership transferred"
 msgstr "Vlastnictví projektu převedeno"
 
-#: kobo/apps/project_ownership/models/transfer.py:253
+#: kobo/apps/project_ownership/models/transfer.py:252
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "Upozorňujeme, že vlastnictví projektu **##project_name##** bylo přeneseno z uživatele **##previous_owner##** na uživatele **##new_owner##**."
 
-#: kobo/apps/project_ownership/models/transfer.py:257
+#: kobo/apps/project_ownership/models/transfer.py:256
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2361,7 +2238,7 @@ msgstr "Projekt `##asset_uid##` není možné přenést. Aktuální stav: ##stat
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:186
+#: kobo/apps/project_ownership/tasks.py:188
 msgid "Invite has expired"
 msgstr "Platnost pozvánky vypršela"
 
@@ -2615,7 +2492,11 @@ msgstr[1] "Byly vytvořeny %d doplňky plánu."
 msgstr[2] "Byly vytvořeny %d doplňky plánu."
 msgstr[3] "Byly vytvořeny %d doplňky plánu."
 
-#: kobo/settings/base.py:301
+#: kobo/apps/subsequences/serializers.py:25
+msgid "Invalid parameters for this action"
+msgstr ""
+
+#: kobo/settings/base.py:326
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2623,7 +2504,7 @@ msgid ""
 "email##)."
 msgstr "Pokud nemáte přístup ke své ověřovací aplikaci, zadejte namísto toho jeden ze svých záložních kódů. Pokud k nim také nemáte přístup, budete muset požádat o pomoc. Kontaktujete prosím [##support email##](mailto:##support email##)."
 
-#: kobo/settings/base.py:563
+#: kobo/settings/base.py:607
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2825,7 +2706,7 @@ msgstr "Toto není podporováno ve formátu `XML`"
 
 #: kpi/deployment_backends/base_backend.py:648
 #: kpi/deployment_backends/base_backend.py:677
-#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1103
+#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1121
 msgid "Value must be valid JSON."
 msgstr "Hodnota musí být v platném formátu JSON."
 
@@ -2864,35 +2745,35 @@ msgstr "Neplatný datový obsah (payload) pro hromadnou aktualizaci odeslaných 
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "Nejdříve je nutné zavolat `asset.connect_deployment()`"
 
-#: kpi/exceptions.py:98
+#: kpi/exceptions.py:102
 msgid "Invalid search. Please try again"
 msgstr "Neplatné vyhledávání. Zkuste to prosím znovu"
 
-#: kpi/exceptions.py:103
+#: kpi/exceptions.py:107
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr "Příkaz pro zveřejnění odkazuje na neočekávaný KoboCAT XForm"
 
-#: kpi/exceptions.py:139
+#: kpi/exceptions.py:143
 msgid "An error occurred trying to duplicate the submission"
 msgstr "Při pokusu o duplikaci odeslaných dat z formuláře došlo k chybě"
 
-#: kpi/exceptions.py:157
+#: kpi/exceptions.py:207
 msgid "The specified object has not been deployed"
 msgstr "Uvedený objekt nebyl zveřejněn"
 
-#: kpi/exceptions.py:166
+#: kpi/exceptions.py:216
 msgid "Bad syntax"
 msgstr "Nesprávná syntax"
 
-#: kpi/exceptions.py:171
+#: kpi/exceptions.py:221
 msgid "Not supported field lookup"
 msgstr "Nepodporované vyhledávání polí"
 
-#: kpi/exceptions.py:194
+#: kpi/exceptions.py:244
 msgid "Your query is too short"
 msgstr "Váš dotaz je příliš krátký"
 
-#: kpi/exceptions.py:208
+#: kpi/exceptions.py:258
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
@@ -2901,14 +2782,13 @@ msgstr ""
 msgid "Enter valid JSON."
 msgstr "Zadejte platný formát JSON."
 
-#: kpi/fields/jsonschema_form_field.py:126
+#: kpi/fields/jsonschema_form_field.py:131
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "Pole `##place_holder##` nemůže být skryté."
 
-#: kpi/fields/writable_json.py:33
-#, python-brace-format
-msgid "Unable to parse JSON: {error}"
-msgstr "Nelze provést syntaktickou analýzu (parsování) formátu JSON: {error}"
+#: kpi/fields/writable_json.py:36
+msgid "Unable to parse JSON"
+msgstr ""
 
 #: kpi/forms/extra_metadata_form.py:26
 msgid "Select fields require at least one option in JSON format."
@@ -2918,140 +2798,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Pro tento účet je povoleno vícefaktorové ověřování. "
 
-#: kpi/models/asset.py:306
+#: kpi/models/asset.py:308
 msgid "Can view asset"
 msgstr "Může zobrazit položku"
 
-#: kpi/models/asset.py:307
+#: kpi/models/asset.py:309
 msgid "Can discover asset in public lists"
 msgstr "Může nalézt položku ve veřejných seznamech"
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:310
 msgid "Can manage all aspects of asset"
 msgstr "Může spravovat všechny aspekty položky"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:312
 msgid "Can submit data to asset"
 msgstr "Může odeslat data do položky"
 
-#: kpi/models/asset.py:311
+#: kpi/models/asset.py:313
 msgid "Can view submitted data for asset"
 msgstr "Může zobrazit odeslaná data pro položku"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:314
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Může provádět dílčí akce na odeslaných datech pro položku pro konkrétní uživatele"
 
-#: kpi/models/asset.py:315
+#: kpi/models/asset.py:317
 msgid "Can modify submitted data for asset"
 msgstr "Může upravit odeslaná data pro položku"
 
-#: kpi/models/asset.py:316
+#: kpi/models/asset.py:318
 msgid "Can delete submitted data for asset"
 msgstr "Může vymazat odeslaná data pro položku"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:319
 msgid "Can validate submitted data asset"
 msgstr "Může ověřit platnost odeslaných dat pro položku"
 
-#: kpi/models/asset.py:336
+#: kpi/models/asset.py:338
 msgid "project"
 msgstr "projekt"
 
-#: kpi/models/asset.py:336
+#: kpi/models/asset.py:338
 msgid "form"
 msgstr "formulář"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:340
 msgid "template"
 msgstr "šablona"
 
-#: kpi/models/asset.py:339
+#: kpi/models/asset.py:341
 msgid "block"
 msgstr "blok"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:342
 msgid "question"
 msgstr "otázka"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:343
 msgid "text"
 msgstr "text"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:344
 msgid "empty"
 msgstr "prázdný"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:345
 msgid "collection"
 msgstr "sbírka"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:352
 msgid "View ##asset_type_label##"
 msgstr "Zobrazit ##asset_type_label##"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:353
 msgid "Edit ##asset_type_label##"
 msgstr "Upravit ##asset_type_label##"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:354
 msgid "Discover ##asset_type_label##"
 msgstr "Prozkoumat ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:355
 msgid "Manage ##asset_type_label##"
 msgstr "Spravovat ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:356
 msgid "Add submissions"
 msgstr "Přidat odeslaná data z formuláře"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:357
 msgid "View submissions"
 msgstr "Prohlížet odeslaná data z formuláře"
 
-#: kpi/models/asset.py:358
+#: kpi/models/asset.py:360
 msgid "Act on submissions only from specific users"
 msgstr "Reagovat na odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:363
 msgid "View submissions only from specific users"
 msgstr "Prohlížet odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:366
 msgid "Edit submissions only from specific users"
 msgstr "Upravit odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:367
+#: kpi/models/asset.py:369
 msgid "Delete submissions only from specific users"
 msgstr "Vymazat odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:370
+#: kpi/models/asset.py:372
 msgid "Validate submissions only from specific users"
 msgstr "Ověřit platnost odeslaných dat z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:373
+#: kpi/models/asset.py:375
 msgid "Edit submissions"
 msgstr "Upravit odeslaná data z formuláře"
 
-#: kpi/models/asset.py:374
+#: kpi/models/asset.py:376
 msgid "Delete submissions"
 msgstr "Smazat odeslaná data z formuláře"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:377
 msgid "Validate submissions"
 msgstr "Ověřit platnost odeslaných dat z formuláře"
 
-#: kpi/models/asset.py:689
+#: kpi/models/asset.py:691
 msgid "Only partial permissions for submissions are supported"
 msgstr "Jsou podporována pouze dílčí oprávnění pro odeslaná data z formuláře"
 
-#: kpi/models/asset.py:1398
+#: kpi/models/asset.py:1415
 msgid "Can not assign '{}' permission to owner"
 msgstr "Nelze přidělit oprávnění '{}' vlastníkovi"
 
-#: kpi/models/asset.py:1402
+#: kpi/models/asset.py:1419
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Nelze přidělit oprávnění '{}'. Dílčí oprávnění chybí."
 
@@ -3103,11 +2983,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:161
+#: kpi/models/import_export_task.py:166
 msgid "Cannot access data"
 msgstr "Nelze získat přístup k datům"
 
-#: kpi/models/import_export_task.py:790
+#: kpi/models/import_export_task.py:831
 msgid "This data does not exist or you do not have access to it"
 msgstr "Tato data neexistují, anebo k nim nemáte přístup"
 
@@ -3125,86 +3005,86 @@ msgid ""
 "characters."
 msgstr "Heslo musí obsahovat nejméně ##number of rules## různých druhů znaků."
 
-#: kpi/serializers/current_user.py:206
+#: kpi/serializers/current_user.py:210
 msgid "Incorrect current password."
 msgstr "Nesprávné současné heslo."
 
-#: kpi/serializers/current_user.py:226
+#: kpi/serializers/current_user.py:230
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` i `new_password` musí být"
 
-#: kpi/serializers/current_user.py:264
+#: kpi/serializers/current_user.py:268
 #: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "Toto pole nesmí být prázdné."
 
-#: kpi/serializers/v2/asset.py:165
+#: kpi/serializers/v2/asset.py:167
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "Projekt %(count)d byl obnoven"
 
-#: kpi/serializers/v2/asset.py:171
+#: kpi/serializers/v2/asset.py:173
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "Projekt %(count)d byl vymazán"
 
-#: kpi/serializers/v2/asset.py:178
+#: kpi/serializers/v2/asset.py:180
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "Projekt %(count)d byl odstraněn z archivu"
 
-#: kpi/serializers/v2/asset.py:184
+#: kpi/serializers/v2/asset.py:186
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "Projekt %(count)d byl přidán do archivu"
 
-#: kpi/serializers/v2/asset.py:200
+#: kpi/serializers/v2/asset.py:202
 msgid "One or many projects have been deleted already!"
 msgstr "Jeden či více projektů již byly vymazány!"
 
-#: kpi/serializers/v2/asset.py:208
+#: kpi/serializers/v2/asset.py:210
 msgid "One or many projects are already being deleted!"
 msgstr "Jeden či více projektů již bylo smazáno!"
 
-#: kpi/serializers/v2/asset.py:284
+#: kpi/serializers/v2/asset.py:352
 msgid "`action` parameter is required"
 msgstr "Parametr `action` je vyžadován"
 
-#: kpi/serializers/v2/asset.py:289
+#: kpi/serializers/v2/asset.py:357
 msgid "Supported values for `action` are: "
 msgstr "Podporované hodnoty pro `action` jsou: "
 
-#: kpi/serializers/v2/asset.py:311
+#: kpi/serializers/v2/asset.py:379
 msgid "Draft projects cannot be archived"
 msgstr "Návrhy projektů nelze přidat do archivu"
 
-#: kpi/serializers/v2/asset.py:317 kpi/serializers/v2/data.py:61
+#: kpi/serializers/v2/asset.py:385 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "Je vyžadováno potvrzení"
 
-#: kpi/serializers/v2/asset.py:992
+#: kpi/serializers/v2/asset.py:1066
 msgid "The property is required"
 msgstr "Je vyžadována vlastnost"
 
-#: kpi/serializers/v2/asset.py:996
+#: kpi/serializers/v2/asset.py:1070
 msgid "The property must be an array"
 msgstr "Touto vlastností musí být pole"
 
-#: kpi/serializers/v2/asset.py:1018
+#: kpi/serializers/v2/asset.py:1092
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "Některá pole jsou neplatná, možnostmi jsou: `{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1040
+#: kpi/serializers/v2/asset.py:1114
 msgid "User cannot update current parent collection"
 msgstr "Uživatel nemůže aktualizovat aktuální nadřazenou sbírku"
 
-#: kpi/serializers/v2/asset.py:1050
+#: kpi/serializers/v2/asset.py:1124
 #: kpi/tests/api/v2/test_api_collections.py:476
 msgid "Target collection not found"
 msgstr "Cílová sbírka nebyla nalezena"
 
-#: kpi/serializers/v2/asset.py:1054
+#: kpi/serializers/v2/asset.py:1128
 #: kpi/tests/api/v2/test_api_collections.py:466
 msgid "User cannot update target parent collection"
 msgstr "Uživatel nemůže aktualizovat cílovou nadřazenou sbírku"
@@ -3234,12 +3114,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "`lang` pro tuto položku musí být buď {}"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:233
+#: kpi/serializers/v2/export_task.py:234
 msgid "Must be a JSON object"
 msgstr "Musí se jednat o objekt ve formátu JSON"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:251
+#: kpi/serializers/v2/export_task.py:252
 msgid "All values in the array must be integers"
 msgstr "Všechny hodnoty v poli musí být celá čísla"
 
@@ -3324,6 +3204,14 @@ msgstr "Neplatný seznam."
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "Neplatný hypertextový odkaz – objekt neexistuje."
 
+#: kpi/serializers/v2/attachment_audio_duration.py:13
+msgid "List of attachment UIDs whose audio duration to retrieve "
+msgstr ""
+
+#: kpi/serializers/v2/attachment_audio_duration.py:22
+msgid "Too many attachments requested. "
+msgstr ""
+
 #: kpi/serializers/v2/attachment_delete.py:12
 msgid "The attachment UID to delete"
 msgstr ""
@@ -3352,7 +3240,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:867
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
 msgid "The specified asset has not been deployed"
 msgstr "Uvedená položka nebyla zveřejněna"
 
@@ -3372,75 +3260,79 @@ msgstr "`data` je povinné"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid` je povinné"
 
-#: kpi/serializers/v2/export_task.py:127
+#: kpi/serializers/v2/export_task.py:128
 msgid "Must contain all the following required keys: {}"
 msgstr "Musí obsahovat všechny následující požadované klíče: {}"
 
-#: kpi/serializers/v2/export_task.py:141
+#: kpi/serializers/v2/export_task.py:142
 msgid "Can contain only the following valid keys: {}"
 msgstr "Může obsahovat pouze následující platné klíče: {}"
 
-#: kpi/serializers/v2/export_task.py:156 kpi/serializers/v2/export_task.py:241
+#: kpi/serializers/v2/export_task.py:157 kpi/serializers/v2/export_task.py:242
 msgid "Must be an array"
 msgstr "Musí být pole"
 
-#: kpi/serializers/v2/export_task.py:163
+#: kpi/serializers/v2/export_task.py:164
 msgid "All values in the array must be strings"
 msgstr "Všechny hodnoty v poli musí být řetězce"
 
-#: kpi/serializers/v2/export_task.py:173
+#: kpi/serializers/v2/export_task.py:174
 msgid "Must be a non-empty value"
 msgstr "Musí se jednat o neprázdnou hodnotu"
 
-#: kpi/serializers/v2/export_task.py:186
+#: kpi/serializers/v2/export_task.py:187
 msgid "For this asset must be either {}"
 msgstr "Pro tuto položku musí být buď {}"
 
-#: kpi/serializers/v2/export_task.py:198 kpi/serializers/v2/export_task.py:262
+#: kpi/serializers/v2/export_task.py:199 kpi/serializers/v2/export_task.py:263
 msgid "Must be either {}"
 msgstr "Musí být buď {}"
 
-#: kpi/serializers/v2/export_task.py:208
+#: kpi/serializers/v2/export_task.py:209
 msgid "The asset must be deployed."
 msgstr "Tato položka musí být zveřejněna."
 
-#: kpi/serializers/v2/export_task.py:225
+#: kpi/serializers/v2/export_task.py:226
 msgid "The export name must be a string."
 msgstr "Název exportu musí být řetězec."
 
-#: kpi/serializers/v2/paired_data.py:92
+#: kpi/serializers/v2/export_task.py:277
+msgid "The \"flatten\" option is not supported for KML exports."
+msgstr ""
+
+#: kpi/serializers/v2/paired_data.py:96
 msgid "Source cannot be changed"
 msgstr "Zdroj nelze změnit"
 
-#: kpi/serializers/v2/paired_data.py:98
+#: kpi/serializers/v2/paired_data.py:102
 #, python-brace-format
 msgid "Data sharing for `{source_uid}` is not enabled"
 msgstr "Sdílení dat pro `{source_uid}` není povoleno"
 
-#: kpi/serializers/v2/paired_data.py:110
+#: kpi/serializers/v2/paired_data.py:114
 #, python-brace-format
 msgid "Pairing data with `{source_uid}` is not allowed"
 msgstr "Párování dat s `{source_uid}` není povoleno"
 
-#: kpi/serializers/v2/paired_data.py:115
+#: kpi/serializers/v2/paired_data.py:119
 #, python-brace-format
 msgid "Source `{source}` is already paired"
 msgstr "Zdroj `{source}` již je spárován"
 
-#: kpi/serializers/v2/paired_data.py:157
+#: kpi/serializers/v2/paired_data.py:179
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{source_fields}`"
 msgstr "Některá pole jsou neplatná, možnostmi jsou: `{source_fields}`"
 
-#: kpi/serializers/v2/paired_data.py:182
+#: kpi/serializers/v2/paired_data.py:204
 msgid "Only letters, numbers and `-` are allowed"
 msgstr "Povolena jsou pouze písmena, číslice a `-`"
 
-#: kpi/serializers/v2/paired_data.py:189
+#: kpi/serializers/v2/paired_data.py:211
 msgid "Extension must be `xml`"
 msgstr "Přípona musí být `xml`"
 
-#: kpi/serializers/v2/paired_data.py:222
+#: kpi/serializers/v2/paired_data.py:244
 #, python-brace-format
 msgid "`{basename}` is already used"
 msgstr "`{basename}` se již používá"
@@ -3557,6 +3449,12 @@ msgstr "Neplatné potvrzení"
 msgid "You still own projects. Delete or transfer them first."
 msgstr ""
 
+#: kpi/views/v1_api_gone.py:35
+msgid ""
+"The V1 API has been removed. Please read the migration article at "
+"https://support.kobotoolbox.org/migrating_api.html"
+msgstr ""
+
 #: kpi/views/v2/asset_export_settings.py:206
 msgid "Only the following formats are available: ##format list##"
 msgstr "K dispozici jsou pouze následující formáty: ##format list##"
@@ -3590,6 +3488,10 @@ msgstr "K chybě došlo během konverze"
 msgid "Conversion is not supported for {}"
 msgstr "Konverze není podporována pro {}"
 
-#: kpi/views/v2/data.py:853
+#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+msgid "One or more submission ids are invalid"
+msgstr ""
+
+#: kpi/views/v2/data.py:871
 msgid "A positive integer is required"
 msgstr "Je vyžadováno celé kladné číslo"

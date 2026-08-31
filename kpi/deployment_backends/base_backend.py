@@ -39,6 +39,7 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
@@ -914,17 +915,23 @@ class BaseDeploymentBackend(abc.ABC):
                         continue
 
             filename = attachment['filename']
+
+            # fall back until LRM 0027/0028 are not completed
+            root_uuid = remove_uuid_prefix(
+                submission.get(META_ROOT_UUID) or submission['_uuid']
+            )
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,
                 'attachments',
                 # KoboCAT accepts submissions even when they lack `formhub/uuid`
                 self.form_uuid or submission['formhub/uuid'],
-                submission['_uuid'],
+                root_uuid,
                 os.path.basename(filename)
             )
 
             # Retrieve XPath and add it to attachment dictionary
-            basename = os.path.basename(attachment['filename'])
+            # Keys in `filenames_and_xpaths` are NFC; normalize the lookup too
+            basename = normalize_nfc(os.path.basename(attachment['filename']))
             attachment['question_xpath'] = filenames_and_xpaths.get(
                 basename,
                 filenames_and_xpaths.get(self._without_suffix(basename), ''),

@@ -14,12 +14,8 @@
   margin-bottom: 30px;
 }
 
-// `.modal` has it's own padding, we don't need it
-.projectDetails:not(.modal) {
-  padding: 40px;
-}
-
 .projectDetails .inputWrapper {
+  container: project-details / inline-size;
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
@@ -29,16 +25,17 @@
   .input {
     min-width: 75%; // Most rows are wide enough to get their own row,
     flex: 1; // and when they do, they grow to occupy the full available width
-
-    // Grow WrappedSelect control to match TextBox size L height
-    :global(.kobo-select__control) {
-      min-height: 38px;
-    }
   }
+}
 
-  .sector,
-  .country {
-    min-width: 40%; // These fields can sit next to each other in pairs.
+// Sector and country pair up on one row, but only where each half is still wide enough
+// to show a country name or two. Inside the narrow project settings modal they stack.
+@container project-details (min-width: 700px) {
+  .projectDetails .inputWrapper {
+    .sector,
+    .country {
+      min-width: 40%;
+    }
   }
 }
 

@@ -1,6 +1,5 @@
 import logging
 import os
-import string
 import subprocess
 import warnings
 from datetime import timedelta
@@ -131,7 +130,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'trench',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -167,6 +165,7 @@ MIDDLEWARE = [
     'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.OpenRosaTrailingSlashMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -218,6 +217,12 @@ CONSTANCE_CONFIG = {
         'support team for assistance.',
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
+    ),
+    'SHOW_KOBOTOOLBOX_LOGO': (
+        True,
+        'Show the KoboToolbox logo on the sign-in and account creation pages. '
+        'Turn this off to display only the logo uploaded under '
+        'Configuration files',
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
@@ -635,6 +640,14 @@ CONSTANCE_CONFIG = {
         'Number of days before enqueued mass email records are marked as failed.',
         'positive_int',
     ),
+    'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS': (
+        12,
+        'Number of hours an enqueued mass email record can sit before it is '
+        're-checked against its MassEmailConfig criteria at send time. '
+        'Records still matching are sent normally; records that no longer '
+        'match are marked stale.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -754,6 +767,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+        'SHOW_KOBOTOOLBOX_LOGO',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -770,6 +784,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'USE_TEAM_LABEL',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
@@ -1087,6 +1102,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
         'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
@@ -1262,6 +1278,12 @@ TEMPLATES = [
 ]
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
+
+# Superusers submitting real survey data through the OpenRosa API tends to break
+# things (see DEV-32), so it is blocked by default. Self-hosters who really need
+# a superuser to submit can opt back into the risk by setting this to `True`;
+# consider yourself warned that bad things can happen.
+ALLOW_SUPERUSER_SUBMISSIONS = env.bool('ALLOW_SUPERUSER_SUBMISSIONS', False)
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
@@ -1568,12 +1590,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 30 minutes
-    'attachment-cleanup-for-users-exceeding-limits': {
-        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
-    },
     # Schedule every 5 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
@@ -1604,7 +1620,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 15 minutes
+    # Ticks every 15 minutes, but `is_in_cooldown()` skips starting a new
+    # cycle unless the last one completed more than
+    # `USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS` ago - an in-progress run is
+    # always resumed regardless, so a short tick lets it finish quickly
+    # after an interruption instead of waiting up to that cooldown.
     'refresh-user-report-snapshot': {
         'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
         'schedule': crontab(minute='*/15'),
@@ -1696,6 +1716,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
+
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
     'fanout_prefix': True,
@@ -1757,6 +1783,12 @@ CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
     os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
 )
 
+# Minimum time to wait after a completed run before starting a brand-new
+# cycle. Does not delay resuming an in-progress run.
+USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS = int(
+    os.environ.get('USER_REPORTS_SNAPSHOT_MIN_INTERVAL_HOURS', 4)  # 4 hours
+)
+
 CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
 
 """ Django allauth configuration """
@@ -1772,12 +1804,15 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'user_token': 'kobo.apps.accounts.forms.UserTokenForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
+SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
@@ -1830,9 +1865,17 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-MAX_MASS_EMAILS_PER_DAY = 1000
-MASS_EMAIL_THROTTLE_PER_SECOND = 40
-MASS_EMAIL_SLEEP_SECONDS = 1
+# Size these to the SMTP provider actually configured for this deployment
+# (one provider at a time).
+# See kpi.utils.mailer.Mailer and kobo.apps.mass_emails.tasks.MassEmailSender.
+MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
+# This throttle applies only to mass email, not to transactional email
+# (e.g. forgot password). Set it well under the provider's real per-second
+# limit so there's still headroom left for transactional email, which
+# shares the same provider account but doesn't go through this throttle.
+MASS_EMAIL_THROTTLE_PER_SECOND = env.float('MASS_EMAIL_THROTTLE_PER_SECOND', 10)
+# Margin under the provider's SMTP idle timeout.
+MAILER_CONNECTION_IDLE_TIMEOUT = env.int('MAILER_CONNECTION_IDLE_TIMEOUT', 10)
 # change the interval between "daily" email sends for testing. this will set both
 # the frequency of the task and the expiry time of the cached email limits. should
 # only be True on small testing instances
@@ -2183,32 +2226,6 @@ MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
 
-TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
-    'USER_ACTIVE_FIELD': 'is_active',
-    'BACKUP_CODES_QUANTITY': 5,
-    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
-    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
-    'DEFAULT_VALIDITY_PERIOD': 30,
-    'ENCRYPT_BACKUP_CODES': True,
-    'SECRET_KEY_LENGTH': 32,
-    'CONFIRM_DISABLE_WITH_CODE': True,
-    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
-    'ALLOW_BACKUP_CODES_REGENERATION': True,
-    'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
-    },
-    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
-}
-
-
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
@@ -2216,6 +2233,11 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
+
+# Max to-many lookups in a single `q` search: each becomes its own EXISTS
+# subquery, so an unbounded count lets a search fan out.
+# See `kpi.utils.query_parser`.
+QUERY_PARSER_MAX_TO_MANY_FILTERS = 10
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -2372,10 +2394,19 @@ LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
 S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
+USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of times a trash bin task that failed on a transient (infrastructure)
+# error is automatically restarted before it requires manual intervention
+TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
+
+# How long a trash bin object stays locked while it is being deleted. Must be
+# greater than or equal to the Celery hard time limit of the task
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100

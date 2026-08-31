@@ -1,3 +1,4 @@
+import math
 from datetime import timedelta
 
 from django.conf import settings
@@ -6,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
-from django.utils.translation import gettext as t
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -41,17 +41,25 @@ from kpi.utils.schema_extensions.fields import (
     ReadOnlyFieldWithSchemaField,
 )
 from .constants import (
+    INVALID_ROLE_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
+    INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_MEMBER_ERROR,
     INVITE_NOT_FOUND_ERROR,
     INVITE_OWNER_ERROR,
+    INVITE_RESENT_TOO_QUICKLY_ERROR,
+    INVITE_ROLE_LOCKED_ERROR,
+    INVITE_STATUS_RESERVED_ERROR,
+    INVITE_STATUS_UNSETTABLE_ERROR,
     INVITEE_ALREADY_MEMBER_ERROR,
+    NOT_ENOUGH_PERMISSIONS_ERROR,
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
     ORG_MEMBER_ROLE,
     USER_DOES_NOT_EXIST_ERROR,
 )
+from .exceptions import InvalidMembershipRequest
 from .tasks import transfer_member_data_ownership_to_org
 
 
@@ -65,6 +73,9 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     role = serializers.CharField()
     user__has_mfa_enabled = serializers.BooleanField(
         source='has_mfa_enabled', read_only=True
+    )
+    user__has_sso_enabled = serializers.BooleanField(
+        source='has_sso_enabled', read_only=True
     )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
@@ -87,6 +98,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'user__extra_details__name',
             'role',
             'user__has_mfa_enabled',
+            'user__has_sso_enabled',
             'date_joined',
             'user__is_active',
             'invite',
@@ -157,9 +169,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
     def validate_role(self, role):
         if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
-            raise serializers.ValidationError(
-                {'role': t("Invalid role. Only 'admin' or 'member' are allowed")}
-            )
+            raise InvalidMembershipRequest(INVALID_ROLE_ERROR)
         return role
 
 
@@ -391,7 +401,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         # Check if the invitation has already been accepted
         if instance.status == InviteStatusChoices.ACCEPTED:
-            raise PermissionDenied({'detail': t(INVITE_ALREADY_ACCEPTED_ERROR)})
+            raise PermissionDenied({'detail': INVITE_ALREADY_ACCEPTED_ERROR})
 
         # Validate email or username
         is_email_match = request_user.email == instance.invitee_identifier
@@ -399,7 +409,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             instance.invitee and request_user.username == instance.invitee.username
         )
         if not (is_email_match or is_username_match):
-            raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
+            raise NotFound({'detail': INVITE_NOT_FOUND_ERROR})
 
         # Check if the invitee is already a member of the organization
         if instance.invitee.organization.is_mmo:
@@ -407,7 +417,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise PermissionDenied(
                     {
                         'detail': replace_placeholders(
-                            t(INVITE_OWNER_ERROR),
+                            INVITE_OWNER_ERROR,
                             organization_name=instance.invitee.organization.name,
                         )
                     }
@@ -416,7 +426,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise PermissionDenied(
                     {
                         'detail': replace_placeholders(
-                            t(INVITE_MEMBER_ERROR),
+                            INVITE_MEMBER_ERROR,
                             organization_name=instance.invitee.organization.name,
                         )
                     }
@@ -455,21 +465,17 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             organization = self.instance.invited_by.organization
 
             if not organization.is_admin(user):
-                raise serializers.ValidationError(
-                    'You have not enough permissions to perform this action'
-                )
+                raise InvalidMembershipRequest(NOT_ENOUGH_PERMISSIONS_ERROR)
 
             if self.instance.status == InviteStatusChoices.ACCEPTED:
-                raise serializers.ValidationError(
-                    'Role cannot be changed after acceptance'
-                )
+                raise InvalidMembershipRequest(INVITE_ROLE_LOCKED_ERROR)
         return value
 
     def validate_status(self, value):
 
         if value in OrganizationInviteStatusChoices.get_calculated_choices():
-            raise serializers.ValidationError(
-                f'`{value}` is reserved and cannot be set'
+            raise InvalidMembershipRequest(
+                replace_placeholders(INVITE_STATUS_RESERVED_ERROR, status=value)
             )
 
         if not self.instance:
@@ -477,8 +483,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 value in OrganizationInviteStatusChoices.get_admin_choices()
                 or value in OrganizationInviteStatusChoices.get_member_choices()
             ):
-                raise serializers.ValidationError(
-                    f'`{value}` cannot be set a newly created invitation'
+                raise InvalidMembershipRequest(
+                    replace_placeholders(INVITE_STATUS_UNSETTABLE_ERROR, status=value)
                 )
 
         else:
@@ -490,15 +496,13 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 value in OrganizationInviteStatusChoices.get_admin_choices()
                 and not organization.is_admin(user)
             ):
-                raise serializers.ValidationError(
-                    'You have not enough permissions to perform this action'
-                )
+                raise InvalidMembershipRequest(NOT_ENOUGH_PERMISSIONS_ERROR)
 
             # if value equals 'resent', all the validations have been already
             # performed to ensure, only an admin can call this.
             if value == OrganizationInviteStatusChoices.RESENT:
                 if self.instance.status != OrganizationInviteStatusChoices.PENDING:
-                    raise serializers.ValidationError('Invitation cannot be resent')
+                    raise InvalidMembershipRequest(INVITE_CANNOT_BE_RESENT_ERROR)
 
                 retry_after = self.instance.modified + timedelta(
                     seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
@@ -507,9 +511,13 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 if retry_after > now:
                     remaining_delta = retry_after - now
                     remaining_seconds = int(remaining_delta.total_seconds())
+                    # `Retry-After` stays in seconds (per RFC 9110), but the
+                    # message is rounded up to minutes to stay readable.
                     raise RetryAfterAPIException(
-                        f'Invitation was resent too quickly, '
-                        f'wait for {remaining_seconds} seconds before retrying',
+                        replace_placeholders(
+                            INVITE_RESENT_TOO_QUICKLY_ERROR,
+                            minutes=str(math.ceil(remaining_seconds / 60)),
+                        ),
                         retry_after=remaining_seconds,
                     )
 
@@ -551,7 +559,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             organization=organization, user=user
         ).exists():
             raise serializers.ValidationError(
-                replace_placeholders(t(INVITEE_ALREADY_MEMBER_ERROR), invitee=invitee)
+                replace_placeholders(INVITEE_ALREADY_MEMBER_ERROR, invitee=invitee)
             )
 
     def _check_existing_invites(self, organization, search_filter, invitee):
@@ -564,7 +572,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             status=OrganizationInviteStatusChoices.PENDING,
         ).exists():
             raise serializers.ValidationError(
-                replace_placeholders(t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee)
+                replace_placeholders(INVITE_ALREADY_EXISTS_ERROR, invitee=invitee)
             )
 
     def _get_valid_user(self, username):
@@ -574,7 +582,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         user = User.objects.filter(username=username, is_active=True).first()
         if not user:
             raise serializers.ValidationError(
-                replace_placeholders(t(USER_DOES_NOT_EXIST_ERROR), invitee=username)
+                replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=username)
             )
         return user
 
@@ -589,7 +597,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 instance.invitee = self.context['request'].user
                 instance.save(update_fields=['invitee'])
             except User.DoesNotExist:
-                raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
+                raise NotFound({'detail': INVITE_NOT_FOUND_ERROR})
 
     def _handle_status_update(self, instance, status):
         if status == OrganizationInviteStatusChoices.RESENT:

@@ -4,17 +4,15 @@ import ButtonNew from '#/components/common/ButtonNew'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '#/utils'
 import { getSupplementalDetailsContent, hasUnacceptedAutomaticContent } from '../submissionUtils'
-import TextModalCell from './TextModalCell'
+import TextCell from './TextCell'
 
 interface SupplementalDetailsCellProps {
   asset: AssetResponse
   submission: SubmissionResponse
   columnKey: string
   columnName: string
-  submissionIndex: number
-  submissionTotal: number
 }
 
 /**
@@ -32,7 +30,7 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
 
   const handleReviewClick = () => {
     const pathParts = getSupplementalPathParts(props.columnKey)
-    const submissionEditId = removeDefaultUuidPrefix(props.submission['meta/rootUuid']) || props.submission._uuid
+    const submissionEditId = getSubmissionRootUuid(props.submission)
 
     // Determine the target tab based on content type
     const targetTab = pathParts.type === 'transcript' ? ProcessingTab.Transcript : ProcessingTab.Translations
@@ -57,13 +55,15 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
     )
   }
 
-  // Default: just show the text modal
+  // Default: just show the text preview. No `xpath` is passed, as this cell
+  // is itself a supplemental detail (transcript/translation/qual), not a
+  // question with its own Processing entry point.
   return (
-    <TextModalCell
+    <TextCell
+      assetUid={props.asset.uid}
+      submissionData={props.submission}
       text={supplementalValue}
-      columnName={props.columnName}
-      submissionIndex={props.submissionIndex}
-      submissionTotal={props.submissionTotal}
+      questionLabel={props.columnName}
     />
   )
 }

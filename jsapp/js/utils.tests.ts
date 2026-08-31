@@ -4,6 +4,7 @@ import {
   generateAutoname,
   getLangAsObject,
   getLangString,
+  getSubmissionRootUuid,
   join,
   truncateFile,
   truncateString,
@@ -31,16 +32,16 @@ describe('utils', () => {
   describe('formatSeconds', () => {
     it('should format properly', () => {
       const testCases: [number, string][] = [
-        [10, '00:10'],
-        [0, '00:00'],
-        [1.333, '00:01'],
-        [1.777, '00:02'],
-        [60, '01:00'],
-        [671, '11:11'],
-        [1111, '18:31'],
-        [3599, '59:59'],
-        [6000, '100:00'],
-        [6666, '111:06'],
+        [10, '00:00:10'],
+        [0, '00:00:00'],
+        [1.333, '00:00:01'],
+        [1.777, '00:00:02'],
+        [60, '00:01:00'],
+        [671, '00:11:11'],
+        [1111, '00:18:31'],
+        [3599, '00:59:59'],
+        [6000, '01:40:00'],
+        [6666, '01:51:06'],
       ]
       testCases.forEach((testCase) => {
         const test = formatSeconds(testCase[0])
@@ -210,6 +211,32 @@ describe('utils', () => {
     it('rounds seconds down to nearest minute if number is more than 3600 (an hour)', () => {
       const result = formatTimeFromSeconds(3601)
       chai.expect(result).to.deep.equal('1 hours')
+    })
+  })
+
+  describe('getSubmissionRootUuid', () => {
+    it('should strip the default prefix off the root uuid', () => {
+      const test = getSubmissionRootUuid({ _uuid: 'some-uuid', 'meta/rootUuid': 'uuid:some-uuid' })
+      chai.expect(test).to.equal('some-uuid')
+    })
+
+    it('should prefer the root uuid over the current uuid', () => {
+      const test = getSubmissionRootUuid({ _uuid: 'edited-uuid', 'meta/rootUuid': 'uuid:original-uuid' })
+      chai.expect(test).to.equal('original-uuid')
+    })
+
+    // An empty string counts as missing too - the back end omits the field rather than blanking it, but a blank would
+    // otherwise sail through and be sent as an id.
+    it('should fall back to the uuid when there is no root uuid', () => {
+      chai.expect(getSubmissionRootUuid({ _uuid: 'some-uuid' })).to.equal('some-uuid')
+      chai.expect(getSubmissionRootUuid({ _uuid: 'some-uuid', 'meta/rootUuid': '' })).to.equal('some-uuid')
+    })
+
+    // OpenRosa allows custom namespaces to avoid uuid collisions, so stripping one could point at a different
+    // submission entirely.
+    it('should preserve a custom prefix', () => {
+      const test = getSubmissionRootUuid({ _uuid: 'some-uuid', 'meta/rootUuid': 'kobotoolbox.org:some-uuid' })
+      chai.expect(test).to.equal('kobotoolbox.org:some-uuid')
     })
   })
 })

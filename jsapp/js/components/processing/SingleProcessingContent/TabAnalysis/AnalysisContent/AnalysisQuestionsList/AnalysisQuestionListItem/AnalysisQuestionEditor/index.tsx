@@ -4,9 +4,9 @@ import { Box, Input, Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import TextBox from '#/components/common/textBox'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import { generateUuid } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
@@ -144,14 +144,13 @@ export default function AnalysisQuestionEditor({
             <Icon name={qaQuestionDef.icon} size='xl' />
           </ThemeIcon>
 
-          <TextBox
+          <TextInput
             value={newQaQuestion.labels._default}
-            onChange={handleChangeLabel}
-            errors={errorMessageLabel}
+            onChange={(evt) => handleChangeLabel(evt.currentTarget.value)}
+            error={errorMessageLabel}
             placeholder={t('Type question')}
             className={styles.labelInput}
-            renderFocused
-            size='m'
+            autoFocus
           />
 
           <Button type='primary' size='m' label={t('Save')} isPending={disabled} isSubmit />

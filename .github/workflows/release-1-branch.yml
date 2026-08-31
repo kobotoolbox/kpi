@@ -48,10 +48,10 @@ jobs:
     if: ${{ needs.version.outputs.prev_released == 'true' }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
-        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
     - name: create next RC branch
       id: branch
@@ -63,21 +63,85 @@ jobs:
         git push origin $NEW_BRANCH
 
 
-  changelog:
+  # Create Linear release and link issues from commits unique to this branch.
+  # Uses prev branch tip (not prev tag) so commits to be released as patches on
+  # the previous minor are excluded.
+  linear:
     needs:
       - version
       - create-current-branch
     runs-on: ubuntu-24.04
+    outputs:
+      release_url: ${{ steps.create.outputs.release-url }}
     steps:
-    - name: create Linear ticket to track a draft of changelog
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      id: create
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        release_version: ${{ needs.version.outputs.current_minor }}
+        base_ref: origin/${{ needs.version.outputs.prev_branch }}
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_minor }}
+        stage: "Pending QA"
+
+
+  qa-issue:
+    needs:
+      - version
+      - create-current-branch
+      - linear
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+
+    - name: Fetch QA template from Linear
+      id: template
+      uses: ./.github/actions/fetch-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        issue-id: 'DEV-2637'
+
+    - name: Build issue description
+      id: body
+      env:
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+        CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+        RELEASE_URL: ${{ needs.linear.outputs.release_url }}
+        TEMPLATE: ${{ steps.template.outputs.body }}
       run: |
-        echo 'TODO, for now do it manually'
+        BODY="${TEMPLATE//\$CURRENT_PATCH/$CURRENT_PATCH}"
+        BODY="${BODY//\$CURRENT_BRANCH/$CURRENT_BRANCH}"
+        BODY="${BODY//\$RELEASE_URL/$RELEASE_URL}"
+
+        {
+          echo "body<<EOF"
+          echo "${BODY}EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Upsert Linear QA issue
+      uses: ./.github/actions/upsert-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        title: "QA kpi ${{ needs.version.outputs.current_minor }}"
+        description: ${{ steps.body.outputs.body }}
+        team-id: 'ea750a9d-5a92-4fe2-a494-55fa114ba0dd'
+        state-id: 'f5f82c75-1cd0-4792-b233-c31f51fdc0d0'  # In QA
 
 
   notify-current:
     needs:
       - version
-      - changelog
+      - linear
+      - qa-issue
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -85,13 +149,12 @@ jobs:
       content: |
         :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
         - @*QA* & @*product*: the release window is as long as it takes to tag the release version. If you want to "scrap" this release then ask devs to manually delete the branch.
-        - @_**Kalvis Kalniņš**: check Linear cycles whether now-past cycle `v${{ needs.version.outputs.current_minor }}` closed today and the upcoming cycle has started.
-        - @*devs*: if you merge a PR or cherry-pick a commit into `${{ needs.version.outputs.current_branch }}` branch, then please manually set issue's cycle to the `v${{ needs.version.outputs.current_minor }}` cycle (Linear automatically sets for next one).
 
 
   notify-prev:
     needs:
       - version
+      - create-current-branch
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -108,7 +171,8 @@ jobs:
       - current-branch
       - version
       - create-current-branch
-      - changelog
+      - linear
+      - qa-issue
       - notify-prev
       - notify-current
     if: ${{ failure() }}

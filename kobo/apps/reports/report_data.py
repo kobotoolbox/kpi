@@ -3,12 +3,12 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from django.utils.translation import gettext as t
+from formpack import FormPack
+from formpack.constants import FUZZY_VERSION_ID_KEY, INFERRED_VERSION_ID_KEY
 from rest_framework import serializers
 
-from formpack import FormPack
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.log import logging
-from .constants import FUZZY_VERSION_ID_KEY, INFERRED_VERSION_ID_KEY
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):

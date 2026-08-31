@@ -12,6 +12,7 @@ import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Icon from '#/components/common/icon'
 import { getFormDataTabs } from '#/components/formViewSideTabs'
+import { openSharingModal } from '#/components/permissions/openSharingModal'
 import { userCan } from '#/components/permissions/utils'
 import { MODAL_TYPES } from '#/constants'
 import mixins from '#/mixins'
@@ -130,10 +131,7 @@ class FormSummary extends React.Component {
 
   sharingModal(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.SHARING,
-      assetid: this.state.uid,
-    })
+    openSharingModal({ asset: this.state })
   }
 
   enketoPreviewModal(evt) {

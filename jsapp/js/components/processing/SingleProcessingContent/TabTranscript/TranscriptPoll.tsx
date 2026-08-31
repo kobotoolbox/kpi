@@ -1,10 +1,13 @@
 import cx from 'classnames'
 import React, { useEffect, useState } from 'react'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { useSupplementStatusPolling } from '#/components/processing/common/useSupplementStatusPolling'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, getEstimatedTranscriptionDurationSeconds } from '#/utils'
+import { getAudioDuration, getEstimatedTranscriptionDurationSeconds, getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from './transcript.utils'
 
@@ -26,11 +29,26 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
 }
 
-export default function AutomaticTranscriptionInProgress({ asset, questionXpath, submission }: Props) {
+export default function AutomaticTranscriptionInProgress({
+  asset,
+  questionXpath,
+  submission,
+  activeBulkActions,
+}: Props) {
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
   const [firstPollDelayMs, setFirstPollDelayMs] = useState<number>(MIN_FIRST_POLL_DELAY_MS)
+
+  // Nothing is blocked here, but the spinner alone doesn't say who started the work.
+  // Naming the bulk job explains why this appeared without the user asking for it.
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+  })
 
   useSupplementStatusPolling(asset, submission, { firstPollDelayMs })
 
@@ -51,6 +69,12 @@ export default function AutomaticTranscriptionInProgress({ asset, questionXpath,
       <header className={bodyStyles.header}>{t('Automatic transcription in progress')}</header>
 
       <p>{t('Estimated time for completion: ##estimate##').replace('##estimate##', estimate)}</p>
+
+      {hasConflictingOngoingJob && (
+        <ConflictingOngoingJobAlert mt='md'>
+          {t('This submission is part of an ongoing bulk processing job.')}
+        </ConflictingOngoingJobAlert>
+      )}
     </div>
   )
 }

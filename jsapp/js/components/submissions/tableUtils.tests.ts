@@ -1,8 +1,11 @@
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type { SubmissionResponse } from '#/dataInterface'
+import type { AnyRowTypeName } from '#/constants'
+import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
 import {
   getAllDataColumns,
   getColumnLabel,
+  getMetadataColumns,
+  getSelectResponseLabel,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
@@ -70,6 +73,84 @@ describe('tableUtils', () => {
     // TODO: write more tests here… I haven't got enough time to go over all
     // possible cases, just added one that I was fixing a bug for and a couple
     // that came to my mind.
+  })
+
+  describe('getSelectResponseLabel', () => {
+    // The 'animals' list once had choices 'a', 'b' and 'c', then 'a' and 'b'
+    // were renamed to 'a1' and 'b1'. Only the current names are here, as that's
+    // all the latest form version gives us, so submissions storing 'a' or 'b'
+    // have nothing to match. 'other_list' guards against cross-list matches.
+    const animalChoices = [
+      { name: 'a1', label: ['archaeopteryx', 'archaeopteryks'], list_name: 'animals', $autovalue: 'a1', $kuid: 'k1' },
+      { name: 'b1', label: ['badger', 'borsuk'], list_name: 'animals', $autovalue: 'b1', $kuid: 'k2' },
+      { name: 'c', label: ['Crocodile', 'Krokodyl'], list_name: 'animals', $autovalue: 'c', $kuid: 'k3' },
+      { name: 'a', label: ['Apple'], list_name: 'other_list', $autovalue: 'a', $kuid: 'k4' },
+    ] as const satisfies SurveyChoice[]
+
+    /** Resolves a response against `animalChoices`, as every case here does. */
+    const getAnimalsLabel = (value: string, questionType: AnyRowTypeName, translationIndex = 0) =>
+      getSelectResponseLabel({
+        value,
+        questionType,
+        listName: 'animals',
+        choices: animalChoices,
+        translationIndex,
+      })
+
+    it('should return labels of all selected select_multiple choices', () => {
+      const test = getAnimalsLabel('a1 b1 c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, badger, Crocodile')
+    })
+
+    // Bug fixed: unmatched values were omitted, so this returned only
+    // 'Crocodile' with no hint that two more options were selected.
+    it('should fall back to raw values for select_multiple choices missing from the form', () => {
+      const test = getAnimalsLabel('a b c', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('a, b, Crocodile')
+    })
+
+    it('should use labels of given translation for select_multiple', () => {
+      // Mixes a matched and an unmatched value, as the fallback should not
+      // depend on which translation was asked for.
+      const test = getAnimalsLabel('a b1 c', QuestionTypeName.select_multiple, 1)
+      chai.expect(test).to.equal('a, borsuk, Krokodyl')
+    })
+
+    it('should fall back to raw value when a translation has no label', () => {
+      // 'c' does match a choice, but index 5 is past the end of its labels,
+      // like a choice left untranslated in one language.
+      const test = getAnimalsLabel('c', QuestionTypeName.select_multiple, 5)
+      chai.expect(test).to.equal('c')
+    })
+
+    it('should not produce dangling separators for select_multiple stray whitespace', () => {
+      const test = getAnimalsLabel(' a1  c ', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('archaeopteryx, Crocodile')
+    })
+
+    it('should only match choices of the question own list', () => {
+      // 'a' is labelled 'Apple' in 'other_list' but absent from 'animals', so it
+      // must stay raw instead of borrowing that label.
+      const test = getAnimalsLabel('a', QuestionTypeName.select_multiple)
+      chai.expect(test).to.equal('a')
+    })
+
+    it('should return label of selected select_one choice', () => {
+      const test = getAnimalsLabel('c', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('Crocodile')
+    })
+
+    it('should fall back to raw value for a select_one choice missing from the form', () => {
+      const test = getAnimalsLabel('a', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('a')
+    })
+
+    it('should not split select_one values on spaces', () => {
+      // A single value may contain spaces. Treating them as separators would
+      // mangle this into 'a, b, Crocodile'.
+      const test = getAnimalsLabel('a b c', QuestionTypeName.select_one)
+      chai.expect(test).to.equal('a b c')
+    })
   })
 
   describe('isTableColumnFilterableByTextInput', () => {
@@ -372,6 +453,78 @@ describe('tableUtils', () => {
       chai.expect(columns).to.not.include('old_group/Secret_password_as_an_audio_file')
     })
 
+    it('should return columns in the canonical order', () => {
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP)
+
+      chai.expect(columns).to.deep.equal([
+        // `background-audio` (with its supplemental details columns) goes first
+        'background-audio',
+        '_supplementalDetails/background-audio/transcript_en',
+        '_supplementalDetails/background-audio/translation_fr',
+        '_supplementalDetails/background-audio/e59a3552-c06c-43f2-92f1-8e3607052624',
+        // …then `start` and `end`…
+        'start',
+        'end',
+        // …then all the form questions in the form definition order (note that
+        // `today`, `username`, `deviceid` and `phonenumber` are defined before
+        // these questions in the form, but they are metadata, so they go last)…
+        'audit',
+        'Your_name_here',
+        'Your_selfie_goes_here',
+        'A_video_WTF',
+        'Secret_password_as_an_audio_file',
+        // …and finally the remaining metadata columns
+        'username',
+        'deviceid',
+        'phonenumber',
+        'today',
+      ])
+    })
+
+    it('should put metadata columns from submissions at the end in the canonical order', () => {
+      // Note the reversed order of these properties - we want to make sure the
+      // order of the columns doesn't depend on the order of submission props.
+      const submissions = [
+        {
+          'meta/rootUuid': 'aaa',
+          _submitted_by: 'kobo',
+          _submission_time: '2026-08-04T12:00:00',
+          _uuid: 'bbb',
+          _id: 1,
+          __version__: 'vABC',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai
+        .expect(columns.slice(-10))
+        .to.deep.equal([
+          'username',
+          'deviceid',
+          'phonenumber',
+          'today',
+          '__version__',
+          '_id',
+          '_uuid',
+          '_submission_time',
+          '_submitted_by',
+          'meta/rootUuid',
+        ])
+    })
+
+    it('should keep the order of questions from a nested group', () => {
+      const columns = getAllDataColumns(assetWithNestedGroupsAndNLP)
+
+      chai
+        .expect(columns)
+        .to.deep.equal([
+          'outer_group/middle_group/inner_group/What_did_you_hear',
+          '_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/transcript_pl',
+          '_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/translation_de',
+        ])
+    })
+
     it('should keep both columns when old and current paths are distinct fields', () => {
       const submissions = [
         {
@@ -394,6 +547,39 @@ describe('tableUtils', () => {
 
       chai.expect(columns).to.include('Secret_password_as_an_audio_file')
       chai.expect(columns).to.include('old_group/Secret_password_as_an_audio_file')
+    })
+  })
+
+  describe('getMetadataColumns', () => {
+    it('should return only the metadata columns the form defines', () => {
+      const test = getMetadataColumns(assetWithBgAudioAndNLP)
+
+      // `audit` is included because this form defines it. Single Submission
+      // modal used to show it for every form, which was a bug.
+      chai.expect(test).to.deep.equal(['start', 'end', 'audit', 'username', 'deviceid', 'phonenumber', 'today'])
+    })
+
+    it('should not return meta questions that the form does not define', () => {
+      const test = getMetadataColumns(assetWithNestedGroupsAndNLP)
+
+      chai.expect(test).to.deep.equal([])
+    })
+
+    it('should return additional submission properties found in submissions', () => {
+      const submissions = [
+        {
+          _id: 1,
+          _uuid: 'aaa',
+          _submission_time: '2026-08-04T12:00:00',
+          // These two are in `EXCLUDED_COLUMNS`, so they must not come through
+          _status: 'submitted_via_web',
+          'meta/instanceID': 'uuid:aaa',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const test = getMetadataColumns(assetWithNestedGroupsAndNLP, submissions)
+
+      chai.expect(test).to.deep.equal(['_id', '_uuid', '_submission_time'])
     })
   })
 })

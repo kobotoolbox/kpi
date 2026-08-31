@@ -1,8 +1,9 @@
-import { Box, Checkbox, Group, PasswordInput, Radio, Stack } from '@mantine/core'
+import { Box, Checkbox, Group, Radio, Stack } from '@mantine/core'
 import { type FormEvent, useEffect, useState } from 'react'
 import { actions } from '#/actions'
 import { cleanupAndUniqueTags } from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
+import PasswordInput from '#/components/common/PasswordInput'
 import Select from '#/components/common/Select'
 import TagsInput from '#/components/common/TagsInput'
 import TextInput from '#/components/common/TextInput'
@@ -278,7 +279,7 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
           data={AUTH_OPTIONS_LIST}
           value={authLevel}
           onChange={(newVal) => setAuthLevel((newVal as HookAuthLevelName) || null)}
-          searchable={false}
+          searchable={false} // too little options
         />
 
         {authLevel === HookAuthLevelName.basic_auth && (

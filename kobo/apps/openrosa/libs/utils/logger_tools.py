@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import traceback
+import unicodedata
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
@@ -95,6 +96,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.utils.files import normalize_nfc
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -126,6 +128,22 @@ def check_submission_permissions(
     :returns: None.
     :raises: PermissionDenied based on the above criteria.
     """
+
+    # Block superusers from submitting data unless a self-hoster has explicitly
+    # opted into the risk (see DEV-32). Checked before `require_auth` so it also
+    # applies to forms that accept anonymous submissions. Internal callers pass
+    # `request=None` and are never affected.
+    if (
+        request
+        and request.user.is_superuser
+        and not settings.ALLOW_SUPERUSER_SUBMISSIONS
+    ):
+        raise PermissionDenied(
+            t(
+                'Superusers are not allowed to submit data. '
+                'Please use a regular account.'
+            )
+        )
 
     if not xform.require_auth:
         # Anonymous submissions are allowed!
@@ -887,12 +905,19 @@ def save_attachments(
         # `MultiPartParserWithRawFilenames` to preserve the original filename
         # before Django’s sanitizing process.
         original_name = getattr(f, '_raw_filename', None) or f.name
-        media_file_basename = os.path.basename(original_name)
+        media_file_basename = normalize_nfc(os.path.basename(original_name))
+        # NFC-normalize the stored name too: `get_valid_name`'s `\w` regex drops
+        # NFD combining marks, stripping the accent from `media_file.name`.
+        f.name = normalize_nfc(f.name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
+        # Legacy rows may be stored in NFD, so match both forms.
         existing_attachment = Attachment.objects.filter(
             instance=instance,
-            media_file_basename=media_file_basename,
+            media_file_basename__in={
+                media_file_basename,
+                unicodedata.normalize('NFD', media_file_basename),
+            },
         ).first()
 
         uploaded_file_hash = calculate_hash(f, 'sha1')
@@ -971,7 +996,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
             # Only keep non-empty fields
             if basename:
-                basenames.append(basename)
+                basenames.append(normalize_nfc(basename))
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
@@ -999,9 +1024,11 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     latest_attachments, remaining_attachments_ids = [], []
     basename_set = set(basenames)
     for attachment in queryset:
-        if attachment.media_file_basename in basename_set:
+        # Legacy rows may be stored in NFD; normalize both sides before comparing
+        normalized_basename = normalize_nfc(attachment.media_file_basename)
+        if normalized_basename in basename_set:
             latest_attachments.append(attachment)
-            basename_set.remove(attachment.media_file_basename)
+            basename_set.remove(normalized_basename)
         else:
             remaining_attachments_ids.append(attachment.id)
     remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)

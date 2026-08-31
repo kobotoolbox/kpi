@@ -1,7 +1,13 @@
+from operator import attrgetter
+
+from allauth.socialaccount.models import SocialAccount
+from django.core.exceptions import FieldError
 from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
+from django.db.models.functions import Coalesce, Lower
 from django.utils.http import http_date
+from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -15,6 +21,11 @@ from rest_framework.response import Response
 
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.exceptions import (
+    QueryParserBadSyntax,
+    QueryParserNotSupportedFieldLookup,
+    SearchQueryTooShortException,
+)
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
 from kpi.paginators import NoCountPagination
@@ -46,6 +57,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -76,6 +88,8 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
+
+ROLE_RANKS = {'member': 1, 'admin': 2, 'owner': 3}
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -170,21 +184,21 @@ class OrganizationAssetViewSet(AssetViewSet):
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with start parameter',
+                description=t('Paginate results with start parameter'),
             ),
             OpenApiParameter(
                 name='limit',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with limit parameter',
+                description=t('Paginate results with limit parameter'),
             ),
             OpenApiParameter(
                 name='ordering',
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Which field to use when ordering the results.',
+                description=t('Which field to use when ordering the results.'),
             ),
         ],
         operation_id='api_v2_organizations_asset_usage_list',
@@ -230,21 +244,21 @@ class OrganizationAssetViewSet(AssetViewSet):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Filter the results with search query',
+                description=t('Filter the results with search query'),
             ),
             OpenApiParameter(
                 name='limit',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Number of results to return per page.',
+                description=t('Number of results to return per page.'),
             ),
             OpenApiParameter(
                 name='start',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='The initial index from which to return the results.',
+                description=t('The initial index from which to return the results.'),
             ),
         ],
     ),
@@ -435,6 +449,42 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with a search query.',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                enum=[
+                    'user__username',
+                    '-user__username',
+                    'status',
+                    '-status',
+                    'date_joined',
+                    '-date_joined',
+                    'date_added',
+                    '-date_added',
+                    'created',
+                    '-created',
+                    'role',
+                    '-role',
+                    'user__has_sso_enabled',
+                    '-user__has_sso_enabled',
+                ],
+                description=(
+                    'Which field to use when ordering the results. '
+                    'Note: `role` sorts by privilege rank '
+                    '(`member` → `admin` → `owner`).'
+                ),
+            ),
+        ],
     ),
     retrieve=extend_schema(
         description=read_md('organizations', 'members/retrieve.md'),
@@ -506,9 +556,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         organization_id = self.kwargs['uid_organization']
 
         for obj in page:
-            if obj.model_type != '0_organization_user':
-                break
-            members_user_ids.append(obj.user_id)
+            if obj.model_type == '0_organization_user':
+                members_user_ids.append(obj.user_id)
 
         self._invites_queryset = OrganizationInvitation.objects.filter(  # noqa
             status=OrganizationInviteStatusChoices.ACCEPTED,
@@ -526,11 +575,23 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             is_active=True
         ).values('pk')
 
+        # Subquery to check if the user has an associated SSO account
+        sso_subquery = SocialAccount.objects.filter(user=OuterRef('user_id')).values(
+            'pk'
+        )
+
         # Subquery to check if the user is the owner
         owner_subquery = OrganizationOwner.objects.filter(
             organization_id=OuterRef('organization_id'),
             organization_user=OuterRef('pk')
         ).values('pk')
+
+        role_annotation = Case(
+            When(Exists(owner_subquery), then=Value('owner')),
+            When(is_admin=True, then=Value('admin')),
+            default=Value('member'),
+            output_field=CharField(),
+        )
 
         # Annotate with the role based on organization ownership and admin status
         queryset = (
@@ -539,16 +600,14 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             )
             .select_related('user__extra_details')
             .annotate(
-                role=Case(
-                    When(Exists(owner_subquery), then=Value('owner')),
-                    When(is_admin=True, then=Value('admin')),
-                    default=Value('member'),
-                    output_field=CharField(),
-                ),
+                role=role_annotation,
                 has_mfa_enabled=Exists(mfa_subquery),
+                has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
                 ordering_date=F('created'),
                 model_type=Value('0_organization_user', output_field=CharField()),
+                username_sort=Lower(F('user__username')),
+                status_sort=Value('active'),
             )
         )
 
@@ -562,16 +621,145 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 ],
             )
 
-            # Get existing user IDs from the queryset
+            # Get ALL existing user IDs from the base queryset BEFORE applying the `q`
+            # filter. This ensures we don't accidentally include pending invitations
+            # for existing members just because their member profile was filtered out
+            # by `q`.
             members_user_ids = queryset.values_list('user_id', flat=True)
+
+            q = self.request.query_params.get('q', '').strip()
+            if q:
+                user_allowed_fields = {
+                    'organizations.organizationuser': frozenset({'user'}),
+                    'kobo_auth.user': frozenset(
+                        {'username', 'email', 'first_name', 'last_name'}
+                    ),
+                }
+                invite_allowed_fields = {
+                    'organizations.organizationinvitation': frozenset(
+                        {'invitee', 'invitee_identifier'}
+                    ),
+                    'kobo_auth.user': frozenset(
+                        {'username', 'email', 'first_name', 'last_name'}
+                    ),
+                }
+
+                user_invalid_exception = None
+                try:
+                    q_obj_user = parse(
+                        q,
+                        default_field_lookups=[
+                            'user__username__icontains',
+                            'user__email__icontains',
+                            'user__first_name__icontains',
+                            'user__last_name__icontains',
+                            'user__extra_details__data__name__icontains',
+                        ],
+                        model=queryset.model,
+                        allowed_lookup_fields=user_allowed_fields,
+                        user=self.request.user,
+                    )
+
+                    queryset = queryset.filter(q_obj_user)
+                except QueryParserNotSupportedFieldLookup as e:
+                    user_invalid_exception = e
+                    queryset = queryset.none()
+                except (FieldError, ValueError) as e:
+                    user_invalid_exception = e
+                    queryset = queryset.none()
+                except (
+                    ParseError,
+                    QueryParserBadSyntax,
+                    SearchQueryTooShortException,
+                ) as e:
+                    raise e
+
+                invite_invalid_exception = None
+                try:
+                    q_obj_invite = parse(
+                        q,
+                        default_field_lookups=[
+                            'invitee__username__icontains',
+                            'invitee__email__icontains',
+                            'invitee__first_name__icontains',
+                            'invitee__last_name__icontains',
+                            'invitee__extra_details__data__name__icontains',
+                            'invitee_identifier__icontains',
+                        ],
+                        model=invitation_queryset.model,
+                        allowed_lookup_fields=invite_allowed_fields,
+                        user=self.request.user,
+                    )
+                    invitation_queryset = invitation_queryset.filter(q_obj_invite)
+                except QueryParserNotSupportedFieldLookup as e:
+                    invite_invalid_exception = e
+                    invitation_queryset = invitation_queryset.none()
+                except (FieldError, ValueError) as e:
+                    invite_invalid_exception = e
+                    invitation_queryset = invitation_queryset.none()
+                except (
+                    ParseError,
+                    QueryParserBadSyntax,
+                    SearchQueryTooShortException,
+                ) as e:
+                    raise e
+
+                if (
+                    user_invalid_exception is not None
+                    and invite_invalid_exception is not None
+                ):
+                    if isinstance(
+                        user_invalid_exception, QueryParserNotSupportedFieldLookup
+                    ):
+                        raise user_invalid_exception
+                    elif isinstance(
+                        invite_invalid_exception, QueryParserNotSupportedFieldLookup
+                    ):
+                        raise invite_invalid_exception
+                    else:
+                        raise QueryParserNotSupportedFieldLookup()
+
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             ).annotate(
+                role=Lower(F('invitee_role')),
+                has_sso_enabled=Value(False),
                 ordering_date=F('created'),
                 model_type=Value('1_organization_invitation', output_field=CharField()),
+                username_sort=Lower(
+                    Coalesce(F('invitee__username'), F('invitee_identifier'), Value(''))
+                ),
+                status_sort=Value('invited'),
             )
             queryset = list(queryset) + list(invitees)
-            queryset = sorted(queryset, key=lambda x: (x.model_type, x.ordering_date))
+
+            for row in queryset:
+                row.role_sort = ROLE_RANKS.get(row.role, 0)
+
+            SORT_FIELDS = {
+                'user__username': 'username_sort',
+                'status': 'status_sort',
+                'date_joined': 'ordering_date',
+                'date_added': 'ordering_date',
+                'created': 'ordering_date',
+                'role': 'role_sort',
+                'user__has_sso_enabled': 'has_sso_enabled',
+            }
+
+            ordering = self.request.query_params.get('ordering', '').strip()
+            reverse = ordering.startswith('-')
+            field_name = ordering.lstrip('-')
+
+            if sort_attr := SORT_FIELDS.get(field_name):
+                queryset = sorted(
+                    queryset,
+                    key=attrgetter(sort_attr, 'model_type', 'ordering_date'),
+                    reverse=reverse,
+                )
+            else:
+                queryset = sorted(
+                    queryset, key=attrgetter('model_type', 'ordering_date')
+                )
 
         return queryset
 

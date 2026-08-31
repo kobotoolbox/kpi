@@ -1,0 +1,225 @@
+name: 'CD: publish'
+
+
+# Pipeline: validate tag → fetch changelog → [kpi, kobo-docker, kobo-install] → linear → notify
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The release tag to announce (e.g. 2.026.27a)'
+        required: true
+        type: string
+
+
+jobs:
+
+  # Validate that the tag actually exists and derive the release branch from it.
+  current-branch:
+    runs-on: ubuntu-24.04
+    outputs:
+      current_branch: ${{ steps.branch.outputs.current_branch }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Validate tag and derive release branch
+      id: branch
+      env:
+        TAG: ${{ inputs.tag }}
+      run: |
+        set -xe
+        if ! git rev-parse "refs/tags/$TAG" &>/dev/null; then
+          echo "::error::Tag '$TAG' does not exist."
+          exit 1
+        fi
+        MINOR=$(echo "$TAG" | grep -oP '^\d+\.\d+\.\d+')
+        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
+
+
+  version:
+    needs:
+      - current-branch
+    uses: './.github/workflows/find-releases.yml'
+    with:
+      current_branch: ${{ needs.current-branch.outputs.current_branch }}
+
+
+  # Fetch changelog from the dedicated branch. The tag workflow generates it,
+  # but a human may have edited it since (to fix mistakes, reword entries, etc.)
+  # — that's expected and the edited version takes precedence.
+  changelog:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+    outputs:
+      body: ${{ steps.changelog.outputs.body }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Fetch changelog from branch
+      id: changelog
+      env:
+        VERSION: ${{ inputs.tag }}
+      run: |
+        CHANGELOG_BRANCH="changelog/$VERSION"
+        if ! git ls-remote --exit-code origin "refs/heads/$CHANGELOG_BRANCH" >/dev/null 2>&1; then
+          echo "::error::Changelog branch '$CHANGELOG_BRANCH' not found. The tag workflow should have created it."
+          exit 1
+        fi
+
+        BODY=$(git show "origin/$CHANGELOG_BRANCH:CHANGELOG.md")
+
+        {
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
+
+
+  # Create GitHub Release on kpi with the full changelog body.
+  github-release-kpi:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - changelog
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Create GitHub release for kpi
+      env:
+        VERSION: ${{ inputs.tag }}
+        BODY: ${{ needs.changelog.outputs.body }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if gh release view "$VERSION" &>/dev/null; then
+          echo "::notice::Release $VERSION already exists on kpi. Skipping."
+        else
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes "$BODY" \
+            --verify-tag
+        fi
+
+
+  # Create GitHub Release on kobo-docker that links back to the kpi release.
+  github-release-kobo-docker:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - changelog
+    steps:
+    - name: Generate cross-repo token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "kobo-docker"
+
+    - name: Create GitHub release for kobo-docker
+      env:
+        VERSION: ${{ inputs.tag }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        if gh release view "$VERSION" --repo kobotoolbox/kobo-docker &>/dev/null; then
+          echo "::notice::Release $VERSION already exists on kobo-docker. Skipping."
+        else
+          KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
+          gh release create "$VERSION" \
+            --repo kobotoolbox/kobo-docker \
+            --title "$VERSION" \
+            --notes "For more information, please see ${KPI_RELEASE_URL}" \
+            --verify-tag
+        fi
+
+
+  # Create GitHub Release on kobo-install that links back to the kpi release.
+  github-release-kobo-install:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - changelog
+    steps:
+    - name: Generate cross-repo token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "kobo-install"
+
+    - name: Create GitHub release for kobo-install
+      env:
+        VERSION: ${{ inputs.tag }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        if gh release view "$VERSION" --repo kobotoolbox/kobo-install &>/dev/null; then
+          echo "::notice::Release $VERSION already exists on kobo-install. Skipping."
+        else
+          KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
+          gh release create "$VERSION" \
+            --repo kobotoolbox/kobo-install \
+            --title "$VERSION" \
+            --notes "For more information, please see ${KPI_RELEASE_URL}" \
+            --verify-tag
+        fi
+
+
+  # Set Linear release status to 'Released'
+  linear:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
+    if: ${{ !cancelled() && !failure() }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        command: complete
+        release_version: ${{ inputs.tag }}
+
+
+  notify:
+    needs:
+      - version
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
+      - linear
+    if: ${{ !cancelled() && !failure() }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":rocket: `${{ inputs.tag }}` GitHub releases published for kpi, kobo-docker, and kobo-install."
+
+
+  on-failure:
+    needs:
+      - version
+      - changelog
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
+      - linear
+    if: ${{ !cancelled() && failure() }}
+    secrets: inherit
+    uses: './.github/workflows/zulip.yml'
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. @*devs* please investigate."

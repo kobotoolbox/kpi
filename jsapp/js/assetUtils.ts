@@ -13,7 +13,7 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
+import { isDisplayableSupplementalField } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
 import {
   ACCESS_TYPES,
@@ -243,9 +243,9 @@ export function getQuestionOrChoiceDisplayName(
   }
 
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
-    // If the user hasn't made translations yet for a form language show
-    // the xml names instead of blank.
-    if (questionOrChoice.label[translationIndex] === null) {
+    // Fall back to XML name if the label is missing (null) or the index is
+    // out of bounds (undefined).
+    if (questionOrChoice.label[translationIndex] == null) {
       return getRowName(questionOrChoice)
     }
     return questionOrChoice.label[translationIndex]
@@ -531,7 +531,8 @@ export function renderQuestionTypeIcon(
  * Injects supplemental details columns next to their respective source rows in a given list of rows.
  * Returns a new updated `rows` list.
  *
- * Note: we omit injecting `qualNote` questions.
+ * Note: we omit the fields that belong to Single Processing route alone, i.e.
+ * `qualNote` and `qualSource` (see `isDisplayableSupplementalField`).
  *
  * @param asset
  * @param rows - The list of base columns
@@ -564,12 +565,11 @@ export function injectSupplementalRowsIntoListOfRows(
   )
 
   const allSupplementalFields = [
-    // Note questions make sense only in the context of writing responses to
-    // Qualitative Analysis questions. They bear no data, so there is no point
-    // displaying them outside of Single Processing route. As this function is
-    // part of Data Table and Data Downloads, we need to hide the notes.
-    // Merge real and virtual supplemental fields
-    ...additionalFields.filter((field) => field.type !== QUAL_NOTE_TYPE),
+    // This function feeds Data Table and Data Downloads, so the fields that
+    // belong to Single Processing alone have to go (see
+    // `isDisplayableSupplementalField`). Virtual fields need no such filtering,
+    // as they only ever describe ongoing transcriptions and translations.
+    ...additionalFields.filter(isDisplayableSupplementalField),
     ...(uniqueVirtualFields || []),
   ]
 
@@ -589,7 +589,11 @@ export function injectSupplementalRowsIntoListOfRows(
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
 
-      // Qual source and verified data are kept in a qual-id-based key, rather than in the source question key
+      // Back end points `qualVerification` (and `qualSource`) fields at the qual
+      // question they describe, not at the form question, so they don't show up
+      // in the loop above - we have to look them up by the qual key. The type
+      // check is belt and braces: `qualSource` is already gone by now, but this
+      // makes sure a newly added field type can't slip in unnoticed.
       ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
         if (qaCol.type === 'qualVerification') {
           outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)

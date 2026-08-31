@@ -1,12 +1,15 @@
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.admin import SocialAccountAdmin as BaseSocialAccountAdmin
 from allauth.socialaccount.admin import SocialAppAdmin, SocialAppForm
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.models import SocialAccount, SocialApp
+from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from kobo.apps.accounts.models import EmailContent
-from .models import EmailAddressAdmin, SocialAppCustomData
+from .models import EmailAddressAdmin, SocialAppCustomData, SocialAppManagedDomain
+from .utils import user_is_managed_by_sso
 
 
 @admin.register(EmailContent)
@@ -60,7 +63,47 @@ class RequireProviderIdSocialAppAdmin(SocialAppAdmin):
         proxy = True
 
 
-admin.site.unregister(SocialApp)
-admin.site.register(SocialApp, RequireProviderIdSocialAppAdmin)
+class DomainInline(admin.TabularInline):
+    model = SocialAppManagedDomain
+    extra = 1
 
-admin.site.register(SocialAppCustomData)
+
+@admin.register(SocialAppCustomData)
+class SocialAppCustomDataAdmin(admin.ModelAdmin):
+    inlines = [DomainInline]
+
+
+class SocialAccountForm(forms.ModelForm):
+    class Meta:
+        model = SocialAccount
+        fields = '__all__'
+
+    def clean_user(self):
+        user = self.cleaned_data['user']
+        if user_is_managed_by_sso(user):
+            raise ValidationError('Cannot add a new SSO account for SSO-managed user')
+        return user
+
+
+class SocialAccountAdmin(BaseSocialAccountAdmin):
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is None:
+            return SocialAccountForm
+        return super().get_form(request, obj, **kwargs)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            user = obj.user
+            if user_is_managed_by_sso(user):
+                return [
+                    'provider',
+                ]
+        return []
+
+
+admin.site.unregister(SocialApp)
+admin.site.unregister(SocialAccount)
+
+admin.site.register(SocialApp, RequireProviderIdSocialAppAdmin)
+admin.site.register(SocialAccount, SocialAccountAdmin)

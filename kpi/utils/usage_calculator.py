@@ -1,3 +1,5 @@
+from collections import defaultdict
+from datetime import datetime
 from json import dumps, loads
 from math import inf
 
@@ -22,6 +24,87 @@ from kobo.apps.stripe.utils.subscription_limits import (
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
+def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
+    if limit == inf:
+        return None
+    # Limits are calculated as floats because they can potentionally be inf.
+    # Aside from that case, however, they should always be integers
+    limit = int(limit)
+    return {
+        'effective_limit': limit,
+        'balance_value': limit - usage,
+        'balance_percent': int((usage / limit) * 100),
+        'exceeded': limit - usage < 0,
+    }
+
+
+@requires_stripe
+def get_nlp_usage_for_current_billing_period_by_user_id(
+    **kwargs,
+) -> dict[int, NLPUsage]:
+    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
+    owner_by_org = {
+        org_vals['id']: org_vals['owner__organization_user__user__id']
+        for org_vals in Organization.objects.values(
+            'id', 'owner__organization_user__user__id'
+        ).filter(owner__isnull=False)
+    }
+    current_billing_dates_by_owner = {
+        owner_by_org[org_id]: dates
+        for org_id, dates in current_billing_dates_by_org.items()
+        if org_id in owner_by_org
+    }
+    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
+
+
+def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLPUsage]:
+    windows = group_user_ids_by_date_range(date_ranges_by_user)
+
+    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+
+    # clamp: 0 would make range() raise, a negative value would skip
+    # every chunk
+    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
+    results = {}
+    for (start, end), user_ids in windows.items():
+        for start_idx in range(0, len(user_ids), chunk_size):
+            end_idx = start_idx + chunk_size
+            chunk = user_ids[start_idx:end_idx]
+            nlp_tracking = (
+                NLPUsageCounter.objects.filter(
+                    user_id__in=chunk, date__range=[start, end]
+                )
+                .values('user_id')
+                .annotate(
+                    asr_seconds_current_period=Coalesce(
+                        Sum(f'total_{UsageType.ASR_SECONDS}'),
+                        0,
+                    ),
+                    mt_characters_current_period=Coalesce(
+                        Sum(f'total_{UsageType.MT_CHARACTERS}'),
+                        0,
+                    ),
+                    llm_requests_current_period=Coalesce(
+                        Sum(f'total_{UsageType.LLM_REQUESTS}'),
+                        0,
+                    ),
+                )
+            )
+            for row in nlp_tracking:
+                results[row['user_id']] = {
+                    UsageType.ASR_SECONDS: row[
+                        f'{UsageType.ASR_SECONDS}_current_period'
+                    ],
+                    UsageType.MT_CHARACTERS: row[
+                        f'{UsageType.MT_CHARACTERS}_current_period'
+                    ],
+                    UsageType.LLM_REQUESTS: row[
+                        f'{UsageType.LLM_REQUESTS}_current_period'
+                    ],
+                }
+    return results
+
+
 def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
     query = UserProfile.objects.values('user_id', 'attachment_storage_bytes')
     if user_ids is not None:
@@ -35,31 +118,26 @@ def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
 def get_submission_counts_in_date_range_by_user_id(
     date_ranges_by_user,
 ) -> dict[int, int]:
-    filters = Q()
-    for user_id, date_range in date_ranges_by_user.items():
-        filters |= Q(
-            user_id=user_id, date__range=[date_range['start'], date_range['end']]
-        )
-    all_sub_counters = (
-        DailyXFormSubmissionCounter.objects.values('counter', 'user_id', 'date')
-        .filter(filters)
-        .annotate(total=Sum('counter'))
-    )
-    return {row['user_id']: row['total'] for row in all_sub_counters}
+    windows = group_user_ids_by_date_range(date_ranges_by_user)
 
-
-def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
-    if limit == inf:
-        return None
-    # Limits are calculated as floats because they can potentionally be inf.
-    # Aside from that case, however, they should always be integers
-    limit = int(limit)
-    return {
-        'effective_limit': limit,
-        'balance_value': limit - usage,
-        'balance_percent': int((usage / limit) * 100),
-        'exceeded': limit - usage < 0,
-    }
+    # clamp: 0 would make range() raise, a negative value would skip
+    # every chunk
+    chunk_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
+    results = {}
+    for (start, end), user_ids in windows.items():
+        for start_idx in range(0, len(user_ids), chunk_size):
+            end_idx = start_idx + chunk_size
+            chunk = user_ids[start_idx:end_idx]
+            rows = (
+                DailyXFormSubmissionCounter.objects.filter(
+                    user_id__in=chunk, date__range=[start, end]
+                )
+                .values('user_id')
+                .annotate(total=Coalesce(Sum('counter'), 0))
+            )
+            for row in rows:
+                results[row['user_id']] = row['total']
+    return results
 
 
 @requires_stripe
@@ -81,59 +159,30 @@ def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int,
     )
 
 
-def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLPUsage]:
-    filters = Q()
+def group_user_ids_by_date_range(date_ranges_by_user) -> dict[tuple, list[int]]:
+    """
+    Group user ids sharing the same (start, end) billing window.
+
+    OR-ing one `(user_id=X AND date BETWEEN start AND end)` clause per user
+    forces the planner into a bitmap-or of one index scan per clause, each
+    holding its own work_mem-sized state (the DB-server OOM seen on EU,
+    DEV-2567). Grouping users by their distinct window lets callers run one
+    narrow `user_id__in=...` query per window instead: most orgs share the
+    default monthly window, so there are only a handful of distinct windows
+    even at full scale.
+    """
+    windows = defaultdict(list)
     for user_id, date_range in date_ranges_by_user.items():
-        filters |= Q(
-            user_id=user_id, date__range=[date_range['start'], date_range['end']]
-        )
-    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
-
-    nlp_tracking = (
-        NLPUsageCounter.objects.values('user_id')
-        .filter(filters)
-        .annotate(
-            asr_seconds_current_period=Coalesce(
-                Sum(f'total_{UsageType.ASR_SECONDS}'),
-                0,
-            ),
-            mt_characters_current_period=Coalesce(
-                Sum(f'total_{UsageType.MT_CHARACTERS}'),
-                0,
-            ),
-            llm_requests_current_period=Coalesce(
-                Sum(f'total_{UsageType.LLM_REQUESTS}'),
-                0,
-            ),
-        )
-    )
-    results = {}
-    for row in nlp_tracking:
-        results[row['user_id']] = {
-            UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
-            UsageType.MT_CHARACTERS: row[f'{UsageType.MT_CHARACTERS}_current_period'],
-            UsageType.LLM_REQUESTS: row[f'{UsageType.LLM_REQUESTS}_current_period'],
-        }
-    return results
+        if date_range.get('start') and date_range.get('end'):
+            key = (_as_date(date_range['start']), _as_date(date_range['end']))
+            windows[key].append(user_id)
+    return windows
 
 
-@requires_stripe
-def get_nlp_usage_for_current_billing_period_by_user_id(
-    **kwargs,
-) -> dict[int, NLPUsage]:
-    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
-    owner_by_org = {
-        org_vals['id']: org_vals['owner__organization_user__user__id']
-        for org_vals in Organization.objects.values(
-            'id', 'owner__organization_user__user__id'
-        ).filter(owner__isnull=False)
-    }
-    current_billing_dates_by_owner = {
-        owner_by_org[org_id]: dates
-        for org_id, dates in current_billing_dates_by_org.items()
-        if org_id in owner_by_org
-    }
-    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
+def _as_date(value):
+    # Billing bounds are tz-aware datetimes; `date` is a DateField, so
+    # normalize to a date for grouping users into shared query windows below.
+    return value.date() if isinstance(value, datetime) else value
 
 
 class ServiceUsageCalculator(CachedClass):
@@ -299,7 +348,10 @@ class ServiceUsageCalculator(CachedClass):
         return total_submission_count
 
     def _get_cache_hash(self):
-        if self.organization is None:
+        # `organization` is falsy when the user belongs to no organization; keying
+        # on its `id` would then be `None` for every such user, and they would all
+        # share the same cache entry.
+        if not self.organization:
             return f'user-{self.user.id}'
         else:
             return f'organization-{self.organization.id}'

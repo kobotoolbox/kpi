@@ -2,156 +2,573 @@ name: 'CD: tag'
 
 
 concurrency:
-  group: tag-${{ github.ref }}
-  cancel-in-progress: true
+  group: release-tag
+  cancel-in-progress: false
 
 
+# Pipeline: determine version → pull-transifex → tag → build-image → bump → [linear-release, deploy-issue] → notify
 on:
-  push:
-    tags:
-      - v2.0**
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Release branch to tag (e.g. release/2.026.27). Leave empty to auto-detect the latest.'
+        required: false
+        type: string
+      force:
+        description: 'Skip branch eligibility checks (for security hotfixes on older branches).'
+        required: false
+        type: boolean
+        default: false
 
 
 jobs:
 
-  darker:
-    uses: ./.github/workflows/darker.yml
-
-  biome:
-    uses: ./.github/workflows/biome.yml
-
-  openapi:
-    uses: ./.github/workflows/openapi.yml
-
-  pytest:
-    uses: ./.github/workflows/pytest.yml
-
-  npm-test:
-    uses: ./.github/workflows/npm-test.yml
-
-  version:
+  # Determine which release branch to work on.
+  # If the user provided one, use it. Otherwise, find the latest release branch.
+  current-branch:
     runs-on: ubuntu-24.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - uses: actions/checkout@v6
-    - name: Formats the version number
-      id: version
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Determine release branch
+      id: branch
+      env:
+        INPUT_BRANCH: ${{ inputs.release_branch }}
       run: |
         set -xe
-        TAG=$GITHUB_REF
-        VERSION=$(echo "$TAG" | sed 's/v//')
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        if [[ -n "$INPUT_BRANCH" ]]; then
+          # Validate that the branch exists
+          if ! git show-branch "origin/$INPUT_BRANCH" &>/dev/null; then
+            echo "::error::Branch '$INPUT_BRANCH' does not exist."
+            exit 1
+          fi
+          echo "current_branch=$INPUT_BRANCH" >> "$GITHUB_OUTPUT"
+        else
+          # Auto-detect: find the latest release branch (the one whose next is main)
+          # Use the same logic as find_releases.sh but just find the latest
+          LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
+          if [[ -z "$LATEST" ]]; then
+            echo "::error::No release branches found."
+            exit 1
+          fi
+          echo "current_branch=$LATEST" >> "$GITHUB_OUTPUT"
+        fi
 
-  ## TODO
-  # sync-transifex:
-  #   needs:
-  #     - version
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #   - name: Push to Transifex
-  #     uses: transifex/cli-action@v2
-  #     with:
-  #       token: ${{ secrets.TRANSIFEX_API }}
-  #       args: 'push -s'
 
-  #   - name: Pull Transifex
-  #     uses: transifex/cli-action@v2
-  #     with:
-  #       token: ${{ secrets.TRANSIFEX_API }}
-  #       args: 'pull -a -f --mode reviewed'
+  version:
+    needs:
+      - current-branch
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+    with:
+      current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
-  #   - name: Bail if nothing changed.
-  #     id: pull-changed
-  #     run: |
-  #       CHANGED=$(git diff-index --exit-code HEAD &>/dev/null && echo "false" || echo "true")
-  #       echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
 
-  #   - name: commit the translateble strings
-  #     if: ${{ steps.pull-changed.outputs.changed == "true" }}
-  #     run: |
-  #       git add .
-  #       git commit -m "chore: update transifex translations"
-  #       git push
+  # Validate that this branch is eligible for tagging:
+  # - The latest minor is always allowed (next_branch == 'main')
+  # - The previous minor is allowed only if the latest minor is unreleased
+  # - Older branches require the `force` input
+  validate:
+    needs:
+      - version
+    if: ${{ !cancelled() && !failure() && inputs.force != true }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Check branch is latest or previous minor
+      env:
+        NEXT_BRANCH: ${{ needs.version.outputs.next_branch }}
+        CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
+        if [[ "$NEXT_BRANCH" != "main" && "$NEXT_BRANCH" != "$LATEST" ]]; then
+          echo "::error::Cannot tag $CURRENT_BRANCH: only the latest ($LATEST) or the one before it are eligible. Use 'force' input for deep security hotfixes."
+          exit 1
+        fi
 
-  deploy-to-master:
+    - name: Check latest minor is unreleased (when tagging previous)
+      if: ${{ needs.version.outputs.next_branch != 'main' }}
+      env:
+        CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
+        LATEST_TAG=$(git tag --list --sort=-version:refname "${LATEST#release/}*" | head -1)
+        LATEST_TIP=$(git rev-parse "origin/$LATEST")
+        TAG_COMMIT=$(git rev-parse "${LATEST_TAG:-HEAD}^{commit}" 2>/dev/null || echo "none")
+        if [[ -n "$LATEST_TAG" && "$LATEST_TIP" == "$TAG_COMMIT" ]]; then
+          echo "::error::Cannot tag $CURRENT_BRANCH: the latest minor ($LATEST) is already fully released. Use 'force' input for deep security hotfixes."
+          exit 1
+        fi
+
+    - name: Check merge-forward is not broken
+      env:
+        CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+        PREV_BRANCH: ${{ needs.version.outputs.prev_branch }}
+      run: |
+        if [[ -z "$PREV_BRANCH" ]] || ! git rev-parse "origin/$PREV_BRANCH" &>/dev/null; then
+          echo "::notice::No previous branch to check."
+          exit 0
+        fi
+        PREV_TIP=$(git rev-parse "origin/$PREV_BRANCH")
+        CURRENT_TIP=$(git rev-parse "origin/$CURRENT_BRANCH")
+        if ! git merge-base --is-ancestor "$PREV_TIP" "$CURRENT_TIP"; then
+          echo "::error::Cannot tag $CURRENT_BRANCH: $PREV_BRANCH has unmerged commits. Resolve the merge-forward conflict first."
+          exit 1
+        fi
+
+
+  # Pull translations and commit if changed, before tagging.
+  pull-transifex:
+    needs:
+      - version
+      - validate
+    if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        ref: ${{ needs.version.outputs.current_branch }}
+
+    - name: Skip if translations already pulled
+      id: check
+      env:
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+      run: |
+        # Skip if last commit is already a transifex pull (re-run after successful pull but failed tag)
+        if git log -1 --format='%s' | grep -q '^chore: pull transifex translations for '; then
+          echo "::notice::Translations already pulled (last commit is a transifex pull). Skipping."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        # Skip if the tag already exists (re-run after successful tag without a pull)
+        elif git rev-parse "refs/tags/$CURRENT_PATCH" &>/dev/null; then
+          echo "::notice::Tag $CURRENT_PATCH already exists. Skipping transifex pull to avoid moving branch past tag."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Pull Transifex translations
+      if: steps.check.outputs.skip != 'true'
+      uses: transifex/cli-action@v2
+      with:
+        token: ${{ secrets.TRANSIFEX_API }}
+        args: 'pull -a -f --mode reviewed'
+
+    - name: Commit translations if changed
+      if: steps.check.outputs.skip != 'true'
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        git status
+        git add .
+        if git diff --cached --quiet; then
+          echo "No translation changes to commit."
+          exit 0
+        fi
+        # Abort if someone pushed to the branch while translations were being pulled
+        git fetch origin "$BRANCH"
+        if [[ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH")" ]]; then
+          echo "::error::Unexpected commits on $BRANCH since checkout. Aborting."
+          exit 1
+        fi
+        git commit -m "chore: pull transifex translations for $VERSION"
+        git push
+
+
+  # Regenerate changelog with all tags known (authoritative, replaces stabilize draft).
+  changelog:
+    needs:
+      - version
+      - validate
+    if: ${{ !cancelled() && !failure() }}
+    uses: './.github/workflows/changelog.yml'
+    secrets:
+      client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+      private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    with:
+      ref: ${{ needs.version.outputs.current_branch }}
+      version: ${{ needs.version.outputs.current_patch }}
+      draft: false
+
+
+  # Create and push the tag on the release branch (after any transifex commit).
+  tag:
+    needs:
+      - version
+      - changelog
+      - pull-transifex
+    if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
+    outputs:
+      tag_created: ${{ steps.create-tag.outputs.tag_created }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        ref: ${{ needs.version.outputs.current_branch }}
+
+    - name: Pull latest (in case transifex committed)
+      env:
+        BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        git fetch origin "$BRANCH"
+        LOCAL=$(git rev-parse HEAD)
+        REMOTE=$(git rev-parse "origin/$BRANCH")
+        if [[ "$LOCAL" != "$REMOTE" ]]; then
+          # Only allow fast-forward (transifex commit). Abort if unrelated commits appeared.
+          if ! git merge-base --is-ancestor "$LOCAL" "$REMOTE"; then
+            echo "::error::Unexpected commits on $BRANCH since workflow started. Aborting."
+            exit 1
+          fi
+          git merge --ff-only "origin/$BRANCH"
+        fi
+
+    - name: Create and push tag
+      id: create-tag
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+      run: |
+        set -xe
+        # Idempotent: if tag exists at the correct commit, skip (allows rerun)
+        if git rev-parse "refs/tags/$VERSION" &>/dev/null; then
+          TAG_SHA=$(git rev-parse "refs/tags/$VERSION^{commit}")
+          HEAD_SHA=$(git rev-parse HEAD)
+          if [[ "$TAG_SHA" == "$HEAD_SHA" ]]; then
+            echo "::notice::Tag '$VERSION' already exists at correct commit. Skipping."
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "::error::Tag '$VERSION' exists but points to wrong commit ($TAG_SHA, expected $HEAD_SHA). Delete it manually to retry."
+          exit 1
+        fi
+        git tag -a "$VERSION" -m "Release $VERSION"
+        git push origin "refs/tags/$VERSION"
+        echo "tag_created=true" >> $GITHUB_OUTPUT
+
+
+  # Build and publish Docker image to Docker Hub.
+  # Replicates: kobo-deployments/fabfile/docker_utils.py::publish_docker_image()
+  build-image:
     runs-on: ubuntu-24.04
     needs:
-      - darker
-      - pytest
-      - npm-test
+      - version
+      - tag
     if: ${{ !cancelled() && !failure() }}
+    permissions:
+      contents: write   # needed for tag deletion on failure
+    env:
+      DOCKER_HUB_REPO: kobotoolbox/kpi
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
+      with:
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
+        fetch-depth: 1
 
-    - name: deploy to master
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push image
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
-        echo 'TODO, for now deploy manually on kf.master.kbtdev'
-        ## see https://github.com/kobotoolbox/kobo-deployments
-        ## see https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/2.2E024.2E33.20Release/near/472818
-        ## Note: script does two things - deploys and updates docker-compose - see if can seperate that for easier reruns
-        ## Note: this server has lots of data, run migrations or smtg with a 1 minute timeout to flag if some migrations run too long
-        # pipenv shell
-        # fab update_kpi:$VERSION
-        # fab dev_deploy:master,kpi,$GITHUB_REF
+        set -xe
+        IMAGE_NAME="${DOCKER_HUB_REPO}:${VERSION}"
 
+        # docker_utils.py:104 — get expected hash from cloned tag
+        EXPECTED_HASH=$(git rev-parse --verify HEAD)
+
+        # docker_utils.py:106-109 — idempotency: skip build if image already has correct hash
+        HASH_INSIDE_IMAGE=$(docker run --rm "$IMAGE_NAME" bash -c \
+          'cd "." && git rev-parse --verify HEAD || gosu $(stat --format=%u .) git rev-parse --verify HEAD' \
+          2>/dev/null || echo "")
+        if [[ "$HASH_INSIDE_IMAGE" == "$EXPECTED_HASH" ]]; then
+          echo "::notice::Image $IMAGE_NAME already contains the expected commit. Skipping build."
+          exit 0
+        fi
+
+        # docker_utils.py:54-57,114-115 — pull fresh base images
+        grep -i '^FROM ' Dockerfile | awk '{print $2}' | while read -r base_image; do
+          docker pull "$base_image"
+        done
+
+        # docker_utils.py:117 — build the image
+        docker build --progress plain -t "$IMAGE_NAME" .
+
+        # docker_utils.py:119-127 — verify built image contains expected hash
+        HASH_INSIDE_IMAGE=$(docker run --rm "$IMAGE_NAME" bash -c \
+          'cd "." && git rev-parse --verify HEAD || gosu $(stat --format=%u .) git rev-parse --verify HEAD')
+        if [[ "$HASH_INSIDE_IMAGE" != "$EXPECTED_HASH" ]]; then
+          echo "::error::Image contains commit $HASH_INSIDE_IMAGE but expected $EXPECTED_HASH"
+          exit 1
+        fi
+
+        # docker_utils.py:129 — push to Docker Hub
+        docker push "$IMAGE_NAME"
+
+    # On failure, delete the remote tag so the workflow can be re-run — but only
+    # if this run actually created the tag (don't delete a pre-existing tag).
+    - name: "Rollback: delete tag on failure"
+      if: failure() && needs.tag.outputs.tag_created == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "::warning::Image build failed. Deleting tag so the workflow can be re-run to retry."
+        gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ needs.version.outputs.current_patch }}" || true
+
+
+  # Bump version references in kobo-docker and kobo-install, then tag them.
   bump:
     runs-on: ubuntu-24.04
     needs:
-      - deploy-to-master
+      - version
+      - build-image
+    if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.version.outputs.current_branch }}
+    - uses: ./.github/actions/checkout-with-github-app-token
+      id: app-token
+      with:
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "kobo-docker,kobo-install"
 
-    - name: Bump Kobotoolbox version in kobo-docker repo and tag it
+    - name: Bump KoboToolbox version in kobo-docker and tag it
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/kobo-docker/commit/8d964e51c8a82ae74f19154fc5e895ae1db6854d'
+        set -xe
+        TMPDIR=$(mktemp -d)
+        git clone --depth=1 --branch=master \
+          "https://x-access-token:${GH_TOKEN}@github.com/kobotoolbox/kobo-docker.git" "$TMPDIR"
+        cd "$TMPDIR"
 
-    - name: Bump Kobotoolbox version in kobo-install repo and tag it
+        # Update image tag in docker-compose.frontend.yml
+        sed -i -E "s|(image: kobotoolbox/kpi:).*|\1${VERSION}|" docker-compose.frontend.yml
+
+        # Commit if changed (idempotent)
+        if git diff --quiet; then
+          echo "No changes needed in kobo-docker (already at $VERSION)"
+        else
+          git add docker-compose.frontend.yml
+          git commit -m "chore(deps): upgrade KPI to ${VERSION}"
+          git push origin master
+        fi
+
+        # Create and push annotated tag (idempotent)
+        if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+          echo "Tag ${VERSION} already exists on kobo-docker. Skipping."
+        else
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "refs/tags/${VERSION}"
+        fi
+
+    - name: Bump KoboToolbox version in kobo-install and tag it
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/kobo-install/commit/90f63c477480c1f6771c3e9ff2295046b2d99dae'
+        set -xe
+        TMPDIR=$(mktemp -d)
+        git clone --depth=1 --branch=master \
+          "https://x-access-token:${GH_TOKEN}@github.com/kobotoolbox/kobo-install.git" "$TMPDIR"
+        cd "$TMPDIR"
+
+        # Update KOBO_DOCKER_BRANCH in helpers/config.py
+        sed -i -E "s|(KOBO_DOCKER_BRANCH = ')[^']*('.*)|\\1${VERSION}\\2|" helpers/config.py
+
+        # Commit if changed (idempotent)
+        if git diff --quiet; then
+          echo "No changes needed in kobo-install (already at $VERSION)"
+        else
+          git add helpers/config.py
+          git commit -m "chore(deps): use release ${VERSION} of kobo-docker"
+          git push origin master
+        fi
+
+        # Create and push annotated tag (idempotent)
+        if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+          echo "Tag ${VERSION} already exists on kobo-install. Skipping."
+        else
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "refs/tags/${VERSION}"
+        fi
 
 
-  queue-deploy-to-production:
+  linear-release:
     runs-on: ubuntu-24.04
+    needs:
+      - version
+      - bump
+    if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
+      with:
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
+        fetch-depth: 0
+        fetch-tags: true
 
-    - name: create Linear issue to deploy on Global
-      run: |
-        echo 'TODO, for now do it manually'
+    # Final sync from prev_patch catches any unreleased commits from the prev
+    # branch that were merged forward (the stabilize workflow uses branch tip
+    # which excludes these).
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        release_version: ${{ needs.version.outputs.current_patch }}
+        base_ref: ${{ needs.version.outputs.prev_patch }}
 
-    - name: create Linear issue to deploy on EU a day later
-      run: |
-        echo 'TODO, for now do it manually'
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_patch }}
+        stage: "Pending Release (preview on kf.master)"
 
-    - name: create Linear issue to deploy on private servers a week later
+
+  # Create deployment Linear issue for the Infrastructure team.
+  # Detects if any new migrations reference SKIP_HEAVY_MIGRATIONS.
+  deploy-issue:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - bump
+    if: ${{ !cancelled() && !failure() }}
+    outputs:
+      issue-identifier: ${{ steps.create.outputs.issue-identifier }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Detect heavy migrations
+      id: heavy
+      env:
+        PREV_PATCH: ${{ needs.version.outputs.prev_patch }}
       run: |
-        echo 'TODO, for now do it manually'
+        # Find migration files added/changed since the previous tag
+        MIGRATION_FILES=$(git diff --name-only "$PREV_PATCH"..HEAD -- '*/migrations/*.py' \
+          | grep -v '__init__.py' || true)
+
+        if [[ -z "$MIGRATION_FILES" ]]; then
+          echo "has_heavy=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Check which migration files reference SKIP_HEAVY_MIGRATIONS
+        HEAVY_FILES=""
+        while IFS= read -r file; do
+          if [[ -f "$file" ]] && grep -q 'SKIP_HEAVY_MIGRATIONS' "$file"; then
+            HEAVY_FILES="${HEAVY_FILES}${file}"$'\n'
+          fi
+        done <<< "$MIGRATION_FILES"
+
+        if [[ -n "$HEAVY_FILES" ]]; then
+          echo "has_heavy=true" >> "$GITHUB_OUTPUT"
+          echo "heavy_files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${HEAVY_FILES}EOF" >> "$GITHUB_OUTPUT"
+        else
+          echo "has_heavy=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Fetch deploy template from Linear
+      id: template
+      uses: ./.github/actions/fetch-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        issue-id: 'INFRA-565'
+
+    - name: Build issue description
+      id: body
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        HAS_HEAVY: ${{ steps.heavy.outputs.has_heavy }}
+        HEAVY_FILES: ${{ steps.heavy.outputs.heavy_files }}
+        TEMPLATE: ${{ steps.template.outputs.body }}
+      run: |
+        # Build the heavy migrations warning block
+        HEAVY_BLOCK=""
+        if [[ "$HAS_HEAVY" == "true" ]]; then
+          HEAVY_BLOCK=$(printf '%s\n' \
+            "> [!CAUTION]" \
+            "> This release contains migrations that use \`SKIP_HEAVY_MIGRATIONS\`." \
+            "> Review the following files and run the heavy migrations manually after deployment:" \
+            ">" \
+          )
+          while IFS= read -r file; do
+            [[ -n "$file" ]] && HEAVY_BLOCK="${HEAVY_BLOCK}"$'\n'"> - \`$file\`"
+          done <<< "$HEAVY_FILES"
+        fi
+
+        # Substitute placeholders in template
+        BODY="${TEMPLATE/\$HEAVY_MIGRATIONS/$HEAVY_BLOCK}"
+        BODY="${BODY//\$VERSION/$VERSION}"
+
+        {
+          echo "body<<EOF"
+          echo "${BODY}EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Upsert Linear deployment issue
+      id: create
+      uses: ./.github/actions/upsert-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        title: "Deploy kpi ${{ needs.version.outputs.current_patch }}"
+        description: ${{ steps.body.outputs.body }}
+        team-id: 'cb3bc542-ef8f-4f91-9876-dd9d33c00333'
+        label-ids: '["144fdb8b-f79f-44fb-8ac8-72ddc8c2e133"]'
 
 
   notify:
     needs:
       - version
+      - changelog
+      - linear-release
+      - deploy-issue
+    if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.version.outputs.version }} release"
-      content: ":label: Release branch tagged and passes CI. Please deploy to master, bump and tag kobo-docker and kobo-install, and deploy to production. (TODO: automate)"
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":package: `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub. `kobo-docker` and `kobo-install` bumped. @*sysadmin*: please deploy ${{ needs.deploy-issue.outputs.issue-identifier }}"
 
 
   on-failure:
     needs:
       - version
-      - darker
-      - pytest
-      - npm-test
-      - deploy-to-master
+      - validate
+      - pull-transifex
+      - tag
+      - changelog
+      - build-image
       - bump
+      - linear-release
+      - deploy-issue
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
-      topic: "${{ needs.version.outputs.version }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. @*devs* please investigate."

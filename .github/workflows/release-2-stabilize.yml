@@ -2,7 +2,7 @@ name: 'CD: stabilize'
 
 
 concurrency:
-  group: stabilize-${{ github.ref }}
+  group: release-shared-${{ github.ref }}
   cancel-in-progress: true
 
 
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id:   filter
         uses: dorny/paths-filter@v4
         name: Detect changed files
@@ -92,116 +92,205 @@ jobs:
       base: 'HEAD^'
 
 
+  tests:
+    needs: [version, changes, darker, biome, openapi, pytest, npm-test, locale]
+    # Don't skip this job if any of needs were skipped.
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - run: 'true'
+
+
   changelog:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
+      - tests
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
-    runs-on: ubuntu-24.04
-    env:
-      PREV_BRANCH: ${{ needs.version.outputs.prev_branch }}
-      CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
-      CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
-    steps:
-
-    - uses: actions/checkout@v6
-    - uses: ./.github/actions/checkout-with-github-app-token
-      with:
-        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
-        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-
-    - name: draft a changelog
-      run: |
-        npx git-cliff@2.10.0 -u --tag $CURRENT_PATCH
-
-    - name: commit the changelog to a dedicated branch
-      run: |
-        git checkout -B changelog/$CURRENT_PATCH
-        git add -f CHANGELOG.md
-        git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
-        git push -f --set-upstream origin changelog/$CURRENT_PATCH
+    uses: './.github/workflows/changelog.yml'
+    secrets:
+      client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+      private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    with:
+      ref: ${{ needs.version.outputs.current_branch }}
+      version: ${{ needs.version.outputs.current_patch }}
+      draft: true
 
 
   # Note: deploy only the latest release branch instead of all cascading release branches.
   deploy-to-beta:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
+      - tests
+    if: ${{ !cancelled() && !failure() && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
-        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: deploy to beta
+    - name: Deploy to beta
       run: |
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
   # Note: push only current release branch instead of all past or the next release branch.
+  # Push translation strings only for the latest tagged release (not older cascading branches).
   push-to-transifex:
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
+      - tests
+    if: ${{ !cancelled() && !failure() && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
     uses: './.github/workflows/locale.yml'
     secrets: inherit
     with:
       push: true
 
 
+  # Upsert Linear release and link issues.
+  # - First minor release: use prev branch tip so commits to be released as
+  #   patches on the previous minor are excluded.
+  # - Patch release: use prev patch tag (issues since last tag on this branch).
+  linear-upsert:
+    needs:
+      - version
+      - tests
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        release_version: ${{ needs.version.outputs.current_patch }}
+        base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
+
+    # Patch releases skip QA and go straight to "Pending Image"
+    - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
+      if: ${{ needs.version.outputs.current_released == 'true' }}
+      with:
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_patch }}
+        stage: "Pending Image"
+
+
   merge-forward:
     name: Merge forward
     needs:
       - version
-      - changes
-      - darker
-      - biome
-      - openapi
-      - pytest
-      - npm-test
-      - locale
+      - tests
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
+    outputs:
+      new_migrations: ${{ steps.detect-migrations.outputs.new_migrations }}
+      conflict: ${{ steps.merge.outputs.conflict }}
     steps:
 
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
-        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: Merge
+    - name: Attempt merge
+      id: merge
       env:
         current_branch: ${{ needs.version.outputs.current_branch }}
         next_branch: ${{ needs.version.outputs.next_branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        set -xe
+        git fetch origin "$next_branch"
         git checkout "$next_branch"
-        echo 'TODO: squash migrations, if any'
-        git merge --no-ff "$current_branch"
-        git push
+        if ! git merge --no-ff "$current_branch"; then
+          echo "::warning::Merge conflict detected."
+          git merge --abort
+          echo "conflict=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Create conflict PR
+      if: steps.merge.outputs.conflict == 'true'
+      env:
+        current_branch: ${{ needs.version.outputs.current_branch }}
+        next_branch: ${{ needs.version.outputs.next_branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -xe
+        MERGE_BRANCH="merge-forward/${current_branch##*/}-to-${next_branch##*/}"
+        git checkout -B "$MERGE_BRANCH" "$current_branch"
+        git push -f origin "$MERGE_BRANCH"
+
+        PR_BODY_FILE=$(mktemp)
+        {
+          echo "### 🗒️ Checklist"
+          echo ""
+          echo "1. [ ] locally resolve merge conflicts, check migrations and run CI (see instructions below)"
+          echo "2. [ ] push directly to \`$next_branch\` (do NOT use GitHub merge button)"
+          echo ""
+          echo "### 💭 Notes"
+          echo ""
+          echo "Automated merge forward from \`$current_branch\` to \`$next_branch\` failed due to conflicts."
+          echo "This PR exists only as a notification — do **not** merge it via GitHub UI."
+          echo ""
+          echo "Perform the merge locally to produce a single merge commit:"
+          echo "\`\`\`bash"
+          echo "git fetch origin $next_branch $current_branch"
+          echo "git checkout $next_branch"
+          echo "git merge --no-ff origin/$current_branch"
+          echo ""
+          echo "# 1. resolve conflicts"
+          echo ""
+          echo "# 2. check for new Django migrations — squash if needed"
+          echo ""
+          echo "# 3. run CI locally"
+          echo "cd kobo-install"
+          echo "./run.py"
+          echo "./run.py -cf exec kpi ./scripts/ci_locally.sh"
+          echo ""
+          echo "git add -A"
+          echo "git commit"
+          echo "git push origin $next_branch"
+          echo "\`\`\`"
+          echo ""
+          echo "GitHub will auto-close this PR once \`$next_branch\` contains the merge."
+        } > "$PR_BODY_FILE"
+
+        EXISTING_PR=$(gh pr list --base "$next_branch" --head "$MERGE_BRANCH" --state open --json number --jq '.[0].number // empty')
+        if [[ -z "$EXISTING_PR" ]]; then
+          gh pr create \
+            --base "$next_branch" \
+            --head "$MERGE_BRANCH" \
+            --title "chore(release): merge forward $current_branch → $next_branch (conflicts)" \
+            --body-file "$PR_BODY_FILE"
+        else
+          gh pr edit "$EXISTING_PR" --body-file "$PR_BODY_FILE"
+          echo "::notice::PR #$EXISTING_PR updated with latest branch state."
+        fi
+
+    - name: Detect new migrations
+      id: detect-migrations
+      if: steps.merge.outputs.conflict != 'true'
+      env:
+        next_branch: ${{ needs.version.outputs.next_branch }}
+      run: |
+        NEW_MIGRATIONS=$(git diff --name-only "origin/$next_branch"..HEAD -- '*/migrations/*.py' \
+          | grep -v '__init__.py' || true)
+        if [[ -n "$NEW_MIGRATIONS" ]]; then
+          echo "::warning::New Django migrations detected in merge-forward."
+          echo "$NEW_MIGRATIONS"
+          echo "new_migrations<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NEW_MIGRATIONS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Push
+      if: steps.merge.outputs.conflict != 'true'
+      run: git push
 
 
   notify-success:
@@ -217,6 +306,7 @@ jobs:
       - deploy-to-beta
       - merge-forward
       - push-to-transifex
+      - linear-upsert
     if: ${{ !cancelled() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -245,7 +335,11 @@ jobs:
             && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: merged forward skipped due failed automated tests.'
-              || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
+              || needs.merge-forward.outputs.conflict == 'true'
+                && format(':warning: merge forward to `{0}` has conflicts — PR created for manual resolution', needs.version.outputs.next_branch)
+                || needs.merge-forward.outputs.new_migrations != ''
+                  && format(':check: merged forward into `{0}` — ⚠️ **new migrations detected, review manually:** ```{1}```', needs.version.outputs.next_branch, needs.merge-forward.outputs.new_migrations)
+                  || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
           }}
         - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)

@@ -4,7 +4,7 @@ import os
 import posixpath
 import re
 import tempfile
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import Dict, Generator, List, Optional, Tuple
@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
+import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -21,14 +22,13 @@ from django.db.models.functions import Cast, Coalesce, Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from rest_framework import exceptions
-from rest_framework.reverse import reverse
-from werkzeug.http import parse_options_header
-
-import formpack
-from formpack.constants import KOBO_LOCK_SHEET
+from formpack.constants import (
+    KOBO_LOCK_SHEET,
+    MEDIA_COLUMN_NAMES,
+    MEDIA_COLUMN_RE,
+    MEDIA_COLUMN_WITH_LANG_RE,
+    TRANSLATED_COLUMN_RE,
+)
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -38,6 +38,13 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from rest_framework.reverse import reverse
+from werkzeug.http import parse_options_header
+
 from kobo.apps.audit_log.utils import get_lookback_date
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
@@ -83,10 +90,10 @@ from kpi.utils.rename_xls_sheet import (
     rename_xlsx_sheet,
 )
 from kpi.utils.sluggify import is_valid_node_name
+from kpi.utils.standardize_content import standardize_content_in_place
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 
 
 def utcnow(*args, **kwargs):
@@ -370,6 +377,7 @@ class ImportTask(ImportExportTask):
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
                 self._ensure_valid_node_names(kontent)
+                self._ensure_translated_columns(kontent)
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -378,6 +386,9 @@ class ImportTask(ImportExportTask):
                     # The below is copied from `_parse_b64_upload` pretty much as is
                     # TODO: review and test carefully
                     asset = destination
+                    # Derive `translations` from the file so `Asset.save()`
+                    # does not restore languages removed from it (DEV-2657)
+                    standardize_content_in_place(kontent)
                     asset.content = kontent
                     asset.save()
                     messages['updated'].append({
@@ -401,6 +412,60 @@ class ImportTask(ImportExportTask):
         for (orm_obj, parent_item) in collections_to_assign:
             orm_obj.parent = parent_item
             orm_obj.save()
+
+    @staticmethod
+    def _ensure_translated_columns(survey_dict):
+        """
+        Block importing an XLSForm that mixes translated columns (e.g.
+        `label::English (en)`) with untranslated ones (e.g. a bare `hint`),
+        which would otherwise inject a null "Unnamed language" translation and
+        break the formbuilder (DEV-2656). Mirrors the column classification in
+        `formpack.utils.expand_content._get_special_survey_cols()`.
+        """
+        uniq_cols = OrderedDict()
+        for sheet in ('survey', 'choices', 'library'):
+            for row in survey_dict.get(sheet, []):
+                uniq_cols.update(OrderedDict.fromkeys(row.keys()))
+
+        languages = set()
+        untranslated = []
+
+        def _mark_untranslated(column_name):
+            if column_name not in untranslated:
+                untranslated.append(column_name)
+
+        for column_name in uniq_cols.keys():
+            if column_name in ('label', 'hint'):
+                _mark_untranslated(column_name)
+            if ':' not in column_name and column_name not in MEDIA_COLUMN_NAMES:
+                continue
+            if column_name.startswith('bind:') or column_name.startswith('body:'):
+                continue
+            # translated media column,
+            # e.g. `image::English (en)` or `media::image::French (fr)`
+            mtch = MEDIA_COLUMN_WITH_LANG_RE.match(column_name)
+            if mtch:
+                languages.add(mtch.groups()[2])
+                continue
+            # untranslated media column, e.g. `image` or `media::image`
+            mtch = MEDIA_COLUMN_RE.match(column_name)
+            if mtch:
+                _mark_untranslated(column_name)
+                continue
+            # any other translated column,
+            # e.g. `label::English (en)` or `constraint_message::Français`
+            mtch = TRANSLATED_COLUMN_RE.match(column_name)
+            if mtch:
+                column_shortname = mtch.groups()[0]
+                languages.add(mtch.groups()[1])
+                if column_shortname in uniq_cols:
+                    _mark_untranslated(column_shortname)
+
+        if languages and untranslated:
+            if len(untranslated) == 1:
+                raise ValueError(f'The `{untranslated[0]}` column is not translated')
+            cols = ', '.join(f'`{col}`' for col in untranslated)
+            raise ValueError(f'These columns are not translated: {cols}')
 
     @staticmethod
     def _ensure_valid_node_names(survey_dict):
@@ -428,6 +493,7 @@ class ImportTask(ImportExportTask):
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         self._ensure_valid_node_names(survey_dict)
+        self._ensure_translated_columns(survey_dict)
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
@@ -490,6 +556,9 @@ class ImportTask(ImportExportTask):
                     _append_kobo_locking_profiles(
                         base64_encoded_upload, survey_dict
                     )
+                # Derive `translations` from the file so `Asset.save()`
+                # does not restore languages removed from it (DEV-2657)
+                standardize_content_in_place(survey_dict)
                 asset.content = survey_dict
                 old_name = asset.name
                 # saving sometimes changes the name
@@ -747,7 +816,8 @@ class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
 
         region_for_view = get_region_for_view(view)
         q = get_q(region_for_view, export_type)
-        queryset = config['queryset'].filter(q)
+        # queryset is a lambda function, then a callable
+        queryset = config['queryset']().filter(q)
 
         data = self.get_data(queryset)
         buff = create_data_export(export_type, data)

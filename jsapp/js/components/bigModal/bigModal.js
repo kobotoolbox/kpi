@@ -6,11 +6,8 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
-import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
-import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
-import SharingForm from '#/components/permissions/sharingForm.component'
+import LibraryNewItemForm from '#/components/modalForms/LibraryNewItemForm'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
@@ -76,10 +73,6 @@ class BigModal extends React.Component {
   componentDidMount() {
     var type = this.props.params.type
     switch (type) {
-      case MODAL_TYPES.SHARING:
-        this.setModalTitle(t('Sharing Permissions'))
-        break
-
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
         break
@@ -118,17 +111,6 @@ class BigModal extends React.Component {
 
       case MODAL_TYPES.REPLACE_PROJECT:
         // title is set by formEditors
-        break
-
-      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
-        // title is set by BulkEditSubmissionsForm
-        this.setState({
-          modalClass: 'modal--large modal--large-shorter',
-        })
-        break
-
-      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
-        // title is set by DataAttachmentColumnsForm
         break
 
       // TODO: Make a better generic modal component
@@ -193,8 +175,6 @@ class BigModal extends React.Component {
   }
 
   render() {
-    const uid = this.props.params.assetid || this.props.params.uid
-
     return (
       <Modal
         open
@@ -207,7 +187,6 @@ class BigModal extends React.Component {
         disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
-          {this.props.params.type === MODAL_TYPES.SHARING && <SharingForm assetUid={uid} />}
           {this.props.params.type === MODAL_TYPES.NEW_FORM && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.NEW}
@@ -260,21 +239,6 @@ class BigModal extends React.Component {
             <div>
               <LoadingSpinner message={false} />
             </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
-            <BulkEditSubmissionsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
-              asset={this.props.params.asset}
-              {...this.props.params}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS && (
-            <DataAttachmentColumnsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
-              {...this.props.params}
-            />
           )}
           {this.props.params.type === MODAL_TYPES.MFA_MODALS && (
             <MFAModals onModalClose={this.onModalClose} {...this.props.params} />

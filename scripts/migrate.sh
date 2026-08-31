@@ -9,7 +9,7 @@ echo '########## KPI migrations ############'
 set +e
 
 # Run the migration and capture both output and exit status
-MIGRATE_OUT=$(DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py migrate --noinput 2>&1)
+MIGRATE_OUT=$(python manage.py migrate --noinput 2>&1)
 MIGRATE_STATUS=$?
 
 set -e
@@ -21,14 +21,14 @@ if [ $MIGRATE_STATUS -ne 0 ]; then
         echo "⚠️ Materialized view schema lock detected! Automatically resolving..."
 
         # Step A: Drop the view to remove the lock
-        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py manage_user_reports_mv --drop
+        python manage.py manage_user_reports_mv --drop
 
         # Step B: Retry the migration now that the lock is gone
         echo "Retrying KPI migrations..."
-        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py migrate --noinput
+        python manage.py migrate --noinput
 
         # Step C: Recreate the view after successful migration
-        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py manage_user_reports_mv --create
+        python manage.py manage_user_reports_mv --create
         echo "Schema lock resolved successfully."
     else
         echo "❌ KPI migrations failed. Details below:"
@@ -39,5 +39,5 @@ else
     echo "$MIGRATE_OUT"
 fi
 echo '########## KoboCAT migrations ############'
-DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py migrate --noinput --database kobocat
+python manage.py migrate --noinput --database kobocat
 python manage.py runscript create_anonymous_user

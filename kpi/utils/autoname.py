@@ -4,10 +4,18 @@ import re
 import string
 from collections import OrderedDict
 from copy import deepcopy
+from enum import Enum
 
 from formpack.utils.json_hash import json_hash
+
 from kpi.exceptions import DuplicateNameException
-from kpi.utils.sluggify import sluggify, sluggify_label
+from kpi.utils.sluggify import is_valid_node_name, sluggify, sluggify_label
+
+
+class HandleDuplicatesOptions(Enum):
+    RAISE = 'raise'
+    IGNORE = 'ignore'
+    RENAME = 'rename'
 
 
 def _increment(name):
@@ -83,12 +91,19 @@ def autoname_fields(surv_content, in_place=False):
         return _content_copy.get('survey')
 
 
-def autoname_fields_in_place(surv_content, destination_key, raise_on_error=True):
+def autoname_fields_in_place(
+    surv_content,
+    destination_key,
+    handle_duplicates: HandleDuplicatesOptions = HandleDuplicatesOptions.RAISE,
+):
     surv_list = surv_content.get('survey')
     other_names = OrderedDict()
 
     def _assign_row_to_name(row, suggested_name):
-        if raise_on_error and suggested_name in other_names:
+        if (
+            suggested_name in other_names
+            and handle_duplicates == HandleDuplicatesOptions.RAISE
+        ):
             raise DuplicateNameException(
                 'Duplicate name error: {}'.format(suggested_name)
             )
@@ -99,7 +114,27 @@ def autoname_fields_in_place(surv_content, destination_key, raise_on_error=True)
     # end_group, etc. do not need valid names
     rows_needing_names = [r for r in surv_list if not _is_group_end(r)]
     for row in [r for r in rows_needing_names if _has_name(r)]:
-        _assign_row_to_name(row, row['name'])
+        _name = row['name']
+        if handle_duplicates != HandleDuplicatesOptions.RENAME:
+            _assign_row_to_name(row, _name)
+            continue
+
+        _attempt_count = 0
+        _given_name = _name
+        while not is_valid_node_name(_name) or _name in other_names:
+            # save original name
+            row['$given_name'] = _given_name
+            _name = sluggify_label(_name, other_names=list(other_names.keys()))
+            # _name shouldn't be empty at this point but there are some edge cases
+            # for certain languages (eg Arabic)
+            if _name == '' and '$kuid' in row:
+                _name = '{}_{}'.format(row['type'], row['$kuid'])
+            elif _name == '':
+                _name = row['type']
+            if _attempt_count > 1000:
+                raise RuntimeError('Loop error: valid_name')
+            _attempt_count += 1
+        _assign_row_to_name(row, _name)
 
     for row in [r for r in rows_needing_names if not _has_name(r)]:
         if 'label' in row:

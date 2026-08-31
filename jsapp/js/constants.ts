@@ -70,7 +70,6 @@ export enum KeyNames {
 }
 
 export const MODAL_TYPES = {
-  SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
   LIBRARY_NEW_ITEM: 'library-new-item',
@@ -80,7 +79,6 @@ export const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }
@@ -254,7 +252,7 @@ type QuestionTypes = Record<QuestionTypeName, QuestionTypeDefinition>
  *   - renderQuestionTypeIcon in assetUtils.ts
  * 5. If question doesn't hold data, update:
  *   - getDisplayData in bulkEditSubmissionsForm.js
- *   - getDisplayedColumns in table.js
+ *   - getAllDataColumns in components/submissions/tableUtils.ts
  * 6. Update renderResponseData in submissionDataTable.tsx
  * 7. Update getSubmissionDisplayData in submissionUtils.ts
  * 8. If it's media type update renderAttachment in submissionDataTable.tsx

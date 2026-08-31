@@ -10,7 +10,15 @@ import type { SubmissionResponse } from '#/dataInterface'
  */
 export type AlertSeverity = 'error' | 'warning'
 
-export type BulkActionType = 'transcript' | 'translation'
+/**
+ * Bulk actions that can show alerts.
+ *
+ * `approve` only accepts content that is already there, so it doesn't need the
+ * quota, language or source checks the other two use. It gets its own short list
+ * of alerts in `getAlertDefinitions`, which is why evaluators that look at
+ * `actionType` only ever see `transcript` or `translation`.
+ */
+export type BulkActionType = 'transcript' | 'translation' | 'approve'
 
 /**
  * Context passed to alert evaluators
@@ -27,6 +35,11 @@ export interface AlertEvaluationContext {
   requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
+  /**
+   * Every submission uuid in this pipeline is a root uuid (`getSubmissionRootUuid`), since that is the only id the
+   * bulk endpoints know. Evaluators must keep it that way, or an edited submission slips past the skip check below and
+   * gets evaluated twice.
+   */
   previouslyFilteredSubmissionUuids: Set<string>
 }
 
@@ -35,7 +48,7 @@ export interface AlertEvaluationContext {
  */
 export interface AlertEvaluationResult {
   type: AlertSeverity
-  /** Submission Uuids filtered out by this evaluator */
+  /** Root uuids of the submissions this evaluator filtered out */
   filteredSubmissionUuids: string[]
   /** Computed values for messages */
   computedValues: Record<string, any>
@@ -62,6 +75,6 @@ export interface ActiveAlert {
   type: AlertSeverity
   message: string
   computedValues: Record<string, any>
-  /** Optional UUIDs filtered by this alert, used by modal-specific follow-up calculations */
+  /** Optional root uuids filtered by this alert, used by modal-specific follow-up calculations */
   filteredSubmissionUuids?: string[]
 }
