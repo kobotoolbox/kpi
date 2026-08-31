@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { Decorator, Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse } from 'msw'
+import { useEffect, useRef, useState } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, waitFor, within } from 'storybook/test'
 import { endpoints } from '#/api.endpoints'
@@ -217,6 +218,42 @@ function mapHandlers(asset: AssetResponse, submissions: SubmissionResponse[]) {
 }
 
 /**
+ * Holds the story back until the browser has given the container a layout box.
+ *
+ * Leaflet measures its container once, when the map is created, and reuses that size until something calls
+ * `invalidateSize()`. Storybook can start rendering a story while `#storybook-root` is still hidden — during the
+ * "preparing" state, or while switching stories on a busy machine — and a map created in a hidden container
+ * measures 0×0. It then fits its bounds against nothing, settles on max zoom with all the points off screen, and
+ * stays like that once the container gets its real size: no markers, one lonely tile at zoom 17. Mounting a beat
+ * later costs nothing here and takes that whole failure mode off the table.
+ */
+const withLaidOutContainer: Decorator = (Story) => {
+  const wrapper = useRef<HTMLDivElement>(null)
+  const [laidOut, setLaidOut] = useState(false)
+
+  useEffect(() => {
+    const element = wrapper.current
+    if (!element) return
+
+    // Width, because it comes from the parent: a hidden element measures 0 whatever it holds, while an empty but
+    // visible one still spans the story canvas. Height would be 0 here until the story itself fills it.
+    const check = () => setLaidOut(element.getBoundingClientRect().width > 0)
+    check()
+
+    // Fires when the box appears, which is exactly the moment the map may be created safely
+    const observer = new ResizeObserver(check)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={wrapper} style={{ height: '100%' }}>
+      {laidOut && <Story />}
+    </div>
+  )
+}
+
+/**
  * Ceiling shared by the waits below. `waitFor` carries on the moment its condition holds, so a high ceiling costs
  * nothing on a quick machine and only buys patience on a cold CI worker. Kept under the runner's 30s per-story limit,
  * so a real regression fails on the assertion rather than on the clock.
@@ -283,6 +320,7 @@ const meta: Meta<typeof FormMapWrapper> = {
     },
   },
   decorators: [
+    withLaidOutContainer,
     withRouter,
     queryClientDecorator,
     withMinHeightWrapper(400, { height: 400 }),
