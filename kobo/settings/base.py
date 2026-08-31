@@ -1543,7 +1543,7 @@ CELERY_BEAT_SCHEDULE = {
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
     },
     'perform-maintenance': {
         'task': 'kpi.tasks.perform_maintenance',
@@ -1575,7 +1575,7 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-failed': {
@@ -1633,7 +1633,7 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=0, hour=0),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every day at midnight UTC
     'delete-expired-logs': {
