@@ -7,10 +7,17 @@ import type { RecurringInterval } from '../stripe.types'
 import subscriptionStore from '../subscriptionStore'
 
 /**
- * Get the subscription interval (`'month'` or `'year'`) for the logged-in user.
- * Returns `'month'` for users on the free plan.
+ * Get the subscription interval (`'month'` or `'year'`) for the logged-in user, along with whether
+ * they have an active plan at all.
+ *
+ * Returns `{interval: 'month', hasActivePlan: false}` for users on the free plan (and on deployments
+ * without Stripe). This is so we can give a more accurate 'billing period' description for users that
+ * have active monthly plans.
  */
-export async function getSubscriptionInterval() {
+export async function getSubscriptionInfo(): Promise<{
+  interval: RecurringInterval
+  hasActivePlan: boolean
+}> {
   await when(() => envStore.isReady)
   if (envStore.data.stripe_public_key) {
     if (!subscriptionStore.isPending && !subscriptionStore.isInitialised) {
@@ -20,25 +27,30 @@ export async function getSubscriptionInterval() {
     const subscriptionList = subscriptionStore.planResponse
     const activeSubscription = subscriptionList.find((sub) => ACTIVE_STRIPE_STATUSES.includes(sub.status))
     if (activeSubscription) {
-      return activeSubscription.items[0].price.recurring?.interval || 'month'
+      return {
+        interval: activeSubscription.items[0].price.recurring?.interval || 'month',
+        hasActivePlan: true,
+      }
     }
   }
-  return 'month'
+  return { interval: 'month', hasActivePlan: false }
 }
 
 export const useBillingPeriod = (): {
   billingPeriod: RecurringInterval
+  hasActivePlan: boolean
   isLoading: boolean
 } => {
-  const { data: billingPeriod, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: [QueryKeys.billingPeriod],
-    queryFn: getSubscriptionInterval,
+    queryFn: getSubscriptionInfo,
   })
 
   return {
-    billingPeriod: billingPeriod || 'month',
-    // Default to 'month' if billingPeriod is undefined
+    // Default to 'month'/no plan while the query is still loading.
     // This ensures that the hook always returns a valid billing period
+    billingPeriod: data?.interval || 'month',
+    hasActivePlan: data?.hasActivePlan ?? false,
     isLoading,
   }
 }
