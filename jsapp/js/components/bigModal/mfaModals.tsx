@@ -3,12 +3,12 @@ import './mfaModals.scss'
 import React from 'react'
 
 import { observer } from 'mobx-react'
-import QRCode from 'qrcode.react'
+import QRCode from 'react-qr-code'
 import type { MfaActivatedResponse, MfaBackupCodesResponse } from '#/actions/mfaActions'
 import mfaActions from '#/actions/mfaActions'
 import bem, { makeBem } from '#/bem'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 
@@ -245,12 +245,15 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
-            <TextBox
+            {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
+            <input type='password' hidden />
+            <TextInput
               className='mfa-modals-textbox'
-              errors={this.state.errorText}
+              size='lg'
+              error={this.state.errorText}
               value={this.state.inputString}
-              onChange={this.onInputChange.bind(this)}
-              disableAutocomplete
+              onChange={(evt) => this.onInputChange(evt.currentTarget.value)}
+              autoComplete='off'
             />
           </bem.MFAModal__p>
 
@@ -367,12 +370,15 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
-            <TextBox
+            {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
+            <input type='password' hidden />
+            <TextInput
               className='mfa-modals-textbox'
-              errors={this.state.errorText}
+              size='lg'
+              error={this.state.errorText}
               value={this.state.inputString}
-              onChange={this.onInputChange.bind(this)}
-              disableAutocomplete
+              onChange={(evt) => this.onInputChange(evt.currentTarget.value)}
+              autoComplete='off'
             />
           </bem.MFAModal__p>
 
@@ -422,12 +428,15 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
-            <TextBox
+            {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
+            <input type='password' hidden />
+            <TextInput
               className='mfa-modals-textbox'
-              errors={this.state.errorText}
+              size='lg'
+              error={this.state.errorText}
               value={this.state.inputString}
-              onChange={this.onInputChange.bind(this)}
-              disableAutocomplete
+              onChange={(evt) => this.onInputChange(evt.currentTarget.value)}
+              autoComplete='off'
             />
           </bem.MFAModal__p>
 

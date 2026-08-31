@@ -2,7 +2,7 @@
 import { Pill } from '@mantine/core'
 import classes from './Pill.module.css'
 
-type PillVariantCustom = 'gray-light' | 'amber-light'
+type PillVariantCustom = 'gray-light' | 'amber-light' | 'red-light' | 'teal-light'
 
 declare module '@mantine/core' {
   export interface PillProps {

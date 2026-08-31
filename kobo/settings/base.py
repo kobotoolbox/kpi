@@ -1803,6 +1803,8 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'user_token': 'kobo.apps.accounts.forms.UserTokenForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False

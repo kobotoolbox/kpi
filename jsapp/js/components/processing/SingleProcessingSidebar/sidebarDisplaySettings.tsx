@@ -16,13 +16,6 @@ import { recordValues } from '#/utils'
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
 import { StaticDisplays } from '../common/utils'
 
-/**
- * The default (no explicit language) option is an empty string internally, but
- * our `Select` treats an empty string as "nothing selected", so we swap in this
- * sentinel value for the dropdown.
- */
-const DEFAULT_LANGUAGE_OPTION_VALUE = '__default__'
-
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
   selectedDisplays: DisplaysList
@@ -55,7 +48,9 @@ export default function SidebarDisplaySettings({
       { label: t('XML values'), value: XML_VALUES_OPTION_VALUE },
       ...languages.map((language) => ({
         label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
-        value: language ?? DEFAULT_LANGUAGE_OPTION_VALUE,
+        // An empty string is how the rest of the app spells "the form's default
+        // language".
+        value: language ?? '',
       })),
     ]
   }, [asset?.summary?.languages])
@@ -180,10 +175,10 @@ export default function SidebarDisplaySettings({
                 size='xs'
                 clearable={false}
                 data={assetLanguageOptions}
-                value={questionLabelLanguage || DEFAULT_LANGUAGE_OPTION_VALUE}
+                value={questionLabelLanguage}
                 onChange={(languageCode) => {
                   if (languageCode !== null) {
-                    setQuestionLabelLanguage(languageCode === DEFAULT_LANGUAGE_OPTION_VALUE ? '' : languageCode)
+                    setQuestionLabelLanguage(languageCode)
                   }
                 }}
               />
