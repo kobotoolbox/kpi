@@ -2395,9 +2395,16 @@ S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
 USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
-# Number of stuck tasks should be restarted at a time
+# Number of stuck project ownership tasks and transfers restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
+MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 100)
+MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int(
+    'MAX_RESTARTED_ATTACHMENT_DELETIONS', 100
+)
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention

@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from celery import Task
+from celery.exceptions import SoftTimeLimitExceeded
 from constance import config
 from django.conf import settings
 from django.db import transaction
@@ -69,15 +70,32 @@ def task_restarter():
     failed on a transient (infrastructure) error
     """
 
-    for model, task, retention in (
-        (AccountTrash, empty_account, config.ACCOUNT_TRASH_RETENTION),
-        (ProjectTrash, empty_project, config.PROJECT_TRASH_RETENTION),
-        (AttachmentTrash, empty_attachment, config.ATTACHMENT_TRASH_RETENTION),
+    for model, task, retention, max_restarts in (
+        (
+            AccountTrash,
+            empty_account,
+            config.ACCOUNT_TRASH_RETENTION,
+            settings.MAX_RESTARTED_ACCOUNT_DELETIONS,
+        ),
+        (
+            ProjectTrash,
+            empty_project,
+            config.PROJECT_TRASH_RETENTION,
+            settings.MAX_RESTARTED_PROJECT_DELETIONS,
+        ),
+        (
+            AttachmentTrash,
+            empty_attachment,
+            config.ATTACHMENT_TRASH_RETENTION,
+            settings.MAX_RESTARTED_ATTACHMENT_DELETIONS,
+        ),
     ):
-        _restart_stuck_tasks(model, task, retention)
+        _restart_stuck_tasks(model, task, retention, max_restarts)
 
 
-def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
+def _restart_stuck_tasks(
+    model: TrashBinModel, task: Task, retention: int, max_restarts: int
+):
     """
     Restart tasks which have been stopped accidentally, i.e.: they are still
     flagged as pending or in progress but nothing has updated them for a while
@@ -112,7 +130,7 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
             started_objects | due_objects,
             date_modified__lte=stuck_threshold,
         )
-        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
+        .order_by('date_modified')[:max_restarts]
     )
 
     for stuck_id, date_modified in stuck_objects:
@@ -130,6 +148,14 @@ def _restart_stuck_tasks(model: TrashBinModel, task: Task, retention: int):
 
         try:
             task.delay(stuck_id, force=True)
+        except SoftTimeLimitExceeded:
+            # `task_restarter` itself is running out of time, the object is not
+            # at fault: release the claim so the next run picks it up, and let
+            # the exception bubble up instead of logging a misleading failure
+            model.objects.filter(pk=stuck_id, date_modified=claimed_at).update(
+                date_modified=date_modified
+            )
+            raise
         except Exception:
             # If the task fails to enqueue, restore the original date_modified
             # so that it can be picked up again in the next run, and carry on
