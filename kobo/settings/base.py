@@ -2402,9 +2402,7 @@ MAX_RESTARTED_TRANSFERS = 20
 # Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 100)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
-MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int(
-    'MAX_RESTARTED_ATTACHMENT_DELETIONS', 100
-)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 100)
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
