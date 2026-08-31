@@ -11,6 +11,7 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withMinHeightWrapper } from '#/storybookUtils'
 import FormMapWrapper from './formMapWrapper'
+import { mapTileHandlers } from './mapTiles.mocks'
 
 const mockAssetUid = 'aTestMapAssetUid123'
 
@@ -100,6 +101,46 @@ const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
   },
 }) as unknown as AssetResponse
 
+// Asset used to check how points collected on both sides of the 180th meridian are displayed
+const assetWithPacificGeopoints = getApiV2AssetsRetrieveResponseMock({
+  uid: mockAssetUid,
+  name: 'Test Form with Points Across the 180th Meridian',
+  deployment__active: true,
+  deployment__submission_count: 4,
+  has_deployment: true,
+  map_styles: {},
+  summary: {
+    geo: true,
+    labels: ['Your name', 'Where are you?'],
+    columns: ['type', 'label'],
+    lock_all: false,
+    lock_any: false,
+    languages: [],
+    row_count: 2,
+    name_quality: { ok: 2, bad: 0, good: 0, total: 2, firsts: {} },
+    default_translation: undefined,
+  },
+  content: {
+    survey: [
+      {
+        $kuid: 'q1',
+        type: QuestionTypeName.text,
+        name: 'your_name',
+        label: ['Your name'],
+        required: false,
+      },
+      {
+        $kuid: 'q2',
+        type: QuestionTypeName.geopoint,
+        name: 'location',
+        label: ['Where are you?'],
+        required: false,
+      },
+    ],
+    choices: [],
+  },
+}) as unknown as AssetResponse
+
 // Submission data with populated start-geopoint
 const submissionsWithStartGeopoint: SubmissionResponse[] = [
   assetDataFactory(1, {
@@ -130,16 +171,106 @@ const submissionsWithBothGeopointTypes: SubmissionResponse[] = [
   }),
 ]
 
+// Two submissions in Vanuatu (east of the 180th meridian) and two in Samoa (west of it)
+const submissionsAcrossAntimeridian: SubmissionResponse[] = [
+  assetDataFactory(1, {
+    your_name: 'Alice',
+    location: '-17.7333 168.3273 0 0', // Port Vila
+    _geolocation: [-17.7333, 168.3273],
+  }),
+  assetDataFactory(2, {
+    your_name: 'Bob',
+    location: '-17.5667 168.1667 0 0', // Mele
+    _geolocation: [-17.5667, 168.1667],
+  }),
+  assetDataFactory(3, {
+    your_name: 'Carla',
+    location: '-13.8333 -171.7667 0 0', // Apia
+    _geolocation: [-13.8333, -171.7667],
+  }),
+  assetDataFactory(4, {
+    your_name: 'Dan',
+    location: '-14.0333 -171.4833 0 0', // Lotofaga
+    _geolocation: [-14.0333, -171.4833],
+  }),
+]
+
+/** Everything a map story needs mocked: the asset, its submissions and the tiles the map is drawn on. */
+function mapHandlers(asset: AssetResponse, submissions: SubmissionResponse[]) {
+  return [
+    http.get(endpoints.ASSET_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      return HttpResponse.json(asset)
+    }),
+    http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      const response: PaginatedResponse<SubmissionResponse> = {
+        count: submissions.length,
+        next: null,
+        previous: null,
+        results: submissions,
+      }
+      return HttpResponse.json(response)
+    }),
+    ...mapTileHandlers,
+  ]
+}
+
+/**
+ * Ceiling shared by the waits below. `waitFor` carries on the moment its condition holds, so a high ceiling costs
+ * nothing on a quick machine and only buys patience on a cold CI worker. Kept under the runner's 30s per-story limit,
+ * so a real regression fails on the assertion rather than on the clock.
+ */
+const WAIT = { timeout: 10000 }
+
+/** The markers the map has drawn, clusters included. Scoped to the map, so it also covers the container being there. */
+const plottedMarkers = (canvasElement: HTMLElement) => canvasElement.querySelectorAll('#data-map .leaflet-marker-icon')
+
+/**
+ * What state the map is in, to go with a wait that gave up. On CI the failure is otherwise only "expected 0 to be
+ * greater than 0", which does not say whether the data never arrived, the container has no size, or Leaflet drew nothing.
+ */
+function describeMap(canvasElement: HTMLElement) {
+  const container = canvasElement.querySelector('#data-map')
+  const tiles = Array.from(canvasElement.querySelectorAll('#data-map .leaflet-tile'))
+  const zooms = new Set(tiles.map((tile) => tile.getAttribute('src')?.match(/\/(\d+)\/\d+\/\d+/)?.[1]))
+  const overlay = Array.from(canvasElement.querySelectorAll('.map-no-geopoint'), (line) => line.textContent).join(' / ')
+  const size = container ? `${container.clientWidth}×${container.clientHeight}` : 'no container'
+  return `map ${size}, ${tiles.length} tiles at zoom ${[...zooms].join()}, overlay "${overlay}"`
+}
+
+/**
+ * Waits for the map to plot its submissions, in the two steps it goes through: the data lands (the map stops saying it
+ * is fetching points), then Leaflet draws it. Both are the map's own signals, so no story has to guess at how long
+ * either takes.
+ */
+async function waitForPlottedPoints(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement)
+  await waitFor(
+    () => expect(canvas.queryByText(/Fetching points/i), describeMap(canvasElement)).not.toBeInTheDocument(),
+    WAIT,
+  )
+  await waitFor(() => expect(plottedMarkers(canvasElement).length, describeMap(canvasElement)).toBeGreaterThan(0), WAIT)
+}
+
+/**
+ * Waits for one zoom step to land. Leaflet drops a zoom it is asked for while still animating the previous one, so
+ * clicks have to be spaced out by this. The animation starts on the frame after the click, hence the two frames before
+ * trusting that the class it puts on the pane is gone.
+ */
+async function waitForZoomToLand(canvasElement: HTMLElement) {
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+  const mapPane = canvasElement.querySelector('.leaflet-map-pane')
+  await waitFor(() => expect(mapPane).not.toHaveClass('leaflet-zoom-anim'), WAIT)
+}
+
 const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
   component: FormMapWrapper,
+  // Docs view does NOT work reliably for these stories due to map initialization rule (there can be only one)
+  tags: ['!autodocs'],
   parameters: {
-    docs: {
-      description: {
-        component:
-          '⚠️ **Docs view does NOT work reliably for these stories due to map initialization rule (there can be only one). Use single stories please.** Also note that many interactive elements are not mocked and will not work.',
-      },
-    },
     reactRouter: reactRouterParameters({
       location: {
         pathParams: { uid: mockAssetUid },
@@ -155,17 +286,13 @@ const meta: Meta<typeof FormMapWrapper> = {
     withRouter,
     queryClientDecorator,
     withMinHeightWrapper(400, { height: 400 }),
-    // Hide map tiles for Chromatic tests - prevents flakiness from map images rendering differently (we had tiny
-    // differences causing tests to fail)
+    // Tiles are mocked (see `mapTiles.mocks.ts`), so this only fills the map while they are on their way in
     (Story) => (
       <>
         <style>
           {`
-            .leaflet-tile-pane {
-              opacity: 0 !important;
-            }
             #data-map {
-              background: #a8e4f0 !important;
+              background: #94c7d1 !important;
             }
           `}
         </style>
@@ -180,24 +307,7 @@ type Story = StoryObj<typeof FormMapWrapper>
 
 export const WithOnlyStartGeopoint: Story = {
   parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoints.ASSET_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          return HttpResponse.json(assetWithOnlyStartGeopoint)
-        }),
-        http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          const response: PaginatedResponse<SubmissionResponse> = {
-            count: submissionsWithStartGeopoint.length,
-            next: null,
-            previous: null,
-            results: submissionsWithStartGeopoint,
-          }
-          return HttpResponse.json(response)
-        }),
-      ],
-    },
+    msw: { handlers: mapHandlers(assetWithOnlyStartGeopoint, submissionsWithStartGeopoint) },
   },
   args: {
     asset: assetWithOnlyStartGeopoint,
@@ -205,59 +315,23 @@ export const WithOnlyStartGeopoint: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement)
 
-    await step('Verify that the map container is rendered', async () => {
-      await waitFor(
-        async () => {
-          const mapContainer = canvasElement.querySelector('#data-map')
-          expect(mapContainer).toBeInTheDocument()
-        },
-        { timeout: 5000 },
-      )
-    })
+    await step('Wait for the map to plot the start-geopoints', () => waitForPlottedPoints(canvasElement))
 
+    // Checked once the points are drawn, so a missing error means there is none rather than that we looked too early
     await step('Verify that the map does NOT show "no geographical data" error', async () => {
-      await waitFor(
-        async () => {
-          const errorText = canvas.queryByText(/This project does not include geographical data/i)
-          expect(errorText).not.toBeInTheDocument()
-        },
-        { timeout: 5000 },
-      )
+      expect(canvas.queryByText(/This project does not include geographical data/i)).not.toBeInTheDocument()
     })
 
     await step('Verify that map settings button is enabled (indicates geo questions detected)', async () => {
-      await waitFor(
-        async () => {
-          // The settings button should be enabled when hasGeoPoint is true
-          const settingsButton = canvas.getByLabelText('Map display settings')
-          expect(settingsButton).toBeEnabled()
-        },
-        { timeout: 5000 },
-      )
+      // The settings button should be enabled when hasGeoPoint is true
+      expect(canvas.getByLabelText('Map display settings')).toBeEnabled()
     })
   },
 }
 
 export const WithBothGeopointTypes: Story = {
   parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoints.ASSET_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          return HttpResponse.json(assetWithBothGeopointTypes)
-        }),
-        http.get<{ uid: string; limit?: string; start?: string }>(endpoints.ASSET_DATA_URL, ({ params }) => {
-          if (params.uid !== mockAssetUid) return undefined
-          const response: PaginatedResponse<SubmissionResponse> = {
-            count: submissionsWithBothGeopointTypes.length,
-            next: null,
-            previous: null,
-            results: submissionsWithBothGeopointTypes,
-          }
-          return HttpResponse.json(response)
-        }),
-      ],
-    },
+    msw: { handlers: mapHandlers(assetWithBothGeopointTypes, submissionsWithBothGeopointTypes) },
   },
   args: {
     asset: assetWithBothGeopointTypes,
@@ -266,37 +340,20 @@ export const WithBothGeopointTypes: Story = {
     const canvas = within(canvasElement)
     const page = within(document.body)
 
-    await step('Verify that the map loads successfully', async () => {
-      await waitFor(
-        async () => {
-          const mapContainer = canvasElement.querySelector('#data-map')
-          expect(mapContainer).toBeInTheDocument()
-        },
-        { timeout: 5000 },
-      )
-    })
+    await step('Verify that the map loads successfully', () => waitForPlottedPoints(canvasElement))
 
     await step('Verify map settings button is enabled', async () => {
-      await waitFor(
-        async () => {
-          const settingsButton = canvas.getByLabelText('Map display settings')
-          expect(settingsButton).toBeEnabled()
-        },
-        { timeout: 5000 },
-      )
+      expect(canvas.getByLabelText('Map display settings')).toBeEnabled()
     })
 
     await step('Open Map display settings', async () => {
       const settingsButton = canvas.getByLabelText('Map display settings')
       settingsButton.click()
 
-      await waitFor(
-        async () => {
-          const modal = page.getByRole('dialog', { name: /Map Settings/i })
-          expect(modal).toBeInTheDocument()
-        },
-        { timeout: 5000 },
-      )
+      await waitFor(async () => {
+        const modal = page.getByRole('dialog', { name: /Map Settings/i })
+        expect(modal).toBeInTheDocument()
+      }, WAIT)
     })
 
     await step('Switch to geopoint question tab', async () => {
@@ -304,27 +361,70 @@ export const WithBothGeopointTypes: Story = {
       const geopointTab = within(modal).getByRole('tab', { name: /geopoint question/i })
       geopointTab.click()
 
-      await waitFor(
-        async () => {
-          expect(geopointTab).toHaveAttribute('aria-selected', 'true')
-        },
-        { timeout: 5000 },
-      )
+      await waitFor(async () => {
+        expect(geopointTab).toHaveAttribute('aria-selected', 'true')
+      }, WAIT)
     })
 
     await step('Verify both geopoint questions are available', async () => {
       const modal = page.getByRole('dialog', { name: /Map Settings/i })
 
-      await waitFor(
-        async () => {
-          const whereAreYouOption = within(modal).getByText('Where are you?')
-          const startGeopointOption = within(modal).getByText('start-geopoint')
+      await waitFor(async () => {
+        const whereAreYouOption = within(modal).getByText('Where are you?')
+        const startGeopointOption = within(modal).getByText('start-geopoint')
 
-          expect(whereAreYouOption).toBeInTheDocument()
-          expect(startGeopointOption).toBeInTheDocument()
-        },
-        { timeout: 5000 },
-      )
+        expect(whereAreYouOption).toBeInTheDocument()
+        expect(startGeopointOption).toBeInTheDocument()
+      }, WAIT)
+    })
+  },
+}
+
+export const WithPointsAcrossAntimeridian: Story = {
+  parameters: {
+    msw: { handlers: mapHandlers(assetWithPacificGeopoints, submissionsAcrossAntimeridian) },
+  },
+  args: {
+    asset: assetWithPacificGeopoints,
+  },
+  // Chromatic is what checks this story: the snapshot tells whether the map fitted the 20° span across the meridian, or
+  // read it as the 340° span the other way around and zoomed out to the whole world. Waiting for the markers only keeps
+  // the snapshot from being taken before the map has finished drawing itself.
+  play: async ({ canvasElement }) => {
+    await waitForPlottedPoints(canvasElement)
+  },
+}
+
+export const WithPointsRepeatedInEveryWorldCopy: Story = {
+  parameters: {
+    msw: { handlers: mapHandlers(assetWithPacificGeopoints, submissionsAcrossAntimeridian) },
+  },
+  args: {
+    asset: assetWithPacificGeopoints,
+  },
+  // Zooming all the way out is the setup rather than the check: it is what puts several copies of the world on screen
+  // for Chromatic to snapshot. The play function only counts the clusters; where exactly they land is the snapshot's
+  // business, and `getWorldCopyOffsets()` has the unit tests for the arithmetic.
+  play: async ({ canvasElement, step }) => {
+    await step('Wait for the map to plot the points', () => waitForPlottedPoints(canvasElement))
+
+    await step('Zoom out as far as the map goes', async () => {
+      const zoomOutButton = canvasElement.querySelector<HTMLAnchorElement>('.leaflet-control-zoom-out')
+      expect(zoomOutButton).toBeInTheDocument()
+
+      // `maxZoom` is 17, so the minimum is never more than 17 clicks away; the spare attempts cover clicks the map
+      // dropped while animating the one before.
+      for (let attempt = 0; attempt < 30 && !zoomOutButton?.classList.contains('leaflet-disabled'); attempt++) {
+        zoomOutButton?.click()
+        await waitForZoomToLand(canvasElement)
+      }
+      expect(zoomOutButton).toHaveClass('leaflet-disabled')
+    })
+
+    await step('Verify the points show up in every copy of the world on screen', async () => {
+      // At this zoom the world fits on screen several times over, and every copy gets its own cluster of the same four
+      // points — so more than the single cluster the points alone would make.
+      await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(1), WAIT)
     })
   },
 }

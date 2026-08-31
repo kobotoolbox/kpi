@@ -2,12 +2,12 @@ import './formGallery.component.scss'
 
 import { Box, Center, Flex, Image } from '@mantine/core'
 import React, { useEffect, useMemo, useReducer } from 'react'
-import ReactSelect from 'react-select'
 import { fetchGet, fetchGetUrl } from '#/api'
 import { getFlatQuestionsList } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import ModalNew from '../common/ModalNew'
@@ -40,8 +40,7 @@ export default function FormGallery(props: FormGalleryProps) {
       label: survey.parents.join(' / ') + (survey.parents.length ? ' / ' : '') + survey.label,
     }
   })
-  const defaultOption = { value: '', label: t('All questions') }
-  const questionFilterOptions = [defaultOption, ...(questions || [])]
+  const questionFilterOptions = [{ value: '', label: t('All questions') }, ...(questions || [])]
 
   const [
     {
@@ -161,10 +160,18 @@ export default function FormGallery(props: FormGalleryProps) {
         <bem.GalleryFilters>
           {t('From')}
           <bem.GalleryFiltersSelect>
-            <ReactSelect
-              options={questionFilterOptions}
-              defaultValue={defaultOption}
-              onChange={(newValue) => dispatch({ type: 'setFilterQuestion', question: newValue!.value })}
+            <Select
+              data={questionFilterOptions}
+              value={filterQuestion ?? ''}
+              onChange={(newValue) =>
+                dispatch({
+                  type: 'setFilterQuestion',
+                  // The "All questions" option is an empty string, and the query
+                  // builder expects `null` for "don't filter by question".
+                  question: newValue || null,
+                })
+              }
+              clearable={false}
             />
           </bem.GalleryFiltersSelect>
           <bem.GalleryFiltersDates>

@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'
-
 import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
+import { useEffect, useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import Button from '#/components/common/button'
+import ButtonNew from '#/components/common/ButtonNew'
+import TextInput from '#/components/common/TextInput'
 import Icon from '#/components/common/icon'
-import TextBox from '#/components/common/textBox'
 import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
@@ -157,11 +156,12 @@ export default function EmailSection() {
         ])}
       >
         {isReady && userCanChangeEmail ? (
-          <TextBox
+          <TextInput
             value={email.newEmail}
             placeholder={t('Type new email address')}
-            onChange={onTextFieldChange.bind(onTextFieldChange)}
+            onChange={(evt) => onTextFieldChange(evt.currentTarget.value)}
             type='email'
+            w='100%'
             disabled={isSSO}
           />
         ) : (
@@ -184,13 +184,12 @@ export default function EmailSection() {
             </div>
 
             <div className={styles.unverifiedEmailButtons}>
-              <Button
-                label='Resend'
-                size='m'
-                type='secondary'
-                onClick={resendNewUserEmail.bind(resendNewUserEmail, unverifiedEmail.email)}
-              />
-              <Button label='Remove' size='m' type='secondary-danger' onClick={deleteNewUserEmail} />
+              <ButtonNew variant='light' onClick={resendNewUserEmail.bind(resendNewUserEmail, unverifiedEmail.email)}>
+                {t('Resend')}
+              </ButtonNew>
+              <ButtonNew variant='danger-secondary' onClick={deleteNewUserEmail}>
+                {t('Remove')}
+              </ButtonNew>
             </div>
 
             {email.refreshedEmail && (
@@ -212,7 +211,9 @@ export default function EmailSection() {
             <Group gap='sm'>
               <Text c='red'>{email.fieldErrors}</Text>
 
-              <Button label={t('Change')} size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
+              <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO}>
+                {t('Change')}
+              </ButtonNew>
             </Group>
           </form>
         </div>
