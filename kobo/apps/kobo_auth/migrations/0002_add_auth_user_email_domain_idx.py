@@ -9,7 +9,9 @@ def manually_create_indexes_instructions(apps, schema_editor):
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS "auth_user_email_domain_idx" ON "auth_user" (split_part(lower("email"), '@', 2));
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS
+        "auth_user_email_domain_idx" ON
+        "auth_user" (split_part(lower("email"), '@', 2));
     """)
 
 
