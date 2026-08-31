@@ -5,25 +5,21 @@ from django.db.models.functions import Lower
 
 
 def manually_create_indexes_instructions(apps, schema_editor):
-    print(
-        """
+    print("""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
         CREATE INDEX CONCURRENTLY IF NOT EXISTS "auth_user_email_domain_idx" ON "auth_user" (split_part(lower("email"), '@', 2));
-        """
-    )
+    """)
 
 
 def manually_drop_indexes_instructions(apps, schema_editor):
-    print(
-        """
+    print("""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
         DROP INDEX CONCURRENTLY IF EXISTS "auth_user_email_domain_idx";
-        """
-    )
+        """)
 
 
 def get_conditional_operations():
