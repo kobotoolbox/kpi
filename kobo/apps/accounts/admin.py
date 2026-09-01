@@ -212,12 +212,11 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     removed_domains = initial_domains - submitted_domains
                     managed_toggled_on = not initial_managed and new_managed
                     managed_toggled_off = initial_managed and not new_managed
-                    domains_changed = bool(added_domains or removed_domains)
 
                     requires_confirmation = (
                         managed_toggled_on
                         or managed_toggled_off
-                        or (new_managed and domains_changed)
+                        or (new_managed and bool(added_domains))
                     )
 
                     if requires_confirmation:
