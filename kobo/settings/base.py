@@ -1702,6 +1702,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    'enforce-managed-sso': {
+        'task': 'kobo.apps.accounts.tasks.managed_sso_sweep',
+        'schedule': crontab(hour=0, minute=45),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 if STRIPE_ENABLED:
