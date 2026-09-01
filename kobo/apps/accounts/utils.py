@@ -124,4 +124,3 @@ def get_managed_sso_track_2_queryset(social_app, domains):
         .exclude(id__in=already_notified_user_ids)
         .distinct()
     )
-

@@ -82,9 +82,7 @@ class DomainInline(admin.TabularInline):
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
     inlines = [DomainInline]
 
-    def _get_affected_accounts_counts(
-        self, social_app, submitted_domains, is_managed
-    ):
+    def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
         Calculate the count of affected accounts for Track 1 and Track 2.
         - Track 1: Accounts already linked to that SocialApp (excluding sso_exempt=True and anonymous).
@@ -100,9 +98,7 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
         ).count()
         return track_1_count, track_2_count
 
-    def changeform_view(
-        self, request, object_id=None, form_url='', extra_context=None
-    ):
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         if request.method == 'POST' and request.POST.get('_confirmed') != '1':
             add = object_id is None
             to_field = request.POST.get('_to_field', request.GET.get('_to_field'))
@@ -114,9 +110,7 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                 obj = self.get_object(request, unquote(object_id), to_field)
                 initial_managed = obj.managed if obj else False
                 initial_domains = (
-                    set(obj.domains.values_list('domain', flat=True))
-                    if obj
-                    else set()
+                    set(obj.domains.values_list('domain', flat=True)) if obj else set()
                 )
 
             ModelForm = self.get_form(request, obj, change=not add)
@@ -145,7 +139,9 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                             for inline_form in formset.forms:
                                 if (
                                     inline_form.cleaned_data
-                                    and not inline_form.cleaned_data.get('DELETE', False)
+                                    and not inline_form.cleaned_data.get(
+                                        'DELETE', False
+                                    )
                                 ):
                                     domain = inline_form.cleaned_data.get('domain')
                                     if domain:

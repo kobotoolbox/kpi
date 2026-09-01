@@ -91,7 +91,6 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             ['example.org'],
         )
 
-
     def test_post_toggle_managed_shows_confirmation(self):
         # Linked user (Track 1)
         linked_user = User.objects.create(
@@ -114,9 +113,7 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             uid='sa102',
         )
         # Unlinked user with matching domain (Track 2)
-        User.objects.create(
-            username='unlinked_user', email='unlinked@example.com'
-        )
+        User.objects.create(username='unlinked_user', email='unlinked@example.com')
 
         url = reverse(
             'admin:accounts_socialappcustomdata_change',
