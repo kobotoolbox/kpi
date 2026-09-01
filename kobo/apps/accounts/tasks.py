@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
-from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER, has_social_account
+from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app

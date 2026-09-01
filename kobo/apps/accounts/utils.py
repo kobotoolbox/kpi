@@ -58,8 +58,3 @@ def user_is_managed_by_sso(user):
         ).exists()
         return user_has_social_account
     return False
-
-
-def has_social_account(user, social_app: 'socialaccount.SocialApp') -> bool:
-    provider_id = social_app.provider_id
-    return user.socialaccount_set.filter(provider=provider_id).exists()
