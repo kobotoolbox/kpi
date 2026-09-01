@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { Box, Flex, Modal, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
@@ -10,7 +10,8 @@ import type { ComboboxItem } from '#/components/common/select.types'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
-import { XML_VALUES_OPTION_VALUE } from '#/constants'
+import { QUESTION_TYPES, XML_VALUES_OPTION_VALUE } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
@@ -18,6 +19,8 @@ import { StaticDisplays } from '../common/utils'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
+  /** Current question's type, used to only offer the Audio/Text toggle that applies to it. */
+  questionType: AnyRowTypeName | undefined
   selectedDisplays: DisplaysList
   setSelectedDisplays: (displays: DisplaysList) => void
   hiddenQuestions: string[]
@@ -30,6 +33,7 @@ interface SidebarDisplaySettingsProps {
 
 export default function SidebarDisplaySettings({
   asset,
+  questionType,
   selectedDisplays,
   setSelectedDisplays,
   hiddenQuestions,
@@ -64,6 +68,18 @@ export default function SidebarDisplaySettings({
   const availableDisplays = useMemo<Array<LanguageCode | StaticDisplays>>(() => {
     let displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
 
+    // Audio and Text are mutually exclusive: only the one matching the current
+    // question's type makes sense to offer.
+    displays = displays.filter((display) => {
+      if (display === StaticDisplays.Audio) {
+        return questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id
+      }
+      if (display === StaticDisplays.Text) {
+        return questionType === QUESTION_TYPES.text.id
+      }
+      return true
+    })
+
     // Filter out transcript if we are on the transcript tab or if it was deleted
     if (
       activeTab === ProcessingTab.Transcript ||
@@ -75,7 +91,17 @@ export default function SidebarDisplaySettings({
     }
 
     return displays
-  }, [availableLanguages, activeTab, transcript])
+  }, [availableLanguages, activeTab, transcript, questionType])
+
+  // Drop selections that are no longer valid for the current question/tab
+  // (e.g. Audio while viewing a text question), instead of leaving a stale
+  // entry in `selectedDisplays` that the settings UI has no toggle for anymore.
+  useEffect(() => {
+    const prunedDisplays = selectedDisplays.filter((display) => availableDisplays.includes(display))
+    if (prunedDisplays.length !== selectedDisplays.length) {
+      setSelectedDisplays(prunedDisplays)
+    }
+  }, [availableDisplays])
 
   if (activeTab === undefined) {
     return null
@@ -101,6 +127,12 @@ export default function SidebarDisplaySettings({
       return (
         <Text fw={700} component='span'>
           {t('Submission data')}
+        </Text>
+      )
+    } else if (display === StaticDisplays.Text) {
+      return (
+        <Text fw={700} component='span'>
+          {t('Original response')}
         </Text>
       )
     } else {
