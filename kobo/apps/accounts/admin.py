@@ -107,8 +107,16 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
             to_field = request.POST.get('_to_field', request.GET.get('_to_field'))
             if add:
                 obj = None
+                initial_managed = False
+                initial_domains = set()
             else:
                 obj = self.get_object(request, unquote(object_id), to_field)
+                initial_managed = obj.managed if obj else False
+                initial_domains = (
+                    set(obj.domains.values_list('domain', flat=True))
+                    if obj
+                    else set()
+                )
 
             ModelForm = self.get_form(request, obj, change=not add)
             form = ModelForm(request.POST, request.FILES, instance=obj)
@@ -128,13 +136,7 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     )
 
                 if all_valid(formsets):
-                    initial_managed = obj.managed if (obj and obj.pk) else False
                     new_managed = form.cleaned_data.get('managed', False)
-                    initial_domains = (
-                        set(obj.domains.values_list('domain', flat=True))
-                        if (obj and obj.pk)
-                        else set()
-                    )
 
                     submitted_domains = set()
                     for formset in formsets:
