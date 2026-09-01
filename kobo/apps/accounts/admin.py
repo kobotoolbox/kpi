@@ -3,22 +3,23 @@ from allauth.socialaccount.admin import SocialAccountAdmin as BaseSocialAccountA
 from allauth.socialaccount.admin import SocialAppAdmin, SocialAppForm
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django import forms
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.utils import unquote
-from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import models
+from django.db.models import Func, Q, Value
+from django.db.models.functions import Lower
 from django.forms.formsets import all_valid
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from kobo.apps.accounts.models import EmailContent
+from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
+from kobo.apps.kobo_auth.shortcuts import User
 from .models import EmailAddressAdmin, SocialAppCustomData, SocialAppManagedDomain
-from .utils import (
-    get_managed_sso_track_1_queryset,
-    get_managed_sso_track_2_queryset,
-    user_is_managed_by_sso,
-)
+from .utils import user_is_managed_by_sso
 
 
 @admin.register(EmailContent)
@@ -84,19 +85,68 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
         Calculate the count of affected accounts for Track 1 and Track 2.
-        - Track 1: Accounts already linked to that SocialApp
-          (excluding sso_exempt=True and anonymous).
-        - Track 2: Accounts not linked whose email domain is in submitted_domains
-          (using functional index), excluding already notified users via
-          InAppMessageUsers (idempotence) and anonymous.
+        - Track 1: Accounts already linked to that SocialApp (excluding sso_exempt=True and anonymous).
+        - Track 2: Accounts not linked whose email domain is in submitted_domains (using functional index),
+          excluding already notified users via InAppMessageUsers (idempotence) and anonymous.
+
+        TODO: Once PR #7517 (tasks.py users_needing_update) is merged, replace inline query logic
+        below with tasks.users_needing_update() helper.
         """
         if not is_managed:
             return 0, 0
 
-        track_1_count = get_managed_sso_track_1_queryset(social_app).count()
-        track_2_count = get_managed_sso_track_2_queryset(
-            social_app, submitted_domains
-        ).count()
+        provider_id = social_app.provider_id or social_app.provider
+        social_app_key = f'{SocialApp._meta.app_label}.{SocialApp._meta.model_name}'
+
+        track_1_qs = (
+            User.objects.filter(socialaccount__provider=provider_id)
+            .exclude(extra_details__sso_exempt=True)
+            .exclude(pk=settings.ANONYMOUS_USER_ID)
+            .distinct()
+        )
+        track_1_count = track_1_qs.count()
+
+        if submitted_domains:
+            domain_expr = Func(
+                Lower('email'),
+                Value('@'),
+                Value(2),
+                function='split_part',
+                output_field=models.CharField(),
+            )
+            try:
+                existing_iam_ids = list(
+                    InAppMessage.objects.filter(
+                        message_type=MessageType.MANAGED_SSO_REMINDER,
+                        generic_related_objects__contains={social_app_key: social_app.pk},
+                    ).values_list('id', flat=True)
+                )
+            except Exception:
+                existing_iam_ids = [
+                    iam.id
+                    for iam in InAppMessage.objects.filter(
+                        message_type=MessageType.MANAGED_SSO_REMINDER
+                    )
+                    if isinstance(iam.generic_related_objects, dict)
+                    and iam.generic_related_objects.get(social_app_key) == social_app.pk
+                ]
+
+            already_notified_user_ids = InAppMessageUsers.objects.filter(
+                in_app_message_id__in=existing_iam_ids
+            ).values_list('user_id', flat=True)
+
+            track_2_qs = (
+                User.objects.annotate(email_domain=domain_expr)
+                .filter(email_domain__in=list(submitted_domains))
+                .exclude(socialaccount__provider=provider_id)
+                .exclude(pk=settings.ANONYMOUS_USER_ID)
+                .exclude(id__in=already_notified_user_ids)
+                .distinct()
+            )
+            track_2_count = track_2_qs.count()
+        else:
+            track_2_count = 0
+
         return track_1_count, track_2_count
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
