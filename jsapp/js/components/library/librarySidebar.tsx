@@ -3,10 +3,9 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 import bem from '#/bem'
 import Button from '#/components/common/button'
-import { MODAL_TYPES } from '#/constants'
-import pageState from '#/pageState.store'
 import sessionStore from '#/stores/session'
 import myLibraryStore from './myLibraryStore'
+import {openLibraryNewItemModal} from '../modalForms/openLibraryNewItemModal'
 
 interface LibrarySidebarState {
   myLibraryCount: number | null
@@ -40,9 +39,7 @@ export default class LibrarySidebar extends React.Component<{}, LibrarySidebarSt
 
   showLibraryNewModal(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.LIBRARY_NEW_ITEM,
-    })
+    openLibraryNewItemModal()
   }
 
   render() {

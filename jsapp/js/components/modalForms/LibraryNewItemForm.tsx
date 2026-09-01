@@ -6,18 +6,29 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import { openLibraryAssetModal } from '#/components/modalForms/openLibraryAssetModal'
-import { ASSET_TYPES, } from '#/constants'
+import { ASSET_TYPES } from '#/constants'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import KoboIcon from '../common/KoboIcon'
-import {openLibraryNewItemModal} from './openLibraryNewItemModal'
 
-export default function LibraryNewItemForm() {
+export interface LibraryNewItemFormProps {
+  /** Closes the modal this form is displayed in. */
+  onRequestClose?: () => void
+  /**
+   * Needed for "Back" button functionality in other modals. We pass it down to the other modals as importing it here
+   * would create a circular dependency.
+   */
+  reopenHomeModal?: () => void
+}
+
+export default function LibraryNewItemForm({ onRequestClose, reopenHomeModal }: LibraryNewItemFormProps) {
   const session = useSession()
   const navigate = useNavigate()
 
   function goToAssetCreator() {
+    onRequestClose?.()
+
     let targetPath: string = ROUTES.NEW_LIBRARY_ITEM
     const assetUid = getRouteAssetUid()
     if (isAnyLibraryItemRoute() && assetUid) {
@@ -33,21 +44,24 @@ export default function LibraryNewItemForm() {
   }
 
   function goToCollection() {
+    onRequestClose?.()
     openLibraryAssetModal({
       assetType: ASSET_TYPES.collection.id,
-      onBack: openLibraryNewItemModal,
+      onBack: reopenHomeModal,
     })
   }
 
   function goToTemplate() {
+    onRequestClose?.()
     openLibraryAssetModal({
       assetType: ASSET_TYPES.template.id,
-      onBack: openLibraryNewItemModal,
+      onBack: reopenHomeModal,
     })
   }
 
   function goToUpload() {
-    openLibraryUploadModal({ onBack: openLibraryNewItemModal })
+    onRequestClose?.()
+    openLibraryUploadModal({ onBack: reopenHomeModal })
   }
 
   if (!session.currentLoggedAccount) {

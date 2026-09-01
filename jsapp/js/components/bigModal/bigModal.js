@@ -76,10 +76,6 @@ class BigModal extends React.Component {
         // title is set by formEditors
         break
 
-      case MODAL_TYPES.LIBRARY_NEW_ITEM:
-        this.setModalTitle(t('Create Library Item'))
-        break
-
       case MODAL_TYPES.ENKETO_PREVIEW:
         this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
         actions.resources.createSnapshot({
@@ -185,7 +181,6 @@ class BigModal extends React.Component {
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && <LibraryNewItemForm />}
           {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
