@@ -3,9 +3,12 @@ import re
 from copy import deepcopy
 
 import pytest
+import responses
 from django.conf import settings
 from django.db.models import Q
 from django.test import RequestFactory, TestCase, override_settings
+from rest_framework import status
+from ssrf_protect.exceptions import SSRFProtectException
 
 from kpi.constants import API_NAMESPACES
 from kpi.exceptions import (
@@ -22,6 +25,7 @@ from kpi.utils.autoname import (
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
+from kpi.utils.ssrf import ssrf_safe_get, validate_url_against_ssrf
 from kpi.utils.strings import split_lines_to_list, strtobool
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
@@ -816,3 +820,35 @@ class XmlUtilsTestCase(TestCase):
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)
         self.assertEqual(re_source, re_target)
+
+
+class SsrfUtilsTestCase(TestCase):
+
+    def test_validate_url_against_ssrf_raises_on_private_ip(self):
+        with pytest.raises(SSRFProtectException):
+            validate_url_against_ssrf('http://127.0.0.1/form.xls')
+
+    def test_validate_url_against_ssrf_passes_on_public_ip(self):
+        # Should not raise
+        validate_url_against_ssrf('http://8.8.8.8/form.xls')
+
+    @responses.activate
+    def test_ssrf_safe_get_follows_public_redirect(self):
+        first_url = 'http://8.8.8.8/form.xls'
+        final_url = 'http://1.1.1.1/form.xls'
+        responses.add(
+            responses.GET,
+            first_url,
+            status=status.HTTP_302_FOUND,
+            headers={'Location': final_url},
+        )
+        responses.add(
+            responses.GET,
+            final_url,
+            status=status.HTTP_200_OK,
+            body=b'final content',
+        )
+        response = ssrf_safe_get(first_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.content, b'final content')
+        self.assertEqual(len(responses.calls), 2)

@@ -2536,6 +2536,21 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
         }
         assert json_response == expected_response
 
+    def test_upload_form_media_ssrf_redirect_url(self):
+        # A syntactically valid URL that resolves to an internal address must
+        # be rejected by the SSRF guard with a clean 400 at the API boundary
+        payload = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'A beautiful bird',
+            'metadata': json.dumps({'redirect_url': 'http://127.0.0.1/eagle.png'}),
+        }
+        response = self.create_asset_file(
+            payload=payload, status_code=status.HTTP_400_BAD_REQUEST
+        )
+        json_response = response.json()
+        expected_response = {'metadata': ['`redirect_url` is not allowed']}
+        assert json_response == expected_response
+
     def test_upload_form_media_bad_mime_type(self):
         # We are using remote URL, but it goes through the same validators as
         # `base64Encoded` or `content`

@@ -13,7 +13,6 @@ from zoneinfo import ZoneInfo
 import constance
 import dateutil.parser
 import formpack
-import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.db import models, transaction
@@ -84,6 +83,7 @@ from kpi.utils.rename_xls_sheet import (
     rename_xlsx_sheet,
 )
 from kpi.utils.sluggify import is_valid_node_name
+from kpi.utils.ssrf import ssrf_safe_get
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
@@ -297,7 +297,7 @@ class ImportTask(ImportExportTask):
             # TODO: merge with `url` handling above; currently kept separate
             # because `_load_assets_from_url()` uses complex logic to deal with
             # multiple XLS files in a directory structure within a ZIP archive
-            response = requests.get(self.data['single_xls_url'])
+            response = ssrf_safe_get(self.data['single_xls_url'])
             response.raise_for_status()
             encoded_xls = to_str(base64.b64encode(response.content))
 
@@ -338,7 +338,7 @@ class ImportTask(ImportExportTask):
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
-        req = requests.get(url, allow_redirects=True)
+        req = ssrf_safe_get(url)
         fif = HttpContentParse(request=req).parse()
         fif.remove_invalid_assets()
         fif.remove_empty_collections()

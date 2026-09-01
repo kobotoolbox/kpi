@@ -19,6 +19,7 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
+from kpi.utils.ssrf import validate_url_against_ssrf
 
 
 CHUNK_SIZE = 1024
@@ -85,6 +86,7 @@ def type_for_form(xform, data_type):
 def create_media(media):
     """Download media link"""
     if is_valid_url(media.data_value):
+        validate_url_against_ssrf(media.data_value)
         filename = media.filename
         data_file = NamedTemporaryFile()
         content_type = mimetypes.guess_type(filename)

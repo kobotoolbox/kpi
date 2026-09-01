@@ -7,6 +7,8 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 
+from kpi.utils.ssrf import validate_url_against_ssrf
+
 
 def calculate_hash(
     source: Union[str, bytes, BinaryIO],
@@ -102,6 +104,7 @@ def calculate_hash(
     # Ensure we do not receive a gzip response to be able to read headers such
     # as `Content-Length`
     headers = {'Accept-Encoding': 'identity'}
+    validate_url_against_ssrf(source)
     try:
         response = requests.head(source, headers=headers)
         response.raise_for_status()
