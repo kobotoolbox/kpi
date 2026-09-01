@@ -13,7 +13,6 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from kobo.apps.accounts.models import EmailContent
-
 from .models import EmailAddressAdmin, SocialAppCustomData, SocialAppManagedDomain
 from .utils import (
     get_managed_sso_track_1_queryset,
@@ -85,9 +84,11 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
         Calculate the count of affected accounts for Track 1 and Track 2.
-        - Track 1: Accounts already linked to that SocialApp (excluding sso_exempt=True and anonymous).
-        - Track 2: Accounts not linked whose email domain is in submitted_domains (using functional index),
-          excluding already notified users via InAppMessageUsers (idempotence) and anonymous.
+        - Track 1: Accounts already linked to that SocialApp
+          (excluding sso_exempt=True and anonymous).
+        - Track 2: Accounts not linked whose email domain is in submitted_domains
+          (using functional index), excluding already notified users via
+          InAppMessageUsers (idempotence) and anonymous.
         """
         if not is_managed:
             return 0, 0

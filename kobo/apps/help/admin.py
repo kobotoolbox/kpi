@@ -2,7 +2,6 @@
 from django.contrib import admin
 
 from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
-
 from .forms import InAppMessageForm
 from .models import InAppMessage
 

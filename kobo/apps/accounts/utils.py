@@ -79,8 +79,9 @@ def get_managed_sso_track_1_queryset(social_app):
 def get_managed_sso_track_2_queryset(social_app, domains):
     """
     Queryset for Track 2 accounts:
-    Unlinked accounts with email domain in `domains` (index-backed),
-    excluding anonymous users and users already notified via InAppMessageUsers for this social_app (idempotence).
+    Unlinked accounts with email domain in `domains` (index-backed), excluding
+    anonymous users and users already notified via InAppMessageUsers for this
+    social_app (idempotence).
     """
     if not domains:
         return User.objects.none()
