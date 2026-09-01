@@ -1,23 +1,15 @@
 from datetime import timedelta
 
-from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
 from django.db import transaction
-from django.db.models import CharField, Count, F, Func, Q, Value
-from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
-from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
-from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER
+from kobo.apps.accounts.models import SocialAppManagedDomain
+from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER, users_needing_update
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-
-
-class SplitPart(Func):
-    function = 'SPLIT_PART'
-    output_field = CharField()
 
 
 def update_linked_user(user: User, managed_provider_id: str):
@@ -74,44 +66,9 @@ def create_inapp_message(social_app, requesting_user=None):
     )
 
 
-def users_needing_update(social_app_custom_data: SocialAppCustomData, domain: str):
-    social_app = social_app_custom_data.social_app
-    users_already_received_message = InAppMessageUsers.objects.filter(
-        in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
-        in_app_message__generic_related_objects__contains={
-            SOCIAL_APP_IDENTIFIER: social_app.pk,
-        },
-    ).values_list('user_id', flat=True)
-    users = (
-        User.objects.prefetch_related('socialaccount_set')
-        .filter(extra_details__sso_exempt=False)
-        .exclude(id__in=users_already_received_message)
-        .annotate(
-            domain=SplitPart(Lower(F('email')), Value('@'), Value(2)),
-            managed_account=Count(
-                'socialaccount',
-                filter=Q(socialaccount__provider=social_app.provider_id),
-            ),
-            # TODO: why doesn't exclude work here?
-            other_accounts=Count(
-                'socialaccount',
-                filter=~Q(socialaccount__provider=social_app.provider_id),
-            ),
-        )
-        .filter(domain=domain)
-        .exclude(
-            password__startswith=UNUSABLE_PASSWORD_PREFIX,
-            other_accounts=0,
-            managed_account=1,
-        )
-    )
-    return users
-
-
 @celery_app.task()
-def update_users(social_app_custom_data, domain, requesting_user=None):
-    users_to_update = users_needing_update(social_app_custom_data, domain)
-    social_app = social_app_custom_data.social_app
+def update_users(social_app, domain, requesting_user=None):
+    users_to_update = users_needing_update(social_app, domain)
     if not users_to_update.exists():
         logging.info(
             f'[Managed SSO] No users to update for social app'
@@ -119,7 +76,6 @@ def update_users(social_app_custom_data, domain, requesting_user=None):
             f'domain {domain}. Nothing to do.'
         )
         return
-    social_app = social_app_custom_data.social_app
     user_ids_needing_notification = []
     for user in users_to_update:
         # 'managed_account' is an annotated field created by the query

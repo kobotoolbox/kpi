@@ -20,9 +20,8 @@ from ..tasks import (
     notify_unlinked_users,
     update_linked_user,
     update_users,
-    users_needing_update,
 )
-from ..utils import SOCIAL_APP_IDENTIFIER
+from ..utils import SOCIAL_APP_IDENTIFIER, users_needing_update
 from .utils import MockProvider
 
 
