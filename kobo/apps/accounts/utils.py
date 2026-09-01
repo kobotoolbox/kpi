@@ -7,6 +7,7 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
 SOCIAL_APP_IDENTIFIER = 'socialaccounts.SocialApp'
 
+
 def user_has_inactive_paid_subscription(username):
     if not settings.STRIPE_ENABLED:
         return False
