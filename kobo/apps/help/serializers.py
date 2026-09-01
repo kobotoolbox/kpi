@@ -153,7 +153,7 @@ class InAppMessageSerializer(serializers.ModelSerializer):
     def _replace_placeholders_for_managed_sso(self, value, social_app_pk: int):
         request = self.context['request']
         user = get_database_user(request.user)
-        value = value.replace('##username##', user.username)
+        value = t(value).replace('##username##', user.username)
         try:
             socialapp = SocialApp.objects.get(pk=social_app_pk)
             value = value.replace('##sso_name##', socialapp.name)
