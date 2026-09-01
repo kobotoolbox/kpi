@@ -94,10 +94,9 @@ export default function SelectQuestion({
       .filter(({ type }) => isAudioRow(type))
       .map((question) => buildOption(question.$xpath, question))
 
-    // Answers can sit under a path the current schema no longer has - that is
-    // what a rename in a later form version leaves behind. Walking the
-    // submission's own keys guarantees every option added here has data to
-    // process, unlike walking e.g. attachment paths.
+    // A rename in a later form version leaves answers under paths the current schema
+    // no longer has. Walking the submission's own keys keeps every option here to
+    // something there is data to process for.
     for (const submissionXpath of Object.keys(submission)) {
       if (result.some((o) => o.value === submissionXpath)) {
         continue

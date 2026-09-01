@@ -80,9 +80,8 @@ export default function DataTableCell(props: DataTableCellProps) {
   }
 
   // A question renamed after this submission came in is gone from the form
-  // definition, so its column gets no `props.question` - even though the
-  // response and its file are right here. The attachment still records the path
-  // used back then, enough to display the media and open Single Processing.
+  // definition, so its column gets no `props.question` - even though the response and
+  // its file are right here. The attachment still records the path used back then.
   const renamedQuestionAttachment = props.question
     ? undefined
     : findAttachmentByQuestionXpath(submission, props.columnKey)

@@ -22,7 +22,7 @@ export function findAttachmentByQuestionXpath(
  *
  * Needed when the question is gone from the current form definition (renamed
  * after this submission came in), leaving no row to read the real type from.
- * Two known imprecisions, both harmless for displaying the file:
+ * NOTE: Two known imprecisions, both harmless for displaying the file:
  * `background-audio` looks like `audio`, and a `file` question holding e.g. a
  * photo reads as `image`.
  */
