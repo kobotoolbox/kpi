@@ -85,12 +85,14 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
         Calculate the count of affected accounts for Track 1 and Track 2.
-        - Track 1: Accounts already linked to that SocialApp (excluding sso_exempt=True and anonymous).
-        - Track 2: Accounts not linked whose email domain is in submitted_domains (using functional index),
-          excluding already notified users via InAppMessageUsers (idempotence) and anonymous.
+        - Track 1: Accounts already linked to that SocialApp
+          (excluding sso_exempt=True and anonymous).
+        - Track 2: Accounts not linked whose email domain is in submitted_domains
+          (using functional index), excluding already notified users via
+          InAppMessageUsers (idempotence) and anonymous.
 
-        TODO: Once PR #7517 (tasks.py users_needing_update) is merged, replace inline query logic
-        below with tasks.users_needing_update() helper.
+        TODO: Once PR #7517 (tasks.py users_needing_update) is merged, replace
+        inline query logic below with tasks.users_needing_update() helper.
         """
         if not is_managed:
             return 0, 0
@@ -118,7 +120,9 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                 existing_iam_ids = list(
                     InAppMessage.objects.filter(
                         message_type=MessageType.MANAGED_SSO_REMINDER,
-                        generic_related_objects__contains={social_app_key: social_app.pk},
+                        generic_related_objects__contains={
+                            social_app_key: social_app.pk
+                        },
                     ).values_list('id', flat=True)
                 )
             except Exception:
