@@ -4,8 +4,8 @@ import { NavLink } from 'react-router-dom'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import sessionStore from '#/stores/session'
+import { openLibraryNewItemModal } from '../modalForms/openLibraryNewItemModal'
 import myLibraryStore from './myLibraryStore'
-import {openLibraryNewItemModal} from '../modalForms/openLibraryNewItemModal'
 
 interface LibrarySidebarState {
   myLibraryCount: number | null
