@@ -10,7 +10,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
-
 def user_has_inactive_paid_subscription(username):
     if not settings.STRIPE_ENABLED:
         return False

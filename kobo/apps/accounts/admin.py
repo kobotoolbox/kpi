@@ -5,7 +5,7 @@ from allauth.socialaccount.models import SocialAccount, SocialApp
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.utils import unquote
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms.formsets import all_valid
 from django.template.response import TemplateResponse
@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from kobo.apps.accounts.models import EmailContent
+
 from .models import EmailAddressAdmin, SocialAppCustomData, SocialAppManagedDomain
 from .utils import (
     get_managed_sso_track_1_queryset,
