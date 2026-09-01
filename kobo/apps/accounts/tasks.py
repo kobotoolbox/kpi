@@ -122,7 +122,8 @@ def update_users(social_app_custom_data, domain, requesting_user=None):
     social_app = social_app_custom_data.social_app
     user_ids_needing_notification = []
     for user in users_to_update:
-        if has_social_account(user, social_app):
+        # 'managed_account' is an annotated field created by the query
+        if user.managed_account > 0:
             logging.info(
                 '[Managed SSO] Removing alternative login methods for user'
                 f'{user.username} for managed social app {social_app.name}.'
