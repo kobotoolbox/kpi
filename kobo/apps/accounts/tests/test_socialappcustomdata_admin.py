@@ -263,3 +263,18 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         self.assertTemplateNotUsed(
             response, 'admin/accounts/socialappcustomdata/confirmation.html'
         )
+
+    def test_post_without_change_permission_raises_forbidden(self):
+        non_staff = User.objects.create(
+            username='regular_staff', email='staff@example.com', is_staff=True
+        )
+        self.client.force_login(non_staff)
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True, domains=['example.com'], confirmed=False
+        )
+        response = self.client.post(url, post_data)
+        self.assertEqual(response.status_code, 403)

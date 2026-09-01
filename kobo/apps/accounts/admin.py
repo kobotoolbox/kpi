@@ -103,15 +103,21 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
             add = object_id is None
             to_field = request.POST.get('_to_field', request.GET.get('_to_field'))
             if add:
+                if not self.has_add_permission(request):
+                    raise PermissionDenied
                 obj = None
                 initial_managed = False
                 initial_domains = set()
             else:
                 obj = self.get_object(request, unquote(object_id), to_field)
-                initial_managed = obj.managed if obj else False
-                initial_domains = (
-                    set(obj.domains.values_list('domain', flat=True)) if obj else set()
-                )
+                if not self.has_change_permission(request, obj):
+                    raise PermissionDenied
+                if obj is None:
+                    return self._get_obj_does_not_exist_redirect(
+                        request, self.opts, object_id
+                    )
+                initial_managed = obj.managed
+                initial_domains = set(obj.domains.values_list('domain', flat=True))
 
             ModelForm = self.get_form(request, obj, change=not add)
             form = ModelForm(request.POST, request.FILES, instance=obj)
