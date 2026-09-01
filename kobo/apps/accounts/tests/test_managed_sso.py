@@ -313,12 +313,15 @@ class TestManagedSsoCelery(TestCase):
         managed_domain = SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
         )
-        self._create_user(
-            'multiple_accounts', False, True, True
-        )
+        self._create_user('multiple_accounts', False, True, True)
         self._create_user('no_accounts', True, False, False)
-        with patch('kobo.apps.accounts.tasks.update_linked_user', wraps=update_linked_user) as patched_update:
-            with patch('kobo.apps.accounts.tasks.notify_unlinked_users', wraps=notify_unlinked_users) as patched_notify:
+        with patch(
+            'kobo.apps.accounts.tasks.update_linked_user', wraps=update_linked_user
+        ) as patched_update:
+            with patch(
+                'kobo.apps.accounts.tasks.notify_unlinked_users',
+                wraps=notify_unlinked_users,
+            ) as patched_notify:
                 update_users(custom_data, managed_domain.domain)
                 update_users(custom_data, managed_domain.domain)
         patched_update.assert_called_once()

@@ -107,6 +107,7 @@ def users_needing_update(social_app_custom_data: SocialAppCustomData, domain: st
     )
     return users
 
+
 @celery_app.task()
 def update_users(social_app_custom_data, domain, requesting_user=None):
     users_to_update = users_needing_update(social_app_custom_data, domain)
@@ -132,6 +133,7 @@ def update_users(social_app_custom_data, domain, requesting_user=None):
         notify_unlinked_users(
             user_ids_needing_notification, social_app, requesting_user
         )
+
 
 @celery_app.task()
 def managed_sso_sweep():
