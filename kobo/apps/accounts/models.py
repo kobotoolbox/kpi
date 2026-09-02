@@ -102,6 +102,19 @@ class SocialAppCustomData(models.Model):
     def __str__(self):
         return f'{self.social_app.name} Custom Data'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._initially_managed = self.managed
+        if self.pk:
+            self._initial_domains = list(self.domains.values_list('domain', flat=True))
+        else:
+            self._initial_domains = []
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self._initially_managed = self.managed
+        self._initial_domains = list(self.domains.values_list('domain', flat=True))
+
 
 def validate_domain(value):
     normalized_value = value.strip().lower()

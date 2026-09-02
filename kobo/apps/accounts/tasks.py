@@ -42,11 +42,16 @@ def notify_unlinked_users(
             f'[Managed SSO] Creating in-app message for unregistered users for'
             f' managed social app {managed_social_app.name}.'
         )
-        InAppMessageUsers.objects.bulk_create(
+        created = InAppMessageUsers.objects.bulk_create(
             [
                 InAppMessageUsers(user_id=user_id, in_app_message=in_app_message)
                 for user_id in user_ids
             ]
+        )
+        logging.info(
+            f'[Managed SSO] Created {len(created)} notifications for'
+            ' unregistered users for managed social '
+            f'app {managed_social_app.name}'
         )
 
 
