@@ -4,7 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
-from kobo.apps.accounts.models import SocialAppManagedDomain
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER, users_needing_update
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
@@ -67,8 +67,17 @@ def create_inapp_message(social_app, requesting_user=None):
 
 
 @celery_app.task()
-def update_users(social_app_custom_data, domain, requesting_user=None):
-    social_app = social_app_custom_data.social_app
+def update_users(
+    social_app_custom_data_id: int, domain: str, requesting_user_id: int = None
+):
+    # Only pks cross the task boundary: model instances are not JSON-serializable
+    custom_data = SocialAppCustomData.objects.select_related('social_app').get(
+        pk=social_app_custom_data_id
+    )
+    social_app = custom_data.social_app
+    requesting_user = (
+        User.objects.get(pk=requesting_user_id) if requesting_user_id else None
+    )
     users_to_update = users_needing_update(social_app, domain)
     if not users_to_update.exists():
         logging.info(
@@ -82,13 +91,13 @@ def update_users(social_app_custom_data, domain, requesting_user=None):
         # 'managed_account' is an annotated field created by the query
         if user.managed_account > 0:
             logging.info(
-                '[Managed SSO] Removing alternative login methods for user'
+                '[Managed SSO] Removing alternative login methods for user '
                 f'{user.username} for managed social app {social_app.name}.'
             )
             update_linked_user(user, social_app.provider_id)
         else:
             user_ids_needing_notification.append(user.id)
-    if len(user_ids_needing_notification) > 0:
+    if user_ids_needing_notification:
         notify_unlinked_users(
             user_ids_needing_notification, social_app, requesting_user
         )
@@ -96,10 +105,10 @@ def update_users(social_app_custom_data, domain, requesting_user=None):
 
 @celery_app.task()
 def managed_sso_sweep():
-    managed_domains = SocialAppManagedDomain.objects.select_related(
-        'social_app'
-    ).filter(social_app__managed=True)
-    for domain in managed_domains:
+    managed_domains = SocialAppManagedDomain.objects.filter(
+        social_app__managed=True
+    ).values_list('social_app_id', 'domain')
+    for social_app_custom_data_id, domain in managed_domains:
         # TODO: determine who kicked off the original update_users task and set them
         # as requesting_user
-        update_users(domain.social_app, domain.domain)
+        update_users(social_app_custom_data_id, domain)

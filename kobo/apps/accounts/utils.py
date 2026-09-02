@@ -79,8 +79,7 @@ def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):
         },
     ).values_list('user_id', flat=True)
     users = (
-        User.objects.prefetch_related('socialaccount_set')
-        .filter(extra_details__sso_exempt=False)
+        User.objects.exclude(extra_details__sso_exempt=True)
         .exclude(id__in=users_already_received_message)
         .annotate(
             domain=SplitPart(Lower(F('email')), Value('@'), Value(2)),
@@ -88,7 +87,9 @@ def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):
                 'socialaccount',
                 filter=Q(socialaccount__provider=social_app.provider_id),
             ),
-            # TODO: why doesn't exclude work here?
+            # `.exclude(socialaccount__provider=...)` would drop every user who
+            # has *any* account on the managed provider; a filtered Count is
+            # the only way to count the other accounts.
             other_accounts=Count(
                 'socialaccount',
                 filter=~Q(socialaccount__provider=social_app.provider_id),
@@ -98,7 +99,7 @@ def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):
         .exclude(
             password__startswith=UNUSABLE_PASSWORD_PREFIX,
             other_accounts=0,
-            managed_account=1,
+            managed_account__gte=1,
         )
     )
     return users

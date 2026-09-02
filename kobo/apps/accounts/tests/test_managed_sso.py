@@ -8,6 +8,7 @@ from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
 
+from hub.models import ExtraUserDetail
 from kobo.apps.accounts.admin import SocialAccountAdmin
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
@@ -281,6 +282,22 @@ class TestManagedSsoCelery(TestCase):
         assert user_sso_exempt.id not in need_update
         assert user_already_received_message.id not in need_update
 
+    def test_user_with_several_managed_accounts_is_already_sso_only(self):
+        user = self._create_user('two_managed', False, True, False)
+        baker.make(
+            'socialaccount.SocialAccount',
+            user=user,
+            provider=self.social_app.provider_id,
+        )
+        need_update = users_needing_update(self.social_app, domain=self.default_domain)
+        assert not need_update.filter(pk=user.pk).exists()
+
+    def test_user_without_extra_details_is_not_exempt(self):
+        user = self._create_user('no_extra_details', True, True, False)
+        ExtraUserDetail.objects.filter(user=user).delete()
+        need_update = users_needing_update(self.social_app, domain=self.default_domain)
+        assert need_update.filter(pk=user.pk).exists()
+
     def test_update_linked_user(self):
         user = self._create_user('needs_update', True, True, True)
         update_linked_user(user, self.social_app.provider_id)
@@ -319,8 +336,8 @@ class TestManagedSsoCelery(TestCase):
                 'kobo.apps.accounts.tasks.notify_unlinked_users',
                 wraps=notify_unlinked_users,
             ) as patched_notify:
-                update_users(custom_data, managed_domain.domain)
-                update_users(custom_data, managed_domain.domain)
+                update_users(custom_data.pk, managed_domain.domain)
+                update_users(custom_data.pk, managed_domain.domain)
         patched_update.assert_called_once()
         patched_notify.assert_called_once()
 
@@ -352,7 +369,7 @@ class TestManagedSsoCelery(TestCase):
         )
 
         # update_users should be called for all three domains with the correct
-        # custom data object
+        # custom data pk
         SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
         )
@@ -365,6 +382,6 @@ class TestManagedSsoCelery(TestCase):
         with patch('kobo.apps.accounts.tasks.update_users') as patched_update:
             managed_sso_sweep()
         assert patched_update.call_count == 3
-        patched_update.assert_any_call(custom_data, self.default_domain)
-        patched_update.assert_any_call(custom_data_managed, 'domain1.com')
-        patched_update.assert_any_call(custom_data_managed, 'domain2.com')
+        patched_update.assert_any_call(custom_data.pk, self.default_domain)
+        patched_update.assert_any_call(custom_data_managed.pk, 'domain1.com')
+        patched_update.assert_any_call(custom_data_managed.pk, 'domain2.com')
