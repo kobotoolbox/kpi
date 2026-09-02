@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
@@ -11,14 +11,18 @@ import {
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
 import assetStore from '#/assetStore'
+import { findRowByXpath } from '#/assetUtils'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import { addDefaultUuidPrefix, getSubmissionRootUuid } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
+import { getAvailableTabsForQuestionType } from './common/utils'
 import styles from './index.module.scss'
+import { ProcessingTab, goToTabRoute, isProcessingRouteActive } from './routes.utils'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -102,6 +106,18 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   /** Whether current submission has a response for current question. */
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
   const pageTitle = 'Data | KoboToolbox'
+
+  // Guards against landing on Transcript for a question type that doesn't
+  // support it. This must live here (rather than in `SingleProcessingContent`)
+  // because that component isn't mounted when the question has no answer, so
+  // its own guard would never run for a cold-cache load onto that state.
+  const questionType = asset?.content ? findRowByXpath(asset.content, questionXpath)?.type : undefined
+  const isTranscriptAvailable = getAvailableTabsForQuestionType(questionType).includes(ProcessingTab.Transcript)
+  useEffect(() => {
+    if (asset && !isTranscriptAvailable && isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
+      goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS)
+    }
+  }, [asset, isTranscriptAvailable])
 
   // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
   // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.
