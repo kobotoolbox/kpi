@@ -15,6 +15,7 @@ from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.models import Asset, ImportTask
 from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 
@@ -117,6 +118,7 @@ class AssetImportTaskTest(BaseTestCase):
             task_data
         )
 
+    @patch_ssrf_dns()
     @responses.activate
     def test_import_asset_from_xls_url(self):
         # Host the XLS on a mock HTTP server
@@ -911,6 +913,7 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @patch_ssrf_dns()
     @responses.activate
     def test_import_non_xls_url(self):
         """
@@ -934,6 +937,55 @@ class AssetImportTaskTest(BaseTestCase):
                 'Unsupported format, or corrupt file'
             )
         )
+
+    @responses.activate
+    def test_import_from_internal_url_is_blocked_by_ssrf(self):
+        """
+        A URL resolving to an internal address must be rejected by the SSRF
+        guard: the task ends in error and never fetches the URL.
+        """
+        task_data = {
+            'url': 'http://127.0.0.1/form.xls',
+            'name': 'I should have been blocked (SSRF)',
+        }
+        post_url = reverse(self._get_endpoint('importtask-list'))
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Task completes right away due to `CELERY_TASK_ALWAYS_EAGER`
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'error')
+        self.assertIn('is not allowed', detail_response.data['messages']['error'])
+
+    @responses.activate
+    def test_import_from_url_redirecting_to_internal_is_blocked(self):
+        """
+        The SSRF guard must validate every hop of the redirect chain: a public
+        host that redirects to an internal address must be blocked, and the
+        internal URL must never be requested.
+        """
+        public_url = 'http://8.8.8.8/form.xls'
+        internal_url = 'http://127.0.0.1/meta'
+        responses.add(
+            responses.GET,
+            public_url,
+            status=status.HTTP_302_FOUND,
+            headers={'Location': internal_url},
+        )
+        task_data = {
+            'url': public_url,
+            'name': 'I redirect somewhere nasty',
+        }
+        post_url = reverse(self._get_endpoint('importtask-list'))
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'error')
+        self.assertIn('is not allowed', detail_response.data['messages']['error'])
+        # Only the initial (public) URL should have been requested
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, public_url)
 
     @unittest.skip
     def test_import_invalid_host_url(self):
@@ -1019,6 +1071,7 @@ class AssetImportTaskTest(BaseTestCase):
         expected_name = 'A project with a new line'
         assert asset_response.data['name'] == expected_name
 
+    @patch_ssrf_dns()
     @responses.activate
     def test_import_to_existing_asset_from_xls_url_records_audit_log_info(self):
         self.asset.owner = self.user
