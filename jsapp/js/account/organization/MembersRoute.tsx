@@ -57,9 +57,7 @@ type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 
 const ORDERABLE_FIELDS: MembersTableOrderableField[] = ['user__username', 'status', 'date_joined', 'role']
 
 /**
- * The endpoint answers a shorter bare search term with HTTP 400 ("Your query is too short") to keep cheap queries from
- * scanning every member, see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`. We hold such a phrase back instead of firing
- * a request we already know fails, and tell the user why nothing happened.
+ * We hold short phrase back instead of firing a request we already know fails on Backend.
  */
 export const MIN_SEARCH_PHRASE_LENGTH = 3
 
@@ -99,9 +97,7 @@ function MembersRoute() {
   }
 
   /**
-   * Sorting and searching both change which rows land on which page, so either one sends us back to the first page -
-   * otherwise a search started on page 5 could land on a page that no longer exists. Updating from the latest state, so
-   * we don't reset `limit` to a stale page size.
+   * Sorting and searching both change which rows land on which page, so either one sends us back to the first page.
    */
   function resetToFirstPage() {
     setPagination((currentPagination) => {
