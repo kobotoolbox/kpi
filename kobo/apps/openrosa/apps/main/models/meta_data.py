@@ -21,7 +21,6 @@ from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 from kpi.utils.ssrf import validate_url_against_ssrf
 
-
 CHUNK_SIZE = 1024
 
 urlvalidate = URLValidator()
