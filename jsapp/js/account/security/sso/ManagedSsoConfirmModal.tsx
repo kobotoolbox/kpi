@@ -15,7 +15,7 @@ export default function ManagedSsoConfirmModal({ providerName, connectHref, onCl
     <ModalNew
       opened
       onClose={onClose}
-      title={t('Connecting with ##provider##').replace(/##provider##/g, providerName)}
+      title={t('Connecting with ##provider##').replace('##provider##', providerName)}
       size='md'
     >
       <FocusTrap.InitialFocus />
