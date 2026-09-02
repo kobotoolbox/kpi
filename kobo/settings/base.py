@@ -217,6 +217,13 @@ CONSTANCE_CONFIG = {
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS': (
+        '',
+        'List of email domains configured across all managed SocialApps. '
+        'Note: these domains are managed per-app through the email_domains field in '
+        'Admin > SocialApp.',
+        'disabled_textarea',
+    ),
     'SHOW_KOBOTOOLBOX_LOGO': (
         True,
         'Show the KoboToolbox logo on the sign-in and account creation pages. '
@@ -757,6 +764,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
     ],
+    'disabled_textarea': [
+        'django.forms.fields.CharField',
+        {'widget': 'django.forms.Textarea', 'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -766,6 +777,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         'SHOW_KOBOTOOLBOX_LOGO',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
