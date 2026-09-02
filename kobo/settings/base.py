@@ -217,6 +217,13 @@ CONSTANCE_CONFIG = {
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS': (
+        '',
+        'List of email domains configured across all managed SocialApps. '
+        'Note: these domains are managed per-app through the email_domains field in '
+        'Admin > SocialApp.',
+        'disabled_textarea',
+    ),
     'SHOW_KOBOTOOLBOX_LOGO': (
         True,
         'Show the KoboToolbox logo on the sign-in and account creation pages. '
@@ -757,6 +764,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
     ],
+    'disabled_textarea': [
+        'django.forms.fields.CharField',
+        {'widget': 'django.forms.Textarea', 'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -766,6 +777,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         'SHOW_KOBOTOOLBOX_LOGO',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
@@ -1702,6 +1714,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    'enforce-managed-sso': {
+        'task': 'kobo.apps.accounts.tasks.managed_sso_sweep',
+        'schedule': crontab(hour=0, minute=45),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 if STRIPE_ENABLED:
@@ -1803,6 +1820,8 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'user_token': 'kobo.apps.accounts.forms.UserTokenForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
@@ -2414,6 +2433,10 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Cache time-to-live (in seconds) for the survey question types and default
+# language used by NLP actions
+SURVEY_METADATA_CACHE_TTL = 86400
 
 # Configure the Referrer-Policy response header so OpenStreetMap tile servers
 # receive an acceptable referrer. See:

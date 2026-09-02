@@ -1,6 +1,7 @@
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH } from '#/constants'
 import type { AssetResponse, LabelValuePair } from '#/dataInterface'
 import envStore from '#/envStore'
+import { COLLECTS_PII_OPTIONS } from './constants'
 import type { ProjectSettingsFields } from './types'
 
 /**
@@ -25,25 +26,24 @@ export function getInitialFieldsFromAsset(asset?: AssetResponse): ProjectSetting
   fields.name = asset ? asset.name : ''
   fields.description = asset?.settings?.description ?? ''
 
-  // Sector: validate it's a proper LabelValuePair object before using it
+  // Sector: validate it's a proper LabelValuePair object before using its value
   const sectorValue = asset?.settings?.sector
-  fields.sector =
-    sectorValue && typeof sectorValue === 'object' && 'value' in sectorValue ? (sectorValue as LabelValuePair) : null
+  fields.sector = sectorValue && typeof sectorValue === 'object' && 'value' in sectorValue ? sectorValue.value : null
 
   // Country: normalize both single value and array formats to always be an array
   // (Backend historically allowed both formats, we standardize to array)
   const countryValue = asset?.settings?.country
   if (countryValue && Array.isArray(countryValue)) {
-    fields.country = countryValue
+    fields.country = countryValue.map((item) => item.value)
   } else if (countryValue && typeof countryValue === 'object' && 'value' in countryValue) {
     // Wrap single value in array for consistency
-    fields.country = [countryValue as LabelValuePair]
+    fields.country = [(countryValue as LabelValuePair).value]
   } else {
     fields.country = null
   }
 
-  fields.operational_purpose = asset?.settings?.operational_purpose ?? null
-  fields.collects_pii = asset?.settings?.collects_pii ?? null
+  fields.operational_purpose = asset?.settings?.operational_purpose?.value ?? null
+  fields.collects_pii = asset?.settings?.collects_pii?.value ?? null
 
   // Initialize admin-configured extra fields with appropriate defaults based on type
   fields.extra_metadata_fields = {}
@@ -54,7 +54,7 @@ export function getInitialFieldsFromAsset(asset?: AssetResponse): ProjectSetting
       field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
         ? [] // Multi-select needs empty array (avoids "undefined is not an array" errors)
         : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
-          ? null // Single-select uses null for "no selection" (matches react-select API)
+          ? null // Single-select uses null, so the dropdown shows its placeholder
           : '' // Text fields use empty string for controlled input components
 
     fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
@@ -76,13 +76,27 @@ export function getFilenameFromURI(url: string): string {
   return decodeURIComponent(lastSegment.split('.')[0])
 }
 
+/**
+ * The form only keeps track of the chosen values, but the asset settings need
+ * whole `LabelValuePair`s: Backend derives `country_codes` and sorts project
+ * lists on `sector.value`, and Frontend displays the stored labels.
+ */
+function toLabelValuePair(value: string, choices: LabelValuePair[]): LabelValuePair {
+  // Fall back to the value itself for choices that are no longer offered, so
+  // that saving an unrelated field doesn't silently drop the label.
+  return { value, label: choices.find((choice) => choice.value === value)?.label ?? value }
+}
+
+/** Builds the JSON string that the asset endpoint expects as its `settings`. */
 export function getSettingsForEndpoint(fields: ProjectSettingsFields): string {
   const settings = {
     description: fields.description,
-    sector: fields.sector,
-    country: fields.country,
-    operational_purpose: fields.operational_purpose,
-    collects_pii: fields.collects_pii,
+    sector: fields.sector ? toLabelValuePair(fields.sector, envStore.data.sector_choices) : null,
+    country: fields.country?.map((country) => toLabelValuePair(country, envStore.data.country_choices)) ?? null,
+    operational_purpose: fields.operational_purpose
+      ? toLabelValuePair(fields.operational_purpose, envStore.data.operational_purpose_choices)
+      : null,
+    collects_pii: fields.collects_pii ? toLabelValuePair(fields.collects_pii, COLLECTS_PII_OPTIONS) : null,
     extra_metadata: fields.extra_metadata_fields,
   }
 

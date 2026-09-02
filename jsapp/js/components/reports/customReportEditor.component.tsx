@@ -1,13 +1,12 @@
-import React from 'react'
-
 import clonedeep from 'lodash.clonedeep'
+import React from 'react'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import bem from '#/bem'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
 import Modal from '#/components/common/modal'
-import TextBox from '#/components/common/textBox'
 import type { CustomReportSettings, ReportsResponse } from '#/components/reports/reportsConstants'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
 import { getReportRowTranslatedLabel } from './reports.utils'
@@ -95,10 +94,10 @@ export default class CustomReportEditor extends React.Component<CustomReportEdit
         <Modal.Body>
           <div className='custom-report-form'>
             <div className='custom-report--title'>
-              <TextBox
+              <TextInput
                 value={this.state.customReport.name}
                 placeholder={t('Untitled Report')}
-                onChange={this.onCustomReportNameChange.bind(this)}
+                onChange={(evt) => this.onCustomReportNameChange(evt.currentTarget.value)}
               />
             </div>
 

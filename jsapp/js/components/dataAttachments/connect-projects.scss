@@ -59,13 +59,9 @@
   margin-top: 10px;
   gap: 12px 24px;
 
-  .kobo-select__wrapper {
+  .connect-projects-select {
     flex: 3;
     min-width: 280px;
-
-    .kobo-select__placeholder {
-      color: colors.$kobo-gray-800;
-    }
   }
 
   .connect-projects-textbox {

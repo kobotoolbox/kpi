@@ -3,8 +3,8 @@ import clonedeep from 'lodash.clonedeep'
 import React from 'react'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import { generateUuid } from '#/utils'
 import styles from './SelectXFieldsEditor.module.scss'
 
@@ -70,13 +70,12 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
           return (
             <Stack className={styles.choice} key={choice.uuid}>
               <Group>
-                <TextBox
+                <TextInput
                   value={choice.labels._default}
-                  onChange={(newLabel: string) => handleChangeLabel(choice.uuid, newLabel)}
+                  onChange={(evt) => handleChangeLabel(choice.uuid, evt.currentTarget.value)}
                   placeholder={t('Type option name')}
                   className={styles.labelInput}
-                  size='m'
-                  renderFocused
+                  autoFocus
                 />
 
                 <Button

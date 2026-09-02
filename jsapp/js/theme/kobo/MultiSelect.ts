@@ -8,8 +8,8 @@ export const MultiSelectThemeKobo = MultiSelect.extend({
   classNames: {
     ...baseClasses,
     pill: classes.pill,
+    pillsList: classes.pillsList,
     inputField: classes.inputField,
-    section: [baseClasses.section, classes.section].filter(Boolean).join(' '),
   },
   defaultProps: {
     // Keep default height aligned with Select when no explicit size is provided.

@@ -229,6 +229,11 @@ const tsConfig = {
           },
           {
             name: '@mantine/core',
+            importNames: ['PasswordInput'],
+            message: "Use PasswordInput from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
             importNames: ['Select'],
             message: "Use Select from 'jsapp/js/components/common' instead.",
           },

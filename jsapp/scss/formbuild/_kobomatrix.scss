@@ -1,4 +1,5 @@
 @use 'scss/colors';
+@use 'scss/variables';
 
 .card__kobomatrix {
   border: 1px solid colors.$kobo-gray-500;
@@ -117,7 +118,6 @@
       vertical-align: middle;
     }
 
-    > .kobo-select,
     > input {
       width: 310px;
       display: inline-block;
@@ -128,6 +128,14 @@
       padding: 4px 8px;
       border: 1px solid colors.$kobo-gray-500;
       border-radius: 4px;
+    }
+
+    // The response type dropdown is a Mantine `Select`, sized to match the text inputs
+    // next to it.
+    .mantine-Select-input {
+      border-color: colors.$kobo-gray-500;
+      border-radius: 4px;
+      font-size: variables.$base-font-size;
     }
 
     > label {

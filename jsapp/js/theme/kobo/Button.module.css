@@ -8,11 +8,11 @@
   }
 
   &[data-size='md'] {
-    min-width: 32px;
+    min-width: 34px;
   }
 
   &[data-size='lg'] {
-    min-width: 38px;
+    min-width: 40px;
   }
 
   &[data-disabled] {

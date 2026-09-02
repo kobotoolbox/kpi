@@ -7,6 +7,7 @@ import classes from './InputBase.module.css'
 export const PasswordInputThemeKobo = PasswordInput.extend({
   defaultProps: {
     size: 'md',
+    dir: 'auto',
     labelProps: {
       className: classes.label,
     },

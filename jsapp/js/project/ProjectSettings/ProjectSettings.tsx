@@ -12,7 +12,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
-import type { AssetResponse, LabelValuePair } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import { type ImportErrorResponse, applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import mixins from '#/mixins'
@@ -176,13 +176,13 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
    * handling user input
    */
 
-  onAnyFieldChange(fieldName: string, newFieldValue: string | string[] | LabelValuePair | LabelValuePair[] | null) {
+  onAnyFieldChange(fieldName: string, newFieldValue: string | string[] | null) {
     // Deep clone state to avoid mutations (React best practice)
     const newStateObj: ProjectSettingsState = clonedeep(this.state) as ProjectSettingsState
 
     // Check if this is an admin-configured extra field or a standard field
     if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
-      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue as string | string[] | null
+      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
     } else {
       // Type-safe field assignment - switch ensures we handle each field correctly
       // This replaces the previous `as any` type escape and catches typos at compile time
@@ -194,11 +194,11 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
         case 'sector':
         case 'operational_purpose':
         case 'collects_pii':
-          newStateObj.fields[fieldName] = newFieldValue as LabelValuePair | null
+          newStateObj.fields[fieldName] = newFieldValue as string | null
           break
         case 'country':
           // Country is special - it's a multi-select so expects an array
-          newStateObj.fields[fieldName] = newFieldValue as LabelValuePair[] | null
+          newStateObj.fields[fieldName] = newFieldValue as string[] | null
           break
         default:
           // Unrecognized field name - log warning in development to catch typos

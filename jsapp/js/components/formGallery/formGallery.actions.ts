@@ -14,7 +14,7 @@ export type FormGalleryAction =
   | { type: 'loadMoreSubmissions' }
   | { type: 'loadMoreSubmissionsFailed' }
   | { type: 'setEndDate'; value: string }
-  | { type: 'setFilterQuestion'; question: string }
+  | { type: 'setFilterQuestion'; question: string | null }
   | { type: 'setStartDate'; value: string }
   | { type: 'toggleFullscreen' }
   | { type: 'openModal'; index: number }

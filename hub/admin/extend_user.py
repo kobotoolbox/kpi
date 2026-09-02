@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+
 from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
@@ -12,11 +14,13 @@ from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
+from django.http import HttpRequest
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
+from kobo.apps.accounts.utils import user_is_managed_by_sso
 from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     USERNAME_MAX_LENGTH,
@@ -218,6 +222,19 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
     class Media:
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
+
+    def get_fieldsets(self, request: HttpRequest, obj=...):
+        fieldsets = copy.deepcopy(super().get_fieldsets(request, obj))
+        if obj and obj.pk is not None:
+            if user_is_managed_by_sso(obj):
+                for fieldset_name, fieldset_options in fieldsets:
+                    fields = list(fieldset_options.get('fields', []))
+                    # Filter out password-related fields
+                    fields = [
+                        f for f in fields if f not in ('password', 'usable_password')
+                    ]
+                    fieldset_options['fields'] = tuple(fields)
+        return fieldsets
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):

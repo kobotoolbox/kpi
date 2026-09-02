@@ -369,14 +369,6 @@ $s-data-table-font: 13px;
     overflow: visible;
   }
 
-  // For the validation status dropdown to not appear under other cells;
-  .rt-th:focus-within,
-  .rt-td:focus-within {
-    .kobo-select {
-      z-index: z-indexes.$z-data-table-frozen-column + 1;
-    }
-  }
-
   // currently hovered cell will be on top - for tooltips and dropdowns
   .rt-th:hover.is-frozen,
   .rt-td:hover.is-frozen {

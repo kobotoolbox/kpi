@@ -1,3 +1,5 @@
+import type { LabelValuePair } from '#/dataInterface'
+
 /**
  * Step configuration for the project settings wizard.
  * Each step has a unique identifier and translated title.
@@ -27,3 +29,13 @@ export const STEP_TITLES: Record<StepName, string> = {
 export function getStepTitle(step: StepName): string {
   return STEP_TITLES[step] || ''
 }
+
+/**
+ * Options of the "Does this project collect personally identifiable
+ * information?" field. Unlike the other choice fields, these don't come from
+ * the environment endpoint.
+ */
+export const COLLECTS_PII_OPTIONS: LabelValuePair[] = [
+  { value: 'Yes', label: t('Yes') },
+  { value: 'No', label: t('No') },
+]

@@ -14,6 +14,7 @@ from kpi.utils.schema_extensions.response import (
 from kpi.versioning import APIV2Versioning
 from .extend_schemas.api.v2.email.serializers import EmailRequestPayload
 from .mixins import MultipleFieldLookupMixin
+from .permissions import NotManagedSSOPermission
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
 
@@ -75,7 +76,7 @@ class EmailAddressViewSet(
     destroy=extend_schema(
         description=read_md('accounts', 'me/social/delete.md'),
         responses=open_api_204_empty_response(
-            raise_access_forbidden=False,
+            raise_access_forbidden=True,
             validate_payload=False,
         ),
     ),
@@ -125,6 +126,14 @@ class SocialAccountViewSet(
     serializer_class = SocialAccountSerializer
     permission_classes = (IsAuthenticated,)
     versioning_class = APIV2Versioning
+
+    def get_permissions(self):
+        if self.action == 'destroy':
+            return (
+                IsAuthenticated(),
+                NotManagedSSOPermission(),
+            )
+        return super().get_permissions()
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)

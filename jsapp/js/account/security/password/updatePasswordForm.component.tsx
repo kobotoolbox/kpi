@@ -4,8 +4,8 @@ import classnames from 'classnames'
 import { when } from 'mobx'
 import { fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
-import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
+import ButtonNew from '#/components/common/ButtonNew'
+import PasswordInput from '#/components/common/PasswordInput'
 import PasswordStrength from '#/components/passwordStrength.component'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
@@ -130,12 +130,11 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
       )}
 
       <div className={styles.row}>
-        <TextBox
+        <PasswordInput
           label={t('Current Password')}
-          type='password'
-          errors={currentPasswordError}
+          error={currentPasswordError?.join(' ')}
           value={currentPassword}
-          onChange={setCurrentPassword}
+          onChange={(evt) => setCurrentPassword(evt.currentTarget.value)}
         />
 
         <a className={styles.forgotLink} href={`${ROOT_URL}/accounts/password/reset/`}>
@@ -144,12 +143,11 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
       </div>
 
       <div className={styles.row}>
-        <TextBox
+        <PasswordInput
           label={t('New Password')}
-          type='password'
-          errors={newPasswordError}
+          error={newPasswordError?.join(' ')}
           value={newPassword}
-          onChange={setNewPassword}
+          onChange={(evt) => setNewPassword(evt.currentTarget.value)}
         />
 
         {envStore.isReady && envStore.data.enable_password_entropy_meter && newPassword !== '' && (
@@ -158,17 +156,18 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
       </div>
 
       <div className={styles.row}>
-        <TextBox
+        <PasswordInput
           label={t('Verify Password')}
-          type='password'
-          errors={verifyPasswordError}
+          error={verifyPasswordError?.join(' ')}
           value={verifyPassword}
-          onChange={setVerifyPassword}
+          onChange={(evt) => setVerifyPassword(evt.currentTarget.value)}
         />
       </div>
 
       <div className={styles.row}>
-        <Button type='primary' size='l' label={t('Save Password')} isSubmit isPending={isPending} />
+        <ButtonNew variant='filled' size='lg' type='submit' loading={isPending}>
+          {t('Save Password')}
+        </ButtonNew>
       </div>
     </form>
   )

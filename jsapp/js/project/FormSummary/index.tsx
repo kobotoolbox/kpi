@@ -1,12 +1,8 @@
-import './formSummary.scss'
-
+import './FormSummary.scss'
 import React from 'react'
-
-import autoBind from 'react-autobind'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Link, NavLink } from 'react-router-dom'
-import Reflux from 'reflux'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
@@ -14,22 +10,28 @@ import Icon from '#/components/common/icon'
 import { getFormDataTabs } from '#/components/formViewSideTabs'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
 import { userCan } from '#/components/permissions/utils'
+import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import { MODAL_TYPES } from '#/constants'
+import type { AssetResponse, PermissionResponse } from '#/dataInterface'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import SubmissionsCountGraph from '#/project/submissionsCountGraph.component'
 import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
-import LimitNotifications from '../usageLimits/limitNotifications.component'
-import FormSummaryProjectInfo from './formSummaryProjectInfo'
+import FormSummaryProjectInfo from './FormSummaryProjectInfo'
 
-class FormSummary extends React.Component {
-  constructor(props) {
+/**
+ * `mixins.dmix` assigns the whole loaded asset onto this component's state, but the state starts out as an empty
+ * object - hence all the asset properties being optional here.
+ */
+type FormSummaryState = Partial<AssetResponse>
+
+class FormSummary extends React.Component<{}, FormSummaryState> {
+  private unlisteners: Function[] = []
+
+  constructor(props: {}) {
     super(props)
     this.state = {}
-    autoBind(this)
   }
-
-  unlisteners = []
 
   // Copying how sharingForm.component.tsx does their listeners
   componentDidMount() {
@@ -46,7 +48,7 @@ class FormSummary extends React.Component {
     })
   }
 
-  onAssetPermissionsUpdated(permissionsResponse) {
+  onAssetPermissionsUpdated(permissionsResponse: PermissionResponse[]) {
     // HACK-FIX: "update" the state's permissions with the response from adding/removing all permissions from a user
     //
     // TODO: Replacing our permissions api logic with react query is the best solution, but in the meantime the
@@ -54,44 +56,44 @@ class FormSummary extends React.Component {
     this.setState({ permissions: permissionsResponse })
   }
 
+  /**
+   * The asset that `mixins.dmix` put into the state, or `undefined` while it's still being loaded. As `dmix` only ever
+   * assigns the asset as a whole, `uid` being there means the rest of it is there too.
+   */
+  private getAsset(): AssetResponse | undefined {
+    return this.state.uid ? (this.state as AssetResponse) : undefined
+  }
+
   renderQuickLinks() {
+    const asset = this.getAsset()
+
     return (
       <bem.FormView__cell m='data-tabs'>
-        {userCan('add_submissions', this.state) && (
-          <Link
-            to={`/forms/${this.state.uid}/landing`}
-            key='landing'
-            data-path={`/forms/${this.state.uid}/landing`}
-            onClick={this.triggerRefresh}
-          >
+        {userCan('add_submissions', asset) && (
+          <Link to={`/forms/${asset?.uid}/landing`} key='landing'>
             <i className='k-icon k-icon-projects' />
             {t('Collect data')}
             <Icon name='angle-right' size='s' />
           </Link>
         )}
 
-        {userCan('change_asset', this.state) && (
-          <button onClick={this.sharingModal}>
+        {userCan('change_asset', asset) && (
+          <button onClick={this.sharingModal.bind(this)}>
             <i className='k-icon k-icon-user-share' />
             {t('Share project')}
             <Icon name='angle-right' size='s' />
           </button>
         )}
 
-        {userCan('change_asset', this.state) && (
-          <Link
-            to={`/forms/${this.state.uid}/edit`}
-            key='edit'
-            data-path={`/forms/${this.state.uid}/edit`}
-            onClick={this.triggerRefresh}
-          >
+        {userCan('change_asset', asset) && (
+          <Link to={`/forms/${asset?.uid}/edit`} key='edit'>
             <i className='k-icon k-icon-edit' />
             {t('Edit form')}
             <Icon name='angle-right' size='s' />
           </Link>
         )}
 
-        <button onClick={this.enketoPreviewModal} disabled={!this.state.url}>
+        <button onClick={this.enketoPreviewModal.bind(this)} disabled={!asset?.url}>
           <i className='k-icon k-icon-view' />
           {t('Preview form')}
           <Icon name='angle-right' size='s' />
@@ -101,15 +103,17 @@ class FormSummary extends React.Component {
   }
 
   renderDataTabs() {
-    if (!this.state.permissions || !userCan('view_submissions', this.state)) {
+    const asset = this.getAsset()
+
+    if (!asset?.permissions || !userCan('view_submissions', asset)) {
       return null
     }
 
-    if (this.state.deployment__submission_count < 1) {
+    if (asset.deployment__submission_count < 1) {
       return null
     }
 
-    const sideTabs = getFormDataTabs(this.state.uid)
+    const sideTabs = getFormDataTabs(asset.uid)
 
     return (
       <bem.FormView__row m='data-links'>
@@ -117,7 +121,7 @@ class FormSummary extends React.Component {
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m='data-tabs'>
             {sideTabs.map((item, ind) => (
-              <NavLink to={item.path} key={ind} data-path={item.path} onClick={this.triggerRefresh}>
+              <NavLink to={item.path} key={ind}>
                 <i className={`k-icon ${item.icon}`} />
                 {item.label}
                 <Icon name='angle-right' size='s' />
@@ -129,12 +133,15 @@ class FormSummary extends React.Component {
     )
   }
 
-  sharingModal(evt) {
+  sharingModal(evt: React.MouseEvent<HTMLElement>) {
     evt.preventDefault()
-    openSharingModal({ asset: this.state })
+    const asset = this.getAsset()
+    if (asset) {
+      openSharingModal({ asset })
+    }
   }
 
-  enketoPreviewModal(evt) {
+  enketoPreviewModal(evt: React.MouseEvent<HTMLElement>) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
@@ -143,8 +150,9 @@ class FormSummary extends React.Component {
   }
 
   renderTeam() {
-    const team = []
-    this.state.permissions?.forEach((perm) => {
+    const asset = this.getAsset()
+    const team: string[] = []
+    asset?.permissions?.forEach((perm) => {
       let username = null
       if (perm.user) {
         username = getUsernameFromUrl(perm.user)
@@ -162,8 +170,8 @@ class FormSummary extends React.Component {
     return (
       <bem.FormView__row m='team'>
         <bem.FormView__cell m={['label', 'first']}>{t('Team members')}</bem.FormView__cell>
-        {userCan('change_asset', this.state) && (
-          <a onClick={this.sharingModal} className='team-sharing-button'>
+        {userCan('change_asset', asset) && (
+          <a onClick={this.sharingModal.bind(this)} className='team-sharing-button'>
             <i className='k-icon k-icon-user-share' />
           </a>
         )}
@@ -177,7 +185,8 @@ class FormSummary extends React.Component {
   }
 
   render() {
-    const docTitle = this.state.name || t('Untitled')
+    const asset = this.getAsset()
+    const docTitle = asset?.name || t('Untitled')
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -185,16 +194,14 @@ class FormSummary extends React.Component {
           <LimitNotifications />
           <bem.FormView__row m='panels'>
             <bem.FormView__column m='left'>
-              {/* We only want to pass an actual asset object, but because this
-            component uses `mixins.dmix`, we have to add this little check. */}
-              {this.state.uid && <FormSummaryProjectInfo asset={this.state} />}
+              {asset && <FormSummaryProjectInfo asset={asset} />}
 
-              {this.state.uid && (
+              {asset && (
                 <bem.FormView__row>
                   <bem.FormView__cell m={['label', 'first']}>{t('Submissions')}</bem.FormView__cell>
 
                   <bem.FormView__cell m='box'>
-                    <SubmissionsCountGraph assetUid={this.state.uid} />
+                    <SubmissionsCountGraph assetUid={asset.uid} />
                   </bem.FormView__cell>
                 </bem.FormView__row>
               )}
@@ -217,6 +224,5 @@ class FormSummary extends React.Component {
 }
 
 reactMixin(FormSummary.prototype, mixins.dmix)
-reactMixin(FormSummary.prototype, Reflux.ListenerMixin)
 
 export default FormSummary
