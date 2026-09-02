@@ -68,17 +68,8 @@
           {% translate "Available placeholders:" %} ##username##, ##sso_name##
         </p>
       </div>
-      <script>
-        (function () {
-          var checkbox = document.getElementById('id_send_in_app_message');
-          var field = document.getElementById('in-app-message-field');
-          function toggle() {
-            field.hidden = !checkbox.checked;
-          }
-          checkbox.addEventListener('change', toggle);
-          toggle();
-        })();
-      </script>
+      {# Inline scripts are blocked by CSP (script-src has no 'unsafe-inline') #}
+      <script src="{% static 'admin/accounts/socialappcustomdata/confirmation.js' %}"></script>
     {% endif %}
     <div class="submit-row">
       <input type="submit" value="{% translate "Yes, I'm sure" %}" class="default">
