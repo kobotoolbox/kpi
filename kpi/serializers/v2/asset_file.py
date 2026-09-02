@@ -14,6 +14,7 @@ from django.core.validators import (
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+from ssrf_protect.exceptions import SSRFProtectException
 
 from kpi.fields import (
     RelativePrefixHyperlinkedRelatedField,
@@ -22,6 +23,7 @@ from kpi.fields import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.utils.log import logging
+from kpi.utils.ssrf import validate_url_against_ssrf
 
 
 class AssetFileSerializer(serializers.ModelSerializer):
@@ -256,6 +258,13 @@ class AssetFileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'metadata': t('`redirect_url` is invalid')
             })
+
+        try:
+            validate_url_against_ssrf(redirect_url)
+        except SSRFProtectException:
+            raise serializers.ValidationError(
+                {'metadata': t('`redirect_url` is not allowed')}
+            )
 
     # PRIVATE METHODS
     # These methods could be protected too but IMO, they should not be

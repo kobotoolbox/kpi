@@ -3,20 +3,19 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# Boris Ristovski (Twibi) <borisristovski@gmail.com>, 2024,2026
 msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-08-26 14:26+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
-"Last-Translator: Boris Ristovski (Twibi) <borisristovski@gmail.com>, 2024,2026\n"
-"Language-Team: Macedonian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/mk/)\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Malayalam (India) (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ml_IN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: mk\n"
-"Plural-Forms: nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;\n"
+"Language: ml_IN\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: hub/templates/admin/loginas/change_form.html:7
 msgid "Log in as user"
