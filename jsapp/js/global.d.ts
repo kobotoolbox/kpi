@@ -272,6 +272,12 @@ declare module '*.svg' {
   export default url
 }
 
+/** Same for bitmaps - the import is the URL webpack emitted for the file. */
+declare module '*.webp' {
+  const url: string
+  export default url
+}
+
 declare module '*.scss'
 declare module '*.css'
 
