@@ -236,8 +236,6 @@ class TestManagedSsoCelery(TestCase):
         return user
 
     def test_users_needing_update(self):
-        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
-
         user_with_password = self._create_user('with_password', True, True, False)
         # has both managed and unmanaged social accounts
         user_multiple_accounts = self._create_user(
@@ -270,7 +268,7 @@ class TestManagedSsoCelery(TestCase):
         user_sso_exempt.extra_details.sso_exempt = True
         user_sso_exempt.extra_details.save()
 
-        need_update = users_needing_update(custom_data, domain=self.default_domain)
+        need_update = users_needing_update(self.social_app, domain=self.default_domain)
         need_update = [user.id for user in need_update]
 
         assert user_with_password.id in need_update

@@ -67,7 +67,8 @@ def create_inapp_message(social_app, requesting_user=None):
 
 
 @celery_app.task()
-def update_users(social_app, domain, requesting_user=None):
+def update_users(social_app_custom_data, domain, requesting_user=None):
+    social_app = social_app_custom_data.social_app
     users_to_update = users_needing_update(social_app, domain)
     if not users_to_update.exists():
         logging.info(

@@ -83,15 +83,14 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
 
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
-        Calculate the count of affected accounts for Track 1 and Track 2.
-        - Track 1: Accounts already linked to that SocialApp
-          (excluding sso_exempt=True and anonymous).
-        - Track 2: Accounts not linked whose email domain is in submitted_domains
-          (using functional index), excluding already notified users via
-          InAppMessageUsers (idempotence) and anonymous.
+        Count the accounts `tasks.update_users()` would act on, per track:
+        - Track 1: accounts linked to the SocialApp that still have another
+          login method (usable password or other social account).
+        - Track 2: accounts on a submitted domain that are not linked yet and
+          have not been notified already.
 
-        TODO: Once PR #7517 (tasks.py users_needing_update) is merged, replace
-        inline query logic below with tasks.users_needing_update() helper.
+        Both tracks come from `users_needing_update()` so the numbers match
+        what the task will actually do.
         """
         if not is_managed:
             return 0, 0
@@ -99,12 +98,9 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
         track_1_count = 0
         track_2_count = 0
         for domain in submitted_domains:
-            require_update = users_needing_update(social_app, domain)
-            for user in require_update:
-                if user.managed_account:
-                    track_1_count += 1
-                else:
-                    track_2_count += 1
+            users = users_needing_update(social_app, domain)
+            track_1_count += users.filter(managed_account__gt=0).count()
+            track_2_count += users.filter(managed_account=0).count()
         return track_1_count, track_2_count
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):

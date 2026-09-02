@@ -1,4 +1,4 @@
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
 from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
 from django.db.models import CharField, Count, F, Func, Q, Value
@@ -9,7 +9,9 @@ from kobo.apps.help.models import InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
-SOCIAL_APP_IDENTIFIER = 'socialaccounts.SocialApp'
+# Key used in InAppMessage.generic_related_objects, same convention as
+# the transfer identifier in kobo.apps.help.serializers
+SOCIAL_APP_IDENTIFIER = f'{SocialApp._meta.app_label}.{SocialApp._meta.model_name}'
 
 
 class SplitPart(Func):

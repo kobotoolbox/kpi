@@ -138,6 +138,48 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         self.assertFalse(self.custom_data.managed)
         self.assertEqual(self.custom_data.domains.count(), 0)
 
+    def test_counts_only_include_accounts_the_task_will_update(self):
+        # Linked user on the managed domain who still has a password (Track 1)
+        linked_user = User.objects.create(
+            username='linked_user', email='linked@example.com'
+        )
+        linked_user.set_password('password')
+        linked_user.save()
+        SocialAccount.objects.create(
+            user=linked_user, provider=self.social_app.provider_id, uid='sa201'
+        )
+        # Linked user already converted to SSO-only: nothing left to do
+        converted_user = User.objects.create(
+            username='converted_user', email='converted@example.com'
+        )
+        converted_user.set_unusable_password()
+        converted_user.save()
+        SocialAccount.objects.create(
+            user=converted_user, provider=self.social_app.provider_id, uid='sa202'
+        )
+        # Linked user on a domain that is not managed by this SocialApp
+        other_domain_user = User.objects.create(
+            username='other_domain_user', email='other@unmanaged.org'
+        )
+        other_domain_user.set_password('password')
+        other_domain_user.save()
+        SocialAccount.objects.create(
+            user=other_domain_user, provider=self.social_app.provider_id, uid='sa203'
+        )
+
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True, domains=['example.com'], confirmed=False
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['track_1_count'], 1)
+        self.assertEqual(response.context['track_2_count'], 0)
+
     def test_post_toggle_managed_confirmed_saves(self):
         url = reverse(
             'admin:accounts_socialappcustomdata_change',
