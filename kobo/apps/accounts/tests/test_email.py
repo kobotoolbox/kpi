@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from allauth.account.models import EmailAddress
 from ddt import data, ddt
 from django.conf import settings
@@ -10,12 +12,15 @@ from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
 
+from .utils import record_authentication
+
 
 @override_settings(ACCOUNT_RATE_LIMITS=False)
 class AccountsEmailTestCase(APITestCase):
     def setUp(self):
         self.user = baker.make(settings.AUTH_USER_MODEL)
         self.client.force_login(self.user)
+        record_authentication(self.client)
         self.url_list = reverse('emailaddress-list')
 
     def test_list(self):
@@ -52,8 +57,8 @@ class AccountsEmailTestCase(APITestCase):
 
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
-        # Auth, Select, Delete (many), Get or Create
-        queries = FuzzyInt(11, 20)
+        # Auth, re-authentication check, Select, Delete (many), Get or Create
+        queries = FuzzyInt(11, 22)
         with self.assertNumQueries(queries):
             res = self.client.post(self.url_list, data, format='json')
         self.assertContains(res, data['email'], status_code=201)
@@ -131,6 +136,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         """
         data = {'email': 'owner@example.com'}
         self.client.force_login(self.owner)
+        record_authentication(self.client)
         res = self.client.post(self.url_list, data, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -144,6 +150,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         """
         data = {'email': 'admin@example.com'}
         self.client.force_login(self.admin)
+        record_authentication(self.client)
         res = self.client.post(self.url_list, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
@@ -156,6 +163,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         """
         data = {'email': 'member@example.com'}
         self.client.force_login(self.member)
+        record_authentication(self.client)
         res = self.client.post(self.url_list, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
@@ -168,6 +176,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         """
         data = {'email': 'nonmmo@example.com'}
         self.client.force_login(self.non_mmo_user)
+        record_authentication(self.client)
         res = self.client.post(self.url_list, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
@@ -192,6 +201,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         email_address = baker.make('account.emailaddress', user=user)
         self.assertNotEqual(email_address.email, 'new@example.com')
         self.client.force_login(user)
+        record_authentication(self.client)
         data = {'email': 'new@example.com'}
         res = self.client.post(self.url_list, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -201,3 +211,114 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         user_email = EmailAddress.objects.get(user=user)
         self.assertEqual(user_email.email, email_address.email)
         self.assertEqual(user.emailaddress_set.count(), 1)
+
+
+@override_settings(ACCOUNT_RATE_LIMITS=False)
+class EmailChangeReauthenticationTestCase(APITestCase):
+    """
+    Changing the email address requires a recent re-authentication: the
+    password, plus MFA when the account has it enabled
+    """
+
+    def setUp(self):
+        self.user = baker.make(settings.AUTH_USER_MODEL, username='reauth_user')
+        self.user.set_password('secret')
+        self.user.save()
+        baker.make(
+            'account.emailaddress',
+            user=self.user,
+            email='old@example.com',
+            primary=True,
+            verified=True,
+        )
+        self.client.force_login(self.user)
+        self.url_list = reverse('emailaddress-list')
+        self.payload = {'email': 'new@example.com'}
+
+    def _post(self):
+        return self.client.post(self.url_list, self.payload, format='json')
+
+    def _pending_emails(self):
+        return self.user.emailaddress_set.filter(verified=False).count()
+
+    def test_no_authentication_record_is_rejected(self):
+        res = self._post()
+        assert res.status_code == status.HTTP_403_FORBIDDEN
+        assert res.json()['code'] == 'reauthentication_required'
+        assert self._pending_emails() == 0
+        assert len(mail.outbox) == 0
+
+    def test_fresh_password_is_accepted(self):
+        record_authentication(self.client)
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1
+
+    def test_stale_password_is_rejected(self):
+        record_authentication(self.client, age=301)
+        res = self._post()
+        assert res.status_code == status.HTTP_403_FORBIDDEN
+        assert self._pending_emails() == 0
+
+    @override_settings(ACCOUNT_REAUTHENTICATION_TIMEOUT=3600)
+    def test_timeout_setting_is_honoured(self):
+        record_authentication(self.client, age=301)
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+
+    def test_response_lists_available_flows(self):
+        res = self._post()
+        flows = res.json()['flows']
+        assert {'id': 'reauthenticate'} in flows
+
+    def test_mfa_user_needs_both_password_and_mfa(self):
+        with patch(
+            'kobo.apps.accounts.reauthentication.is_mfa_enabled', return_value=True
+        ):
+            record_authentication(self.client, methods=('password',))
+            res = self._post()
+            assert res.status_code == status.HTTP_403_FORBIDDEN, (
+                'password alone must not satisfy an MFA-enabled account'
+            )
+            assert self._pending_emails() == 0
+
+            record_authentication(self.client, methods=('password', 'mfa'))
+            res = self._post()
+            assert res.status_code == status.HTTP_201_CREATED
+            assert self._pending_emails() == 1
+
+    def test_mfa_user_with_stale_mfa_is_rejected(self):
+        with patch(
+            'kobo.apps.accounts.reauthentication.is_mfa_enabled', return_value=True
+        ):
+            record_authentication(
+                self.client, methods=('password', 'mfa'), age=301
+            )
+            res = self._post()
+            assert res.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_sso_only_user_is_not_locked_out(self):
+        """
+        An account with no usable password and no MFA has no way to
+        re-authenticate; blocking it would lock the user out permanently
+        """
+        self.user.set_unusable_password()
+        self.user.save()
+        res = self._post()
+        assert res.status_code != status.HTTP_403_FORBIDDEN
+
+    def test_delete_is_not_gated(self):
+        """
+        Discarding an unverified pending address cannot take an account over,
+        so it does not require re-authentication.
+        """
+        baker.make(
+            'account.emailaddress',
+            user=self.user,
+            email='pending@example.com',
+            primary=False,
+            verified=False,
+        )
+        res = self.client.delete(self.url_list)
+        assert res.status_code == status.HTTP_204_NO_CONTENT
+        assert self._pending_emails() == 0

@@ -1811,6 +1811,11 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
+# How long a re-authentication remains valid before a sensitive action (e.g.
+# changing the email address) demands it again
+ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
+    'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
+)
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False

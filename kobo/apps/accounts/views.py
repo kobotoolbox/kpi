@@ -1,6 +1,11 @@
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 
@@ -12,9 +17,16 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.versioning import APIV2Versioning
-from .extend_schemas.api.v2.email.serializers import EmailRequestPayload
+from .extend_schemas.api.v2.email.serializers import (
+    EmailRequestPayload,
+    EmailReauthenticationRequiredResponse,
+)
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
+from .reauthentication import (
+    did_recently_reauthenticate,
+    reauthentication_required_response,
+)
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
 
@@ -32,11 +44,41 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
     create=extend_schema(
         description=read_md('accounts', 'me/email/create.md'),
         request={'application/json': EmailRequestPayload},
-        responses=open_api_201_created_response(
-            EmailAddressSerializer,
-            raise_not_found=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_201_created_response(
+                EmailAddressSerializer,
+                raise_not_found=False,
+                raise_access_forbidden=False,
+            ),
+            (status.HTTP_403_FORBIDDEN, 'application/json'): OpenApiResponse(
+                response=EmailReauthenticationRequiredResponse,
+                description=(
+                    'The session is valid but the user has not re-authenticated'
+                    ' recently enough. Walk the user through every flow listed'
+                    ' in `flows`, then retry this request.'
+                ),
+                examples=[
+                    OpenApiExample(
+                        name='Re-authentication required',
+                        value={
+                            'detail': (
+                                'Re-authentication is required for this action.'
+                            ),
+                            'code': 'reauthentication_required',
+                            'flows': [
+                                {'id': 'reauthenticate'},
+                                {
+                                    'id': 'mfa_reauthenticate',
+                                    'types': ['totp'],
+                                },
+                            ],
+                        },
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+        },
     ),
 )
 class EmailAddressViewSet(
@@ -63,6 +105,14 @@ class EmailAddressViewSet(
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        # Changing the email address is a sensitive action: a stolen session could
+        # otherwise be used to take the account over. Require re-authentication
+        # before allowing the email address to be changed
+        if not did_recently_reauthenticate(request):
+            return reauthentication_required_response(request)
+        return super().create(request, *args, **kwargs)
 
     def delete(self, request, format=None):
         request.user.emailaddress_set.filter(

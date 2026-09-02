@@ -8,3 +8,12 @@ EmailRequestPayload = inline_serializer_class(
         'email': serializers.EmailField(),
     },
 )
+
+EmailReauthenticationRequiredResponse = inline_serializer_class(
+    name='EmailReauthenticationRequiredResponse',
+    fields={
+        'detail': serializers.CharField(),
+        'code': serializers.CharField(),
+        'flows': serializers.ListField(child=serializers.DictField()),
+    },
+)

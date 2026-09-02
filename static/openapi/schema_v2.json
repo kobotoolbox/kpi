@@ -17429,7 +17429,7 @@
             },
             "post": {
                 "operationId": "me_emails_create",
-                "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n",
+                "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n\n### Re-authentication\n\nChanging the email address is a sensitive action, so a valid session is not enough\non its own: the user must have authenticated recently. \"Recently\" means within\n`ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the\naccount has available must be fresh, the password, plus MFA when it is enabled.\n\nWhen that is not the case the endpoint responds `403` without touching any email\naddress:\n\n```json\n{\n  \"detail\": \"Re-authentication is required for this action.\",\n  \"code\": \"reauthentication_required\",\n  \"flows\": [\n    {\"id\": \"reauthenticate\"},\n    {\"id\": \"mfa_reauthenticate\", \"types\": [\"totp\"]}\n  ]\n}\n```\n\n`flows` lists the steps the client must walk the user through before retrying,\nin the same shape allauth's headless API uses. Once every listed flow is\ncompleted the original request will succeed.\n",
                 "tags": [
                     "User / team / organization / usage"
                 ],
@@ -17499,6 +17499,36 @@
                             }
                         },
                         "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmailReauthenticationRequiredResponse"
+                                },
+                                "examples": {
+                                    "Re-authenticationRequired": {
+                                        "value": {
+                                            "detail": "Re-authentication is required for this action.",
+                                            "code": "reauthentication_required",
+                                            "flows": [
+                                                {
+                                                    "id": "reauthenticate"
+                                                },
+                                                {
+                                                    "id": "mfa_reauthenticate",
+                                                    "types": [
+                                                        "totp"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "summary": "Re-authentication required"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "The session is valid but the user has not re-authenticated recently enough. Walk the user through every flow listed in `flows`, then retry this request."
                     }
                 }
             }
@@ -25131,6 +25161,29 @@
                     "email",
                     "primary",
                     "verified"
+                ]
+            },
+            "EmailReauthenticationRequiredResponse": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "flows": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": {}
+                        }
+                    }
+                },
+                "required": [
+                    "code",
+                    "detail",
+                    "flows"
                 ]
             },
             "EmailRequestPayload": {

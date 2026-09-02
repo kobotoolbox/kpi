@@ -25,6 +25,8 @@ import type { AssetUsageListParams } from '../../models/assetUsageListParams'
 
 import type { EmailAddress } from '../../models/emailAddress'
 
+import type { EmailReauthenticationRequiredResponse } from '../../models/emailReauthenticationRequiredResponse'
+
 import type { EmailRequestPayload } from '../../models/emailRequestPayload'
 
 import type { ErrorDetail } from '../../models/errorDetail'
@@ -3535,6 +3537,31 @@ export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>
 The new email will be unverified and replace existing unverified, non-primary emails.
 New email is not usable until verified.
 
+### Re-authentication
+
+Changing the email address is a sensitive action, so a valid session is not enough
+on its own: the user must have authenticated recently. "Recently" means within
+`ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the
+account has available must be fresh, the password, plus MFA when it is enabled.
+
+When that is not the case the endpoint responds `403` without touching any email
+address:
+
+```json
+{
+  "detail": "Re-authentication is required for this action.",
+  "code": "reauthentication_required",
+  "flows": [
+    {"id": "reauthenticate"},
+    {"id": "mfa_reauthenticate", "types": ["totp"]}
+  ]
+}
+```
+
+`flows` lists the steps the client must walk the user through before retrying,
+in the same shape allauth's headless API uses. Once every listed flow is
+completed the original request will succeed.
+
  */
 export type meEmailsCreateResponse201 = {
   data: EmailAddress
@@ -3551,10 +3578,19 @@ export type meEmailsCreateResponse401 = {
   status: 401
 }
 
+export type meEmailsCreateResponse403 = {
+  data: EmailReauthenticationRequiredResponse
+  status: 403
+}
+
 export type meEmailsCreateResponseSuccess = meEmailsCreateResponse201 & {
   headers: Headers
 }
-export type meEmailsCreateResponseError = (meEmailsCreateResponse400 | meEmailsCreateResponse401) & {
+export type meEmailsCreateResponseError = (
+  | meEmailsCreateResponse400
+  | meEmailsCreateResponse401
+  | meEmailsCreateResponse403
+) & {
   headers: Headers
 }
 
@@ -3576,7 +3612,10 @@ export const meEmailsCreate = async (
   })
 }
 
-export const getMeEmailsCreateMutationOptions = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
+export const getMeEmailsCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail | EmailReauthenticationRequiredResponse,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,
@@ -3605,9 +3644,12 @@ export const getMeEmailsCreateMutationOptions = <TError = ErrorValidation | Erro
 
 export type MeEmailsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof meEmailsCreate>>>
 export type MeEmailsCreateMutationBody = EmailRequestPayload
-export type MeEmailsCreateMutationError = ErrorValidation | ErrorDetail
+export type MeEmailsCreateMutationError = ErrorValidation | ErrorDetail | EmailReauthenticationRequiredResponse
 
-export const useMeEmailsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
+export const useMeEmailsCreate = <
+  TError = ErrorValidation | ErrorDetail | EmailReauthenticationRequiredResponse,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,
