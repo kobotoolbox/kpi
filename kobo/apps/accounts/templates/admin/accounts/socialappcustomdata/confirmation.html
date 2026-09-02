@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+{% if original %}
+&rsaquo; <a href="{% url opts|admin_urlname:'change' original.pk|admin_urlquote %}">{{ original|truncatewords:"18" }}</a>
+{% endif %}
+&rsaquo; {% translate 'Confirm' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h2>{% blocktranslate with name=social_app.name %}Confirm Managed SSO changes for {{ name }}{% endblocktranslate %}</h2>
+
+  <p>{% translate "Are you sure you want to save the following changes?" %}</p>
+
+  {% if managed_toggled_off %}
+    <p><strong>{% translate "Status:" %}</strong> {% translate "Disabling Managed SSO" %}</p>
+  {% elif managed_toggled_on %}
+    <p><strong>{% translate "Status:" %}</strong> {% translate "Enabling Managed SSO" %}</p>
+  {% endif %}
+
+  {% if added_domains %}
+    <p><strong>{% translate "Added domain(s):" %}</strong> {{ added_domains|join:", " }}</p>
+  {% endif %}
+
+  {% if removed_domains %}
+    <p><strong>{% translate "Removed domain(s):" %}</strong> {{ removed_domains|join:", " }}</p>
+  {% endif %}
+
+  <p><strong>{% translate "Affected Accounts:" %}</strong></p>
+  <ul>
+    <li>{% translate "Linked accounts that will be converted to SSO-only:" %} <strong>{{ track_1_count }}</strong></li>
+    <li>{% translate "Unlinked accounts that will receive an in-app notification to link SSO:" %} <strong>{{ track_2_count }}</strong></li>
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for key, value in post_data %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <input type="hidden" name="_confirmed" value="1">
+    <div class="submit-row">
+      <input type="submit" value="{% translate "Yes, I'm sure" %}" class="default">
+      <a href="{{ cancel_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

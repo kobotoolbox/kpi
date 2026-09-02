@@ -1,4 +1,5 @@
 from kobo.apps.organizations.constants import UsageType
+from ..constants import TRANSLATABLE_SOURCE_TYPES
 from ..integrations.google.google_translate import GoogleTranslationService
 from ..type_aliases import NLPExternalServiceClass
 from .base import ActionClassConfig, BaseAutomaticNLPAction, ReviewType
@@ -8,6 +9,7 @@ from .mixins import TranslationActionMixin
 class AutomaticGoogleTranslationAction(TranslationActionMixin, BaseAutomaticNLPAction):
 
     ID = 'automatic_google_translation'
+    allowed_source_types = TRANSLATABLE_SOURCE_TYPES
     action_class_config = ActionClassConfig(
         allow_multiple=True,
         automatic=True,

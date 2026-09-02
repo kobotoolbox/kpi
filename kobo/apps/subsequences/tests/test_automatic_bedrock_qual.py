@@ -338,6 +338,40 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         assert text_item['value'] == 'Initial note'
         assert 'error' not in text_item
 
+    def test_text_source_reads_answer_from_submission(self):
+        # Configure q1 as a `text` survey question so the qual action treats the
+        # submission answer as its source instead of requiring a transcript.
+        self.action.asset.content = {'survey': [{'type': 'text', 'name': 'q1'}]}
+        submission_uuid = str(uuid.uuid4())
+        raw_answer = 'The respondent felt very hopeful about the future.'
+        submission = {
+            'meta/rootUuid': f'uuid:{submission_uuid}',
+            '_uuid': submission_uuid,
+            'q1': raw_answer,
+        }
+        action_data = {'uuid': BEDROCK_QUAL_TEXT_UUID}
+
+        # No TranscriptionNotFound is raised even though there is no transcript
+        result = self.action.revise_data(submission, {}, action_data)
+
+        version = result[BEDROCK_QUAL_TEXT_UUID]['_versions'][0]
+        assert version['_data']['status'] == 'complete'
+        assert version['_data']['value'] == 'response'
+        # Dependency points at the submission itself, not a transcript
+        assert version['_dependency'] == {
+            '_actionId': 'submission',
+            '_uuid': submission_uuid,
+        }
+        # The prompt is built from the raw submission answer
+        prompt = self.action.generate_llm_prompt(
+            {
+                'uuid': BEDROCK_QUAL_TEXT_UUID,
+                '_dependency': {'_actionId': 'submission'},
+            },
+            submission,
+        )
+        assert raw_answer in prompt
+
 
 @ddt
 @patch(
@@ -383,7 +417,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
-            prompt = self.action.generate_llm_prompt(action_data)
+            prompt = self.action.generate_llm_prompt(action_data, {})
         question_text = self._get_question_text_by_uuid(qa_question_uuid)
         expected = (
             f'{qa_question_uuid} transcript: {transcript_text},'
@@ -422,7 +456,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
                 return_value='example format string',
             ):
-                prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data, {})
         expected_choices_string = ','.join(choices_labels)
         assert prompt == (
             f'{qa_question_uuid} transcript: {transcript_text},'
@@ -462,7 +496,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
                 lambda hint: f'({hint})',
             ):
-                prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data, {})
 
         assert prompt == (
             f'question: {question_text} (question hint), '
@@ -506,7 +540,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
                 lambda hint: f'({hint})',
             ):
-                prompt = action.generate_llm_prompt(action_data)
+                prompt = action.generate_llm_prompt(action_data, {})
         assert prompt == (
             'transcript: &lt;xml&gt;transcript&lt;/xml&gt;'
             'question: &lt;xml&gt;question&lt;/xml&gt; (&lt;xml&gt;hint&lt;/xml&gt;), '
@@ -522,7 +556,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with pytest.raises(AnalysisQuestionNotFound):
-            self.action.generate_llm_prompt(action_data)
+            self.action.generate_llm_prompt(action_data, {})
 
     def test_generate_prompt_fails_if_no_visible_choices(self):
         # regression test. this really shouldn't happen if we're validating schemas
@@ -563,7 +597,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with pytest.raises(AnalysisQuestionIncorrectlyConfigured):
-            action.generate_llm_prompt(action_data)
+            action.generate_llm_prompt(action_data, {})
 
     @data(
         # question uuid, parsing method name
@@ -628,7 +662,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
                 lambda choices: ','.join([choice['label'] for choice in choices]),
             ):
-                prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data, {})
         assert prompt == 'choices: Apathy count: 1'
 
     def test_run_external_process_does_not_call_default_if_primary_succeeds(self):
