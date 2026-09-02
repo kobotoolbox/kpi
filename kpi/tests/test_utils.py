@@ -832,6 +832,20 @@ class SsrfUtilsTestCase(TestCase):
         assert calculate_hash('http://127.0.0.1/x.png', prefix=True).endswith('-url')
         assert len(responses.calls) == 0
 
+    @responses.activate
+    def test_calculate_hash_does_not_follow_redirect(self):
+        # `requests.head()` does not follow redirects, so a public host that
+        # redirects to an internal address never gets its destination fetched
+        public_url = 'http://8.8.8.8/eagle.png'
+        responses.add(
+            responses.HEAD,
+            public_url,
+            status=status.HTTP_302_FOUND,
+            headers={'Location': 'http://127.0.0.1/secret'},
+        )
+        assert calculate_hash(public_url, prefix=True).endswith('-url')
+        assert [call.request.url for call in responses.calls] == [public_url]
+
     def test_validate_url_against_ssrf_raises_on_private_ip(self):
         with pytest.raises(SSRFProtectException):
             validate_url_against_ssrf('http://127.0.0.1/form.xls')
