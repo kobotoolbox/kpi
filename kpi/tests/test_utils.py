@@ -22,6 +22,7 @@ from kpi.utils.autoname import (
     autoname_fields_to_field,
     autovalue_choices_in_place,
 )
+from kpi.utils.hash import calculate_hash
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
@@ -823,6 +824,13 @@ class XmlUtilsTestCase(TestCase):
 
 
 class SsrfUtilsTestCase(TestCase):
+
+    @responses.activate
+    def test_calculate_hash_does_not_fetch_blocked_url(self):
+        # A blocked URL degrades to the plain-string hash, like an unreachable
+        # server would, and no request is ever made
+        assert calculate_hash('http://127.0.0.1/x.png', prefix=True).endswith('-url')
+        assert len(responses.calls) == 0
 
     def test_validate_url_against_ssrf_raises_on_private_ip(self):
         with pytest.raises(SSRFProtectException):

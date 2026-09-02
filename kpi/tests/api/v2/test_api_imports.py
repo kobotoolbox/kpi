@@ -938,6 +938,7 @@ class AssetImportTaskTest(BaseTestCase):
             )
         )
 
+    @responses.activate
     def test_import_from_internal_url_is_blocked_by_ssrf(self):
         """
         A URL resolving to an internal address must be rejected by the SSRF
