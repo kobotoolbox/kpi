@@ -18,6 +18,7 @@ from kobo.apps.accounts.models import (
     SocialAppCustomData,
     SocialAppManagedDomain,
 )
+from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update
 
 
@@ -104,7 +105,18 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
         return track_1_count, track_2_count
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
-        if request.method == 'POST' and request.POST.get('_confirmed') != '1':
+        confirmed = request.method == 'POST' and request.POST.get('_confirmed') == '1'
+        # The toggle field only exists once the confirmation page has been
+        # rendered, so it defaults to True on the first (unconfirmed) POST.
+        send_in_app_message = (
+            'send_in_app_message' in request.POST if confirmed else True
+        )
+        in_app_message_body = request.POST.get('in_app_message_body', '').strip()
+        message_error = None
+        if confirmed and send_in_app_message and not in_app_message_body:
+            message_error = _('The in-app message cannot be empty.')
+
+        if request.method == 'POST' and (not confirmed or message_error):
             add = object_id is None
             to_field = request.POST.get('_to_field', request.GET.get('_to_field'))
             if add:
@@ -184,7 +196,13 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                         post_data = [
                             (key, value)
                             for key in request.POST
-                            if key not in ('csrfmiddlewaretoken', '_confirmed')
+                            if key
+                            not in (
+                                'csrfmiddlewaretoken',
+                                '_confirmed',
+                                'send_in_app_message',
+                                'in_app_message_body',
+                            )
                             for value in request.POST.getlist(key)
                         ]
 
@@ -217,6 +235,11 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                             'new_managed': new_managed,
                             'post_data': post_data,
                             'cancel_url': cancel_url,
+                            'send_in_app_message': send_in_app_message,
+                            'in_app_message_body': (
+                                in_app_message_body or DEFAULT_IN_APP_MESSAGE_BODY
+                            ),
+                            'message_error': message_error,
                             'media': self.media,
                         }
                         if extra_context:

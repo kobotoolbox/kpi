@@ -47,6 +47,39 @@
       <input type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
     <input type="hidden" name="_confirmed" value="1">
+    {% if new_managed %}
+      {% if message_error %}
+        <p class="errornote">{{ message_error }}</p>
+      {% endif %}
+      <p>
+        <label>
+          <input type="checkbox" name="send_in_app_message"
+                 id="id_send_in_app_message" {% if send_in_app_message %}checked{% endif %}>
+          {% translate "Send in-app message to non-linked accounts" %}
+        </label>
+      </p>
+      <div id="in-app-message-field">
+        <p>
+          <label for="id_in_app_message_body">{% translate "In-app message" %}</label>
+        </p>
+        <textarea name="in_app_message_body" id="id_in_app_message_body"
+                  rows="8" cols="60">{{ in_app_message_body }}</textarea>
+        <p class="help">
+          {% translate "Available placeholders:" %} ##username##, ##sso_name##
+        </p>
+      </div>
+      <script>
+        (function () {
+          var checkbox = document.getElementById('id_send_in_app_message');
+          var field = document.getElementById('in-app-message-field');
+          function toggle() {
+            field.hidden = !checkbox.checked;
+          }
+          checkbox.addEventListener('change', toggle);
+          toggle();
+        })();
+      </script>
+    {% endif %}
     <div class="submit-row">
       <input type="submit" value="{% translate "Yes, I'm sure" %}" class="default">
       <a href="{{ cancel_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
