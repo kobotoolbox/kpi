@@ -8,6 +8,9 @@ from allauth.account.internal.flows.reauthentication import (
 from allauth.mfa.utils import is_mfa_enabled
 from django.utils.translation import gettext as t
 from rest_framework import status
+from rest_framework.authentication import (
+    SessionAuthentication as DRFSessionAuthentication,
+)
 from rest_framework.response import Response
 
 # Values recorded by allauth in the session under `account_authentication_methods`;
@@ -59,6 +62,28 @@ def did_recently_reauthenticate(request) -> bool:
         if record.get('at', 0) > cutoff
     }
     return required.issubset(fresh_methods)
+
+
+def is_session_authenticated(request) -> bool:
+    """
+    Whether the request was authenticated by a browser session, as opposed to
+    a stateless credential (token, Basic, OAuth2)
+    """
+    return isinstance(request.successful_authenticator, DRFSessionAuthentication)
+
+
+def reauthentication_required(request) -> bool:
+    """
+    Whether `request` must be refused until the user re-authenticates
+
+    Only browser sessions are gated. allauth records a re-authentication in the
+    session, so a request carrying a stateless credential has no way to satisfy
+    the check: gating one would lock that client out for good, with no remedy
+    available to it.
+    """
+    return is_session_authenticated(request) and not did_recently_reauthenticate(
+        request
+    )
 
 
 def reauthentication_required_response(request) -> Response:

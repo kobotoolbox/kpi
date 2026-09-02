@@ -18,13 +18,13 @@ from kpi.utils.schema_extensions.response import (
 )
 from kpi.versioning import APIV2Versioning
 from .extend_schemas.api.v2.email.serializers import (
-    EmailRequestPayload,
     EmailReauthenticationRequiredResponse,
+    EmailRequestPayload,
 )
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
-    did_recently_reauthenticate,
+    reauthentication_required,
     reauthentication_required_response,
 )
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
@@ -110,7 +110,7 @@ class EmailAddressViewSet(
         # Changing the email address is a sensitive action: a stolen session could
         # otherwise be used to take the account over. Require re-authentication
         # before allowing the email address to be changed
-        if not did_recently_reauthenticate(request):
+        if reauthentication_required(request):
             return reauthentication_required_response(request)
         return super().create(request, *args, **kwargs)
 

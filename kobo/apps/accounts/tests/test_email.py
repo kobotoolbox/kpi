@@ -1,3 +1,4 @@
+import base64
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
@@ -8,10 +9,10 @@ from django.test import override_settings
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
-
 from .utils import record_authentication
 
 
@@ -277,9 +278,9 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         ):
             record_authentication(self.client, methods=('password',))
             res = self._post()
-            assert res.status_code == status.HTTP_403_FORBIDDEN, (
-                'password alone must not satisfy an MFA-enabled account'
-            )
+            assert (
+                res.status_code == status.HTTP_403_FORBIDDEN
+            ), 'password alone must not satisfy an MFA-enabled account'
             assert self._pending_emails() == 0
 
             record_authentication(self.client, methods=('password', 'mfa'))
@@ -291,9 +292,7 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         with patch(
             'kobo.apps.accounts.reauthentication.is_mfa_enabled', return_value=True
         ):
-            record_authentication(
-                self.client, methods=('password', 'mfa'), age=301
-            )
+            record_authentication(self.client, methods=('password', 'mfa'), age=301)
             res = self._post()
             assert res.status_code == status.HTTP_403_FORBIDDEN
 
@@ -322,3 +321,24 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         res = self.client.delete(self.url_list)
         assert res.status_code == status.HTTP_204_NO_CONTENT
         assert self._pending_emails() == 0
+
+    def test_token_authentication_is_not_gated(self):
+        """
+        Stateless credentials cannot re-authenticate: allauth records
+        re-authentication in the session, which a token client does not have.
+        Gating them would lock API clients out with no way to recover
+        """
+        self.client.logout()
+        token, _ = Token.objects.get_or_create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1
+
+    def test_basic_authentication_is_not_gated(self):
+        self.client.logout()
+        credentials = base64.b64encode(b'reauth_user:secret').decode()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Basic {credentials}')
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1

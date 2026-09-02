@@ -10,8 +10,12 @@ on its own: the user must have authenticated recently. "Recently" means within
 `ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the
 account has available must be fresh, the password, plus MFA when it is enabled.
 
-When that is not the case the endpoint responds `403` without touching any email
-address:
+This applies to browser sessions only. Requests authenticated with a stateless
+credential (token, Basic or OAuth2) carry that credential on every request and
+cannot record a re-authentication, so they are not gated.
+
+When re-authentication is needed the endpoint responds `403` without touching any
+email address:
 
 ```json
 {
