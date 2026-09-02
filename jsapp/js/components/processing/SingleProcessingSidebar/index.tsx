@@ -61,8 +61,9 @@ export default function ProcessingSidebar({
     return getAllTranslationsFromSupplementData(supplement, questionXpath)
   }, [supplement, questionXpath])
 
-  // Every time user changes the tab, we need to load the default static displays list
-  // for that tab, keeping the dynamically selected translations.
+  // Every time user changes the tab or switches to a question of a different
+  // type, we need to reload the default static displays list, keeping the
+  // dynamically selected translations.
   useEffect(() => {
     const defaultDisplays = getDefaultDisplaysForTab(activeTab, questionType)
     const allStaticDisplays = recordValues(StaticDisplays)
@@ -71,7 +72,7 @@ export default function ProcessingSidebar({
     )
     const newSelectedDisplays = [...defaultDisplays, ...selectedTranslationDisplays]
     setSelectedDisplays(newSelectedDisplays)
-  }, [activeTab])
+  }, [activeTab, questionType])
 
   return (
     <div className={styles.root}>
