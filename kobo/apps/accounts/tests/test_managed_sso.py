@@ -154,6 +154,13 @@ class TestManagedSsoUsers(TestCase):
             provider='another-provider',
             provider_id='another-provider-id',
         )
+        another_custom_data = SocialAppCustomData.objects.create(
+            social_app=another_social_app, managed=False
+        )
+        SocialAppManagedDomain.objects.filter(domain='example.com').update(
+            social_app=another_custom_data
+        )
+
         another_socialaccount = SocialAccount.objects.create(
             user=self.user,
             provider=another_social_app.provider_id,
