@@ -3,7 +3,7 @@ from allauth.account.forms import SignupForm
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
@@ -12,7 +12,9 @@ from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
+from ..help.models import InAppMessageUsers, MessageType
 from .models import SocialAppManagedDomain
+from .utils import SOCIAL_APP_IDENTIFIER
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -93,6 +95,15 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             return
 
         incoming = sociallogin.account
+        app_provider_id = incoming.provider
+        app = SocialApp.objects.get(provider_id=app_provider_id)
+        InAppMessageUsers.objects.filter(
+            user=user,
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            in_app_message__generic_related_objects__contains={
+                SOCIAL_APP_IDENTIFIER: app.pk
+            },
+        ).delete()
         # Block only if a *different* account is already linked; reconnecting
         # the same one is fine.
         blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
