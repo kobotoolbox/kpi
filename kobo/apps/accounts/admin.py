@@ -285,6 +285,8 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                         social_app_custom_data_id=instance.pk,
                         domain=domain,
                         requesting_user_id=request.user.pk,
+                        send_in_app_message=request.POST['send_in_app_message'],
+                        in_app_message_body=request.POST['in_app_message_body'],
                     )
 
             transaction.on_commit(update_all_domains)
