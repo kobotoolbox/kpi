@@ -17,6 +17,8 @@ from kpi.tests.utils import baker_generators  # noqa
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
 from ..tasks import (
+    DEFAULT_IN_APP_MESSAGE_BODY,
+    create_inapp_message,
     managed_sso_sweep,
     notify_unlinked_users,
     update_linked_user,
@@ -340,6 +342,48 @@ class TestManagedSsoCelery(TestCase):
                 update_users(custom_data.pk, managed_domain.domain)
         patched_update.assert_called_once()
         patched_notify.assert_called_once()
+
+    def test_update_users_skips_in_app_message_when_disabled(self):
+        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        # Track 1: linked user with a usable password must still be converted.
+        linked_user = self._create_user('linked', True, True, False)
+        # Track 2: unlinked user must not receive an in-app message.
+        unlinked_user = self._create_user('unlinked', True, False, False)
+
+        update_users(custom_data.pk, managed_domain.domain, send_in_app_message=False)
+
+        assert not InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+        assert not InAppMessageUsers.objects.filter(user=unlinked_user).exists()
+
+        linked_user.refresh_from_db()
+        assert not linked_user.has_usable_password()
+
+    def test_update_users_uses_custom_in_app_message_body(self):
+        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        self._create_user('unlinked', True, False, False)
+
+        update_users(
+            custom_data.pk,
+            managed_domain.domain,
+            in_app_message_body='custom body text',
+        )
+
+        message = InAppMessage.objects.get(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert message.body == 'custom body text'
+
+    def test_create_inapp_message_defaults_to_constant_body(self):
+        message = create_inapp_message(self.social_app)
+        assert message.body == DEFAULT_IN_APP_MESSAGE_BODY
 
     def test_managed_sso_sweep(self):
         social_app_managed = SocialApp.objects.create(

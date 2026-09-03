@@ -3,6 +3,7 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
+from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.accounts.tests.utils import MockProvider
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
@@ -29,7 +30,14 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         self.client = Client()
         self.client.force_login(self.admin_user)
 
-    def _get_change_post_data(self, managed=True, domains=None, confirmed=False):
+    def _get_change_post_data(
+        self,
+        managed=True,
+        domains=None,
+        confirmed=False,
+        send_in_app_message=None,
+        in_app_message_body=None,
+    ):
         domains = domains or []
         data = {
             'social_app': self.social_app.pk,
@@ -49,6 +57,10 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         data[f'domains-{len(domains)}-id'] = ''
         if confirmed:
             data['_confirmed'] = '1'
+        if send_in_app_message is not None:
+            data['send_in_app_message'] = send_in_app_message
+        if in_app_message_body is not None:
+            data['in_app_message_body'] = in_app_message_body
         return data
 
     def test_get_change_view(self):
@@ -320,3 +332,106 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         )
         response = self.client.post(url, post_data)
         self.assertEqual(response.status_code, 403)
+
+    def test_confirmation_shows_in_app_message_field_when_enabling_managed(self):
+        # Catches the field being absent or unchecked/blank by default when
+        # managed SSO is turned on.
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True, domains=['example.com'], confirmed=False
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['send_in_app_message'])
+        self.assertEqual(
+            response.context['in_app_message_body'], DEFAULT_IN_APP_MESSAGE_BODY
+        )
+        self.assertContains(response, 'name="in_app_message_body"')
+
+    def test_confirmation_hides_in_app_message_field_when_disabling_managed(self):
+        # Turning managed off must never expose the in-app message controls.
+        self.custom_data.managed = True
+        self.custom_data.save()
+
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=False, domains=[], confirmed=False
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="send_in_app_message"')
+
+    def test_confirmed_with_empty_message_rejects_and_does_not_save(self):
+        # Catches an empty message body being accepted while the toggle is on.
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True,
+            domains=['example.com'],
+            confirmed=True,
+            send_in_app_message='on',
+            in_app_message_body='',
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, 'admin/accounts/socialappcustomdata/confirmation.html'
+        )
+        self.assertIsNotNone(response.context['message_error'])
+
+        self.custom_data.refresh_from_db()
+        self.assertFalse(self.custom_data.managed)
+        self.assertEqual(self.custom_data.domains.count(), 0)
+
+    def test_confirmed_with_custom_message_saves(self):
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True,
+            domains=['example.com'],
+            confirmed=True,
+            send_in_app_message='on',
+            in_app_message_body='Custom message body',
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.custom_data.refresh_from_db()
+        self.assertTrue(self.custom_data.managed)
+        self.assertEqual(
+            list(self.custom_data.domains.values_list('domain', flat=True)),
+            ['example.com'],
+        )
+
+    def test_confirmed_with_message_toggled_off_saves_without_error(self):
+        # Toggle off means no message field submitted: empty body must not block
+        # the save.
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True, domains=['example.com'], confirmed=True
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.custom_data.refresh_from_db()
+        self.assertTrue(self.custom_data.managed)
+        self.assertEqual(
+            list(self.custom_data.domains.values_list('domain', flat=True)),
+            ['example.com'],
+        )
