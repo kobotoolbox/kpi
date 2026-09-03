@@ -279,14 +279,13 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     domains_to_update.append(domain)
 
             def update_all_domains():
+                send_message = request.POST.get('send_in_app_message', 'off') == 'on'
                 for domain in domains_to_update:
                     update_users.delay(
                         social_app_custom_data_id=instance.pk,
                         domain=domain,
                         requesting_user_id=request.user.pk,
-                        send_in_app_message=request.POST.get(
-                            'send_in_app_message', False
-                        ),
+                        send_in_app_message=send_message,
                         in_app_message_body=request.POST.get('in_app_message_body'),
                     )
 
