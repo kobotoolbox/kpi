@@ -145,6 +145,41 @@ class TestManagedSsoUsers(TestCase):
         else:
             assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_unlink_unmanaged_sso(self):
+        self.socialaccount.delete()
+        another_social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='another-provider',
+            provider_id='another-provider-id',
+        )
+        another_custom_data = SocialAppCustomData.objects.create(
+            social_app=another_social_app, managed=False
+        )
+        SocialAppManagedDomain.objects.filter(domain='example.com').update(
+            social_app=another_custom_data
+        )
+
+        another_socialaccount = SocialAccount.objects.create(
+            user=self.user,
+            provider=another_social_app.provider_id,
+            uid='sa12345',
+        )
+        self.client.force_login(User.objects.get(username='managed'))
+
+        response = self.client.delete(
+            reverse(
+                'socialaccount-detail',
+                kwargs={
+                    'provider': another_socialaccount.provider,
+                    'uid_social_account': another_socialaccount.uid,
+                },
+            ),
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
     @data(('managed', False), ('exempt', True))
     @unpack
     def test_add_password_in_admin(self, username, expect_password_field):
