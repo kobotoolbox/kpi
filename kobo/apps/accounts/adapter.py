@@ -12,9 +12,9 @@ from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
-from ..help.models import InAppMessageUsers, MessageType, InAppMessage
+from ..help.models import InAppMessage, InAppMessageUsers, MessageType
 from .models import SocialAppManagedDomain
-from .utils import SOCIAL_APP_IDENTIFIER
+from .utils import SOCIAL_APP_IDENTIFIER, user_account_is_managed_by_sso
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -95,16 +95,6 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             return
 
         incoming = sociallogin.account
-        app_provider_id = incoming.provider
-        app = SocialApp.objects.get(provider_id=app_provider_id)
-        breakpoint()
-        InAppMessageUsers.objects.filter(
-            user=user,
-            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
-            in_app_message__generic_related_objects__contains={
-                SOCIAL_APP_IDENTIFIER: app.pk
-            },
-        ).delete()
         # Block only if a *different* account is already linked; reconnecting
         # the same one is fine.
         blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
@@ -136,24 +126,22 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     },
                 )
             )
-
-        app_provider_id = incoming.provider
-        app = SocialApp.objects.get(provider_id=app_provider_id)
-        InAppMessageUsers.objects.filter(
-            user=user,
-            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
-            in_app_message__generic_related_objects__contains={
-                SOCIAL_APP_IDENTIFIER: app.pk
-            },
-        ).delete()
-        now = timezone.now()
-        # if all users have linked their accounts, expire the inapp message
-        InAppMessage.objects.filter(
-            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
-            in_app_message__generic_related_objects__contains={
-                SOCIAL_APP_IDENTIFIER: app.pk
-            },
-            inappmessageusers__isnull=True
-        ).update(valid_until=now)
-        user.set_unusable_password()
-        user.save()
+        if user_account_is_managed_by_sso(request.user, incoming):
+            app_provider_id = incoming.provider
+            app = SocialApp.objects.get(provider_id=app_provider_id)
+            InAppMessageUsers.objects.filter(
+                user=user,
+                in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
+                in_app_message__generic_related_objects__contains={
+                    SOCIAL_APP_IDENTIFIER: app.pk
+                },
+            ).delete()
+            now = timezone.now()
+            # if all users have linked their accounts, expire the inapp message
+            InAppMessage.objects.filter(
+                message_type=MessageType.MANAGED_SSO_REMINDER,
+                generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: app.pk},
+                inappmessageusers__isnull=True,
+            ).update(valid_until=now)
+            user.set_unusable_password()
+            user.save()

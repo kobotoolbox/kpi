@@ -1,16 +1,19 @@
 import json
+from datetime import timedelta
 from unittest.mock import patch
 
 import responses
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
+from ddt import data, ddt
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -18,7 +21,11 @@ from rest_framework.test import APITestCase
 from kobo.apps.accounts.adapter import SocialAccountAdapter
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.utils.fuzzy_int import FuzzyInt
-from .constants import SOCIALACCOUNT_PROVIDERS
+from ...help.models import InAppMessage, InAppMessageUsers, MessageType
+from ...kobo_auth.shortcuts import User
+from ..models import SocialAppCustomData, SocialAppManagedDomain
+from ..utils import SOCIAL_APP_IDENTIFIER
+from .constants import APP_PROVIDER_ID
 
 
 class AccountsEmailTestCase(APITestCase):
@@ -122,7 +129,8 @@ class SingleSocialAccountTestCase(TestCase):
         self.assertIsNone(self.adapter.pre_social_login(request, sociallogin))
 
 
-@override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
+@ddt
+@override_settings(SOCIALACCOUNT_PROVIDERS={})
 class SingleSocialAccountConnectFlowTestCase(TestCase):
     """
     This test exercises the same guard through the real OAuth2 callback
@@ -134,11 +142,30 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
     """
 
     def setUp(self):
-        self.user = baker.make(settings.AUTH_USER_MODEL)
+        self.user = baker.make(
+            settings.AUTH_USER_MODEL,
+            email='incoming@testserver.com',
+            password='password',
+        )
         UserProfile.objects.create(user=self.user)
         self.client.force_login(self.user)
-        SocialApp.objects.all().delete()
         self.callback_url = reverse('openid_connect_callback', args=('openid_connect',))
+        self.social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='openid_connect',
+            provider_id=APP_PROVIDER_ID,
+            settings={
+                'server_url': 'http://testserver/oauth/.well-known/openid-configuration'
+            },
+        )
+        patcher = patch(
+            'allauth.socialaccount.providers.oauth2.views.statekit.unstash_state',
+            return_value={'process': 'connect'},
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def _mock_provider_endpoints(self):
         """
@@ -178,7 +205,7 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
                 {
                     'sub': 'incoming-uid',
                     'preferred_username': 'incoming',
-                    'email': 'incoming@testserver',
+                    'email': 'incoming@testserver.com',
                 }
             ),
         )
@@ -191,11 +218,7 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
         )
 
     @responses.activate
-    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
-    def test_connect_is_blocked_when_another_account_is_linked(
-        self, mock_unstash_state
-    ):
-        mock_unstash_state.return_value = {'process': 'connect'}
+    def test_connect_is_blocked_when_another_account_is_linked(self):
         already_linked = baker.make(
             'socialaccount.SocialAccount',
             user=self.user,
@@ -216,20 +239,70 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
         self.assertEqual(accounts.first().pk, already_linked.pk)
 
     @responses.activate
-    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
-    def test_connect_succeeds_when_no_account_is_linked(self, mock_unstash_state):
-        mock_unstash_state.return_value = {'process': 'connect'}
+    def test_connect_succeeds_when_no_account_is_linked(self):
 
         response = self._simulate_connect_callback()
 
         # The guard must not get in the way of the legitimate first link
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         account = SocialAccount.objects.get(user=self.user)
-        self.assertEqual(account.provider, 'test-app')
+        self.assertEqual(account.provider, APP_PROVIDER_ID)
         self.assertEqual(account.uid, 'incoming-uid')
 
     @responses.activate
-    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
-    def test_connecting_managed_account_sets_unusable_password(self, mock_unstash_state):
-        mock_unstash_state.return_value = {'process': 'connect'}
+    def test_connecting_managed_account_sets_unusable_password(self):
+        assert self.user.has_usable_password()
 
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='testserver.com'
+        )
+        self._simulate_connect_callback()
+        self.user.refresh_from_db()
+        assert not self.user.has_usable_password()
+
+    @responses.activate
+    @data(True, False)
+    def test_connecting_managed_account_removes_inapp_message_for_user(
+        self, multiple_users
+    ):
+        i = InAppMessage.objects.create(
+            title='title',
+            snippet='snippet',
+            body='body',
+            published=True,
+            valid_from=timezone.now(),
+            valid_until=timezone.now() + timedelta(days=365),
+            always_display_as_new=True,
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.pk},
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+        )
+        InAppMessageUsers.objects.create(in_app_message=i, user=self.user)
+        if multiple_users:
+            second_user = User.objects.create_user(username='second')
+            InAppMessageUsers.objects.create(in_app_message=i, user=second_user)
+
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='testserver.com'
+        )
+        self._simulate_connect_callback()
+        self.user.refresh_from_db()
+        assert not InAppMessageUsers.objects.filter(
+            user=self.user, in_app_message=i
+        ).exists()
+        now = timezone.now()
+        i.refresh_from_db()
+        if multiple_users:
+            assert InAppMessageUsers.objects.filter(
+                user=second_user, in_app_message=i
+            ).exists()
+            # message should not have been expired
+            assert i.valid_until > now
+        else:
+            # if there was only one user still getting the message, it should be expired
+            assert i.valid_until < now
