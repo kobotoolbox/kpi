@@ -345,7 +345,7 @@ jobs:
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.changelog.result == 'skipped'
               && ':skip_forward: changelog update skipped due failed automated tests.'
-              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}/CHANGELOG.md) for `{1}..{0}`', needs.version.outputs.current_patch, needs.version.outputs.prev_patch)
+              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}-draft/CHANGELOG.md) for `{1}..{0}`', needs.version.outputs.current_patch, needs.version.outputs.prev_patch)
           }}
         - ${{ (needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out')
             && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)

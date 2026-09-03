@@ -50,8 +50,11 @@ jobs:
     - name: Commit to dedicated branch
       env:
         VERSION: ${{ inputs.version }}
+        DRAFT: ${{ inputs.draft }}
       run: |
-        git checkout -B changelog/$VERSION
+        BRANCH="changelog/$VERSION"
+        if [[ "$DRAFT" == "true" ]]; then BRANCH="$BRANCH-draft"; fi
+        git checkout -B "$BRANCH"
         git add -f CHANGELOG.md
         git commit -m "chore(releases): generate CHANGELOG.md for $VERSION"
-        git push -f --set-upstream origin changelog/$VERSION
+        git push -f --set-upstream origin "$BRANCH"
