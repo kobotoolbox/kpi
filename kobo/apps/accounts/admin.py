@@ -21,7 +21,6 @@ from kobo.apps.accounts.models import (
     SocialAppManagedDomain,
 )
 from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY, update_users
-
 from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update
 
 
@@ -285,8 +284,10 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                         social_app_custom_data_id=instance.pk,
                         domain=domain,
                         requesting_user_id=request.user.pk,
-                        send_in_app_message=request.POST['send_in_app_message'],
-                        in_app_message_body=request.POST['in_app_message_body'],
+                        send_in_app_message=request.POST.get(
+                            'send_in_app_message', False
+                        ),
+                        in_app_message_body=request.POST.get('in_app_message_body'),
                     )
 
             transaction.on_commit(update_all_domains)
