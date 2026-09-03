@@ -11381,6 +11381,92 @@
                 }
             }
         },
+        "/api/v2/email-confirmations/": {
+            "post": {
+                "operationId": "api_v2_email_confirmations_create",
+                "description": "## Request another account confirmation email\n\nSends a fresh confirmation link to an email address that is registered but not yet\nverified. Confirmation links expire (after\n`ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS`, one day by default), so this is how a\nuser who let theirs lapse gets a new one.\n\nRequires no authentication: the caller has just followed a dead confirmation link\nand has no session.\n\nExamples:\n```shell\n  curl -X POST https://kf.kobotoolbox.org/api/v2/email-confirmations/ \\\n       -H 'Content-Type: application/json' \\\n       -d '{\"email\": \"someone@example.com\"}'\n```\n\n> Response 200\n```json\n{\n    \"detail\": \"If that email address needs confirming, a new confirmation email has been sent to it.\"\n}\n```\n\n### Which email is sent\n\nAn account that has not verified any address yet is still being activated, and\nreceives the account activation email. An account that already has a verified\naddress is partway through an email change, and receives the address\nverification email instead.\n\n### The response never says whether the address is registered\n\nThe same `200` and the same body come back whether the address belongs to an\naccount, belongs to an account that has already verified it, or belongs to no\naccount at all. Otherwise the endpoint would let anyone test whether a given\nperson holds a KoboToolbox account.\n\nMail goes out only in the first of those cases. An address that is already\nverified is left alone, so this cannot be used to send unsolicited mail to a\nverified account.\n\nA syntactically invalid address returns `400`. That reveals nothing about who is\nregistered, and telling the user their address is malformed is more useful than\nsilently doing nothing.\n\n### Throttling\n\nThe endpoint is rate limited per requested email address, and returns `429` once\nthat limit is reached. Limiting by address rather than by caller means requests\ncannot be spread across many source addresses to flood a single inbox.\n\nThe limit is set by the `EMAIL_CONFIRMATION_REQUESTS_PER_HOUR` configuration\noption, and can be changed by an administrator without a restart.\n",
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmailConfirmationRequestPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmailConfirmationRequestResponse"
+                                },
+                                "examples": {
+                                    "RequestAccepted": {
+                                        "value": {
+                                            "detail": "If that email address needs confirming, a new confirmation email has been sent to it."
+                                        },
+                                        "summary": "Request accepted"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "TooManyRequests": {
+                                        "value": {
+                                            "detail": "Request was throttled. Expected available in 60 seconds."
+                                        },
+                                        "summary": "Too many requests"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "email": [
+                                                "Enter a valid email address."
+                                            ]
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/environment/": {
             "get": {
                 "operationId": "api_v2_environment_retrieve",
@@ -25139,6 +25225,29 @@
                     "email",
                     "primary",
                     "verified"
+                ]
+            },
+            "EmailConfirmationRequestPayload": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
+                },
+                "required": [
+                    "email"
+                ]
+            },
+            "EmailConfirmationRequestResponse": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "detail"
                 ]
             },
             "EmailRequestPayload": {

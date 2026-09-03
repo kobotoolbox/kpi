@@ -359,6 +359,13 @@ CONSTANCE_CONFIG = {
         False,
         'Require MFA for superusers with a usable password',
     ),
+    'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR': (
+        5,
+        'Number of account confirmation emails that may be requested per hour for '
+        'any one email address, through /api/v2/email-confirmations/. Caps how '
+        'much mail an inbox can be made to receive by someone else. Set to 0 to '
+        'disable the limit.',
+    ),
     'USAGE_LIMIT_ENFORCEMENT': (
         constance_env(
             env.bool,
@@ -809,6 +816,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
         'SUPERUSER_AUTH_ENFORCEMENT',
+        'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',
