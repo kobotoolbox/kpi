@@ -144,7 +144,7 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
     def setUp(self):
         self.user = baker.make(
             settings.AUTH_USER_MODEL,
-            email='incoming@testserver.com',
+            email='incoming@testserver',
             password='password',
         )
         UserProfile.objects.create(user=self.user)
@@ -205,7 +205,7 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
                 {
                     'sub': 'incoming-uid',
                     'preferred_username': 'incoming',
-                    'email': 'incoming@testserver.com',
+                    'email': 'incoming@testserver',
                 }
             ),
         )
@@ -257,7 +257,7 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
             social_app=self.social_app, managed=True
         )
         SocialAppManagedDomain.objects.create(
-            social_app=custom_data, domain='testserver.com'
+            social_app=custom_data, domain='testserver'
         )
         self._simulate_connect_callback()
         self.user.refresh_from_db()
@@ -288,7 +288,7 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
             social_app=self.social_app, managed=True
         )
         SocialAppManagedDomain.objects.create(
-            social_app=custom_data, domain='testserver.com'
+            social_app=custom_data, domain='testserver'
         )
         self._simulate_connect_callback()
         self.user.refresh_from_db()
