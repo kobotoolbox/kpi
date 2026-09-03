@@ -1,6 +1,50 @@
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { type AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+
+/**
+ * Finds the attachment a submission stored for the given question path.
+ *
+ * Matches on `question_xpath` - the path recorded when the submission came in -
+ * so the file is still found after the question or its groups get renamed.
+ */
+export function findAttachmentByQuestionXpath(
+  submission: DataResponse | SubmissionResponse,
+  questionXpath: string,
+): SubmissionAttachment | undefined {
+  return submission._attachments?.find((attachment) => attachment.question_xpath === questionXpath)
+}
+
+/**
+ * Guesses the type of the question that produced an attachment, from its
+ * mimetype.
+ *
+ * Needed when the question is gone from the current form definition (renamed
+ * after this submission came in), leaving no row to read the real type from.
+ * NOTE: Two known imprecisions, both harmless for displaying the file:
+ * `background-audio` looks like `audio`, and a `file` question holding e.g. a
+ * photo reads as `image`.
+ */
+export function getAttachmentQuestionType(
+  attachment: Pick<SubmissionAttachment, 'mimetype'>,
+): AnyRowTypeName | undefined {
+  // No mimetype leaves nothing to guess from.
+  if (!attachment.mimetype) {
+    return undefined
+  }
+  if (attachment.mimetype.startsWith('audio/')) {
+    return QuestionTypeName.audio
+  }
+  if (attachment.mimetype.startsWith('image/')) {
+    return QuestionTypeName.image
+  }
+  if (attachment.mimetype.startsWith('video/')) {
+    return QuestionTypeName.video
+  }
+  // Anything else could only have come from a `file` question.
+  return QuestionTypeName.file
+}
 
 /**
  * Returns an attachment object or an error message.

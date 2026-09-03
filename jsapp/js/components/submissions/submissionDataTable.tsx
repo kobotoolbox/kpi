@@ -51,13 +51,17 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     autoBind(this)
   }
 
-  openProcessing(name: string) {
-    if (this.props.asset?.content) {
-      const foundRow = findRow(this.props.asset?.content, name)
-      if (foundRow && foundRow.$xpath !== undefined) {
-        goToProcessing(this.props.asset.uid, foundRow.$xpath, this.props.submissionData._uuid)
-      }
+  /**
+   * Opens Single Processing for one response. A renamed question has no row left to
+   * ask for the xpath, and then the path the response arrived under is what gets us
+   * there - Single Processing finds files by xpath, not by row.
+   */
+  openProcessing(name: string, xpath: string) {
+    if (!this.props.asset?.content) {
+      return
     }
+    const processingXpath = findRow(this.props.asset.content, name)?.$xpath ?? xpath
+    goToProcessing(this.props.asset.uid, processingXpath, this.props.submissionData._uuid)
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -253,7 +257,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
                 size='s'
                 endIcon='arrow-up-right'
                 label={t('Open')}
-                onClick={this.openProcessing.bind(this, name)}
+                onClick={this.openProcessing.bind(this, name, xpath)}
               />
             )}
           </Group>

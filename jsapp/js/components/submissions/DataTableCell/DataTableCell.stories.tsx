@@ -132,6 +132,26 @@ const videoSubmission = buildMediaSubmission(
   'attachment-video-1',
 )
 
+// These two model a question renamed in the Form Builder after the submission
+// came in: the response and its attachment still sit under the old path, which
+// the form no longer has - hence no `question` for the column, and the
+// attachment mimetype being the only clue left about its type.
+const renamedImageSubmission = buildMediaSubmission(
+  'Photo_question_v1',
+  'tiny-image.svg',
+  'image/svg+xml',
+  TINY_IMAGE_DATA_URI,
+  'attachment-renamed-image-1',
+)
+
+const renamedAudioSubmission = buildMediaSubmission(
+  'Audio_question_v1',
+  'tiny-audio.wav',
+  'audio/wav',
+  TINY_AUDIO_DATA_URI,
+  'attachment-renamed-audio-1',
+)
+
 const renamedChoicesQuestion: SurveyRow = {
   type: QuestionTypeName.select_multiple,
   $kuid: 'renamedChoicesQuestion',
@@ -300,6 +320,48 @@ export const VideoAttachment: Story = {
     showGroupName: false,
     translationIndex: 0,
     submissionCount: 2,
+  },
+}
+
+export const RenamedImageQuestion: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(renamedImageSubmission, renamedImageSubmission.Photo_question_v1),
+    columnKey: 'Photo_question_v1',
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The question was renamed after this submission came in, so it is gone from the form definition. The cell still shows the image, resolved from the attachment recorded in the submission.',
+      },
+    },
+  },
+}
+
+export const RenamedAudioQuestion: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(renamedAudioSubmission, renamedAudioSubmission.Audio_question_v1),
+    columnKey: 'Audio_question_v1',
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same rename, for an audio question: the player and the button that opens Single Processing both stay available, the latter pointing at the path the attachment was recorded under.',
+      },
+    },
   },
 }
 

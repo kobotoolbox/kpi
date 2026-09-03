@@ -336,6 +336,29 @@ describe('tableUtils', () => {
       })
     })
 
+    // Renaming the question itself (rather than one of its groups) leaves its leaf
+    // name matching nothing in the current schema, so the old key is the only place
+    // this answer lives and its column has to stay (see `DataTableCell`).
+    it('should keep the column of a renamed question, as no current column holds its data', () => {
+      const legacyKey = 'Secret_password_as_an_audio_file_v1'
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include(legacyKey)
+    })
+
     it('should keep legacy when one of several matching current paths has no value in a submission', () => {
       const legacyKey = 'old_group/Secret_password_as_an_audio_file'
       const currentPaths = ['Secret_password_as_an_audio_file', 'another_group/Secret_password_as_an_audio_file']

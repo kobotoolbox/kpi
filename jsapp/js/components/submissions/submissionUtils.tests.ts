@@ -1,5 +1,9 @@
+import { getRowName } from '#/assetUtils'
+import { QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import {
+  DisplayGroup,
+  DisplayResponse,
   getMediaAttachment,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
@@ -58,7 +62,7 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
-import type { SubmissionSupplementalDetails } from '#/dataInterface'
+import type { AssetResponse, SubmissionSupplementalDetails } from '#/dataInterface'
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {
@@ -130,6 +134,168 @@ describe('getSubmissionDisplayData', () => {
     const test = getSubmissionDisplayData(assetWithAllQual, 0, submissionWithAllQual)
     const target = allQualSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+})
+
+/**
+ * Renames one row of a copy of the asset, the way deploying a new form version
+ * would - leaving earlier submissions with keys the form no longer accounts for.
+ */
+function withRenamedRow(asset: AssetResponse, oldName: string, newName: string): AssetResponse {
+  // Fixtures are plain JSON, and this test environment has no `structuredClone`.
+  const renamedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
+  const row = renamedAsset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === oldName)
+  if (!row) {
+    throw new Error(`There is no row named "${oldName}" to rename`)
+  }
+
+  if (row.name !== undefined) {
+    row.name = newName
+  }
+  if (row.$autoname !== undefined) {
+    row.$autoname = newName
+  }
+  if (row.$xpath !== undefined) {
+    row.$xpath = [...row.$xpath.split('/').slice(0, -1), newName].join('/')
+  }
+  return renamedAsset
+}
+
+/** The responses displayed directly in a group, i.e. without its subgroups. */
+function getResponses(group: DisplayGroup) {
+  return group.children.filter((child): child is DisplayResponse => child instanceof DisplayResponse)
+}
+
+/** The responses displayed in a named group; throws when there is no such group. */
+function getGroupResponses(displayData: DisplayGroup, groupName: string) {
+  const group = displayData.children.find(
+    (child): child is DisplayGroup => child instanceof DisplayGroup && child.name === groupName,
+  )
+  if (!group) {
+    throw new Error(`There is no group named "${groupName}" in the display data`)
+  }
+  return getResponses(group)
+}
+
+describe('getSubmissionDisplayData for answers the current form does not account for', () => {
+  it('should keep the answer of a renamed question, alongside the empty row of its new name', () => {
+    const asset = withRenamedRow(simpleSurveyAsset, 'First_name', 'First_name_v2')
+    const responses = getResponses(getSubmissionDisplayData(asset, 0, simpleSurveySubmission))
+
+    chai.expect(responses.find((response) => response.name === 'First_name_v2')?.data).to.equal(null)
+    // Nothing is left to say what kind of question asked for this, hence `null` type.
+    chai.expect(responses.find((response) => response.name === 'First_name')).to.deep.include({
+      type: null,
+      label: 'First_name',
+      xpath: 'First_name',
+      data: 'Leszek',
+    })
+  })
+
+  it('should keep the answer of a question renamed inside a group, in that group', () => {
+    const displayData = getSubmissionDisplayData(
+      withRenamedRow(simpleSurveyAsset, 'Favourite_color', 'Favourite_color_v2'),
+      0,
+      simpleSurveySubmission,
+    )
+
+    // The key still names the group it was given in, and the form still has it.
+    chai
+      .expect(getGroupResponses(displayData, 'group_favourites').find((response) => response.data === 'pink'))
+      .to.deep.include({
+        label: 'Favourite_color',
+        name: 'group_favourites/Favourite_color',
+        xpath: 'group_favourites/Favourite_color',
+      })
+    chai.expect(getResponses(displayData).map((response) => response.name)).to.deep.equal(['First_name'])
+  })
+
+  it('should keep the answers of a renamed group, in the group as it is named now', () => {
+    const displayData = getSubmissionDisplayData(
+      withRenamedRow(simpleSurveyAsset, 'group_favourites', 'group_favourites_v2'),
+      0,
+      simpleSurveySubmission,
+    )
+    const groupResponses = getGroupResponses(displayData, 'group_favourites_v2')
+
+    // The questions kept their own names, so these rows come out as complete as
+    // the ones the traversal builds - and the group is not left standing empty.
+    chai.expect(groupResponses).to.have.lengthOf(2)
+    chai.expect(groupResponses[0]).to.deep.include({
+      type: QuestionTypeName.select_one,
+      label: 'Favourite color',
+      xpath: 'group_favourites/Favourite_color',
+      listName: 'fav_col_list',
+      data: 'pink',
+    })
+    chai.expect(groupResponses[1]).to.deep.include({
+      type: QuestionTypeName.integer,
+      label: 'Favourite number',
+      data: '24',
+    })
+    chai.expect(getResponses(displayData).map((response) => response.name)).to.deep.equal(['First_name'])
+  })
+
+  it('should fall back to the root when a group and its question were both renamed', () => {
+    const displayData = getSubmissionDisplayData(
+      withRenamedRow(
+        withRenamedRow(simpleSurveyAsset, 'group_favourites', 'group_favourites_v2'),
+        'Favourite_color',
+        'Favourite_color_v2',
+      ),
+      0,
+      simpleSurveySubmission,
+    )
+
+    // Both names are gone, so nothing ties this answer to a group - no guessing.
+    // Its sibling, whose name survived, still goes into the group.
+    chai
+      .expect(getResponses(displayData).map((response) => response.name))
+      .to.deep.equal(['First_name', 'group_favourites/Favourite_color'])
+    chai
+      .expect(getGroupResponses(displayData, 'group_favourites_v2').map((response) => response.name))
+      .to.deep.equal(['group_favourites/Favourite_number'])
+  })
+
+  it('should read the type of a renamed media question from its attachment', () => {
+    const asset = withRenamedRow(
+      withRenamedRow(everythingSurveyAsset, 'Voice_password', 'Voice_password_v2'),
+      'Selfportrait',
+      'Selfportrait_v2',
+    )
+    const responses = getResponses(getSubmissionDisplayData(asset, 0, everythingSurveySubmission))
+
+    // Only the mimetype is left to tell these apart, and the type is what gets the
+    // modal to render a player or a thumbnail instead of a filename.
+    const voicePassword = responses.find((response) => response.name === 'Voice_password')
+    chai.expect(voicePassword).to.deep.include({
+      type: QuestionTypeName.audio,
+      xpath: 'Voice_password',
+      data: '07. Crazy Love-13_32_31.mp3',
+    })
+    chai.expect(responses.find((response) => response.name === 'Selfportrait')?.type).to.equal(QuestionTypeName.image)
+
+    // The row is only worth anything if the modal can reach the file from it,
+    // which it does by xpath (see `renderAttachment`).
+    chai
+      .expect(getMediaAttachment(everythingSurveySubmission, String(voicePassword?.data), voicePassword?.xpath ?? ''))
+      .to.deep.include({ question_xpath: 'Voice_password' })
+  })
+
+  it('should not add rows for submission properties that are not answers', () => {
+    // No question asked for any of these: a property Front end doesn't model
+    // (`_index`), deprecated meta questions (`simserial`), and meta questions this
+    // form doesn't have (`today`).
+    const submission = {
+      ...simpleSurveySubmission,
+      _index: 3,
+      simserial: 'simserial not found',
+      subscriberid: 'subscriberid not found',
+      today: '2020-04-06',
+    }
+    const responses = getResponses(getSubmissionDisplayData(simpleSurveyAsset, 0, submission))
+
+    chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
   })
 })
 
