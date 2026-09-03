@@ -6,7 +6,6 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import LibraryNewItemForm from '#/components/modalForms/LibraryNewItemForm'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
@@ -74,10 +73,6 @@ class BigModal extends React.Component {
     switch (type) {
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
-        break
-
-      case MODAL_TYPES.LIBRARY_NEW_ITEM:
-        this.setModalTitle(t('Create Library Item'))
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
@@ -185,7 +180,6 @@ class BigModal extends React.Component {
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && <LibraryNewItemForm />}
           {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
