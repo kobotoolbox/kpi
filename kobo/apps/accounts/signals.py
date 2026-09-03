@@ -4,6 +4,7 @@ from allauth.account.signals import email_confirmed
 from allauth.account.utils import cleanup_email_addresses
 from allauth.socialaccount.models import SocialApp
 from allauth.socialaccount.signals import social_account_added
+from django.contrib.auth import update_session_auth_hash
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -86,6 +87,7 @@ def sync_managed_sso_email_domains(sender=None, **kwargs):
 @receiver(social_account_added)
 def enforce_managed_sso(sender=None, **kwargs):
     sociallogin = kwargs.get('sociallogin')
+    request = kwargs.get('request')
     user = sociallogin.user
     incoming = sociallogin.account
     if user_account_is_managed_by_sso(user, incoming):
@@ -106,4 +108,5 @@ def enforce_managed_sso(sender=None, **kwargs):
             inappmessageusers__isnull=True,
         ).update(valid_until=now)
         user.set_unusable_password()
-        user.save()
+        user.save(update_fields=["password"])
+        update_session_auth_hash(request, user)
