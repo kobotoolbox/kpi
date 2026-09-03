@@ -57,7 +57,7 @@ def user_is_managed_by_sso(user):
     email = user.email
     domain = get_normalized_domain(email)
     managed_social_app = SocialAppManagedDomain.objects.filter(
-        domain__iexact=domain
+        domain__iexact=domain, social_app__managed=True
     ).first()
     if getattr(user, 'extra_details', None) and user.extra_details.sso_exempt:
         return False
@@ -69,6 +69,19 @@ def user_is_managed_by_sso(user):
         ).exists()
         return user_has_social_account
     return False
+
+
+def user_account_is_managed_by_sso(user, socialaccount):
+    if getattr(user, 'extra_details', None) and user.extra_details.sso_exempt:
+        return False
+    email = user.email
+    domain = get_normalized_domain(email)
+    provider = socialaccount.provider
+    return SocialAppManagedDomain.objects.filter(
+        domain__iexact=domain,
+        social_app__managed=True,
+        social_app__social_app__provider_id=provider,
+    ).exists()
 
 
 def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):

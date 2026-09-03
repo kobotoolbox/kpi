@@ -1,13 +1,19 @@
+from unittest.mock import patch
+
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from ddt import data, ddt, unpack
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
+from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.accounts.tests.utils import MockProvider
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.tests.utils.transaction import immediate_on_commit
 
 
+@ddt
 class SocialAppCustomDataAdminTestCase(TestCase):
     fixtures = ['test_data']
 
@@ -29,7 +35,14 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         self.client = Client()
         self.client.force_login(self.admin_user)
 
-    def _get_change_post_data(self, managed=True, domains=None, confirmed=False):
+    def _get_change_post_data(
+        self,
+        managed=True,
+        domains=None,
+        confirmed=False,
+        send_in_app_message=None,
+        in_app_message_body=None,
+    ):
         domains = domains or []
         data = {
             'social_app': self.social_app.pk,
@@ -49,6 +62,10 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         data[f'domains-{len(domains)}-id'] = ''
         if confirmed:
             data['_confirmed'] = '1'
+        if send_in_app_message is not None:
+            data['send_in_app_message'] = send_in_app_message
+        if in_app_message_body is not None:
+            data['in_app_message_body'] = in_app_message_body
         return data
 
     def test_get_change_view(self):
@@ -320,3 +337,199 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         )
         response = self.client.post(url, post_data)
         self.assertEqual(response.status_code, 403)
+
+    def test_confirmation_shows_in_app_message_field_when_enabling_managed(self):
+        # Catches the field being absent or unchecked/blank by default when
+        # managed SSO is turned on.
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True, domains=['example.com'], confirmed=False
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['send_in_app_message'])
+        self.assertEqual(
+            response.context['in_app_message_body'], DEFAULT_IN_APP_MESSAGE_BODY
+        )
+        self.assertContains(response, 'name="in_app_message_body"')
+
+    def test_confirmation_hides_in_app_message_field_when_disabling_managed(self):
+        # Turning managed off must never expose the in-app message controls.
+        self.custom_data.managed = True
+        self.custom_data.save()
+
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=False, domains=[], confirmed=False
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="send_in_app_message"')
+
+    def test_confirmed_with_empty_message_rejects_and_does_not_save(self):
+        # Catches an empty message body being accepted while the toggle is on.
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True,
+            domains=['example.com'],
+            confirmed=True,
+            send_in_app_message='on',
+            in_app_message_body='',
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, 'admin/accounts/socialappcustomdata/confirmation.html'
+        )
+        self.assertIsNotNone(response.context['message_error'])
+
+        self.custom_data.refresh_from_db()
+        self.assertFalse(self.custom_data.managed)
+        self.assertEqual(self.custom_data.domains.count(), 0)
+
+    def test_confirmed_with_custom_message_saves(self):
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True,
+            domains=['example.com'],
+            confirmed=True,
+            send_in_app_message='on',
+            in_app_message_body='Custom message body',
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.custom_data.refresh_from_db()
+        self.assertTrue(self.custom_data.managed)
+        self.assertEqual(
+            list(self.custom_data.domains.values_list('domain', flat=True)),
+            ['example.com'],
+        )
+
+    def test_confirmed_with_message_toggled_off_saves_without_error(self):
+        # Toggle off means no message field submitted: empty body must not block
+        # the save.
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change',
+            args=[self.custom_data.pk],
+        )
+        post_data = self._get_change_post_data(
+            managed=True, domains=['example.com'], confirmed=True
+        )
+        response = self.client.post(url, post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.custom_data.refresh_from_db()
+        self.assertTrue(self.custom_data.managed)
+        self.assertEqual(
+            list(self.custom_data.domains.values_list('domain', flat=True)),
+            ['example.com'],
+        )
+
+    def test_trigger_celery_tasks_for_all_domains_on_add(self):
+        assert SocialAppCustomData.objects.count() == 1
+        new_app = SocialApp.objects.create(
+            client_id='new.service.id',
+            secret='new.service.secret',
+            name='New App',
+            provider=self.provider.id,
+            provider_id='new_provider',
+        )
+        url = reverse('admin:accounts_socialappcustomdata_add')
+        with patch('kobo.apps.accounts.admin.update_users.delay') as patched:
+            with immediate_on_commit():
+                post_data = self._get_change_post_data(
+                    managed=True, domains=['example.com', 'another.com'], confirmed=True
+                )
+                post_data['social_app'] = new_app.pk
+                self.client.post(url, post_data)
+                new_custom_data = SocialAppCustomData.objects.get(social_app=new_app)
+        assert patched.call_count == 2
+        patched.assert_any_call(
+            social_app_custom_data_id=new_custom_data.pk,
+            domain='example.com',
+            requesting_user_id=self.admin_user.pk,
+            send_in_app_message=False,
+            in_app_message_body=None,
+        )
+        patched.assert_any_call(
+            social_app_custom_data_id=new_custom_data.pk,
+            domain='another.com',
+            requesting_user_id=self.admin_user.pk,
+            send_in_app_message=False,
+            in_app_message_body=None,
+        )
+
+    # initially managed, managed on save, expect task for existing, expect task for new
+    @data(
+        (False, True, True, True),
+        (True, True, False, True),
+        (True, False, False, False),
+        (False, False, False, False),
+    )
+    @unpack
+    def test_trigger_celery_tasks_for_only_new_domains_if_already_managed(
+        self,
+        initially_managed,
+        managed_on_save,
+        expect_task_for_existing_domain,
+        expect_task_for_new_domain,
+    ):
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change', args=[self.custom_data.pk]
+        )
+        if initially_managed:
+            self.custom_data.managed = True
+            self.custom_data.save()
+        # set up one domain in advance
+        initial_domain = SocialAppManagedDomain.objects.create(
+            social_app=self.custom_data, domain='example.com'
+        )
+        with patch('kobo.apps.accounts.admin.update_users.delay') as patched:
+            with immediate_on_commit():
+                post_data = self._get_change_post_data(
+                    managed=managed_on_save,
+                    domains=['example.com', 'another.com'],
+                    confirmed=True,
+                    send_in_app_message='on',
+                    in_app_message_body='Custom message body',
+                )
+                post_data['domains-0-id'] = initial_domain.pk
+                post_data['domains-INITIAL_FORMS'] = ['1']
+                post_data['added_domains'] = ['another.com']
+                self.client.post(url, post_data)
+        total_expected_calls = int(expect_task_for_existing_domain) + int(
+            expect_task_for_new_domain
+        )
+        assert patched.call_count == total_expected_calls
+        if expect_task_for_existing_domain:
+            patched.assert_any_call(
+                social_app_custom_data_id=self.custom_data.pk,
+                domain='example.com',
+                requesting_user_id=self.admin_user.pk,
+                send_in_app_message=True,
+                in_app_message_body='Custom message body',
+            )
+        if expect_task_for_new_domain:
+            patched.assert_any_call(
+                social_app_custom_data_id=self.custom_data.pk,
+                domain='another.com',
+                requesting_user_id=self.admin_user.pk,
+                send_in_app_message=True,
+                in_app_message_body='Custom message body',
+            )

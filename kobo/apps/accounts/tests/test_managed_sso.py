@@ -17,6 +17,8 @@ from kpi.tests.utils import baker_generators  # noqa
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
 from ..tasks import (
+    DEFAULT_IN_APP_MESSAGE_BODY,
+    create_inapp_message,
     managed_sso_sweep,
     notify_unlinked_users,
     update_linked_user,
@@ -142,6 +144,41 @@ class TestManagedSsoUsers(TestCase):
             assert response.status_code == status.HTTP_204_NO_CONTENT
         else:
             assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_unlink_unmanaged_sso(self):
+        self.socialaccount.delete()
+        another_social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='another-provider',
+            provider_id='another-provider-id',
+        )
+        another_custom_data = SocialAppCustomData.objects.create(
+            social_app=another_social_app, managed=False
+        )
+        SocialAppManagedDomain.objects.filter(domain='example.com').update(
+            social_app=another_custom_data
+        )
+
+        another_socialaccount = SocialAccount.objects.create(
+            user=self.user,
+            provider=another_social_app.provider_id,
+            uid='sa12345',
+        )
+        self.client.force_login(User.objects.get(username='managed'))
+
+        response = self.client.delete(
+            reverse(
+                'socialaccount-detail',
+                kwargs={
+                    'provider': another_socialaccount.provider,
+                    'uid_social_account': another_socialaccount.uid,
+                },
+            ),
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
     @data(('managed', False), ('exempt', True))
     @unpack
@@ -340,6 +377,48 @@ class TestManagedSsoCelery(TestCase):
                 update_users(custom_data.pk, managed_domain.domain)
         patched_update.assert_called_once()
         patched_notify.assert_called_once()
+
+    def test_update_users_skips_in_app_message_when_disabled(self):
+        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        # Track 1: linked user with a usable password must still be converted.
+        linked_user = self._create_user('linked', True, True, False)
+        # Track 2: unlinked user must not receive an in-app message.
+        unlinked_user = self._create_user('unlinked', True, False, False)
+
+        update_users(custom_data.pk, managed_domain.domain, send_in_app_message=False)
+
+        assert not InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+        assert not InAppMessageUsers.objects.filter(user=unlinked_user).exists()
+
+        linked_user.refresh_from_db()
+        assert not linked_user.has_usable_password()
+
+    def test_update_users_uses_custom_in_app_message_body(self):
+        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        self._create_user('unlinked', True, False, False)
+
+        update_users(
+            custom_data.pk,
+            managed_domain.domain,
+            in_app_message_body='custom body text',
+        )
+
+        message = InAppMessage.objects.get(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert message.body == 'custom body text'
+
+    def test_create_inapp_message_defaults_to_constant_body(self):
+        message = create_inapp_message(self.social_app)
+        assert message.body == DEFAULT_IN_APP_MESSAGE_BODY
 
     def test_managed_sso_sweep(self):
         social_app_managed = SocialApp.objects.create(

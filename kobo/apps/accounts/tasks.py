@@ -11,6 +11,14 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 
+DEFAULT_IN_APP_MESSAGE_BODY = t(
+    'Dear ##username##,\n\n'
+    'Going forward, your organization will be managing all Kobo accounts '
+    'through ##sso_name##. Please connect your ##sso_name## account. '
+    'Your password will be disabled and you will be required to use ##sso_name## '
+    'to log in.'
+)
+
 
 def update_linked_user(user: User, managed_provider_id: str):
     user.set_unusable_password()
@@ -22,33 +30,35 @@ def notify_unlinked_users(
     user_ids: list[int],
     managed_social_app: 'socialaccount.SocialApp',
     requesting_user: User = None,
+    message_body: str = None,
 ):
     with transaction.atomic():
         # keeping this in a transaction means we don't have to worry later
         # that we've already created the message but not the recipients
-        in_app_message = create_inapp_message(managed_social_app, requesting_user)
+        in_app_message = create_inapp_message(
+            managed_social_app, requesting_user, body=message_body
+        )
         logging.info(
             f'[Managed SSO] Creating in-app message for unregistered users for'
             f' managed social app {managed_social_app.name}.'
         )
-        InAppMessageUsers.objects.bulk_create(
+        created = InAppMessageUsers.objects.bulk_create(
             [
                 InAppMessageUsers(user_id=user_id, in_app_message=in_app_message)
                 for user_id in user_ids
             ]
         )
+        logging.info(
+            f'[Managed SSO] Created {len(created)} notifications for'
+            ' unregistered users for managed social '
+            f'app {managed_social_app.name}'
+        )
 
 
-def create_inapp_message(social_app, requesting_user=None):
+def create_inapp_message(social_app, requesting_user=None, body=None):
     title = t('Update your account')
     snippet = t('Please connect your ##sso_name## account')
-    body = t(
-        'Dear ##username##,\n\n'
-        'Going forward, your organization will be managing all Kobo accounts '
-        'through ##sso_name##. Please connect your ##sso_name## account. '
-        'Your password will be disabled and you will be required to use ##sso_name## '
-        'to log in.'
-    )
+    body = body or DEFAULT_IN_APP_MESSAGE_BODY
     return InAppMessage.objects.create(
         #  … save raw strings into DB to let them be translated in
         # the users' language in the API response, i.e. when front end
@@ -68,7 +78,11 @@ def create_inapp_message(social_app, requesting_user=None):
 
 @celery_app.task()
 def update_users(
-    social_app_custom_data_id: int, domain: str, requesting_user_id: int = None
+    social_app_custom_data_id: int,
+    domain: str,
+    requesting_user_id: int = None,
+    send_in_app_message: bool = True,
+    in_app_message_body: str = None,
 ):
     # Only pks cross the task boundary: model instances are not JSON-serializable
     custom_data = SocialAppCustomData.objects.select_related('social_app').get(
@@ -98,8 +112,17 @@ def update_users(
         else:
             user_ids_needing_notification.append(user.id)
     if user_ids_needing_notification:
+        if not send_in_app_message:
+            logging.info(
+                '[Managed SSO] Skipping in-app notification for social app '
+                f'{social_app.name} with domain {domain}.'
+            )
+            return
         notify_unlinked_users(
-            user_ids_needing_notification, social_app, requesting_user
+            user_ids_needing_notification,
+            social_app,
+            requesting_user,
+            message_body=in_app_message_body,
         )
 
 
