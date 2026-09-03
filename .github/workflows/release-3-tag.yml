@@ -10,10 +10,6 @@ concurrency:
 on:
   workflow_dispatch:
     inputs:
-      release_branch:
-        description: 'Release branch to tag (e.g. release/2.026.27). Leave empty to auto-detect the latest.'
-        required: false
-        type: string
       force:
         description: 'Skip branch eligibility checks (for security hotfixes on older branches).'
         required: false
@@ -23,8 +19,7 @@ on:
 
 jobs:
 
-  # Determine which release branch to work on.
-  # If the user provided one, use it. Otherwise, find the latest release branch.
+  # Validate the selected branch and pass it downstream.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
@@ -34,29 +29,17 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - name: Determine release branch
+    - name: Validate selected branch is a release branch
       id: branch
       env:
-        INPUT_BRANCH: ${{ inputs.release_branch }}
+        REF_NAME: ${{ github.ref_name }}
       run: |
         set -xe
-        if [[ -n "$INPUT_BRANCH" ]]; then
-          # Validate that the branch exists
-          if ! git show-branch "origin/$INPUT_BRANCH" &>/dev/null; then
-            echo "::error::Branch '$INPUT_BRANCH' does not exist."
-            exit 1
-          fi
-          echo "current_branch=$INPUT_BRANCH" >> "$GITHUB_OUTPUT"
-        else
-          # Auto-detect: find the latest release branch (the one whose next is main)
-          # Use the same logic as find_releases.sh but just find the latest
-          LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
-          if [[ -z "$LATEST" ]]; then
-            echo "::error::No release branches found."
-            exit 1
-          fi
-          echo "current_branch=$LATEST" >> "$GITHUB_OUTPUT"
+        if [[ "$REF_NAME" != release/* ]]; then
+          echo "::error::This workflow must be run from a release branch (e.g. release/2.026.27). You selected '$REF_NAME'. Please re-run and pick the correct branch in the 'Use workflow from' dropdown."
+          exit 1
         fi
+        echo "current_branch=$REF_NAME" >> "$GITHUB_OUTPUT"
 
 
   version:
