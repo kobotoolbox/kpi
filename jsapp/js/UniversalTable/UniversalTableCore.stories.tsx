@@ -77,3 +77,35 @@ export const Primary: Story = {
     },
   },
 }
+
+/**
+ * The meta-level `render` builds its rows from `mockData`, so `data: []` in args would be ignored. The empty-state
+ * stories therefore render the table themselves, with a short set of columns for legibility.
+ */
+const renderEmptyTable: Story['render'] = (args) => (
+  <UniversalTable<UniversalTableExampleDataItem>
+    emptyMessage={args.emptyMessage}
+    isSpinnerVisible={args.isSpinnerVisible}
+    columns={createUniversalTableExampleDataColumns('none', 'none', false)}
+    data={[]}
+  />
+)
+
+export const EmptyWithDefaultMessage: Story = {
+  render: renderEmptyTable,
+}
+
+export const EmptyWithCustomMessage: Story = {
+  render: renderEmptyTable,
+  args: {
+    emptyMessage: 'Nobody has been on this list since 1987.',
+  },
+}
+
+export const EmptyWhileSpinnerIsVisible: Story = {
+  render: renderEmptyTable,
+  args: {
+    isSpinnerVisible: true,
+    emptyMessage: 'The table is empty, but this is not visible at all',
+  },
+}
