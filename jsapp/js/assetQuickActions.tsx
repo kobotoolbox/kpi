@@ -402,11 +402,6 @@ export function manageAssetSharing(asset: AssetResponse | ProjectViewAsset) {
   openSharingModal({ asset: asset })
 }
 
-/** Opens a modal for replacing an asset using a file. */
-export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
-  pageState.showModal({ type: MODAL_TYPES.REPLACE_PROJECT, asset: asset })
-}
-
 /**
  * Opens a modal for modifying asset languages and translation strings. It can
  * receive `uid` and will fetch all data by itself, or be given all the data
