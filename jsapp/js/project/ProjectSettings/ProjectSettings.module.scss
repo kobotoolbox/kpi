@@ -62,10 +62,14 @@
 
 .modalSubheader {
   background: colors.$kobo-gray-200;
-  // Bleeds out content to the edges of the modal body. Reads the host modal's padding so
-  // it works in both a Mantine modal and the legacy one (30px)
+  // Bleeds out content to the edges of the modal body. Reads the host modal's padding so it works in both a Mantine
+  // modal and the legacy one (30px)
   padding: 20px var(--mb-padding, 30px);
-  margin: calc(-1 * var(--mb-padding, 30px)) calc(-1 * var(--mb-padding, 30px)) 20px;
+  margin-inline: calc(-1 * var(--mb-padding, 30px));
+  // Mantine drops the body's top padding whenever the modal has a header pulling up would hide the subheader behind the
+  // sticky header
+  margin-top: 0;
+  margin-bottom: 20px;
   color: colors.$kobo-gray-700;
 
   i {
@@ -73,6 +77,13 @@
     font-size: 24px;
     float: left;
   }
+}
+
+// TODO: when we move all instances of ProjectSettings to mantine we can drop this hacky fix to maintain the legacy CSS.
+// The legacy modal body needs to have top padding to push the content under the subheader. `:global` used to avoid
+// needing to edit modal.css.
+:global(.modal__body) .modalSubheader {
+  margin-top: -30px;
 }
 
 $buttons-spacing: 10px;
