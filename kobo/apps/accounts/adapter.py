@@ -97,9 +97,10 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         incoming = sociallogin.account
         app_provider_id = incoming.provider
         app = SocialApp.objects.get(provider_id=app_provider_id)
+        breakpoint()
         InAppMessageUsers.objects.filter(
             user=user,
-            message_type=MessageType.MANAGED_SSO_REMINDER,
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
             in_app_message__generic_related_objects__contains={
                 SOCIAL_APP_IDENTIFIER: app.pk
             },
