@@ -155,7 +155,7 @@ export default function RESTServicesList({ assetUid }: RESTServicesListProps) {
   return (
     <Stack gap='md'>
       {hooks.length === 0 && (
-        <Stack align='center' gap='md' p='xl' ta='center'>
+        <Stack align='center' gap='md' p='xxl' ta='center'>
           <Box c='gray.4'>
             <KoboIcon icon={resolveLegacySvgIconByName('data-sync')} size={120} />
           </Box>

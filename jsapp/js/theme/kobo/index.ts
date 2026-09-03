@@ -153,6 +153,10 @@ export const themeKobo = createTheme({
 
   spacing: {
     xxs: '8px',
+    // Mantine's scale jumps 20px -> 32px, leaving no 24px rung for our designs. `xl` fills it and
+    // `xxl` keeps the 32px that used to be `xl`, so both values stay reachable.
+    xl: rem(24),
+    xxl: rem(32),
   },
 
   other: {

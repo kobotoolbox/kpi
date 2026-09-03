@@ -70,7 +70,11 @@
 }
 
 .label {
-  font-size: var(--mantine-font-size-xs);
+  /* Pinned rather than left to Mantine's size-derived default, so a `size='sm'` field still gets a 14px
+     label. Same value Mantine would compute for the `md` default these inputs use. */
+  font-size: var(--mantine-font-size-md);
+  /* Mantine ships labels at 500. Regular weight is what our designs ask for. */
+  font-weight: 400;
   color: var(--mantine-color-gray-1);
   margin-bottom: 5px;
 }
