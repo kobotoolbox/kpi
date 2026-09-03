@@ -33,6 +33,7 @@ import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import FormHistory from './FormHistory'
+import {openReplaceProjectModal} from '#/project/ProjectSettings/openReplaceProjectModal'
 
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
 
@@ -156,10 +157,7 @@ class FormLanding extends React.Component {
   }
   handleReplaceFormClick(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.REPLACE_PROJECT,
-      asset: this.state,
-    })
+    openReplaceProjectModal({ asset: this.state })
   }
   isCurrentVersionDeployed() {
     if (this.state.deployment__active && this.state.deployed_versions.count > 0 && this.state.deployed_version_id) {
