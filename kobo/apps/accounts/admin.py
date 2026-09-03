@@ -6,8 +6,10 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.utils import unquote
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.forms.formsets import all_valid
+from django.http import HttpRequest
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -18,7 +20,7 @@ from kobo.apps.accounts.models import (
     SocialAppCustomData,
     SocialAppManagedDomain,
 )
-from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
+from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY, update_users
 from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update
 
 
@@ -249,10 +251,45 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                             'admin/accounts/socialappcustomdata/confirmation.html',
                             context,
                         )
-
         return super().changeform_view(
             request, object_id=object_id, form_url=form_url, extra_context=extra_context
         )
+
+    def save_model(self, request, obj, form, change):
+        obj._initially_managed_pre_save = obj._initially_managed
+        obj._initial_domains_pre_save = obj._initial_domains
+        super().save_model(request, obj, form, change)
+
+    def save_related(self, request: HttpRequest, form, formsets, change) -> None:
+        instance = formsets[0].instance
+        if not instance.managed:
+            super().save_related(request, form, formsets, change)
+            return
+
+        with transaction.atomic():
+            super().save_related(request, form, formsets, change)
+            managed_domains_formset = formsets[0]
+            domains_to_update = []
+            newly_managed = not instance._initially_managed_pre_save
+            for domain_form in managed_domains_formset.forms:
+                domain = domain_form.instance.domain
+                if not domain or domain_form.cleaned_data.get('DELETE'):
+                    continue
+                if newly_managed or domain not in instance._initial_domains_pre_save:
+                    domains_to_update.append(domain)
+
+            def update_all_domains():
+                send_message = request.POST.get('send_in_app_message', 'off') == 'on'
+                for domain in domains_to_update:
+                    update_users.delay(
+                        social_app_custom_data_id=instance.pk,
+                        domain=domain,
+                        requesting_user_id=request.user.pk,
+                        send_in_app_message=send_message,
+                        in_app_message_body=request.POST.get('in_app_message_body'),
+                    )
+
+            transaction.on_commit(update_all_domains)
 
 
 class SocialAccountForm(forms.ModelForm):

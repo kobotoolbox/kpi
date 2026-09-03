@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from ddt import data, ddt, unpack
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
@@ -7,8 +10,10 @@ from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.accounts.tests.utils import MockProvider
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.tests.utils.transaction import immediate_on_commit
 
 
+@ddt
 class SocialAppCustomDataAdminTestCase(TestCase):
     fixtures = ['test_data']
 
@@ -435,3 +440,96 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             list(self.custom_data.domains.values_list('domain', flat=True)),
             ['example.com'],
         )
+
+    def test_trigger_celery_tasks_for_all_domains_on_add(self):
+        assert SocialAppCustomData.objects.count() == 1
+        new_app = SocialApp.objects.create(
+            client_id='new.service.id',
+            secret='new.service.secret',
+            name='New App',
+            provider=self.provider.id,
+            provider_id='new_provider',
+        )
+        url = reverse('admin:accounts_socialappcustomdata_add')
+        with patch('kobo.apps.accounts.admin.update_users.delay') as patched:
+            with immediate_on_commit():
+                post_data = self._get_change_post_data(
+                    managed=True, domains=['example.com', 'another.com'], confirmed=True
+                )
+                post_data['social_app'] = new_app.pk
+                self.client.post(url, post_data)
+                new_custom_data = SocialAppCustomData.objects.get(social_app=new_app)
+        assert patched.call_count == 2
+        patched.assert_any_call(
+            social_app_custom_data_id=new_custom_data.pk,
+            domain='example.com',
+            requesting_user_id=self.admin_user.pk,
+            send_in_app_message=False,
+            in_app_message_body=None,
+        )
+        patched.assert_any_call(
+            social_app_custom_data_id=new_custom_data.pk,
+            domain='another.com',
+            requesting_user_id=self.admin_user.pk,
+            send_in_app_message=False,
+            in_app_message_body=None,
+        )
+
+    # initially managed, managed on save, expect task for existing, expect task for new
+    @data(
+        (False, True, True, True),
+        (True, True, False, True),
+        (True, False, False, False),
+        (False, False, False, False),
+    )
+    @unpack
+    def test_trigger_celery_tasks_for_only_new_domains_if_already_managed(
+        self,
+        initially_managed,
+        managed_on_save,
+        expect_task_for_existing_domain,
+        expect_task_for_new_domain,
+    ):
+        url = reverse(
+            'admin:accounts_socialappcustomdata_change', args=[self.custom_data.pk]
+        )
+        if initially_managed:
+            self.custom_data.managed = True
+            self.custom_data.save()
+        # set up one domain in advance
+        initial_domain = SocialAppManagedDomain.objects.create(
+            social_app=self.custom_data, domain='example.com'
+        )
+        with patch('kobo.apps.accounts.admin.update_users.delay') as patched:
+            with immediate_on_commit():
+                post_data = self._get_change_post_data(
+                    managed=managed_on_save,
+                    domains=['example.com', 'another.com'],
+                    confirmed=True,
+                    send_in_app_message='on',
+                    in_app_message_body='Custom message body',
+                )
+                post_data['domains-0-id'] = initial_domain.pk
+                post_data['domains-INITIAL_FORMS'] = ['1']
+                post_data['added_domains'] = ['another.com']
+                self.client.post(url, post_data)
+        total_expected_calls = int(expect_task_for_existing_domain) + int(
+            expect_task_for_new_domain
+        )
+        assert patched.call_count == total_expected_calls
+        if expect_task_for_existing_domain:
+            patched.assert_any_call(
+                social_app_custom_data_id=self.custom_data.pk,
+                domain='example.com',
+                requesting_user_id=self.admin_user.pk,
+                send_in_app_message=True,
+                in_app_message_body='Custom message body',
+            )
+        if expect_task_for_new_domain:
+            patched.assert_any_call(
+                social_app_custom_data_id=self.custom_data.pk,
+                domain='another.com',
+                requesting_user_id=self.admin_user.pk,
+                send_in_app_message=True,
+                in_app_message_body='Custom message body',
+            )
