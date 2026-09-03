@@ -98,7 +98,6 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
             provider=incoming.provider, uid=incoming.uid
         )
-
         if not blocking_accounts.exists():
             return
 
