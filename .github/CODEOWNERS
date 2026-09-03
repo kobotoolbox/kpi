@@ -21,8 +21,8 @@
 /LICENSE                            @jnm @tinok
 
 ## Translations
-/.gitmodules                        @JacquelineMorrissette @jnm
-/.tx/                               @JacquelineMorrissette @jnm
+/.gitmodules                        @jamesrkiger
+/.tx/                               @jamesrkiger
 
 
 
@@ -45,8 +45,8 @@
 /.stylelintrc.js                    @magicznyleszek @p2edwards
 /.swcrc                             @magicznyleszek @p2edwards
 /.coffeelint.json                   @magicznyleszek @p2edwards
-/biome.jsonc                        @Akuukis
-/eslint.config.mjs                  @Akuukis
+/biome.jsonc                        @jamesrkiger
+/eslint.config.mjs                  @jamesrkiger
 /package-lock.json                  @magicznyleszek @p2edwards
 /package.json                       @magicznyleszek @p2edwards
 /tsconfig.json                      @magicznyleszek @p2edwards
@@ -62,24 +62,24 @@
 #### Backend section
 
 # Default owner
-/dependencies/                      @jnm @noliveleger
-/hub/                               @jnm @noliveleger
-/hub/tests/                         @jnm @noliveleger
-/kobo/                              @jnm @noliveleger
+/dependencies/                      @noliveleger
+/hub/                               @noliveleger
+/hub/tests/                         @noliveleger
+/kobo/                              @noliveleger
 /kobo/apps/audit_log/               @rgraber
 /kobo/apps/subsequences/            @Guitlle
-/kpi/                               @jnm @noliveleger
-/kpi/tests/                         @jnm @noliveleger
-/.coveragerc                        @jnm
-/.dockerignore                      @jnm @noliveleger
+/kpi/                               @noliveleger
+/kpi/tests/                         @noliveleger
+/.coveragerc                        @p2edwards
+/.dockerignore                      @noliveleger
 /format-python.sh                   @noliveleger
-/manage.py                          @jnm @noliveleger
-/pip-compile.sh                     @jnm @noliveleger
-/pyproject.toml                     @jnm @noliveleger
+/manage.py                          @noliveleger
+/pip-compile.sh                     @noliveleger
+/pyproject.toml                     @noliveleger
 
 # Django Static Templates, HTML, JS, CSS
-/kobo/apps/accounts/templates/      @magicznyleszek @p2edwards @jnm @noliveleger
-/kpi/templates/                     @magicznyleszek @p2edwards @jnm @noliveleger
+/kobo/apps/accounts/templates/      @magicznyleszek @p2edwards @noliveleger
+/kpi/templates/                     @magicznyleszek @p2edwards @noliveleger
 /kpi/static/css/                    @magicznyleszek @p2edwards
 _registration.scss                  @magicznyleszek @p2edwards
 
@@ -89,14 +89,14 @@ _registration.scss                  @magicznyleszek @p2edwards
 ################
 #### Infrastructure section
 
-/docker/                            @olive-KTB @jnm @noliveleger
-/scripts/                           @olive-KTB @jnm @noliveleger
-/scripts/eslintBiome.mjs            @Akuukis
+/docker/                            @olive-KTB @noliveleger
+/scripts/                           @olive-KTB @noliveleger
+/scripts/eslintBiome.mjs            @jamesrkiger
 /scripts/*.js                       @magicznyleszek @p2edwards
-/.github/                           @olive-KTB @jnm @noliveleger @magicznyleszek
+/.github/                           @olive-KTB @noliveleger @magicznyleszek
 /.github/workflows/npm-test.yml     @magicznyleszek @p2edwards
 /.gitlab-ci.yml                     @olive-KTB
-/Dockerfile                         @olive-KTB @jnm @noliveleger
+/Dockerfile                         @olive-KTB @noliveleger
 
 
 
@@ -104,12 +104,12 @@ _registration.scss                  @magicznyleszek @p2edwards
 ################
 #### Documentation section
 /CODING_STYLE_BE.md                 @noliveleger
-/CODING_STYLE_FE.md                 @Akuukis @magicznyleszek
-/CONTRIBUTING.md                    @Akuukis @magicznyleszek @noliveleger
-/README.md                          @Akuukis @jnm @magicznyleszek @noliveleger
-/.github/CODEOWNERS                 @Akuukis @jnm @noliveleger @magicznyleszek
-/.github/FUNDING.yml                @Akuukis @jnm @noliveleger @magicznyleszek
-/.github/ISSUE_TEMPLATE.md          @Akuukis @jnm @noliveleger @magicznyleszek
-/.github/PULL_REQUEST_TEMPLATE.md   @Akuukis @jnm @noliveleger @magicznyleszek
+/CODING_STYLE_FE.md                 @jamesrkiger @magicznyleszek
+/CONTRIBUTING.md                    @jamesrkiger @magicznyleszek @noliveleger
+/README.md                          @jamesrkiger @jnm @magicznyleszek @noliveleger
+/.github/CODEOWNERS                 @jamesrkiger @jnm @noliveleger @magicznyleszek
+/.github/FUNDING.yml                @jamesrkiger @jnm @noliveleger @magicznyleszek
+/.github/ISSUE_TEMPLATE.md          @jamesrkiger @jnm @noliveleger @magicznyleszek
+/.github/PULL_REQUEST_TEMPLATE.md   @jamesrkiger @jnm @noliveleger @magicznyleszek
 
 
