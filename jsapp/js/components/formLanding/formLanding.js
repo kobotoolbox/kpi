@@ -25,6 +25,7 @@ import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
+import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -33,7 +34,6 @@ import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import FormHistory from './FormHistory'
-import {openReplaceProjectModal} from '#/project/ProjectSettings/openReplaceProjectModal'
 
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
 
