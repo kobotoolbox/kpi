@@ -227,3 +227,9 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
         account = SocialAccount.objects.get(user=self.user)
         self.assertEqual(account.provider, 'test-app')
         self.assertEqual(account.uid, 'incoming-uid')
+
+    @responses.activate
+    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
+    def test_connecting_managed_account_sets_unusable_password(self, mock_unstash_state):
+        mock_unstash_state.return_value = {'process': 'connect'}
+

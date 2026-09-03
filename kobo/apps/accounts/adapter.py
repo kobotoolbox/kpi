@@ -12,7 +12,7 @@ from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
-from ..help.models import InAppMessageUsers, MessageType
+from ..help.models import InAppMessageUsers, MessageType, InAppMessage
 from .models import SocialAppManagedDomain
 from .utils import SOCIAL_APP_IDENTIFIER
 
@@ -95,9 +95,40 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             return
 
         incoming = sociallogin.account
+        # Block only if a *different* account is already linked; reconnecting
+        # the same one is fine.
+        blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
+            provider=incoming.provider, uid=incoming.uid
+        )
+
+        # Reuse allauth's own error-rendering helper instead of a bespoke
+        # response. Passing `state` through makes this forward-compatible:
+        # once headless mode is enabled it'll redirect SPA callers with
+        # `?error=...` instead of rendering HTML, with no change needed here
+        if blocking_accounts.exists():
+            raise ImmediateHttpResponse(
+                render_authentication_error(
+                    request,
+                    incoming.provider,
+                    error='multiple_sso_not_allowed',
+                    extra_context={
+                        'state': sociallogin.state,
+                        'error_title': t('SSO account already linked'),
+                        'error_message': t(
+                            'You can only link one SSO account at a time. '
+                            'Disconnect your existing SSO account before linking '
+                            'a new one.'
+                        ),
+                        # Already validated against ALLOWED_HOSTS by allauth when
+                        # it stashed the `next` parameter into the session state
+                        'back_url': sociallogin.get_redirect_url(request)
+                        or resolve_url(settings.LOGIN_REDIRECT_URL),
+                    },
+                )
+            )
+
         app_provider_id = incoming.provider
         app = SocialApp.objects.get(provider_id=app_provider_id)
-        breakpoint()
         InAppMessageUsers.objects.filter(
             user=user,
             in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
@@ -105,35 +136,14 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 SOCIAL_APP_IDENTIFIER: app.pk
             },
         ).delete()
-        # Block only if a *different* account is already linked; reconnecting
-        # the same one is fine.
-        blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
-            provider=incoming.provider, uid=incoming.uid
-        )
-        if not blocking_accounts.exists():
-            return
-
-        # Reuse allauth's own error-rendering helper instead of a bespoke
-        # response. Passing `state` through makes this forward-compatible:
-        # once headless mode is enabled it'll redirect SPA callers with
-        # `?error=...` instead of rendering HTML, with no change needed here
-        raise ImmediateHttpResponse(
-            render_authentication_error(
-                request,
-                incoming.provider,
-                error='multiple_sso_not_allowed',
-                extra_context={
-                    'state': sociallogin.state,
-                    'error_title': t('SSO account already linked'),
-                    'error_message': t(
-                        'You can only link one SSO account at a time. '
-                        'Disconnect your existing SSO account before linking '
-                        'a new one.'
-                    ),
-                    # Already validated against ALLOWED_HOSTS by allauth when
-                    # it stashed the `next` parameter into the session state
-                    'back_url': sociallogin.get_redirect_url(request)
-                    or resolve_url(settings.LOGIN_REDIRECT_URL),
-                },
-            )
-        )
+        now = timezone.now()
+        # if all users have linked their accounts, expire the inapp message
+        InAppMessage.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
+            in_app_message__generic_related_objects__contains={
+                SOCIAL_APP_IDENTIFIER: app.pk
+            },
+            inappmessageusers__isnull=True
+        ).update(valid_until=now)
+        user.set_unusable_password()
+        user.save()
