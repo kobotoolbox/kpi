@@ -108,5 +108,5 @@ def enforce_managed_sso(sender=None, **kwargs):
             inappmessageusers__isnull=True,
         ).update(valid_until=now)
         user.set_unusable_password()
-        user.save(update_fields=['password'])
+        user.save()
         update_session_auth_hash(request, user)
