@@ -62,8 +62,10 @@
 
 .modalSubheader {
   background: colors.$kobo-gray-200;
-  padding: 20px 30px;
-  margin: -30px -30px 20px;
+  // Bleeds out content to the edges of the modal body. Reads the host modal's padding so
+  // it works in both a Mantine modal and the legacy one (30px)
+  padding: 20px var(--mb-padding, 30px);
+  margin: calc(-1 * var(--mb-padding, 30px)) calc(-1 * var(--mb-padding, 30px)) 20px;
   color: colors.$kobo-gray-700;
 
   i {
