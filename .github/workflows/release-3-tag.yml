@@ -188,6 +188,7 @@ jobs:
   # Regenerate changelog with all tags known (authoritative, replaces stabilize draft).
   changelog:
     needs:
+      - pull-transifex
       - version
       - validate
     if: ${{ !cancelled() && !failure() }}
