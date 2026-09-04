@@ -361,10 +361,10 @@ CONSTANCE_CONFIG = {
     ),
     'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR': (
         5,
-        'Number of account confirmation emails that may be requested per hour for '
-        'any one email address, through /api/v2/email-confirmations/. Caps how '
-        'much mail an inbox can be made to receive by someone else. Set to 0 to '
-        'disable the limit.',
+        'Number of times per hour a new account confirmation email may be '
+        'requested for any one email address, through '
+        '/api/v2/email-confirmations/. Limits how much mail an inbox can be made '
+        'to receive by someone else. Set to 0 to disable the limit.',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
         constance_env(

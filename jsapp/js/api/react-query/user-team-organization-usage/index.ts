@@ -284,6 +284,9 @@ The endpoint is rate limited per requested email address, and returns `429` once
 that limit is reached. Limiting by address rather than by caller means requests
 cannot be spread across many source addresses to flood a single inbox.
 
+The limit is set by the `EMAIL_CONFIRMATION_REQUESTS_PER_HOUR` configuration
+option, and can be changed by an administrator without a restart.
+
  */
 export type emailConfirmationsCreateResponse200 = {
   data: EmailConfirmationRequestResponse
