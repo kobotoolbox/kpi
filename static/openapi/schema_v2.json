@@ -27608,7 +27608,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27617,7 +27617,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27645,7 +27645,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27654,7 +27654,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27682,7 +27682,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27691,7 +27691,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27767,7 +27767,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27776,7 +27776,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27804,7 +27804,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27813,7 +27813,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27841,7 +27841,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27850,7 +27850,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27878,7 +27878,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27887,7 +27887,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27910,7 +27910,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27919,7 +27919,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27947,7 +27947,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27956,7 +27956,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27984,7 +27984,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27993,7 +27993,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28021,7 +28021,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28030,7 +28030,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28058,7 +28058,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28067,7 +28067,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28095,7 +28095,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28104,7 +28104,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28132,7 +28132,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28141,7 +28141,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28169,7 +28169,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28178,7 +28178,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28206,7 +28206,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28215,7 +28215,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28243,7 +28243,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28252,7 +28252,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28280,7 +28280,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28289,7 +28289,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28317,7 +28317,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28326,7 +28326,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28354,7 +28354,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28363,7 +28363,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28391,7 +28391,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28400,7 +28400,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28428,7 +28428,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28437,7 +28437,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28465,7 +28465,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28474,7 +28474,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28502,7 +28502,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28511,7 +28511,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28539,7 +28539,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28548,7 +28548,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28576,7 +28576,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28585,7 +28585,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28613,7 +28613,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28622,7 +28622,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28645,7 +28645,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28654,7 +28654,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28682,7 +28682,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28691,7 +28691,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28719,7 +28719,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28728,7 +28728,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28756,7 +28756,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28765,7 +28765,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28793,7 +28793,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28802,7 +28802,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28908,7 +28908,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28917,7 +28917,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28945,7 +28945,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28954,7 +28954,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28977,7 +28977,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28986,7 +28986,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29014,7 +29014,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29023,7 +29023,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29051,7 +29051,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29060,7 +29060,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29088,7 +29088,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29097,7 +29097,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29125,7 +29125,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29134,7 +29134,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29157,7 +29157,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29166,7 +29166,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29194,7 +29194,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29203,7 +29203,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
