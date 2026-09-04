@@ -2,7 +2,6 @@ import base64
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
-from allauth.mfa.models import Authenticator
 from ddt import data, ddt
 from django.conf import settings
 from django.core import mail
