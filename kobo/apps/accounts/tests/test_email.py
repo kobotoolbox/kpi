@@ -15,7 +15,6 @@ from rest_framework.test import APITestCase
 from rest_framework.throttling import ScopedRateThrottle
 
 from kpi.utils.fuzzy_int import FuzzyInt
-
 from .utils import clear_email_change_throttle, record_authentication
 
 
@@ -437,9 +436,7 @@ class EmailChangeReauthenticationTestCase(APITestCase):
                 'kobo.apps.accounts.reauthentication.is_mfa_enabled',
                 return_value=True,
             ),
-            patch(
-                'kobo.apps.accounts.reauthentication._is_valid_mfa_code'
-            ) as validate,
+            patch('kobo.apps.accounts.reauthentication._is_valid_mfa_code') as validate,
         ):
             res = self._post_with(current_password='wrong', mfa_code='123456')
         assert res.status_code == status.HTTP_400_BAD_REQUEST
