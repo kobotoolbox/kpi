@@ -11,9 +11,6 @@
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
-// import profile from '../stores/session';
-// import {when} from 'mobx';
-// import {redirectDocument} from 'react-router';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
