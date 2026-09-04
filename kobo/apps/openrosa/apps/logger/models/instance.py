@@ -22,6 +22,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     clean_and_parse_xml,
     get_root_uuid_from_xml,
     get_uuid_from_xml,
+    strip_form_versions,
 )
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
@@ -229,9 +230,10 @@ class Instance(AbstractTimeStampedModel):
 
     def _populate_xml_hash(self):
         """
-        Populate the `xml_hash` attribute of this `Instance` based on the content of the `xml`
-        attribute.
+        Populate the `xml_hash` attribute of this `Instance` based on the content of the
+        `xml` attribute.
         """
+
         self.xml_hash = self.get_hash(self.xml)
 
     @classmethod
@@ -334,9 +336,18 @@ class Instance(AbstractTimeStampedModel):
     @staticmethod
     def get_hash(input_string: str) -> str:
         """
-        Compute the SHA256 hash of the given string. A wrapper to standardize hash computation.
+        Compute the SHA256 hash of the given string. A wrapper to standardize hash
+        computation.
+
+        `meta/formVersions` is stripped first. The server adds that node after
+        the client payload has been hashed, so leaving it in would make the hash
+        depend on which form version happened to be deployed at the time.
+        Stripping here rather than at each call site keeps every path that
+        recomputes `xml_hash`, maintenance commands included, in agreement with
+        the duplicate detection in `logger_tools.create_instance()`.
         """
-        return calculate_hash(input_string, 'sha256')
+
+        return calculate_hash(strip_form_versions(input_string), 'sha256')
 
     @property
     def point(self):

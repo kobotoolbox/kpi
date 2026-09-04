@@ -1,4 +1,6 @@
 # coding: utf-8
+# TODO seems dead code, to delete. Nothing imports `CloneXForm`, and no URL
+# routes form cloning.
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm

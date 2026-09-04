@@ -32,7 +32,10 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
-from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    META_FORM_VERSIONS,
+    META_ROOT_UUID,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
@@ -2429,6 +2432,34 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         assert 'deprecatedID' in instance.xml
         self._simulate_edit_submission(instance)
 
+    def test_edit_submission_with_newer_version_records_form_versions(self):
+        """
+        A submission collected with one version and edited while a newer one is
+        deployed must end up tagged with both, oldest first.
+        """
+
+        original_version_uid = self.asset.latest_deployed_version.uid
+        instance = Instance.objects.get(
+            root_uuid=remove_uuid_prefix(self.submission['_uuid'])
+        )
+        # A submission that never spanned two versions carries no lineage
+        assert META_FORM_VERSIONS not in self._get_submission(instance)
+
+        self.asset.content['survey'].append(
+            {'type': 'note', 'name': 'n', 'label': ['A new note']}
+        )
+        self.asset.save()
+        self.asset.deploy(active=True)
+        self.asset.save()
+        new_version_uid = self.asset.latest_deployed_version.uid
+        assert new_version_uid != original_version_uid
+
+        self._simulate_edit_submission(instance)
+
+        assert self._get_submission(instance)[META_FORM_VERSIONS] == (
+            f'{original_version_uid} {new_version_uid}'
+        )
+
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -2639,6 +2670,20 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(submission_edit_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_409_CONFLICT
         assert 'cannot be edited' in response.data['detail']
+
+    def _get_submission(self, instance: Instance) -> dict:
+        """
+        Read the submission back through the API, which is what this test is
+        about, rather than off the `Instance.json` column.
+        """
+
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        return next(
+            submission
+            for submission in response.data['results']
+            if submission['_id'] == instance.pk
+        )
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
@@ -3208,6 +3253,40 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
                         root_uuid.text
                     )
                     break
+
+    def test_bulk_update_submissions_records_form_versions(self):
+        """
+        A bulk edit performed while a newer version is deployed must tag the
+        submissions with both versions, oldest first.
+        """
+
+        original_version_uid = self.asset.latest_deployed_version.uid
+
+        self.asset.content['survey'].append(
+            {'type': 'note', 'name': 'n', 'label': ['A new note']}
+        )
+        self.asset.save()
+        self.asset.deploy(active=True)
+        self.asset.save()
+        new_version_uid = self.asset.latest_deployed_version.uid
+        assert new_version_uid != original_version_uid
+
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+        edited_ids = self.updated_submission_data['submission_ids']
+        edited = [s for s in response.data['results'] if s['_id'] in edited_ids]
+        assert len(edited) == len(edited_ids)
+        for submission in edited:
+            assert submission[META_FORM_VERSIONS] == (
+                f'{original_version_uid} {new_version_uid}'
+            )
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
