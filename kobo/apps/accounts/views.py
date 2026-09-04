@@ -8,10 +8,12 @@ from drf_spectacular.utils import (
 )
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
     open_api_204_empty_response,
@@ -24,8 +26,10 @@ from .extend_schemas.api.v2.email.serializers import (
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
+    is_session_authenticated,
     reauthentication_required,
     reauthentication_required_response,
+    validate_stateless_reauthentication,
 )
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
@@ -67,11 +71,31 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
                             'code': 'reauthentication_required',
                             'flows': [
                                 {'id': 'reauthenticate'},
-                                {
-                                    'id': 'mfa_reauthenticate',
-                                    'types': ['totp'],
-                                },
+                                {'id': 'mfa_reauthenticate', 'types': ['totp']},
                             ],
+                        },
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+            (
+                status.HTTP_429_TOO_MANY_REQUESTS,
+                'application/json',
+            ): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                description=(
+                    'Too many email change attempts. The endpoint is rate'
+                    ' limited because it accepts `current_password`.'
+                ),
+                examples=[
+                    OpenApiExample(
+                        name='Throttled',
+                        value={
+                            'detail': (
+                                'Request was throttled. Expected available in'
+                                ' 3600 seconds.'
+                            )
                         },
                         response_only=True,
                         media_type='application/json',
@@ -102,16 +126,28 @@ class EmailAddressViewSet(
     serializer_class = EmailAddressSerializer
     permission_classes = (IsAuthenticated,)
     versioning_class = APIV2Versioning
+    throttle_scope = 'email_change'
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
 
+    def get_throttles(self):
+        # The create action accepts `current_password`, so it must be throttled
+        # to prevent unbounded password-guessing attempts when account-level
+        # rate limiting is disabled and DRF has no global throttle configured
+        if self.action == 'create':
+            return [ScopedRateThrottle()]
+        return super().get_throttles()
+
     def create(self, request, *args, **kwargs):
-        # Changing the email address is a sensitive action: a stolen session could
-        # otherwise be used to take the account over. Require re-authentication
-        # before allowing the email address to be changed
-        if reauthentication_required(request):
-            return reauthentication_required_response(request)
+        # Changing the email address is a sensitive action: a stolen session or
+        # token could otherwise be used to take the account over. Require
+        # re-authentication, by whichever means the caller is able to provide
+        if is_session_authenticated(request):
+            if reauthentication_required(request):
+                return reauthentication_required_response(request)
+        else:
+            validate_stateless_reauthentication(request)
         return super().create(request, *args, **kwargs)
 
     def delete(self, request, format=None):

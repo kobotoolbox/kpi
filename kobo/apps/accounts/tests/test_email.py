@@ -2,6 +2,7 @@ import base64
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
+from allauth.mfa.models import Authenticator
 from ddt import data, ddt
 from django.conf import settings
 from django.core import mail
@@ -11,9 +12,11 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
+from rest_framework.throttling import ScopedRateThrottle
 
 from kpi.utils.fuzzy_int import FuzzyInt
-from .utils import record_authentication
+
+from .utils import clear_email_change_throttle, record_authentication
 
 
 @override_settings(ACCOUNT_RATE_LIMITS=False)
@@ -22,6 +25,7 @@ class AccountsEmailTestCase(APITestCase):
         self.user = baker.make(settings.AUTH_USER_MODEL)
         self.client.force_login(self.user)
         record_authentication(self.client)
+        clear_email_change_throttle(self.user)
         self.url_list = reverse('emailaddress-list')
 
     def test_list(self):
@@ -129,6 +133,9 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         self.organization.add_user(self.admin, is_admin=True)
         self.organization.add_user(self.member)
 
+        clear_email_change_throttle(
+            self.owner, self.admin, self.member, self.non_mmo_user
+        )
         self.url_list = reverse('emailaddress-list')
 
     def test_that_mmo_owner_can_update_email(self):
@@ -233,14 +240,9 @@ class EmailChangeReauthenticationTestCase(APITestCase):
             verified=True,
         )
         self.client.force_login(self.user)
+        clear_email_change_throttle(self.user)
         self.url_list = reverse('emailaddress-list')
         self.payload = {'email': 'new@example.com'}
-
-    def _post(self):
-        return self.client.post(self.url_list, self.payload, format='json')
-
-    def _pending_emails(self):
-        return self.user.emailaddress_set.filter(verified=False).count()
 
     def test_no_authentication_record_is_rejected(self):
         res = self._post()
@@ -269,8 +271,7 @@ class EmailChangeReauthenticationTestCase(APITestCase):
 
     def test_response_lists_available_flows(self):
         res = self._post()
-        flows = res.json()['flows']
-        assert {'id': 'reauthenticate'} in flows
+        assert res.json()['flows'] == [{'id': 'reauthenticate'}]
 
     def test_mfa_user_needs_both_password_and_mfa(self):
         with patch(
@@ -322,23 +323,121 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         assert res.status_code == status.HTTP_204_NO_CONTENT
         assert self._pending_emails() == 0
 
-    def test_token_authentication_is_not_gated(self):
+    def test_token_auth_without_password_is_rejected(self):
         """
-        Stateless credentials cannot re-authenticate: allauth records
-        re-authentication in the session, which a token client does not have.
-        Gating them would lock API clients out with no way to recover
+        A stateless credential has no session to re-authenticate in, so it
+        proves itself in-band with the current password instead
         """
-        self.client.logout()
-        token, _ = Token.objects.get_or_create(user=self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        self._use_token_auth()
         res = self._post()
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'current_password' in res.json()
+        assert self._pending_emails() == 0
+
+    def test_token_auth_with_wrong_password_is_rejected(self):
+        self._use_token_auth()
+        res = self._post_with(current_password='not-my-password')
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'current_password' in res.json()
+        assert self._pending_emails() == 0
+
+    def test_token_auth_with_correct_password_succeeds(self):
+        self._use_token_auth()
+        res = self._post_with(current_password='secret')
         assert res.status_code == status.HTTP_201_CREATED
         assert self._pending_emails() == 1
 
-    def test_basic_authentication_is_not_gated(self):
+    def test_basic_auth_with_correct_password_succeeds(self):
         self.client.logout()
         credentials = base64.b64encode(b'reauth_user:secret').decode()
         self.client.credentials(HTTP_AUTHORIZATION=f'Basic {credentials}')
-        res = self._post()
+        res = self._post_with(current_password='secret')
         assert res.status_code == status.HTTP_201_CREATED
-        assert self._pending_emails() == 1
+
+    def test_mfa_account_must_also_send_a_code(self):
+        self._use_token_auth()
+        with patch(
+            'kobo.apps.accounts.reauthentication.is_mfa_enabled', return_value=True
+        ):
+            res = self._post_with(current_password='secret')
+            assert res.status_code == status.HTTP_400_BAD_REQUEST
+            assert 'mfa_code' in res.json()
+            assert self._pending_emails() == 0
+
+    def test_mfa_account_with_valid_code_succeeds(self):
+        self._use_token_auth()
+        with (
+            patch(
+                'kobo.apps.accounts.reauthentication.is_mfa_enabled',
+                return_value=True,
+            ),
+            patch(
+                'kobo.apps.accounts.reauthentication._is_valid_mfa_code',
+                return_value=True,
+            ),
+        ):
+            res = self._post_with(current_password='secret', mfa_code='123456')
+            assert res.status_code == status.HTTP_201_CREATED
+            assert self._pending_emails() == 1
+
+    def test_mfa_account_with_invalid_code_is_rejected(self):
+        self._use_token_auth()
+        with (
+            patch(
+                'kobo.apps.accounts.reauthentication.is_mfa_enabled',
+                return_value=True,
+            ),
+            patch(
+                'kobo.apps.accounts.reauthentication._is_valid_mfa_code',
+                return_value=False,
+            ),
+        ):
+            res = self._post_with(current_password='secret', mfa_code='000000')
+            assert res.status_code == status.HTTP_400_BAD_REQUEST
+            assert 'mfa_code' in res.json()
+
+    def test_sso_only_account_needs_no_proof(self):
+        """
+        Nothing to prove: no usable password and no MFA, matching the session
+        path, which also lets such accounts through
+        """
+        self.user.set_unusable_password()
+        self.user.save()
+        self._use_token_auth()
+        res = self._post()
+        assert res.status_code != status.HTTP_400_BAD_REQUEST
+
+    def test_email_change_is_throttled(self):
+        """
+        `current_password` would otherwise be an unthrottled guessing oracle:
+        `ACCOUNT_RATE_LIMITS` is off and DRF sets no global default
+
+        The configured rate is patched rather than exercised, so the test does
+        not have to issue a hundred requests to prove the wiring works.
+        """
+        self._use_token_auth()
+        with patch.object(
+            ScopedRateThrottle, 'THROTTLE_RATES', {'email_change': '3/hour'}
+        ):
+            codes = [
+                self._post_with(current_password='wrong').status_code
+                for _ in range(5)
+            ]
+        assert codes[:3] == [status.HTTP_400_BAD_REQUEST] * 3, codes
+        assert codes[3:] == [status.HTTP_429_TOO_MANY_REQUESTS] * 2, codes
+
+    def _use_token_auth(self):
+        self.client.logout()
+        token, _ = Token.objects.get_or_create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+
+    def _pending_emails(self):
+        return self.user.emailaddress_set.filter(verified=False).count()
+
+    def _post(self):
+        return self.client.post(self.url_list, self.payload, format='json')
+
+    def _post_with(self, **extra):
+        return self.client.post(
+            self.url_list, {**self.payload, **extra}, format='json'
+        )

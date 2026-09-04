@@ -12,4 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export interface EmailRequestPayload {
   email: string
+  current_password?: string
+  mfa_code?: string
 }

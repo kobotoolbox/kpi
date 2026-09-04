@@ -7,7 +7,7 @@ from allauth.account.internal.flows.reauthentication import (
 )
 from allauth.mfa.utils import is_mfa_enabled
 from django.utils.translation import gettext as t
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.authentication import (
     SessionAuthentication as DRFSessionAuthentication,
 )
@@ -74,16 +74,78 @@ def is_session_authenticated(request) -> bool:
 
 def reauthentication_required(request) -> bool:
     """
-    Whether `request` must be refused until the user re-authenticates
+    Check whether the request must be refused until the user re-authenticates
 
-    Only browser sessions are gated. allauth records a re-authentication in the
-    session, so a request carrying a stateless credential has no way to satisfy
-    the check: gating one would lock that client out for good, with no remedy
-    available to it.
+    This check applies only to session-authenticated requests. Stateless
+    credentials cannot satisfy the recent reauthentication requirement.
     """
     return is_session_authenticated(request) and not did_recently_reauthenticate(
         request
     )
+
+
+def validate_stateless_reauthentication(request) -> None:
+    """
+    Re-authenticate a request carrying a stateless credential (token, Basic,
+    OAuth2), which has no session for allauth to record a re-authentication in
+
+    The proof travels in the request body instead: the current password, plus a
+    2FA code when the account has MFA enabled. This mirrors what a browser
+    session is asked for, and follows the convention already used to change a
+    password.
+
+    Raises `ValidationError` when the proof is missing or wrong; returns
+    silently when the account has nothing to prove (an SSO-only account with no
+    usable password and no MFA), matching the session path.
+    """
+    user = request.user
+    errors = {}
+
+    if user.has_usable_password():
+        current_password = request.data.get('current_password')
+        if not current_password:
+            errors['current_password'] = t(
+                'This field is required to change the email address when'
+                ' authenticating without a browser session.'
+            )
+        elif not user.check_password(current_password):
+            errors['current_password'] = t('Incorrect current password.')
+
+    if is_mfa_enabled(user):
+        mfa_code = request.data.get('mfa_code')
+        if not mfa_code:
+            errors['mfa_code'] = t(
+                'This field is required to change the email address when'
+                ' authenticating without a browser session and MFA is enabled.'
+            )
+        elif not errors:
+            if not _is_valid_mfa_code(user, mfa_code):
+                errors['mfa_code'] = t('Invalid code.')
+
+    if errors:
+        raise serializers.ValidationError(errors)
+
+
+def _is_valid_mfa_code(user, code) -> bool:
+    """
+    Validate a TOTP or recovery code, reusing the serializer that already backs
+    the MFA endpoints so that legacy migrated recovery codes keep working
+    """
+    from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
+    from kobo.apps.accounts.mfa.serializers import MfaCodeSerializer
+
+    method = (
+        MfaMethodsWrapper.objects.filter(user=user, is_active=True)
+        .values_list('name', flat=True)
+        .first()
+    )
+    if method is None:
+        return False
+
+    serializer = MfaCodeSerializer(
+        data={'code': code}, context={'user': user, 'method': method}
+    )
+    return serializer.is_valid()
 
 
 def reauthentication_required_response(request) -> Response:

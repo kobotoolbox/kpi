@@ -3562,9 +3562,37 @@ email address:
 }
 ```
 
+`code` is the field to branch on: `detail` is translated, so it cannot be
+matched against reliably.
+
 `flows` lists the steps the client must walk the user through before retrying,
-in the same shape allauth's headless API uses. Once every listed flow is
-completed the original request will succeed.
+in the same shape allauth's headless API uses — `reauthenticate` for the
+password, and `mfa_reauthenticate` in addition when the account has MFA enabled.
+Once every listed flow is completed the original request will succeed.
+
+### Re-authenticating without a browser session
+
+Requests authenticated with a stateless credential (token, Basic or OAuth2) have
+no session for allauth to record a re-authentication in, so they carry the proof
+in the request body instead:
+
+```json
+{
+  "email": "new@example.com",
+  "current_password": "…",
+  "mfa_code": "123456"
+}
+```
+
+`current_password` is required whenever the account has a usable password.
+`mfa_code` is required in addition when MFA is enabled, and accepts either a TOTP
+code or a recovery code. Both are rejected with a `400` naming the offending
+field, and neither is needed for an SSO-only account that has neither.
+
+Note that Basic authentication is refused outright for MFA-enabled accounts, so
+in practice the `mfa_code` case applies to token and OAuth2 callers.
+
+This endpoint is rate limited.
 
  */
 export type meEmailsCreateResponse201 = {
@@ -3587,6 +3615,11 @@ export type meEmailsCreateResponse403 = {
   status: 403
 }
 
+export type meEmailsCreateResponse429 = {
+  data: ErrorDetail
+  status: 429
+}
+
 export type meEmailsCreateResponseSuccess = meEmailsCreateResponse201 & {
   headers: Headers
 }
@@ -3594,6 +3627,7 @@ export type meEmailsCreateResponseError = (
   | meEmailsCreateResponse400
   | meEmailsCreateResponse401
   | meEmailsCreateResponse403
+  | meEmailsCreateResponse429
 ) & {
   headers: Headers
 }

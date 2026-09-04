@@ -29,3 +29,16 @@ def record_authentication(client, methods=('password',), age=0):
         {'method': method, 'at': at} for method in methods
     ]
     session.save()
+
+
+def clear_email_change_throttle(*users):
+    """
+    Drop the DRF throttle history for the email-change endpoint
+
+    Tests share a real cache, so without this a run can inherit throttle
+    counters from an earlier one whenever user PKs repeat.
+    """
+    from django.core.cache import cache
+
+    for user in users:
+        cache.delete(f'throttle_email_change_{user.pk}')
