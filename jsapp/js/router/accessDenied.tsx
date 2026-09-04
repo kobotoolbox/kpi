@@ -5,7 +5,7 @@ import React from 'react'
 import { observer } from 'mobx-react'
 import bem, { makeBem } from '#/bem'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { replaceBracketsWithLink } from '#/textUtils'
 
 bem.AccessDenied = makeBem(null, 'access-denied')
@@ -50,7 +50,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
   }
 
   function sessionStatus() {
-    if (sessionStore.isLoggedIn) {
+    if (profileStore.isLoggedIn) {
       return loggedIn
     } else {
       return loggedOut

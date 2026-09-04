@@ -6,12 +6,13 @@ import type { ProjectViewsSettings } from '#/projects/customViewStore'
 import { ANON_USERNAME } from '#/users/utils'
 import { currentLang, log } from '#/utils'
 
-class SessionStore {
+class ProfileStore {
   currentAccount: AccountResponse | { username: string; date_joined: string } = {
     username: ANON_USERNAME,
     date_joined: '',
   }
   isAuthStateKnown = false
+  /** @deprecated Auth status will be provided by the allauth /session endpoint. Use that instead. */
   isLoggedIn = false
   isInitialLoadComplete = false
   isPending = false
@@ -89,4 +90,4 @@ class SessionStore {
   }
 }
 
-export default new SessionStore()
+export default new ProfileStore()

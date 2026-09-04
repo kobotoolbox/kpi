@@ -1,6 +1,6 @@
 import { fetchGet, fetchPatch, fetchPost, handleApiFail } from '#/api'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { buildUserUrl, getUsernameFromUrl } from '#/users/utils'
 import { notify } from '#/utils'
 
@@ -156,7 +156,7 @@ export async function isInviteForLoggedInUser(inviteUid: string) {
         return
       }
 
-      inviteIsCorrect = sessionStore.currentAccount.username === getUsernameFromUrl(data.recipient)
+      inviteIsCorrect = profileStore.currentAccount.username === getUsernameFromUrl(data.recipient)
     })
   } catch (error) {
     handleApiFail(error as FailResponse, t('Invite is invaild.'))

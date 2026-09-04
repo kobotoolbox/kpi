@@ -8,7 +8,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Checkbox from '#/components/common/checkbox'
 import customViewStore from '#/projects/customViewStore'
 import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { notify } from '#/utils'
 
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive'
@@ -23,8 +23,8 @@ export interface BulkDeleteModalProps {
 }
 
 export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDeleteModalProps) {
-  const session = useSession()
-  const orgUid = session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const orgUid = profile.currentLoggedAccount?.organization?.uid
 
   const [isDataChecked, setIsDataChecked] = useState(false)
   const [isFormChecked, setIsFormChecked] = useState(false)

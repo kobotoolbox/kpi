@@ -25,7 +25,7 @@ import { getBlockedBulkTranslationLanguages } from '#/components/submissions/bul
 import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { notify } from '#/utils'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
@@ -83,8 +83,8 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   })
 
   // Get organization ID to check ASR limits
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),

@@ -16,7 +16,7 @@ import {
   type organizationsMembersListResponse,
   type organizationsMembersRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
-import session from '#/stores/session'
+import profile from '#/stores/profile'
 import { getAssetUIDFromUrl } from '#/utils'
 import {
   invalidateItem,
@@ -222,7 +222,7 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
         },
         onSuccess: (_data, { username }) => {
           // If user is removing themselves, we need to clear the session
-          if (username === session.currentAccount?.username) session.refreshAccount()
+          if (username === profile.currentAccount?.username) profile.refreshAccount()
         },
       },
     }),

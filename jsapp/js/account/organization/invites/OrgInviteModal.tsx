@@ -14,7 +14,7 @@ import { useLogout } from '#/auth/useLogout'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { notify, sleep } from '#/utils'
 
 /**
@@ -25,7 +25,7 @@ import { notify, sleep } from '#/utils'
  */
 export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const [isModalOpen, setIsModalOpen] = useState(true)
-  const session = useSession()
+  const profile = useProfile()
   const logout = useLogout()
 
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
@@ -47,7 +47,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
         if (variables.data.status === InviteStatusChoicesEnum.accepted) {
           setAwaitingDataRefresh(true)
           await sleep(1000) // Give it a second to allow for initial backend data transfers
-          session.refreshAccount() // refresh session to refresh org data and project list
+          profile.refreshAccount() // refresh session to refresh org data and project list
           notify(t('Invitation successfully accepted'))
         } else {
           notify(t('Invitation successfully declined'))
