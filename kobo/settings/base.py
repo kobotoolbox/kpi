@@ -1549,13 +1549,19 @@ CELERY_BEAT_SCHEDULE = {
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     'perform-maintenance': {
         'task': 'kpi.tasks.perform_maintenance',
@@ -1587,7 +1593,10 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-failed': {
@@ -1645,7 +1654,10 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=0, hour=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every day at midnight UTC
     'delete-expired-logs': {
