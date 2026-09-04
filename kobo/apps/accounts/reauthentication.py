@@ -119,6 +119,8 @@ def validate_stateless_reauthentication(request) -> None:
                 ' authenticating without a browser session and MFA is enabled.'
             )
         elif not errors:
+            # Only spend the 2FA code once the password has passed; a wrong
+            # password must not cost the user a recovery code
             if not _is_valid_mfa_code(user, mfa_code):
                 errors['mfa_code'] = t('Invalid code.')
 

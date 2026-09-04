@@ -420,11 +420,30 @@ class EmailChangeReauthenticationTestCase(APITestCase):
             ScopedRateThrottle, 'THROTTLE_RATES', {'email_change': '3/hour'}
         ):
             codes = [
-                self._post_with(current_password='wrong').status_code
-                for _ in range(5)
+                self._post_with(current_password='wrong').status_code for _ in range(5)
             ]
         assert codes[:3] == [status.HTTP_400_BAD_REQUEST] * 3, codes
         assert codes[3:] == [status.HTTP_429_TOO_MANY_REQUESTS] * 2, codes
+
+    def test_invalid_password_or_email_does_not_burn_code(self):
+        """
+        A recovery code may only be spent once, so it must not be consumed on a
+        request that was going to fail anyway due to a wrong password or an email
+        that cannot be set
+        """
+        self._use_token_auth()
+        with (
+            patch(
+                'kobo.apps.accounts.reauthentication.is_mfa_enabled',
+                return_value=True,
+            ),
+            patch(
+                'kobo.apps.accounts.reauthentication._is_valid_mfa_code'
+            ) as validate,
+        ):
+            res = self._post_with(current_password='wrong', mfa_code='123456')
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        validate.assert_not_called()
 
     def _use_token_auth(self):
         self.client.logout()
@@ -438,6 +457,4 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         return self.client.post(self.url_list, self.payload, format='json')
 
     def _post_with(self, **extra):
-        return self.client.post(
-            self.url_list, {**self.payload, **extra}, format='json'
-        )
+        return self.client.post(self.url_list, {**self.payload, **extra}, format='json')

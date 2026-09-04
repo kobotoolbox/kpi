@@ -140,6 +140,11 @@ class EmailAddressViewSet(
         return super().get_throttles()
 
     def create(self, request, *args, **kwargs):
+        # Validate the email before re-authenticating: verifying a 2FA code spends
+        # it, so nothing that could still reject the request may run afterwards
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         # Changing the email address is a sensitive action: a stolen session or
         # token could otherwise be used to take the account over. Require
         # re-authentication, by whichever means the caller is able to provide
@@ -148,7 +153,12 @@ class EmailAddressViewSet(
                 return reauthentication_required_response(request)
         else:
             validate_stateless_reauthentication(request)
-        return super().create(request, *args, **kwargs)
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def delete(self, request, format=None):
         request.user.emailaddress_set.filter(
