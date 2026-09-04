@@ -511,8 +511,9 @@ jobs:
         BODY="${BODY//\$VERSION/$VERSION}"
 
         {
-          echo "body<<EOF"
-          echo "${BODY}EOF"
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
         } >> "$GITHUB_OUTPUT"
 
     - name: Upsert Linear deployment issue

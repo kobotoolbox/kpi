@@ -124,8 +124,9 @@ jobs:
         BODY="${BODY//\$RELEASE_URL/$RELEASE_URL}"
 
         {
-          echo "body<<EOF"
-          echo "${BODY}EOF"
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
         } >> "$GITHUB_OUTPUT"
 
     - name: Upsert Linear QA issue
