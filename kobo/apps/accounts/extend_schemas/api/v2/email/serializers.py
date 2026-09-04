@@ -8,3 +8,17 @@ EmailRequestPayload = inline_serializer_class(
         'email': serializers.EmailField(),
     },
 )
+
+EmailConfirmationRequestPayload = inline_serializer_class(
+    name='EmailConfirmationRequestPayload',
+    fields={
+        'email': serializers.EmailField(),
+    },
+)
+
+EmailConfirmationRequestResponse = inline_serializer_class(
+    name='EmailConfirmationRequestResponse',
+    fields={
+        'detail': serializers.CharField(),
+    },
+)

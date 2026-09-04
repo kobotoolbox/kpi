@@ -172,8 +172,29 @@ def open_api_error_responses(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    raise_throttled: bool = False,
     **kwargs,
 ):
+    if raise_throttled:
+        response[(status.HTTP_429_TOO_MANY_REQUESTS, error_media_type)] = (
+            OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Too many requests',
+                        value={
+                            'detail': (
+                                'Request was throttled. Expected available in 60'
+                                ' seconds.'
+                            )
+                        },
+                        response_only=True,
+                        media_type=error_media_type,
+                    )
+                ],
+            )
+        )
+
     if require_auth:
 
         response[(status.HTTP_401_UNAUTHORIZED, error_media_type)] = OpenApiResponse(

@@ -25,6 +25,10 @@ import type { AssetUsageListParams } from '../../models/assetUsageListParams'
 
 import type { EmailAddress } from '../../models/emailAddress'
 
+import type { EmailConfirmationRequestPayload } from '../../models/emailConfirmationRequestPayload'
+
+import type { EmailConfirmationRequestResponse } from '../../models/emailConfirmationRequestResponse'
+
 import type { EmailRequestPayload } from '../../models/emailRequestPayload'
 
 import type { ErrorDetail } from '../../models/errorDetail'
@@ -227,6 +231,161 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
   return query
 }
 
+/**
+ * ## Request another account confirmation email
+
+Sends a fresh confirmation link to an email address that is registered but not yet
+verified. Confirmation links expire (after
+`ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS`, one day by default), so this is how a
+user who let theirs lapse gets a new one.
+
+Requires no authentication: the caller has just followed a dead confirmation link
+and has no session.
+
+Examples:
+```shell
+  curl -X POST https://kf.kobotoolbox.org/api/v2/email-confirmations/ \
+       -H 'Content-Type: application/json' \
+       -d '{"email": "someone@example.com"}'
+```
+
+> Response 200
+```json
+{
+    "detail": "If that email address needs confirming, a new confirmation email has been sent to it."
+}
+```
+
+### Which email is sent
+
+An account that has not verified any address yet is still being activated, and
+receives the account activation email. An account that already has a verified
+address is partway through an email change, and receives the address
+verification email instead.
+
+### The response never says whether the address is registered
+
+The same `200` and the same body come back whether the address belongs to an
+account, belongs to an account that has already verified it, or belongs to no
+account at all. Otherwise the endpoint would let anyone test whether a given
+person holds a KoboToolbox account.
+
+Mail goes out only in the first of those cases. An address that is already
+verified is left alone, so this cannot be used to send unsolicited mail to a
+verified account.
+
+A syntactically invalid address returns `400`. That reveals nothing about who is
+registered, and telling the user their address is malformed is more useful than
+silently doing nothing.
+
+### Throttling
+
+The endpoint is rate limited per requested email address, and returns `429` once
+that limit is reached. Limiting by address rather than by caller means requests
+cannot be spread across many source addresses to flood a single inbox.
+
+The limit is set by the `EMAIL_CONFIRMATION_REQUESTS_PER_HOUR` configuration
+option, and can be changed by an administrator without a restart.
+
+ */
+export type emailConfirmationsCreateResponse200 = {
+  data: EmailConfirmationRequestResponse
+  status: 200
+}
+
+export type emailConfirmationsCreateResponse400 = {
+  data: ErrorValidation
+  status: 400
+}
+
+export type emailConfirmationsCreateResponse429 = {
+  data: ErrorDetail
+  status: 429
+}
+
+export type emailConfirmationsCreateResponseSuccess = emailConfirmationsCreateResponse200 & {
+  headers: Headers
+}
+export type emailConfirmationsCreateResponseError = (
+  | emailConfirmationsCreateResponse400
+  | emailConfirmationsCreateResponse429
+) & {
+  headers: Headers
+}
+
+export type emailConfirmationsCreateResponse =
+  | emailConfirmationsCreateResponseSuccess
+  | emailConfirmationsCreateResponseError
+
+export const getEmailConfirmationsCreateUrl = () => {
+  return `/api/v2/email-confirmations/`
+}
+
+export const emailConfirmationsCreate = async (
+  emailConfirmationRequestPayload: EmailConfirmationRequestPayload,
+  options?: RequestInit,
+): Promise<emailConfirmationsCreateResponse> => {
+  return fetchWithAuth<emailConfirmationsCreateResponse>(getEmailConfirmationsCreateUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(emailConfirmationRequestPayload),
+  })
+}
+
+export const getEmailConfirmationsCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+    TError,
+    { data: EmailConfirmationRequestPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+  TError,
+  { data: EmailConfirmationRequestPayload },
+  TContext
+> => {
+  const mutationKey = ['emailConfirmationsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+    { data: EmailConfirmationRequestPayload }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return emailConfirmationsCreate(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type EmailConfirmationsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof emailConfirmationsCreate>>>
+export type EmailConfirmationsCreateMutationBody = EmailConfirmationRequestPayload
+export type EmailConfirmationsCreateMutationError = ErrorValidation | ErrorDetail
+
+export const useEmailConfirmationsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+    TError,
+    { data: EmailConfirmationRequestPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getEmailConfirmationsCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
 /**
  * ## List user's organizations
 
