@@ -35,6 +35,10 @@
     <p><strong>{% translate "Removed domain(s):" %}</strong> {{ removed_domains|join:", " }}</p>
   {% endif %}
 
+  {% if managed_toggled_off or removed_domains %}
+    <p>{% translate "Pending in-app reminders asking users to link their SSO account will be withdrawn." %}</p>
+  {% endif %}
+
   <p><strong>{% translate "Affected Accounts:" %}</strong></p>
   <ul>
     <li>{% translate "Linked accounts that will be converted to SSO-only:" %} <strong>{{ track_1_count }}</strong></li>
