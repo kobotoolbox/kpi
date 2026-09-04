@@ -98,6 +98,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -115,9 +116,10 @@ uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
 
 mongo_instances = settings.MONGO_DB.instances
 
-# A KPI `AssetVersion` uid. Kept loose on purpose, since the point is to reject
-# anything carrying XML markup rather than to validate the uid itself
-version_uid_regex = re.compile(r'^[A-Za-z0-9_-]+$')
+# A KPI `AssetVersion` uid: the `v` prefix of its `KpiUidField`, then exactly
+# `UUID_LENGTH` characters from `shortuuid`'s alphabet, which is alphanumeric.
+# Anything else is discarded rather than written back into the document
+version_uid_regex = re.compile(rf'^v[A-Za-z0-9]{{{UUID_LENGTH}}}$')
 
 
 def add_form_versions(xml: str, xform: XForm, previous_xml: str = None) -> str:
