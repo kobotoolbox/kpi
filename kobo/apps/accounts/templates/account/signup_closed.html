@@ -1,0 +1,20 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+<div class="registration registration--complete">
+  <div class="registration--logo">
+    <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>
+    {% if not signup_closed_message %}
+      <h1>{% trans "Sign Up Closed" %}</h1>
+    {% endif %}
+  </div>
+  {% if signup_closed_message %}
+    {{ signup_closed_message|safe }}
+  {% else %}
+    <p class="registration__message registration__message--complete">
+      {% trans "We are sorry, but the sign up is currently closed." %}
+    </p>
+  {% endif %}
+</div>
+{% endblock %}
