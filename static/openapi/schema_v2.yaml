@@ -17360,6 +17360,8 @@ components:
           type: string
         meta/deprecatedID:
           type: string
+        meta/formVersions:
+          type: string
         _xform_id_string:
           type: string
           title: ' xform id string'
@@ -17551,6 +17553,8 @@ components:
         instanceID:
           type: string
         deprecatedID:
+          type: string
+        formVersions:
           type: string
       required:
       - instanceID
