@@ -2443,7 +2443,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             root_uuid=remove_uuid_prefix(self.submission['_uuid'])
         )
         # A submission that never spanned two versions carries no lineage
-        assert META_FORM_VERSIONS not in instance.json
+        assert META_FORM_VERSIONS not in self._get_submission(instance)
 
         self.asset.content['survey'].append(
             {'type': 'note', 'name': 'n', 'label': ['A new note']}
@@ -2456,8 +2456,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         self._simulate_edit_submission(instance)
 
-        instance.refresh_from_db()
-        assert instance.json[META_FORM_VERSIONS] == (
+        assert self._get_submission(instance)[META_FORM_VERSIONS] == (
             f'{original_version_uid} {new_version_uid}'
         )
 
@@ -2671,6 +2670,20 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         response = self.client.get(submission_edit_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_409_CONFLICT
         assert 'cannot be edited' in response.data['detail']
+
+    def _get_submission(self, instance: Instance) -> dict:
+        """
+        Read the submission back through the API, which is what this test is
+        about, rather than off the `Instance.json` column.
+        """
+
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        return next(
+            submission
+            for submission in response.data['results']
+            if submission['_id'] == instance.pk
+        )
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
@@ -3264,11 +3277,14 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
 
-        instances = Instance.objects.filter(
-            pk__in=self.updated_submission_data['submission_ids']
-        )
-        for instance in instances:
-            assert instance.json[META_FORM_VERSIONS] == (
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+        edited_ids = self.updated_submission_data['submission_ids']
+        edited = [s for s in response.data['results'] if s['_id'] in edited_ids]
+        assert len(edited) == len(edited_ids)
+        for submission in edited:
+            assert submission[META_FORM_VERSIONS] == (
                 f'{original_version_uid} {new_version_uid}'
             )
 
