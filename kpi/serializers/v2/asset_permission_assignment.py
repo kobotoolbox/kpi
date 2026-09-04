@@ -5,7 +5,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional
 
-from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.db import transaction
 from django.urls import Resolver404
@@ -31,7 +30,10 @@ from kpi.utils.object_permission import (
     post_remove_partial_perms,
     post_remove_perm,
 )
-from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.permissions import (
+    get_allowed_anonymous_permissions,
+    is_user_anonymous,
+)
 from kpi.utils.urls import absolute_resolve
 
 ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
@@ -701,7 +703,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             user_obj = user_pk_to_obj_cache[addition.user_pk]
             if is_user_anonymous(user_obj):
                 fq_permission = f'kpi.{addition.permission_codename}'
-                if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                if fq_permission not in get_allowed_anonymous_permissions():
                     raise serializers.ValidationError(
                         {
                             'permission': (

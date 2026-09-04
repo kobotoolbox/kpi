@@ -1,11 +1,13 @@
 # coding: utf-8
-from django.conf import settings
 from django.contrib.auth.backends import ModelBackend as DjangoModelBackend
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
 
 from .utils.database import get_thread_local
 from .utils.object_permission import get_database_user
-from .utils.permissions import is_user_anonymous
+from .utils.permissions import (
+    get_allowed_anonymous_permissions,
+    is_user_anonymous,
+)
 
 
 class ObjectPermissionBackend(DjangoModelBackend):
@@ -15,7 +17,7 @@ class ObjectPermissionBackend(DjangoModelBackend):
         permissions = super().get_group_permissions(user_obj, obj)
         if is_anonymous:
             # Obey limits on anonymous users' permissions
-            allowed_set = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
+            allowed_set = get_allowed_anonymous_permissions()
             return permissions.intersection(allowed_set)
         else:
             return permissions
@@ -26,7 +28,7 @@ class ObjectPermissionBackend(DjangoModelBackend):
         permissions = super().get_all_permissions(user_obj, obj)
         if is_anonymous:
             # Obey limits on anonymous users' permissions
-            allowed_set = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
+            allowed_set = get_allowed_anonymous_permissions()
             return permissions.intersection(allowed_set)
         else:
             return permissions
@@ -37,7 +39,7 @@ class ObjectPermissionBackend(DjangoModelBackend):
         if obj is None or not hasattr(obj, 'has_perm'):
             if is_anonymous:
                 # Obey limits on anonymous users' permissions
-                if perm not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                if perm not in get_allowed_anonymous_permissions():
                     return False
 
             return super().has_perm(user_obj, perm, obj)

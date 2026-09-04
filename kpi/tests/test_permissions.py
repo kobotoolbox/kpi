@@ -1,5 +1,8 @@
+from constance.test import override_config
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import DjangoObjectPermissions
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -21,7 +24,7 @@ from kpi.constants import (
 from kpi.exceptions import BadPermissionsException
 from kpi.permissions import AssetSnapshotPermission
 from kpi.utils.object_permission import get_all_objects_for_user
-
+from kpi.utils.permissions import get_allowed_anonymous_permissions
 from ..models import ObjectPermission
 from ..models.asset import Asset
 
@@ -885,6 +888,23 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         self.assertTrue(asset.get_perms(grantee), asset.get_perms(anonymous_user))
 
+    @override_config(
+        ALLOWED_ANONYMOUS_PERMISSIONS='kpi.view_asset\nkpi.discover_asset\n'
+        'kpi.add_submissions'
+    )
+    def test_constance_can_restrict_anonymous_permissions(self):
+        """Removing a permission from the Constance list blocks its grant."""
+        asset = self.admin_asset
+        anonymous_user = AnonymousUser()
+
+        # view_submissions is no longer in the list
+        with self.assertRaises(ValidationError):
+            asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+        # a permission still in the list works
+        asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.assertTrue(anonymous_user.has_perm(PERM_VIEW_ASSET, asset))
+
     def test_org_admin_inherited_and_implied_permissions(self):
         """
         Test the inherited (and implied) permissions for an admin within
@@ -937,3 +957,27 @@ class PermissionsTestCase(BasePermissionsTestCase):
         assert django_perm_class.perms_map['PATCH'] == [
             '%(app_label)s.change_%(model_name)s'
         ]
+
+
+class AllowedAnonymousPermissionsHelperTestCase(TestCase):
+    """Ceiling intersected with the Constance list."""
+
+    def test_default_returns_full_ceiling(self):
+        self.assertEqual(
+            get_allowed_anonymous_permissions(),
+            set(settings.ALLOWED_ANONYMOUS_PERMISSIONS),
+        )
+
+    @override_config(ALLOWED_ANONYMOUS_PERMISSIONS='kpi.view_asset')
+    def test_constance_restricts_to_subset(self):
+        self.assertEqual(get_allowed_anonymous_permissions(), {'kpi.view_asset'})
+
+    @override_config(
+        ALLOWED_ANONYMOUS_PERMISSIONS='kpi.view_asset\nkpi.not_a_real_perm'
+    )
+    def test_permission_outside_ceiling_is_ignored(self):
+        self.assertEqual(get_allowed_anonymous_permissions(), {'kpi.view_asset'})
+
+    @override_config(ALLOWED_ANONYMOUS_PERMISSIONS='')
+    def test_empty_config_yields_no_permissions(self):
+        self.assertEqual(get_allowed_anonymous_permissions(), set())
