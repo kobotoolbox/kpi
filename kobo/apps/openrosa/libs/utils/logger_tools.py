@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import traceback
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
@@ -82,6 +83,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_submission_date_from_xml,
     get_uuid_from_xml,
     get_xform_media_question_xpaths,
+    set_form_versions,
+    strip_form_versions,
 )
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -111,6 +114,76 @@ uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
                         re.DOTALL)
 
 mongo_instances = settings.MONGO_DB.instances
+
+# A KPI `AssetVersion` uid. Kept loose on purpose, since the point is to reject
+# anything carrying XML markup rather than to validate the uid itself
+version_uid_regex = re.compile(r'^[A-Za-z0-9_-]+$')
+
+
+def add_form_versions(xml: str, xform: XForm, previous_xml: str = None) -> str:
+    """
+    Tag the submission with every form version it has been through.
+
+    A submission spans more than one version in two situations:
+    - it is edited, through Enketo or through a bulk edit, while a newer
+      version of the form is deployed;
+    - it is collected offline with an older version and sent only after a
+      newer one has been deployed.
+
+    The versions are written to `meta/formVersions` as a space-separated list,
+    oldest first. `__version__` is left untouched. When there is nothing to
+    record, which is the case for the vast majority of submissions, the XML is
+    returned unchanged so that it keeps the exact bytes the client sent.
+
+    `previous_xml` is the submission being edited, and it is the only source of
+    history: what the incoming XML claims under `meta/formVersions` is
+    discarded, since a client could otherwise drop the versions it has really
+    been through. A new submission passes `None` and starts from nothing.
+
+    The node is read through `ElementTree` but written textually, so that
+    `strip_form_versions()` gives the client payload back byte for byte and
+    `xml_hash` keeps identifying what was actually submitted.
+    """
+
+    deployed_version_uid = xform.deployed_version_uid
+
+    xml_parsed = fromstring_preserve_root_xmlns(xml)
+    _, submission_version = _get_form_versions(xml_parsed)
+
+    form_versions = []
+    if previous_xml is not None:
+        # 1) Retrieve every version the record being edited has already been through…
+        # Don't trust what the client sent, retrieve form versions from previous version
+        form_versions, previous_version = _get_form_versions(
+            fromstring_preserve_root_xmlns(previous_xml)
+        )
+        if previous_version and previous_version not in form_versions:
+            # `meta/formVersions` is absent from a record that only ever knew
+            # one version, so its `__version__` is the only trace of it
+            form_versions.append(previous_version)
+
+    if submission_version and submission_version not in form_versions:
+        # 2) … then, the version the client says it collected with
+        form_versions.append(submission_version)
+
+    if deployed_version_uid and deployed_version_uid not in form_versions:
+        # 3) … and last, the version deployed when the submission arrived. A
+        # form we cannot place has none, which is a reason to add nothing,
+        # never a reason to drop the history above
+        form_versions.append(deployed_version_uid)
+
+    if len(form_versions) < 2:
+        # A single version, so nothing worth recording. Stripping also clears a
+        # node the client made up, or one inherited by `duplicate_submission()`
+        return strip_form_versions(xml)
+
+    form_versions_text = ' '.join(form_versions)
+    recorded = xml_parsed.find(common_tags.META_FORM_VERSIONS)
+    if recorded is not None and recorded.text == form_versions_text:
+        # Already what we would write, so leave the bytes alone
+        return xml
+
+    return set_form_versions(xml, form_versions_text)
 
 
 def check_submission_permissions(
@@ -230,9 +303,12 @@ def create_instance(
 
     xml = smart_str(xml_file.read())
     validate_xml_chars(xml)
-    xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
+    # `Instance.get_hash()` excludes `meta/formVersions`, so duplicate detection
+    # compares what the client sent and stays unaffected by a redeployment
+    # landing between two POSTs of the same submission
+    xml_hash = Instance.get_hash(xml)
     if (
         settings.STRIPE_ENABLED
         and constance.config.USAGE_LIMIT_ENFORCEMENT
@@ -1055,7 +1131,7 @@ _COMMON_INSTANCE_FIELDS = frozenset(
     {
         'formhub',
         'meta',
-        '__version__',
+        common_tags.VERSION,
         'start',
         'end',
         'today',
@@ -1123,7 +1199,9 @@ def _get_instance(
             uuid=old_uuid,
             root_uuid=instance.root_uuid,
         )
-        instance.xml = xml
+        # The record being edited is already in memory, so its version history
+        # costs nothing to read and is trusted over the incoming XML
+        instance.xml = add_form_versions(xml, xform, previous_xml=instance.xml)
         instance.uuid = new_uuid
     else:
         get_user = (
@@ -1146,7 +1224,7 @@ def _get_instance(
         # Avoid `Instance.objects.create()` so that we can set a Python-only
         # attribute, `defer_counting`, before saving
         instance = Instance()
-        instance.xml = xml
+        instance.xml = add_form_versions(xml, xform)
         instance.user = submitted_by
         instance.status = status
         instance.xform = xform
@@ -1265,6 +1343,41 @@ def _has_edit_xform_permission(
         return getattr(request.user, 'has_partial_perms', False)
 
     return False
+
+
+def _get_form_versions(xml_parsed: ET.Element) -> tuple[list[str], str | None]:
+    """
+    Return what a parsed submission already says about form versions.
+
+    The first item is the history accumulated in `meta/formVersions`, oldest
+    first, empty when the submission has never spanned two versions. The second
+    is the single version the client declared in `__version__`, `None` when the
+    submission carries no such node.
+
+    Both come from the client, and `ElementTree` hands them over with their
+    entities decoded, so anything that does not look like a uid is discarded.
+    Otherwise `_write_form_versions()` would interpolate markup straight back
+    into the document and leave it malformed.
+    """
+
+    form_versions = []
+    submission_version = None
+
+    form_versions_element = xml_parsed.find(common_tags.META_FORM_VERSIONS)
+    if form_versions_element is not None and form_versions_element.text:
+        form_versions = [
+            uid
+            for uid in form_versions_element.text.split()
+            if version_uid_regex.match(uid)
+        ]
+
+    version = xml_parsed.find(common_tags.VERSION)
+    if version is not None and version.text:
+        candidate = version.text.strip()
+        if version_uid_regex.match(candidate):
+            submission_version = candidate
+
+    return form_versions, submission_version
 
 
 def _update_mongo_for_xform(xform, only_update_missing=True):
