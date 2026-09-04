@@ -51,8 +51,8 @@
   width: 100%;
   color: colors.$kobo-gray-800;
   // These stand in for a Mantine input label above a group of controls, so they
-  // are kept in sync by hand with `.label` in theme/kobo/InputBase.module.css.
-  font-size: 12px;
+  // read the same token as `.label` in theme/kobo/InputBase.module.css.
+  font-size: var(--mantine-font-size-md);
   margin-bottom: 5px;
   display: block;
 }

@@ -1,0 +1,31 @@
+.image {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  align-self: center;
+}
+
+// `Typography` uses Mantine's full h1-h6 scale - we make them appear smaller
+.text :global h1,
+.text :global h2 {
+  font-size: var(--mantine-h5-font-size);
+  line-height: var(--mantine-h5-line-height);
+}
+
+.text :global h3,
+.text :global h4,
+.text :global h5,
+.text :global h6 {
+  font-size: var(--mantine-h6-font-size);
+  line-height: var(--mantine-h6-line-height);
+}
+
+// `scss/stylesheets/partials/_base.scss` drops list markers app wide, and `Typography` sets only the
+// indent, so a markdown list would arrive here unmarked.
+.text :global ul {
+  list-style: disc;
+}
+
+.text :global ol {
+  list-style: decimal;
+}

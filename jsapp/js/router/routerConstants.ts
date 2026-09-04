@@ -53,8 +53,12 @@ export const ROUTES = Object.freeze({
  * logged in chrome (header, drawer, route blockers) applies to them - see `#/auth/routes`.
  */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
-  /** Temporary, proves the container renders. Delete once a real auth route lands. */
-  TEST: ROUTES.AUTH_ROOT + '/test',
+  REGISTER: ROUTES.AUTH_ROOT + '/register',
+  /**
+   * Where the activation link in the sign up email lands. Has: :key
+   * Not reachable yet: `HEADLESS_FRONTEND_URLS` is unset, so allauth still links to the Django view.
+   */
+  ACTIVATE_ACCOUNT: ROUTES.AUTH_ROOT + '/activate/:key',
 }
 
 export const PROJECTS_ROUTES: { readonly [key: string]: string } = {

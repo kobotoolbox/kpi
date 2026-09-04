@@ -7,7 +7,10 @@ import RequireFeatureFlag from '#/router/RequireFeatureFlag'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import AuthAppProviders from './AuthAppProviders'
 
-const AuthTestRoute = React.lazy(() => import(/* webpackPrefetch: true */ './AuthTestRoute/AuthTestRoute'))
+const RegisterRoute = React.lazy(() => import(/* webpackPrefetch: true */ './RegisterRoute/RegisterRoute'))
+const ActivateAccountRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './ActivateAccountRoute/ActivateAccountRoute'),
+)
 
 /**
  * Sign-in, registration and password recovery screens.
@@ -28,7 +31,8 @@ export default function authRoutes() {
         </RequireFeatureFlag>
       }
     >
-      <Route path={AUTH_ROUTES.TEST} element={<AuthTestRoute />} />
+      <Route path={AUTH_ROUTES.REGISTER} element={<RegisterRoute />} />
+      <Route path={AUTH_ROUTES.ACTIVATE_ACCOUNT} element={<ActivateAccountRoute />} />
     </Route>
   )
 }
