@@ -13,7 +13,7 @@ on:
 
 jobs:
 
-  # Validate that the tag actually exists and derive the release branch from it.
+  # Validate that the tag exists and matches the selected branch.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
@@ -23,10 +23,11 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - name: Validate tag and derive release branch
+    - name: Validate tag and selected branch match
       id: branch
       env:
         TAG: ${{ inputs.tag }}
+        REF_NAME: ${{ github.ref_name }}
       run: |
         set -xe
         if ! git rev-parse "refs/tags/$TAG" &>/dev/null; then
@@ -34,7 +35,12 @@ jobs:
           exit 1
         fi
         MINOR=$(echo "$TAG" | grep -oP '^\d+\.\d+\.\d+')
-        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
+        EXPECTED_BRANCH="release/$MINOR"
+        if [[ "$REF_NAME" != "$EXPECTED_BRANCH" ]]; then
+          echo "::error::Tag '$TAG' belongs to branch '$EXPECTED_BRANCH', but you selected '$REF_NAME'. Please re-run and pick '$EXPECTED_BRANCH' in the 'Use workflow from' dropdown."
+          exit 1
+        fi
+        echo "current_branch=$EXPECTED_BRANCH" >> "$GITHUB_OUTPUT"
 
 
   version:

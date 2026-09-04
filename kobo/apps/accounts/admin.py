@@ -4,12 +4,24 @@ from allauth.socialaccount.admin import SocialAppAdmin, SocialAppForm
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
+from django.contrib.admin.utils import unquote
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.db.models import Q
+from django.forms.formsets import all_valid
+from django.http import HttpRequest
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
-from kobo.apps.accounts.models import EmailContent
-from .models import EmailAddressAdmin, SocialAppCustomData, SocialAppManagedDomain
-from .utils import user_is_managed_by_sso
+from kobo.apps.accounts.models import (
+    EmailAddressAdmin,
+    EmailContent,
+    SocialAppCustomData,
+    SocialAppManagedDomain,
+)
+from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY, update_users
+from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update
 
 
 @admin.register(EmailContent)
@@ -71,6 +83,213 @@ class DomainInline(admin.TabularInline):
 @admin.register(SocialAppCustomData)
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
     inlines = [DomainInline]
+
+    def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
+        """
+        Count the accounts `tasks.update_users()` would act on, per track:
+        - Track 1: accounts linked to the SocialApp that still have another
+          login method (usable password or other social account).
+        - Track 2: accounts on a submitted domain that are not linked yet and
+          have not been notified already.
+
+        Both tracks come from `users_needing_update()` so the numbers match
+        what the task will actually do.
+        """
+        if not is_managed:
+            return 0, 0
+
+        track_1_count = 0
+        track_2_count = 0
+        for domain in submitted_domains:
+            users = users_needing_update(social_app, domain)
+            track_1_count += users.filter(managed_account__gt=0).count()
+            track_2_count += users.filter(managed_account=0).count()
+        return track_1_count, track_2_count
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        confirmed = request.method == 'POST' and request.POST.get('_confirmed') == '1'
+        # The toggle field only exists once the confirmation page has been
+        # rendered, so it defaults to True on the first (unconfirmed) POST.
+        send_in_app_message = (
+            'send_in_app_message' in request.POST if confirmed else True
+        )
+        in_app_message_body = request.POST.get('in_app_message_body', '').strip()
+        message_error = None
+        if confirmed and send_in_app_message and not in_app_message_body:
+            message_error = _('The in-app message cannot be empty.')
+
+        if request.method == 'POST' and (not confirmed or message_error):
+            add = object_id is None
+            to_field = request.POST.get('_to_field', request.GET.get('_to_field'))
+            if add:
+                if not self.has_add_permission(request):
+                    raise PermissionDenied
+                obj = None
+                initial_managed = False
+                initial_domains = set()
+            else:
+                obj = self.get_object(request, unquote(object_id), to_field)
+                if not self.has_change_permission(request, obj):
+                    raise PermissionDenied
+                if obj is None:
+                    return self._get_obj_does_not_exist_redirect(
+                        request, self.opts, object_id
+                    )
+                initial_managed = obj.managed
+                initial_domains = set(obj.domains.values_list('domain', flat=True))
+
+            ModelForm = self.get_form(request, obj, change=not add)
+            form = ModelForm(request.POST, request.FILES, instance=obj)
+            if form.is_valid():
+                new_object = form.save(commit=False)
+                formsets = []
+                for FormSet, inline in self.get_formsets_with_inlines(
+                    request, new_object
+                ):
+                    formsets.append(
+                        FormSet(
+                            data=request.POST,
+                            files=request.FILES,
+                            instance=new_object,
+                            queryset=inline.get_queryset(request),
+                        )
+                    )
+
+                if all_valid(formsets):
+                    new_managed = form.cleaned_data.get('managed', False)
+
+                    submitted_domains = set()
+                    for formset in formsets:
+                        if formset.model == SocialAppManagedDomain:
+                            for inline_form in formset.forms:
+                                if (
+                                    inline_form.cleaned_data
+                                    and not inline_form.cleaned_data.get(
+                                        'DELETE', False
+                                    )
+                                ):
+                                    domain = inline_form.cleaned_data.get('domain')
+                                    if domain:
+                                        submitted_domains.add(domain.strip().lower())
+
+                    added_domains = submitted_domains - initial_domains
+                    removed_domains = initial_domains - submitted_domains
+                    managed_toggled_on = not initial_managed and new_managed
+                    managed_toggled_off = initial_managed and not new_managed
+
+                    requires_confirmation = (
+                        managed_toggled_on
+                        or managed_toggled_off
+                        or (new_managed and bool(added_domains))
+                    )
+
+                    if requires_confirmation:
+                        social_app = (
+                            new_object.social_app
+                            if getattr(new_object, 'social_app', None)
+                            else form.cleaned_data.get('social_app')
+                        )
+                        track_1_count, track_2_count = (
+                            self._get_affected_accounts_counts(
+                                social_app, submitted_domains, new_managed
+                            )
+                        )
+
+                        post_data = [
+                            (key, value)
+                            for key in request.POST
+                            if key
+                            not in (
+                                'csrfmiddlewaretoken',
+                                '_confirmed',
+                                'send_in_app_message',
+                                'in_app_message_body',
+                            )
+                            for value in request.POST.getlist(key)
+                        ]
+
+                        if obj and obj.pk:
+                            cancel_url = reverse(
+                                'admin:accounts_socialappcustomdata_change',
+                                args=[obj.pk],
+                            )
+                        else:
+                            cancel_url = reverse(
+                                'admin:accounts_socialappcustomdata_changelist'
+                            )
+
+                        context = {
+                            **self.admin_site.each_context(request),
+                            'title': _('Confirm Managed SSO Changes for %s')
+                            % social_app.name,
+                            'opts': self.opts,
+                            'app_label': self.opts.app_label,
+                            'original': obj,
+                            'object_id': object_id,
+                            'social_app': social_app,
+                            'track_1_count': track_1_count,
+                            'track_2_count': track_2_count,
+                            'submitted_domains': sorted(submitted_domains),
+                            'added_domains': sorted(added_domains),
+                            'removed_domains': sorted(removed_domains),
+                            'managed_toggled_on': managed_toggled_on,
+                            'managed_toggled_off': managed_toggled_off,
+                            'new_managed': new_managed,
+                            'post_data': post_data,
+                            'cancel_url': cancel_url,
+                            'send_in_app_message': send_in_app_message,
+                            'in_app_message_body': (
+                                in_app_message_body or DEFAULT_IN_APP_MESSAGE_BODY
+                            ),
+                            'message_error': message_error,
+                            'media': self.media,
+                        }
+                        if extra_context:
+                            context.update(extra_context)
+                        return TemplateResponse(
+                            request,
+                            'admin/accounts/socialappcustomdata/confirmation.html',
+                            context,
+                        )
+        return super().changeform_view(
+            request, object_id=object_id, form_url=form_url, extra_context=extra_context
+        )
+
+    def save_model(self, request, obj, form, change):
+        obj._initially_managed_pre_save = obj._initially_managed
+        obj._initial_domains_pre_save = obj._initial_domains
+        super().save_model(request, obj, form, change)
+
+    def save_related(self, request: HttpRequest, form, formsets, change) -> None:
+        instance = formsets[0].instance
+        if not instance.managed:
+            super().save_related(request, form, formsets, change)
+            return
+
+        with transaction.atomic():
+            super().save_related(request, form, formsets, change)
+            managed_domains_formset = formsets[0]
+            domains_to_update = []
+            newly_managed = not instance._initially_managed_pre_save
+            for domain_form in managed_domains_formset.forms:
+                domain = domain_form.instance.domain
+                if not domain or domain_form.cleaned_data.get('DELETE'):
+                    continue
+                if newly_managed or domain not in instance._initial_domains_pre_save:
+                    domains_to_update.append(domain)
+
+            def update_all_domains():
+                send_message = request.POST.get('send_in_app_message', 'off') == 'on'
+                for domain in domains_to_update:
+                    update_users.delay(
+                        social_app_custom_data_id=instance.pk,
+                        domain=domain,
+                        requesting_user_id=request.user.pk,
+                        send_in_app_message=send_message,
+                        in_app_message_body=request.POST.get('in_app_message_body'),
+                    )
+
+            transaction.on_commit(update_all_domains)
 
 
 class SocialAccountForm(forms.ModelForm):

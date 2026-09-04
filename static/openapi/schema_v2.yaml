@@ -8835,6 +8835,8 @@ paths:
         ## Retrieve organization asset usage tracker
 
         Tracks the total usage of each asset for the user in the given organization
+
+        Use the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long and match anywhere in the name, case-insensitively. The standard query syntax is also supported: `?q=name__icontains:household` for a contains match, while `?q=name:Household survey` is an exact name match.
       parameters:
       - in: query
         name: limit
@@ -8846,6 +8848,11 @@ paths:
         schema:
           type: string
         description: Which field to use when ordering the results.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
       - in: query
         name: start
         schema:
@@ -11524,6 +11531,68 @@ paths:
                   value:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
+          description: ''
+  /api/v2/social-apps/{provider_id}/:
+    get:
+      operationId: api_v2_social_apps_retrieve
+      description: |
+        ## Retrieve a single sign-on provider
+
+        Resolves the `provider_id` used in single sign-on URLs into the provider's display
+        name, so a client can render the "Log in with …" screen and tell a real provider
+        from a typo.
+
+        Returns display data only, never `client_id`, secrets, or the provider's server URL.
+
+        Examples:
+        ```shell
+          curl -X GET https://kf.kobotoolbox.org/api/v2/social-apps/nca/
+        ```
+
+        > Response 200
+        ```json
+        {
+            "provider_id": "nca",
+            "name": "Norwegian Church Aid"
+        }
+        ```
+
+        Requires no authentication, and resolves providers that are hidden from the login
+        page as well as those shown on it: a hidden provider is not advertised, but is
+        usable by anyone holding its link, and that link already contains the
+        `provider_id`. There is intentionally no endpoint listing all providers, the
+        `social_apps` property of `/api/v2/environment/` lists the public ones only.
+
+        An unknown `provider_id` returns `404`.
+      parameters:
+      - in: path
+        name: provider_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Configuration
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialAppDetail'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
   /api/v2/stripe/addons/:
     get:
@@ -22964,6 +23033,24 @@ components:
       - managed
       - name
       - provider
+      - provider_id
+    SocialAppDetail:
+      type: object
+      description: |-
+        Public, display-only representation of a `SocialApp`
+
+        Fields are declared explicitly rather than through `ModelSerializer` so that
+        credentials (`client_id`, `secret`, `key`) and provider internals
+        (`settings`, which holds `server_url`) cannot leak by accident
+      properties:
+        provider_id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - name
       - provider_id
     StripeIntervalEnum:
       enum:

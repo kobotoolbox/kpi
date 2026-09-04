@@ -167,6 +167,7 @@ jobs:
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
+        name: ${{ needs.version.outputs.current_minor }}
         base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
 
     # Patch releases skip QA and go straight to "Pending Image"

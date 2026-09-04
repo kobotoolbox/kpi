@@ -44,6 +44,7 @@ from kpi.tests.base_test_case import (
 )
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.mixins import AssetFileTestCaseMixin
+from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.hash import calculate_hash
@@ -2622,6 +2623,117 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
         expected_response = {
             'metadata': ['`redirect_url` is invalid']
         }
+        assert json_response == expected_response
+
+    def test_upload_form_media_ssrf_redirect_url(self):
+        # A syntactically valid URL that resolves to an internal address must
+        # be rejected by the SSRF guard with a clean 400 at the API boundary
+        payload = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'A beautiful bird',
+            'metadata': json.dumps({'redirect_url': 'http://127.0.0.1/eagle.png'}),
+        }
+        response = self.create_asset_file(
+            payload=payload, status_code=status.HTTP_400_BAD_REQUEST
+        )
+        json_response = response.json()
+        expected_response = {'metadata': ['`redirect_url` is not allowed']}
+        assert json_response == expected_response
+
+    @patch_ssrf_dns()
+    def test_content_redirects_to_public_remote_url(self):
+        # A legitimate remote media file must still be served via a 302
+        redirect_url = (
+            'https://png.pngtree.com/png-clipart/20190810/ourmid/'
+            'pngtree-glide-wild-eagle-png-image_1657715.jpg'
+        )
+        payload = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'A beautiful bird',
+            'metadata': json.dumps({'redirect_url': redirect_url}),
+        }
+        response = self.create_asset_file(payload=payload)
+        af_uid = response.json()['uid']
+        content_url = reverse(
+            self._get_endpoint('asset-file-content'),
+            args=(self.asset.uid, af_uid),
+        )
+        response = self.client.get(content_url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response['Location'], redirect_url)
+
+    def test_content_with_internal_redirect_url_returns_404(self):
+        # Legacy/sync rows bypass the serializer, so an internal target must be
+        # rejected at serve time
+        asset_file = AssetFile.objects.create(
+            asset=self.asset,
+            user=self.asset.owner,
+            file_type=AssetFile.FORM_MEDIA,
+            metadata={
+                'filename': 'x.png',
+                'hash': 'md5:whatever',
+                'mimetype': 'image/png',
+                'redirect_url': 'http://127.0.0.1/x.png',
+            },
+        )
+        content_url = reverse(
+            self._get_endpoint('asset-file-content'),
+            args=(self.asset.uid, asset_file.uid),
+        )
+        response = self.client.get(content_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_content_with_malformed_redirect_url_returns_404(self):
+        asset_file = AssetFile.objects.create(
+            asset=self.asset,
+            user=self.asset.owner,
+            file_type=AssetFile.FORM_MEDIA,
+            metadata={
+                'filename': 'x.png',
+                'hash': 'md5:whatever',
+                'mimetype': 'image/png',
+                'redirect_url': 'eagle.png',
+            },
+        )
+        content_url = reverse(
+            self._get_endpoint('asset-file-content'),
+            args=(self.asset.uid, asset_file.uid),
+        )
+        response = self.client.get(content_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_content_with_ftp_redirect_url_returns_404(self):
+        asset_file = AssetFile.objects.create(
+            asset=self.asset,
+            user=self.asset.owner,
+            file_type=AssetFile.FORM_MEDIA,
+            metadata={
+                'filename': 'x.png',
+                'hash': 'md5:whatever',
+                'mimetype': 'image/png',
+                'redirect_url': 'ftp://example.org/x.png',
+            },
+        )
+        content_url = reverse(
+            self._get_endpoint('asset-file-content'),
+            args=(self.asset.uid, asset_file.uid),
+        )
+        response = self.client.get(content_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_upload_form_media_ftp_redirect_url_rejected(self):
+        # `ftp`/`ftps` are in Django's default `URLValidator` schemes; the
+        # serializer must restrict them so they can never be stored
+        payload = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'A beautiful bird',
+            'metadata': json.dumps({'redirect_url': 'ftp://example.org/eagle.png'}),
+        }
+        response = self.create_asset_file(
+            payload=payload, status_code=status.HTTP_400_BAD_REQUEST
+        )
+        json_response = response.json()
+        expected_response = {'metadata': ['`redirect_url` is invalid']}
         assert json_response == expected_response
 
     def test_upload_form_media_bad_mime_type(self):

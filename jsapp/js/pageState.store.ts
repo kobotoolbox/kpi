@@ -46,24 +46,6 @@ const pageState = {
       _listeners.forEach((l) => l(_snapshot))
     }, 0)
   },
-
-  switchToPreviousModal(): void {
-    const currentModal = _snapshot.modal
-    if (currentModal && currentModal.previousType) {
-      const previousType: string = currentModal.previousType
-      _snapshot = { modal: false }
-      _listeners.forEach((l) => l(_snapshot))
-      window.setTimeout(() => {
-        _snapshot = { modal: { type: previousType } }
-        _listeners.forEach((l) => l(_snapshot))
-      }, 0)
-    }
-  },
-
-  hasPreviousModal(): boolean {
-    const modal = _snapshot.modal
-    return !!(modal && modal.previousType)
-  },
 }
 
 export default pageState

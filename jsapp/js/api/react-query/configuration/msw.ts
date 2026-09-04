@@ -18,6 +18,8 @@ import { AuthThemeEnum } from '../../models/authThemeEnum'
 
 import type { EnvironmentResponse } from '../../models/environmentResponse'
 
+import type { SocialAppDetail } from '../../models/socialAppDetail'
+
 export const getApiV2EnvironmentRetrieveResponseMock = (
   overrideResponse: Partial<EnvironmentResponse> = {},
 ): EnvironmentResponse => ({
@@ -112,6 +114,14 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2SocialAppsRetrieveResponseMock = (
+  overrideResponse: Partial<SocialAppDetail> = {},
+): SocialAppDetail => ({
+  provider_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
 export const getApiV2EnvironmentRetrieveMockHandler = (
   overrideResponse?:
     | EnvironmentResponse
@@ -135,4 +145,31 @@ export const getApiV2EnvironmentRetrieveMockHandler = (
     options,
   )
 }
-export const getConfigurationMock = () => [getApiV2EnvironmentRetrieveMockHandler()]
+
+export const getApiV2SocialAppsRetrieveMockHandler = (
+  overrideResponse?:
+    | SocialAppDetail
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SocialAppDetail> | SocialAppDetail),
+  options?: RequestHandlerOptions,
+) => {
+  return http.get(
+    '*/api/v2/social-apps/:providerId{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2SocialAppsRetrieveResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+export const getConfigurationMock = () => [
+  getApiV2EnvironmentRetrieveMockHandler(),
+  getApiV2SocialAppsRetrieveMockHandler(),
+]

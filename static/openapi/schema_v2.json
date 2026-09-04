@@ -12039,7 +12039,7 @@
         "/api/v2/organizations/{uid_organization}/asset_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_asset_usage_list",
-                "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n",
+                "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n\nUse the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long and match anywhere in the name, case-insensitively. The standard query syntax is also supported: `?q=name__icontains:household` for a contains match, while `?q=name:Household survey` is an exact name match.\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -12056,6 +12056,14 @@
                             "type": "string"
                         },
                         "description": "Which field to use when ordering the results."
+                    },
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with search query"
                     },
                     {
                         "in": "query",
@@ -15936,6 +15944,64 @@
                                             "detail": "Authentication credentials were not provided."
                                         },
                                         "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/social-apps/{provider_id}/": {
+            "get": {
+                "operationId": "api_v2_social_apps_retrieve",
+                "description": "## Retrieve a single sign-on provider\n\nResolves the `provider_id` used in single sign-on URLs into the provider's display\nname, so a client can render the \"Log in with …\" screen and tell a real provider\nfrom a typo.\n\nReturns display data only, never `client_id`, secrets, or the provider's server URL.\n\nExamples:\n```shell\n  curl -X GET https://kf.kobotoolbox.org/api/v2/social-apps/nca/\n```\n\n> Response 200\n```json\n{\n    \"provider_id\": \"nca\",\n    \"name\": \"Norwegian Church Aid\"\n}\n```\n\nRequires no authentication, and resolves providers that are hidden from the login\npage as well as those shown on it: a hidden provider is not advertised, but is\nusable by anyone holding its link, and that link already contains the\n`provider_id`. There is intentionally no endpoint listing all providers, the\n`social_apps` property of `/api/v2/environment/` lists the public ones only.\n\nAn unknown `provider_id` returns `404`.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "provider_id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Configuration"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SocialAppDetail"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
                                     }
                                 }
                             }
@@ -32124,6 +32190,24 @@
                     "managed",
                     "name",
                     "provider",
+                    "provider_id"
+                ]
+            },
+            "SocialAppDetail": {
+                "type": "object",
+                "description": "Public, display-only representation of a `SocialApp`\n\nFields are declared explicitly rather than through `ModelSerializer` so that\ncredentials (`client_id`, `secret`, `key`) and provider internals\n(`settings`, which holds `server_url`) cannot leak by accident",
+                "properties": {
+                    "provider_id": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "name",
                     "provider_id"
                 ]
             },
