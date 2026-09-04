@@ -149,6 +149,11 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         self.assertEqual(response.context['track_2_count'], 1)
         self.assertEqual(response.context['submitted_domains'], ['example.com'])
         self.assertTrue(response.context['managed_toggled_on'])
+        self.assertNotIn(
+            'Pending in-app reminders asking users to link their SSO account'
+            ' will be withdrawn.',
+            response.content.decode(),
+        )
 
         # Verify nothing changed in DB yet
         self.custom_data.refresh_from_db()
@@ -299,6 +304,11 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             response, 'admin/accounts/socialappcustomdata/confirmation.html'
         )
         self.assertTrue(response.context['managed_toggled_off'])
+        self.assertIn(
+            'Pending in-app reminders asking users to link their SSO account'
+            ' will be withdrawn.',
+            response.content.decode(),
+        )
 
         # Confirm turn off
         post_data['_confirmed'] = '1'

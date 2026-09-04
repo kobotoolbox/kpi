@@ -84,10 +84,20 @@ def update_users(
     send_in_app_message: bool = True,
     in_app_message_body: str = None,
 ):
-    # Only pks cross the task boundary: model instances are not JSON-serializable
-    custom_data = SocialAppCustomData.objects.select_related('social_app').get(
-        pk=social_app_custom_data_id
+    # Only pks cross the task boundary: model instances are not JSON-serializable.
+    # The flag and the domain are re-checked here because the admin can turn
+    # managed off, drop the domain or delete the app before the worker runs.
+    custom_data = (
+        SocialAppCustomData.objects.select_related('social_app')
+        .filter(pk=social_app_custom_data_id, managed=True, domains__domain=domain)
+        .first()
     )
+    if custom_data is None:
+        logging.info(
+            f'[Managed SSO] Domain {domain} is no longer managed by social app'
+            f' custom data {social_app_custom_data_id}. Nothing to do.'
+        )
+        return
     social_app = custom_data.social_app
     requesting_user = (
         User.objects.get(pk=requesting_user_id) if requesting_user_id else None

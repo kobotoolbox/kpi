@@ -1,11 +1,13 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
 from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
+from django.db import transaction
 from django.db.models import CharField, Count, F, Func, Q, Value
 from django.db.models.functions import Lower
+from django.utils import timezone
 
 from kobo.apps.accounts.models import SocialAppManagedDomain
-from kobo.apps.help.models import InAppMessageUsers, MessageType
+from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
@@ -51,6 +53,29 @@ def get_normalized_domain(email):
     if not separator:
         return ''
     return domain.strip().lower()
+
+
+def remove_managed_sso_reminders(social_app_pk: int, domain: str | None = None):
+    """
+    Withdraw the "connect your SSO account" reminders sent for a social app,
+    for every recipient or only for users whose email is on `domain`.
+
+    A reminder left with no recipient is expired rather than deleted: the
+    in-app message endpoint shows a message with no `InAppMessageUsers` row
+    to everyone.
+    """
+    messages = InAppMessage.objects.filter(
+        message_type=MessageType.MANAGED_SSO_REMINDER,
+        generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: social_app_pk},
+    )
+    recipients = InAppMessageUsers.objects.filter(in_app_message__in=messages)
+    if domain:
+        recipients = recipients.filter(user__email__iendswith=f'@{domain}')
+    with transaction.atomic():
+        recipients.delete()
+        messages.filter(inappmessageusers__isnull=True).update(
+            valid_until=timezone.now()
+        )
 
 
 def user_is_managed_by_sso(user):
