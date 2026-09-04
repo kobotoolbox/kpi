@@ -1073,6 +1073,12 @@ REST_FRAMEWORK = {
         'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
+    'DEFAULT_THROTTLE_RATES': {
+        # Changing the email address accepts `current_password` from clients
+        # without a browser session; throttle it so it cannot be used to guess
+        # passwords. Generous for the legitimate case, which is rare.
+        'email_change': env.str('EMAIL_CHANGE_THROTTLE_RATE', '10/hour'),
+    },
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -1840,6 +1846,11 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
+# How long a re-authentication remains valid before a sensitive action (e.g.
+# changing the email address) demands it again
+ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
+    'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
+)
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
