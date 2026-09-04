@@ -9,6 +9,7 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
 
+from hub.models.sitewide_message import SitewideMessage
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.accounts.tests.constants import SOCIALACCOUNT_PROVIDERS
 from kobo.apps.accounts.tests.utils import MockProvider
@@ -150,6 +151,29 @@ class RegistrationTestCase(TestCase):
             response.content
         )
         self.assertFalse(User.objects.filter(username='alice').exists())
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_signup_closed_shows_default_message(self):
+        response = self.client.get(reverse('account_signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            t('We are sorry, but the sign up is currently closed.').encode(),
+            response.content,
+        )
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_signup_closed_shows_custom_message(self):
+        SitewideMessage.objects.create(
+            slug='signup_closed_message',
+            body='Registration is paused for maintenance.',
+        )
+        response = self.client.get(reverse('account_signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Registration is paused for maintenance.', response.content)
+        self.assertNotIn(
+            t('We are sorry, but the sign up is currently closed.').encode(),
+            response.content,
+        )
 
     @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
     def test_cannot_use_password_with_managed_social_app(self):
