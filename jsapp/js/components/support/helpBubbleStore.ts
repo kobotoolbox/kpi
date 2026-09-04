@@ -4,7 +4,7 @@ import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 
 const FETCH_MESSAGES_LOOP_TIME = 1 * 60 * 1000 // 1 minute
 
@@ -39,7 +39,7 @@ class HelpBubbleStore {
   constructor() {
     makeAutoObservable(this)
     when(
-      () => sessionStore.isLoggedIn,
+      () => profileStore.isLoggedIn,
       () => this.fetchMessages(),
     )
   }

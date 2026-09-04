@@ -9,7 +9,7 @@ import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { TransferStatuses, cancelInvite, sendInvite } from './transferProjects.api'
 import styles from './transferProjects.module.scss'
 
@@ -72,7 +72,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
   }
 
   function submitInvite(username: string) {
-    if (username === sessionStore.currentAccount.username) {
+    if (username === profileStore.currentAccount.username) {
       setTransfer({
         ...transfer,
         usernameError: t('Cannot transfer a project to the same account.'),
@@ -126,7 +126,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
     }
   }
 
-  if (props.asset.owner__username === sessionStore.currentAccount.username) {
+  if (props.asset.owner__username === profileStore.currentAccount.username) {
     return (
       <div className={styles.root}>
         <div className={styles.bar}>

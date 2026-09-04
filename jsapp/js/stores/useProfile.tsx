@@ -2,43 +2,41 @@ import { useEffect, useState } from 'react'
 
 import { reaction } from 'mobx'
 import type { AccountResponse } from '../dataInterface'
-import sessionStore from './session'
+import profileStore from './profile'
 
 /**
- * Hook to use the session store in functional components.
- * This hook provides a way to access teh current logged account, information
- * regarding the anonymous state of the login and session methods.
+ * Hook to use the profile store in functional components.
+ * This hook provides a way to access the current logged account, information
+ * regarding the pending state, and profile methods.
  *
  * This hook uses MobX reactions to track the current account and update the
  * state accordingly.
  * In the future we should update this hook to use react-query and drop the usage of mob-x
  */
-export const useSession = () => {
+export const useProfile = () => {
   const [currentLoggedAccount, setCurrentLoggedAccount] = useState<AccountResponse>(
-    sessionStore.currentAccount as AccountResponse,
+    profileStore.currentAccount as AccountResponse,
   )
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(true)
   const [isPending, setIsPending] = useState<boolean>(false)
 
   useEffect(() => {
     // We need to setup a reaction for every observable we want to track
-    // Generic reaction to sessionStore won't fire the re-rendering of the hook
+    // Generic reaction to profileStore won't fire the re-rendering of the hook
     const currentAccountReactionDisposer = reaction(
-      () => sessionStore.currentAccount,
+      () => profileStore.currentAccount,
       (currentAccount) => {
-        if (sessionStore.isLoggedIn) {
+        if (profileStore.isLoggedIn) {
           setCurrentLoggedAccount(currentAccount as AccountResponse)
-          setIsAnonymous(false)
-          setIsPending(sessionStore.isPending)
+          setIsPending(profileStore.isPending)
         }
       },
       { fireImmediately: true },
     )
 
     const isPendingReactionDisposer = reaction(
-      () => sessionStore.isPending,
+      () => profileStore.isPending,
       () => {
-        setIsPending(sessionStore.isPending)
+        setIsPending(profileStore.isPending)
       },
       { fireImmediately: true },
     )
@@ -51,8 +49,7 @@ export const useSession = () => {
 
   return {
     currentLoggedAccount,
-    isAnonymous,
     isPending,
-    refreshAccount: sessionStore.refreshAccount.bind(sessionStore),
+    refreshAccount: profileStore.refreshAccount.bind(profileStore),
   }
 }

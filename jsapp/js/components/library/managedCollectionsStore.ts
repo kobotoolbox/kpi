@@ -6,7 +6,7 @@ import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, AssetsResponse, DeleteAssetResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { isAnyLibraryRoute } from '#/router/routerUtils'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { userCan } from '../permissions/utils'
 
 export interface ManagedCollectionsStoreData {
@@ -37,7 +37,7 @@ class ManagedCollectionsStore extends Reflux.Store {
     actions.resources.createResource.completed.listen(this.onAssetChangedOrCreated.bind(this))
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this))
 
-    when(() => sessionStore.isLoggedIn, this.startupStore.bind(this))
+    when(() => profileStore.isLoggedIn, this.startupStore.bind(this))
 
     // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.startupStore.bind(this)))
@@ -56,9 +56,9 @@ class ManagedCollectionsStore extends Reflux.Store {
       // the app directly at Library, we need to fetch data immediately.
       isAnyLibraryRoute() &&
       // This store requires user who is logged in, and due to race condition we
-      // often end up initializing it before session store is ready, thus we
+      // often end up initializing it before profile store is ready, thus we
       // need to wait for it a bit.
-      sessionStore.isLoggedIn &&
+      profileStore.isLoggedIn &&
       // Avoid unnecessary duplicate calls
       !this.data.isFetchingData
     ) {
@@ -70,7 +70,7 @@ class ManagedCollectionsStore extends Reflux.Store {
 
   onGetCollectionsCompleted(response: AssetsResponse) {
     this.data.collections = response.results.filter(
-      (asset) => asset.owner__username === sessionStore.currentAccount.username || userCan('manage_asset', asset),
+      (asset) => asset.owner__username === profileStore.currentAccount.username || userCan('manage_asset', asset),
     )
 
     this.data.isFetchingData = false
@@ -86,7 +86,7 @@ class ManagedCollectionsStore extends Reflux.Store {
   onAssetChangedOrCreated(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
-      (asset.owner__username === sessionStore.currentAccount.username || userCan('manage_asset', asset))
+      (asset.owner__username === profileStore.currentAccount.username || userCan('manage_asset', asset))
     ) {
       let wasUpdated = false
       for (let i = 0; i < this.data.collections.length; i++) {

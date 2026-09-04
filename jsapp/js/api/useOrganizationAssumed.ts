@@ -6,7 +6,7 @@ import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 
 /**
  * For convenience, returns `Organization` directly that's assumed to be already cached, stale or not.
@@ -21,8 +21,8 @@ import { useSession } from '#/stores/useSession'
 export const useOrganizationAssumed = (
   options?: Omit<UseQueryOptions<organizationsRetrieveResponse, ErrorDetail>, 'queryKey'>,
 ) => {
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
 
   // Note: `!` is a workaround, see https://github.com/orval-labs/orval/issues/2397
   const query = useOrganizationsRetrieve(organizationId!, {
