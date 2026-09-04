@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -33,6 +34,20 @@ def _get_service_with_blobs(blobs):
     service.bucket.list_blobs.return_value = blobs
     service._get_batch_paths = MagicMock(return_value=('input.flac', 'output'))
     return service
+
+
+def _override_asr_max_repeats(value: int = 5):
+    """
+    Patch the constance value read by `_read_batch_result` without a database
+
+    The constance database backend requires DB access, so patch the config
+    object referenced by the module to keep these read-path tests DB-free.
+    """
+    return patch(
+        'kobo.apps.subsequences.integrations.google.google_transcribe'
+        '.constance.config',
+        SimpleNamespace(ASR_MAX_CONSECUTIVE_REPEATS=value),
+    )
 
 
 def _get_service_for_process_data():
@@ -124,6 +139,7 @@ def test_read_batch_result_raises_when_no_json_result_files_exist():
     assert 'No transcription JSON result files were found' in str(exc_info.value)
 
 
+@_override_asr_max_repeats()
 def test_read_batch_result_returns_empty_transcript_for_silent_audio_result():
     service = _get_service_with_blobs(
         [
@@ -149,6 +165,7 @@ def test_read_batch_result_returns_empty_transcript_for_silent_audio_result():
     assert service._read_batch_result('audio', 'en-US') == ''
 
 
+@_override_asr_max_repeats()
 def test_read_batch_result_joins_transcripts_from_json_result_files():
     service = _get_service_with_blobs(
         [
@@ -164,6 +181,30 @@ def test_read_batch_result_joins_transcripts_from_json_result_files():
     )
 
     assert service._read_batch_result('audio', 'en-US') == 'Hello world'
+
+
+@_override_asr_max_repeats()
+def test_read_batch_result_collapses_runaway_repetition():
+    transcript = 'the story begins ' + 'na niko, ' * 300
+    service = _get_service_with_blobs(
+        [
+            MockBlob(
+                'output/result.json',
+                json.dumps(
+                    {
+                        'results': [
+                            {'alternatives': [{'transcript': transcript.strip()}]},
+                        ]
+                    }
+                ),
+            ),
+        ]
+    )
+
+    result = service._read_batch_result('audio', 'en-US')
+
+    assert result == 'the story begins ' + ('na niko, ' * 5).strip()
+    assert result.count('niko') == 5
 
 
 def test_process_data_returns_failed_for_missing_google_service_config():
