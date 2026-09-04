@@ -5,7 +5,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
-from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER, users_needing_update
+from kobo.apps.accounts.utils import (
+    SOCIAL_APP_IDENTIFIER,
+    remove_stale_managed_sso_reminders,
+    users_needing_update,
+)
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
@@ -138,6 +142,7 @@ def update_users(
 
 @celery_app.task()
 def managed_sso_sweep():
+    remove_stale_managed_sso_reminders()
     managed_domains = SocialAppManagedDomain.objects.filter(
         social_app__managed=True
     ).values_list('social_app_id', 'domain')

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import ANY, MagicMock, patch
 
 from allauth.socialaccount.models import SocialAccount, SocialApp
@@ -27,7 +28,11 @@ from ..tasks import (
     update_linked_user,
     update_users,
 )
-from ..utils import SOCIAL_APP_IDENTIFIER, users_needing_update
+from ..utils import (
+    SOCIAL_APP_IDENTIFIER,
+    remove_stale_managed_sso_reminders,
+    users_needing_update,
+)
 from .utils import MockProvider
 
 
@@ -737,3 +742,69 @@ class TestManagedSsoWithdrawal(TestCase):
             ).count()
             == message_count_before
         )
+
+    def test_sweep_withdraws_reminders_of_a_deleted_app(self):
+        """
+        A reminder left behind by an app deleted before the cleanup signals
+        existed is withdrawn by the nightly sweep; live ones are left alone.
+        """
+        now = timezone.now()
+        orphan = baker.make(
+            'help.InAppMessage',
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: 999999},
+            published=True,
+            valid_from=now,
+            valid_until=now + timedelta(days=365),
+        )
+        InAppMessageUsers.objects.create(user=self.carol, in_app_message=orphan)
+
+        with patch('kobo.apps.accounts.tasks.update_users'):
+            managed_sso_sweep()
+
+        orphan.refresh_from_db()
+        assert not InAppMessageUsers.objects.filter(in_app_message=orphan).exists()
+        assert orphan.valid_until <= timezone.now()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 1
+
+    def test_sweep_withdraws_reminders_of_an_unmanaged_app(self):
+        """
+        `update()` bypasses the signals, like a flag turned off before they
+        existed; the sweep must catch up.
+        """
+        SocialAppCustomData.objects.filter(pk=self.custom_data.pk).update(managed=False)
+
+        remove_stale_managed_sso_reminders()
+
+        assert not InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+        messages = InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert messages.exists()
+        now = timezone.now()
+        assert all(message.valid_until <= now for message in messages)
+
+    def test_sweep_withdraws_recipients_off_the_managed_domains(self):
+        """
+        A recipient whose email left the managed domains is withdrawn and the
+        emptied reminder expired; the other recipient keeps a live one.
+        """
+        User.objects.filter(pk=self.bob.pk).update(email='bob@elsewhere.com')
+
+        remove_stale_managed_sso_reminders()
+
+        assert not InAppMessageUsers.objects.filter(user=self.bob).exists()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+
+        self.client.force_login(self.carol)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 0
+
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 1

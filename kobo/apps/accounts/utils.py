@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
 from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
@@ -76,6 +78,36 @@ def remove_managed_sso_reminders(social_app_pk: int, domain: str | None = None):
         messages.filter(inappmessageusers__isnull=True).update(
             valid_until=timezone.now()
         )
+
+
+def remove_stale_managed_sso_reminders():
+    """
+    Withdraw live reminders that no longer match a managed social app and
+    domain: the app was deleted or turned unmanaged before the cleanup
+    signals existed, or a recipient's email moved off the managed domains.
+    """
+    now = timezone.now()
+    managed_domains = defaultdict(set)
+    for social_app_pk, domain in SocialAppManagedDomain.objects.filter(
+        social_app__managed=True
+    ).values_list('social_app_id', 'domain'):
+        managed_domains[social_app_pk].add(domain)
+
+    live_reminders = InAppMessage.objects.filter(
+        message_type=MessageType.MANAGED_SSO_REMINDER, valid_until__gte=now
+    )
+    with transaction.atomic():
+        for reminder in live_reminders:
+            recipients = InAppMessageUsers.objects.filter(in_app_message=reminder)
+            social_app_pk = reminder.generic_related_objects.get(SOCIAL_APP_IDENTIFIER)
+            domains = managed_domains.get(social_app_pk)
+            if domains:
+                still_managed = Q()
+                for domain in domains:
+                    still_managed |= Q(user__email__iendswith=f'@{domain}')
+                recipients = recipients.exclude(still_managed)
+            recipients.delete()
+        live_reminders.filter(inappmessageusers__isnull=True).update(valid_until=now)
 
 
 def user_is_managed_by_sso(user):
