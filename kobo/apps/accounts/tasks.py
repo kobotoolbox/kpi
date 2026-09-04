@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.db import transaction
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
@@ -92,8 +93,8 @@ def update_users(
     # The flag and the domain are re-checked here because the admin can turn
     # managed off, drop the domain or delete the app before the worker runs.
     custom_data = (
-        SocialAppCustomData.objects.select_related('social_app')
-        .filter(pk=social_app_custom_data_id, managed=True, domains__domain=domain)
+        _managed_custom_data(social_app_custom_data_id, domain)
+        .select_related('social_app')
         .first()
     )
     if custom_data is None:
@@ -114,10 +115,19 @@ def update_users(
             f'domain {domain}. Nothing to do.'
         )
         return
+    # The admin can also turn managed off while this task is running, so the
+    # check is repeated before each destructive change.
+    stopped_mid_run = (
+        f'[Managed SSO] Domain {domain} stopped being managed by social app'
+        f' {social_app.name} while updating users. Stopping.'
+    )
     user_ids_needing_notification = []
     for user in users_to_update:
         # 'managed_account' is an annotated field created by the query
         if user.managed_account > 0:
+            if not _managed_custom_data(social_app_custom_data_id, domain).exists():
+                logging.info(stopped_mid_run)
+                return
             logging.info(
                 '[Managed SSO] Removing alternative login methods for user '
                 f'{user.username} for managed social app {social_app.name}.'
@@ -131,6 +141,9 @@ def update_users(
                 '[Managed SSO] Skipping in-app notification for social app '
                 f'{social_app.name} with domain {domain}.'
             )
+            return
+        if not _managed_custom_data(social_app_custom_data_id, domain).exists():
+            logging.info(stopped_mid_run)
             return
         notify_unlinked_users(
             user_ids_needing_notification,
@@ -150,3 +163,14 @@ def managed_sso_sweep():
         # TODO: determine who kicked off the original update_users task and set them
         # as requesting_user
         update_users(social_app_custom_data_id, domain)
+
+
+def _managed_custom_data(
+    social_app_custom_data_id: int, domain: str
+) -> QuerySet[SocialAppCustomData]:
+    """
+    The custom data, only while `domain` is one of its managed domains.
+    """
+    return SocialAppCustomData.objects.filter(
+        pk=social_app_custom_data_id, managed=True, domains__domain=domain
+    )

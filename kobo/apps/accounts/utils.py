@@ -96,10 +96,16 @@ def remove_stale_managed_sso_reminders():
     live_reminders = InAppMessage.objects.filter(
         message_type=MessageType.MANAGED_SSO_REMINDER, valid_until__gte=now
     )
+    reminders_by_app = defaultdict(list)
+    for reminder_pk, related_objects in live_reminders.values_list(
+        'pk', 'generic_related_objects'
+    ):
+        reminders_by_app[related_objects.get(SOCIAL_APP_IDENTIFIER)].append(reminder_pk)
     with transaction.atomic():
-        for reminder in live_reminders:
-            recipients = InAppMessageUsers.objects.filter(in_app_message=reminder)
-            social_app_pk = reminder.generic_related_objects.get(SOCIAL_APP_IDENTIFIER)
+        for social_app_pk, reminder_pks in reminders_by_app.items():
+            recipients = InAppMessageUsers.objects.filter(
+                in_app_message_id__in=reminder_pks
+            )
             domains = managed_domains.get(social_app_pk)
             if domains:
                 still_managed = Q()

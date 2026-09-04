@@ -523,6 +523,43 @@ class TestManagedSsoCelery(TestCase):
         )
         assert message.body == 'custom body text'
 
+    def test_update_users_stops_when_managed_turns_off_mid_run(self):
+        """
+        The flag is re-checked before each destructive change, so a toggle
+        during the run leaves the remaining users alone and sends no reminder.
+        """
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        linked_users = [
+            self._create_user('first_linked', True, True, False),
+            self._create_user('second_linked', True, True, False),
+        ]
+        self._create_user('unlinked', True, False, False)
+
+        def convert_then_toggle_off(user, provider_id):
+            update_linked_user(user, provider_id)
+            SocialAppCustomData.objects.filter(pk=custom_data.pk).update(managed=False)
+
+        with patch(
+            'kobo.apps.accounts.tasks.update_linked_user',
+            side_effect=convert_then_toggle_off,
+        ):
+            update_users(custom_data.pk, managed_domain.domain)
+
+        still_with_password = [
+            user
+            for user in linked_users
+            if User.objects.get(pk=user.pk).has_usable_password()
+        ]
+        assert len(still_with_password) == 1
+        assert not InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+
     def test_create_inapp_message_defaults_to_constant_body(self):
         message = create_inapp_message(self.social_app)
         assert message.body == DEFAULT_IN_APP_MESSAGE_BODY
