@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
 
-import { keepPreviousData, useMutation } from '@tanstack/react-query'
+import { keepPreviousData } from '@tanstack/react-query'
 import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
 import securityStyles from '#/account/security/securityRoute.module.scss'
-import { fetchPost } from '#/api'
-import { endpoints } from '#/api.endpoints'
 import { ServerError } from '#/api/ServerError'
 import type { AccessLogResponse } from '#/api/models/accessLogResponse'
 import type { ErrorDetail } from '#/api/models/errorDetail'
