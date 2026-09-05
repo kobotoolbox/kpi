@@ -189,8 +189,12 @@ export default function TOSForm() {
 
   async function leaveForm() {
     setIsFormPending(true)
-    await logout.mutateAsync()
-    window.location.replace('')
+    try {
+      await logout.mutateAsync()
+      window.location.replace('')
+    } catch {
+      setIsFormPending(false)
+    }
   }
 
   // We are waiting for few pieces of data: the message, fields definitions from
