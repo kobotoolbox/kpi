@@ -28,7 +28,7 @@ import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
@@ -392,7 +392,7 @@ class FormLanding extends React.Component {
       downloads = this.state.downloads
     }
 
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     return (
       <React.Fragment>
@@ -525,7 +525,7 @@ class FormLanding extends React.Component {
   render() {
     var docTitle = this.state.name || t('Untitled')
     const userCanEdit = userCan('change_asset', this.state)
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     if (this.state.uid === undefined) {
       return <LoadingSpinner />

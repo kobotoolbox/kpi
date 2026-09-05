@@ -11,7 +11,7 @@ import {
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 
 const cookies = new Cookies()
 
@@ -27,8 +27,8 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
 
   // Note: not using `useOrganizationAssumed` due being used within routes that are accessible by anonymous users.
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396

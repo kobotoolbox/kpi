@@ -10,7 +10,7 @@ import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { MODAL_TYPES } from '../constants'
 import SidebarFormsList from '../sidebar/SidebarFormsList'
-import sessionStore from '../stores/session'
+import profileStore from '../stores/profile'
 import Icon from './common/icon'
 
 const AccountSidebar = lazy(() => import('#/account/accountSidebar'))
@@ -40,12 +40,12 @@ export default function Drawer() {
   }
 
   // no sidebar for not logged in users
-  if (!sessionStore.isLoggedIn || 'email' in sessionStore.currentAccount === false) {
+  if (!profileStore.isLoggedIn || 'email' in profileStore.currentAccount === false) {
     return null
   }
-  const username = sessionStore.currentAccount.username
-  const userFullName = sessionStore.currentAccount.extra_details.name ?? ''
-  const userUid = sessionStore.currentAccount.extra_details__uid
+  const username = profileStore.currentAccount.username
+  const userFullName = profileStore.currentAccount.extra_details.name ?? ''
+  const userUid = profileStore.currentAccount.extra_details__uid
 
   return (
     <bem.KDrawer>
@@ -78,7 +78,7 @@ export default function Drawer() {
           <bem.FormSidebarWrapper>
             {/* For CSS flex's sake */}
             <div>
-              <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
+              <Button size='lg' fullWidth disabled={!profileStore.isLoggedIn} onClick={openNewFormModal}>
                 {t('new').toUpperCase()}
               </Button>
             </div>
@@ -89,7 +89,7 @@ export default function Drawer() {
       </bem.KDrawer__sidebar>
 
       <bem.KDrawer__secondaryIcons>
-        {sessionStore.isLoggedIn && <HelpBubble username={username} userFullName={userFullName} userUid={userUid} />}
+        {profileStore.isLoggedIn && <HelpBubble username={username} userFullName={userFullName} userUid={userUid} />}
 
         {envStore.isReady && envStore.data.source_code_url && (
           <a href={envStore.data.source_code_url} className='k-drawer__link' target='_blank' data-tip={t('Source')}>

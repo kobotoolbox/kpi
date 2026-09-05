@@ -9,7 +9,7 @@ import Button from '#/components/common/ButtonNew'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import KoboModal from '../modals/koboModal'
 import { getAllLimitsText, pluralizeLimit } from './limitNotificationUtils'
 import styles from './overLimitModal.module.scss'
@@ -62,7 +62,7 @@ const LinkRendererTargetBlank = (props: AnchorHTMLAttributes<HTMLAnchorElement>)
 
 function OverLimitModal(props: OverLimitModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(true)
-  const accountName = sessionStore.currentAccount.username
+  const accountName = profileStore.currentAccount.username
   const [show, setShow] = useState(props.show)
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen)

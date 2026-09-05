@@ -9,7 +9,7 @@ import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import styles from './changePasswordRoute.module.scss'
 import UpdatePasswordForm from './security/password/updatePasswordForm.component'
 
@@ -25,11 +25,11 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
   }
 
   render() {
-    if (!sessionStore.isLoggedIn) {
+    if (!profileStore.isLoggedIn) {
       return null
     }
 
-    const accountName = sessionStore.currentAccount.username
+    const accountName = profileStore.currentAccount.username
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
