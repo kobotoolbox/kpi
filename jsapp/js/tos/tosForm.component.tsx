@@ -5,12 +5,12 @@ import { getInitialAccountFieldsValues, getProfilePatchData } from '#/account/ac
 import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
 import { fetchGet, fetchPatch, fetchPost, handleApiFail } from '#/api'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import { useLogout } from '#/auth/useLogout'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { currentLang, notify } from '#/utils'
-import { useLogout } from '#/auth/useLogout'
 import { useSession } from '../stores/useSession'
 import styles from './tosForm.module.scss'
 

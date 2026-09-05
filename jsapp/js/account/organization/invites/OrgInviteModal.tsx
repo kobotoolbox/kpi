@@ -10,10 +10,10 @@ import {
   useOrganizationsInvitesPartialUpdate,
   useOrganizationsInvitesRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+import { useLogout } from '#/auth/useLogout'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
-import { useLogout } from '#/auth/useLogout'
 import { useSession } from '#/stores/useSession'
 import { notify, sleep } from '#/utils'
 
