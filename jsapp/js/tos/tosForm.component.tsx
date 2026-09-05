@@ -10,6 +10,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { currentLang, notify } from '#/utils'
+import { useLogout } from '#/auth/useLogout'
 import { useSession } from '../stores/useSession'
 import styles from './tosForm.module.scss'
 
@@ -56,7 +57,8 @@ export default function TOSForm() {
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({})
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
 
-  const { currentLoggedAccount, logOut } = useSession()
+  const { currentLoggedAccount } = useSession()
+  const logout = useLogout()
   const [organization] = useOrganizationAssumed()
 
   const requiredFields = envStore.data.getUserMetadataRequiredFieldNames()
@@ -185,9 +187,10 @@ export default function TOSForm() {
     setIsFormPending(false)
   }
 
-  function leaveForm() {
+  async function leaveForm() {
     setIsFormPending(true)
-    logOut()
+    await logout.mutateAsync()
+    window.location.replace('')
   }
 
   // We are waiting for few pieces of data: the message, fields definitions from

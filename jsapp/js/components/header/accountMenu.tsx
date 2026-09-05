@@ -10,6 +10,7 @@ import type { LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
+import { useLogout } from '#/auth/useLogout'
 import sessionStore from '#/stores/session'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { currentLang } from '#/utils'
@@ -28,6 +29,12 @@ export default function AccountMenu() {
   // quick access to logout matters more than quick access to languages.
   const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const logout = useLogout()
+
+  async function handleLogout() {
+    await logout.mutateAsync()
+    window.location.replace('')
+  }
 
   const toggleLanguageSelector = () => {
     setIsLanguageSelectorVisible(!isLanguageSelectorVisible)
@@ -150,7 +157,7 @@ export default function AccountMenu() {
             </bem.AccountBox__menuLI>
 
             <bem.AccountBox__menuLI m={'logout'} key='4'>
-              <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
+              <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={handleLogout}>
                 {t('Logout')}
               </ButtonNew>
             </bem.AccountBox__menuLI>

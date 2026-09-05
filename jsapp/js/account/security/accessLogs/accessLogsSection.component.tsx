@@ -15,7 +15,7 @@ import {
 import Button from '#/components/common/button'
 import ExportToEmailButton from '#/components/exportToEmailButton/exportToEmailButton.component'
 import type { FailResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import { useLogoutAll } from '#/auth/useLogoutAll'
 import { formatTime } from '#/utils'
 
 export enum AccessLogAction {
@@ -39,9 +39,11 @@ export default function AccessLogsSection() {
       onError: () => null, // supress default toast on error because <ExportToEmailButton/> handles error inline.
     },
   })
+  const logoutAll = useLogoutAll()
 
-  function logOutAllSessions() {
-    sessionStore.logOutAll()
+  async function handleLogoutAllSessions() {
+    await logoutAll.mutateAsync()
+    window.location.replace('')
   }
   const handleStartExport = async () => {
     try {
@@ -66,7 +68,7 @@ export default function AccessLogsSection() {
           <Button
             type='text'
             size='m'
-            onClick={logOutAllSessions}
+            onClick={handleLogoutAllSessions}
             label={t('Log out of all devices')}
             startIcon='logout'
           />

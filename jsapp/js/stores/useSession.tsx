@@ -53,8 +53,6 @@ export const useSession = () => {
     currentLoggedAccount,
     isAnonymous,
     isPending,
-    logOut: sessionStore.logOut.bind(sessionStore),
-    logOutAll: sessionStore.logOutAll.bind(sessionStore),
     refreshAccount: sessionStore.refreshAccount.bind(sessionStore),
   }
 }
