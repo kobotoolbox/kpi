@@ -11,6 +11,7 @@ import { DividerThemeKobo } from './Divider'
 import { DropzoneThemeKobo } from './Dropzone'
 import { InputThemeKobo } from './Input'
 import { InputBaseThemeKobo } from './InputBase'
+import { InputWrapperThemeKobo } from './InputWrapper'
 import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
@@ -177,6 +178,7 @@ export const themeKobo = createTheme({
     Dropzone: DropzoneThemeKobo,
     Input: InputThemeKobo,
     InputBase: InputBaseThemeKobo,
+    InputWrapper: InputWrapperThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Modal: ModalThemeKobo,
