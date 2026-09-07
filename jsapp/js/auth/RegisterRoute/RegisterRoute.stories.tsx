@@ -15,7 +15,7 @@ import {
   signupNeverAnswersMock,
   signupPendingVerificationMock,
 } from '#/endpoints/allauth.mocks'
-import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { environmentResponse, makeEnvironmentFailsOnceMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
@@ -303,6 +303,35 @@ export const ServerErrors: Story = {
     await canvas.findByText('A user with that username already exists.')
     // General error - above the form
     await canvas.findByText('Sign up is temporarily unavailable. Please try again in a few minutes.')
+  },
+}
+
+/**
+ * `/environment` fails, so every rule the form depends on - the legal documents, the domains that have to
+ * use SSO, whether sign up is open at all - is unknown. The card asks for a retry, and the retry (which
+ * this mock answers) brings the form back.
+ */
+export const ConfigurationError: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        makeEnvironmentFailsOnceMock({
+          terms_of_service_url: TERMS_OF_SERVICE_URL,
+          privacy_policy_url: PRIVACY_POLICY_URL,
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Sign up is temporarily unavailable' })
+    // Not a form sitting behind the panel with its Terms of Service checkbox quietly missing.
+    expect(canvas.queryByLabelText(/^Username/)).not.toBeInTheDocument()
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Retry' }))
+
+    await waitForEnvironment(canvas)
   },
 }
 

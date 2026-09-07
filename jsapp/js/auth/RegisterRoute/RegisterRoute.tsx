@@ -35,6 +35,31 @@ function AccountReadyPanel() {
   )
 }
 
+interface ConfigurationErrorPanelProps {
+  onRetry: () => void
+  isRetrying: boolean
+}
+
+/**
+ * Shown when `/environment` never arrived. Without it we don't know which legal documents to ask about,
+ * which email domains have to use SSO, or whether sign up is open at all - and the signup endpoint does
+ * not re-check any of that, so a form built on the missing answers would quietly drop those rules.
+ */
+function ConfigurationErrorPanel({ onRetry, isRetrying }: ConfigurationErrorPanelProps) {
+  return (
+    <Stack gap='md' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Sign up is temporarily unavailable')}
+      </Title>
+      {/* Deliberately generic: the failed request already raised a toast carrying the server's own message. */}
+      <Text>{t('We could not load the sign up form. Please check your connection and try again.')}</Text>
+      <ButtonNew size='lg' fullWidth loading={isRetrying} onClick={onRetry}>
+        {t('Retry')}
+      </ButtonNew>
+    </Stack>
+  )
+}
+
 /** What the server did with the new account, and so which panel takes the form's place. */
 type SignupOutcome = { kind: 'verificationPending'; email: string } | { kind: 'signedIn' }
 
@@ -46,7 +71,7 @@ type SignupOutcome = { kind: 'verificationPending'; email: string } | { kind: 's
  * so `index.html` has already loaded and rendered `{% csrf_token %}`, which is what sets it.
  */
 export default function RegisterRoute() {
-  const { data, isPending } = useAuthConfiguration()
+  const { data, isPending, isError, isFetching, refetch } = useAuthConfiguration()
   const [outcome, setOutcome] = useState<SignupOutcome | null>(null)
 
   // Assume registration is open until `/environment` says otherwise, so a slow response does not leave
@@ -61,6 +86,15 @@ export default function RegisterRoute() {
   const hasSupportingContent = Boolean(supportingImageUrl) || Boolean(supportingText)
 
   function renderCard() {
+    // `!data` matters as much as `isError`: a failed background refetch leaves the last good response in
+    // place, and swapping a half filled form for this panel over a blip would throw that typing away.
+    if (isError && !data) {
+      return (
+        <AuthCard>
+          <ConfigurationErrorPanel onRetry={() => refetch()} isRetrying={isFetching} />
+        </AuthCard>
+      )
+    }
     if (isRegistrationClosed) {
       return (
         <AuthCard>
