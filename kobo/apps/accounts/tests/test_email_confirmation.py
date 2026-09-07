@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from allauth.account.models import EmailAddress
 from constance.test import override_config
 from django.conf import settings
 from django.core import mail
@@ -7,7 +8,7 @@ from django.core.cache import cache
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from kobo.apps.accounts.constants import EMAIL_CONFIRMATION_REQUESTED_DETAIL
 
@@ -71,15 +72,31 @@ class EmailConfirmationRequestTestCase(APITestCase):
         make_user('pending', 'pending@example.com', verified=False)
         make_user('active', 'active@example.com', verified=True)
 
+        # A fresh client per request: a shared one keeps the cookies the first
+        # response set, so only that first request would appear to set any,
+        # whichever outcome it happened to be
         responses = [
-            self.post('pending@example.com'),
-            self.post('active@example.com'),
-            self.post('nobody@example.com'),
+            APIClient().post(self.url, {'email': email}, format='json')
+            for email in (
+                'pending@example.com',
+                'active@example.com',
+                'nobody@example.com',
+            )
         ]
         statuses = {r.status_code for r in responses}
         bodies = {r.content for r in responses}
         assert statuses == {status.HTTP_200_OK}
         assert len(bodies) == 1, 'response bodies must not vary by outcome'
+
+        # Not just the body: anything the client can observe. A Django message
+        # queued during the send would surface here as a `messages` cookie
+        # naming the address, which is the account state being withheld
+        assert (
+            len({frozenset(r.cookies.keys()) for r in responses}) == 1
+        ), 'cookies must not vary by outcome'
+        assert (
+            len({frozenset(r.headers.keys()) for r in responses}) == 1
+        ), 'headers must not vary by outcome'
 
     def test_address_is_matched_case_insensitively(self):
         """
@@ -146,8 +163,9 @@ class EmailConfirmationRequestTestCase(APITestCase):
         failure would answer the question the endpoint refuses to answer
         """
         make_user('pending', 'pending@example.com', verified=False)
-        with patch(
-            'kobo.apps.accounts.views.send_verification_email_to_address',
+        with patch.object(
+            EmailAddress,
+            'send_confirmation',
             side_effect=OSError('smtp is down'),
         ):
             with self.assertLogs('console_logger', level='ERROR'):

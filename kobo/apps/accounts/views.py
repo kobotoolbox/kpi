@@ -1,6 +1,3 @@
-from allauth.account.internal.flows.email_verification import (
-    send_verification_email_to_address,
-)
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
@@ -360,7 +357,10 @@ class EmailConfirmationView(APIView):
         registered.
         """
         try:
-            send_verification_email_to_address(request, address, signup=activation)
+            # Not allauth's `send_verification_email_to_address()`: that also
+            # queues a Django message, which an anonymous caller receives as a
+            # cookie reading "Confirmation email sent to <address>."
+            address.send_confirmation(request, signup=activation)
         except Exception:
             logging.exception(
                 'Failed to send a requested confirmation email for EmailAddress %s',
