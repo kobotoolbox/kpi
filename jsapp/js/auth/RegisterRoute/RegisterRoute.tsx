@@ -69,7 +69,6 @@ export default function RegisterRoute() {
       )
     }
     if (outcome !== null) {
-      // No supporting column here: it exists to help someone decide to sign up, and they have.
       return (
         <AuthCard>
           {outcome.kind === 'signedIn' ? <AccountReadyPanel /> : <CheckInboxPanel email={outcome.email} />}
