@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django_redis import get_redis_connection
-from redis.exceptions import RedisError
+from redis.exceptions import LockError, RedisError
 
 from kpi.utils.log import logging
 from ...main.models import UserProfile
@@ -12,6 +12,30 @@ from ..constants import (
     SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
     SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
 )
+
+
+def release_orphaned_suspensions() -> list[str]:
+    """
+    Release the profiles left suspended by holders which died before
+    releasing them, and return their usernames.
+    """
+    redis_client = get_redis_connection()
+    lease = settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT
+    suspended = UserProfile.objects.filter(submissions_suspended=True).values_list(
+        'user__username', flat=True
+    )
+    orphaned = []
+    for username in list(suspended):
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{username}'
+        with _mutex(redis_client, holders_key):
+            if _live_holders(redis_client, holders_key, lease):
+                continue
+            UserProfile.objects.filter(user__username=username).update(
+                submissions_suspended=False
+            )
+            redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, username)
+        orphaned.append(username)
+    return orphaned
 
 
 @contextmanager
@@ -28,30 +52,27 @@ def suspend_submissions(user: settings.AUTH_USER_MODEL):
 
     Concurrent holders (e.g. several projects of the same owner deleted at
     once) each register a token: only the last one to finish releases the
-    flag. Tokens older than the lease are treated as dead holders.
-
-    The flag and heartbeat are shared with `update_attachment_storage_bytes`,
-    which releases them unconditionally when it finishes.
+    flag. Tokens older than the lease are treated as dead holders, so a block
+    which may run longer than the lease must call the yielded `heartbeat()`
+    regularly.
     """
     redis_client = get_redis_connection()
     holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{user.username}'
     lease = settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT
     token = uuid4().hex
 
+    def heartbeat():
+        _register_holder(redis_client, holders_key, token, lease, user.username)
+
     # Redis first: if it fails, nothing has been suspended yet
-    _register_holder(redis_client, holders_key, token, lease, user.username)
+    with _mutex(redis_client, holders_key):
+        heartbeat()
     try:
         UserProfile.objects.get_or_create(user_id=user.pk)
         _set_flag(user, True)
-        yield
+        yield heartbeat
     finally:
         _release_holder(redis_client, holders_key, token, lease, user)
-
-
-def _heartbeat(redis_client, username: str):
-    redis_client.hset(
-        SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, mapping={username: int(time.time())}
-    )
 
 
 def _live_holders(redis_client, holders_key: str, lease: int) -> int:
@@ -70,13 +91,35 @@ def _live_holders(redis_client, holders_key: str, lease: int) -> int:
     return redis_client.hlen(holders_key)
 
 
+@contextmanager
+def _mutex(redis_client, holders_key: str):
+    """
+    Serialize the registrations and releases of one user's holders, so a
+    release cannot clear the flag under a holder registering at the same time.
+    """
+    lock_key = f'{holders_key}:lock'
+    token = uuid4().hex
+    ttl = settings.SUBMISSIONS_SUSPENSION_LOCK_TTL
+    deadline = time.monotonic() + 3 * ttl
+    while not redis_client.set(lock_key, token, nx=True, ex=ttl):
+        if time.monotonic() >= deadline:
+            raise LockError(f'Could not acquire {lock_key}')
+        time.sleep(0.05)
+    try:
+        yield
+    finally:
+        # The lock may have expired and been taken over meanwhile
+        if redis_client.get(lock_key) == token.encode():
+            redis_client.delete(lock_key)
+
+
 def _register_holder(
     redis_client, holders_key: str, token: str, lease: int, username: str
 ):
     now = int(time.time())
     pipe = redis_client.pipeline()
     pipe.hset(holders_key, mapping={token: now})
-    # Backstop so a hash of dead tokens does not outlive its owner's deletions
+    # Backstop so a hash of dead tokens does not outlive its owner's holders
     pipe.expire(holders_key, lease)
     pipe.hset(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, mapping={username: now})
     pipe.execute()
@@ -97,26 +140,18 @@ def _release_holder(
     collect data until `fix_stale_submissions_suspended_flag` runs is not.
     """
     try:
-        redis_client.hdel(holders_key, token)
-        if _live_holders(redis_client, holders_key, lease):
-            return
+        with _mutex(redis_client, holders_key):
+            redis_client.hdel(holders_key, token)
+            if _live_holders(redis_client, holders_key, lease):
+                return
+            _set_flag(user, False)
+            redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, user.username)
     except RedisError:
         logging.error(
             f'Redis unavailable while releasing submissions of user'
             f' #{user.pk}, released unconditionally'
         )
         _set_flag(user, False)
-        return
-
-    _set_flag(user, False)
-    redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, user.username)
-    # A holder registered between the check and the release above would be
-    # left unprotected. Its flag can still dip for the few round-trips before
-    # this restore: the deadlock it opens is the retryable one this suspension
-    # narrows, not a new failure
-    if redis_client.hlen(holders_key):
-        _set_flag(user, True)
-        _heartbeat(redis_client, user.username)
 
 
 def _set_flag(user: settings.AUTH_USER_MODEL, suspended: bool):

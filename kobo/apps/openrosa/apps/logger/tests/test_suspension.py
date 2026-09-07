@@ -11,7 +11,10 @@ from kobo.apps.openrosa.apps.logger.constants import (
     SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
     SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
 )
-from kobo.apps.openrosa.apps.logger.utils.suspension import suspend_submissions
+from kobo.apps.openrosa.apps.logger.utils.suspension import (
+    release_orphaned_suspensions,
+    suspend_submissions,
+)
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 REDIS_PATCH_TARGET = (
@@ -78,6 +81,43 @@ class SuspendSubmissionsTestCase(TestCase):
             self.redis_client.hdel = Mock(side_effect=RedisConnectionError)
 
         assert not self._is_suspended()
+
+    def test_heartbeat_refreshes_the_lease(self):
+        lease = settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT
+        with suspend_submissions(self.user) as heartbeat:
+            (token,) = self.redis_client.hkeys(self.holders_key)
+            self.redis_client.hset(self.holders_key, token, int(time.time()) - lease)
+            heartbeat()
+            registered_at = int(self.redis_client.hget(self.holders_key, token))
+            assert registered_at >= int(time.time()) - 1
+
+        assert not self._is_suspended()
+
+    def test_expired_mutex_does_not_block(self):
+        self.redis_client.set(f'{self.holders_key}:lock', 'dead-worker', ex=1)
+
+        with suspend_submissions(self.user):
+            assert self._is_suspended()
+
+        assert not self._is_suspended()
+        assert not self.redis_client.exists(f'{self.holders_key}:lock')
+
+    def test_release_orphaned_suspensions_keeps_live_holders(self):
+        orphan = User.objects.create(username='orphan')
+        UserProfile.objects.create(user=orphan, submissions_suspended=True)
+        self.redis_client.hset(
+            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, mapping={'orphan': int(time.time())}
+        )
+
+        with suspend_submissions(self.user):
+            assert release_orphaned_suspensions() == ['orphan']
+            assert self._is_suspended()
+            assert self._has_heartbeat()
+
+        assert not UserProfile.objects.get(user=orphan).submissions_suspended
+        assert not self.redis_client.hexists(
+            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, 'orphan'
+        )
 
     def _has_heartbeat(self):
         return self.redis_client.hexists(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, 'holder')

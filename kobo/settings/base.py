@@ -1699,7 +1699,8 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
-            'Unlock accounts locked by `sync_storage_counters` task'
+            'Unlock accounts left suspended by a storage recount or a trash bin'
+            ' deletion which died'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -2440,6 +2441,8 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
+SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
