@@ -33,9 +33,9 @@ from kobo.apps.subsequences.constants import (
     Action,
 )
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     ManualQualNotFound,
-    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (

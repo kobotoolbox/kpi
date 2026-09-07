@@ -83,6 +83,7 @@ jobs:
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_minor }}
+        name: ${{ needs.version.outputs.current_minor }}
         base_ref: origin/${{ needs.version.outputs.prev_branch }}
     - uses: linear/linear-release-action@17b8c24f8ceb2b98cabaf1965ff83c55dd596fac # v.0.15.1
       with:
@@ -123,8 +124,9 @@ jobs:
         BODY="${BODY//\$RELEASE_URL/$RELEASE_URL}"
 
         {
-          echo "body<<EOF"
-          echo "${BODY}EOF"
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
         } >> "$GITHUB_OUTPUT"
 
     - name: Upsert Linear QA issue

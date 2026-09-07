@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
-from kobo.apps.accounts.views import EmailConfirmationView
+from kobo.apps.accounts.views import EmailConfirmationView, SocialAppView
 from kobo.apps.audit_log.urls import router as audit_log_router
 from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
@@ -318,6 +318,18 @@ email_confirmation_url_patterns = [
     ),
 ]
 
+# Declared here instead of registering a router, for two reasons: a router would
+# also expose a list route, and hidden SSO providers must stay unlisted; and the
+# default router lookup regex (`[^/.]+`) would reject a `provider_id` containing a
+# dot, which `/accounts/oidc/<provider_id>/login/` accepts today
+social_app_url_patterns = [
+    path(
+        'social-apps/<str:provider_id>/',
+        SocialAppView.as_view(),
+        name='social-app-detail',
+    ),
+]
+
 additional_urls = [
     path(r'environment/', EnvironmentView.as_view(), name='environment')
 ]
@@ -329,5 +341,6 @@ urls_patterns = (
     + qa_tag_tracker_url_patterns
     + kobo_scim_url_patterns
     + email_confirmation_url_patterns
+    + social_app_url_patterns
     + additional_urls
 )
