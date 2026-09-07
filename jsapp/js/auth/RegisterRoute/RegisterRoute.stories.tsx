@@ -248,6 +248,7 @@ export const SubmitForm: Story = {
   },
 }
 
+// TODO: after kobotoolbox/kpi#7549 is merged update the code
 /** The happy path on default configuration: a 401 with a pending `verify_email` flow, treated as success. */
 export const SubmitPendingVerification: Story = {
   parameters: { msw: { handlers: storyHandlers({ signup: signupPendingVerificationMock() }) } },

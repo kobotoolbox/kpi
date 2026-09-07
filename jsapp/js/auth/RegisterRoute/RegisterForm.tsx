@@ -135,6 +135,7 @@ export default function RegisterForm({
         onVerificationPending(variables.data.email)
       },
       onError: (error, variables) => {
+        // TODO: after kobotoolbox/kpi#7549 is merged update the code
         // With verification mandatory (the KPI default) a successful signup answers 401, and the
         // fetch mutator throws on every non-2xx, so success arrives here.
         if (isPendingEmailVerification(error)) {

@@ -135,6 +135,7 @@ export default function ActivateAccountRoute() {
     mutation: { onError: () => {} },
   })
 
+  // TODO: after kobotoolbox/kpi#7549 is merged update the code
   // A 401 on the confirmation is a success that leaves nobody signed in, so it gets its own ending.
   const isConfirmedWithoutSession = confirm.isError && isVerifiedWithoutSession(confirm.error)
 

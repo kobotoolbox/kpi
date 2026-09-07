@@ -15,6 +15,7 @@ interface AllauthErrorBody {
   errors?: ErrorResponseErrorsItem[]
 }
 
+// TODO: after kobotoolbox/kpi#7549 is merged update the code
 /** `{status: 401, data: {flows: [{id, is_pending?}]}, meta: {is_authenticated: false}}` */
 interface AllauthAuthenticationBody {
   data?: { flows?: Array<{ id?: string; is_pending?: boolean }> }

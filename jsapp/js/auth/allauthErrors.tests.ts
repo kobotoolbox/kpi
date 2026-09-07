@@ -97,6 +97,7 @@ describe('splitAllauthErrors', () => {
 })
 
 describe('isPendingEmailVerification', () => {
+  // TODO: after kobotoolbox/kpi#7549 is merged update the code
   it('recognises the 401 a successful signup answers with', () => {
     const error = makeServerError(401, {
       status: 401,

@@ -69,6 +69,7 @@ export const Confirmed: Story = {
   },
 }
 
+// TODO: after kobotoolbox/kpi#7549 is merged update the code
 /**
  * The same click with that setting off: a 401 that allauth's own documentation calls a success, so this
  * ends on "Log in" rather than on the failure screen.
