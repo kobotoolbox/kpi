@@ -242,14 +242,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 try:
                     feature = advanced_features_for_this_question.get(action=action_id)
                 except QuestionAdvancedFeature.DoesNotExist:
-                    # The supplement references an action that is no longer
-                    # configured for this question; skip it so reads still
-                    # succeed
-                    logging.warning(
-                        f'Supplement data for asset #{asset.pk} references '
-                        f'unconfigured action {action_id!r} on question '
-                        f'{question_xpath!r}'
-                    )
+                    # The supplement references an action no longer configured
+                    # for this question. Skip it silently: this runs once per
+                    # submission in table/export streams and Sentry turns
+                    # warnings into events
                     continue
 
                 action = feature.to_action()
