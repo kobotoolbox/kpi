@@ -80,8 +80,6 @@ describe('useDataTableBulkActions', () => {
       currentLoggedAccount: { username } as ReturnType<typeof useSession>['currentLoggedAccount'],
       isAnonymous: false,
       isPending,
-      logOut: jest.fn(),
-      logOutAll: jest.fn(),
       refreshAccount: jest.fn(),
     })
   }

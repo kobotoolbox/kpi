@@ -11,7 +11,11 @@ from django.utils import timezone
 
 from ..help.models import InAppMessage, InAppMessageUsers, MessageType
 from .models import SocialAppCustomData, SocialAppManagedDomain
-from .utils import SOCIAL_APP_IDENTIFIER, user_account_is_managed_by_sso
+from .utils import (
+    SOCIAL_APP_IDENTIFIER,
+    remove_managed_sso_reminders,
+    user_account_is_managed_by_sso,
+)
 
 
 @receiver(social_account_added)
@@ -82,6 +86,25 @@ def sync_managed_sso_email_domains(sender=None, **kwargs):
         'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         domain_string,
     )
+
+
+@receiver(post_delete, sender=SocialAppCustomData)
+def remove_reminders_on_custom_data_delete(sender=None, instance=None, **kwargs):
+    """
+    Covers a direct deletion and the cascade from deleting the SocialApp.
+    """
+    remove_managed_sso_reminders(instance.pk)
+
+
+@receiver(post_delete, sender=SocialAppManagedDomain)
+def remove_reminders_on_domain_delete(sender=None, instance=None, **kwargs):
+    remove_managed_sso_reminders(instance.social_app_id, domain=instance.domain)
+
+
+@receiver(post_save, sender=SocialAppCustomData)
+def remove_reminders_on_managed_off(sender=None, instance=None, **kwargs):
+    if not instance.managed:
+        remove_managed_sso_reminders(instance.pk)
 
 
 @receiver(social_account_added)

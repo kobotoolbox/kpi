@@ -1,12 +1,16 @@
+from datetime import timedelta
 from unittest.mock import ANY, MagicMock, patch
 
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.contrib.admin.sites import site
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 from model_bakery import baker
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.admin import SocialAccountAdmin
@@ -24,7 +28,11 @@ from ..tasks import (
     update_linked_user,
     update_users,
 )
-from ..utils import SOCIAL_APP_IDENTIFIER, users_needing_update
+from ..utils import (
+    SOCIAL_APP_IDENTIFIER,
+    remove_stale_managed_sso_reminders,
+    users_needing_update,
+)
 from .utils import MockProvider
 
 
@@ -232,6 +240,99 @@ class TestManagedSsoUsers(TestCase):
                 in form.errors['user']
             )
 
+    @data('managed_off', 'domain_deleted', 'app_deleted')
+    def test_restrictions_lift_when_no_longer_managed(self, change):
+        """
+        Every SSO-managed enforcement point must release once the domain is
+        no longer managed, however that state is reached.
+        """
+        self._make_unmanaged(change)
+
+        # password reset is allowed again
+        response = self.client.post(
+            reverse('account_reset_password'),
+            data={'email': 'managed@example.com'},
+            HTTP_ACCEPT='application/json',
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        # the SSO account can be unlinked again
+        self.client.force_login(self.user)
+        response = self.client.delete(
+            reverse(
+                'socialaccount-detail',
+                kwargs={
+                    'provider': self.socialaccount.provider,
+                    'uid_social_account': self.socialaccount.uid,
+                },
+            ),
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # the admin add-social-account form validates again
+        admin = SocialAccountAdmin(SocialAccount, site)
+        request = RequestFactory().get('/')
+        FormClass = admin.get_form(request=request, obj=None)
+        form = FormClass(
+            data={
+                'user': self.user,
+                'provider': 'anotherprovider',
+                'uid': '12345',
+                'extra_data': {'extra': 'data'},
+            }
+        )
+        assert form.is_valid()
+
+    @data(('managed', False), ('unmanaged', True))
+    @unpack
+    @override_config(
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
+        ENABLE_COMMON_PASSWORD_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
+    )
+    def test_me_password_change_blocked_only_while_managed(
+        self, _label, make_unmanaged
+    ):
+        """
+        The `/me/` password change is blocked while the account is SSO-managed
+        and must succeed once the domain is no longer managed.
+        """
+        self.user.set_password('current-password')
+        self.user.save()
+        if make_unmanaged:
+            self.custom_data.managed = False
+            self.custom_data.save()
+
+        api_client = APIClient()
+        api_client.force_authenticate(user=self.user)
+        response = api_client.patch(
+            reverse('currentuser-detail'),
+            data={
+                'current_password': 'current-password',
+                'new_password': 'a-brand-new-password',
+            },
+            format='json',
+        )
+        if make_unmanaged:
+            assert response.status_code == status.HTTP_200_OK
+        else:
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert (
+                'Cannot update password for sso-managed account'
+                in response.content.decode()
+            )
+
+    def _make_unmanaged(self, change):
+        if change == 'managed_off':
+            self.custom_data.managed = False
+            self.custom_data.save()
+        elif change == 'domain_deleted':
+            SocialAppManagedDomain.objects.get(domain='example.com').delete()
+        elif change == 'app_deleted':
+            self.social_app.delete()
+
 
 class TestManagedSsoCelery(TestCase):
 
@@ -360,7 +461,9 @@ class TestManagedSsoCelery(TestCase):
         InAppMessageUsers.objects.get(user=user, in_app_message=message)
 
     def test_update_users_only_updates_once(self):
-        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
         managed_domain = SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
         )
@@ -379,7 +482,9 @@ class TestManagedSsoCelery(TestCase):
         patched_notify.assert_called_once()
 
     def test_update_users_skips_in_app_message_when_disabled(self):
-        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
         managed_domain = SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
         )
@@ -399,7 +504,9 @@ class TestManagedSsoCelery(TestCase):
         assert not linked_user.has_usable_password()
 
     def test_update_users_uses_custom_in_app_message_body(self):
-        custom_data = SocialAppCustomData.objects.create(social_app=self.social_app)
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
         managed_domain = SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
         )
@@ -415,6 +522,43 @@ class TestManagedSsoCelery(TestCase):
             message_type=MessageType.MANAGED_SSO_REMINDER
         )
         assert message.body == 'custom body text'
+
+    def test_update_users_stops_when_managed_turns_off_mid_run(self):
+        """
+        The flag is re-checked before each destructive change, so a toggle
+        during the run leaves the remaining users alone and sends no reminder.
+        """
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        linked_users = [
+            self._create_user('first_linked', True, True, False),
+            self._create_user('second_linked', True, True, False),
+        ]
+        self._create_user('unlinked', True, False, False)
+
+        def convert_then_toggle_off(user, provider_id):
+            update_linked_user(user, provider_id)
+            SocialAppCustomData.objects.filter(pk=custom_data.pk).update(managed=False)
+
+        with patch(
+            'kobo.apps.accounts.tasks.update_linked_user',
+            side_effect=convert_then_toggle_off,
+        ):
+            update_users(custom_data.pk, managed_domain.domain)
+
+        still_with_password = [
+            user
+            for user in linked_users
+            if User.objects.get(pk=user.pk).has_usable_password()
+        ]
+        assert len(still_with_password) == 1
+        assert not InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
 
     def test_create_inapp_message_defaults_to_constant_body(self):
         message = create_inapp_message(self.social_app)
@@ -464,3 +608,240 @@ class TestManagedSsoCelery(TestCase):
         patched_update.assert_any_call(custom_data.pk, self.default_domain)
         patched_update.assert_any_call(custom_data_managed.pk, 'domain1.com')
         patched_update.assert_any_call(custom_data_managed.pk, 'domain2.com')
+
+
+@ddt
+class TestManagedSsoWithdrawal(TestCase):
+
+    def setUp(self):
+        self.provider = MockProvider(request=RequestFactory().get('/'))
+        self.social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider=self.provider.id,
+            provider_id='kobo',
+        )
+        self.custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        self.example_domain = SocialAppManagedDomain.objects.create(
+            social_app=self.custom_data, domain='example.com'
+        )
+        self.other_domain = SocialAppManagedDomain.objects.create(
+            social_app=self.custom_data, domain='other.com'
+        )
+        self.alice = User.objects.create(username='alice', email='alice@example.com')
+        self.bob = User.objects.create(username='bob', email='bob@other.com')
+        self.carol = User.objects.create(username='carol', email='carol@elsewhere.com')
+        # Create the reminders through the real path: one message and one
+        # recipient row per managed domain.
+        update_users(self.custom_data.pk, 'example.com')
+        update_users(self.custom_data.pk, 'other.com')
+        self.client = Client()
+
+    def test_turning_managed_off_withdraws_reminders(self):
+        """
+        Turning `managed` off deletes every recipient row and expires the
+        emptied reminders.
+        """
+        self.custom_data.managed = False
+        self.custom_data.save()
+
+        assert not InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+        messages = InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert messages.exists()
+        now = timezone.now()
+        assert all(message.valid_until <= now for message in messages)
+
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 0
+
+    def test_withdrawn_reminder_is_not_broadcast(self):
+        """
+        A withdrawn reminder must be expired, not left recipient-less: an
+        emptied message is otherwise broadcast to every user.
+        """
+        self.custom_data.managed = False
+        self.custom_data.save()
+
+        self.client.force_login(self.carol)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 0
+
+    def test_removing_domain_withdraws_only_that_domain(self):
+        """
+        Removing one managed domain withdraws only its reminder; the other
+        domain's reminder stays live and is not broadcast.
+        """
+        bob_message = InAppMessageUsers.objects.get(user=self.bob).in_app_message
+        alice_message = InAppMessageUsers.objects.get(user=self.alice).in_app_message
+
+        self.other_domain.delete()
+
+        assert not InAppMessageUsers.objects.filter(user=self.bob).exists()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+
+        now = timezone.now()
+        bob_message.refresh_from_db()
+        alice_message.refresh_from_db()
+        assert bob_message.valid_until <= now
+        assert alice_message.valid_until > now
+
+        # bob's emptied reminder must not leak to everyone
+        self.client.force_login(self.carol)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 0
+
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 1
+
+    def test_deleting_social_app_withdraws_reminders(self):
+        """
+        Deleting the social app cascades and withdraws every reminder, even
+        though messages reference the app only through a JSON field.
+        """
+        self.social_app.delete()
+
+        assert not InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+        messages = InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert messages.exists()
+        now = timezone.now()
+        assert all(message.valid_until <= now for message in messages)
+
+        for user in (self.alice, self.carol):
+            self.client.force_login(user)
+            response = self.client.get('/help/in_app_messages/')
+            assert response.json()['count'] == 0
+
+    def test_reenabling_managed_notifies_users_again(self):
+        """
+        Stale recipient rows must be gone after a turn-off so re-enabling
+        can notify the same users again.
+        """
+        self.custom_data.managed = False
+        self.custom_data.save()
+        self.custom_data.managed = True
+        self.custom_data.save()
+
+        update_users(self.custom_data.pk, 'example.com')
+
+        alice_rows = InAppMessageUsers.objects.filter(user=self.alice)
+        assert alice_rows.count() == 1
+        message = alice_rows.first().in_app_message
+        now = timezone.now()
+        assert message.valid_from <= now <= message.valid_until
+
+    @data('managed_off', 'domain_deleted', 'app_deleted')
+    def test_update_users_is_noop_when_no_longer_managed(self, change):
+        """
+        A queued task must re-check state and not strip a password after the
+        admin turns managed off, drops the domain or deletes the app.
+        """
+        linked_user = User.objects.create(username='linked', email='linked@example.com')
+        linked_user.set_password('password')
+        linked_user.save()
+        baker.make(
+            'socialaccount.SocialAccount',
+            user=linked_user,
+            provider=self.social_app.provider_id,
+        )
+        custom_data_pk = self.custom_data.pk
+        message_count_before = InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        ).count()
+
+        if change == 'managed_off':
+            self.custom_data.managed = False
+            self.custom_data.save()
+        elif change == 'domain_deleted':
+            self.example_domain.delete()
+        elif change == 'app_deleted':
+            self.social_app.delete()
+
+        update_users(custom_data_pk, 'example.com')
+
+        linked_user.refresh_from_db()
+        assert linked_user.has_usable_password()
+        assert (
+            InAppMessage.objects.filter(
+                message_type=MessageType.MANAGED_SSO_REMINDER
+            ).count()
+            == message_count_before
+        )
+
+    def test_sweep_withdraws_reminders_of_a_deleted_app(self):
+        """
+        A reminder left behind by an app deleted before the cleanup signals
+        existed is withdrawn by the nightly sweep; live ones are left alone.
+        """
+        now = timezone.now()
+        orphan = baker.make(
+            'help.InAppMessage',
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: 999999},
+            published=True,
+            valid_from=now,
+            valid_until=now + timedelta(days=365),
+        )
+        InAppMessageUsers.objects.create(user=self.carol, in_app_message=orphan)
+
+        with patch('kobo.apps.accounts.tasks.update_users'):
+            managed_sso_sweep()
+
+        orphan.refresh_from_db()
+        assert not InAppMessageUsers.objects.filter(in_app_message=orphan).exists()
+        assert orphan.valid_until <= timezone.now()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 1
+
+    def test_sweep_withdraws_reminders_of_an_unmanaged_app(self):
+        """
+        `update()` bypasses the signals, like a flag turned off before they
+        existed; the sweep must catch up.
+        """
+        SocialAppCustomData.objects.filter(pk=self.custom_data.pk).update(managed=False)
+
+        remove_stale_managed_sso_reminders()
+
+        assert not InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+        messages = InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert messages.exists()
+        now = timezone.now()
+        assert all(message.valid_until <= now for message in messages)
+
+    def test_sweep_withdraws_recipients_off_the_managed_domains(self):
+        """
+        A recipient whose email left the managed domains is withdrawn and the
+        emptied reminder expired; the other recipient keeps a live one.
+        """
+        User.objects.filter(pk=self.bob.pk).update(email='bob@elsewhere.com')
+
+        remove_stale_managed_sso_reminders()
+
+        assert not InAppMessageUsers.objects.filter(user=self.bob).exists()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+
+        self.client.force_login(self.carol)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 0
+
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 1
