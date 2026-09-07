@@ -12,6 +12,7 @@ def get_email_confirmation_request_examples() -> list[OpenApiExample]:
         ),
     ]
 
+
 def get_email_create_examples() -> list[OpenApiExample]:
     """
     What to send depends on how the request is authenticated, so show each
