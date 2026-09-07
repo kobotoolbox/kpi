@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+import fakeredis
 from constance import config
 from constance.test import override_config
 from ddt import data, ddt, unpack
@@ -20,9 +21,13 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.constants import (
+    SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
+)
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
@@ -487,6 +492,69 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
                 {'_userform_id': mongo_userform_id}
             )
             == 0
+        )
+
+    def test_owner_submissions_suspended_during_deletion(self):
+        project_trash = self.test_move_to_trash()
+        owner = project_trash.asset.owner
+        fake_client = fakeredis.FakeStrictRedis()
+        captured = {}
+
+        def capture_state(*args, **kwargs):
+            profile = UserProfile.objects.get(user=owner)
+            captured['suspended'] = profile.submissions_suspended
+            captured['heartbeat'] = bool(
+                fake_client.hexists(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, owner.username)
+            )
+
+        with patch(
+            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
+            return_value=fake_client,
+        ), patch(
+            'kobo.apps.trash_bin.utils.project._delete_submissions',
+            side_effect=capture_state,
+        ):
+            empty_project(project_trash.pk)
+
+        assert captured['suspended'] is True
+        assert captured['heartbeat'] is True
+
+    def test_owner_submissions_released_after_deletion(self):
+        project_trash = self.test_move_to_trash()
+        owner = project_trash.asset.owner
+        fake_client = fakeredis.FakeStrictRedis()
+
+        with patch(
+            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
+            return_value=fake_client,
+        ):
+            empty_project(project_trash.pk)
+
+        profile = UserProfile.objects.get(user=owner)
+        assert profile.submissions_suspended is False
+        assert not fake_client.hexists(
+            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, owner.username
+        )
+
+    def test_owner_submissions_released_when_deletion_fails(self):
+        project_trash = self.test_move_to_trash()
+        owner = project_trash.asset.owner
+        fake_client = fakeredis.FakeStrictRedis()
+
+        with patch(
+            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
+            return_value=fake_client,
+        ), patch(
+            'kobo.apps.trash_bin.utils.project._delete_submissions',
+            side_effect=RuntimeError('boom'),
+        ):
+            with self.assertRaises(RuntimeError):
+                empty_project(project_trash.pk)
+
+        profile = UserProfile.objects.get(user=owner)
+        assert profile.submissions_suspended is False
+        assert not fake_client.hexists(
+            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, owner.username
         )
 
     def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):

@@ -7,6 +7,7 @@ from django.db.models import F, Q
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.openrosa.apps.logger.utils.suspension import suspend_submissions
 from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.models import Asset, ImportTask, SubmissionExportTask
 from kpi.utils.log import logging
@@ -23,8 +24,9 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
     project_exports = []
 
     if asset.has_deployment:
-        _delete_submissions(request_author, asset)
-        asset.deployment.delete()
+        with suspend_submissions(asset.owner):
+            _delete_submissions(request_author, asset)
+            asset.deployment.delete()
         project_exports = SubmissionExportTask.objects.filter(
             Q(data__source=f'{host}/api/v2/assets/{asset.uid}/')
             | Q(data__source=f'{host}/assets/{asset.uid}/')
