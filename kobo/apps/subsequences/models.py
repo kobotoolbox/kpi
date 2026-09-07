@@ -1,15 +1,16 @@
 import hashlib
 import json
+from functools import lru_cache
 
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
-from kpi.utils.log import logging
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import (
     QUESTION_TYPE_TAGS,
@@ -242,10 +243,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 try:
                     feature = advanced_features_for_this_question.get(action=action_id)
                 except QuestionAdvancedFeature.DoesNotExist:
-                    # The supplement references an action no longer configured
-                    # for this question. Skip it silently: this runs once per
-                    # submission in table/export streams and Sentry turns
-                    # warnings into events
+                    # Stale data: the action is no longer configured for this
+                    # question. Skip it so reads still succeed
+                    _warn_unconfigured_action(asset.pk, question_xpath, action_id)
                     continue
 
                 action = feature.to_action()
@@ -811,3 +811,18 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
             submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
             asset=self.parent.asset,
         )
+
+
+@lru_cache(maxsize=1024)
+def _warn_unconfigured_action(
+    asset_id: int, question_xpath: str, action_id: str
+) -> None:
+    """
+    Log each orphaned (asset, question, action) once per process: this runs
+    per submission in table and export streams and Sentry turns warnings
+    into events
+    """
+    logging.warning(
+        f'Supplement data for asset #{asset_id} references unconfigured '
+        f'action {action_id!r} on question {question_xpath!r}'
+    )
