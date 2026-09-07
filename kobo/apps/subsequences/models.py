@@ -241,8 +241,16 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     continue
                 try:
                     feature = advanced_features_for_this_question.get(action=action_id)
-                except QuestionAdvancedFeature.DoesNotExist as e:
-                    raise InvalidAction from e
+                except QuestionAdvancedFeature.DoesNotExist:
+                    # The supplement references an action that is no longer
+                    # configured for this question; skip it so reads still
+                    # succeed
+                    logging.warning(
+                        f'Supplement data for asset #{asset.pk} references '
+                        f'unconfigured action {action_id!r} on question '
+                        f'{question_xpath!r}'
+                    )
+                    continue
 
                 action = feature.to_action()
 
