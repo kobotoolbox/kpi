@@ -76,6 +76,8 @@ export interface RegisterFormProps {
   socialApps: SocialApp[] | undefined
   termsOfServiceUrl: string | null | undefined
   privacyPolicyUrl: string | null | undefined
+  /** Blocks submitting until `/environment` loads */
+  isConfigurationPending: boolean
   /** Called with the submitted address once the account exists and the activation email is on its way. */
   onRegistered: (email: string) => void
 }
@@ -84,6 +86,7 @@ export default function RegisterForm({
   socialApps,
   termsOfServiceUrl,
   privacyPolicyUrl,
+  isConfigurationPending,
   onRegistered,
 }: RegisterFormProps) {
   const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
@@ -140,6 +143,11 @@ export default function RegisterForm({
   })
 
   const handleSubmit = (values: RegisterFormValues) => {
+    // The button below is disabled while we wait, but better be safe and check here too
+    if (isConfigurationPending) {
+      return
+    }
+
     setFormErrors([])
     // `SignupBody` is only `{email, username, password}` today. Backend needs to update the Orval types (and Backend
     // code?)
@@ -230,7 +238,7 @@ export default function RegisterForm({
             )}
           </Stack>
 
-          <ButtonNew type='submit' size='lg' fullWidth loading={signup.isPending}>
+          <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || signup.isPending}>
             {t('Continue')}
           </ButtonNew>
         </Stack>

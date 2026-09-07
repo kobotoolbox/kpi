@@ -25,7 +25,7 @@ function SignupClosedPanel() {
  * so `index.html` has already loaded and rendered `{% csrf_token %}`, which is what sets it.
  */
 export default function RegisterRoute() {
-  const { data } = useAuthConfiguration()
+  const { data, isPending } = useAuthConfiguration()
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
 
   // Assume registration is open until `/environment` says otherwise, so a slow response does not leave
@@ -63,6 +63,7 @@ export default function RegisterRoute() {
           socialApps={data?.socialApps}
           termsOfServiceUrl={data?.termsOfServiceUrl}
           privacyPolicyUrl={data?.privacyPolicyUrl}
+          isConfigurationPending={isPending}
           onRegistered={setRegisteredEmail}
         />
       </AuthCard>
