@@ -7,7 +7,7 @@
   padding: 6px;
   border: 1px solid colors.$kobo-gray-300;
   border-radius: 5px;
-  background-color: hsl(0deg 0 100 / 80%);
+  background-color: hsl(0deg 0% 100% / 80%);
   color: colors.$kobo-gray-800;
   font-size: 14px;
   line-height: 22px;
@@ -27,12 +27,12 @@
 
 .toggle--onCustomBackground {
   border: 0;
-  background-color: hsl(0deg 0 100 / 25%);
+  background-color: hsl(0deg 0% 100% / 25%);
   color: colors.$kobo-white;
 }
 
 .toggle--onCustomBackground:hover {
-  background-color: hsl(0deg 0 100 / 35%);
+  background-color: hsl(0deg 0% 100% / 35%);
 }
 
 .dropdown {

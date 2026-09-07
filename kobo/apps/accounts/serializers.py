@@ -79,3 +79,22 @@ class SocialAccountSerializer(serializers.ModelSerializer):
     def get_username(self, obj):
         if obj.extra_data:
             return obj.extra_data.get('username')
+
+
+class SocialAppDetailSerializer(serializers.Serializer):
+    """
+    Public, display-only representation of a `SocialApp`
+
+    Fields are declared explicitly rather than through `ModelSerializer` so that
+    credentials (`client_id`, `secret`, `key`) and provider internals
+    (`settings`, which holds `server_url`) cannot leak by accident
+    """
+
+    provider_id = serializers.SerializerMethodField()
+    name = serializers.CharField(read_only=True)
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_provider_id(self, obj):
+        # allauth treats `provider_id` as the identifier for subproviders (OIDC,
+        # SAML) and falls back to `provider` for everything else
+        return obj.provider_id or obj.provider

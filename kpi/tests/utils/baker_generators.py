@@ -6,6 +6,7 @@ from model_bakery.random_gen import (
     gen_integer,
     gen_related,
     gen_slug,
+    gen_string,
 )
 
 from kpi.fields.kpi_uid import KpiUidField
@@ -29,3 +30,4 @@ baker.generators.add('djstripe.fields.StripeForeignKey', gen_related)
 baker.generators.add(
     'kpi.fields.kpi_uid.KpiUidField', KpiUidField.generate_unique_id
 )
+baker.generators.add('markdownx.models.MarkdownxField', gen_string)

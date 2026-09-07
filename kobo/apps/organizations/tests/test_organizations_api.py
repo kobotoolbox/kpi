@@ -227,6 +227,60 @@ class OrganizationDetailAPITestCase(BaseTestCase):
         response = self.client.get(url)
         assert response.status_code == expected_status_code
 
+    def _create_org_surveys(self):
+        for name in ('Project Alpha', 'Something else'):
+            baker.make(
+                Asset,
+                owner=self.someuser,
+                asset_type=ASSET_TYPE_SURVEY,
+                name=name,
+            )
+
+    def test_asset_usage_filter_by_project_name(self):
+        self.client.force_login(self.someuser)
+        self._create_org_surveys()
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        response = self.client.get(url, {'q': 'alpha'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['asset__name'] == 'Project Alpha'
+
+    def test_asset_usage_filter_no_match(self):
+        self.client.force_login(self.someuser)
+        self._create_org_surveys()
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        response = self.client.get(url, {'q': 'nonexistent'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
+
+    def test_asset_usage_filter_query_too_short(self):
+        self.client.force_login(self.someuser)
+        self._create_org_surveys()
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        response = self.client.get(url, {'q': 'ab'})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_asset_usage_filter_composes_with_ordering(self):
+        self.client.force_login(self.someuser)
+        self._create_org_surveys()
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        response = self.client.get(url, {'q': 'alpha', 'ordering': 'name'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['asset__name'] == 'Project Alpha'
+
     @data(
         ('name', 'Someuser Company inc.', status.HTTP_200_OK),
         ('name', '', status.HTTP_400_BAD_REQUEST),

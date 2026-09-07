@@ -1,5 +1,8 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.db.models import Func, Value
+from django.db.models.functions import Lower
 from django_request_cache import cache_for_request
 
 from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
@@ -18,6 +21,18 @@ class User(AbstractUser):
     class Meta:
         db_table = 'auth_user'
         swappable = 'AUTH_USER_MODEL'
+        indexes = [
+            models.Index(
+                Func(
+                    Lower('email'),
+                    Value('@'),
+                    Value(2),
+                    function='split_part',
+                    output_field=models.CharField(),
+                ),
+                name='auth_user_email_domain_idx',
+            ),
+        ]
 
     def has_perm(self, perm, obj=None):
         # If it is a KoboCAT permissions, check permission in KoboCAT DB first
