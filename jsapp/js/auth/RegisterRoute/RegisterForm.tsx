@@ -79,7 +79,9 @@ export interface RegisterFormProps {
   /** Blocks submitting until `/environment` loads */
   isConfigurationPending: boolean
   /** Called with the submitted address once the account exists and the activation email is on its way. */
-  onRegistered: (email: string) => void
+  onVerificationPending: (email: string) => void
+  /** Called instead when the account came back signed in, so there is no address to confirm. */
+  onSignedIn: () => void
 }
 
 export default function RegisterForm({
@@ -87,7 +89,8 @@ export default function RegisterForm({
   termsOfServiceUrl,
   privacyPolicyUrl,
   isConfigurationPending,
-  onRegistered,
+  onVerificationPending,
+  onSignedIn,
 }: RegisterFormProps) {
   const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
 
@@ -120,17 +123,22 @@ export default function RegisterForm({
 
   const signup = useAllauthBrowserV1AuthSignupPost({
     mutation: {
-      onSuccess: (_response, variables) => {
+      onSuccess: (response, variables) => {
         // A 2xx only happens where a deployment sets `ACCOUNT_EMAIL_VERIFICATION` to `none` or
-        // `optional`: the account is created and already logged in, with nothing left to confirm.
-        // We pass email (to show the inbox) screen anyway.
-        onRegistered(variables.data.email)
+        // `optional`: allauth signs the new account in and answers with the session, so asking for a
+        // confirmation nobody sent would strand someone who is already in.
+        // The `status` half only narrows the generated union - the mutator threw on anything but a 2xx.
+        if (response.status === 200 && response.data.meta.is_authenticated) {
+          onSignedIn()
+          return
+        }
+        onVerificationPending(variables.data.email)
       },
       onError: (error, variables) => {
         // With verification mandatory (the KPI default) a successful signup answers 401, and the
         // fetch mutator throws on every non-2xx, so success arrives here.
         if (isPendingEmailVerification(error)) {
-          onRegistered(variables.data.email)
+          onVerificationPending(variables.data.email)
           return
         }
         // Passing any `onError` also suppresses the global toast, which would double up on these

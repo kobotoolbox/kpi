@@ -3,6 +3,7 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import ButtonNew from '#/components/common/ButtonNew'
 import CheckInboxPanel from './CheckInboxPanel'
 import RegisterAside from './RegisterAside'
 import RegisterForm from './RegisterForm'
@@ -18,15 +19,35 @@ function SignupClosedPanel() {
   )
 }
 
+/** The ending on a deployment that doesn't verify addresses: the account is made and already signed in. */
+function AccountReadyPanel() {
+  return (
+    <Stack gap='md' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Your account is ready')}
+      </Title>
+      <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
+      {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
+      <ButtonNew component='a' href='/' size='lg' fullWidth>
+        {t('Continue to KoboToolbox')}
+      </ButtonNew>
+    </Stack>
+  )
+}
+
+/** What the server did with the new account, and so which panel takes the form's place. */
+type SignupOutcome = { kind: 'verificationPending'; email: string } | { kind: 'signedIn' }
+
 /**
- * Registration screen: on success the card swaps the form for `CheckInboxPanel` in place, no route change.
+ * Registration screen: on success the card swaps the form for whichever ending the server gave us, in
+ * place, no route change.
  *
  * The signup POST needs the `csrftoken` cookie, and nothing here has to fetch it: these are hash routes,
  * so `index.html` has already loaded and rendered `{% csrf_token %}`, which is what sets it.
  */
 export default function RegisterRoute() {
   const { data, isPending } = useAuthConfiguration()
-  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
+  const [outcome, setOutcome] = useState<SignupOutcome | null>(null)
 
   // Assume registration is open until `/environment` says otherwise, so a slow response does not leave
   // the card empty. The server rejects a closed signup with a 403 regardless.
@@ -47,11 +68,11 @@ export default function RegisterRoute() {
         </AuthCard>
       )
     }
-    if (registeredEmail !== null) {
+    if (outcome !== null) {
       // No supporting column here: it exists to help someone decide to sign up, and they have.
       return (
         <AuthCard>
-          <CheckInboxPanel email={registeredEmail} />
+          {outcome.kind === 'signedIn' ? <AccountReadyPanel /> : <CheckInboxPanel email={outcome.email} />}
         </AuthCard>
       )
     }
@@ -64,7 +85,8 @@ export default function RegisterRoute() {
           termsOfServiceUrl={data?.termsOfServiceUrl}
           privacyPolicyUrl={data?.privacyPolicyUrl}
           isConfigurationPending={isPending}
-          onRegistered={setRegisteredEmail}
+          onVerificationPending={(email) => setOutcome({ kind: 'verificationPending', email })}
+          onSignedIn={() => setOutcome({ kind: 'signedIn' })}
         />
       </AuthCard>
     )

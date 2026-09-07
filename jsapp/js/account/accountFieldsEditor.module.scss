@@ -51,7 +51,7 @@
   width: 100%;
   color: colors.$kobo-gray-800;
   // These stand in for a Mantine input label above a group of controls, so they
-  // match what an `md` field's label gets - see `LABEL_FONT_SIZES` in theme/kobo/InputWrapper.ts.
+  // match what an `md` field's label gets - see `INPUT_SIZE_TO_LABEL_SIZES` in theme/kobo/InputWrapper.ts.
   font-size: var(--mantine-font-size-md);
   margin-bottom: 5px;
   display: block;

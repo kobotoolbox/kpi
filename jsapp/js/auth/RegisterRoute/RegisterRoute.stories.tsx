@@ -9,7 +9,12 @@ import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { setLoginBackgroundMetaForStories } from '#/auth/AuthContainer/authContainer.mocks'
 // The same stand-in photo the container's own stories use, so the custom theme stays offline.
 import backgroundImageUrl from '#/auth/AuthContainer/salah-darwish-story-bg.webp'
-import { signupErrorsMock, signupNeverAnswersMock, signupPendingVerificationMock } from '#/endpoints/allauth.mocks'
+import {
+  signupAuthenticatedMock,
+  signupErrorsMock,
+  signupNeverAnswersMock,
+  signupPendingVerificationMock,
+} from '#/endpoints/allauth.mocks'
 import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
@@ -255,6 +260,24 @@ export const SubmitPendingVerification: Story = {
     // A 401 is the success on a KPI default, so getting this far is the point of the story. Masking the
     // address is `maskEmail.tests`' business.
     await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
+  },
+}
+
+/**
+ * A deployment that does not verify addresses: the account comes back already signed in, so there is
+ * nothing to confirm and the card offers the way in instead.
+ */
+export const SubmitSignedIn: Story = {
+  parameters: { msw: { handlers: storyHandlers({ signup: signupAuthenticatedMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Your account is ready' })
+    // A plain `href`, so the click leaves `/auth` and loads the app with the new session.
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
   },
 }
 
