@@ -8,6 +8,7 @@ export const PATHS = Object.freeze({
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ROOT: '',
+  AUTH_ROOT: '/auth',
   ACCOUNT_ROOT: '/account',
   ORGANIZATION: '/account/organization',
   LIBRARY: '/library',
@@ -46,6 +47,15 @@ export const ROUTES = Object.freeze({
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
   FORM_RESET: '/forms/:uid/reset',
 })
+
+/**
+ * Sign-in, registration and password recovery screens. They live outside `<App />`, so none of the
+ * logged in chrome (header, drawer, route blockers) applies to them - see `#/auth/routes`.
+ */
+export const AUTH_ROUTES: { readonly [key: string]: string } = {
+  /** Temporary, proves the container renders. Delete once a real auth route lands. */
+  TEST: ROUTES.AUTH_ROOT + '/test',
+}
 
 export const PROJECTS_ROUTES: { readonly [key: string]: string } = {
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',

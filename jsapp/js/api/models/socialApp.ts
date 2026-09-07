@@ -16,4 +16,6 @@ export interface SocialApp {
   name: string
   client_id: string
   provider_id: SocialAppProviderId
+  managed: boolean
+  domains: string[]
 }

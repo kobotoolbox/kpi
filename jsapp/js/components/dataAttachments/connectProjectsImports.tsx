@@ -1,12 +1,13 @@
 import { Group, Modal, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { IconCheckFilled, IconSettings, IconTrashFilled, IconXFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
+import TextInput from '#/components/common/TextInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import TextBox from '#/components/common/textBox'
 import type { AssetResponse } from '#/dataInterface'
 import ActionIcon from '../common/ActionIcon'
-import Icon from '../common/icon'
+import KoboIcon from '../common/KoboIcon'
 import type { AttachedSourceItem } from './common'
 
 interface ConnectProjectsImportsProps {
@@ -85,13 +86,12 @@ export default function ConnectProjectsImports({
         <div className='connect-projects__import-form'>
           {selectComponent}
 
-          <TextBox
+          <TextInput
             className='connect-projects-textbox'
             placeholder={t('Give a unique name to the import')}
             value={newFilename}
-            size='m'
-            onChange={onFilenameChange}
-            errors={fieldsErrors.filename}
+            onChange={(evt) => onFilenameChange(evt.currentTarget.value)}
+            error={fieldsErrors.filename}
           />
 
           <ButtonNew variant='filled' size='md' onClick={onConfirmAttachment}>
@@ -115,9 +115,9 @@ export default function ConnectProjectsImports({
           {shouldShowAttachedSources &&
             attachedSources.map((item) => (
               <li key={item.attachmentUrl} className='connect-projects__import-list-item'>
-                <Icon
-                  size='xl'
-                  name={item.isSourceDeleted ? 'close' : 'check'}
+                <KoboIcon
+                  size='lg'
+                  icon={item.isSourceDeleted ? IconXFilled : IconCheckFilled}
                   color={item.isSourceDeleted ? 'mid-red' : 'blue'}
                 />
 
@@ -131,7 +131,7 @@ export default function ConnectProjectsImports({
                   <ActionIcon
                     variant='light'
                     size='md'
-                    iconName='settings'
+                    icon={IconSettings}
                     tooltip={item.isSourceDeleted ? t('Cannot configure deleted project') : t('Configure')}
                     disabled={isLoading || item.isSourceDeleted || !item.sourceUid || !item.sourceUrl}
                     onClick={() =>
@@ -151,7 +151,7 @@ export default function ConnectProjectsImports({
                   <ActionIcon
                     variant='danger-secondary'
                     size='md'
-                    iconName='trash'
+                    icon={IconTrashFilled}
                     tooltip={t('Remove')}
                     disabled={isLoading}
                     onClick={() => openRemovalConfirmation(item.attachmentUrl)}

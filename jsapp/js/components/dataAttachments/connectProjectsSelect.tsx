@@ -1,5 +1,5 @@
-import Select from 'react-select'
-import bem from '#/bem'
+import { Loader } from '@mantine/core'
+import Select from '#/components/common/Select'
 import type { ConnectableAsset } from './common'
 
 interface ConnectProjectsSelectProps {
@@ -25,26 +25,22 @@ export default function ConnectProjectsSelect({
     return null
   }
 
-  return (
-    <bem.KoboSelect__wrapper
-      m={{
-        error: Boolean(sourceError),
-      }}
-    >
-      <Select<ConnectableAsset, false>
-        placeholder={t('Select a different project to import data from')}
-        options={filteredAssets}
-        value={value}
-        isLoading={!isInitialised || isLoading}
-        getOptionLabel={(option) => option.name}
-        getOptionValue={(option) => option.url}
-        noOptionsMessage={() => t('No projects to connect')}
-        onChange={onSourceChange}
-        className='kobo-select'
-        classNamePrefix='kobo-select'
-      />
+  const isPending = !isInitialised || isLoading
 
-      {sourceError && <bem.KoboSelect__error>{sourceError}</bem.KoboSelect__error>}
-    </bem.KoboSelect__wrapper>
+  return (
+    <Select
+      className='connect-projects-select'
+      placeholder={t('Select a different project to import data from')}
+      // `Select` only works on strings, so we use asset urls as option values
+      // and look the whole asset up again when one gets selected.
+      data={filteredAssets.map((asset) => ({ value: asset.url, label: asset.name }))}
+      value={value?.url ?? null}
+      onChange={(newValue) => {
+        onSourceChange(filteredAssets.find((asset) => asset.url === newValue) ?? null)
+      }}
+      rightSection={isPending ? <Loader size='xs' /> : undefined}
+      nothingFoundMessage={t('No projects to connect')}
+      error={sourceError}
+    />
   )
 }

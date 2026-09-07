@@ -3,7 +3,7 @@ import React from 'react'
 import { Stack } from '@mantine/core'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
-import TextBox from '#/components/common/textBox'
+import TextInput from '#/components/common/TextInput'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
 import envStore, { type ExtraProjectMetadataField } from '#/envStore'
 import { addRequiredToLabel } from '#/textUtils'
@@ -81,12 +81,13 @@ const ExtraProjectMetadataField = ({ field, value, onChange, hasError }: ExtraPr
   }
 
   return (
-    <TextBox
+    <TextInput
+      size='md'
       value={typeof value === 'string' ? value : ''}
-      onChange={(val) => onChange(field.name, val)}
+      onChange={(evt) => onChange(field.name, evt.currentTarget.value)}
       label={addRequiredToLabel(label, field.required)}
       placeholder={label}
-      errors={hasError ? t('This field is required') : false}
+      error={hasError ? t('This field is required') : undefined}
     />
   )
 }

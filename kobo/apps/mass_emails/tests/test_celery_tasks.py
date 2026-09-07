@@ -116,6 +116,7 @@ class BaseMassEmailsTestCase(BaseTestCase):
         MassEmailRecord.objects.filter(id=record.id).update(
             date_modified=timezone.now() - timedelta(days=days_ago)
         )
+        return record
 
     def _enqueue_records_for_config(self, email_config, count):
         job = MassEmailJob.objects.create(email_config=email_config)
@@ -1079,3 +1080,59 @@ class TestMassEmailSenderConnection(BaseMassEmailsTestCase):
         # rather than being written off as failed
         assert MassEmailRecord.objects.filter(status=EmailStatus.SENT).count() == 1
         assert MassEmailRecord.objects.filter(status=EmailStatus.ENQUEUED).count() == 2
+
+
+class TestMarkOldRecordsAsFailed(BaseMassEmailsTestCase):
+
+    @override_config(MASS_EMAIL_ENQUEUED_RECORD_EXPIRY=5)
+    def test_mark_old_records_as_failed_expires_old_records(self):
+        config = self._create_email_config(name='test')
+        record_old = self._create_email_record(
+            user=self.user1, days_ago=10, status='enqueued', email_config=config
+        )
+        record_new = self._create_email_record(
+            user=self.user1, days_ago=3, status='enqueued', email_config=config
+        )
+
+        mark_old_enqueued_mass_email_record_as_failed()
+        record_old.refresh_from_db()
+        record_new.refresh_from_db()
+        assert record_old.status == 'failed'
+        assert record_new.status == 'enqueued'
+
+    @override_config(MASS_EMAIL_ENQUEUED_RECORD_EXPIRY=5)
+    def test_mark_old_records_as_failed_disables_failed_oneoff_sends(self):
+        config_to_expire = self._create_email_config(
+            name='test', frequency=-1, live=True
+        )
+        config_to_keep = self._create_email_config(
+            name='test2', frequency=-1, live=True
+        )
+
+        # create 2 old records for config_to_expire
+        self._create_email_record(
+            user=self.user1,
+            status='enqueued',
+            email_config=config_to_expire,
+            days_ago=10,
+        )
+        self._create_email_record(
+            user=self.user2,
+            status='enqueued',
+            email_config=config_to_expire,
+            days_ago=10,
+        )
+
+        # create 1 old record and 1 newer for config_to_keep
+        self._create_email_record(
+            user=self.user1, status='enqueued', email_config=config_to_keep, days_ago=10
+        )
+        self._create_email_record(
+            user=self.user2, status='enqueued', email_config=config_to_keep, days_ago=3
+        )
+
+        mark_old_enqueued_mass_email_record_as_failed()
+        config_to_expire.refresh_from_db()
+        config_to_keep.refresh_from_db()
+        assert not config_to_expire.live
+        assert config_to_keep.live

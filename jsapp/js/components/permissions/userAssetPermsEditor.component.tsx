@@ -6,10 +6,9 @@ import assetStore from '#/assetStore'
 import { getSurveyFlatPaths } from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import AriaText from '#/components/common/ariaText'
 import type { ComboboxItem } from '#/components/common/select.types'
-import TextBox from '#/components/common/textBox'
-import { KEY_CODES } from '#/constants'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
@@ -225,8 +224,8 @@ export default class UserAssetPermsEditor extends React.Component<
    * A generic callback for text inputs that blur out of the element when ENTER
    * key is pressed - ensuring that the form is not submitted.
    */
-  onInputKeyPress(key: string, evt: React.KeyboardEvent<HTMLInputElement>) {
-    if (key === String(KEY_CODES.ENTER)) {
+  onInputKeyPress(evt: React.KeyboardEvent<HTMLInputElement>) {
+    if (evt.key === 'Enter') {
       evt.currentTarget.blur()
       evt.preventDefault() // prevent submitting form
     }
@@ -337,13 +336,13 @@ export default class UserAssetPermsEditor extends React.Component<
           {this.renderCheckbox(checkboxName)}
 
           {this.state[checkboxName] === true && (
-            <TextBox
-              size='m'
+            <TextInput
+              size='md'
               placeholder={PARTIAL_PLACEHOLDER}
               value={this.state[listName].join(USERNAMES_SEPARATOR)}
-              onChange={this.onPartialUsersChange.bind(this, listName)}
-              errors={this.state[checkboxName] && this.state[listName].length === 0}
-              onKeyPress={this.onInputKeyPress.bind(this)}
+              onChange={(evt) => this.onPartialUsersChange(listName, evt.currentTarget.value)}
+              error={this.state[checkboxName] && this.state[listName].length === 0}
+              onKeyDown={this.onInputKeyPress.bind(this)}
             />
           )}
         </div>
@@ -405,14 +404,14 @@ export default class UserAssetPermsEditor extends React.Component<
               <AriaText uiText='=' screenReaderText={t('equals')} />
 
               <span className={styles.valueInputWrapper}>
-                <TextBox
+                <TextInput
                   value={this.state[valueProp]}
-                  size='m'
-                  onChange={(newVal: string) => {
+                  size='sm'
+                  onChange={(evt) => {
                     // Update state object in non mutable way
                     let output = clonedeep(this.state)
                     output = Object.assign(output, {
-                      [valueProp]: newVal,
+                      [valueProp]: evt.currentTarget.value,
                     })
                     this.setState(output)
                   }}
@@ -454,14 +453,13 @@ export default class UserAssetPermsEditor extends React.Component<
         {isNew && (
           // don't display username editor when editing existing user
           <div className={styles.row}>
-            <TextBox
-              size='m'
+            <TextInput
               placeholder={t('username')}
               value={this.state.username}
-              onChange={this.onUsernameChange.bind(this)}
+              onChange={(evt) => this.onUsernameChange(evt.currentTarget.value)}
               onBlur={this.onUsernameChangeEnd.bind(this)}
-              onKeyPress={this.onInputKeyPress.bind(this)}
-              errors={!this.state.isUsernamePristine && this.state.username.length === 0}
+              onKeyDown={this.onInputKeyPress.bind(this)}
+              error={!this.state.isUsernamePristine && this.state.username.length === 0}
             />
           </div>
         )}

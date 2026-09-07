@@ -217,6 +217,19 @@ CONSTANCE_CONFIG = {
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS': (
+        '',
+        'List of email domains configured across all managed SocialApps. '
+        'Note: these domains are managed per-app through the email_domains field in '
+        'Admin > SocialApp.',
+        'disabled_textarea',
+    ),
+    'SHOW_KOBOTOOLBOX_LOGO': (
+        True,
+        'Show the KoboToolbox logo on the sign-in and account creation pages. '
+        'Turn this off to display only the logo uploaded under '
+        'Configuration files',
+    ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
         '',
@@ -751,6 +764,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
     ],
+    'disabled_textarea': [
+        'django.forms.fields.CharField',
+        {'widget': 'django.forms.Textarea', 'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -760,6 +777,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+        'SHOW_KOBOTOOLBOX_LOGO',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -1054,6 +1073,12 @@ REST_FRAMEWORK = {
         'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
+    'DEFAULT_THROTTLE_RATES': {
+        # Changing the email address accepts `current_password` from clients
+        # without a browser session; throttle it so it cannot be used to guess
+        # passwords. Generous for the legitimate case, which is rare.
+        'email_change': env.str('EMAIL_CHANGE_THROTTLE_RATE', '10/hour'),
+    },
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -1094,6 +1119,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
         'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
@@ -1529,13 +1555,19 @@ CELERY_BEAT_SCHEDULE = {
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     'perform-maintenance': {
         'task': 'kpi.tasks.perform_maintenance',
@@ -1567,7 +1599,10 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-failed': {
@@ -1625,7 +1660,10 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=0, hour=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every day at midnight UTC
     'delete-expired-logs': {
@@ -1692,6 +1730,11 @@ CELERY_BEAT_SCHEDULE = {
     'resume-stuck-subsequence-bulk-actions': {
         'task': 'kobo.apps.subsequences.tasks.resume_stuck_bulk_actions',
         'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'enforce-managed-sso': {
+        'task': 'kobo.apps.accounts.tasks.managed_sso_sweep',
+        'schedule': crontab(hour=0, minute=45),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
@@ -1795,12 +1838,19 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'user_token': 'kobo.apps.accounts.forms.UserTokenForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
+# How long a re-authentication remains valid before a sensitive action (e.g.
+# changing the email address) demands it again
+ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
+    'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
+)
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -2385,9 +2435,14 @@ S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
 USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
-# Number of stuck tasks should be restarted at a time
+# Number of stuck project ownership tasks and transfers restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
+MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
+MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
@@ -2406,6 +2461,10 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Cache time-to-live (in seconds) for the survey question types and default
+# language used by NLP actions
+SURVEY_METADATA_CACHE_TTL = 86400
 
 # Configure the Referrer-Policy response header so OpenStreetMap tile servers
 # receive an acceptable referrer. See:

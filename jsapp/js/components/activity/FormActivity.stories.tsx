@@ -14,6 +14,8 @@ import FormActivity from './FormActivity'
 const meta: Meta<typeof FormActivity> = {
   title: 'Features/FormActivity',
   component: FormActivity,
+  // Docs view doesn't work well and doesn't give us anything useful
+  tags: ['!autodocs'],
   argTypes: {},
   parameters: {
     msw: {

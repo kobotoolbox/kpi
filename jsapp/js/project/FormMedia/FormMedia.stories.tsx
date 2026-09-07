@@ -13,6 +13,8 @@ const mockAsset = getApiV2AssetsRetrieveResponseMock({
 const meta: Meta<typeof FormMedia> = {
   title: 'Features/FormMedia',
   component: FormMedia,
+  // Docs view doesn't work well and doesn't give us anything useful
+  tags: ['!autodocs'],
   decorators: [queryClientDecorator],
   args: {
     asset: mockAsset,

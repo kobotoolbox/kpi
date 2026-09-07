@@ -1,8 +1,8 @@
 import React from 'react'
 
 import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import { recordValues } from '#/utils'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
@@ -125,13 +125,13 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
         {!isFilterConditionValueRequired(props.filter.condition) && <div />}
         {isFilterConditionValueRequired(props.filter.condition) && !isCountryFilterSelected && (
-          <TextBox
+          <TextInput
             value={props.filter.value || ''}
-            onChange={onFilterValueChange}
+            onChange={(evt) => onFilterValueChange(evt.currentTarget.value)}
             placeholder={t('Enter value')}
             // Requires field to be selected first
             disabled={!props.filter.fieldName}
-            size='m'
+            size='sm'
           />
         )}
         {isFilterConditionValueRequired(props.filter.condition) && isCountryFilterSelected && (

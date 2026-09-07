@@ -173,18 +173,18 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
 
     if (importData.status === 'error') {
       terminalImportStatusRef.current = terminalStatus
-      const errLines: React.ReactNode[] = [t('Import Failed!')]
+      const errLines: React.ReactNode[] = [<strong key='title'>{t('Import Failed!')}</strong>]
       if (uploadFilename) {
-        errLines.push(<code key='filename'>Name: {uploadFilename}</code>)
+        errLines.push(<small key='filename'>Name: {uploadFilename}</small>)
       }
       if (importData.messages?.error) {
         errLines.push(
-          <code key='error'>
+          <small key='error'>
             {importData.messages.error_type}: {escapeHtml(importData.messages.error)}
-          </code>,
+          </small>,
         )
       }
-      notify.error(<div>{join(errLines, <br />)}</div>)
+      notify.error(<div style={{ textAlign: 'left' }}>{join(errLines, <br />)}</div>)
       onRequestClose()
     }
   }, [currentImportUid, importDetailsQuery.data, onRequestClose, uploadFilename])

@@ -17,6 +17,8 @@ from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
+    DEPENDENCY_SOURCE_SUBMISSION,
+    QUAL_SOURCE_TYPES,
     QUESTION_TYPE_INTEGER,
     QUESTION_TYPE_NOTE,
     QUESTION_TYPE_TAGS,
@@ -25,14 +27,13 @@ from kobo.apps.subsequences.constants import (
     SOURCE_TYPE_AUTOMATIC,
 )
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     ManualQualNotFound,
-    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
     MODEL_TEMPERATURE,
-    PROMPTS_BY_QUESTION_TYPE,
     InvalidResponseFromLLMException,
     analysis_question_placeholder,
     choices_list_placeholder,
@@ -40,6 +41,7 @@ from kobo.apps.subsequences.prompts import (
     format_choices,
     format_hint,
     get_example_format,
+    get_prompt_template,
     hint_placeholder,
     num_choice_placeholder,
     parse_choices_response,
@@ -93,6 +95,7 @@ OSS120 = LLModel(
 class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
     ID = 'automatic_bedrock_qual'
+    allowed_source_types = QUAL_SOURCE_TYPES
     action_class_config = ActionClassConfig(
         allow_multiple=True,
         automatic=True,
@@ -250,13 +253,18 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
     def get_output_fields(self) -> list[dict]:
         return []
 
-    def generate_llm_prompt(self, action_data: dict) -> str:
+    def generate_llm_prompt(self, action_data: dict, submission: dict) -> str:
         """
         Generate the prompt that will be sent to the llm
         """
-        # always need transcript, QA question text, and QA question value
-        # to fill out the LLM prompt
-        transcript_text = escape(action_data['_dependency']['value'])
+        # The source text is either the transcript from a dependency or, for a
+        # direct-text source question, read straight from the submission.
+        if action_data['_dependency'].get(self.ACTION_ID_FIELD) == (
+            DEPENDENCY_SOURCE_SUBMISSION
+        ):
+            source_text = escape(str(submission.get(self.source_question_xpath) or ''))
+        else:
+            source_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']
         qa_question = self._get_question(question_uuid)
         question_text = escape(qa_question['labels']['_default'])
@@ -265,14 +273,16 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         hint = raw_hint and escape(raw_hint)
         hint = f' {format_hint(hint)}' if hint else ''
 
-        # get the correct template based on question type
-        prompt_template = PROMPTS_BY_QUESTION_TYPE[question_type]
+        # get the correct template based on the source and QA question types
+        prompt_template = get_prompt_template(
+            self.get_source_question_type(), question_type
+        )
 
-        # if it's not a select question, we only need the transcript and the question
-        # text to fill out the prompt
+        # if it's not a select question, we only need the source text and the
+        # question text to fill out the prompt
         if question_type not in SELECT_QUESTIONS:
             return (
-                prompt_template.replace(response_placeholder, transcript_text)
+                prompt_template.replace(response_placeholder, source_text)
                 .replace(analysis_question_placeholder, question_text)
                 .replace(hint_placeholder, hint)
             )
@@ -292,7 +302,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
             return (
-                prompt_template.replace(response_placeholder, transcript_text)
+                prompt_template.replace(response_placeholder, source_text)
                 .replace(analysis_question_placeholder, question_text)
                 .replace(num_choice_placeholder, str(choices_count))
                 .replace(example_format_placeholder, example_format)
@@ -439,7 +449,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question_uuid = action_data['uuid']
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']
-        prompt = self.generate_llm_prompt(action_data)
+        prompt = self.generate_llm_prompt(action_data, submission)
         error = ''
         self.client = self.create_bedrock_client()
         update_nlp_counter(

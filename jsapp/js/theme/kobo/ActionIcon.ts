@@ -7,9 +7,11 @@ export const ActionIconThemeKobo = ActionIcon.extend({
   vars: (theme, props) => {
     return {
       root: {
+        // Icon buttons follow the button heights, so `sm`/`md`/`lg` are kept in sync
+        // with `--button-height-*` in Button.ts. `xl` has no button counterpart.
         '--ai-size-sm': rem(28),
-        '--ai-size-md': rem(32),
-        '--ai-size-lg': rem(38),
+        '--ai-size-md': rem(34),
+        '--ai-size-lg': rem(40),
         '--ai-size-xl': rem(44),
 
         ...(props.variant === 'filled' && {

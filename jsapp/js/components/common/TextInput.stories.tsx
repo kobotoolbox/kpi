@@ -5,7 +5,7 @@ import Icon from './icon'
 const inputSizes: Array<TextInputProps['size']> = ['sm', 'md', 'lg']
 
 export default {
-  title: 'Design system old/TextInput',
+  title: 'Design system/TextInput',
   component: TextInput,
   argTypes: {
     label: {

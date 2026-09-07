@@ -1,9 +1,11 @@
 import { type default as React, useEffect, useState } from 'react'
 
-import type { AccountFieldsErrors, AccountFieldsValues } from '#/account/account.constants'
+import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from '#/account/account.constants'
 import { getInitialAccountFieldsValues, getProfilePatchData } from '#/account/account.utils'
 import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
 import { fetchGet, fetchPatch, fetchPost, handleApiFail } from '#/api'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import { useLogout } from '#/auth/useLogout'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
@@ -20,6 +22,12 @@ const TOS_SLUG_TRANSLATED = `${TOS_SLUG}_<language>`
 const ME_ENDPOINT = '/me/'
 const TOS_ACCEPT_ENDPOINT = '/me/tos/'
 const TOS_MESSAGES_ENDPOINT = '/api/v2/terms-of-service/'
+
+/**
+ * Organization fields are managed at the organization level, so members of an
+ * MMO are not allowed to edit them and we omit them from the form.
+ */
+const MMO_HIDDEN_FIELDS: UserFieldName[] = ['organization', 'organization_website', 'organization_type']
 
 interface MePatchFailResponse {
   responseJSON: {
@@ -49,12 +57,18 @@ export default function TOSForm() {
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({})
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
 
-  const fieldsToShow = envStore.data.getUserMetadataRequiredFieldNames()
+  const { currentLoggedAccount } = useSession()
+  const logout = useLogout()
+  const [organization] = useOrganizationAssumed()
+
+  const requiredFields = envStore.data.getUserMetadataRequiredFieldNames()
   if (envStore.data.getUserMetadataFieldsAsSimpleDict().newsletter_subscription) {
-    fieldsToShow.push('newsletter_subscription')
+    requiredFields.push('newsletter_subscription')
   }
 
-  const { currentLoggedAccount, logOut } = useSession()
+  const fieldsToShow = organization?.is_mmo
+    ? requiredFields.filter((fieldName) => !MMO_HIDDEN_FIELDS.includes(fieldName))
+    : requiredFields
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -173,9 +187,14 @@ export default function TOSForm() {
     setIsFormPending(false)
   }
 
-  function leaveForm() {
+  async function leaveForm() {
     setIsFormPending(true)
-    logOut()
+    try {
+      await logout.mutateAsync()
+      window.location.replace('')
+    } catch {
+      setIsFormPending(false)
+    }
   }
 
   // We are waiting for few pieces of data: the message, fields definitions from
