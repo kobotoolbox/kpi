@@ -4,7 +4,9 @@ from uuid import uuid4
 
 from django.conf import settings
 from django_redis import get_redis_connection
+from redis.exceptions import RedisError
 
+from kpi.utils.log import logging
 from ...main.models import UserProfile
 from ..constants import (
     SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
@@ -40,24 +42,10 @@ def suspend_submissions(user: settings.AUTH_USER_MODEL):
     _register_holder(redis_client, holders_key, token, lease, user.username)
     try:
         UserProfile.objects.get_or_create(user_id=user.pk)
-        UserProfile.objects.filter(user_id=user.pk).update(submissions_suspended=True)
+        _set_flag(user, True)
         yield
     finally:
-        redis_client.hdel(holders_key, token)
-        if not _live_holders(redis_client, holders_key, lease):
-            UserProfile.objects.filter(user_id=user.pk).update(
-                submissions_suspended=False
-            )
-            redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, user.username)
-            # A holder registered between the check and the release above
-            # would be left unprotected. Its flag can still dip for the few
-            # round-trips before this restore: the deadlock it opens is the
-            # retryable one this suspension narrows, not a new failure
-            if redis_client.hlen(holders_key):
-                UserProfile.objects.filter(user_id=user.pk).update(
-                    submissions_suspended=True
-                )
-                _heartbeat(redis_client, user.username)
+        _release_holder(redis_client, holders_key, token, lease, user)
 
 
 def _heartbeat(redis_client, username: str):
@@ -92,3 +80,44 @@ def _register_holder(
     pipe.expire(holders_key, lease)
     pipe.hset(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, mapping={username: now})
     pipe.execute()
+
+
+def _release_holder(
+    redis_client,
+    holders_key: str,
+    token: str,
+    lease: int,
+    user: settings.AUTH_USER_MODEL,
+):
+    """
+    Drop this holder's token and release the flag if no live holder remains.
+
+    Without Redis there is no way to tell whether another holder is alive, so
+    the flag is released anyway: a deadlock is retryable, an owner who cannot
+    collect data until `fix_stale_submissions_suspended_flag` runs is not.
+    """
+    try:
+        redis_client.hdel(holders_key, token)
+        if _live_holders(redis_client, holders_key, lease):
+            return
+    except RedisError:
+        logging.error(
+            f'Redis unavailable while releasing submissions of user'
+            f' #{user.pk}, released unconditionally'
+        )
+        _set_flag(user, False)
+        return
+
+    _set_flag(user, False)
+    redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, user.username)
+    # A holder registered between the check and the release above would be
+    # left unprotected. Its flag can still dip for the few round-trips before
+    # this restore: the deadlock it opens is the retryable one this suspension
+    # narrows, not a new failure
+    if redis_client.hlen(holders_key):
+        _set_flag(user, True)
+        _heartbeat(redis_client, user.username)
+
+
+def _set_flag(user: settings.AUTH_USER_MODEL, suspended: bool):
+    UserProfile.objects.filter(user_id=user.pk).update(submissions_suspended=suspended)

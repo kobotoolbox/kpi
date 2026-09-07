@@ -1,9 +1,10 @@
 import time
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import fakeredis
 from django.conf import settings
 from django.test import TestCase
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.constants import (
@@ -61,15 +62,22 @@ class SuspendSubmissionsTestCase(TestCase):
         assert not self._is_suspended()
         assert not self.redis_client.exists(self.holders_key)
 
-    def test_redis_failure_leaves_submissions_open(self):
-        with patch(REDIS_PATCH_TARGET, side_effect=ConnectionError):
-            with self.assertRaises(ConnectionError):
+    def test_redis_failure_on_entry_leaves_submissions_open(self):
+        with patch(REDIS_PATCH_TARGET, side_effect=RedisConnectionError):
+            with self.assertRaises(RedisConnectionError):
                 with suspend_submissions(self.user):
                     pass
 
         assert not UserProfile.objects.filter(
             user=self.user, submissions_suspended=True
         ).exists()
+
+    def test_redis_failure_on_exit_still_releases(self):
+        with suspend_submissions(self.user):
+            assert self._is_suspended()
+            self.redis_client.hdel = Mock(side_effect=RedisConnectionError)
+
+        assert not self._is_suspended()
 
     def _has_heartbeat(self):
         return self.redis_client.hexists(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, 'holder')
