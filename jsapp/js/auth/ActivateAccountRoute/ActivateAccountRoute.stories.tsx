@@ -66,10 +66,11 @@ export const Confirmed: Story = {
 
     await userEvent.click(await canvas.findByRole('button', { name: 'Confirm' }))
     await canvas.findByRole('heading', { level: 1, name: 'Email address confirmed' })
+    // The button is what separates the two confirmed endings - the heading is the same on both.
+    await canvas.findByRole('link', { name: 'Continue to KoboToolbox' })
   },
 }
 
-// TODO: after kobotoolbox/kpi#7549 is merged update the code
 /**
  * The same click with that setting off: a 401 that allauth's own documentation calls a success, so this
  * ends on "Log in" rather than on the failure screen.
@@ -85,6 +86,7 @@ export const ConfirmedWithoutSession: Story = {
 
     await userEvent.click(await canvas.findByRole('button', { name: 'Confirm' }))
     await canvas.findByRole('heading', { level: 1, name: 'Email address confirmed' })
+    await canvas.findByRole('link', { name: 'Log in' })
   },
 }
 

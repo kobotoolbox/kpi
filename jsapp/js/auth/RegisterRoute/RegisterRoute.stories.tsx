@@ -14,6 +14,7 @@ import {
   signupErrorsMock,
   signupNeverAnswersMock,
   signupPendingVerificationMock,
+  signupServerErrorMock,
 } from '#/endpoints/allauth.mocks'
 import { environmentResponse, makeEnvironmentFailsOnceMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -248,7 +249,6 @@ export const SubmitForm: Story = {
   },
 }
 
-// TODO: after kobotoolbox/kpi#7549 is merged update the code
 /** The happy path on default configuration: a 401 with a pending `verify_email` flow, treated as success. */
 export const SubmitPendingVerification: Story = {
   parameters: { msw: { handlers: storyHandlers({ signup: signupPendingVerificationMock() }) } },
@@ -304,6 +304,21 @@ export const ServerErrors: Story = {
     await canvas.findByText('A user with that username already exists.')
     // General error - above the form
     await canvas.findByText('Sign up is temporarily unavailable. Please try again in a few minutes.')
+    // The form stays put with what was typed: a rejection is not the "check your inbox" ending.
+    expect(canvas.getByLabelText(/^Username/)).toHaveValue(VALID_INPUT.username)
+  },
+}
+
+/** A 500 leaves us nothing to quote, so the banner gets our own wording and the form stays fillable. */
+export const ServerUnavailable: Story = {
+  parameters: { msw: { handlers: storyHandlers({ signup: signupServerErrorMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByText('Something went wrong. Please try again later.')
   },
 }
 

@@ -5,7 +5,7 @@ import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import { isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
+import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
@@ -123,31 +123,29 @@ export default function RegisterForm({
 
   const signup = useAllauthBrowserV1AuthSignupPost({
     mutation: {
+      // Rejections land here too, not in `onError`: allauth signals with status codes, so `fetchAllauth`
+      // hands back every answer below 500 as data for us to read.
       onSuccess: (response, variables) => {
-        // A 2xx only happens where a deployment sets `ACCOUNT_EMAIL_VERIFICATION` to `none` or
+        // A 200 only happens where a deployment sets `ACCOUNT_EMAIL_VERIFICATION` to `none` or
         // `optional`: allauth signs the new account in and answers with the session, so asking for a
         // confirmation nobody sent would strand someone who is already in.
-        // The `status` half only narrows the generated union - the mutator threw on anything but a 2xx.
         if (response.status === 200 && response.data.meta.is_authenticated) {
           onSignedIn()
           return
         }
-        onVerificationPending(variables.data.email)
-      },
-      onError: (error, variables) => {
-        // TODO: after kobotoolbox/kpi#7549 is merged update the code
-        // With verification mandatory (the KPI default) a successful signup answers 401, and the
-        // fetch mutator throws on every non-2xx, so success arrives here.
-        if (isPendingEmailVerification(error)) {
+        // With verification mandatory (the KPI default) the success is a 401 with a pending
+        // `verify_email` flow.
+        if (isPendingEmailVerification(response)) {
           onVerificationPending(variables.data.email)
           return
         }
-        // Passing any `onError` also suppresses the global toast, which would double up on these
-        // inline messages.
-        const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(error, SERVER_KNOWN_FIELDS)
+        const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, SERVER_KNOWN_FIELDS)
         form.setErrors(fieldErrors)
         setFormErrors(bannerErrors)
       },
+      // Only a 5xx or a dead connection gets this far. Handling it here rather than leaving it to the
+      // global toast keeps the message next to the button that just failed.
+      onError: () => setFormErrors([getGenericAllauthErrorMessage()]),
     },
   })
 

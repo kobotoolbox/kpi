@@ -62,6 +62,13 @@ export const signupNeverAnswersMock = () =>
 /** Registration is closed. allauth answers with no message at all, hence the bare body. */
 export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.json({ status: 403 }, { status: 403 }))
 
+/**
+ * The server itself broke. This is the one signup outcome `fetchAllauth` still throws on, so it is the only
+ * way into the form's `onError`.
+ */
+export const signupServerErrorMock = () =>
+  http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
 /** Looking up an activation key that is still good. */
 export const emailVerificationInfoMock = (email: string, display: string) =>
   http.get(EMAIL_VERIFY_URL, () =>

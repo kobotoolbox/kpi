@@ -1,4 +1,5 @@
-import { ServerError } from '#/api/ServerError'
+import type { AuthenticationResponse } from '#/api/models/authenticationResponse'
+import type { ErrorResponse } from '#/api/models/errorResponse'
 import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsItem'
 import { FlowId } from '#/api/models/flowId'
 
@@ -6,19 +7,17 @@ import { FlowId } from '#/api/models/flowId'
  * allauth's headless endpoints answer with their own errors, which `#/api/onErrorDefaultHandler`
  * cannot read - `getApiErrorMessage()` only looks at Django's `detail` and `error` keys.
  *
+ * These all take a response rather than a thrown error: allauth uses status codes as protocol signals -
+ * some of its 4xx answers are successes - so `fetchAllauth` hands every 4xx back as data and leaves the
+ * reading of it to us.
+ *
  * See https://docs.allauth.org/en/latest/headless/openapi-specification/
  */
 
-/** `{status: 400, errors: [{code, param?, message}]}` - `param` is absent for non-field errors. */
-interface AllauthErrorBody {
-  status?: number
-  errors?: ErrorResponseErrorsItem[]
-}
-
-// TODO: after kobotoolbox/kpi#7549 is merged update the code
-/** `{status: 401, data: {flows: [{id, is_pending?}]}, meta: {is_authenticated: false}}` */
-interface AllauthAuthenticationBody {
-  data?: { flows?: Array<{ id?: string; is_pending?: boolean }> }
+/** What every allauth response has in common once `fetchAllauth` is done with it. */
+export interface AllauthResponse {
+  status: number
+  data: unknown
 }
 
 export interface AllauthErrorSplit {
@@ -28,11 +27,11 @@ export interface AllauthErrorSplit {
   formErrors: string[]
 }
 
-function getErrorItems(error: unknown): ErrorResponseErrorsItem[] {
-  if (!(error instanceof ServerError)) {
-    return []
-  }
-  const body = error.parsedResponse as AllauthErrorBody | undefined
+/** For a failure allauth did not describe: a 5xx, a dead connection, or a body we cannot read. */
+export const getGenericAllauthErrorMessage = () => t('Something went wrong. Please try again later.')
+
+function getErrorItems(response: AllauthResponse): ErrorResponseErrorsItem[] {
+  const body = response.data as ErrorResponse | undefined
   if (!Array.isArray(body?.errors)) {
     return []
   }
@@ -40,15 +39,14 @@ function getErrorItems(error: unknown): ErrorResponseErrorsItem[] {
 }
 
 /** Statuses allauth answers with an empty body, so the copy has to come from us. */
-function getMessagelessStatusMessage(error: unknown): string {
-  const status = error instanceof ServerError ? error.response.status : undefined
+function getMessagelessStatusMessage(status: number): string {
   if (status === 403) {
     return t('Account registration is not available on this server.')
   }
   if (status === 409) {
     return t('You are already logged in. Please log out before creating another account.')
   }
-  return t('Something went wrong. Please try again later.')
+  return getGenericAllauthErrorMessage()
 }
 
 /**
@@ -57,11 +55,11 @@ function getMessagelessStatusMessage(error: unknown): string {
  * Anything allauth names in `param` that is not in `formFields` goes to the banner:
  * `form.setErrors()` will happily store an error under a path no input reads, hiding the message.
  */
-export function splitAllauthErrors(error: unknown, formFields: readonly string[]): AllauthErrorSplit {
+export function splitAllauthErrors(response: AllauthResponse, formFields: readonly string[]): AllauthErrorSplit {
   const fieldErrors: Record<string, string> = {}
   const formErrors: string[] = []
 
-  for (const item of getErrorItems(error)) {
+  for (const item of getErrorItems(response)) {
     const field = item.param && formFields.includes(item.param) ? item.param : null
     if (field && !(field in fieldErrors)) {
       fieldErrors[field] = item.message
@@ -73,34 +71,22 @@ export function splitAllauthErrors(error: unknown, formFields: readonly string[]
   }
 
   if (!formErrors.length && !Object.keys(fieldErrors).length) {
-    formErrors.push(getMessagelessStatusMessage(error))
+    formErrors.push(getMessagelessStatusMessage(response.status))
   }
 
   return { fieldErrors, formErrors }
 }
 
 /**
- * Whether a rejected signup is in fact the happy path.
+ * Whether a signup answer is in fact the happy path.
  *
  * Under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'` (the KPI default) a successful signup answers 401 with a pending
- * `verify_email` flow, since the new account is not logged in yet. The fetch mutator throws on every non-2xx, so that
- * particular success would land in react-query's `onError`.
+ * `verify_email` flow, since the new account is not logged in until the address is confirmed.
  */
-export function isPendingEmailVerification(error: unknown): boolean {
-  if (!(error instanceof ServerError) || error.response.status !== 401) {
+export function isPendingEmailVerification(response: AllauthResponse): boolean {
+  if (response.status !== 401) {
     return false
   }
-  const flows = (error.parsedResponse as AllauthAuthenticationBody | undefined)?.data?.flows
+  const flows = (response.data as AuthenticationResponse | undefined)?.data?.flows
   return Array.isArray(flows) && flows.some((flow) => flow.id === FlowId.verify_email && flow.is_pending === true)
-}
-
-/**
- * Whether a rejected email verification is in fact the happy path.
- *
- * Endpoint docs say "a status code of 401 does not imply failure. It indicates that the email verification was
- * successful, yet, the user is still not signed in". That happens when `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is off.
- * KPI sets it to `True` by default, so this is needed for servers that override it.
- */
-export function isVerifiedWithoutSession(error: unknown): boolean {
-  return error instanceof ServerError && error.response.status === 401
 }

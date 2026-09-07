@@ -8,7 +8,6 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
-import { isVerifiedWithoutSession } from '#/auth/allauthErrors'
 import ButtonNew from '#/components/common/ButtonNew'
 import { PATHS } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
@@ -126,27 +125,29 @@ export default function ActivateAccountRoute() {
       queryKey: [...getAllauthBrowserV1AuthEmailVerifyGetQueryKey(), key],
       enabled: Boolean(key),
       retry: false,
+      // A rejected key arrives as data, not as an error, so this is where "the key is no good" is decided:
+      // `null` for anything but a 200.
       select: (response) => (response.status === 200 ? response.data.data : null),
     },
   })
 
-  const confirm = useAllauthBrowserV1AuthEmailVerifyPost({
-    // Both outcomes are rendered right here, so keep the global error toast out of it.
-    mutation: { onError: () => {} },
-  })
+  const confirm = useAllauthBrowserV1AuthEmailVerifyPost()
 
-  // TODO: after kobotoolbox/kpi#7549 is merged update the code
-  // A 401 on the confirmation is a success that leaves nobody signed in, so it gets its own ending.
-  const isConfirmedWithoutSession = confirm.isError && isVerifiedWithoutSession(confirm.error)
+  // From allauth's docs: "a status code of 401 does not imply failure. It indicates that the email
+  // verification was successful, yet, the user is still not signed in" - which is
+  // `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` turned off. Either way the address is now confirmed.
+  const confirmStatus = confirm.data?.status
 
   function renderPanel() {
-    if (confirm.isSuccess || isConfirmedWithoutSession) {
-      return <ConfirmedPanel isSignedIn={confirm.isSuccess} />
+    if (confirmStatus === 200 || confirmStatus === 401) {
+      return <ConfirmedPanel isSignedIn={confirmStatus === 200} />
     }
-    // Must stay below the confirmed branch: a 401 confirmation is a success that is also `isError`.
-    if (!key || verification.isError || confirm.isError) {
+    // `confirm.data` left over here is a rejection - a key that expired between the lookup and the click.
+    // Only a 5xx or a dead connection reaches `isError`, and that leaves the prompt up to try again.
+    if (!key || verification.data === null || verification.isError || confirm.data) {
       return <ActivationFailedPanel />
     }
+    // `null` is handled above, so the only falsy value left is the one that means "still in flight".
     if (!verification.data) {
       return <CheckingLinkPanel />
     }
