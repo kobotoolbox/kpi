@@ -426,10 +426,7 @@ const NON_RESPONSE_SUBMISSION_KEYS = new Set<string>([
 ])
 
 /**
- * Adds a row for every answer stored under a path the current form no longer accounts
- * for - what renaming or removing a question or group leaves behind. Without it the
- * answer and its file vanish from the modal, while Data Table keeps the column (see
- * `getAllDataColumns`).
+ * Adds a row for every answer stored under a path not included in current form.
  */
 function addUnaccountedAnswers(
   output: DisplayGroup,
