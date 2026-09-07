@@ -4,8 +4,8 @@ from allauth.account.internal.flows.email_verification import (
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
-from django.db.models import Exists, OuterRef
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Exists, OuterRef
 from django.http import Http404
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -31,8 +31,8 @@ from kpi.utils.schema_extensions.response import (
 from kpi.versioning import APIV2Versioning
 from .constants import EMAIL_CONFIRMATION_REQUESTED_DETAIL
 from .extend_schemas.api.v2.email.examples import (
-    get_email_create_examples,
     get_email_confirmation_request_examples,
+    get_email_create_examples,
 )
 from .extend_schemas.api.v2.email.serializers import (
     EmailConfirmationRequestPayload,
