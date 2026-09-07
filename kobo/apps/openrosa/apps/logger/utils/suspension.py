@@ -19,6 +19,9 @@ def suspend_submissions(user: settings.AUTH_USER_MODEL):
     `TemporarilyUnavailableError` (clients retry later), and registers a
     heartbeat so `fix_stale_submissions_suspended_flag` only releases the
     flag if this process dies before the `finally` block runs.
+
+    The flag and heartbeat are shared with `update_attachment_storage_bytes`:
+    whichever holder finishes first releases the other one too.
     """
     UserProfile.objects.get_or_create(user_id=user.pk)
     UserProfile.objects.filter(user_id=user.pk).update(submissions_suspended=True)
