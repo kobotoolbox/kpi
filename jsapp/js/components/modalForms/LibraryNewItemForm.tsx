@@ -5,6 +5,7 @@ import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import { openLibraryAssetModal } from '#/components/modalForms/openLibraryAssetModal'
 import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
 import pageState from '#/pageState.store'
 import { ROUTES } from '#/router/routerConstants'
@@ -33,29 +34,30 @@ export default function LibraryNewItemForm() {
     navigate(targetPath)
   }
 
+  /** Mantine modals live outside `pageState`, so their "Back" button reopens this one. */
+  function reopenThisModal() {
+    pageState.showModal({ type: MODAL_TYPES.LIBRARY_NEW_ITEM })
+  }
+
   function goToCollection() {
-    pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_COLLECTION,
-      previousType: MODAL_TYPES.LIBRARY_NEW_ITEM,
+    pageState.hideModal()
+    openLibraryAssetModal({
+      assetType: ASSET_TYPES.collection.id,
+      onBack: reopenThisModal,
     })
   }
 
   function goToTemplate() {
-    pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_TEMPLATE,
-      previousType: MODAL_TYPES.LIBRARY_NEW_ITEM,
+    pageState.hideModal()
+    openLibraryAssetModal({
+      assetType: ASSET_TYPES.template.id,
+      onBack: reopenThisModal,
     })
   }
 
   function goToUpload() {
     pageState.hideModal()
-    openLibraryUploadModal({
-      onBack: () => {
-        pageState.showModal({
-          type: MODAL_TYPES.LIBRARY_NEW_ITEM,
-        })
-      },
-    })
+    openLibraryUploadModal({ onBack: reopenThisModal })
   }
 
   if (!session.currentLoggedAccount) {

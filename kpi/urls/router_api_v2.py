@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
+from kobo.apps.accounts.views import SocialAppView
 from kobo.apps.audit_log.urls import router as audit_log_router
 from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
@@ -25,7 +26,6 @@ from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
-from kpi.views.v2.attachment_audio_duration import AttachmentAudioDurationViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
@@ -34,6 +34,7 @@ from kpi.views.v2.asset_submission_counts import AssetSubmissionCountsViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
+from kpi.views.v2.attachment_audio_duration import AttachmentAudioDurationViewSet
 from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.data import DataViewSet
@@ -306,6 +307,18 @@ kobo_scim_url_patterns = [
     ),
 ]
 
+# Declared here instead of registering a router, for two reasons: a router would
+# also expose a list route, and hidden SSO providers must stay unlisted; and the
+# default router lookup regex (`[^/.]+`) would reject a `provider_id` containing a
+# dot, which `/accounts/oidc/<provider_id>/login/` accepts today
+social_app_url_patterns = [
+    path(
+        'social-apps/<str:provider_id>/',
+        SocialAppView.as_view(),
+        name='social-app-detail',
+    ),
+]
+
 additional_urls = [
     path(r'environment/', EnvironmentView.as_view(), name='environment')
 ]
@@ -316,5 +329,6 @@ urls_patterns = (
     + supplement_url_patterns
     + qa_tag_tracker_url_patterns
     + kobo_scim_url_patterns
+    + social_app_url_patterns
     + additional_urls
 )
