@@ -132,10 +132,9 @@ const videoSubmission = buildMediaSubmission(
   'attachment-video-1',
 )
 
-// These two model a question renamed in the Form Builder after the submission
-// came in: the response and its attachment still sit under the old path, which
-// the form no longer has - hence no `question` for the column, and the
-// attachment mimetype being the only clue left about its type.
+// These two model a question renamed after the submission came in: response and
+// attachment still sit under the old path, so the column gets no `question` and the
+// attachment mimetype is the only clue left about its type.
 const renamedImageSubmission = buildMediaSubmission(
   'Photo_question_v1',
   'tiny-image.svg',

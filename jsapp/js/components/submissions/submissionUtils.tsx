@@ -40,7 +40,7 @@ import type {
 } from '#/dataInterface'
 import { recordEntries, recordKeys, recordValues } from '#/utils'
 import { getRepeatGroupAnswers } from './repeatGroupUtils'
-import { findAttachmentByQuestionXpath, getAttachmentQuestionType, getMediaAttachment } from './submissionMediaUtils'
+import { findAttachmentByQuestionXpath, getMediaAttachment, inferAttachmentQuestionType } from './submissionMediaUtils'
 export {
   getRepeatGroupAnswerTree,
   getRepeatGroupAnswers,
@@ -135,7 +135,7 @@ export class DisplayResponse {
     this.label = label
     this.name = name
     this.xpath = xpath
-    if (data) {
+    if (isAnswered(data)) {
       this.data = data
     }
     if (listName) {
@@ -426,11 +426,10 @@ const NON_RESPONSE_SUBMISSION_KEYS = new Set<string>([
 ])
 
 /**
- * Adds a row for every answer stored under a path the current form no longer
- * accounts for - what renaming or removing a question or group leaves behind.
- * Without it the answer and its file vanish from the modal, while Data Table keeps
- * the column (see `getAllDataColumns`). Rows never go into the renamed question's
- * own row, as its old name may belong to another question by now.
+ * Adds a row for every answer stored under a path the current form no longer accounts
+ * for - what renaming or removing a question or group leaves behind. Without it the
+ * answer and its file vanish from the modal, while Data Table keeps the column (see
+ * `getAllDataColumns`).
  */
 function addUnaccountedAnswers(
   output: DisplayGroup,
@@ -453,37 +452,28 @@ function addUnaccountedAnswers(
       continue
     }
 
-    // Back end adds its own properties in the leading underscore namespace (e.g.
-    // `_index`), none of them answers. Only the first segment counts, as a leaf
-    // may legitimately start with one - e.g. `Colours_by_brightness/_1st_choice`.
+    // Back end's own properties (e.g. `_index`) are never answers. Only the first
+    // segment counts, as a leaf may start with one - `group/_1st_choice`.
     if (key.split('/')[0].startsWith('_')) {
       continue
     }
 
     // Anything not a plain value is a group, whose answers are rows of their own.
-    // NOTE: this leaves out renames inside a repeat group, as those keys sit in
-    // the array of items rather than here.
+    // NOTE: leaves out renames inside a repeat group, as those keys sit in its items.
     if ((typeof value !== 'string' && typeof value !== 'number') || value === '') {
       continue
     }
 
-    // A renamed group leaves the question findable by leaf name, with its real type
-    // and choice list. A renamed question leaves only its attachment's mimetype -
-    // still enough to render media rather than a bare filename.
+    // A renamed group leaves the question findable by leaf name, with its real type and
+    // choice list. A renamed or removed one leaves only its attachment's mimetype.
     const row = findRowByXpathOrLeafName(assetContent, key)
     const attachment = row ? undefined : findAttachmentByQuestionXpath(submissionData, key)
+    const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment)) ?? null
+    const label = getColumnLabel(asset, key, false, translationIndex)
+    const group = findGroupForUnaccountedAnswer(output, key, row, flatPaths)
 
-    findGroupForUnaccountedAnswer(output, key, row, flatPaths).children.push(
-      new DisplayResponse(
-        row?.type ?? (attachment && getAttachmentQuestionType(attachment)) ?? null,
-        getColumnLabel(asset, key, false, translationIndex),
-        key,
-        // The path the answer came in under, which finds its file too (`getMediaAttachment`).
-        key,
-        getRowListName(row),
-        value,
-      ),
-    )
+    // Name and xpath are both the key - the path that finds the file too.
+    group.children.push(new DisplayResponse(type, label, key, key, getRowListName(row), value))
   }
 }
 
@@ -522,10 +512,9 @@ function findDisplayGroupByPath(root: DisplayGroup, path: string): DisplayGroup 
 /**
  * Picks the group to show an unaccounted answer in, defaulting to the root.
  *
- * The answer's own path goes first, as it names the group the answer was given in,
- * which may still be there - a question renamed inside an untouched group. Failing
- * that, the group holding the question today, where the rest of its answers render -
- * a renamed group, whose row would otherwise stay empty.
+ * The answer's own path goes first, as it names the group it was given in, which may
+ * still be there - a question renamed inside an untouched group. Failing that, the
+ * group holding the question today - a renamed group, otherwise left empty.
  */
 function findGroupForUnaccountedAnswer(
   output: DisplayGroup,
@@ -608,7 +597,7 @@ function populateMatrixData(
       // [PATH/]MATRIX_CHOICE/MATRIX_CHOICE_QUESTION
       let questionData: SubmissionResponseValue = null
       const dataProp = `${matrixGroupPath}_${matrixRowName}/${matrixGroup.name}_${matrixRowName}_${questionName}`
-      if (submissionData[dataProp]) {
+      if (isAnswered(submissionData[dataProp])) {
         questionData = submissionData[dataProp]
       } else if (parentData !== null && typeof parentData === 'object' && dataProp in parentData) {
         // Note: If Matrix question is inside a repeat group, the data is stored
@@ -616,7 +605,7 @@ function populateMatrixData(
         questionData = (parentData as { [key: string]: SubmissionResponseValue })[dataProp]
       }
 
-      if (questionData !== null) {
+      if (isAnswered(questionData)) {
         displayedKeys.add(dataProp)
       }
 
@@ -631,6 +620,14 @@ function populateMatrixData(
       matrixRowGroupObj.children.push(questionObj)
     }
   })
+}
+
+/**
+ * Tells an answer from no answer. Truthiness won't do: `0` is an answer, and taking
+ * it for none blanks the row and has `addUnaccountedAnswers` add a duplicate.
+ */
+function isAnswered(value: SubmissionResponseValue) {
+  return value !== undefined && value !== null && value !== ''
 }
 
 /**
@@ -650,11 +647,11 @@ function findSubmissionKeyForRow(
 
   const path = getSurveyFlatPaths(survey, true)[name]
 
-  if (data[path]) {
+  if (isAnswered(data[path])) {
     return path
   }
   // Some submissions store an answer under the bare name rather than the full path.
-  if (data[name]) {
+  if (isAnswered(data[name])) {
     return name
   }
   return undefined

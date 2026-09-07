@@ -9,7 +9,7 @@ import {
 } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { formatTimeDateShort, recordKeys } from '#/utils'
-import { findAttachmentByQuestionXpath, getAttachmentQuestionType, getMediaAttachment } from '../submissionMediaUtils'
+import { findAttachmentByQuestionXpath, getMediaAttachment, inferAttachmentQuestionType } from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
@@ -79,23 +79,20 @@ export default function DataTableCell(props: DataTableCellProps) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 
-  // A question renamed after this submission came in is gone from the form
-  // definition, so its column gets no `props.question` - even though the response and
-  // its file are right here. The attachment still records the path used back then.
-  const renamedQuestionAttachment = props.question
-    ? undefined
-    : findAttachmentByQuestionXpath(submission, props.columnKey)
+  // A question renamed or removed after this submission came in has no row left, so
+  // its column gets no `props.question` - even though the response and its file are
+  // right here, under the path the attachment recorded back then.
+  const orphanedAttachment = props.question ? undefined : findAttachmentByQuestionXpath(submission, props.columnKey)
 
-  const questionType =
-    props.question?.type ?? (renamedQuestionAttachment && getAttachmentQuestionType(renamedQuestionAttachment))
-  const questionXpath = props.question?.$xpath ?? renamedQuestionAttachment?.question_xpath
+  const questionType = props.question?.type ?? (orphanedAttachment && inferAttachmentQuestionType(orphanedAttachment))
+  const questionXpath = props.question?.$xpath ?? orphanedAttachment?.question_xpath
 
   if (questionType && props.reactTableRow.value) {
     if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
       // The cell value is only a basename, so the file has to be looked up by
       // xpath - which for a renamed question no longer matches any column key.
       const attachmentXpath =
-        renamedQuestionAttachment?.question_xpath ??
+        orphanedAttachment?.question_xpath ??
         submission._attachments.find(
           (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
         )?.question_xpath

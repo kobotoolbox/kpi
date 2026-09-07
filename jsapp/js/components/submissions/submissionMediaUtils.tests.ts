@@ -1,7 +1,7 @@
 import { QuestionTypeName } from '#/constants'
 import type { SubmissionAttachment } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import { findAttachmentByQuestionXpath, getAttachmentQuestionType } from './submissionMediaUtils'
+import { findAttachmentByQuestionXpath, inferAttachmentQuestionType } from './submissionMediaUtils'
 
 function buildAttachment(overrides: Partial<SubmissionAttachment> = {}): SubmissionAttachment {
   return {
@@ -51,27 +51,29 @@ describe('findAttachmentByQuestionXpath', () => {
   })
 })
 
-describe('getAttachmentQuestionType', () => {
+describe('inferAttachmentQuestionType', () => {
   it('should recognize audio files', () => {
-    chai.expect(getAttachmentQuestionType({ mimetype: 'audio/mp3' })).to.equal(QuestionTypeName.audio)
-    chai.expect(getAttachmentQuestionType({ mimetype: 'audio/x-m4a' })).to.equal(QuestionTypeName.audio)
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'audio/mp3' })).to.equal(QuestionTypeName.audio)
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'audio/x-m4a' })).to.equal(QuestionTypeName.audio)
+    // Ogg audio arrives with a generic container mimetype, and we play it as audio.
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'application/ogg' })).to.equal(QuestionTypeName.audio)
   })
 
   it('should recognize image files', () => {
-    chai.expect(getAttachmentQuestionType({ mimetype: 'image/jpeg' })).to.equal(QuestionTypeName.image)
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'image/jpeg' })).to.equal(QuestionTypeName.image)
   })
 
   it('should recognize video files', () => {
-    chai.expect(getAttachmentQuestionType({ mimetype: 'video/mp4' })).to.equal(QuestionTypeName.video)
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'video/mp4' })).to.equal(QuestionTypeName.video)
   })
 
   it('should treat anything else as a file question response', () => {
-    chai.expect(getAttachmentQuestionType({ mimetype: 'application/pdf' })).to.equal(QuestionTypeName.file)
-    chai.expect(getAttachmentQuestionType({ mimetype: 'text/csv' })).to.equal(QuestionTypeName.file)
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'application/pdf' })).to.equal(QuestionTypeName.file)
+    chai.expect(inferAttachmentQuestionType({ mimetype: 'text/csv' })).to.equal(QuestionTypeName.file)
   })
 
   it('should return undefined when there is no mimetype to go by', () => {
-    chai.expect(getAttachmentQuestionType({ mimetype: '' })).to.equal(undefined)
-    chai.expect(getAttachmentQuestionType({ mimetype: undefined as unknown as string })).to.equal(undefined)
+    chai.expect(inferAttachmentQuestionType({ mimetype: '' })).to.equal(undefined)
+    chai.expect(inferAttachmentQuestionType({ mimetype: undefined as unknown as string })).to.equal(undefined)
   })
 })

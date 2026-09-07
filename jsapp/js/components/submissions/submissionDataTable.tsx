@@ -52,9 +52,8 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   }
 
   /**
-   * Opens Single Processing for one response. A renamed question has no row left to
-   * ask for the xpath, and then the path the response arrived under is what gets us
-   * there - Single Processing finds files by xpath, not by row.
+   * Opens Single Processing for one response. With no row left to ask for the xpath,
+   * the path the response arrived under gets us there - files are found by xpath.
    */
   openProcessing(name: string, xpath: string) {
     if (!this.props.asset?.content) {

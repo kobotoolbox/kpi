@@ -4,10 +4,9 @@ import { type AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 
 /**
- * Finds the attachment a submission stored for the given question path.
- *
- * Matches on `question_xpath` - the path recorded when the submission came in -
- * so the file is still found after the question or its groups get renamed.
+ * Finds the attachment a submission stored for the given question path. Matches on
+ * `question_xpath`, the path recorded when the submission came in, so the file is
+ * still found after the question or its groups get renamed or removed.
  */
 export function findAttachmentByQuestionXpath(
   submission: DataResponse | SubmissionResponse,
@@ -16,24 +15,25 @@ export function findAttachmentByQuestionXpath(
   return submission._attachments?.find((attachment) => attachment.question_xpath === questionXpath)
 }
 
+/** `application/ogg` counts - a generic prefix, but we do play Ogg as audio. */
+function isAudioMimetype(mimetype: string) {
+  return mimetype.startsWith('audio/') || mimetype === 'application/ogg'
+}
+
 /**
- * Guesses the type of the question that produced an attachment, from its
- * mimetype.
+ * Guesses which question type produced an attachment from its mimetype, for when the
+ * question is gone from the form definition and no row is left to read the type from.
  *
- * Needed when the question is gone from the current form definition (renamed
- * after this submission came in), leaving no row to read the real type from.
- * NOTE: Two known imprecisions, both harmless for displaying the file:
- * `background-audio` looks like `audio`, and a `file` question holding e.g. a
- * photo reads as `image`.
+ * Two imprecisions, both harmless for displaying the file: `background-audio` reads
+ * as `audio`, and a `file` question holding e.g. a photo reads as `image`.
  */
-export function getAttachmentQuestionType(
+export function inferAttachmentQuestionType(
   attachment: Pick<SubmissionAttachment, 'mimetype'>,
 ): AnyRowTypeName | undefined {
-  // No mimetype leaves nothing to guess from.
   if (!attachment.mimetype) {
     return undefined
   }
-  if (attachment.mimetype.startsWith('audio/')) {
+  if (isAudioMimetype(attachment.mimetype)) {
     return QuestionTypeName.audio
   }
   if (attachment.mimetype.startsWith('image/')) {
@@ -62,7 +62,7 @@ export function getMediaAttachment(
     if (attachment.question_xpath === questionXPath) {
       // Check if the audio filetype is of type not supported by player and send it to format to mp3
       if (
-        attachment.mimetype!.includes('audio/') &&
+        isAudioMimetype(attachment.mimetype!) &&
         !attachment.mimetype!.includes('/mp3') &&
         !attachment.mimetype!.includes('mpeg') &&
         !attachment.mimetype!.includes('/wav') &&

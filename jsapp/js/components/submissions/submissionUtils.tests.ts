@@ -284,8 +284,7 @@ describe('getSubmissionDisplayData for answers the current form does not account
 
   it('should not add rows for submission properties that are not answers', () => {
     // No question asked for any of these: a property Front end doesn't model
-    // (`_index`), deprecated meta questions (`simserial`), and meta questions this
-    // form doesn't have (`today`).
+    // (`_index`), a deprecated meta question, and one this form doesn't have.
     const submission = {
       ...simpleSurveySubmission,
       _index: 3,
@@ -296,6 +295,17 @@ describe('getSubmissionDisplayData for answers the current form does not account
     const responses = getResponses(getSubmissionDisplayData(simpleSurveyAsset, 0, submission))
 
     chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
+  })
+
+  it('should display an answer of zero, rather than take it for no answer at all', () => {
+    // A zero is falsy, so it used to read as nothing answered - which blanked the row
+    // and had this pass append the answer a second time.
+    const submission = { ...simpleSurveySubmission, 'group_favourites/Favourite_number': 0 }
+    const displayData = getSubmissionDisplayData(simpleSurveyAsset, 0, submission)
+    const groupResponses = getGroupResponses(displayData, 'group_favourites')
+
+    chai.expect(groupResponses.map((response) => response.name)).to.deep.equal(['Favourite_color', 'Favourite_number'])
+    chai.expect(groupResponses[1].data).to.equal(0)
   })
 })
 

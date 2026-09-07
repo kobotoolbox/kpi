@@ -6,7 +6,7 @@ import { findRowByXpathOrLeafName } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
-import { getAttachmentQuestionType } from '#/components/submissions/submissionMediaUtils'
+import { inferAttachmentQuestionType } from '#/components/submissions/submissionMediaUtils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getAttachmentForProcessing } from '../SingleProcessingContent/TabTranscript/transcript.utils'
@@ -36,10 +36,8 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
     )
   }
 
-  // Form definition first; the attachment's mimetype keeps the player working
-  // for a question renamed after this submission came in, which leaves no row to
-  // read the type from.
-  const questionType = findRowByXpathOrLeafName(asset.content, xpath)?.type ?? getAttachmentQuestionType(attachment)
+  // Attachment mimetype as fallback for questions the form no longer has.
+  const questionType = findRowByXpathOrLeafName(asset.content, xpath)?.type ?? inferAttachmentQuestionType(attachment)
 
   switch (questionType) {
     case QUESTION_TYPES.audio.id:

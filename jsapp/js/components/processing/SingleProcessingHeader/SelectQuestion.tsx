@@ -13,8 +13,11 @@ import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
-import { findAttachmentByQuestionXpath, getAttachmentQuestionType } from '#/components/submissions/submissionMediaUtils'
-import { type AnyRowTypeName, QUESTION_TYPES } from '#/constants'
+import {
+  findAttachmentByQuestionXpath,
+  inferAttachmentQuestionType,
+} from '#/components/submissions/submissionMediaUtils'
+import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -68,50 +71,44 @@ export default function SelectQuestion({
     // that `renderOption` (and the left section) can use.
     const icons: Record<string, IconName | undefined> = {}
 
-    const buildOption = (optionXpath: string, row: SurveyRow) => {
-      const rowName = getRowName(row)
-      icons[optionXpath] = getRowTypeIcon(row.type)
-      return {
-        value: optionXpath,
-        label: getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName,
-      }
-    }
-
     /**
-     * For an answer whose question is gone from the form definition. No label
-     * survives anywhere, so the path recorded at submission time has to do.
+     * Builds the option for one audio question, or nothing when it isn't audio. No
+     * `row` means the form no longer has the question, and then the attachment's
+     * mimetype gives the type and the recorded path the label.
      */
-    const buildOptionWithoutRow = (optionXpath: string, type: AnyRowTypeName) => {
+    const buildOption = (optionXpath: string, row: SurveyRow | undefined) => {
+      const attachment = row ? undefined : findAttachmentByQuestionXpath(submission, optionXpath)
+      const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment))
+      if (!type || !isAudioRow(type)) {
+        return undefined
+      }
+
       icons[optionXpath] = getRowTypeIcon(type)
+      const rowName = row && getRowName(row)
       return {
         value: optionXpath,
-        label: optionXpath.split('/').at(-1) ?? optionXpath,
+        label: rowName
+          ? (getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName)
+          : (optionXpath.split('/').at(-1) ?? optionXpath),
       }
     }
 
     const result = assetContent.survey
       .filter((question): question is SurveyRow & { $xpath: NonNullable<SurveyRow['$xpath']> } => !!question.$xpath)
-      .filter(({ type }) => isAudioRow(type))
       .map((question) => buildOption(question.$xpath, question))
+      .filter((option) => option !== undefined)
 
-    // A rename in a later form version leaves answers under paths the current schema
-    // no longer has. Walking the submission's own keys keeps every option here to
-    // something there is data to process for.
+    // Renames and removals leave answers under paths the current schema no longer
+    // has. Walking the submission's own keys keeps every option to real data.
     for (const submissionXpath of Object.keys(submission)) {
-      if (result.some((o) => o.value === submissionXpath)) {
+      if (result.some((option) => option.value === submissionXpath)) {
         continue
       }
-      // Schema first: a renamed group still matches by leaf name. Only a renamed
-      // question matches nothing, and then the attachment's mimetype is the one
-      // clue left as to whether this is audio at all.
-      const foundRow = findRowByXpathOrLeafName(assetContent, submissionXpath)
-      const attachment = foundRow ? undefined : findAttachmentByQuestionXpath(submission, submissionXpath)
-      const type = foundRow?.type ?? (attachment && getAttachmentQuestionType(attachment))
-
-      if (!type || !isAudioRow(type)) {
-        continue
+      // Schema first: a renamed group still matches by leaf name.
+      const option = buildOption(submissionXpath, findRowByXpathOrLeafName(assetContent, submissionXpath))
+      if (option) {
+        result.push(option)
       }
-      result.push(foundRow ? buildOption(submissionXpath, foundRow) : buildOptionWithoutRow(submissionXpath, type))
     }
 
     return { options: result, icons }
