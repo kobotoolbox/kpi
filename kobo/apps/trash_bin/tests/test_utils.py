@@ -370,6 +370,11 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     fixtures = ['test_data']
 
+    def tearDown(self):
+        # Postgres is rolled back between tests, MongoDB is not: leftover
+        # documents make the next real deletion fail on unknown submission ids
+        settings.MONGO_DB.instances.delete_many({})
+
     def test_move_to_trash(self):
         asset = Asset.objects.get(pk=1)
         asset.save()  # create a version
