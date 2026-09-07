@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import { userEvent, within } from 'storybook/test'
+import { expect, userEvent, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import {
   emailVerificationInfoMock,
@@ -8,6 +8,7 @@ import {
   emailVerifyConfirmMock,
   emailVerifyConfirmWithoutSessionMock,
 } from '#/endpoints/allauth.mocks'
+import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
@@ -95,5 +96,25 @@ export const InvalidKey: Story = {
   parameters: { msw: { handlers: [emailVerificationInvalidKeyMock()] } },
   play: async ({ canvasElement }) => {
     await within(canvasElement).findByRole('heading', { level: 1, name: 'Activation Failed' })
+  },
+}
+
+/** The way out of that dead end: the offer of a new link, then the address, then what the server made of it. */
+export const InvalidKeyThenRequestNewLink: Story = {
+  parameters: {
+    msw: { handlers: [emailVerificationInvalidKeyMock(), emailConfirmationRequestedMock()] },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Activation Failed' })
+    // Step one is the offer alone; the address comes only once it is taken up.
+    expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
+    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
+
+    await userEvent.type(await canvas.findByLabelText('Email'), 'caroline.herschel@kbtdev.org')
+    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
+
+    await canvas.findByText(/a new confirmation email has been sent to it/)
   },
 }

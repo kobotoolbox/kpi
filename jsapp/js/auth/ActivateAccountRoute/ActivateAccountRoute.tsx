@@ -51,11 +51,8 @@ function ActivationFailedPanel() {
       <Title order={1} size='h3'>
         {t('Activation Failed')}
       </Title>
-      <Text>
-        {t(
-          'This activation link is no longer valid. You can resend the activation link, or request a new one by entering your email address again.',
-        )}
-      </Text>
+      {/* Stays on screen after a new link is asked for, so it avoids telling anyone what to do next. */}
+      <Text>{t('This activation link is no longer valid. You can request a new confirmation email.')}</Text>
       <ResendVerificationLink label={t('Resend activation link')} />
     </Stack>
   )
