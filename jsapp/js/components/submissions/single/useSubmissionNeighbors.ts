@@ -3,7 +3,7 @@ import {
   getAssetsDataListQueryKey,
   useAssetsDataList,
 } from '#/api/react-query/survey-data'
-import { getTableViewState } from '#/components/submissions/tableViewState'
+import type { TableFilterQuery } from '#/components/submissions/tableUtils'
 import { getSubmissionRootUuid } from '#/utils'
 import { getSubmissionNeighborParams } from './submissionRouting'
 
@@ -27,9 +27,7 @@ export interface SubmissionNeighbors {
 }
 
 /**
- * The records either side of the given one, and where it sits among them,
- * following the data table's filters for as long as they are remembered (see
- * `tableViewState`).
+ * The records either side of the given one, and where it sits among them.
  *
  * Rather than working from a list, this asks the API for the single record on
  * each side plus how many lie that way, so it works the same whether the user
@@ -37,13 +35,15 @@ export interface SubmissionNeighbors {
  *
  * @param submissionId - `_id` of the record being displayed. Leave it out while
  * the record is still loading, and nothing will be fetched.
+ * @param filterQuery - Filters to stay within, if the record was opened from a
+ * filtered data table. Without them, this walks every submission the user can see.
  */
-export function useSubmissionNeighbors(assetUid: string, submissionId?: number): SubmissionNeighbors {
+export function useSubmissionNeighbors(
+  assetUid: string,
+  submissionId?: number,
+  filterQuery?: TableFilterQuery['queryObj'],
+): SubmissionNeighbors {
   const isEnabled = submissionId !== undefined
-
-  // Read on each render, but it cannot change while we are here: the table that
-  // writes it is unmounted for as long as a record is open.
-  const filterQuery = getTableViewState(assetUid)?.filterQuery
 
   // The params are still built when disabled, so that each record keeps its own
   // query key - the id is ignored until the query runs.

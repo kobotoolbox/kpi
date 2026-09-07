@@ -172,6 +172,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   private readonly initialPageSize: number
   private readonly initialFiltered: ReactTableStateFilteredItem[]
 
+  /**
+   * Filters the last fetch used, handed to a record the user opens so it can step
+   * between neighbours the way this table lists them. Deliberately not kept in
+   * `tableViewState`, where it would outlive the table and filter records opened
+   * from somewhere else entirely.
+   */
+  private currentFilterQuery?: TableFilterQuery['queryObj']
+
   constructor(props: DataTableProps) {
     super(props)
 
@@ -383,13 +391,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       filterQueryObj = filterQuery.queryObj
     }
 
+    this.currentFilterQuery = filterQueryObj
+
     // Remembered so that leaving for a submission record and coming back keeps
-    // the user's filters, and so that the record can step between neighbours the
-    // same way this table lists them.
+    // the user's filters.
     setTableViewState(this.props.asset.uid, {
       pageSize,
       filtered: filter,
-      filterQuery: filterQueryObj,
     })
 
     const sortBy = tableStore.getSortBy()
@@ -1081,7 +1089,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   goToSubmission(submission: SubmissionResponse) {
-    goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission))
+    goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission), {
+      state: { filterQuery: this.currentFilterQuery },
+    })
   }
 
   showTableColumnsOptionsModal() {

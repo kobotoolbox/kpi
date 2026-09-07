@@ -21,6 +21,11 @@ export interface SubmissionRouteState {
   duplicatedFromUuid?: string
   /** Where "Back" should lead. Absent means the data table, see the route. */
   backTo?: SubmissionBackTo
+  /**
+   * Filters of the data table the record was opened from, so stepping between
+   * records stays within the list the user was looking at. Only the table sets it.
+   */
+  filterQuery?: TableFilterQuery['queryObj']
 }
 
 /**
@@ -105,9 +110,8 @@ export function getSubmissionLookupParams(submissionId: string): AssetsDataListP
  * is what makes this possible at all: submission times are only accurate to the
  * second, so they cannot break ties. `SelectSubmission` does the same.
  *
- * @param filterQuery - The data table's filters, so that stepping between records
- * stays within the list the user was looking at. They are not part of the address,
- * so a shared link steps through everything the recipient can see.
+ * @param filterQuery - The data table's filters, to stay within the list the user
+ * was looking at.
  */
 export function getSubmissionNeighborParams(
   submissionDbId: number,

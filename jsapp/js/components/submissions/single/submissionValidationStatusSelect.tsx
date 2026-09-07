@@ -40,6 +40,7 @@ export default function SubmissionValidationStatusSelect({
       className='submission-modal-validation-status'
       placeholder={t('Validation status')}
       size='xs'
+      aria-label={t('Validation status')}
       clearable={false}
       data={VALIDATION_STATUS_OPTIONS}
       value={selectedOption}

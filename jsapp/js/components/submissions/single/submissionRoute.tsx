@@ -50,7 +50,9 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
 
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
-  const neighbors = useSubmissionNeighbors(assetUid, record?._id)
+  const routeState = location.state as SubmissionRouteState | null
+
+  const neighbors = useSubmissionNeighbors(assetUid, record?._id, routeState?.filterQuery)
 
   // The route also accepts a numeric `_id`, for older links and for callers that
   // only have one (the REST Service logs). Swap it for the root UUID, so the
@@ -60,8 +62,6 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       navigate(getSubmissionPath(assetUid, rootUuid), { replace: true, state: location.state })
     }
   }, [assetUid, rootUuid, submissionId, navigate, location.state])
-
-  const routeState = location.state as SubmissionRouteState | null
 
   // A record opened by its address has no screen to return to, so we offer the
   // data table: it is the list this record belongs to, and the one place that can
@@ -138,17 +138,22 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       }}
       onDeleted={goBack}
       onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
+        // A duplicate answers the questions the same way, so it belongs in the
+        // same filtered list as the record it was copied from.
         navigate(getSubmissionPath(assetUid, newSubmissionDbId), {
-          state: { duplicatedFromUuid, backTo: routeState?.backTo },
+          state: { duplicatedFromUuid, backTo: routeState?.backTo, filterQuery: routeState?.filterQuery },
         })
       }}
     />,
     <SubmissionNeighborNav
       neighbors={neighbors}
       onGoToSubmission={(neighborRootUuid) => {
-        // Stepping to another record keeps the way back, but not the duplicate
-        // banner - that only belongs to the record it was raised for.
-        navigate(getSubmissionPath(assetUid, neighborRootUuid), { state: { backTo: routeState?.backTo } })
+        // Stepping to another record keeps the way back and the list being walked,
+        // but not the duplicate banner - that only belongs to the record it was
+        // raised for.
+        navigate(getSubmissionPath(assetUid, neighborRootUuid), {
+          state: { backTo: routeState?.backTo, filterQuery: routeState?.filterQuery },
+        })
       }}
     />,
   )
