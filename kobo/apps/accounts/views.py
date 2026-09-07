@@ -24,6 +24,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.versioning import APIV2Versioning
+from .extend_schemas.api.v2.email.examples import get_email_create_examples
 from .extend_schemas.api.v2.email.serializers import (
     EmailReauthenticationRequiredResponse,
     EmailRequestPayload,
@@ -57,6 +58,7 @@ from .serializers import (
     create=extend_schema(
         description=read_md('accounts', 'me/email/create.md'),
         request={'application/json': EmailRequestPayload},
+        examples=get_email_create_examples(),
         responses={
             **open_api_201_created_response(
                 EmailAddressSerializer,

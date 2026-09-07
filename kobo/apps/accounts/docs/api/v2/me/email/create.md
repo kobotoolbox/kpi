@@ -10,9 +10,9 @@ on its own: the user must have authenticated recently. "Recently" means within
 `ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the
 account has available must be fresh, the password, plus MFA when it is enabled.
 
-This applies to browser sessions only. Requests authenticated with a stateless
-credential (token, Basic or OAuth2) carry that credential on every request and
-cannot record a re-authentication, so they are not gated.
+This section describes browser sessions. Requests authenticated with a stateless
+credential (token, Basic or OAuth2) are re-authenticated differently, in the
+request body, as described below.
 
 When re-authentication is needed the endpoint responds `403` without touching any
 email address:
@@ -59,3 +59,18 @@ Note that Basic authentication is refused outright for MFA-enabled accounts, so
 in practice the `mfa_code` case applies to token and OAuth2 callers.
 
 This endpoint is rate limited.
+
+### Trying this from the API docs
+
+A live KoboToolbox session takes precedence over the token set in **Authorize**:
+`SessionAuthentication` comes first in `DEFAULT_AUTHENTICATION_CLASSES`, so if you
+are logged in, that is what authenticates the call, and the token is never read.
+
+* **To exercise the session payload**, first call
+  `POST /api/v2/allauth/browser/v1/auth/reauthenticate` with your password, then
+  send `{"email": "…"}` here within `ACCOUNT_REAUTHENTICATION_TIMEOUT`. Without
+  that first call you will get the `403` above.
+* **To exercise the token payloads**, open the docs in a private window so that no
+  session cookie is sent, get your token from `/token/`, and authorize with the
+  full value including the keyword: `Token <your-token>`, not the bare key.
+  Swagger sends the header verbatim, so omitting the keyword returns `401`.
