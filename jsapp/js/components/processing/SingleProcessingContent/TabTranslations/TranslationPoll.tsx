@@ -9,12 +9,11 @@ import ConflictingOngoingJobAlert from '#/components/processing/common/Conflicti
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { useSupplementStatusPolling } from '#/components/processing/common/useSupplementStatusPolling'
 import { getLatestTranscriptVersionItem, isSupplementVersionWithValue } from '#/components/processing/common/utils'
+import { SUPPLEMENT_MAX_FIRST_POLL_DELAY, SUPPLEMENT_MIN_FIRST_POLL_DELAY } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 
-const MIN_FIRST_POLL_DELAY_MS = 3000
-const MAX_FIRST_POLL_DELAY_MS = 30000
 // TODO: Calibrate this heuristic with real telemetry (chars vs completion time)
 // instead of relying on a hand-picked chars-per-second value.
 const CHARS_PER_SECOND = 250
@@ -23,7 +22,7 @@ function getTranslationFirstPollDelayMs(transcriptCharacters: number): number {
   // Approximate translation throughput and wait for about half of estimated completion time.
   const estimatedTranslationSeconds = Math.ceil(transcriptCharacters / CHARS_PER_SECOND)
   const delayMs = Math.round((estimatedTranslationSeconds * 1000) / 2)
-  return Math.max(MIN_FIRST_POLL_DELAY_MS, Math.min(MAX_FIRST_POLL_DELAY_MS, delayMs))
+  return Math.max(SUPPLEMENT_MIN_FIRST_POLL_DELAY, Math.min(SUPPLEMENT_MAX_FIRST_POLL_DELAY, delayMs))
 }
 
 interface Props {
@@ -59,7 +58,7 @@ export default function TranslationPoll({
     transcriptVersion && isSupplementVersionWithValue(transcriptVersion) ? transcriptVersion._data.value.length : 0
   const firstPollDelayMs = transcriptCharacters
     ? getTranslationFirstPollDelayMs(transcriptCharacters)
-    : MIN_FIRST_POLL_DELAY_MS
+    : SUPPLEMENT_MIN_FIRST_POLL_DELAY
 
   useSupplementStatusPolling(asset, submission, { firstPollDelayMs })
 

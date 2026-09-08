@@ -1,5 +1,9 @@
 .pill {
   background-color: var(--mantine-color-gray-7);
+
+  /* Make pill sizes smaller in multi select */
+  --pill-fz-md: var(--pill-fz-sm);
+  --pill-height-md: var(--pill-height-sm);
 }
 
 .inputField::placeholder {
@@ -7,8 +11,7 @@
   opacity: 1;
 }
 
-/* Match chevron visual size in MultiSelect. */
-.section button svg {
-  width: 1rem;
-  height: 1rem;
+/* With pills in the box the placeholder is not as needed, let's remove it to make more room */
+.pillsList:has(.pill) .inputField::placeholder {
+  color: transparent;
 }

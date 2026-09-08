@@ -6,6 +6,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import cx from 'classnames'
 import { useParams } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
+import { ACTIVITY_LOGS_POLL_INTERVAL } from '#/constants'
 import { QueryKeys } from '#/query/queryKeys'
 import { formatTime } from '#/utils'
 import Select from '../common/Select'
@@ -71,9 +72,8 @@ export default function FormActivity() {
         return false
       }
 
-      // Poll every 5 seconds when there are ongoing items
       // This is a reasonable interval that balances responsiveness with server load
-      return 5000
+      return ACTIVITY_LOGS_POLL_INTERVAL
     },
     // Only poll while the tab is foregrounded
     refetchIntervalInBackground: false,

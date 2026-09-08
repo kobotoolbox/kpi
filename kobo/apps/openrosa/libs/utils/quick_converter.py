@@ -1,4 +1,8 @@
 # coding: utf-8
+# TODO seems dead code, to delete. Nothing imports this module.
+# Not to be confused with `QuickConverterForm` in
+# `kobo/apps/openrosa/apps/main/forms.py`, a different class that is still
+# used by `kobo/apps/openrosa/apps/api/tools.py`.
 from django import forms
 from django.utils.translation import gettext_lazy
 
@@ -6,7 +10,7 @@ from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 
 
 class QuickConverter(forms.Form):
-    xls_file = forms.FileField(label=gettext_lazy("XLS File"))
+    xls_file = forms.FileField(label=gettext_lazy('XLS File'))
 
     def publish(self, user):
         if self.is_valid():

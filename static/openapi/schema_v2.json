@@ -11381,6 +11381,92 @@
                 }
             }
         },
+        "/api/v2/email-confirmations/": {
+            "post": {
+                "operationId": "api_v2_email_confirmations_create",
+                "description": "## Request another account confirmation email\n\nSends a fresh confirmation link to an email address that is registered but not yet\nverified. Confirmation links expire (after\n`ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS`, one day by default), so this is how a\nuser who let theirs lapse gets a new one.\n\nRequires no authentication: the caller has just followed a dead confirmation link\nand has no session.\n\nExamples:\n```shell\n  curl -X POST https://kf.kobotoolbox.org/api/v2/email-confirmations/ \\\n       -H 'Content-Type: application/json' \\\n       -d '{\"email\": \"someone@example.com\"}'\n```\n\n> Response 200\n```json\n{\n    \"detail\": \"If that email address needs confirming, a new confirmation email has been sent to it.\"\n}\n```\n\n### Which email is sent\n\nAn account that has not verified any address yet is still being activated, and\nreceives the account activation email. An account that already has a verified\naddress is partway through an email change, and receives the address\nverification email instead.\n\n### The response never says whether the address is registered\n\nThe same `200` and the same body come back whether the address belongs to an\naccount, belongs to an account that has already verified it, or belongs to no\naccount at all. Otherwise the endpoint would let anyone test whether a given\nperson holds a KoboToolbox account.\n\nMail goes out only in the first of those cases. An address that is already\nverified is left alone, so this cannot be used to send unsolicited mail to a\nverified account.\n\nA syntactically invalid address returns `400`. That reveals nothing about who is\nregistered, and telling the user their address is malformed is more useful than\nsilently doing nothing.\n\n### Throttling\n\nThe endpoint is rate limited per requested email address, and returns `429` once\nthat limit is reached. Limiting by address rather than by caller means requests\ncannot be spread across many source addresses to flood a single inbox.\n\nThe limit is set by the `EMAIL_CONFIRMATION_REQUESTS_PER_HOUR` configuration\noption, and can be changed by an administrator without a restart.\n",
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmailConfirmationRequestPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmailConfirmationRequestResponse"
+                                },
+                                "examples": {
+                                    "RequestAccepted": {
+                                        "value": {
+                                            "detail": "If that email address needs confirming, a new confirmation email has been sent to it."
+                                        },
+                                        "summary": "Request accepted"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "TooManyRequests": {
+                                        "value": {
+                                            "detail": "Request was throttled. Expected available in 60 seconds."
+                                        },
+                                        "summary": "Too many requests"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "email": [
+                                                "Enter a valid email address."
+                                            ]
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/environment/": {
             "get": {
                 "operationId": "api_v2_environment_retrieve",
@@ -11500,8 +11586,7 @@
                                 "$ref": "#/components/schemas/ImportCreateRequest"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "security": [
                     {
@@ -12039,7 +12124,7 @@
         "/api/v2/organizations/{uid_organization}/asset_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_asset_usage_list",
-                "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n",
+                "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n\nUse the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long and match anywhere in the name, case-insensitively. The standard query syntax is also supported: `?q=name__icontains:household` for a contains match, while `?q=name:Household survey` is an exact name match.\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -12056,6 +12141,14 @@
                             "type": "string"
                         },
                         "description": "Which field to use when ordering the results."
+                    },
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with search query"
                     },
                     {
                         "in": "query",
@@ -12759,7 +12852,7 @@
         "/api/v2/organizations/{uid_organization}/members/": {
             "get": {
                 "operationId": "api_v2_organizations_members_list",
-                "description": "## List Members\n\nRetrieves all members and pending invitations in the specified organization.\n\n### Sorting\n\nResults can be sorted with the `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`, `created`)\n- `role` (sorted by privilege rank: `member` → `admin` → `owner`)\n- `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n",
+                "description": "## List Members\n\nRetrieves all members and pending invitations in the specified organization.\n\n### Searching\n\nSearch can be made with the `q` parameter. It will implicitly match against the username, email, first name, last name, and profile name (`extra_details__data__name`) of the members or pending invitations.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?q=luis\n```\n\n> [!WARNING]\n> **Explicit Field Searching:** Because this endpoint combines active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`), you cannot use an explicit boolean `OR` across different model fields in the same query (e.g., `q=user__email:luis@example.com OR invitee__email:luis@example.com`). Doing so will cause both query parsers to reject the invalid field, resulting in a 400 Bad Request error.\n> \n> To search across both groups simultaneously, simply rely on the generic query (e.g., `q=luis@example.com`) without specifying prefixes. Use explicit field prefixes ONLY when you want to narrow the results to a specific group (e.g., `q=user__email:luis@example.com` to target only active members).\n\n### Sorting\n\nResults can be sorted with the `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`, `created`)\n- `role` (sorted by privilege rank: `member` → `admin` → `owner`)\n- `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -12802,6 +12895,14 @@
                             ]
                         },
                         "description": "Which field to use when ordering the results. Note: `role` sorts by privilege rank (`member` → `admin` → `owner`)."
+                    },
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with a search query."
                     },
                     {
                         "name": "start",
@@ -15937,6 +16038,64 @@
                 }
             }
         },
+        "/api/v2/social-apps/{provider_id}/": {
+            "get": {
+                "operationId": "api_v2_social_apps_retrieve",
+                "description": "## Retrieve a single sign-on provider\n\nResolves the `provider_id` used in single sign-on URLs into the provider's display\nname, so a client can render the \"Log in with …\" screen and tell a real provider\nfrom a typo.\n\nReturns display data only, never `client_id`, secrets, or the provider's server URL.\n\nExamples:\n```shell\n  curl -X GET https://kf.kobotoolbox.org/api/v2/social-apps/nca/\n```\n\n> Response 200\n```json\n{\n    \"provider_id\": \"nca\",\n    \"name\": \"Norwegian Church Aid\"\n}\n```\n\nRequires no authentication, and resolves providers that are hidden from the login\npage as well as those shown on it: a hidden provider is not advertised, but is\nusable by anyone holding its link, and that link already contains the\n`provider_id`. There is intentionally no endpoint listing all providers, the\n`social_apps` property of `/api/v2/environment/` lists the public ones only.\n\nAn unknown `provider_id` returns `404`.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "provider_id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Configuration"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SocialAppDetail"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/stripe/addons/": {
             "get": {
                 "operationId": "api_v2_stripe_addons_list",
@@ -17421,7 +17580,7 @@
             },
             "post": {
                 "operationId": "me_emails_create",
-                "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n",
+                "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n\n### Re-authentication\n\nChanging the email address is a sensitive action, so a valid session is not enough\non its own: the user must have authenticated recently. \"Recently\" means within\n`ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the\naccount has available must be fresh, the password, plus MFA when it is enabled.\n\nThis section describes browser sessions. Requests authenticated with a stateless\ncredential (token, Basic or OAuth2) are re-authenticated differently, in the\nrequest body, as described below.\n\nWhen re-authentication is needed the endpoint responds `403` without touching any\nemail address:\n\n```json\n{\n  \"detail\": \"Re-authentication is required for this action.\",\n  \"code\": \"reauthentication_required\",\n  \"flows\": [\n    {\"id\": \"reauthenticate\"},\n    {\"id\": \"mfa_reauthenticate\", \"types\": [\"totp\"]}\n  ]\n}\n```\n\n`code` is the field to branch on: `detail` is translated, so it cannot be\nmatched against reliably.\n\n`flows` lists the steps the client must walk the user through before retrying,\nin the same shape allauth's headless API uses — `reauthenticate` for the\npassword, and `mfa_reauthenticate` in addition when the account has MFA enabled.\nOnce every listed flow is completed the original request will succeed.\n\n### Re-authenticating without a browser session\n\nRequests authenticated with a stateless credential (token, Basic or OAuth2) have\nno session for allauth to record a re-authentication in, so they carry the proof\nin the request body instead:\n\n```json\n{\n  \"email\": \"new@example.com\",\n  \"current_password\": \"…\",\n  \"mfa_code\": \"123456\"\n}\n```\n\n`current_password` is required whenever the account has a usable password.\n`mfa_code` is required in addition when MFA is enabled, and accepts either a TOTP\ncode or a recovery code. Both are rejected with a `400` naming the offending\nfield, and neither is needed for an SSO-only account that has neither.\n\nNote that Basic authentication is refused outright for MFA-enabled accounts, so\nin practice the `mfa_code` case applies to token and OAuth2 callers.\n\nThis endpoint is rate limited.\n\n### Trying this from the API docs\n\nA live KoboToolbox session takes precedence over the token set in **Authorize**:\n`SessionAuthentication` comes first in `DEFAULT_AUTHENTICATION_CLASSES`, so if you\nare logged in, that is what authenticates the call, and the token is never read.\n\n* **To exercise the session payload**, first call\n  `POST /api/v2/allauth/browser/v1/auth/reauthenticate` with your password, then\n  send `{\"email\": \"…\"}` here within `ACCOUNT_REAUTHENTICATION_TIMEOUT`. Without\n  that first call you will get the `403` above.\n* **To exercise the token payloads**, open the docs in a private window so that no\n  session cookie is sent, get your token from `/token/`, and authorize with the\n  full value including the keyword: `Token <your-token>`, not the bare key.\n  Swagger sends the header verbatim, so omitting the keyword returns `401`.\n",
                 "tags": [
                     "User / team / organization / usage"
                 ],
@@ -17430,6 +17589,32 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/EmailRequestPayload"
+                            },
+                            "examples": {
+                                "BrowserSession": {
+                                    "value": {
+                                        "email": "new@example.com"
+                                    },
+                                    "summary": "Browser session",
+                                    "description": "Nothing else is needed: the session already carries the re-authentication, provided it happened within `ACCOUNT_REAUTHENTICATION_TIMEOUT`. If it did not, the response is `403` listing the flows to complete first."
+                                },
+                                "TokenOrOAuth2WithoutMFA": {
+                                    "value": {
+                                        "email": "new@example.com",
+                                        "current_password": "<current password>"
+                                    },
+                                    "summary": "Token or OAuth2 without MFA",
+                                    "description": "A stateless credential has no session to re-authenticate in, so the current password proves the request instead. Required whenever the account has a usable password."
+                                },
+                                "TokenOrOAuth2WithMFAEnabled": {
+                                    "value": {
+                                        "email": "new@example.com",
+                                        "current_password": "<current password>",
+                                        "mfa_code": "<TOTP or recovery code>"
+                                    },
+                                    "summary": "Token or OAuth2 with MFA enabled",
+                                    "description": "Accounts with MFA enabled must also send a code, either from the authenticator app or one of the recovery codes. Note that Basic authentication is refused outright for these accounts, so this applies to token and OAuth2 callers."
+                                }
                             }
                         }
                     },
@@ -17491,6 +17676,53 @@
                             }
                         },
                         "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmailReauthenticationRequiredResponse"
+                                },
+                                "examples": {
+                                    "Re-authenticationRequired": {
+                                        "value": {
+                                            "detail": "Re-authentication is required for this action.",
+                                            "code": "reauthentication_required",
+                                            "flows": [
+                                                {
+                                                    "id": "reauthenticate"
+                                                },
+                                                {
+                                                    "id": "mfa_reauthenticate",
+                                                    "types": [
+                                                        "totp"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "summary": "Re-authentication required"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "The session is valid but the user has not re-authenticated recently enough. Walk the user through every flow listed in `flows`, then retry this request."
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "Throttled": {
+                                        "value": {
+                                            "detail": "Request was throttled. Expected available in 3600 seconds."
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Too many email change attempts. The endpoint is rate limited because it accepts `current_password`."
                     }
                 }
             }
@@ -17703,6 +17935,24 @@
                                             "detail": "Authentication credentials were not provided."
                                         },
                                         "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
                                     }
                                 }
                             }
@@ -24360,6 +24610,9 @@
                     "meta/deprecatedID": {
                         "type": "string"
                     },
+                    "meta/formVersions": {
+                        "type": "string"
+                    },
                     "_xform_id_string": {
                         "type": "string",
                         "title": " xform id string"
@@ -24640,6 +24893,9 @@
                         "type": "string"
                     },
                     "deprecatedID": {
+                        "type": "string"
+                    },
+                    "formVersions": {
                         "type": "string"
                     }
                 },
@@ -25107,12 +25363,64 @@
                     "verified"
                 ]
             },
+            "EmailConfirmationRequestPayload": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
+                },
+                "required": [
+                    "email"
+                ]
+            },
+            "EmailConfirmationRequestResponse": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "detail"
+                ]
+            },
+            "EmailReauthenticationRequiredResponse": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "flows": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": {}
+                        }
+                    }
+                },
+                "required": [
+                    "code",
+                    "detail",
+                    "flows"
+                ]
+            },
             "EmailRequestPayload": {
                 "type": "object",
                 "properties": {
                     "email": {
                         "type": "string",
                         "format": "email"
+                    },
+                    "current_password": {
+                        "type": "string"
+                    },
+                    "mfa_code": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -26386,25 +26694,63 @@
                 "type": "object",
                 "properties": {
                     "destination": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri"
                     },
                     "url": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "uri"
                     },
                     "name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "assetUid": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "base64Encoded": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "library": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "desired_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "totalFiles": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "file": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "binary"
                     }
-                },
-                "required": [
-                    "assetUid",
-                    "destination",
-                    "url"
-                ]
+                }
             },
             "ImportCreateResponse": {
                 "type": "object",
@@ -32022,6 +32368,24 @@
                     "managed",
                     "name",
                     "provider",
+                    "provider_id"
+                ]
+            },
+            "SocialAppDetail": {
+                "type": "object",
+                "description": "Public, display-only representation of a `SocialApp`\n\nFields are declared explicitly rather than through `ModelSerializer` so that\ncredentials (`client_id`, `secret`, `key`) and provider internals\n(`settings`, which holds `server_url`) cannot leak by accident",
+                "properties": {
+                    "provider_id": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "name",
                     "provider_id"
                 ]
             },
