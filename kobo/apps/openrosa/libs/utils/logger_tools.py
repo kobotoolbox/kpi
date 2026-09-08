@@ -122,7 +122,7 @@ mongo_instances = settings.MONGO_DB.instances
 version_uid_regex = re.compile(rf'^v[A-Za-z0-9]{{{UUID_LENGTH}}}$')
 
 
-def add_form_versions(xml: str, xform: XForm, previous_xml: str = None) -> str:
+def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -> str:
     """
     Tag the submission with every form version it has been through.
 

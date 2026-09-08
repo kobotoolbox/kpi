@@ -780,7 +780,7 @@ class TestFormVersionsOnSubmission(TestCase):
         edit_submission_xml(xml_parsed, 'meta/rootUuid', f'uuid:{instance.root_uuid}')
         return xml_tostring(xml_parsed)
 
-    def _submit(self, xml: str, media_files: list = None) -> Instance:
+    def _submit(self, xml: str, media_files: list | None = None) -> Instance:
         return create_instance(
             self.user.username,
             io.BytesIO(xml.encode()),
