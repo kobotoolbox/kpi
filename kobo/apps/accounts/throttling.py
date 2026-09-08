@@ -9,10 +9,13 @@ class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
     """
     Per-address limit on the unauthenticated "resend confirmation email" endpoint
 
-    Keying on the requested address rather than on the caller is deliberate: it is
-    the recipient's inbox, and the sending domain's reputation, that need
-    protecting, and a caller rotating through source addresses must not be able to
-    buy a fresh budget for the same victim.
+    The limit follows the recipient rather than the caller, so one inbox cannot be
+    flooded by spreading requests across different source addresses.
+
+    Counting uses an atomic Redis counter rather than DRF's default, which reads
+    and rewrites a list in separate steps and so lets simultaneous requests each
+    pass as though they were the first. The trade is a fixed window: a burst
+    landing on a window boundary can briefly reach twice the limit.
     """
 
     scope = 'email_confirmation_request_email'
@@ -23,6 +26,42 @@ class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
         # "allow nothing" and break every account activation
         per_hour = constance.config.EMAIL_CONFIRMATION_REQUESTS_PER_HOUR
         return f'{per_hour}/hour' if per_hour else None
+
+    def allow_request(self, request, view):
+        """
+        Count this request and report whether it is still within the limit
+        """
+        if self.rate is None:
+            return True
+
+        self.key = self.get_cache_key(request, view)
+        if self.key is None:
+            return True
+
+        return self._consume(self.key) <= self.num_requests
+
+    def _consume(self, key):
+        """
+        Count one request against the current window and return the new total
+
+        `add` succeeds only when no window is open, so exactly one request starts
+        the count and every other one increments it.
+        """
+        if self.cache.add(key, 1, self.duration):
+            return 1
+
+        try:
+            return self.cache.incr(key)
+        except ValueError:
+            # The window expired between `add` and `incr`; start a fresh one
+            self.cache.set(key, 1, self.duration)
+            return 1
+
+    def wait(self):
+        """
+        Seconds until the window resets, for the `Retry-After` header
+        """
+        return self.duration
 
     def get_cache_key(self, request, view):
         try:
