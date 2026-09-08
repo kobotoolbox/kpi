@@ -563,7 +563,6 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert not config.live
 
 
-
 class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
     fixtures = ['test_data']
 
