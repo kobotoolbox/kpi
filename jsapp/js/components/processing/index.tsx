@@ -13,6 +13,7 @@ import {
 import assetStore from '#/assetStore'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { PROCESSING_BULK_ACTIONS_POLL_INTERVAL } from '#/constants'
 import { addDefaultUuidPrefix, getSubmissionRootUuid } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
@@ -87,7 +88,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
       queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetId, bulkActionsParams),
       // Keep polling while the route is open so a job that starts after an
       // empty initial load can still lock the controls without a remount.
-      refetchInterval: 10000,
+      refetchInterval: PROCESSING_BULK_ACTIONS_POLL_INTERVAL,
       // If user is on a different tab/window, we skip interval polling.
       refetchIntervalInBackground: false,
       // Wait until we know the root UUID, otherwise backend filtering can miss
