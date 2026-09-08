@@ -14,6 +14,8 @@ import FormActivity from './FormActivity'
 const meta: Meta<typeof FormActivity> = {
   title: 'Features/FormActivity',
   component: FormActivity,
+  // Docs view doesn't work well and doesn't give us anything useful
+  tags: ['!autodocs'],
   argTypes: {},
   parameters: {
     msw: {
@@ -73,7 +75,9 @@ export const TestFilteringByActivityType: Story = {
         await expect(optionItem).toBeDefined()
         await userEvent.click(optionItem as HTMLElement)
       })
-      await expect(selectInput).toHaveValue('add media attachment')
+      await waitFor(async () => {
+        await expect(selectInput).toHaveValue('add media attachment')
+      })
     })
 
     await step('Verify that after applying filter the "add media attachment" action is loaded', async () => {

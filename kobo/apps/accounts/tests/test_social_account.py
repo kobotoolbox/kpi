@@ -1,9 +1,31 @@
+import json
+from datetime import timedelta
+from unittest.mock import patch
+
+import responses
+from allauth.core.exceptions import ImmediateHttpResponse
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
+from allauth.socialaccount.providers.base.constants import AuthProcess
+from ddt import data, ddt
 from django.conf import settings
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory, TestCase
+from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from model_bakery import baker
+from rest_framework import status
 from rest_framework.test import APITestCase
 
+from kobo.apps.accounts.adapter import SocialAccountAdapter
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.utils.fuzzy_int import FuzzyInt
+from ...help.models import InAppMessage, InAppMessageUsers, MessageType
+from ...kobo_auth.shortcuts import User
+from ..models import SocialAppCustomData, SocialAppManagedDomain
+from ..utils import SOCIAL_APP_IDENTIFIER
+from .constants import APP_PROVIDER_ID
 
 
 class AccountsEmailTestCase(APITestCase):
@@ -30,3 +52,257 @@ class AccountsEmailTestCase(APITestCase):
         res = self.client.delete(url)
         self.assertEqual(res.status_code, 204)
         self.assertFalse(self.user.socialaccount_set.exists())
+
+
+class SingleSocialAccountTestCase(TestCase):
+    """Guard that limits users to one linked SSO account."""
+
+    def setUp(self):
+        self.user = baker.make(settings.AUTH_USER_MODEL)
+        self.adapter = SocialAccountAdapter()
+
+    def _build_request(self):
+        request = RequestFactory().get('/')
+        request.user = self.user
+        # Rendering the error page runs the context processors, which need a
+        # session and a message store
+        SessionMiddleware(lambda r: None).process_request(request)
+        request._messages = FallbackStorage(request)
+        return request
+
+    def _build_connect_login(self, provider='microsoft', uid='new-uid'):
+        new_account = SocialAccount(provider=provider, uid=uid)
+        sociallogin = SocialLogin(user=self.user, account=new_account)
+        sociallogin.state['process'] = AuthProcess.CONNECT
+        return sociallogin
+
+    def test_blocks_linking_second_account(self):
+        baker.make(
+            'socialaccount.SocialAccount',
+            user=self.user,
+            provider='openid_connect',
+            uid='existing-uid',
+        )
+        request = self._build_request()
+        sociallogin = self._build_connect_login(provider='microsoft', uid='new-uid')
+
+        with self.assertRaises(ImmediateHttpResponse) as cm:
+            self.adapter.pre_social_login(request, sociallogin)
+
+        # The user is told why, rather than being bounced silently
+        response = cm.exception.response
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn(
+            'You can only link one SSO account at a time',
+            response.content.decode(),
+        )
+        # No second account was created
+        self.assertEqual(SocialAccount.objects.filter(user=self.user).count(), 1)
+
+    def test_allows_linking_first_account(self):
+        request = self._build_request()
+        sociallogin = self._build_connect_login()
+
+        # No existing account: the guard must not interfere
+        self.assertIsNone(self.adapter.pre_social_login(request, sociallogin))
+
+    def test_allows_reconnecting_same_account(self):
+        baker.make(
+            'socialaccount.SocialAccount',
+            user=self.user,
+            provider='microsoft',
+            uid='same-uid',
+        )
+        request = self._build_request()
+        # Reconnecting the same account is not a second link.
+        sociallogin = self._build_connect_login(provider='microsoft', uid='same-uid')
+
+        self.assertIsNone(self.adapter.pre_social_login(request, sociallogin))
+
+    def test_ignores_non_connect_process(self):
+        baker.make('socialaccount.SocialAccount', user=self.user)
+        request = self._build_request()
+        sociallogin = self._build_connect_login()
+        # A plain SSO login (not a connect) must never be blocked
+        sociallogin.state['process'] = AuthProcess.LOGIN
+
+        self.assertIsNone(self.adapter.pre_social_login(request, sociallogin))
+
+
+@ddt
+@override_settings(SOCIALACCOUNT_PROVIDERS={})
+class SingleSocialAccountConnectFlowTestCase(TestCase):
+    """
+    This test exercises the same guard through the real OAuth2 callback
+    URL, instead of calling the adapter directly. This is the path that was
+    actually exploitable in production: hidden SSO providers keep a working
+    `/accounts/oidc/<provider_id>/login/?process=connect` URL even when no
+    button is rendered for them, so a restriction enforced only on the
+    frontend was trivial to bypass by visiting the URL directly
+    """
+
+    def setUp(self):
+        self.user = baker.make(
+            settings.AUTH_USER_MODEL,
+            email='incoming@testserver',
+            password='password',
+        )
+        UserProfile.objects.create(user=self.user)
+        self.client.force_login(self.user)
+        self.callback_url = reverse('openid_connect_callback', args=('openid_connect',))
+        self.social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='openid_connect',
+            provider_id=APP_PROVIDER_ID,
+            settings={
+                'server_url': 'http://testserver/oauth/.well-known/openid-configuration'
+            },
+        )
+        patcher = patch(
+            'allauth.socialaccount.providers.oauth2.views.statekit.unstash_state',
+            return_value={'process': 'connect'},
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _mock_provider_endpoints(self):
+        """
+        Mock `requests` responses to fool django-allauth
+        """
+        responses.add(
+            responses.GET,
+            'http://testserver/oauth/.well-known/openid-configuration',
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+            body=json.dumps(
+                {
+                    'token_endpoint': 'http://testserver/oauth/token',
+                    'authorization_endpoint': 'http://testserver/oauth/authorize',
+                    'userinfo_endpoint': 'http://testserver/oauth/userinfo',
+                }
+            ),
+        )
+        responses.add(
+            responses.POST,
+            'http://testserver/oauth/token',
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+            body=json.dumps(
+                {
+                    'access_token': 'mock_access_token',
+                    'refresh_token': 'mock_refresh_token',
+                }
+            ),
+        )
+        responses.add(
+            responses.GET,
+            'http://testserver/oauth/userinfo',
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+            body=json.dumps(
+                {
+                    'sub': 'incoming-uid',
+                    'preferred_username': 'incoming',
+                    'email': 'incoming@testserver',
+                }
+            ),
+        )
+
+    def _simulate_connect_callback(self):
+        self._mock_provider_endpoints()
+        # Simulate the SSO provider redirecting the user back to kpi
+        return self.client.get(
+            self.callback_url, data={'code': 'foobar', 'state': '12345'}
+        )
+
+    @responses.activate
+    def test_connect_is_blocked_when_another_account_is_linked(self):
+        already_linked = baker.make(
+            'socialaccount.SocialAccount',
+            user=self.user,
+            provider='another-app',
+            uid='another-uid',
+        )
+
+        response = self._simulate_connect_callback()
+
+        self.assertContains(
+            response,
+            'You can only link one SSO account at a time',
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+        # The second account was never created, and the first is untouched
+        accounts = SocialAccount.objects.filter(user=self.user)
+        self.assertEqual(accounts.count(), 1)
+        self.assertEqual(accounts.first().pk, already_linked.pk)
+
+    @responses.activate
+    def test_connect_succeeds_when_no_account_is_linked(self):
+
+        response = self._simulate_connect_callback()
+
+        # The guard must not get in the way of the legitimate first link
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        account = SocialAccount.objects.get(user=self.user)
+        self.assertEqual(account.provider, APP_PROVIDER_ID)
+        self.assertEqual(account.uid, 'incoming-uid')
+
+    @responses.activate
+    def test_connecting_managed_account_sets_unusable_password(self):
+        assert self.user.has_usable_password()
+
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='testserver'
+        )
+        self._simulate_connect_callback()
+        self.user.refresh_from_db()
+        assert not self.user.has_usable_password()
+
+    @responses.activate
+    @data(True, False)
+    def test_connecting_managed_account_removes_inapp_message_for_user(
+        self, multiple_users
+    ):
+        i = InAppMessage.objects.create(
+            title='title',
+            snippet='snippet',
+            body='body',
+            published=True,
+            valid_from=timezone.now(),
+            valid_until=timezone.now() + timedelta(days=365),
+            always_display_as_new=True,
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.pk},
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+        )
+        InAppMessageUsers.objects.create(in_app_message=i, user=self.user)
+        if multiple_users:
+            second_user = User.objects.create_user(username='second')
+            InAppMessageUsers.objects.create(in_app_message=i, user=second_user)
+
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='testserver'
+        )
+        self._simulate_connect_callback()
+        self.user.refresh_from_db()
+        assert not InAppMessageUsers.objects.filter(
+            user=self.user, in_app_message=i
+        ).exists()
+        now = timezone.now()
+        i.refresh_from_db()
+        if multiple_users:
+            assert InAppMessageUsers.objects.filter(
+                user=second_user, in_app_message=i
+            ).exists()
+            # message should not have been expired
+            assert i.valid_until > now
+        else:
+            # if there was only one user still getting the message, it should be expired
+            assert i.valid_until < now

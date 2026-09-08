@@ -1,0 +1,52 @@
+@use 'scss/breakpoints';
+@use 'scss/pageFrame';
+
+// Heads up: `container-type: inline-size` implies `contain: layout`, making this a containing block for
+// absolutely positioned descendants. Mantine portals its dropdowns to `<body>`, so nothing in the card
+// is affected today - but a form rendering a floating element inline would be.
+.container {
+  container-type: inline-size;
+  width: 100%;
+  max-width: pageFrame.$card-width;
+}
+
+.container--twoColumns {
+  max-width: 720px;
+}
+
+.card {
+  display: flex;
+  flex-direction: row;
+  box-shadow: pageFrame.$card-shadow;
+}
+
+.column {
+  flex: 1 1 0;
+  // Lets long words and wide inputs shrink instead of forcing the column wider.
+  min-width: 0;
+  // Here rather than on Mantine's `p` prop, which emits an inline style a container query can't
+  // override. The divider needs the padding on the columns anyway, so it can run the card's full
+  // height.
+  padding: 40px;
+}
+
+// Keyed off the card's width, not the viewport, so a story can force this layout by narrowing the
+// wrapper - `test-storybook` can't resize the preview iframe. No `--twoColumns` scoping needed: a
+// single column card matches too, but stacking a lone child and hiding an absent divider are no-ops.
+@container (width < #{breakpoints.$b600}) {
+  .card {
+    flex-direction: column;
+  }
+
+  .divider {
+    display: none;
+  }
+}
+
+// Squeezed below its natural width, so the viewport is a phone: hand the horizontal padding back to
+// the content.
+@container (width < #{pageFrame.$card-width}) {
+  .column {
+    padding-inline: 20px;
+  }
+}

@@ -1,0 +1,110 @@
+@use 'scss/backgrounds';
+@use 'scss/colors';
+
+// The page frame for screens that render outside the logged in app: the standalone error pages and
+// the authentication views. Change the frame here and both follow.
+// The error pages ship as their own bundle, so we use a mixin and each stylesheet emits its own copy.
+// Colors come from the palette rather than Mantine CSS variables, because the error bundle skips the
+// Kobo Mantine theme.
+// The markup it expects:
+//   div.background[.background--custom]
+//     header.header  > a.logoLink > img.logo
+//     main.main      > the screen's own card
+//     footer.footer[.footer--custom] > a.footerLink, span.footerMiddot
+
+// Natural width of the card both screens centre in `.main`. Doubles as the width below which a card
+// starts giving up horizontal padding.
+$card-width: 440px;
+
+// A one-off blue-tinted glow from the design..
+$card-shadow: 0 4px 40.2px 0 rgb(156 184 214 / 30%);
+
+// Emits the whole frame. Include it at the root of a CSS module and use the class names above; add
+// whatever the screen needs on top.
+@mixin standaloneFrame() {
+  .background {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    // Shows through the gradient, which is only 80% opaque and only covers the top.
+    background-color: colors.$kobo-white;
+  }
+
+  .background:not(.background--custom) {
+    @include backgrounds.gradientBackground;
+  }
+
+  // An admin photo replaces the wedge and covers the whole viewport, overlay included.
+  .background--custom {
+    @include backgrounds.customImageBackground;
+  }
+
+  // Lifts content above the background pseudo-element.
+  .header,
+  .main,
+  .footer {
+    position: relative;
+  }
+
+  .header {
+    min-height: 66px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    margin-bottom: 14px;
+  }
+
+  .logoLink {
+    display: inline-block;
+    padding: 16px 0;
+  }
+
+  .logo {
+    display: block;
+    height: 22px;
+    width: auto;
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    // Design places the card near the top, not vertically centred. Also keeps tall forms from
+    // clipping on short viewports.
+    align-items: flex-start;
+    padding: 0 20px;
+  }
+
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 20px;
+    margin-top: 20px;
+  }
+
+  .footerLink {
+    color: colors.$kobo-dark-blue;
+    text-decoration: none;
+  }
+
+  .footerLink:hover {
+    text-decoration: underline;
+  }
+
+  .footerMiddot {
+    font-weight: 800;
+  }
+
+  // On a custom background the footer sits on top of the dark overlay. The separator inherits its
+  // colour, hence both selectors.
+  .footer--custom,
+  .footer--custom .footerLink {
+    color: colors.$kobo-white;
+  }
+}

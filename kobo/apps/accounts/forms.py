@@ -2,7 +2,9 @@ import constance
 from allauth.account import app_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
+from allauth.account.forms import ResetPasswordForm as BaseResetPasswordForm
 from allauth.account.forms import SignupForm as BaseSignupForm
+from allauth.account.forms import UserTokenForm as BaseUserTokenForm
 from allauth.account.utils import (
     get_user_model,
     user_email,
@@ -10,14 +12,15 @@ from allauth.account.utils import (
 )
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
-from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as t
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
+from kobo.apps.accounts.utils import get_normalized_domain, user_is_managed_by_sso
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
+from .models import SocialAppManagedDomain
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
@@ -224,9 +227,18 @@ class KoboSignupMixin(forms.Form):
 
         return self.cleaned_data
 
-    def clean_email(self):
+    def clean_email(self, allow_managed_domains=False):
         email = self.cleaned_data['email']
         domain = email.split('@')[1].lower()
+        if not allow_managed_domains:
+            managed = SocialAppManagedDomain.objects.filter(
+                domain__iexact=domain, social_app__managed=True
+            ).exists()
+            if managed:
+                raise forms.ValidationError(
+                    'Your organization has restricted the use of passwords. '
+                    'Please sign up using SSO instead.'
+                )
         blacklist_domains = constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS
         blacklist_domain_set = {
             d.strip().lower()
@@ -239,12 +251,8 @@ class KoboSignupMixin(forms.Form):
                 constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
             )
 
-        allowed_domains = (
-            constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
-        )
-        allowed_domain_list = [
-            domain.lower() for domain in allowed_domains.split('\n')
-        ]
+        allowed_domains = constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
+        allowed_domain_list = [domain.lower() for domain in allowed_domains.split('\n')]
         # An empty domain list means all domains are allowed
         if domain in allowed_domain_list or not allowed_domains:
             return email
@@ -275,7 +283,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 
     def clean_email(self):
         # do not allow any other email besides the one retrieved from the SSO server
-        email = super().clean_email()
+        email = super().clean_email(allow_managed_domains=True)
         if email != self.initial['email']:
             raise forms.ValidationError(t('Email must match SSO server email'))
         return email
@@ -334,3 +342,36 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
                 )
 
         return self.cleaned_data
+
+
+class ResetPasswordForm(BaseResetPasswordForm):
+    def clean_email(self):
+        # super().clean_email should set self.users to the list of users with this email
+        cleaned = super().clean_email()
+        domain = get_normalized_domain(cleaned)
+        if SocialAppManagedDomain.is_managed(domain):
+            if getattr(self, 'users', None):
+                # filtering self.users will ensure we do not send password-reset links
+                # to sso-managed users
+                self.users = [
+                    user for user in self.users if not user_is_managed_by_sso(user)
+                ]
+
+                # if the only user was an sso-managed user, raise an error
+                if self.users == []:
+                    raise forms.ValidationError(
+                        t('Cannot set password for SSO-managed accounts')
+                    )
+        return cleaned
+
+
+class UserTokenForm(BaseUserTokenForm):
+    def clean(self):
+        cleaned = super().clean()
+        user = self.reset_user
+        if user:
+            if user_is_managed_by_sso(user):
+                raise forms.ValidationError(
+                    t('Cannot set password for SSO-managed accounts')
+                )
+        return cleaned

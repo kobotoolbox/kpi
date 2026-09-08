@@ -9,6 +9,7 @@ import { CloseButtonThemeKobo } from './CloseButton'
 import { CodeThemeKobo } from './Code'
 import { DividerThemeKobo } from './Divider'
 import { DropzoneThemeKobo } from './Dropzone'
+import { InputThemeKobo } from './Input'
 import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
@@ -170,6 +171,7 @@ export const themeKobo = createTheme({
     Code: CodeThemeKobo,
     Divider: DividerThemeKobo,
     Dropzone: DropzoneThemeKobo,
+    Input: InputThemeKobo,
     InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,

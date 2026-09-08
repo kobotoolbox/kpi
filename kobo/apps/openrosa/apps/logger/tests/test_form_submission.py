@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+import unicodedata
 import uuid
 from unittest.mock import patch
 
@@ -17,6 +18,7 @@ from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
+from kobo.apps.openrosa.libs.utils.logger_tools import get_soft_deleted_attachments
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
 
 
@@ -458,6 +460,153 @@ class TestFormSubmission(TestBase):
         edited_attachment = edited_attachments[0]
         assert edited_attachment.hash == attachment_hash
         assert edited_attachment.media_file_basename == attachment_basename
+
+    def test_attachment_with_mismatched_unicode_normalization(self):
+        """
+        The client references a media file in NFC while the uploaded file
+        arrives in NFD (e.g. from macOS). The attachment must be created,
+        stored in NFC and NOT immediately soft-deleted (DEV-2686).
+        """
+        nfc_name = unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        # Sanity check: the two forms differ byte-wise
+        self.assertNotEqual(nfc_name, nfd_name)
+
+        xml = (
+            "<?xml version='1.0' ?>"
+            '<tutorial id="tutorial">'
+            '<name>Larry</name>'
+            '<age>23</age>'
+            f'<picture>{nfc_name}</picture>'
+            '<has_children>0</has_children>'
+            '<web_browsers>firefox</web_browsers>'
+            f'<meta><instanceID>uuid:{uuid.uuid4().hex}</instanceID></meta>'
+            f'<formhub><uuid>{self.xform.uuid}</uuid></formhub>'
+            '</tutorial>'
+        )
+
+        source_media = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+            '1335783522563.jpg',
+        )
+        with open(source_media, 'rb') as f:
+            media_bytes = f.read()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            xml_path = os.path.join(tmp_dir, 'submission.xml')
+            with open(xml_path, 'w') as xml_file:
+                xml_file.write(xml)
+
+            # Write the uploaded file under an NFD filename
+            media_path = os.path.join(tmp_dir, nfd_name)
+            with open(media_path, 'wb') as media_file:
+                media_file.write(media_bytes)
+
+            with open(media_path, 'rb') as media_file:
+                self._make_submission(xml_path, media_file=media_file)
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
+        instance = Instance.objects.order_by('-pk')[0]
+        # Visible manager excludes soft-deleted attachments
+        attachments = Attachment.objects.filter(instance=instance)
+        self.assertEqual(attachments.count(), 1)
+        self.assertEqual(attachments[0].media_file_basename, nfc_name)
+
+        # The stored file name keeps the accent (NFC), not stripped by
+        # `get_valid_name`'s `\w` regex on NFD input
+        stored_basename = os.path.basename(attachments[0].media_file.name)
+        self.assertEqual(unicodedata.normalize('NFC', stored_basename), stored_basename)
+        self.assertIn(unicodedata.normalize('NFC', 'é'), stored_basename)
+
+        # A re-check finds nothing to soft delete
+        self.assertEqual(get_soft_deleted_attachments(instance), [])
+
+    def test_edit_conflicts_with_legacy_nfd_attachment_basename(self):
+        """
+        A row saved before NFC normalization keeps an NFD basename. Editing it
+        with the same name in NFC but different content must still be rejected
+        instead of silently replacing the attachment (DEV-2686).
+        """
+        nfc_name = unicodedata.normalize('NFC', 'Guérisseur.jpg')
+        nfd_name = unicodedata.normalize('NFD', 'Guérisseur.jpg')
+        fixture_dir = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+        )
+        instance_id = f'uuid:{uuid.uuid4().hex}'
+
+        def build_xml(instance_uuid: str, deprecated_uuid: str = None) -> str:
+            deprecated = (
+                f'<deprecatedID>{deprecated_uuid}</deprecatedID>'
+                if deprecated_uuid
+                else ''
+            )
+            return (
+                "<?xml version='1.0' ?>"
+                '<tutorial id="tutorial">'
+                '<name>Larry</name>'
+                '<age>23</age>'
+                f'<picture>{nfc_name}</picture>'
+                '<has_children>0</has_children>'
+                '<web_browsers>firefox</web_browsers>'
+                f'<meta><instanceID>{instance_uuid}</instanceID>{deprecated}</meta>'
+                f'<formhub><uuid>{self.xform.uuid}</uuid></formhub>'
+                '</tutorial>'
+            )
+
+        def write_media(tmp_dir: str, source_path: str) -> str:
+            """
+            Copy a fixture next to the submission, named as the XML expects.
+            """
+            media_path = os.path.join(tmp_dir, nfc_name)
+            with open(source_path, 'rb') as source:
+                with open(media_path, 'wb') as target:
+                    target.write(source.read())
+            return media_path
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            xml_path = os.path.join(tmp_dir, 'submission.xml')
+            with open(xml_path, 'w') as xml_file:
+                xml_file.write(build_xml(instance_id))
+            media_path = write_media(
+                tmp_dir, os.path.join(fixture_dir, '1335783522563.jpg')
+            )
+            with open(media_path, 'rb') as media:
+                self._make_submission(xml_path, media_file=media)
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        instance = Instance.objects.order_by('-pk')[0]
+
+        # Simulate a row saved before basenames were normalized
+        Attachment.objects.filter(instance=instance).update(
+            media_file_basename=nfd_name
+        )
+        attachment_hash = Attachment.objects.get(instance=instance).hash
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            xml_path = os.path.join(tmp_dir, 'edit.xml')
+            with open(xml_path, 'w') as xml_file:
+                xml_file.write(build_xml(f'uuid:{uuid.uuid4().hex}', instance_id))
+            media_path = write_media(
+                tmp_dir,
+                os.path.join(
+                    fixture_dir,
+                    'attachment_with_different_content',
+                    '1335783522563.jpg',
+                ),
+            )
+            with open(media_path, 'rb') as media:
+                self._make_submission(xml_path, media_file=media, assert_success=False)
+
+        self.assertEqual(self.response.status_code, status.HTTP_409_CONFLICT)
+
+        # The legacy attachment is untouched and no duplicate was created
+        attachments = Attachment.all_objects.filter(instance=instance)
+        self.assertEqual(attachments.count(), 1)
+        self.assertEqual(attachments[0].hash, attachment_hash)
+        self.assertEqual(attachments[0].media_file_basename, nfd_name)
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(

@@ -78,18 +78,19 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       id: create
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_minor }}
+        name: ${{ needs.version.outputs.current_minor }}
         base_ref: origin/${{ needs.version.outputs.prev_branch }}
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
         release_version: ${{ needs.version.outputs.current_minor }}
-        stage: "Pending QA"
+        stage: "Pending QA (preview on kf.beta)"
 
 
   qa-issue:
@@ -99,7 +100,7 @@ jobs:
       - linear
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
 
@@ -123,8 +124,9 @@ jobs:
         BODY="${BODY//\$RELEASE_URL/$RELEASE_URL}"
 
         {
-          echo "body<<EOF"
-          echo "${BODY}EOF"
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
         } >> "$GITHUB_OUTPUT"
 
     - name: Upsert Linear QA issue

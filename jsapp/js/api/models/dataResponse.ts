@@ -21,6 +21,7 @@ export interface DataResponse {
   'meta/instanceID': string
   'meta/rootUuid': string
   'meta/deprecatedID'?: string
+  'meta/formVersions'?: string
   _xform_id_string: string
   _uuid: string
   _attachments: _DataResponseAttachmentsItem[]

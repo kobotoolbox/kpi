@@ -1,10 +1,16 @@
+import { AuthThemeEnum } from '#/api/models/authThemeEnum'
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
  * Production-like environment configuration for testing.
  * Contains complete lists of countries, languages, and sectors that the UI depends on.
+ *
+ * Exported so a story overriding a nested object can spread the default one first - see
+ * {@link makeEnvironmentMock}.
  */
-const environmentResponse = {
+export const environmentResponse = {
+  registration_open: true,
   terms_of_service_url: '',
   privacy_policy_url: '',
   source_code_url: 'https://github.com/kobotoolbox/',
@@ -337,6 +343,15 @@ const environmentResponse = {
   enable_custom_password_guidance_text: false,
   custom_password_localized_help_text:
     '<p>The password must be at least 10 characters long and contain 3 or more of the following: uppercase letters, lowercase letters, numbers, and special characters. It cannot be similar to your name, username, or email address.</p>',
+  auth_configuration: {
+    theme: AuthThemeEnum.default,
+    background_image_url: null,
+    show_kobotoolbox_logo: true,
+    logo_url: null,
+    supporting_image_url: null,
+    supporting_text: '',
+    allow_login_with_username: true,
+  },
   project_metadata_fields: [
     {
       name: 'sector',
@@ -426,11 +441,21 @@ const environmentResponse = {
   terms_of_service__sitewidemessage__exists: false,
   open_rosa_server: 'http://kc.kobo.local',
   allow_self_account_deletion: true,
-}
+  // `satisfies` rather than a type annotation: still fails the build when the generated model gains
+  // or renames a field, but keeps the literal's exact types for anyone reading values off it.
+} satisfies EnvironmentResponse
 
 /**
  * Mock API for environment config using Orval-generated handler with production-like data.
- * Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Use it in Storybook tests in `parameters.msw.handlers[]`, overriding whatever the story needs to
+ * differ.
+ *
+ * The merge is shallow, so a nested object has to be passed in full - spread
+ * {@link environmentResponse}'s copy of it first.
  */
-const environmentMock = getApiV2EnvironmentRetrieveMockHandler(environmentResponse)
+export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
+  getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
+
+/** The production-like defaults, registered globally in `.storybook/preview.tsx`. */
+const environmentMock = makeEnvironmentMock()
 export default environmentMock

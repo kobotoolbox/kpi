@@ -2,19 +2,21 @@ import cx from 'classnames'
 import React from 'react'
 import { queryClient } from '#/api/queryClient'
 import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/user-team-organization-usage'
+import MultiSelect from '#/components/common/MultiSelect'
+import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
+import Textarea from '#/components/common/Textarea'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
-import WrappedSelect from '#/components/common/wrappedSelect'
 import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
 import { userCan } from '#/components/permissions/utils'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
-import type { AssetResponse, LabelValuePair } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
 import styles from '../ProjectSettings.module.scss'
 import BackButton from '../components/BackButton'
-import type { StepName } from '../constants'
+import { COLLECTS_PII_OPTIONS, type StepName } from '../constants'
 import type { ProjectSettingsContext, ProjectSettingsFields } from '../types'
 import { getFieldMetadata, getNameInputLabel } from '../utils'
 
@@ -26,10 +28,7 @@ interface StepProjectDetailsProps {
   hasFieldError: (fieldName: string) => boolean
   onNameChange: (newValue: string) => void
   onDescriptionChange: (newValue: string) => void
-  onAnyFieldChange: (
-    fieldName: string,
-    newFieldValue: string | string[] | LabelValuePair | LabelValuePair[] | null,
-  ) => void
+  onAnyFieldChange: (fieldName: string, newFieldValue: string | string[] | null) => void
   onSubmit: (evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => void
   onArchiveProject: (evt: React.MouseEvent<HTMLButtonElement>) => void
   onUnarchiveProject: (evt: React.MouseEvent<HTMLButtonElement>) => void
@@ -97,10 +96,10 @@ export default function StepProjectDetails({
       <div className={styles.inputWrapper}>
         {/* Project Name */}
         <div className={styles.input}>
-          <TextBox
+          <TextInput
             value={fields.name}
-            onChange={onNameChange}
-            errors={hasFieldError('name') ? t('Please enter a title for your project!') : false}
+            onChange={(evt) => onNameChange(evt.currentTarget.value)}
+            error={hasFieldError('name') ? t('Please enter a title for your project!') : undefined}
             label={addRequiredToLabel(getNameInputLabel(fields.name))}
             placeholder={t('Enter title of project here')}
           />
@@ -109,11 +108,11 @@ export default function StepProjectDetails({
         {/* Description */}
         {descriptionField && (
           <div className={styles.input}>
-            <TextBox
-              type='text-multiline'
+            <Textarea
+              autosize
               value={fields.description}
-              onChange={onDescriptionChange}
-              errors={hasFieldError('description') ? t('Please enter a description for your project') : false}
+              onChange={(evt) => onDescriptionChange(evt.currentTarget.value)}
+              error={hasFieldError('description') ? t('Please enter a description for your project') : undefined}
               label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
               placeholder={t('Enter short description here')}
             />
@@ -123,14 +122,13 @@ export default function StepProjectDetails({
         {/* Sector */}
         {sectorField && (
           <div className={cx(styles.input, bothCountryAndSector ? styles.sector : null)}>
-            <WrappedSelect
+            <Select
               label={addRequiredToLabel(sectorField.label, sectorField.required)}
               value={fields.sector}
-              onChange={(newValue) => onAnyFieldChange('sector', newValue as LabelValuePair | null)}
-              options={sectors}
-              isLimitedHeight
-              menuPlacement='top'
-              isClearable
+              onChange={(newValue) => onAnyFieldChange('sector', newValue)}
+              data={sectors}
+              placeholder={t('Select…')}
+              clearable
               error={hasFieldError('sector') ? t('Please choose a sector') : undefined}
             />
           </div>
@@ -139,15 +137,13 @@ export default function StepProjectDetails({
         {/* Country */}
         {countryField && (
           <div className={cx(styles.input, bothCountryAndSector ? styles.country : null)}>
-            <WrappedSelect
+            <MultiSelect
               label={addRequiredToLabel(countryField.label, countryField.required)}
-              isMulti
-              value={fields.country}
-              onChange={(newValue) => onAnyFieldChange('country', newValue as LabelValuePair[] | null)}
-              options={countries}
-              isLimitedHeight
-              menuPlacement='top'
-              isClearable
+              value={fields.country ?? []}
+              onChange={(newValue) => onAnyFieldChange('country', newValue)}
+              data={countries}
+              placeholder={t('Select…')}
+              clearable
               error={hasFieldError('country') ? t('Please select at least one country') : undefined}
             />
           </div>
@@ -156,13 +152,13 @@ export default function StepProjectDetails({
         {/* Operational Purpose of Data */}
         {operationalPurposeField && (
           <div className={styles.input}>
-            <WrappedSelect
+            <Select
               label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
               value={fields.operational_purpose}
-              onChange={(newValue) => onAnyFieldChange('operational_purpose', newValue as LabelValuePair | null)}
-              options={operationalPurposes}
-              isLimitedHeight
-              isClearable
+              onChange={(newValue) => onAnyFieldChange('operational_purpose', newValue)}
+              data={operationalPurposes}
+              placeholder={t('Select…')}
+              clearable
               error={
                 hasFieldError('operational_purpose')
                   ? t('Please specify the operational purpose of your project')
@@ -175,15 +171,13 @@ export default function StepProjectDetails({
         {/* Does this project collect personally identifiable information? */}
         {collectsPiiField && (
           <div className={styles.input}>
-            <WrappedSelect
+            <Select
               label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
               value={fields.collects_pii}
-              onChange={(newValue) => onAnyFieldChange('collects_pii', newValue as LabelValuePair | null)}
-              options={[
-                { value: 'Yes', label: t('Yes') },
-                { value: 'No', label: t('No') },
-              ]}
-              isClearable
+              onChange={(newValue) => onAnyFieldChange('collects_pii', newValue)}
+              data={COLLECTS_PII_OPTIONS}
+              placeholder={t('Select…')}
+              clearable
               error={
                 hasFieldError('collects_pii')
                   ? t('Please indicate whether or not your project collects personally identifiable information')

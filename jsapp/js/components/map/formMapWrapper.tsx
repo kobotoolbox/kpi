@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import type { WithRouterProps } from '#/router/legacy'
-import FormMap from '.'
+import FormMap, { SUBMISSIONS_PER_PAGE } from '.'
 
 interface FormMapWrapperProps extends WithRouterProps {
   asset: AssetResponse
@@ -12,7 +12,6 @@ interface FormMapWrapperProps extends WithRouterProps {
 }
 
 const DEFAULT_PAGE_SIZE = 1
-const SUBMISSIONS_PER_PAGE = 1000
 
 /**
  * Wrapper for the `FormMap` component so we can use hooks without doing a full refactor of `FormMap`

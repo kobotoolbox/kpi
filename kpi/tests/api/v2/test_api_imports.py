@@ -15,6 +15,7 @@ from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.models import Asset, ImportTask
 from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 
@@ -146,6 +147,7 @@ class AssetImportTaskTest(BaseTestCase):
             uid=detail_response.data['messages']['updated'][0]['uid']
         )
 
+    @patch_ssrf_dns()
     @responses.activate
     def test_import_asset_from_xls_url(self):
         # Host the XLS on a mock HTTP server
@@ -940,6 +942,7 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @patch_ssrf_dns()
     @responses.activate
     def test_import_non_xls_url(self):
         """
@@ -963,6 +966,55 @@ class AssetImportTaskTest(BaseTestCase):
                 'Unsupported format, or corrupt file'
             )
         )
+
+    @responses.activate
+    def test_import_from_internal_url_is_blocked_by_ssrf(self):
+        """
+        A URL resolving to an internal address must be rejected by the SSRF
+        guard: the task ends in error and never fetches the URL.
+        """
+        task_data = {
+            'url': 'http://127.0.0.1/form.xls',
+            'name': 'I should have been blocked (SSRF)',
+        }
+        post_url = reverse(self._get_endpoint('importtask-list'))
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Task completes right away due to `CELERY_TASK_ALWAYS_EAGER`
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'error')
+        self.assertIn('is not allowed', detail_response.data['messages']['error'])
+
+    @responses.activate
+    def test_import_from_url_redirecting_to_internal_is_blocked(self):
+        """
+        The SSRF guard must validate every hop of the redirect chain: a public
+        host that redirects to an internal address must be blocked, and the
+        internal URL must never be requested.
+        """
+        public_url = 'http://8.8.8.8/form.xls'
+        internal_url = 'http://127.0.0.1/meta'
+        responses.add(
+            responses.GET,
+            public_url,
+            status=status.HTTP_302_FOUND,
+            headers={'Location': internal_url},
+        )
+        task_data = {
+            'url': public_url,
+            'name': 'I redirect somewhere nasty',
+        }
+        post_url = reverse(self._get_endpoint('importtask-list'))
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'error')
+        self.assertIn('is not allowed', detail_response.data['messages']['error'])
+        # Only the initial (public) URL should have been requested
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, public_url)
 
     @unittest.skip
     def test_import_invalid_host_url(self):
@@ -1000,14 +1052,25 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.data['status'], 'complete')
 
     def test_import_xls_with_default_language_not_in_translations(self):
-        asset = Asset.objects.get(pk=2)
-        xlsx_io = asset.to_xlsx_io(
-            append={'settings': {'default_language': 'English (en)'}}
+        task_data = self._construct_xlsx_for_import(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English'],
+                        ['text', 'q1', 'Question 1'],
+                    ],
+                ),
+                (
+                    'settings',
+                    [
+                        ['default_language'],
+                        ['English (en)'],
+                    ],
+                ),
+            ),
+            name='I was imported via XLS!',
         )
-        task_data = {
-            'file': xlsx_io,
-            'name': 'I was imported via XLS!',
-        }
         post_url = reverse('api_v2:importtask-list')
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1152,6 +1215,179 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert asset.content['translations'] == ['English (en)']
 
+    def test_import_xls_blocks_untranslated_hint_column(self):
+        content = (
+            (
+                'survey',
+                [
+                    [
+                        'type',
+                        'name',
+                        'label::English (en)',
+                        'label::French (fr)',
+                        'hint',
+                    ],
+                    ['integer', 'age', 'Age?', 'Âge ?', 'in years'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Mixed translations', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `hint` column is not translated'
+        )
+
+    def test_reimport_xls_blocks_untranslated_column_and_keeps_translations(
+        self,
+    ):
+        asset = self._import_sheets(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'label::French (fr)'],
+                        ['integer', 'age', 'Age?', 'Âge ?'],
+                    ],
+                ),
+            ),
+            'Two languages',
+        )
+        translations_before = asset.content['translations']
+        assert translations_before == ['English (en)', 'French (fr)']
+
+        task_data = self._construct_xlsx_for_import(
+            (
+                (
+                    'survey',
+                    [
+                        ['type', 'name', 'label::English (en)', 'hint'],
+                        ['integer', 'age', 'Age?', 'in years'],
+                    ],
+                ),
+            ),
+            name='Mixed reimport',
+        )
+        task_data['destination'] = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': asset.uid},
+        )
+        response = self.client.post(
+            reverse(self._get_endpoint('importtask-list')), task_data
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `hint` column is not translated'
+        )
+
+        asset.refresh_from_db()
+        assert asset.content['translations'] == translations_before
+
+    def test_import_xls_blocks_untranslated_media_column(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)', 'image'],
+                    ['integer', 'age', 'Age?', 'age.png'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Bare media column', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `image` column is not translated'
+        )
+
+    def test_import_xls_blocks_column_both_bare_and_translated(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label', 'label::English (en)'],
+                    ['integer', 'age', 'Age?', 'Age?'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Bare and translated label', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `label` column is not translated'
+        )
+
+    def test_import_xls_blocks_untranslated_column_in_choices_sheet(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['select_one gender', 'gender', 'Gender?'],
+                ],
+            ),
+            (
+                'choices',
+                [
+                    ['list_name', 'name', 'label'],
+                    ['gender', 'female', 'Female'],
+                    ['gender', 'male', 'Male'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Untranslated choices label', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert (
+            detail_response.data['messages']['error']
+            == 'The `label` column is not translated'
+        )
+
+    def test_import_xls_allows_fully_untranslated_form(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label', 'hint'],
+                    ['integer', 'age', 'Age?', 'in years'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'No translations', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
+
+    def test_import_xls_allows_fully_translated_form(self):
+        content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)', 'hint::English (en)'],
+                    ['integer', 'age', 'Age?', 'in years'],
+                ],
+            ),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Fully translated', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
+
     def test_import_strip_newline_from_form_title_setting(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)'],
@@ -1178,6 +1414,7 @@ class AssetImportTaskTest(BaseTestCase):
         expected_name = 'A project with a new line'
         assert asset_response.data['name'] == expected_name
 
+    @patch_ssrf_dns()
     @responses.activate
     def test_import_to_existing_asset_from_xls_url_records_audit_log_info(self):
         self.asset.owner = self.user

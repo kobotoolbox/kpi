@@ -17,6 +17,7 @@ from rest_framework.reverse import reverse
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
+from kobo.apps.accounts.utils import user_is_managed_by_sso
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.schema_extensions.v2.me.fields import (
@@ -291,6 +292,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 extra_details_obj.data.update(extra_details['data'])
 
             if new_password:
+                if user_is_managed_by_sso(instance):
+                    raise serializers.ValidationError(
+                        'Cannot update password for sso-managed account'
+                    )
                 instance.set_password(new_password)
                 instance.save()
                 request = self.context.get('request', False)

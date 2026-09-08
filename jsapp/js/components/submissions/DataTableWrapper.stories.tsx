@@ -362,16 +362,13 @@ const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveR
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
   component: DataTableWrapper,
+  // Docs view does NOT work reliably for these stories due to per-story MSW handler and asset/submission isolation
+  // issues.
+  tags: ['!autodocs'],
   args: {
     asset: minimalAsset,
   },
   parameters: {
-    docs: {
-      description: {
-        component:
-          '⚠️ **Docs view does NOT work reliably for these stories due to per-story MSW handler and asset/submission isolation issues. Use single stories (Default, and Processing Column) please.** Also note that many interactive elements of the table are not mocked and will not work.',
-      },
-    },
     a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
