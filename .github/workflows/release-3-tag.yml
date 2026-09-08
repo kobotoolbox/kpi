@@ -419,7 +419,7 @@ jobs:
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
-        name: ${{ needs.version.outputs.current_minor }}
+        name: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.prev_patch }}
 
     - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
