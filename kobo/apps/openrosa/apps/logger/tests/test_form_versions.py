@@ -1,6 +1,7 @@
 import io
 import json
 import uuid as uuid_module
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -933,24 +934,53 @@ class TestAttachmentsAcrossFormVersions(TestCase):
 
         xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
         edit_submission_xml(xml_parsed, MEDIA_QUESTION, 'second.jpg')
-        edit_submission_xml(xml_parsed, 'meta/deprecatedID', f'uuid:{instance.uuid}')
-        edit_submission_xml(
-            xml_parsed, 'meta/instanceID', f'uuid:{uuid_module.uuid4()}'
-        )
-        edit_submission_xml(xml_parsed, 'meta/rootUuid', f'uuid:{instance.root_uuid}')
-        self._submit(
-            xml_tostring(xml_parsed),
-            media_files=[
-                SimpleUploadedFile('second.jpg', b'jpeg2', content_type='image/jpeg')
-            ],
-        )
+        self._edit(instance, xml_parsed, 'second.jpg')
 
-        assert dict(
-            Attachment.all_objects.filter(instance=instance).values_list(
-                'media_file_basename', 'delete_status'
-            )
-        ) == {
+        assert self._delete_statuses(instance) == {
             'first.jpg': AttachmentDeleteStatus.SOFT_DELETED,
+            'second.jpg': None,
+        }
+
+    def test_replaced_attachment_is_still_soft_deleted_across_versions(self):
+        """
+        Accepting the older versions' names must not stop an edit from retiring
+        the file it replaced on a question the deployed form still has.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+        self._redeploy_keeping_the_media_question()
+
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        edit_submission_xml(xml_parsed, MEDIA_QUESTION, 'second.jpg')
+        edited = self._edit(instance, xml_parsed, 'second.jpg')
+
+        # The record now spans two versions, so the older names are accepted
+        assert get_form_versions(edited.xml) is not None
+        assert self._delete_statuses(instance) == {
+            'first.jpg': AttachmentDeleteStatus.SOFT_DELETED,
+            'second.jpg': None,
+        }
+
+    def test_file_of_a_renamed_question_is_kept_on_edit(self):
+        """
+        Editing across a rename leaves the record carrying both shapes: the
+        deployed one Enketo renders, and the original nodes it appends. Which
+        old node the new file replaced cannot be known, since no stable
+        identity ties two names of the same question together across a rename.
+        Keeping the file is the deliberate choice: a stale file stays visible
+        and can be removed, a file nobody touched would vanish silently.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+        self._redeploy_renaming_the_media_question()
+
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        renamed = ET.SubElement(xml_parsed, RENAMED_MEDIA_QUESTION)
+        renamed.text = 'second.jpg'
+        self._edit(instance, xml_parsed, 'second.jpg')
+
+        assert self._delete_statuses(instance) == {
+            'first.jpg': None,
             'second.jpg': None,
         }
 
@@ -974,15 +1004,44 @@ class TestAttachmentsAcrossFormVersions(TestCase):
 
         parse.assert_not_called()
 
+    def _delete_statuses(self, instance: Instance) -> dict:
+        return dict(
+            Attachment.all_objects.filter(instance=instance).values_list(
+                'media_file_basename', 'delete_status'
+            )
+        )
+
+    def _edit(self, instance: Instance, xml_parsed, filename: str) -> Instance:
+        """
+        Post `xml_parsed` back as an edit of `instance`, uploading `filename`.
+        """
+
+        edit_submission_xml(xml_parsed, 'meta/deprecatedID', f'uuid:{instance.uuid}')
+        edit_submission_xml(
+            xml_parsed, 'meta/instanceID', f'uuid:{uuid_module.uuid4()}'
+        )
+        edit_submission_xml(xml_parsed, 'meta/rootUuid', f'uuid:{instance.root_uuid}')
+
+        return self._submit(
+            xml_tostring(xml_parsed),
+            media_files=[
+                SimpleUploadedFile(filename, b'jpeg2', content_type='image/jpeg')
+            ],
+        )
+
+    def _redeploy_keeping_the_media_question(self) -> str:
+        self.asset.content['survey'][0]['label'] = ['Q1 reworded']
+        return self._redeploy(MEDIA_QUESTION)
+
     def _redeploy_renaming_the_media_question(self) -> str:
         self.asset.content['survey'][1]['name'] = RENAMED_MEDIA_QUESTION
-        return self._redeploy(xform_xml(media_question=RENAMED_MEDIA_QUESTION))
+        return self._redeploy(RENAMED_MEDIA_QUESTION)
 
     def _redeploy_without_the_media_question(self) -> str:
         del self.asset.content['survey'][1]
-        return self._redeploy(xform_xml(media_question='decoy_photo'))
+        return self._redeploy('decoy_photo')
 
-    def _redeploy(self, xform_xml_: str) -> str:
+    def _redeploy(self, media_question: str) -> str:
         """
         Redeploy the asset and move the XForm onto the new version, the way a
         redeployment does.
@@ -992,8 +1051,8 @@ class TestAttachmentsAcrossFormVersions(TestCase):
         self.asset.deploy(backend='mock')
         version_uid = self.asset.latest_deployed_version_uid
         XForm.objects.filter(pk=self.xform.pk).update(
-            xml=xform_xml_,
-            json=xform_json(version_uid, media_question=RENAMED_MEDIA_QUESTION),
+            xml=xform_xml(media_question=media_question),
+            json=xform_json(version_uid, media_question=media_question),
         )
         return version_uid
 
