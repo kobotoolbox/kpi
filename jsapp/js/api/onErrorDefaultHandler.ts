@@ -93,17 +93,19 @@ export function onErrorDefaultHandler(
   _context?: unknown,
 ): boolean | void {
   if (error instanceof ServerError) {
-    let detail: string | null = null
+    // Log the whole body rather than `detail`, which drops error page output on purpose. A suppressed traceback is
+    // still the fastest way to find out what broke.
+    let body: string | undefined
     try {
-      detail = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail)
+      body = typeof error.parsedResponse === 'string' ? error.parsedResponse : JSON.stringify(error.parsedResponse)
     } catch {
-      detail = String(error.detail)
+      body = String(error.parsedResponse)
     }
     notify(
       getApiErrorMessage(error) || getGenericErrorMessage(),
       'error',
       {},
-      `${error.name}: ${error.message} | ${detail}`,
+      [`${error.name}: ${error.message}`, body].filter(Boolean).join(' | '),
     )
   } else if (error instanceof TypeError) {
     notify(getApiErrorMessage(error) || getGenericErrorMessage(), 'error', {}, `${error.name}: ${error.message}`)

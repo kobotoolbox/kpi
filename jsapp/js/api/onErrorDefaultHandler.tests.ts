@@ -8,17 +8,18 @@ jest.mock('#/utils', () => {
 
 import chai from 'chai'
 import { ServerError } from './ServerError'
+import { getDisplayableErrorText } from './getDisplayableErrorText'
 import { onErrorDefaultHandler } from './onErrorDefaultHandler'
 
 /**
- * Mirrors how `ServerError.new()` derives `detail` from a response body: a string body is one that failed
- * `JSON.parse()`, and it lands in both fields.
+ * Mirrors how `ServerError.new()` derives `detail`: a string body is one that failed `JSON.parse()`, and it only lands
+ * in `detail` when it reads as a message.
  */
 function makeServerError(status: number, statusText: string, body: unknown) {
   const response = { status, statusText } as Response
   let detail: unknown
   if (typeof body === 'string') {
-    detail = body
+    detail = getDisplayableErrorText(body, status)
   } else if (typeof body === 'object' && body !== null && 'detail' in body) {
     detail = (body as { detail: unknown }).detail
   }

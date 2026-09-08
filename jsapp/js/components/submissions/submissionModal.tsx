@@ -6,7 +6,7 @@ import { Loader } from '@mantine/core'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
-import { getDisplayableErrorText } from '#/api/getDisplayableErrorText'
+import { getFailResponseMessage } from '#/api/getFailResponseMessage'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -29,7 +29,8 @@ import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
 import SubmissionBackgroundAudio from './SubmissionBackgroundAudio'
 
-const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
+/** DRF's 404 body, once flattened for display. */
+const DETAIL_NOT_FOUND = 'Not found.'
 
 interface SubmissionModalProps {
   sid: string
@@ -223,7 +224,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         })
       })
       .fail((error: FailResponse) => {
-        const responseMessage = getDisplayableErrorText(error.responseText, error.status)
+        const responseMessage = getFailResponseMessage(error)
         if (responseMessage) {
           let error_message = responseMessage
           if (error_message === DETAIL_NOT_FOUND) {

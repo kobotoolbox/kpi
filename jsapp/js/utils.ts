@@ -15,6 +15,7 @@ import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
 import { containsHtmlMarkup } from '#/api/getDisplayableErrorText'
+import { getFailResponseMessage } from '#/api/getFailResponseMessage'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isMapDisplayableGeopointType } from './constants'
 import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
@@ -703,14 +704,13 @@ export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) 
  * describing the error, suitable for embedding in an alertify message.
  */
 export function getErrorMessage(err: FailResponse): string {
-  if (err.responseJSON?.detail) {
-    return `<pre>${err.responseJSON.detail}</pre>`
+  const message = getFailResponseMessage(err)
+
+  if (message) {
+    // Both callers paste this into an alertify dialog as HTML, so escape it - even a real message can carry an angle
+    // bracket.
+    return `<pre>${escapeHtml(message)}</pre>`
   }
-  if (err.responseJSON?.error) {
-    return `<pre>${err.responseJSON.error}</pre>`
-  }
-  if (err.responseText) {
-    return `<pre style='max-height: 200px;'>${err.responseText}</pre>`
-  }
+
   return t('please check your connection and try again.')
 }

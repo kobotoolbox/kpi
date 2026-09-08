@@ -3,8 +3,8 @@
  */
 
 import * as Sentry from '@sentry/react'
-import { flattenErrorBody } from '#/api/flattenErrorBody'
-import { containsHtmlMarkup, getDisplayableErrorText } from '#/api/getDisplayableErrorText'
+import { containsHtmlMarkup } from '#/api/getDisplayableErrorText'
+import { getFailResponseMessage } from '#/api/getFailResponseMessage'
 import type { FailResponse } from '#/dataInterface'
 import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
@@ -50,17 +50,10 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   the message shown to the user, which uses (in descending order of priority)
   1. the toast message (if provided)
   2. the Werkzeug-plucked error (development only)
-  3. the parsed body, flattened into a sentence - see `flattenErrorBody`
-  4. the raw response, but only when it's an actual message and not error page
-     output - see `getDisplayableErrorText`
-  5. a generic error
+  3. the response body, when it holds a message - see `getFailResponseMessage`
+  4. a generic error
   */
-  const backendMessage =
-    htmlMessage ||
-    // jQuery hands us the parsed body when the response is JSON, so prefer it over
-    // re-parsing the text - that's how field errors normally arrive.
-    flattenErrorBody(response.responseJSON) ||
-    flattenErrorBody(getDisplayableErrorText(responseMessage, response.status))
+  const backendMessage = htmlMessage || getFailResponseMessage(response)
 
   let displayMessage = backendMessage
 
