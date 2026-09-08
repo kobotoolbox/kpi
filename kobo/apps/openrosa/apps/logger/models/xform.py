@@ -11,12 +11,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import smart_str
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
+from kobo.apps.openrosa.libs.utils.common_tags import VERSION
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -163,6 +165,47 @@ class XForm(AbstractTimeStampedModel):
         xform_dict = deepcopy(self.__dict__)
         xform_dict = {key: val for key, val in xform_dict.items() if key in fields}
         return DataDictionary(**xform_dict)
+
+    @cached_property
+    def deployed_version_uid(self) -> str | None:
+        """
+        Return the KPI `AssetVersion` uid this XForm was generated from.
+
+        KPI appends a `__version__` calculate row when it deploys a form (see
+        `kpi.mixins.xls_exportable.XlsExportable.to_xlsx_io`), so the uid is
+        baked into `self.json` as the calculation of that row.
+
+        Forms deployed before that row existed fall back to the asset's latest
+        deployed version, so `None` is left for the few rows that sidestep the
+        deploy path entirely.
+
+        Only top-level children are scanned on purpose: KPI always appends the
+        row at the end of the survey sheet, and a question sharing that name
+        inside a group would be a user-defined field, not the version.
+        """
+
+        try:
+            children = json.loads(self.json)['children']
+        except (ValueError, TypeError, KeyError):
+            children = []
+
+        for child in children:
+            if child.get('name') != VERSION:
+                continue
+            # pyxform stores the calculation as an XPath string literal,
+            # e.g. `"'vGcztYhnRo9CCLv7biByAt'"`
+            calculation = child.get('bind', {}).get('calculate', '')
+            if version_uid := calculation.strip("'"):
+                return version_uid
+
+        if not self.kpi_asset_uid:
+            return None
+
+        asset = self.asset
+        if asset.pk is None:
+            return None
+
+        return asset.latest_deployed_version_uid
 
     def file_name(self):
         return self.id_string + '.xml'

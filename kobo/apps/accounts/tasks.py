@@ -1,11 +1,16 @@
 from datetime import timedelta
 
 from django.db import transaction
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
-from kobo.apps.accounts.utils import SOCIAL_APP_IDENTIFIER, users_needing_update
+from kobo.apps.accounts.utils import (
+    SOCIAL_APP_IDENTIFIER,
+    remove_stale_managed_sso_reminders,
+    users_needing_update,
+)
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
@@ -84,10 +89,20 @@ def update_users(
     send_in_app_message: bool = True,
     in_app_message_body: str = None,
 ):
-    # Only pks cross the task boundary: model instances are not JSON-serializable
-    custom_data = SocialAppCustomData.objects.select_related('social_app').get(
-        pk=social_app_custom_data_id
+    # Only pks cross the task boundary: model instances are not JSON-serializable.
+    # The flag and the domain are re-checked here because the admin can turn
+    # managed off, drop the domain or delete the app before the worker runs.
+    custom_data = (
+        _managed_custom_data(social_app_custom_data_id, domain)
+        .select_related('social_app')
+        .first()
     )
+    if custom_data is None:
+        logging.info(
+            f'[Managed SSO] Domain {domain} is no longer managed by social app'
+            f' custom data {social_app_custom_data_id}. Nothing to do.'
+        )
+        return
     social_app = custom_data.social_app
     requesting_user = (
         User.objects.get(pk=requesting_user_id) if requesting_user_id else None
@@ -100,10 +115,19 @@ def update_users(
             f'domain {domain}. Nothing to do.'
         )
         return
+    # The admin can also turn managed off while this task is running, so the
+    # check is repeated before each destructive change.
+    stopped_mid_run = (
+        f'[Managed SSO] Domain {domain} stopped being managed by social app'
+        f' {social_app.name} while updating users. Stopping.'
+    )
     user_ids_needing_notification = []
     for user in users_to_update:
         # 'managed_account' is an annotated field created by the query
         if user.managed_account > 0:
+            if not _managed_custom_data(social_app_custom_data_id, domain).exists():
+                logging.info(stopped_mid_run)
+                return
             logging.info(
                 '[Managed SSO] Removing alternative login methods for user '
                 f'{user.username} for managed social app {social_app.name}.'
@@ -118,6 +142,9 @@ def update_users(
                 f'{social_app.name} with domain {domain}.'
             )
             return
+        if not _managed_custom_data(social_app_custom_data_id, domain).exists():
+            logging.info(stopped_mid_run)
+            return
         notify_unlinked_users(
             user_ids_needing_notification,
             social_app,
@@ -128,6 +155,7 @@ def update_users(
 
 @celery_app.task()
 def managed_sso_sweep():
+    remove_stale_managed_sso_reminders()
     managed_domains = SocialAppManagedDomain.objects.filter(
         social_app__managed=True
     ).values_list('social_app_id', 'domain')
@@ -135,3 +163,14 @@ def managed_sso_sweep():
         # TODO: determine who kicked off the original update_users task and set them
         # as requesting_user
         update_users(social_app_custom_data_id, domain)
+
+
+def _managed_custom_data(
+    social_app_custom_data_id: int, domain: str
+) -> QuerySet[SocialAppCustomData]:
+    """
+    The custom data, only while `domain` is one of its managed domains.
+    """
+    return SocialAppCustomData.objects.filter(
+        pk=social_app_custom_data_id, managed=True, domains__domain=domain
+    )

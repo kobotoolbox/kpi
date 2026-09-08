@@ -33,6 +33,14 @@ VALIDATION_STATUS = '_validation_status'
 INSTANCE_ID = 'instanceID'
 META_INSTANCE_ID = 'meta/instanceID'
 META_ROOT_UUID = 'meta/rootUuid'
+# Ordered list (oldest first) of the KPI `AssetVersion` uids a submission has
+# been through. Only written when a submission spans more than one version.
+FORM_VERSIONS = 'formVersions'
+META_FORM_VERSIONS = f'meta/{FORM_VERSIONS}'
+# The single form version the client declares, injected by KPI as a `calculate`
+# row at deploy time
+VERSION = '__version__'
+
 INDEX = '_index'
 PARENT_INDEX = '_parent_index'
 PARENT_TABLE_NAME = '_parent_table_name'

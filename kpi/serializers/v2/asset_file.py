@@ -251,7 +251,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
         metadata = self._validate_metadata(metadata, validate_redirect_url=True)
 
         redirect_url = metadata['redirect_url']
-        validator = URLValidator()
+        validator = URLValidator(schemes=['http', 'https'])
         try:
             validator(redirect_url)
         except (AttributeError, DjangoValidationError):

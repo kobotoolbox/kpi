@@ -39,5 +39,8 @@ runs:
         exit 1
       fi
 
-      echo "body<<EOF" >> "$GITHUB_OUTPUT"
-      echo "${BODY}EOF" >> "$GITHUB_OUTPUT"
+      {
+        echo 'body<<EOF'
+        echo "${BODY}"
+        echo EOF
+      } >> "$GITHUB_OUTPUT"

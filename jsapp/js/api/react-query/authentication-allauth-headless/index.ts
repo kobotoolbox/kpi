@@ -119,7 +119,7 @@ import type { VerifyEmailBody } from '../../models/verifyEmailBody'
 
 import type { VerifyPhoneBody } from '../../models/verifyPhoneBody'
 
-import { fetchWithAuth } from '../../orval.mutator'
+import { fetchAllauth } from '../../orval.allauthMutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
@@ -149,7 +149,7 @@ export const getAllauthBrowserV1ConfigGetUrl = () => {
 }
 
 export const allauthBrowserV1ConfigGet = async (options?: RequestInit): Promise<allauthBrowserV1ConfigGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1ConfigGetResponse>(getAllauthBrowserV1ConfigGetUrl(), {
+  return fetchAllauth<allauthBrowserV1ConfigGetResponse>(getAllauthBrowserV1ConfigGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -164,7 +164,7 @@ export const getAllauthBrowserV1ConfigGetQueryOptions = <
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1ConfigGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -192,7 +192,7 @@ export function useAllauthBrowserV1ConfigGet<
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1ConfigGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1ConfigGetQueryOptions(options)
 
@@ -229,7 +229,7 @@ export const getAllauthAppV1ConfigGetUrl = () => {
 }
 
 export const allauthAppV1ConfigGet = async (options?: RequestInit): Promise<allauthAppV1ConfigGetResponse> => {
-  return fetchWithAuth<allauthAppV1ConfigGetResponse>(getAllauthAppV1ConfigGetUrl(), {
+  return fetchAllauth<allauthAppV1ConfigGetResponse>(getAllauthAppV1ConfigGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -244,7 +244,7 @@ export const getAllauthAppV1ConfigGetQueryOptions = <
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1ConfigGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -272,7 +272,7 @@ export function useAllauthAppV1ConfigGet<
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1ConfigGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1ConfigGetQueryOptions(options)
 
@@ -331,7 +331,7 @@ export const allauthBrowserV1AuthLoginPost = async (
   loginBody: LoginBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthLoginPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthLoginPostResponse>(getAllauthBrowserV1AuthLoginPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthLoginPostResponse>(getAllauthBrowserV1AuthLoginPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -349,7 +349,7 @@ export const getAllauthBrowserV1AuthLoginPostMutationOptions = <
     { data: LoginBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthLoginPost>>,
   TError,
@@ -393,7 +393,7 @@ export const useAllauthBrowserV1AuthLoginPost = <
     { data: LoginBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthLoginPostMutationOptions(options)
 
@@ -447,7 +447,7 @@ export const allauthAppV1AuthLoginPost = async (
   loginBody: LoginBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthLoginPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthLoginPostResponse>(getAllauthAppV1AuthLoginPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthLoginPostResponse>(getAllauthAppV1AuthLoginPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -465,7 +465,7 @@ export const getAllauthAppV1AuthLoginPostMutationOptions = <
     { data: LoginBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthLoginPost>>,
   TError,
@@ -507,7 +507,7 @@ export const useAllauthAppV1AuthLoginPost = <
     { data: LoginBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthLoginPostMutationOptions(options)
 
@@ -570,7 +570,7 @@ export const allauthBrowserV1AuthSignupPost = async (
   signupBody: SignupBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthSignupPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthSignupPostResponse>(getAllauthBrowserV1AuthSignupPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthSignupPostResponse>(getAllauthBrowserV1AuthSignupPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -588,7 +588,7 @@ export const getAllauthBrowserV1AuthSignupPostMutationOptions = <
     { data: SignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthSignupPost>>,
   TError,
@@ -637,7 +637,7 @@ export const useAllauthBrowserV1AuthSignupPost = <
     { data: SignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthSignupPostMutationOptions(options)
 
@@ -700,7 +700,7 @@ export const allauthAppV1AuthSignupPost = async (
   signupBody: SignupBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthSignupPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthSignupPostResponse>(getAllauthAppV1AuthSignupPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthSignupPostResponse>(getAllauthAppV1AuthSignupPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -718,7 +718,7 @@ export const getAllauthAppV1AuthSignupPostMutationOptions = <
     { data: SignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthSignupPost>>,
   TError,
@@ -766,7 +766,7 @@ export const useAllauthAppV1AuthSignupPost = <
     { data: SignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthSignupPostMutationOptions(options)
 
@@ -814,7 +814,7 @@ export const getAllauthBrowserV1AuthEmailVerifyGetUrl = () => {
 export const allauthBrowserV1AuthEmailVerifyGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthEmailVerifyGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthEmailVerifyGetResponse>(getAllauthBrowserV1AuthEmailVerifyGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthEmailVerifyGetResponse>(getAllauthBrowserV1AuthEmailVerifyGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -829,7 +829,7 @@ export const getAllauthBrowserV1AuthEmailVerifyGetQueryOptions = <
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthEmailVerifyGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -859,7 +859,7 @@ export function useAllauthBrowserV1AuthEmailVerifyGet<
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthEmailVerifyGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AuthEmailVerifyGetQueryOptions(options)
 
@@ -927,7 +927,7 @@ export const allauthBrowserV1AuthEmailVerifyPost = async (
   verifyEmailBody: VerifyEmailBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthEmailVerifyPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthEmailVerifyPostResponse>(getAllauthBrowserV1AuthEmailVerifyPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthEmailVerifyPostResponse>(getAllauthBrowserV1AuthEmailVerifyPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -945,7 +945,7 @@ export const getAllauthBrowserV1AuthEmailVerifyPostMutationOptions = <
     { data: VerifyEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthEmailVerifyPost>>,
   TError,
@@ -993,7 +993,7 @@ export const useAllauthBrowserV1AuthEmailVerifyPost = <
     { data: VerifyEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthEmailVerifyPostMutationOptions(options)
 
@@ -1041,7 +1041,7 @@ export const getAllauthAppV1AuthEmailVerifyGetUrl = () => {
 export const allauthAppV1AuthEmailVerifyGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthEmailVerifyGetResponse> => {
-  return fetchWithAuth<allauthAppV1AuthEmailVerifyGetResponse>(getAllauthAppV1AuthEmailVerifyGetUrl(), {
+  return fetchAllauth<allauthAppV1AuthEmailVerifyGetResponse>(getAllauthAppV1AuthEmailVerifyGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -1056,7 +1056,7 @@ export const getAllauthAppV1AuthEmailVerifyGetQueryOptions = <
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthEmailVerifyGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -1086,7 +1086,7 @@ export function useAllauthAppV1AuthEmailVerifyGet<
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthEmailVerifyGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AuthEmailVerifyGetQueryOptions(options)
 
@@ -1154,7 +1154,7 @@ export const allauthAppV1AuthEmailVerifyPost = async (
   verifyEmailBody: VerifyEmailBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthEmailVerifyPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthEmailVerifyPostResponse>(getAllauthAppV1AuthEmailVerifyPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthEmailVerifyPostResponse>(getAllauthAppV1AuthEmailVerifyPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -1172,7 +1172,7 @@ export const getAllauthAppV1AuthEmailVerifyPostMutationOptions = <
     { data: VerifyEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthEmailVerifyPost>>,
   TError,
@@ -1217,7 +1217,7 @@ export const useAllauthAppV1AuthEmailVerifyPost = <
     { data: VerifyEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthEmailVerifyPostMutationOptions(options)
 
@@ -1266,7 +1266,7 @@ export const getAllauthBrowserV1AuthEmailVerifyResendPostUrl = () => {
 export const allauthBrowserV1AuthEmailVerifyResendPost = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthEmailVerifyResendPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthEmailVerifyResendPostResponse>(
+  return fetchAllauth<allauthBrowserV1AuthEmailVerifyResendPostResponse>(
     getAllauthBrowserV1AuthEmailVerifyResendPostUrl(),
     {
       ...options,
@@ -1285,7 +1285,7 @@ export const getAllauthBrowserV1AuthEmailVerifyResendPostMutationOptions = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthEmailVerifyResendPost>>,
   TError,
@@ -1328,7 +1328,7 @@ export const useAllauthBrowserV1AuthEmailVerifyResendPost = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthEmailVerifyResendPostMutationOptions(options)
 
@@ -1376,7 +1376,7 @@ export const getAllauthAppV1AuthEmailVerifyResendPostUrl = () => {
 export const allauthAppV1AuthEmailVerifyResendPost = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthEmailVerifyResendPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthEmailVerifyResendPostResponse>(getAllauthAppV1AuthEmailVerifyResendPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthEmailVerifyResendPostResponse>(getAllauthAppV1AuthEmailVerifyResendPostUrl(), {
     ...options,
     method: 'POST',
   })
@@ -1392,7 +1392,7 @@ export const getAllauthAppV1AuthEmailVerifyResendPostMutationOptions = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<Awaited<ReturnType<typeof allauthAppV1AuthEmailVerifyResendPost>>, TError, void, TContext> => {
   const mutationKey = ['allauthAppV1AuthEmailVerifyResendPost']
   const { mutation: mutationOptions, request: requestOptions } = options
@@ -1427,7 +1427,7 @@ export const useAllauthAppV1AuthEmailVerifyResendPost = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthEmailVerifyResendPostMutationOptions(options)
 
@@ -1483,7 +1483,7 @@ export const allauthBrowserV1AuthPhoneVerifyPost = async (
   verifyPhoneBody: VerifyPhoneBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthPhoneVerifyPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthPhoneVerifyPostResponse>(getAllauthBrowserV1AuthPhoneVerifyPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthPhoneVerifyPostResponse>(getAllauthBrowserV1AuthPhoneVerifyPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -1501,7 +1501,7 @@ export const getAllauthBrowserV1AuthPhoneVerifyPostMutationOptions = <
     { data: VerifyPhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthPhoneVerifyPost>>,
   TError,
@@ -1549,7 +1549,7 @@ export const useAllauthBrowserV1AuthPhoneVerifyPost = <
     { data: VerifyPhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthPhoneVerifyPostMutationOptions(options)
 
@@ -1605,7 +1605,7 @@ export const allauthAppV1AuthPhoneVerifyPost = async (
   verifyPhoneBody: VerifyPhoneBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthPhoneVerifyPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthPhoneVerifyPostResponse>(getAllauthAppV1AuthPhoneVerifyPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthPhoneVerifyPostResponse>(getAllauthAppV1AuthPhoneVerifyPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -1623,7 +1623,7 @@ export const getAllauthAppV1AuthPhoneVerifyPostMutationOptions = <
     { data: VerifyPhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthPhoneVerifyPost>>,
   TError,
@@ -1668,7 +1668,7 @@ export const useAllauthAppV1AuthPhoneVerifyPost = <
     { data: VerifyPhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthPhoneVerifyPostMutationOptions(options)
 
@@ -1717,7 +1717,7 @@ export const getAllauthBrowserV1AuthPhoneVerifyResendPostUrl = () => {
 export const allauthBrowserV1AuthPhoneVerifyResendPost = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthPhoneVerifyResendPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthPhoneVerifyResendPostResponse>(
+  return fetchAllauth<allauthBrowserV1AuthPhoneVerifyResendPostResponse>(
     getAllauthBrowserV1AuthPhoneVerifyResendPostUrl(),
     {
       ...options,
@@ -1736,7 +1736,7 @@ export const getAllauthBrowserV1AuthPhoneVerifyResendPostMutationOptions = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthPhoneVerifyResendPost>>,
   TError,
@@ -1779,7 +1779,7 @@ export const useAllauthBrowserV1AuthPhoneVerifyResendPost = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthPhoneVerifyResendPostMutationOptions(options)
 
@@ -1827,7 +1827,7 @@ export const getAllauthAppV1AuthPhoneVerifyResendPostUrl = () => {
 export const allauthAppV1AuthPhoneVerifyResendPost = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthPhoneVerifyResendPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthPhoneVerifyResendPostResponse>(getAllauthAppV1AuthPhoneVerifyResendPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthPhoneVerifyResendPostResponse>(getAllauthAppV1AuthPhoneVerifyResendPostUrl(), {
     ...options,
     method: 'POST',
   })
@@ -1843,7 +1843,7 @@ export const getAllauthAppV1AuthPhoneVerifyResendPostMutationOptions = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<Awaited<ReturnType<typeof allauthAppV1AuthPhoneVerifyResendPost>>, TError, void, TContext> => {
   const mutationKey = ['allauthAppV1AuthPhoneVerifyResendPost']
   const { mutation: mutationOptions, request: requestOptions } = options
@@ -1878,7 +1878,7 @@ export const useAllauthAppV1AuthPhoneVerifyResendPost = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthPhoneVerifyResendPostMutationOptions(options)
 
@@ -1924,7 +1924,7 @@ export const allauthBrowserV1AuthReauthenticatePost = async (
   reauthenticateBody: ReauthenticateBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthReauthenticatePostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthReauthenticatePostResponse>(getAllauthBrowserV1AuthReauthenticatePostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthReauthenticatePostResponse>(getAllauthBrowserV1AuthReauthenticatePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -1942,7 +1942,7 @@ export const getAllauthBrowserV1AuthReauthenticatePostMutationOptions = <
     { data: ReauthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthReauthenticatePost>>,
   TError,
@@ -1984,7 +1984,7 @@ export const useAllauthBrowserV1AuthReauthenticatePost = <TError = ErrorResponse
     { data: ReauthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthReauthenticatePostMutationOptions(options)
 
@@ -2029,7 +2029,7 @@ export const allauthAppV1AuthReauthenticatePost = async (
   reauthenticateBody: ReauthenticateBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthReauthenticatePostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthReauthenticatePostResponse>(getAllauthAppV1AuthReauthenticatePostUrl(), {
+  return fetchAllauth<allauthAppV1AuthReauthenticatePostResponse>(getAllauthAppV1AuthReauthenticatePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -2047,7 +2047,7 @@ export const getAllauthAppV1AuthReauthenticatePostMutationOptions = <
     { data: ReauthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthReauthenticatePost>>,
   TError,
@@ -2089,7 +2089,7 @@ export const useAllauthAppV1AuthReauthenticatePost = <TError = ErrorResponse, TC
     { data: ReauthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthReauthenticatePostMutationOptions(options)
 
@@ -2148,7 +2148,7 @@ export const allauthBrowserV1AuthPasswordRequestPost = async (
   requestPasswordBody: RequestPasswordBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthPasswordRequestPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthPasswordRequestPostResponse>(
+  return fetchAllauth<allauthBrowserV1AuthPasswordRequestPostResponse>(
     getAllauthBrowserV1AuthPasswordRequestPostUrl(),
     {
       ...options,
@@ -2169,7 +2169,7 @@ export const getAllauthBrowserV1AuthPasswordRequestPostMutationOptions = <
     { data: RequestPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthPasswordRequestPost>>,
   TError,
@@ -2214,7 +2214,7 @@ export const useAllauthBrowserV1AuthPasswordRequestPost = <
     { data: RequestPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthPasswordRequestPostMutationOptions(options)
 
@@ -2272,7 +2272,7 @@ export const allauthAppV1AuthPasswordRequestPost = async (
   requestPasswordBody: RequestPasswordBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthPasswordRequestPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthPasswordRequestPostResponse>(getAllauthAppV1AuthPasswordRequestPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthPasswordRequestPostResponse>(getAllauthAppV1AuthPasswordRequestPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -2290,7 +2290,7 @@ export const getAllauthAppV1AuthPasswordRequestPostMutationOptions = <
     { data: RequestPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthPasswordRequestPost>>,
   TError,
@@ -2335,7 +2335,7 @@ export const useAllauthAppV1AuthPasswordRequestPost = <
     { data: RequestPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthPasswordRequestPostMutationOptions(options)
 
@@ -2387,7 +2387,7 @@ export const getAllauthBrowserV1AuthPasswordResetGetUrl = () => {
 export const allauthBrowserV1AuthPasswordResetGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthPasswordResetGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthPasswordResetGetResponse>(getAllauthBrowserV1AuthPasswordResetGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthPasswordResetGetResponse>(getAllauthBrowserV1AuthPasswordResetGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -2402,7 +2402,7 @@ export const getAllauthBrowserV1AuthPasswordResetGetQueryOptions = <
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthPasswordResetGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -2432,7 +2432,7 @@ export function useAllauthBrowserV1AuthPasswordResetGet<
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthPasswordResetGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AuthPasswordResetGetQueryOptions(options)
 
@@ -2496,7 +2496,7 @@ export const allauthBrowserV1AuthPasswordResetPost = async (
   resetPasswordBody: ResetPasswordBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthPasswordResetPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthPasswordResetPostResponse>(getAllauthBrowserV1AuthPasswordResetPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthPasswordResetPostResponse>(getAllauthBrowserV1AuthPasswordResetPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -2514,7 +2514,7 @@ export const getAllauthBrowserV1AuthPasswordResetPostMutationOptions = <
     { data: ResetPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthPasswordResetPost>>,
   TError,
@@ -2562,7 +2562,7 @@ export const useAllauthBrowserV1AuthPasswordResetPost = <
     { data: ResetPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthPasswordResetPostMutationOptions(options)
 
@@ -2614,7 +2614,7 @@ export const getAllauthAppV1AuthPasswordResetGetUrl = () => {
 export const allauthAppV1AuthPasswordResetGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthPasswordResetGetResponse> => {
-  return fetchWithAuth<allauthAppV1AuthPasswordResetGetResponse>(getAllauthAppV1AuthPasswordResetGetUrl(), {
+  return fetchAllauth<allauthAppV1AuthPasswordResetGetResponse>(getAllauthAppV1AuthPasswordResetGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -2629,7 +2629,7 @@ export const getAllauthAppV1AuthPasswordResetGetQueryOptions = <
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthPasswordResetGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -2659,7 +2659,7 @@ export function useAllauthAppV1AuthPasswordResetGet<
   TError = ErrorResponse | ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthPasswordResetGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AuthPasswordResetGetQueryOptions(options)
 
@@ -2723,7 +2723,7 @@ export const allauthAppV1AuthPasswordResetPost = async (
   resetPasswordBody: ResetPasswordBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthPasswordResetPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthPasswordResetPostResponse>(getAllauthAppV1AuthPasswordResetPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthPasswordResetPostResponse>(getAllauthAppV1AuthPasswordResetPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -2741,7 +2741,7 @@ export const getAllauthAppV1AuthPasswordResetPostMutationOptions = <
     { data: ResetPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthPasswordResetPost>>,
   TError,
@@ -2786,7 +2786,7 @@ export const useAllauthAppV1AuthPasswordResetPost = <
     { data: ResetPasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthPasswordResetPostMutationOptions(options)
 
@@ -2824,7 +2824,7 @@ export const allauthBrowserV1AuthProviderRedirectPost = async (
   formUrlEncoded.append(`callback_url`, providerRedirectBody.callback_url)
   formUrlEncoded.append(`process`, providerRedirectBody.process)
 
-  return fetchWithAuth<allauthBrowserV1AuthProviderRedirectPostResponse>(
+  return fetchAllauth<allauthBrowserV1AuthProviderRedirectPostResponse>(
     getAllauthBrowserV1AuthProviderRedirectPostUrl(),
     {
       ...options,
@@ -2845,7 +2845,7 @@ export const getAllauthBrowserV1AuthProviderRedirectPostMutationOptions = <
     { data: ProviderRedirectBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthProviderRedirectPost>>,
   TError,
@@ -2887,7 +2887,7 @@ export const useAllauthBrowserV1AuthProviderRedirectPost = <TError = void, TCont
     { data: ProviderRedirectBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthProviderRedirectPostMutationOptions(options)
 
@@ -2946,7 +2946,7 @@ export const allauthBrowserV1AuthProviderTokenPost = async (
   providerTokenBody: ProviderTokenBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthProviderTokenPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthProviderTokenPostResponse>(getAllauthBrowserV1AuthProviderTokenPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthProviderTokenPostResponse>(getAllauthBrowserV1AuthProviderTokenPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -2964,7 +2964,7 @@ export const getAllauthBrowserV1AuthProviderTokenPostMutationOptions = <
     { data: ProviderTokenBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthProviderTokenPost>>,
   TError,
@@ -3012,7 +3012,7 @@ export const useAllauthBrowserV1AuthProviderTokenPost = <
     { data: ProviderTokenBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthProviderTokenPostMutationOptions(options)
 
@@ -3071,7 +3071,7 @@ export const allauthAppV1AuthProviderTokenPost = async (
   providerTokenBody: ProviderTokenBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthProviderTokenPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthProviderTokenPostResponse>(getAllauthAppV1AuthProviderTokenPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthProviderTokenPostResponse>(getAllauthAppV1AuthProviderTokenPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -3089,7 +3089,7 @@ export const getAllauthAppV1AuthProviderTokenPostMutationOptions = <
     { data: ProviderTokenBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthProviderTokenPost>>,
   TError,
@@ -3134,7 +3134,7 @@ export const useAllauthAppV1AuthProviderTokenPost = <
     { data: ProviderTokenBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthProviderTokenPostMutationOptions(options)
 
@@ -3178,7 +3178,7 @@ export const getAllauthBrowserV1AuthProviderSignupGetUrl = () => {
 export const allauthBrowserV1AuthProviderSignupGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthProviderSignupGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthProviderSignupGetResponse>(getAllauthBrowserV1AuthProviderSignupGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthProviderSignupGetResponse>(getAllauthBrowserV1AuthProviderSignupGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -3193,7 +3193,7 @@ export const getAllauthBrowserV1AuthProviderSignupGetQueryOptions = <
   TError = ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthProviderSignupGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -3223,7 +3223,7 @@ export function useAllauthBrowserV1AuthProviderSignupGet<
   TError = ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthProviderSignupGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AuthProviderSignupGetQueryOptions(options)
 
@@ -3292,7 +3292,7 @@ export const allauthBrowserV1AuthProviderSignupPost = async (
   providerSignupBody: ProviderSignupBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthProviderSignupPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthProviderSignupPostResponse>(getAllauthBrowserV1AuthProviderSignupPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthProviderSignupPostResponse>(getAllauthBrowserV1AuthProviderSignupPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -3310,7 +3310,7 @@ export const getAllauthBrowserV1AuthProviderSignupPostMutationOptions = <
     { data: ProviderSignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthProviderSignupPost>>,
   TError,
@@ -3359,7 +3359,7 @@ export const useAllauthBrowserV1AuthProviderSignupPost = <
     { data: ProviderSignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthProviderSignupPostMutationOptions(options)
 
@@ -3403,7 +3403,7 @@ export const getAllauthAppV1AuthProviderSignupGetUrl = () => {
 export const allauthAppV1AuthProviderSignupGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthProviderSignupGetResponse> => {
-  return fetchWithAuth<allauthAppV1AuthProviderSignupGetResponse>(getAllauthAppV1AuthProviderSignupGetUrl(), {
+  return fetchAllauth<allauthAppV1AuthProviderSignupGetResponse>(getAllauthAppV1AuthProviderSignupGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -3418,7 +3418,7 @@ export const getAllauthAppV1AuthProviderSignupGetQueryOptions = <
   TError = ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthProviderSignupGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -3448,7 +3448,7 @@ export function useAllauthAppV1AuthProviderSignupGet<
   TError = ConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthProviderSignupGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AuthProviderSignupGetQueryOptions(options)
 
@@ -3516,7 +3516,7 @@ export const allauthAppV1AuthProviderSignupPost = async (
   providerSignupBody: ProviderSignupBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthProviderSignupPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthProviderSignupPostResponse>(getAllauthAppV1AuthProviderSignupPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthProviderSignupPostResponse>(getAllauthAppV1AuthProviderSignupPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -3534,7 +3534,7 @@ export const getAllauthAppV1AuthProviderSignupPostMutationOptions = <
     { data: ProviderSignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthProviderSignupPost>>,
   TError,
@@ -3583,7 +3583,7 @@ export const useAllauthAppV1AuthProviderSignupPost = <
     { data: ProviderSignupBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthProviderSignupPostMutationOptions(options)
 
@@ -3634,7 +3634,7 @@ export const allauthBrowserV1Auth2faAuthenticatePost = async (
   mFAAuthenticateBody: MFAAuthenticateBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1Auth2faAuthenticatePostResponse> => {
-  return fetchWithAuth<allauthBrowserV1Auth2faAuthenticatePostResponse>(
+  return fetchAllauth<allauthBrowserV1Auth2faAuthenticatePostResponse>(
     getAllauthBrowserV1Auth2faAuthenticatePostUrl(),
     {
       ...options,
@@ -3655,7 +3655,7 @@ export const getAllauthBrowserV1Auth2faAuthenticatePostMutationOptions = <
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1Auth2faAuthenticatePost>>,
   TError,
@@ -3700,7 +3700,7 @@ export const useAllauthBrowserV1Auth2faAuthenticatePost = <
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1Auth2faAuthenticatePostMutationOptions(options)
 
@@ -3750,7 +3750,7 @@ export const allauthAppV1Auth2faAuthenticatePost = async (
   mFAAuthenticateBody: MFAAuthenticateBody,
   options?: RequestInit,
 ): Promise<allauthAppV1Auth2faAuthenticatePostResponse> => {
-  return fetchWithAuth<allauthAppV1Auth2faAuthenticatePostResponse>(getAllauthAppV1Auth2faAuthenticatePostUrl(), {
+  return fetchAllauth<allauthAppV1Auth2faAuthenticatePostResponse>(getAllauthAppV1Auth2faAuthenticatePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -3768,7 +3768,7 @@ export const getAllauthAppV1Auth2faAuthenticatePostMutationOptions = <
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1Auth2faAuthenticatePost>>,
   TError,
@@ -3813,7 +3813,7 @@ export const useAllauthAppV1Auth2faAuthenticatePost = <
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1Auth2faAuthenticatePostMutationOptions(options)
 
@@ -3861,7 +3861,7 @@ export const allauthBrowserV1Auth2faReauthenticatePost = async (
   mFAAuthenticateBody: MFAAuthenticateBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1Auth2faReauthenticatePostResponse> => {
-  return fetchWithAuth<allauthBrowserV1Auth2faReauthenticatePostResponse>(
+  return fetchAllauth<allauthBrowserV1Auth2faReauthenticatePostResponse>(
     getAllauthBrowserV1Auth2faReauthenticatePostUrl(),
     {
       ...options,
@@ -3882,7 +3882,7 @@ export const getAllauthBrowserV1Auth2faReauthenticatePostMutationOptions = <
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1Auth2faReauthenticatePost>>,
   TError,
@@ -3924,7 +3924,7 @@ export const useAllauthBrowserV1Auth2faReauthenticatePost = <TError = ErrorRespo
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1Auth2faReauthenticatePostMutationOptions(options)
 
@@ -3970,7 +3970,7 @@ export const allauthAppV1Auth2faReauthenticatePost = async (
   mFAAuthenticateBody: MFAAuthenticateBody,
   options?: RequestInit,
 ): Promise<allauthAppV1Auth2faReauthenticatePostResponse> => {
-  return fetchWithAuth<allauthAppV1Auth2faReauthenticatePostResponse>(getAllauthAppV1Auth2faReauthenticatePostUrl(), {
+  return fetchAllauth<allauthAppV1Auth2faReauthenticatePostResponse>(getAllauthAppV1Auth2faReauthenticatePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -3988,7 +3988,7 @@ export const getAllauthAppV1Auth2faReauthenticatePostMutationOptions = <
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1Auth2faReauthenticatePost>>,
   TError,
@@ -4030,7 +4030,7 @@ export const useAllauthAppV1Auth2faReauthenticatePost = <TError = ErrorResponse,
     { data: MFAAuthenticateBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1Auth2faReauthenticatePostMutationOptions(options)
 
@@ -4084,7 +4084,7 @@ export const allauthBrowserV1AuthCodeConfirmPost = async (
   confirmLoginCodeBody: ConfirmLoginCodeBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthCodeConfirmPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthCodeConfirmPostResponse>(getAllauthBrowserV1AuthCodeConfirmPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthCodeConfirmPostResponse>(getAllauthBrowserV1AuthCodeConfirmPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -4102,7 +4102,7 @@ export const getAllauthBrowserV1AuthCodeConfirmPostMutationOptions = <
     { data: ConfirmLoginCodeBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthCodeConfirmPost>>,
   TError,
@@ -4147,7 +4147,7 @@ export const useAllauthBrowserV1AuthCodeConfirmPost = <
     { data: ConfirmLoginCodeBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthCodeConfirmPostMutationOptions(options)
 
@@ -4201,7 +4201,7 @@ export const allauthAppV1AuthCodeConfirmPost = async (
   confirmLoginCodeBody: ConfirmLoginCodeBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthCodeConfirmPostResponse> => {
-  return fetchWithAuth<allauthAppV1AuthCodeConfirmPostResponse>(getAllauthAppV1AuthCodeConfirmPostUrl(), {
+  return fetchAllauth<allauthAppV1AuthCodeConfirmPostResponse>(getAllauthAppV1AuthCodeConfirmPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -4219,7 +4219,7 @@ export const getAllauthAppV1AuthCodeConfirmPostMutationOptions = <
     { data: ConfirmLoginCodeBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthCodeConfirmPost>>,
   TError,
@@ -4264,7 +4264,7 @@ export const useAllauthAppV1AuthCodeConfirmPost = <
     { data: ConfirmLoginCodeBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthCodeConfirmPostMutationOptions(options)
 
@@ -4291,7 +4291,7 @@ export const getAllauthBrowserV1AccountProvidersGetUrl = () => {
 export const allauthBrowserV1AccountProvidersGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountProvidersGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountProvidersGetResponse>(getAllauthBrowserV1AccountProvidersGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountProvidersGetResponse>(getAllauthBrowserV1AccountProvidersGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -4306,7 +4306,7 @@ export const getAllauthBrowserV1AccountProvidersGetQueryOptions = <
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountProvidersGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -4336,7 +4336,7 @@ export function useAllauthBrowserV1AccountProvidersGet<
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountProvidersGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AccountProvidersGetQueryOptions(options)
 
@@ -4386,7 +4386,7 @@ export const allauthBrowserV1AccountProvidersDelete = async (
   providerAccountBody: ProviderAccountBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountProvidersDeleteResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountProvidersDeleteResponse>(getAllauthBrowserV1AccountProvidersDeleteUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountProvidersDeleteResponse>(getAllauthBrowserV1AccountProvidersDeleteUrl(), {
     ...options,
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -4404,7 +4404,7 @@ export const getAllauthBrowserV1AccountProvidersDeleteMutationOptions = <
     { data: ProviderAccountBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountProvidersDelete>>,
   TError,
@@ -4447,7 +4447,7 @@ export const useAllauthBrowserV1AccountProvidersDelete = <TError = ErrorResponse
     { data: ProviderAccountBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountProvidersDeleteMutationOptions(options)
 
@@ -4474,7 +4474,7 @@ export const getAllauthAppV1AccountProvidersGetUrl = () => {
 export const allauthAppV1AccountProvidersGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountProvidersGetResponse> => {
-  return fetchWithAuth<allauthAppV1AccountProvidersGetResponse>(getAllauthAppV1AccountProvidersGetUrl(), {
+  return fetchAllauth<allauthAppV1AccountProvidersGetResponse>(getAllauthAppV1AccountProvidersGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -4489,7 +4489,7 @@ export const getAllauthAppV1AccountProvidersGetQueryOptions = <
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountProvidersGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -4519,7 +4519,7 @@ export function useAllauthAppV1AccountProvidersGet<
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountProvidersGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AccountProvidersGetQueryOptions(options)
 
@@ -4568,7 +4568,7 @@ export const allauthAppV1AccountProvidersDelete = async (
   providerAccountBody: ProviderAccountBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountProvidersDeleteResponse> => {
-  return fetchWithAuth<allauthAppV1AccountProvidersDeleteResponse>(getAllauthAppV1AccountProvidersDeleteUrl(), {
+  return fetchAllauth<allauthAppV1AccountProvidersDeleteResponse>(getAllauthAppV1AccountProvidersDeleteUrl(), {
     ...options,
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -4586,7 +4586,7 @@ export const getAllauthAppV1AccountProvidersDeleteMutationOptions = <
     { data: ProviderAccountBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountProvidersDelete>>,
   TError,
@@ -4629,7 +4629,7 @@ export const useAllauthAppV1AccountProvidersDelete = <TError = ErrorResponse, TC
     { data: ProviderAccountBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountProvidersDeleteMutationOptions(options)
 
@@ -4668,7 +4668,7 @@ export const getAllauthBrowserV1AccountEmailGetUrl = () => {
 export const allauthBrowserV1AccountEmailGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountEmailGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountEmailGetResponse>(getAllauthBrowserV1AccountEmailGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountEmailGetResponse>(getAllauthBrowserV1AccountEmailGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -4683,7 +4683,7 @@ export const getAllauthBrowserV1AccountEmailGetQueryOptions = <
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountEmailGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -4713,7 +4713,7 @@ export function useAllauthBrowserV1AccountEmailGet<
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountEmailGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AccountEmailGetQueryOptions(options)
 
@@ -4779,7 +4779,7 @@ export const allauthBrowserV1AccountEmailPost = async (
   emailBody: EmailBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountEmailPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountEmailPostResponse>(getAllauthBrowserV1AccountEmailPostUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountEmailPostResponse>(getAllauthBrowserV1AccountEmailPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -4797,7 +4797,7 @@ export const getAllauthBrowserV1AccountEmailPostMutationOptions = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountEmailPost>>,
   TError,
@@ -4846,7 +4846,7 @@ export const useAllauthBrowserV1AccountEmailPost = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountEmailPostMutationOptions(options)
 
@@ -4896,7 +4896,7 @@ export const allauthBrowserV1AccountEmailPut = async (
   emailBody: EmailBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountEmailPutResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountEmailPutResponse>(getAllauthBrowserV1AccountEmailPutUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountEmailPutResponse>(getAllauthBrowserV1AccountEmailPutUrl(), {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -4914,7 +4914,7 @@ export const getAllauthBrowserV1AccountEmailPutMutationOptions = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountEmailPut>>,
   TError,
@@ -4959,7 +4959,7 @@ export const useAllauthBrowserV1AccountEmailPut = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountEmailPutMutationOptions(options)
 
@@ -5000,7 +5000,7 @@ export const allauthBrowserV1AccountEmailPatch = async (
   markPrimaryEmailBody: MarkPrimaryEmailBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountEmailPatchResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountEmailPatchResponse>(getAllauthBrowserV1AccountEmailPatchUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountEmailPatchResponse>(getAllauthBrowserV1AccountEmailPatchUrl(), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5018,7 +5018,7 @@ export const getAllauthBrowserV1AccountEmailPatchMutationOptions = <
     { data: MarkPrimaryEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountEmailPatch>>,
   TError,
@@ -5060,7 +5060,7 @@ export const useAllauthBrowserV1AccountEmailPatch = <TError = ErrorResponse, TCo
     { data: MarkPrimaryEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountEmailPatchMutationOptions(options)
 
@@ -5100,7 +5100,7 @@ export const allauthBrowserV1AccountEmailDelete = async (
   emailBody: EmailBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountEmailDeleteResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountEmailDeleteResponse>(getAllauthBrowserV1AccountEmailDeleteUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountEmailDeleteResponse>(getAllauthBrowserV1AccountEmailDeleteUrl(), {
     ...options,
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5118,7 +5118,7 @@ export const getAllauthBrowserV1AccountEmailDeleteMutationOptions = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountEmailDelete>>,
   TError,
@@ -5160,7 +5160,7 @@ export const useAllauthBrowserV1AccountEmailDelete = <TError = ErrorResponse, TC
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountEmailDeleteMutationOptions(options)
 
@@ -5199,7 +5199,7 @@ export const getAllauthAppV1AccountEmailGetUrl = () => {
 export const allauthAppV1AccountEmailGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountEmailGetResponse> => {
-  return fetchWithAuth<allauthAppV1AccountEmailGetResponse>(getAllauthAppV1AccountEmailGetUrl(), {
+  return fetchAllauth<allauthAppV1AccountEmailGetResponse>(getAllauthAppV1AccountEmailGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -5214,7 +5214,7 @@ export const getAllauthAppV1AccountEmailGetQueryOptions = <
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountEmailGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -5244,7 +5244,7 @@ export function useAllauthAppV1AccountEmailGet<
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountEmailGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AccountEmailGetQueryOptions(options)
 
@@ -5310,7 +5310,7 @@ export const allauthAppV1AccountEmailPost = async (
   emailBody: EmailBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountEmailPostResponse> => {
-  return fetchWithAuth<allauthAppV1AccountEmailPostResponse>(getAllauthAppV1AccountEmailPostUrl(), {
+  return fetchAllauth<allauthAppV1AccountEmailPostResponse>(getAllauthAppV1AccountEmailPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5328,7 +5328,7 @@ export const getAllauthAppV1AccountEmailPostMutationOptions = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountEmailPost>>,
   TError,
@@ -5376,7 +5376,7 @@ export const useAllauthAppV1AccountEmailPost = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountEmailPostMutationOptions(options)
 
@@ -5426,7 +5426,7 @@ export const allauthAppV1AccountEmailPut = async (
   emailBody: EmailBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountEmailPutResponse> => {
-  return fetchWithAuth<allauthAppV1AccountEmailPutResponse>(getAllauthAppV1AccountEmailPutUrl(), {
+  return fetchAllauth<allauthAppV1AccountEmailPutResponse>(getAllauthAppV1AccountEmailPutUrl(), {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5444,7 +5444,7 @@ export const getAllauthAppV1AccountEmailPutMutationOptions = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountEmailPut>>,
   TError,
@@ -5488,7 +5488,7 @@ export const useAllauthAppV1AccountEmailPut = <
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountEmailPutMutationOptions(options)
 
@@ -5529,7 +5529,7 @@ export const allauthAppV1AccountEmailPatch = async (
   markPrimaryEmailBody: MarkPrimaryEmailBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountEmailPatchResponse> => {
-  return fetchWithAuth<allauthAppV1AccountEmailPatchResponse>(getAllauthAppV1AccountEmailPatchUrl(), {
+  return fetchAllauth<allauthAppV1AccountEmailPatchResponse>(getAllauthAppV1AccountEmailPatchUrl(), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5544,7 +5544,7 @@ export const getAllauthAppV1AccountEmailPatchMutationOptions = <TError = ErrorRe
     { data: MarkPrimaryEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountEmailPatch>>,
   TError,
@@ -5586,7 +5586,7 @@ export const useAllauthAppV1AccountEmailPatch = <TError = ErrorResponse, TContex
     { data: MarkPrimaryEmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountEmailPatchMutationOptions(options)
 
@@ -5626,7 +5626,7 @@ export const allauthAppV1AccountEmailDelete = async (
   emailBody: EmailBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountEmailDeleteResponse> => {
-  return fetchWithAuth<allauthAppV1AccountEmailDeleteResponse>(getAllauthAppV1AccountEmailDeleteUrl(), {
+  return fetchAllauth<allauthAppV1AccountEmailDeleteResponse>(getAllauthAppV1AccountEmailDeleteUrl(), {
     ...options,
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5641,7 +5641,7 @@ export const getAllauthAppV1AccountEmailDeleteMutationOptions = <TError = ErrorR
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountEmailDelete>>,
   TError,
@@ -5683,7 +5683,7 @@ export const useAllauthAppV1AccountEmailDelete = <TError = ErrorResponse, TConte
     { data: EmailBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountEmailDeleteMutationOptions(options)
 
@@ -5723,7 +5723,7 @@ export const getAllauthBrowserV1AccountPhoneGetUrl = () => {
 export const allauthBrowserV1AccountPhoneGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountPhoneGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountPhoneGetResponse>(getAllauthBrowserV1AccountPhoneGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountPhoneGetResponse>(getAllauthBrowserV1AccountPhoneGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -5738,7 +5738,7 @@ export const getAllauthBrowserV1AccountPhoneGetQueryOptions = <
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountPhoneGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -5768,7 +5768,7 @@ export function useAllauthBrowserV1AccountPhoneGet<
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountPhoneGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AccountPhoneGetQueryOptions(options)
 
@@ -5837,7 +5837,7 @@ export const allauthBrowserV1AccountPhonePost = async (
   phoneBody: PhoneBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountPhonePostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountPhonePostResponse>(getAllauthBrowserV1AccountPhonePostUrl(), {
+  return fetchAllauth<allauthBrowserV1AccountPhonePostResponse>(getAllauthBrowserV1AccountPhonePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -5855,7 +5855,7 @@ export const getAllauthBrowserV1AccountPhonePostMutationOptions = <
     { data: PhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountPhonePost>>,
   TError,
@@ -5904,7 +5904,7 @@ export const useAllauthBrowserV1AccountPhonePost = <
     { data: PhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountPhonePostMutationOptions(options)
 
@@ -5944,7 +5944,7 @@ export const getAllauthAppV1AccountPhoneGetUrl = () => {
 export const allauthAppV1AccountPhoneGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountPhoneGetResponse> => {
-  return fetchWithAuth<allauthAppV1AccountPhoneGetResponse>(getAllauthAppV1AccountPhoneGetUrl(), {
+  return fetchAllauth<allauthAppV1AccountPhoneGetResponse>(getAllauthAppV1AccountPhoneGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -5959,7 +5959,7 @@ export const getAllauthAppV1AccountPhoneGetQueryOptions = <
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountPhoneGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -5989,7 +5989,7 @@ export function useAllauthAppV1AccountPhoneGet<
   TError = AuthenticationResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountPhoneGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AccountPhoneGetQueryOptions(options)
 
@@ -6058,7 +6058,7 @@ export const allauthAppV1AccountPhonePost = async (
   phoneBody: PhoneBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountPhonePostResponse> => {
-  return fetchWithAuth<allauthAppV1AccountPhonePostResponse>(getAllauthAppV1AccountPhonePostUrl(), {
+  return fetchAllauth<allauthAppV1AccountPhonePostResponse>(getAllauthAppV1AccountPhonePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -6076,7 +6076,7 @@ export const getAllauthAppV1AccountPhonePostMutationOptions = <
     { data: PhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountPhonePost>>,
   TError,
@@ -6124,7 +6124,7 @@ export const useAllauthAppV1AccountPhonePost = <
     { data: PhoneBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountPhonePostMutationOptions(options)
 
@@ -6170,7 +6170,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsGetUrl = () => {
 export const allauthBrowserV1AccountAuthenticatorsGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountAuthenticatorsGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountAuthenticatorsGetResponse>(
+  return fetchAllauth<allauthBrowserV1AccountAuthenticatorsGetResponse>(
     getAllauthBrowserV1AccountAuthenticatorsGetUrl(),
     {
       ...options,
@@ -6188,7 +6188,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsGetQueryOptions = <
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -6218,7 +6218,7 @@ export function useAllauthBrowserV1AccountAuthenticatorsGet<
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AccountAuthenticatorsGetQueryOptions(options)
 
@@ -6268,7 +6268,7 @@ export const getAllauthAppV1AccountAuthenticatorsGetUrl = () => {
 export const allauthAppV1AccountAuthenticatorsGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountAuthenticatorsGetResponse> => {
-  return fetchWithAuth<allauthAppV1AccountAuthenticatorsGetResponse>(getAllauthAppV1AccountAuthenticatorsGetUrl(), {
+  return fetchAllauth<allauthAppV1AccountAuthenticatorsGetResponse>(getAllauthAppV1AccountAuthenticatorsGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -6283,7 +6283,7 @@ export const getAllauthAppV1AccountAuthenticatorsGetQueryOptions = <
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -6313,7 +6313,7 @@ export function useAllauthAppV1AccountAuthenticatorsGet<
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AccountAuthenticatorsGetQueryOptions(options)
 
@@ -6366,7 +6366,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsTotpGetUrl = () => {
 export const allauthBrowserV1AccountAuthenticatorsTotpGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountAuthenticatorsTotpGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountAuthenticatorsTotpGetResponse>(
+  return fetchAllauth<allauthBrowserV1AccountAuthenticatorsTotpGetResponse>(
     getAllauthBrowserV1AccountAuthenticatorsTotpGetUrl(),
     {
       ...options,
@@ -6384,7 +6384,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsTotpGetQueryOptions = <
   TError = TOTPAuthenticatorNotFoundResponse | AddAuthenticatorConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsTotpGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -6417,7 +6417,7 @@ export function useAllauthBrowserV1AccountAuthenticatorsTotpGet<
   TError = TOTPAuthenticatorNotFoundResponse | AddAuthenticatorConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsTotpGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AccountAuthenticatorsTotpGetQueryOptions(options)
 
@@ -6479,7 +6479,7 @@ export const allauthBrowserV1AccountAuthenticatorsTotpPost = async (
   setupTOTPBody: SetupTOTPBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountAuthenticatorsTotpPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountAuthenticatorsTotpPostResponse>(
+  return fetchAllauth<allauthBrowserV1AccountAuthenticatorsTotpPostResponse>(
     getAllauthBrowserV1AccountAuthenticatorsTotpPostUrl(),
     {
       ...options,
@@ -6500,7 +6500,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsTotpPostMutationOptions = <
     { data: SetupTOTPBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsTotpPost>>,
   TError,
@@ -6548,7 +6548,7 @@ export const useAllauthBrowserV1AccountAuthenticatorsTotpPost = <
     { data: SetupTOTPBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountAuthenticatorsTotpPostMutationOptions(options)
 
@@ -6590,7 +6590,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsTotpDeleteUrl = () => {
 export const allauthBrowserV1AccountAuthenticatorsTotpDelete = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountAuthenticatorsTotpDeleteResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountAuthenticatorsTotpDeleteResponse>(
+  return fetchAllauth<allauthBrowserV1AccountAuthenticatorsTotpDeleteResponse>(
     getAllauthBrowserV1AccountAuthenticatorsTotpDeleteUrl(),
     {
       ...options,
@@ -6609,7 +6609,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsTotpDeleteMutationOptions =
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsTotpDelete>>,
   TError,
@@ -6652,7 +6652,7 @@ export const useAllauthBrowserV1AccountAuthenticatorsTotpDelete = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountAuthenticatorsTotpDeleteMutationOptions(options)
 
@@ -6700,7 +6700,7 @@ export const getAllauthAppV1AccountAuthenticatorsTotpGetUrl = () => {
 export const allauthAppV1AccountAuthenticatorsTotpGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountAuthenticatorsTotpGetResponse> => {
-  return fetchWithAuth<allauthAppV1AccountAuthenticatorsTotpGetResponse>(
+  return fetchAllauth<allauthAppV1AccountAuthenticatorsTotpGetResponse>(
     getAllauthAppV1AccountAuthenticatorsTotpGetUrl(),
     {
       ...options,
@@ -6718,7 +6718,7 @@ export const getAllauthAppV1AccountAuthenticatorsTotpGetQueryOptions = <
   TError = TOTPAuthenticatorNotFoundResponse | AddAuthenticatorConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsTotpGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -6750,7 +6750,7 @@ export function useAllauthAppV1AccountAuthenticatorsTotpGet<
   TError = TOTPAuthenticatorNotFoundResponse | AddAuthenticatorConflictResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsTotpGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AccountAuthenticatorsTotpGetQueryOptions(options)
 
@@ -6812,7 +6812,7 @@ export const allauthAppV1AccountAuthenticatorsTotpPost = async (
   setupTOTPBody: SetupTOTPBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountAuthenticatorsTotpPostResponse> => {
-  return fetchWithAuth<allauthAppV1AccountAuthenticatorsTotpPostResponse>(
+  return fetchAllauth<allauthAppV1AccountAuthenticatorsTotpPostResponse>(
     getAllauthAppV1AccountAuthenticatorsTotpPostUrl(),
     {
       ...options,
@@ -6833,7 +6833,7 @@ export const getAllauthAppV1AccountAuthenticatorsTotpPostMutationOptions = <
     { data: SetupTOTPBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsTotpPost>>,
   TError,
@@ -6881,7 +6881,7 @@ export const useAllauthAppV1AccountAuthenticatorsTotpPost = <
     { data: SetupTOTPBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountAuthenticatorsTotpPostMutationOptions(options)
 
@@ -6923,7 +6923,7 @@ export const getAllauthAppV1AccountAuthenticatorsTotpDeleteUrl = () => {
 export const allauthAppV1AccountAuthenticatorsTotpDelete = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountAuthenticatorsTotpDeleteResponse> => {
-  return fetchWithAuth<allauthAppV1AccountAuthenticatorsTotpDeleteResponse>(
+  return fetchAllauth<allauthAppV1AccountAuthenticatorsTotpDeleteResponse>(
     getAllauthAppV1AccountAuthenticatorsTotpDeleteUrl(),
     {
       ...options,
@@ -6942,7 +6942,7 @@ export const getAllauthAppV1AccountAuthenticatorsTotpDeleteMutationOptions = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsTotpDelete>>,
   TError,
@@ -6985,7 +6985,7 @@ export const useAllauthAppV1AccountAuthenticatorsTotpDelete = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountAuthenticatorsTotpDeleteMutationOptions(options)
 
@@ -7033,7 +7033,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesGetUrl = () =>
 export const allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountAuthenticatorsRecoveryCodesGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountAuthenticatorsRecoveryCodesGetResponse>(
+  return fetchAllauth<allauthBrowserV1AccountAuthenticatorsRecoveryCodesGetResponse>(
     getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesGetUrl(),
     {
       ...options,
@@ -7055,7 +7055,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesGetQueryOption
     TError,
     TData
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -7092,7 +7092,7 @@ export function useAllauthBrowserV1AccountAuthenticatorsRecoveryCodesGet<
     TError,
     TData
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesGetQueryOptions(options)
 
@@ -7132,7 +7132,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesPostUrl = () =
 export const allauthBrowserV1AccountAuthenticatorsRecoveryCodesPost = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountAuthenticatorsRecoveryCodesPostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountAuthenticatorsRecoveryCodesPostResponse>(
+  return fetchAllauth<allauthBrowserV1AccountAuthenticatorsRecoveryCodesPostResponse>(
     getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesPostUrl(),
     {
       ...options,
@@ -7151,7 +7151,7 @@ export const getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesPostMutationOp
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountAuthenticatorsRecoveryCodesPost>>,
   TError,
@@ -7196,7 +7196,7 @@ export const useAllauthBrowserV1AccountAuthenticatorsRecoveryCodesPost = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountAuthenticatorsRecoveryCodesPostMutationOptions(options)
 
@@ -7244,7 +7244,7 @@ export const getAllauthAppV1AccountAuthenticatorsRecoveryCodesGetUrl = () => {
 export const allauthAppV1AccountAuthenticatorsRecoveryCodesGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountAuthenticatorsRecoveryCodesGetResponse> => {
-  return fetchWithAuth<allauthAppV1AccountAuthenticatorsRecoveryCodesGetResponse>(
+  return fetchAllauth<allauthAppV1AccountAuthenticatorsRecoveryCodesGetResponse>(
     getAllauthAppV1AccountAuthenticatorsRecoveryCodesGetUrl(),
     {
       ...options,
@@ -7262,7 +7262,7 @@ export const getAllauthAppV1AccountAuthenticatorsRecoveryCodesGetQueryOptions = 
   TError = ReauthenticationRequiredResponse | NotFoundResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsRecoveryCodesGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -7295,7 +7295,7 @@ export function useAllauthAppV1AccountAuthenticatorsRecoveryCodesGet<
   TError = ReauthenticationRequiredResponse | NotFoundResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsRecoveryCodesGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AccountAuthenticatorsRecoveryCodesGetQueryOptions(options)
 
@@ -7335,7 +7335,7 @@ export const getAllauthAppV1AccountAuthenticatorsRecoveryCodesPostUrl = () => {
 export const allauthAppV1AccountAuthenticatorsRecoveryCodesPost = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AccountAuthenticatorsRecoveryCodesPostResponse> => {
-  return fetchWithAuth<allauthAppV1AccountAuthenticatorsRecoveryCodesPostResponse>(
+  return fetchAllauth<allauthAppV1AccountAuthenticatorsRecoveryCodesPostResponse>(
     getAllauthAppV1AccountAuthenticatorsRecoveryCodesPostUrl(),
     {
       ...options,
@@ -7354,7 +7354,7 @@ export const getAllauthAppV1AccountAuthenticatorsRecoveryCodesPostMutationOption
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountAuthenticatorsRecoveryCodesPost>>,
   TError,
@@ -7399,7 +7399,7 @@ export const useAllauthAppV1AccountAuthenticatorsRecoveryCodesPost = <
     void,
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountAuthenticatorsRecoveryCodesPostMutationOptions(options)
 
@@ -7448,7 +7448,7 @@ export const getAllauthBrowserV1AuthSessionGetUrl = () => {
 export const allauthBrowserV1AuthSessionGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthSessionGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthSessionGetResponse>(getAllauthBrowserV1AuthSessionGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthSessionGetResponse>(getAllauthBrowserV1AuthSessionGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -7463,7 +7463,7 @@ export const getAllauthBrowserV1AuthSessionGetQueryOptions = <
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -7494,7 +7494,7 @@ export function useAllauthBrowserV1AuthSessionGet<
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AuthSessionGetQueryOptions(options)
 
@@ -7527,7 +7527,7 @@ export const getAllauthBrowserV1AuthSessionDeleteUrl = () => {
 export const allauthBrowserV1AuthSessionDelete = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthSessionDeleteResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthSessionDeleteResponse>(getAllauthBrowserV1AuthSessionDeleteUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthSessionDeleteResponse>(getAllauthBrowserV1AuthSessionDeleteUrl(), {
     ...options,
     method: 'DELETE',
   })
@@ -7538,7 +7538,7 @@ export const getAllauthBrowserV1AuthSessionDeleteMutationOptions = <
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionDelete>>, TError, void, TContext>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionDelete>>, TError, void, TContext> => {
   const mutationKey = ['allauthBrowserV1AuthSessionDelete']
   const { mutation: mutationOptions, request: requestOptions } = options
@@ -7565,7 +7565,7 @@ export type AllauthBrowserV1AuthSessionDeleteMutationError = UnauthenticatedResp
  */
 export const useAllauthBrowserV1AuthSessionDelete = <TError = UnauthenticatedResponse, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionDelete>>, TError, void, TContext>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthSessionDeleteMutationOptions(options)
 
@@ -7614,7 +7614,7 @@ export const getAllauthAppV1AuthSessionGetUrl = () => {
 export const allauthAppV1AuthSessionGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthSessionGetResponse> => {
-  return fetchWithAuth<allauthAppV1AuthSessionGetResponse>(getAllauthAppV1AuthSessionGetUrl(), {
+  return fetchAllauth<allauthAppV1AuthSessionGetResponse>(getAllauthAppV1AuthSessionGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -7629,7 +7629,7 @@ export const getAllauthAppV1AuthSessionGetQueryOptions = <
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -7658,7 +7658,7 @@ export function useAllauthAppV1AuthSessionGet<
   TError = AuthenticationResponse | SessionGoneResponse,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AuthSessionGetQueryOptions(options)
 
@@ -7691,7 +7691,7 @@ export const getAllauthAppV1AuthSessionDeleteUrl = () => {
 export const allauthAppV1AuthSessionDelete = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthSessionDeleteResponse> => {
-  return fetchWithAuth<allauthAppV1AuthSessionDeleteResponse>(getAllauthAppV1AuthSessionDeleteUrl(), {
+  return fetchAllauth<allauthAppV1AuthSessionDeleteResponse>(getAllauthAppV1AuthSessionDeleteUrl(), {
     ...options,
     method: 'DELETE',
   })
@@ -7702,7 +7702,7 @@ export const getAllauthAppV1AuthSessionDeleteMutationOptions = <
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionDelete>>, TError, void, TContext>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionDelete>>, TError, void, TContext> => {
   const mutationKey = ['allauthAppV1AuthSessionDelete']
   const { mutation: mutationOptions, request: requestOptions } = options
@@ -7729,7 +7729,7 @@ export type AllauthAppV1AuthSessionDeleteMutationError = UnauthenticatedResponse
  */
 export const useAllauthAppV1AuthSessionDelete = <TError = UnauthenticatedResponse, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionDelete>>, TError, void, TContext>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthSessionDeleteMutationOptions(options)
 
@@ -7771,7 +7771,7 @@ export const allauthAppV1TokensRefreshPost = async (
   refreshTokenBody: RefreshTokenBody,
   options?: RequestInit,
 ): Promise<allauthAppV1TokensRefreshPostResponse> => {
-  return fetchWithAuth<allauthAppV1TokensRefreshPostResponse>(getAllauthAppV1TokensRefreshPostUrl(), {
+  return fetchAllauth<allauthAppV1TokensRefreshPostResponse>(getAllauthAppV1TokensRefreshPostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -7786,7 +7786,7 @@ export const getAllauthAppV1TokensRefreshPostMutationOptions = <TError = ErrorRe
     { data: RefreshTokenBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1TokensRefreshPost>>,
   TError,
@@ -7829,7 +7829,7 @@ export const useAllauthAppV1TokensRefreshPost = <TError = ErrorResponse, TContex
     { data: RefreshTokenBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1TokensRefreshPostMutationOptions(options)
 
@@ -7869,7 +7869,7 @@ export const allauthBrowserV1AccountPasswordChangePost = async (
   changePasswordBody: ChangePasswordBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AccountPasswordChangePostResponse> => {
-  return fetchWithAuth<allauthBrowserV1AccountPasswordChangePostResponse>(
+  return fetchAllauth<allauthBrowserV1AccountPasswordChangePostResponse>(
     getAllauthBrowserV1AccountPasswordChangePostUrl(),
     {
       ...options,
@@ -7890,7 +7890,7 @@ export const getAllauthBrowserV1AccountPasswordChangePostMutationOptions = <
     { data: ChangePasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AccountPasswordChangePost>>,
   TError,
@@ -7935,7 +7935,7 @@ export const useAllauthBrowserV1AccountPasswordChangePost = <
     { data: ChangePasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AccountPasswordChangePostMutationOptions(options)
 
@@ -7975,7 +7975,7 @@ export const allauthAppV1AccountPasswordChangePost = async (
   changePasswordBody: ChangePasswordBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AccountPasswordChangePostResponse> => {
-  return fetchWithAuth<allauthAppV1AccountPasswordChangePostResponse>(getAllauthAppV1AccountPasswordChangePostUrl(), {
+  return fetchAllauth<allauthAppV1AccountPasswordChangePostResponse>(getAllauthAppV1AccountPasswordChangePostUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -7993,7 +7993,7 @@ export const getAllauthAppV1AccountPasswordChangePostMutationOptions = <
     { data: ChangePasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AccountPasswordChangePost>>,
   TError,
@@ -8038,7 +8038,7 @@ export const useAllauthAppV1AccountPasswordChangePost = <
     { data: ChangePasswordBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AccountPasswordChangePostMutationOptions(options)
 
@@ -8065,7 +8065,7 @@ export const getAllauthBrowserV1AuthSessionsGetUrl = () => {
 export const allauthBrowserV1AuthSessionsGet = async (
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthSessionsGetResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthSessionsGetResponse>(getAllauthBrowserV1AuthSessionsGetUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthSessionsGetResponse>(getAllauthBrowserV1AuthSessionsGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -8080,7 +8080,7 @@ export const getAllauthBrowserV1AuthSessionsGetQueryOptions = <
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -8110,7 +8110,7 @@ export function useAllauthBrowserV1AuthSessionsGet<
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthBrowserV1AuthSessionsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthBrowserV1AuthSessionsGetQueryOptions(options)
 
@@ -8153,7 +8153,7 @@ export const allauthBrowserV1AuthSessionsDelete = async (
   endSessionsBody: EndSessionsBody,
   options?: RequestInit,
 ): Promise<allauthBrowserV1AuthSessionsDeleteResponse> => {
-  return fetchWithAuth<allauthBrowserV1AuthSessionsDeleteResponse>(getAllauthBrowserV1AuthSessionsDeleteUrl(), {
+  return fetchAllauth<allauthBrowserV1AuthSessionsDeleteResponse>(getAllauthBrowserV1AuthSessionsDeleteUrl(), {
     ...options,
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -8171,7 +8171,7 @@ export const getAllauthBrowserV1AuthSessionsDeleteMutationOptions = <
     { data: EndSessionsBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthBrowserV1AuthSessionsDelete>>,
   TError,
@@ -8213,7 +8213,7 @@ export const useAllauthBrowserV1AuthSessionsDelete = <TError = AuthenticationRes
     { data: EndSessionsBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthBrowserV1AuthSessionsDeleteMutationOptions(options)
 
@@ -8240,7 +8240,7 @@ export const getAllauthAppV1AuthSessionsGetUrl = () => {
 export const allauthAppV1AuthSessionsGet = async (
   options?: RequestInit,
 ): Promise<allauthAppV1AuthSessionsGetResponse> => {
-  return fetchWithAuth<allauthAppV1AuthSessionsGetResponse>(getAllauthAppV1AuthSessionsGetUrl(), {
+  return fetchAllauth<allauthAppV1AuthSessionsGetResponse>(getAllauthAppV1AuthSessionsGetUrl(), {
     ...options,
     method: 'GET',
   })
@@ -8255,7 +8255,7 @@ export const getAllauthAppV1AuthSessionsGetQueryOptions = <
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
@@ -8285,7 +8285,7 @@ export function useAllauthAppV1AuthSessionsGet<
   TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof allauthAppV1AuthSessionsGet>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAllauthAppV1AuthSessionsGetQueryOptions(options)
 
@@ -8328,7 +8328,7 @@ export const allauthAppV1AuthSessionsDelete = async (
   endSessionsBody: EndSessionsBody,
   options?: RequestInit,
 ): Promise<allauthAppV1AuthSessionsDeleteResponse> => {
-  return fetchWithAuth<allauthAppV1AuthSessionsDeleteResponse>(getAllauthAppV1AuthSessionsDeleteUrl(), {
+  return fetchAllauth<allauthAppV1AuthSessionsDeleteResponse>(getAllauthAppV1AuthSessionsDeleteUrl(), {
     ...options,
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -8346,7 +8346,7 @@ export const getAllauthAppV1AuthSessionsDeleteMutationOptions = <
     { data: EndSessionsBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof allauthAppV1AuthSessionsDelete>>,
   TError,
@@ -8388,7 +8388,7 @@ export const useAllauthAppV1AuthSessionsDelete = <TError = AuthenticationRespons
     { data: EndSessionsBody },
     TContext
   >
-  request?: SecondParameter<typeof fetchWithAuth>
+  request?: SecondParameter<typeof fetchAllauth>
 }) => {
   const mutationOptions = getAllauthAppV1AuthSessionsDeleteMutationOptions(options)
 
