@@ -51,6 +51,9 @@ DataResponse = inline_serializer_class(
         'meta/deprecatedID': serializers.CharField(
             required=False,
         ),
+        'meta/formVersions': serializers.CharField(
+            required=False,
+        ),
         '_xform_id_string': serializers.CharField(),
         '_uuid': serializers.CharField(),
         '_attachments': DataAttachmentsField(),
@@ -85,6 +88,7 @@ DataResponseXMLMetaSerializer = inline_serializer_class(
     fields={
         'instanceID': serializers.CharField(),
         'deprecatedID': serializers.CharField(required=False),
+        'formVersions': serializers.CharField(required=False),
     },
 )
 
