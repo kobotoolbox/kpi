@@ -536,6 +536,33 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert not config_1.live
         assert not config_2.live
 
+    @override_config(MASS_EMAIL_TEST_EMAILS='active@example.com\ninactive@example.com')
+    def test_one_off_email_turned_off_when_remaining_records_become_stale(self):
+        user_active = User.objects.create_user(
+            username='active_user', email='active@example.com'
+        )
+        user_inactive = User.objects.create_user(
+            username='inactive_user', email='inactive@example.com', is_active=False
+        )
+        config = self._create_email_config(
+            name='stale-finish-test', frequency=-1, query='test_users'
+        )
+        # user_active was already sent on day 1
+        self._create_email_record(
+            user=user_active, email_config=config, status=EmailStatus.SENT
+        )
+        # user_inactive was enqueued but is now deactivated
+        self._create_email_record(
+            user=user_inactive, email_config=config, status=EmailStatus.ENQUEUED
+        )
+
+        assert config.live
+        generate_mass_email_user_lists()
+        send_emails()
+        config.refresh_from_db()
+        assert not config.live
+
+
 
 class TestStaleRecordRevalidation(BaseMassEmailsTestCase):
     fixtures = ['test_data']
@@ -750,6 +777,42 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         )
         self.assertEqual(records.count(), enqueued_count)
         self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    def test_one_off_email_excludes_terminal_recipients(self):
+        """
+        One-off campaigns must exclude users who already have terminal records
+        (SENT, FAILED, STALE) in previous jobs for this config.
+        """
+        email_config = self._create_email_config('One-off test', frequency=-1)
+        self._create_email_record(self.user1, email_config, EmailStatus.SENT)
+
+        user_ids = get_users_for_config(email_config)
+        self.assertEqual(user_ids, [self.user2.id])
+
+        self._create_email_record(self.user2, email_config, EmailStatus.STALE)
+        user_ids = get_users_for_config(email_config)
+        self.assertEqual(user_ids, [])
+
+    def test_unclosed_one_off_config_completed_without_creating_new_job(self):
+        config = self._create_email_config('unclosed-test', frequency=-1)
+        self._create_email_record(self.user1, config, EmailStatus.SENT)
+        self._create_email_record(self.user2, config, EmailStatus.SENT)
+
+        assert config.live
+        initial_job_count = MassEmailJob.objects.filter(email_config=config).count()
+        generate_mass_email_user_lists()
+        config.refresh_from_db()
+
+        assert not config.live
+        self.assertEqual(
+            MassEmailJob.objects.filter(email_config=config).count(),
+            initial_job_count,
+        )
+        self.assertFalse(
+            MassEmailRecord.objects.filter(
+                email_job__email_config=config, status=EmailStatus.ENQUEUED
+            ).exists()
+        )
 
     def test_enqueue_creates_records_via_id_path(self):
         """

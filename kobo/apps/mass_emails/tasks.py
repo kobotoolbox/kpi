@@ -483,9 +483,7 @@ def send_emails():
             'enqueued records will be sent on the next run'
         )
     finished_one_offs = (
-        MassEmailConfig.objects.filter(
-            pk__in=sender.config_ids, frequency=-1, live=True
-        )
+        MassEmailConfig.objects.filter(frequency=-1, live=True, jobs__isnull=False)
         .values('id')
         .annotate(
             enqueued_count=Count(
@@ -565,7 +563,18 @@ def generate_mass_email_user_lists():
                 f'enqueued records.'
             )
             processed_configs.add(email_config.id)
-
+        elif (
+            email_config.frequency == -1
+            and email_records.exists()
+            and not get_users_for_config(email_config)
+        ):
+            logging.info(
+                f'Completing unclosed one-time email config {email_config.id} '
+                f'({email_config.name}) as all records have been processed.'
+            )
+            email_config.live = False
+            email_config.save(update_fields=['live', 'date_modified'])
+            processed_configs.add(email_config.id)
         else:
             try:
                 with transaction.atomic():
