@@ -44,10 +44,12 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         # deployed environment is DEV-1740's follow-up, not this PoC.
         if not (settings.TESTING and settings.OPENAPI_VALIDATION):
             # Remove the middleware from the chain entirely when disabled
-            raise MiddlewareNotUsed
+            raise MiddlewareNotUsed(
+                'OpenAPI validation only runs under the test settings'
+            )
         self.schema = self._load_schema()
         if not self.schema:
-            raise MiddlewareNotUsed
+            raise MiddlewareNotUsed('OpenAPI schema could not be loaded')
         self.paths = self.schema.get('paths', {})
         self.components = self.schema.get('components', {})
         # Precompile OpenAPI paths ({param} placeholders → regex) once
