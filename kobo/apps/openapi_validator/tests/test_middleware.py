@@ -153,6 +153,20 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
         assert self.middleware.process_request(request) is None
         assert not hasattr(request, '_body')
 
+    def test_nested_component_references_resolve(self):
+        # Fragments handed to the validator are cut out of the document, so
+        # their `#/components/...` references must still resolve against it
+        schema = {
+            'type': 'object',
+            'properties': {
+                'asset_type': {'$ref': '#/components/schemas/AssetTypeEnum'}
+            },
+        }
+        validate = self.middleware._validate_json_data
+
+        assert validate({'asset_type': 'survey'}, schema) is None
+        assert validate({'asset_type': 'nope'}, schema)
+
     def test_broken_schema_is_not_reported_as_a_mismatch(self):
         # Tooling errors propagate instead of being returned as a message that
         # could end up whitelisted as an endpoint bug

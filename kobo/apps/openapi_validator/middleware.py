@@ -10,8 +10,6 @@ from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
-from referencing import Registry, Resource
-from referencing.jsonschema import DRAFT202012
 
 from kpi.exceptions import (
     OpenAPIComponentRefNotFoundError,
@@ -46,10 +44,10 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             (re.compile('^' + re.sub(r'\{[^}]+\}', '[^/]+', path) + '$'), operations)
             for path, operations in self.paths.items()
         ]
-        # `#/components/...` references are resolved against the schema document
-        self.registry = Registry().with_resource(
-            '', Resource.from_contents(self.schema, default_specification=DRAFT202012)
-        )
+        # Rooted at the whole document so that `#/components/...` references
+        # inside any fragment resolve against it. A validator built directly
+        # on a fragment would treat the fragment as the document instead.
+        self.validator = jsonschema.Draft202012Validator(self.schema)
 
     def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         """
@@ -424,9 +422,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         so it never ends up whitelisted as one.
         """
         try:
-            jsonschema.Draft202012Validator(schema, registry=self.registry).validate(
-                data
-            )
+            self.validator.evolve(schema=schema).validate(data)
         except jsonschema.ValidationError as e:
             return e.message
 

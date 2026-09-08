@@ -300,5 +300,8 @@ OPENAPI_KNOWN_MISMATCHES = frozenset(
         ('response-validation', 'me/', 'GET'),
         ('response-validation', 'me/', 'PATCH'),
         ('response-validation', 'me/social-accounts/', 'GET'),
+        # Re-authentication errors (DEV-1830) are returned as flat strings
+        # instead of DRF's field-keyed arrays, so they don't honor the schema
+        ('response-validation', 'me/emails/', 'POST'),
     }
 )
