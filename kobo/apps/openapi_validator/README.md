@@ -158,9 +158,11 @@ regenerate_known_mismatches(
 )
 ```
 
-It prints the entries it adds. Existing entries are kept, so a partial run
-can never silently drop a known mismatch. Review the diff: every new line is a
-schema bug worth a ticket.
+It prints the entries it adds. The constant is append-only: new entries land
+in a marked block at the end of the set, and existing entries and comments are
+left untouched, so a partial run can never silently drop a known mismatch.
+Review the diff: every new line is a schema bug worth a ticket, then move it
+next to related entries and document it.
 
 **Step 3 — Restore `testing.py`**
 

@@ -15,23 +15,16 @@ regenerate_known_mismatches(
 )
 ```
 
-Existing entries are preserved: the CSV only ever adds to the constant, so a
-partial test run cannot silently drop known mismatches.
+The constant is only ever appended to: new entries land in a marked block at
+the end of the set and everything already in the file (entries, comments) is
+left untouched, so a partial test run cannot silently drop known mismatches
+and hand-written explanations survive a regeneration.
 """
 
+import ast
 import csv
 
-from ..constants import OPENAPI_KNOWN_MISMATCHES
 from ..utils import get_django_route
-
-HEADER = """# Known, accepted mismatches between the API and the OpenAPI schema, as
-# (error_code, django_route, method) tuples. Strict validation (tests) lets
-# these through; anything else fails the test that triggers it.
-#
-# Each entry is a documented bug: either the schema lies about the endpoint or
-# the endpoint does not honor the schema. Fix the schema and delete the entry.
-# See README.md to regenerate this list after a large merge.
-OPENAPI_KNOWN_MISMATCHES = frozenset({"""
 
 
 def clean(value: str | None) -> str:
@@ -55,6 +48,24 @@ def format_source(source: str) -> str:
     return black.format_str(
         source, mode=black.Mode(line_length=88, string_normalization=False)
     )
+
+
+def read_existing(py_path: str) -> set[tuple[str, str, str]]:
+    """
+    Current content of OPENAPI_KNOWN_MISMATCHES, read from the file rather than
+    imported, so that repeated runs in one shell see what the previous run wrote.
+    """
+    with open(py_path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == 'OPENAPI_KNOWN_MISMATCHES'
+            for target in node.targets
+        ):
+            return set(ast.literal_eval(node.value.args[0]))
+
+    raise ValueError(f'OPENAPI_KNOWN_MISMATCHES not found in {py_path}')
 
 
 def read_triples(csv_path: str, resolve: bool = True) -> set[tuple[str, str, str]]:
@@ -85,32 +96,39 @@ def read_triples(csv_path: str, resolve: bool = True) -> set[tuple[str, str, str
         return triples
 
 
-def write_constants(py_path: str, triples: set[tuple[str, str, str]]) -> None:
+def write_constants(py_path: str, new_triples: set[tuple[str, str, str]]) -> None:
+    """
+    Append `new_triples` to the OPENAPI_KNOWN_MISMATCHES literal in `py_path`,
+    just before its closing brace, under a marker comment. Nothing already in
+    the file is rewritten.
+    """
+    if not new_triples:
+        return
+
     with open(py_path, encoding='utf-8') as f:
-        existing_content = f.read()
+        source = f.read()
 
-    # Keep everything above the generated constant untouched
-    prefix = existing_content[
-        : existing_content.index('# Known, accepted mismatches')
-    ].rstrip()
-
-    lines = [prefix, '', HEADER]
-    lines.extend(
-        f"    ('{error_code}', '{route}', '{method}'),"
-        for error_code, route, method in sorted(triples)
+    # Closing brace of the frozenset literal, the last one in the module
+    close = source.rindex('}')
+    block = ['        # Added by regenerate_known_mismatches: review, document, ticket']
+    block.extend(
+        f"        ('{error_code}', '{route}', '{method}'),"
+        for error_code, route, method in sorted(new_triples)
     )
-    lines.append('})')
+    source = (
+        source[:close].rstrip() + '\n' + '\n'.join(block) + '\n    ' + source[close:]
+    )
 
     with open(py_path, 'w', encoding='utf-8') as f:
-        f.write(format_source('\n'.join(lines) + '\n'))
+        f.write(format_source(source))
 
 
 def regenerate_known_mismatches(
     csv_path: str, out_path: str, resolve: bool = True
 ) -> None:
     found = read_triples(csv_path, resolve=resolve)
-    new = found - set(OPENAPI_KNOWN_MISMATCHES)
-    write_constants(out_path, set(OPENAPI_KNOWN_MISMATCHES) | found)
+    new = found - read_existing(out_path)
+    write_constants(out_path, new)
 
     print(f'{len(new)} new mismatch(es) added, {len(found)} seen in the CSV')
     for triple in sorted(new):

@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.core.exceptions import MiddlewareNotUsed
 from django.http import HttpResponse, JsonResponse
 from django.test import RequestFactory, TestCase, override_settings
@@ -20,7 +22,12 @@ class OpenAPIValidationMiddlewareLoadTestCase(TestCase):
             OpenAPIValidationMiddleware(lambda request: HttpResponse())
 
 
-@override_settings(OPENAPI_VALIDATION_STRICT=False)
+@override_settings(
+    OPENAPI_VALIDATION_STRICT=False,
+    # The requests below are synthetic, not schema bugs: never let them reach
+    # the CSV that regenerates OPENAPI_KNOWN_MISMATCHES
+    OPENAPI_VALIDATION_BUILD_WHITELIST_LOG=False,
+)
 class OpenAPIValidationMiddlewareTestCase(TestCase):
     """
     Non-strict mode must never interrupt the request cycle: mismatches are
@@ -31,6 +38,14 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.middleware = OpenAPIValidationMiddleware(lambda request: HttpResponse())
+        # These tests prove the raising path itself, so they must not depend
+        # on which endpoints happen to be whitelisted at the time
+        patcher = mock.patch(
+            'kobo.apps.openapi_validator.middleware.OPENAPI_KNOWN_MISMATCHES',
+            frozenset(),
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_undecodable_request_body_does_not_raise(self):
         request = self.factory.post(
