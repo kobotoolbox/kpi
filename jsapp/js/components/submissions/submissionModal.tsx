@@ -6,6 +6,7 @@ import { Loader } from '@mantine/core'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
+import { getDisplayableErrorText } from '#/api/getDisplayableErrorText'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -222,8 +223,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         })
       })
       .fail((error: FailResponse) => {
-        if (error.responseText) {
-          let error_message = error.responseText
+        const responseMessage = getDisplayableErrorText(error.responseText, error.status)
+        if (responseMessage) {
+          let error_message = responseMessage
           if (error_message === DETAIL_NOT_FOUND) {
             error_message = t(
               'The submission could not be found. It may have been deleted. Submission ID: ##id##',
