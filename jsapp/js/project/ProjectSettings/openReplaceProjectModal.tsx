@@ -20,6 +20,7 @@ export function openReplaceProjectModal(options: OpenReplaceProjectModalOptions)
         context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
         onSetModalTitle={setModalTitle}
         formAsset={options.asset}
+        onRequestClose={() => modals.close(modalId)}
       />
     ),
   })
