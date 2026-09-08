@@ -11,6 +11,12 @@ import type { Json } from './components/common/common.interfaces'
 import { ROOT_URL } from './constants'
 
 /**
+ * jQuery calls `.fail()` handlers with `(jqXHR, textStatus, errorThrown)`, so `.fail(handleApiFail)` passes one of these
+ * as the toast message. None of them is copy for a user.
+ */
+const JQUERY_TEXT_STATUSES = ['error', 'timeout', 'abort', 'parsererror', 'nocontent', 'notmodified']
+
+/**
  * Whether a fail response is the result of us aborting the request on purpose (rather than an actual API error). Useful
  * for callers that keep their own error state and shouldn't flag a request they cancelled themselves.
  */
@@ -33,6 +39,8 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   if (isAbortResponse(response)) {
     return
   }
+
+  const customMessage = toastMessage && !JQUERY_TEXT_STATUSES.includes(toastMessage) ? toastMessage : undefined
 
   const responseMessage = response.responseText
   let htmlMessage = ''
@@ -57,9 +65,9 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
 
   let displayMessage = backendMessage
 
-  if (toastMessage || !displayMessage) {
-    // display toastMessage or, if we don't have *any* message available, use a generic error
-    displayMessage = toastMessage || t('An error occurred')
+  if (customMessage || !displayMessage) {
+    // display the caller's message or, if we don't have *any* message available, use a generic error
+    displayMessage = customMessage || t('An error occurred')
 
     if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have

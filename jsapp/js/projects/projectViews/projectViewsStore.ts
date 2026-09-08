@@ -43,7 +43,9 @@ class ProjectViewsStore {
       url: `${ROOT_URL}/api/v2/project-views/`,
     })
       .done(this.onFetchDataDone.bind(this))
-      .fail(handleApiFail)
+      // Only the response, because jQuery's second argument is its own `textStatus` and `handleApiFail` reads that as
+      // a message to display.
+      .fail((response) => handleApiFail(response))
   }
 
   private onFetchDataDone(response: PaginatedResponse<ProjectView>) {

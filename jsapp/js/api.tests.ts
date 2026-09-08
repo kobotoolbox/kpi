@@ -80,6 +80,14 @@ describe('handleApiFail', () => {
     chai.expect(toastMessage()).to.equal('Failed to accept invite.')
   })
 
+  // `.fail(handleApiFail)` hands us jQuery's `textStatus` as the second argument, which used to win over everything and
+  // put "parsererror" or plain "error" in the toast.
+  it("ignores jQuery's textStatus when passed as the message", () => {
+    handleApiFail(failResponse(200, 'OK', DJANGO_500_PAGE), 'parsererror')
+
+    chai.expect(toastMessage()).to.equal('An error occurred')
+  })
+
   it('falls back to a generic message when there is no body at all', () => {
     handleApiFail(failResponse(500, 'Internal Server Error'))
 
