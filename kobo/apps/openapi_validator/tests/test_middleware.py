@@ -106,8 +106,23 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
             '/api/v2/asset_subscriptions/', data=b'', content_type='application/json'
         )
 
+        # Deferred: only a mismatch once the API accepts the request
+        assert self.middleware.process_request(request) is None
+
         with self.assertRaises(AssertionError):
-            self.middleware.process_request(request)
+            self.middleware.process_response(request, JsonResponse({}, status=201))
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_rejected_invalid_request_is_not_a_mismatch(self):
+        # A test posting a bad payload on purpose to check the 400 must pass:
+        # the API honored the contract by rejecting it
+        request = self.factory.post(
+            '/api/v2/asset_subscriptions/', data=b'{}', content_type='application/json'
+        )
+        response = JsonResponse({'asset': ['This field is required.']}, status=400)
+
+        assert self.middleware.process_request(request) is None
+        assert self.middleware.process_response(request, response) is response
 
     @override_settings(OPENAPI_VALIDATION_STRICT=True)
     def test_empty_response_body_fails_in_strict_mode(self):

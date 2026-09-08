@@ -30,6 +30,12 @@ Enables OpenAPI validation and (only) logs detected validation errors to the Pyt
 - `request-payload-schema-not-found`
 - `request-payload-validation`
 
+A request that violates the schema and is rejected with a 4xx is the contract
+being honored, not a mismatch: tests that deliberately send a bad payload to
+check the 400 would otherwise fail. Request errors (except
+`request-payload-schema-not-found`, a schema problem) are therefore only
+reported when the response says the API accepted the request.
+
 ##### Response Errors
 
 - `invalid-json-response`

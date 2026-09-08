@@ -19,6 +19,17 @@ from kpi.utils.log import logging
 from .constants import API_PATH_PREFIXES, OPENAPI_KNOWN_MISMATCHES
 from .utils import get_django_route
 
+# A request that violates the schema and gets rejected is the contract being
+# honored, so these are only reported once the response says the API accepted it
+REQUEST_ERROR_CODES = frozenset(
+    {
+        'missing-required-parameter',
+        'missing-required-payload',
+        'invalid-json-payload',
+        'request-payload-validation',
+    }
+)
+
 
 class OpenAPIValidationMiddleware(MiddlewareMixin):
     """
@@ -167,6 +178,13 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not operation_spec:
             # Undocumented operation, see process_request()
             return response
+
+        # A request-side error deferred by process_request() is a mismatch only
+        # if the API accepted the request anyway. A 4xx means it was rejected
+        # as the schema says it should be
+        pending = getattr(request, '_openapi_pending_error', None)
+        if pending and response.status_code < 400:
+            self._report_validation_error(request, *pending)
 
         # Only JSON responses can be checked against a schema; file downloads,
         # XML and HTML are served by the same endpoints and are out of scope
@@ -318,22 +336,14 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         error_code: str,
     ) -> None:
         """
-        Log the validation error, optionally append it to the error CSV, and in
-        STRICT mode raise AssertionError unless the mismatch is a known one.
+        Report the validation error now, or for request-side errors, defer it
+        until process_response() knows whether the API accepted the request.
         """
-
-        logging.warning(error_message)
-
-        if settings.OPENAPI_VALIDATION_BUILD_WHITELIST_LOG:
-            self._log_error(request, error_code)
-
-        if not settings.OPENAPI_VALIDATION_STRICT:
+        if error_code in REQUEST_ERROR_CODES:
+            request._openapi_pending_error = (error_message, error_code)
             return
 
-        if self._is_known_mismatch(request.path, request.method, error_code):
-            return
-
-        raise AssertionError(error_message)
+        self._report_validation_error(request, error_message, error_code)
 
     def _is_known_mismatch(
         self,
@@ -396,6 +406,29 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             ]
             writer = csv.writer(f)
             writer.writerow(row)
+
+    def _report_validation_error(
+        self,
+        request: HttpRequest,
+        error_message: str,
+        error_code: str,
+    ) -> None:
+        """
+        Log the validation error, optionally append it to the error CSV, and in
+        STRICT mode raise AssertionError unless the mismatch is a known one.
+        """
+        logging.warning(error_message)
+
+        if settings.OPENAPI_VALIDATION_BUILD_WHITELIST_LOG:
+            self._log_error(request, error_code)
+
+        if not settings.OPENAPI_VALIDATION_STRICT:
+            return
+
+        if self._is_known_mismatch(request.path, request.method, error_code):
+            return
+
+        raise AssertionError(error_message)
 
     def _resolve_schema_ref(self, ref: str) -> Optional[dict[str, Any]]:
         """
