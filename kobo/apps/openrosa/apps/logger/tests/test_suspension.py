@@ -8,6 +8,7 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.constants import (
+    LEGACY_SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
     SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
 )
 from kobo.apps.openrosa.apps.logger.tasks import fix_stale_submissions_suspended_flag
@@ -29,6 +30,7 @@ class SuspendSubmissionsTestCase(TestCase):
 
     def tearDown(self):
         self.redis_client.delete(self.holders_key, f'{self.holders_key}:lock')
+        self.redis_client.hdel(LEGACY_SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, 'holder')
 
     def test_suspends_then_releases(self):
         with suspend_submissions(self.user):
@@ -118,6 +120,38 @@ class SuspendSubmissionsTestCase(TestCase):
 
         fix_stale_submissions_suspended_flag()
 
+        assert not self._is_suspended()
+
+    def test_failed_entry_does_not_release_a_live_holder(self):
+        with suspend_submissions(self.user):
+            with patch(
+                f'{SUSPENSION_MODULE}._register_holder',
+                side_effect=RedisConnectionError,
+            ):
+                with self.assertRaises(RedisConnectionError):
+                    with suspend_submissions(self.user):
+                        pass
+
+            assert self._is_suspended()
+            assert self.redis_client.hlen(self.holders_key) == 1
+
+        assert not self._is_suspended()
+
+    def test_legacy_heartbeat_counts_as_a_live_holder(self):
+        UserProfile.objects.create(user=self.user, submissions_suspended=True)
+        self.redis_client.hset(
+            LEGACY_SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, 'holder', int(time.time())
+        )
+
+        assert release_orphaned_suspensions() == []
+        assert self._is_suspended()
+
+        expired = int(time.time()) - settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT
+        self.redis_client.hset(
+            LEGACY_SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, 'holder', expired
+        )
+
+        assert release_orphaned_suspensions() == ['holder']
         assert not self._is_suspended()
 
     def _is_suspended(self):

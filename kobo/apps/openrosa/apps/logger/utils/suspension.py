@@ -8,7 +8,10 @@ from redis.exceptions import LockNotOwnedError, RedisError
 
 from kpi.utils.log import logging
 from ...main.models import UserProfile
-from ..constants import SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX
+from ..constants import (
+    LEGACY_SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
+    SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
+)
 
 
 def release_orphaned_suspensions() -> list[str]:
@@ -25,7 +28,9 @@ def release_orphaned_suspensions() -> list[str]:
     for username in list(suspended):
         holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{username}'
         with _mutex(redis_client, holders_key):
-            if _live_holders(redis_client, holders_key, lease):
+            if _live_holders(redis_client, holders_key, lease) or _legacy_holder_alive(
+                redis_client, username, lease
+            ):
                 continue
             UserProfile.objects.filter(user__username=username).update(
                 submissions_suspended=False
@@ -59,15 +64,27 @@ def suspend_submissions(user: settings.AUTH_USER_MODEL):
     def heartbeat():
         _register_holder(redis_client, holders_key, token, lease)
 
+    # Outside the `try`: a failed entry has nothing to release, and releasing
+    # anyway could clear the flag under a live holder
+    with _mutex(redis_client, holders_key):
+        heartbeat()
+        UserProfile.objects.get_or_create(user_id=user.pk)
+        _set_flag(user, True)
     try:
-        # Redis first: if it fails, nothing has been suspended yet
-        with _mutex(redis_client, holders_key):
-            heartbeat()
-            UserProfile.objects.get_or_create(user_id=user.pk)
-            _set_flag(user, True)
         yield heartbeat
     finally:
         _release_holder(redis_client, holders_key, token, lease, user)
+
+
+def _legacy_holder_alive(redis_client, username: str, lease: int) -> bool:
+    """
+    A worker running the previous `update_attachment_storage_bytes` (rolling
+    deployment) only records its suspension in the legacy heartbeat hash.
+    """
+    registered_at = redis_client.hget(
+        LEGACY_SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, username
+    )
+    return bool(registered_at) and int(registered_at) + lease > int(time.time())
 
 
 def _live_holders(redis_client, holders_key: str, lease: int) -> int:
@@ -137,7 +154,9 @@ def _release_holder(
     try:
         with _mutex(redis_client, holders_key):
             redis_client.hdel(holders_key, token)
-            if _live_holders(redis_client, holders_key, lease):
+            if _live_holders(redis_client, holders_key, lease) or _legacy_holder_alive(
+                redis_client, user.username, lease
+            ):
                 return
             _set_flag(user, False)
     except RedisError:
