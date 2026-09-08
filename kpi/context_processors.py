@@ -63,9 +63,16 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info == reverse('account_signup'):
-        sitewide_message = I18nUtils.get_sitewide_message()
-        if sitewide_message is not None:
-            return {'welcome_message': markdownify(sitewide_message)}
+        context = {}
+        welcome_message = I18nUtils.get_sitewide_message()
+        if welcome_message is not None:
+            context['welcome_message'] = markdownify(welcome_message)
+        signup_closed_message = I18nUtils.get_sitewide_message(
+            slug='signup_closed_message'
+        )
+        if signup_closed_message is not None:
+            context['signup_closed_message'] = markdownify(signup_closed_message)
+        return context
 
     return {}
 
