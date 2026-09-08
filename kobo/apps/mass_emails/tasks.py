@@ -51,12 +51,13 @@ TASK_TIMEOUT = (
 SEND_EMAILS_SOFT_LIMIT_BUFFER = 10
 
 
-def enqueue_mass_email_records(email_config):
+def enqueue_mass_email_records(email_config, user_ids=None):
     """
     Creates a email job and enqueues email records for users based on query
     """
     job = MassEmailJob.objects.create(email_config=email_config)
-    user_ids = get_users_for_config(email_config)
+    if user_ids is None:
+        user_ids = get_users_for_config(email_config)
     # edge case: if a one-off email has no recipients, store a warning and turn
     # it off
     if len(user_ids) == 0 and email_config.type == EmailType.ONE_TIME:
@@ -563,11 +564,11 @@ def generate_mass_email_user_lists():
                 f'enqueued records.'
             )
             processed_configs.add(email_config.id)
-        elif (
-            email_config.frequency == -1
-            and email_records.exists()
-            and not get_users_for_config(email_config)
-        ):
+            continue
+
+        user_ids = get_users_for_config(email_config)
+
+        if email_config.frequency == -1 and email_records.exists() and not user_ids:
             logging.info(
                 f'Completing unclosed one-time email config {email_config.id} '
                 f'({email_config.name}) as all records have been processed.'
@@ -578,7 +579,7 @@ def generate_mass_email_user_lists():
         else:
             try:
                 with transaction.atomic():
-                    enqueue_mass_email_records(email_config)
+                    enqueue_mass_email_records(email_config, user_ids=user_ids)
             except IntegrityError:
                 logging.warning(
                     f'Skipping duplicate record for config: {email_config.id}'
