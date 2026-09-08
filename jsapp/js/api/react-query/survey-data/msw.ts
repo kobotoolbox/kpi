@@ -637,6 +637,7 @@ export const getApiV2AssetsDataListResponseMock = (
     'meta/instanceID': faker.string.alpha({ length: { min: 10, max: 20 } }),
     'meta/rootUuid': faker.string.alpha({ length: { min: 10, max: 20 } }),
     'meta/deprecatedID': faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    'meta/formVersions': faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     _xform_id_string: faker.string.alpha({ length: { min: 10, max: 20 } }),
     _uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     _attachments: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -990,6 +991,7 @@ export const getApiV2AssetsDataRetrieveResponseMock = (overrideResponse: Partial
   'meta/instanceID': faker.string.alpha({ length: { min: 10, max: 20 } }),
   'meta/rootUuid': faker.string.alpha({ length: { min: 10, max: 20 } }),
   'meta/deprecatedID': faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  'meta/formVersions': faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   _xform_id_string: faker.string.alpha({ length: { min: 10, max: 20 } }),
   _uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   _attachments: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -1341,6 +1343,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseMock = (
   'meta/instanceID': faker.string.alpha({ length: { min: 10, max: 20 } }),
   'meta/rootUuid': faker.string.alpha({ length: { min: 10, max: 20 } }),
   'meta/deprecatedID': faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  'meta/formVersions': faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   _xform_id_string: faker.string.alpha({ length: { min: 10, max: 20 } }),
   _uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   _attachments: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
