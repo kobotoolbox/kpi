@@ -1,7 +1,6 @@
 import csv
 import datetime
 import logging
-import time
 import zipfile
 from collections import defaultdict
 from datetime import timedelta
@@ -13,7 +12,6 @@ from dateutil import relativedelta
 from django.conf import settings
 from django.core.management import call_command
 from django.utils import timezone
-from django_redis import get_redis_connection
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
@@ -21,11 +19,10 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.log import logging
-from ..main.models import UserProfile
-from .constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
 from .models import Instance, XForm
 from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from .models.instance import InstanceHistory
+from .utils.suspension import release_orphaned_suspensions
 
 
 @celery_app.task()
@@ -134,48 +131,13 @@ def generate_stats_zip(output_filename):
 @celery_app.task
 def fix_stale_submissions_suspended_flag():
     """
-    Task to fix stale `submissions_suspended` flag to ensure that accounts are
-    not indefinitely locked, preventing users from accessing or collecting their
-    data.
+    Release the accounts left suspended by a storage recount or a trash bin
+    deletion which died, so that nobody stays locked out of collecting data.
     """
-
-    redis_client = get_redis_connection()
-    lock = redis_client.hgetall(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY)
-
-    def _release_all_locks():
-        if UserProfile.objects.filter(submissions_suspended=True).exists():
-            logging.warning(
-                'Some profiles still have the `submission_suspended` flag enabled.'
-            )
-            UserProfile.objects.filter(submissions_suspended=True).update(
-                submissions_suspended=False
-            )
-
-    if not lock:
-        _release_all_locks()
-        return
-
-    usernames = []
-
-    for username, timestamp in lock.items():
-        username = username.decode()
-        timestamp = int(timestamp.decode())
-
-        if timestamp + settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT <= int(
-            time.time()
-        ):
-            logging.info(
-                f'Removing `submission_suspended` flag on user #{username}’s profile'
-            )
-            usernames.append(username)
-
-    if usernames:
-        UserProfile.objects.filter(user__username__in=usernames).update(
-            submissions_suspended=False
+    for username in release_orphaned_suspensions():
+        logging.info(
+            f'Removed `submissions_suspended` flag on user {username}’s profile'
         )
-        redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, *usernames)
-    else:
-        _release_all_locks()
 
 
 @celery_app.task(

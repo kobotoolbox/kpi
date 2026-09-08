@@ -14,7 +14,10 @@ from django.utils.translation import gettext as t
 from pyxform.survey_element import SurveyElement
 
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceEmptyError
-from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    FORM_VERSIONS,
+    XFORM_ID_STRING,
+)
 from kpi.utils.log import logging
 from kpi.utils.xml import minidom_parsestring
 
@@ -23,6 +26,98 @@ def add_uuid_prefix(uuid_: str) -> str:
     if ':' in uuid_:
         return uuid_
     return f'uuid:{uuid_}'
+
+
+# Scoping to the `<meta>` block is what tells our node apart from a question
+# that happens to be named `formVersions`, wherever inside `meta` it sits.
+# `<metadata>` is not matched, since `<meta` must be followed by a space or `>`.
+meta_block_regex = re.compile(r'(<meta(?:\s[^>]*)?>)(.*?)(</meta>)', re.DOTALL)
+# A `<meta>` written inside a comment or a CDATA section is text, not markup,
+# so the first textual match is not necessarily the metadata node
+comment_or_cdata_regex = re.compile(r'<!--.*?-->|<!\[CDATA\[.*?\]\]>', re.DOTALL)
+# Element tags, to walk the document depth. `<?xml …?>` and `<!DOCTYPE …>` do
+# not match, since a name has to start with a letter or an underscore
+tag_regex = re.compile(r'<(/?)([A-Za-z_][\w.:-]*)[^>]*?(/?)>')
+# Any `formVersions` element, whatever attributes or spacing a client gave it.
+# Anchoring on the exact tag would leave a forged `<formVersions source="x">`
+# in place, and `ElementTree` would then read it back ahead of ours.
+form_versions_regex = re.compile(
+    rf'<{FORM_VERSIONS}(?:\s[^>]*)?/>'
+    rf'|<{FORM_VERSIONS}(?:\s[^>]*)?>[^<]*</{FORM_VERSIONS}\s*>'
+)
+
+
+def set_form_versions(xml: str, form_versions: str = '') -> str:
+    """
+    Rewrite `meta/formVersions` in the raw submission XML.
+
+    Every `formVersions` inside the first `<meta>` block is removed, then
+    `form_versions` is written back as its last child. An empty value only
+    removes, which is what `strip_form_versions()` relies on.
+
+    Deliberately textual: re-serialising the parsed tree would normalise the
+    document (`<q/>` becomes `<q />`, the XML declaration is dropped, attribute
+    order changes), and the hash would no longer identify what the client sent.
+
+    Removing before writing means a client that puts its own `formVersions`
+    anywhere in `meta` gets it replaced rather than duplicated.
+
+    The XML comes back unchanged when there is no `<meta>` to anchor on: a
+    submission without one is rejected moments later by the `instanceID` check
+    in `create_instance()`, and one using a namespaced `<orx:meta>` simply keeps
+    no version history.
+    """
+
+    match = _find_meta_block(xml)
+    if not match:
+        return xml
+
+    opening, body, closing = match.groups()
+    body = form_versions_regex.sub('', body)
+
+    if FORM_VERSIONS in body:
+        # A shape we cannot remove without risking the document, such as a node
+        # wrapping other elements. Leave everything alone rather than append a
+        # second node next to it: neither is ever read as history, since
+        # `_get_form_versions()` only keeps uid-shaped values
+        return xml
+
+    if form_versions:
+        body += f'<{FORM_VERSIONS}>{form_versions}</{FORM_VERSIONS}>'
+
+    return f'{xml[:match.start()]}{opening}{body}{closing}{xml[match.end():]}'
+
+
+def _find_meta_block(xml: str) -> Union[re.Match, None]:
+    """
+    Return the match for the metadata node: the document element's direct
+    `<meta>` child.
+
+    A group may itself be named `meta`, and a `<meta>` inside a comment or a
+    CDATA section is text, not markup: neither is what the readers look at.
+
+    The caller rewrites the raw string, so it needs a position in that string.
+    `ElementTree` returns elements, never where they start, hence the scan.
+    Safe by construction: XML forbids a raw `<` in an attribute value, so no
+    tag can hide there.
+    """
+
+    ignored = [m.span() for m in comment_or_cdata_regex.finditer(xml)]
+    depth = 0
+
+    for tag in tag_regex.finditer(xml):
+        if any(start <= tag.start() < end for start, end in ignored):
+            continue
+
+        closing, name, self_closing = tag.groups()
+        if closing:
+            depth -= 1
+        elif not self_closing:
+            if depth == 1 and name == 'meta':
+                return meta_block_regex.match(xml, tag.start())
+            depth += 1
+
+    return None
 
 
 def get_meta_node_from_xml(
@@ -57,10 +152,11 @@ def get_meta_node_from_xml(
     return uuid_tag, xml
 
 
-def get_meta_from_xml(xml_str: str, meta_name: str) -> str:
+def get_meta_from_xml(xml_str: str, meta_name: str) -> str | None:
     if node_and_root := get_meta_node_from_xml(xml_str, meta_name):
         node, _ = node_and_root
         return node.firstChild.nodeValue.strip() if node.firstChild else None
+    return None
 
 
 def get_uuid_from_xml(xml):
@@ -82,7 +178,7 @@ def get_uuid_from_xml(xml):
     return None
 
 
-def get_root_uuid_from_xml(xml) -> tuple[str, bool]:
+def get_root_uuid_from_xml(xml) -> tuple[str | None, bool]:
     """
     Returns the value of <meta/rootUuid> from the given XML. If that node is missing,
     falls back to <meta/instanceID>. The boolean indicates whether a fallback was used.
@@ -149,6 +245,28 @@ def remove_uuid_prefix(uuid_: str) -> str:
     intact in the database to prevent potential ID collisions.
     """
     return re.sub(r'^uuid:', '', uuid_)
+
+
+def strip_form_versions(xml: str) -> str:
+    """
+    Return the submission XML without its `meta/formVersions` node.
+
+    That node is added by the server, after the client payload has been hashed
+    (see `logger_tools.add_form_versions()`). Hashing the stripped XML keeps
+    `xml_hash` identifying what the client actually sent, which is what
+    duplicate detection compares: Enketo splits a submission larger than 10 MB
+    into several POSTs carrying the same XML, and a redeployment in between
+    would otherwise change the hash and orphan the remaining attachments.
+
+    The node is inserted textually precisely so that removing it gives the
+    original payload back byte for byte. Only the one inside `<meta>` is
+    removed, so a question named `formVersions` is left alone.
+    """
+
+    if FORM_VERSIONS not in xml:
+        return xml
+
+    return set_form_versions(xml)
 
 
 def _xml_node_to_dict(node: Node, repeats: list = []) -> dict:

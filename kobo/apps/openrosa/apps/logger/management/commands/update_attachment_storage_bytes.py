@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-import time
+from collections.abc import Callable
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db.models import OuterRef, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
-from django_redis import get_redis_connection
 
-from kobo.apps.openrosa.apps.logger.constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.apps.logger.utils.suspension import (
+    release_orphaned_suspensions,
+    suspend_submissions,
+)
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
@@ -28,7 +30,6 @@ class Command(BaseCommand):
         self._verbosity = 0
         self._force = False
         self._sync = False
-        self._redis_client = get_redis_connection()
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -123,62 +124,13 @@ class Command(BaseCommand):
                     )
                 continue
 
-            if not no_lock:
-                self._lock_user_profile(user)
+            if no_lock:
+                self._update_user_storage(user, user_xforms, chunks)
+                continue
 
-            try:
-                for xform in user_xforms.iterator(chunk_size=chunks):
-
-                    self._heartbeat(user)
-
-                    # write out xform progress
-                    if self._verbosity > 1:
-                        self.stdout.write(
-                            f"Calculating attachments for xform_id #{xform['pk']}"
-                            f" (user {user.username})"
-                        )
-                    # aggregate total media file size for all media per xform
-                    form_attachments = Attachment.objects.filter(
-                        instance__xform_id=xform['pk'],
-                    ).aggregate(total=Sum('media_file_size'))
-
-                    if form_attachments['total']:
-                        if (
-                            xform['attachment_storage_bytes']
-                            == form_attachments['total']
-                        ):
-                            if self._verbosity > 2:
-                                self.stdout.write(
-                                    '\tSkipping xform update! '
-                                    'Attachment storage is already accurate'
-                                )
-                        else:
-                            if self._verbosity > 2:
-                                self.stdout.write(
-                                    f'\tUpdating xform attachment storage to '
-                                    f"{form_attachments['total']} bytes"
-                                )
-
-                            XForm.all_objects.filter(
-                                pk=xform['pk']
-                            ).update(
-                                attachment_storage_bytes=form_attachments['total']
-                            )
-
-                    else:
-                        if self._verbosity > 2:
-                            self.stdout.write('\tNo attachments found')
-                        if not xform['attachment_storage_bytes'] == 0:
-                            XForm.all_objects.filter(
-                                pk=xform['pk']
-                            ).update(
-                                attachment_storage_bytes=0
-                            )
-
-                self._update_user_profile(user)
-            finally:
-                if not no_lock:
-                    self._release_lock(user)
+            self._mark_counting_started(user)
+            with suspend_submissions(user) as heartbeat:
+                self._update_user_storage(user, user_xforms, chunks, heartbeat)
 
         if self._verbosity >= 1:
             self.stdout.write('Done!')
@@ -203,52 +155,23 @@ class Command(BaseCommand):
 
         return users.order_by('pk')
 
-    def _heartbeat(self, user: settings.AUTH_USER_MODEL):
-        if self._verbosity > 2:
-            self.stdout.write(f'Heartbeat for user `{user.username}`...')
-
-        self._redis_client.hset(
-            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, mapping={
-                user.username: int(time.time())
-            }
-        )
-
-    def _lock_user_profile(self, user: settings.AUTH_USER_MODEL):
-        # Retrieve or create user's profile.
-        (
-            user_profile,
-            created,
-        ) = UserProfile.objects.get_or_create(user_id=user.pk)
-
+    def _mark_counting_started(self, user: settings.AUTH_USER_MODEL):
+        user_profile, _ = UserProfile.objects.get_or_create(user_id=user.pk)
         # Some old profiles don't have metadata
         if user_profile.metadata is None:
             user_profile.metadata = {}
-
-        # Set the flag to true if it was never set.
-        if not user_profile.submissions_suspended:
-            # We are using the flag `submissions_suspended` to prevent
-            # new submissions from coming in while the
-            # `attachment_storage_bytes` is being calculated.
-            user_profile.submissions_suspended = True
-            user_profile.metadata['attachments_counting_status'] = 'not-completed'
-            user_profile.save(update_fields=['metadata', 'submissions_suspended'])
-
-        self._heartbeat(user)
-
-    def _release_lock(self, user: settings.AUTH_USER_MODEL):
-        # Release any locks on the users' profile from getting submissions
-        if self._verbosity > 1:
-            self.stdout.write(f'Releasing submission lock for {user.username}…')
-
-        UserProfile.objects.filter(user_id=user.pk).update(submissions_suspended=False)
-        self._redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, user.username)
+        user_profile.metadata['attachments_counting_status'] = 'not-completed'
+        user_profile.save(update_fields=['metadata'])
 
     def _release_locks(self):
-        # Release any locks on the users' profile from getting submissions
+        # Release the profiles a previous run left suspended, without touching
+        # the ones held by a running deletion
         if self._verbosity > 1:
             self.stdout.write('Releasing submission locks…')
 
-        UserProfile.objects.all().update(submissions_suspended=False)
+        orphaned = release_orphaned_suspensions()
+        if self._verbosity > 1:
+            self.stdout.write(f'Released submission locks: {len(orphaned)}')
 
     def _reset_user_profile_counters(self):
 
@@ -306,3 +229,53 @@ class Command(BaseCommand):
                 updates=updates,
             ),
         )
+
+    def _update_user_storage(
+        self,
+        user: settings.AUTH_USER_MODEL,
+        user_xforms,
+        chunks: int,
+        heartbeat: Callable[[], None] = lambda: None,
+    ):
+        for xform in user_xforms.iterator(chunk_size=chunks):
+
+            heartbeat()
+
+            # write out xform progress
+            if self._verbosity > 1:
+                self.stdout.write(
+                    f'Calculating attachments for xform_id #{xform["pk"]}'
+                    f' (user {user.username})'
+                )
+            # aggregate total media file size for all media per xform
+            form_attachments = Attachment.objects.filter(
+                instance__xform_id=xform['pk'],
+            ).aggregate(total=Sum('media_file_size'))
+
+            if form_attachments['total']:
+                if xform['attachment_storage_bytes'] == form_attachments['total']:
+                    if self._verbosity > 2:
+                        self.stdout.write(
+                            '\tSkipping xform update! '
+                            'Attachment storage is already accurate'
+                        )
+                else:
+                    if self._verbosity > 2:
+                        self.stdout.write(
+                            f'\tUpdating xform attachment storage to '
+                            f"{form_attachments['total']} bytes"
+                        )
+
+                    XForm.all_objects.filter(pk=xform['pk']).update(
+                        attachment_storage_bytes=form_attachments['total']
+                    )
+
+            else:
+                if self._verbosity > 2:
+                    self.stdout.write('\tNo attachments found')
+                if not xform['attachment_storage_bytes'] == 0:
+                    XForm.all_objects.filter(pk=xform['pk']).update(
+                        attachment_storage_bytes=0
+                    )
+
+        self._update_user_profile(user)
