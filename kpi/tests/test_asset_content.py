@@ -918,6 +918,52 @@ class TestAssetContent(TestCase):
         xpaths = asset.get_all_attachment_xpaths()
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
 
+    def test_get_attachment_xpaths_from_version_uids_merges_versions(self):
+        """
+        A question renamed between two versions lives at both xpaths, and a
+        submission carries whichever one was deployed when its file arrived.
+        """
+
+        asset = self.asset
+        first_version_uid = asset.latest_deployed_version_uid
+
+        asset.content['survey'][0]['name'] = 'Image_renamed'
+        asset.save()
+        asset.deploy(backend='mock')
+        second_version_uid = asset.latest_deployed_version_uid
+
+        assert sorted(
+            asset.get_attachment_xpaths_from_version_uids(
+                [first_version_uid, second_version_uid]
+            )
+        ) == ['Image', 'Image_renamed']
+
+        assert asset.get_attachment_xpaths_from_version_uids([first_version_uid]) == [
+            'Image'
+        ]
+
+    def test_get_attachment_xpaths_from_version_uids_skips_unknown_uids(self):
+        version_uid = self.asset.latest_deployed_version_uid
+        unknown = 'v' + 'z' * 21
+
+        assert self.asset.get_attachment_xpaths_from_version_uids(
+            [unknown, version_uid]
+        ) == ['Image']
+        assert self.asset.get_attachment_xpaths_from_version_uids([unknown]) == []
+        assert self.asset.get_attachment_xpaths_from_version_uids([]) == []
+
+    def test_get_attachment_xpaths_from_version_uids_ignores_undeployed(self):
+        """
+        Only a deployed version can have produced a submission.
+        """
+
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+        draft = self.asset.asset_versions.filter(deployed=False).first()
+
+        assert draft is not None
+        assert self.asset.get_attachment_xpaths_from_version_uids([draft.uid]) == []
+
     @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
     def test_xpath_method_called_once_for_single_version(
         self, mock_get_xpaths_from_version

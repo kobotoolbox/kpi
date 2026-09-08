@@ -2,13 +2,17 @@ import io
 import json
 import uuid as uuid_module
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import DuplicateInstanceError
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
+from kobo.apps.openrosa.apps.logger.models.attachment import (
+    AttachmentDeleteStatus,
+)
 from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import strip_form_versions
 from kobo.apps.openrosa.apps.main.models import UserProfile
@@ -18,9 +22,12 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     VERSION,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
+    _get_other_form_version_uids,
     add_form_versions,
     create_instance,
+    get_soft_deleted_attachments,
 )
+from kpi.models.asset import Asset
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -33,9 +40,32 @@ FORM_UUID = '7117fdf814234f5ea0c9f5801b022293'
 VERSION_1 = 'v' + '1' * 21
 VERSION_2 = 'v' + '2' * 21
 VERSION_3 = 'v' + '3' * 21
+MEDIA_QUESTION = 'upload_image'
+RENAMED_MEDIA_QUESTION = 'upload_image_edited'
 
 
-def xform_xml() -> str:
+def xform_xml(media_question: str | None = None) -> str:
+    """
+    Build the XForm XML. `media_question` adds an upload question, which is
+    what `get_xform_media_question_xpaths()` reads through its `ref`.
+    """
+
+    media_node = f'<{media_question}/>' if media_question else ''
+    media_bind = (
+        f'<bind nodeset="/{ID_STRING}/{media_question}" type="binary"/>'
+        if media_question
+        else ''
+    )
+    body = (
+        '<h:body>'
+        f'<upload mediatype="image/*" ref="/{ID_STRING}/{media_question}">'
+        '<label>Photo</label>'
+        '</upload>'
+        '</h:body>'
+        if media_question
+        else '<h:body/>'
+    )
+
     return (
         '<?xml version="1.0" encoding="utf-8"?>'
         '<h:html xmlns="http://www.w3.org/2002/xforms"'
@@ -48,19 +78,21 @@ def xform_xml() -> str:
         f'<{ID_STRING} id="{ID_STRING}">'
         '<formhub><uuid/></formhub>'
         '<q1/>'
+        f'{media_node}'
         '<__version__/>'
         '<meta><instanceID/><deprecatedID/><rootUuid/></meta>'
         f'</{ID_STRING}>'
         '</instance>'
         f'<bind nodeset="/{ID_STRING}/meta/instanceID" type="string"/>'
+        f'{media_bind}'
         '</model>'
         '</h:head>'
-        '<h:body/>'
+        f'{body}'
         '</h:html>'
     )
 
 
-def xform_json(version_uid: str | None) -> str:
+def xform_json(version_uid: str | None, media_question: str | None = None) -> str:
     """
     Build the pyxform JSON of a form deployed by KPI at `version_uid`.
 
@@ -69,6 +101,8 @@ def xform_json(version_uid: str | None) -> str:
     """
 
     children = [{'name': 'q1', 'type': 'text'}]
+    if media_question:
+        children.append({'name': media_question, 'type': 'photo'})
     if version_uid:
         children.append(
             {
@@ -96,6 +130,8 @@ def submission_xml(
     declaration: bool = False,
     form_versions: str | None = None,
     deprecated_id: str | None = None,
+    media_question: str | None = None,
+    filename: str | None = None,
 ) -> str:
     """
     Build a submission.
@@ -106,6 +142,9 @@ def submission_xml(
     """
 
     version_node = f'<__version__>{version_uid}</__version__>' if version_uid else ''
+    media_node = (
+        f'<{media_question}>{filename}</{media_question}>' if media_question else ''
+    )
     form_versions_node = (
         f'<formVersions>{form_versions}</formVersions>' if form_versions else ''
     )
@@ -117,6 +156,7 @@ def submission_xml(
         + f'<{ID_STRING} id="{ID_STRING}">'
         f'<formhub><uuid>{FORM_UUID}</uuid></formhub>'
         '<q1>hello</q1>'
+        f'{media_node}'
         f'{version_node}'
         f'<meta><instanceID>{instance_id}</instanceID>'
         f'{deprecated_id_node}{form_versions_node}</meta>'
@@ -787,4 +827,193 @@ class TestFormVersionsOnSubmission(TestCase):
             media_files=media_files or [],
             request=self.request,
             check_usage_limits=False,
+        )
+
+
+class TestOtherFormVersionUids(TestCase):
+    """
+    Unit tests for the versions the XForm cannot answer for.
+    """
+
+    def test_returns_nothing_when_the_submission_names_no_version(self):
+        instance = SimpleNamespace(xform=XForm(json=xform_json(VERSION_1)))
+        xml_parsed = fromstring_preserve_root_xmlns(submission_xml(version_uid=None))
+
+        assert _get_other_form_version_uids(instance, xml_parsed) == []
+
+    def test_returns_nothing_when_only_the_deployed_version_is_named(self):
+        instance = SimpleNamespace(xform=XForm(json=xform_json(VERSION_1)))
+        xml_parsed = fromstring_preserve_root_xmlns(
+            submission_xml(version_uid=VERSION_1)
+        )
+
+        assert _get_other_form_version_uids(instance, xml_parsed) == []
+
+    def test_returns_the_versions_the_xform_does_not_describe(self):
+        instance = SimpleNamespace(xform=XForm(json=xform_json(VERSION_3)))
+        xml_parsed = fromstring_preserve_root_xmlns(
+            submission_xml(
+                version_uid=VERSION_1,
+                form_versions=f'{VERSION_1} {VERSION_2}',
+            )
+        )
+
+        assert _get_other_form_version_uids(instance, xml_parsed) == [
+            VERSION_1,
+            VERSION_2,
+        ]
+
+
+class TestAttachmentsAcrossFormVersions(TestCase):
+    """
+    A file must survive a submission whose questions belong to a version other
+    than the one deployed.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create(username='bob')
+        UserProfile.objects.get_or_create(user=self.user)
+
+        self.asset = Asset.objects.create(
+            owner=self.user,
+            content={
+                'survey': [
+                    {'type': 'text', 'name': 'q1', 'label': ['Q1']},
+                    {'type': 'image', 'name': MEDIA_QUESTION, 'label': ['Photo']},
+                ]
+            },
+        )
+        self.asset.deploy(backend='mock', active=True)
+        self.version_1 = self.asset.latest_deployed_version_uid
+
+        self.xform = XForm.objects.create(
+            xml=xform_xml(media_question=MEDIA_QUESTION),
+            user=self.user,
+            json=xform_json(self.version_1, media_question=MEDIA_QUESTION),
+            uuid=FORM_UUID,
+            require_auth=False,
+            kpi_asset_uid=self.asset.uid,
+        )
+
+        class FakeRequest:
+            pass
+
+        self.request = FakeRequest()
+        self.request.user = self.user
+        self.request.user.has_perm = lambda *args, **kwargs: True
+
+    def test_attachment_survives_a_question_renamed_since_collection(self):
+        """
+        The record was collected under a version the deployed form no longer
+        describes, so its file hangs on a name only that version knows.
+        """
+
+        version_2 = self._redeploy_renaming_the_media_question()
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'photo.jpg')
+
+        assert get_form_versions(instance.xml) == f'{self.version_1} {version_2}'
+        attachment = Attachment.all_objects.get(instance=instance)
+        assert attachment.media_file_basename == 'photo.jpg'
+        assert attachment.delete_status is None
+
+    def test_attachment_survives_when_the_question_was_deleted_since(self):
+        self._redeploy_without_the_media_question()
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'photo.jpg')
+
+        attachment = Attachment.all_objects.get(instance=instance)
+        assert attachment.delete_status is None
+
+    def test_replaced_attachment_is_still_soft_deleted(self):
+        """
+        Widening the accepted names must not stop an edit from retiring the
+        file it actually replaced.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        edit_submission_xml(xml_parsed, MEDIA_QUESTION, 'second.jpg')
+        edit_submission_xml(xml_parsed, 'meta/deprecatedID', f'uuid:{instance.uuid}')
+        edit_submission_xml(
+            xml_parsed, 'meta/instanceID', f'uuid:{uuid_module.uuid4()}'
+        )
+        edit_submission_xml(xml_parsed, 'meta/rootUuid', f'uuid:{instance.root_uuid}')
+        self._submit(
+            xml_tostring(xml_parsed),
+            media_files=[
+                SimpleUploadedFile('second.jpg', b'jpeg2', content_type='image/jpeg')
+            ],
+        )
+
+        assert dict(
+            Attachment.all_objects.filter(instance=instance).values_list(
+                'media_file_basename', 'delete_status'
+            )
+        ) == {
+            'first.jpg': AttachmentDeleteStatus.SOFT_DELETED,
+            'second.jpg': None,
+        }
+
+    def test_form_without_media_question_never_parses_the_submission(self):
+        """
+        This runs for every single submission, so a form that cannot hold a
+        file must not pay for parsing its XML.
+        """
+
+        XForm.objects.filter(pk=self.xform.pk).update(xml=xform_xml())
+        instance = self._submit(submission_xml(version_uid=self.version_1))
+
+        # `wraps` keeps the real behaviour, so a call would be counted rather
+        # than break the function and hide what the assertion is about
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools'
+            '.fromstring_preserve_root_xmlns',
+            wraps=fromstring_preserve_root_xmlns,
+        ) as parse:
+            assert get_soft_deleted_attachments(instance) == []
+
+        parse.assert_not_called()
+
+    def _redeploy_renaming_the_media_question(self) -> str:
+        self.asset.content['survey'][1]['name'] = RENAMED_MEDIA_QUESTION
+        return self._redeploy(xform_xml(media_question=RENAMED_MEDIA_QUESTION))
+
+    def _redeploy_without_the_media_question(self) -> str:
+        del self.asset.content['survey'][1]
+        return self._redeploy(xform_xml(media_question='decoy_photo'))
+
+    def _redeploy(self, xform_xml_: str) -> str:
+        """
+        Redeploy the asset and move the XForm onto the new version, the way a
+        redeployment does.
+        """
+
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        version_uid = self.asset.latest_deployed_version_uid
+        XForm.objects.filter(pk=self.xform.pk).update(
+            xml=xform_xml_,
+            json=xform_json(version_uid, media_question=RENAMED_MEDIA_QUESTION),
+        )
+        return version_uid
+
+    def _submit(self, xml: str, media_files: list | None = None) -> Instance:
+        return create_instance(
+            self.user.username,
+            io.BytesIO(xml.encode()),
+            media_files=media_files or [],
+            request=self.request,
+            check_usage_limits=False,
+        )
+
+    def _submit_with_photo(self, media_question: str, filename: str) -> Instance:
+        return self._submit(
+            submission_xml(
+                version_uid=self.version_1,
+                media_question=media_question,
+                filename=filename,
+            ),
+            media_files=[
+                SimpleUploadedFile(filename, b'jpeg', content_type='image/jpeg')
+            ],
         )
