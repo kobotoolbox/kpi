@@ -190,74 +190,6 @@ class EmailAddressViewSet(
 
 @extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
-    destroy=extend_schema(
-        description=read_md('accounts', 'me/social/delete.md'),
-        responses=open_api_204_empty_response(
-            raise_access_forbidden=True,
-            validate_payload=False,
-        ),
-    ),
-    list=extend_schema(
-        description=read_md('accounts', 'me/social/list.md'),
-        responses=open_api_200_ok_response(
-            SocialAccountSerializer,
-            raise_not_found=False,
-            raise_access_forbidden=False,
-            validate_payload=False,
-        ),
-    ),
-    retrieve=extend_schema(
-        description=read_md('accounts', 'me/social/retrieve.md'),
-        responses=open_api_200_ok_response(
-            SocialAccountSerializer,
-            raise_access_forbidden=False,
-            validate_payload=False,
-        ),
-    ),
-)
-class SocialAccountViewSet(
-    MultipleFieldLookupMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    """
-    Viewset for managing current user's socials
-
-    Available actions:
-    - destroy        → DELETE   /me/social-accounts/{provider}/{uid_social_account}/
-    - list           → GET      /me/social-accounts/
-    - retrieve       → GET      /me/social-accounts/{provider}/{uid_social_account}/
-
-    Documentation:
-    - docs/api/v2/me/social/destroy.md
-    - docs/api/v2/me/social/list.md
-    - docs/api/v2/me/social/retrieve.md
-    """
-
-    lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid_social_account>[-\w]+)'
-    lookup_fields = ['provider', 'uid']
-    lookup_field_map = {'uid': 'uid_social_account'}
-    queryset = SocialAccount.objects.all()
-    serializer_class = SocialAccountSerializer
-    permission_classes = (IsAuthenticated,)
-    versioning_class = APIV2Versioning
-
-    def get_permissions(self):
-        if self.action == 'destroy':
-            return (
-                IsAuthenticated(),
-                NotManagedSSOPermission(),
-            )
-        return super().get_permissions()
-
-    def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
-
-
-@extend_schema(tags=['User / team / organization / usage'])
-@extend_schema_view(
     post=extend_schema(
         description=read_md('accounts', 'email_confirmations/create.md'),
         request={'application/json': EmailConfirmationRequestPayload},
@@ -366,6 +298,74 @@ class EmailConfirmationView(APIView):
                 'Failed to send a requested confirmation email for EmailAddress %s',
                 address.pk,
             )
+
+
+@extend_schema(tags=['User / team / organization / usage'])
+@extend_schema_view(
+    destroy=extend_schema(
+        description=read_md('accounts', 'me/social/delete.md'),
+        responses=open_api_204_empty_response(
+            raise_access_forbidden=True,
+            validate_payload=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('accounts', 'me/social/list.md'),
+        responses=open_api_200_ok_response(
+            SocialAccountSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('accounts', 'me/social/retrieve.md'),
+        responses=open_api_200_ok_response(
+            SocialAccountSerializer,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+)
+class SocialAccountViewSet(
+    MultipleFieldLookupMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    Viewset for managing current user's socials
+
+    Available actions:
+    - destroy        → DELETE   /me/social-accounts/{provider}/{uid_social_account}/
+    - list           → GET      /me/social-accounts/
+    - retrieve       → GET      /me/social-accounts/{provider}/{uid_social_account}/
+
+    Documentation:
+    - docs/api/v2/me/social/destroy.md
+    - docs/api/v2/me/social/list.md
+    - docs/api/v2/me/social/retrieve.md
+    """
+
+    lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid_social_account>[-\w]+)'
+    lookup_fields = ['provider', 'uid']
+    lookup_field_map = {'uid': 'uid_social_account'}
+    queryset = SocialAccount.objects.all()
+    serializer_class = SocialAccountSerializer
+    permission_classes = (IsAuthenticated,)
+    versioning_class = APIV2Versioning
+
+    def get_permissions(self):
+        if self.action == 'destroy':
+            return (
+                IsAuthenticated(),
+                NotManagedSSOPermission(),
+            )
+        return super().get_permissions()
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
 
 
 @extend_schema(tags=['Configuration'])
