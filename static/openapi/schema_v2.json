@@ -24272,6 +24272,9 @@
                     "meta/deprecatedID": {
                         "type": "string"
                     },
+                    "meta/formVersions": {
+                        "type": "string"
+                    },
                     "_xform_id_string": {
                         "type": "string",
                         "title": " xform id string"
@@ -24552,6 +24555,9 @@
                         "type": "string"
                     },
                     "deprecatedID": {
+                        "type": "string"
+                    },
+                    "formVersions": {
                         "type": "string"
                     }
                 },
