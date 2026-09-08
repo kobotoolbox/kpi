@@ -1,7 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-import fakeredis
 from constance import config
 from constance.test import override_config
 from ddt import data, ddt, unpack
@@ -12,6 +11,7 @@ from django.db.models.signals import pre_delete
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
+from django_redis import get_redis_connection
 from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import (
@@ -22,7 +22,7 @@ from kobo.apps.audit_log.models import (
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.constants import (
-    SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY,
+    SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -502,54 +502,40 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
     def test_owner_submissions_suspended_during_deletion(self):
         project_trash = self.test_move_to_trash()
         owner = project_trash.asset.owner
-        fake_client = fakeredis.FakeStrictRedis()
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
         captured = {}
 
         def capture_state(*args, **kwargs):
             profile = UserProfile.objects.get(user=owner)
             captured['suspended'] = profile.submissions_suspended
-            captured['heartbeat'] = bool(
-                fake_client.hexists(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, owner.username)
-            )
+            captured['holders'] = get_redis_connection().hlen(holders_key)
 
         with patch(
-            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
-            return_value=fake_client,
-        ), patch(
             'kobo.apps.trash_bin.utils.project._delete_submissions',
             side_effect=capture_state,
         ):
             empty_project(project_trash.pk)
 
         assert captured['suspended'] is True
-        assert captured['heartbeat'] is True
+        assert captured['holders'] == 1
 
     def test_owner_submissions_released_after_deletion(self):
         project_trash = self.test_move_to_trash()
         owner = project_trash.asset.owner
-        fake_client = fakeredis.FakeStrictRedis()
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
 
-        with patch(
-            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
-            return_value=fake_client,
-        ):
-            empty_project(project_trash.pk)
+        empty_project(project_trash.pk)
 
         profile = UserProfile.objects.get(user=owner)
         assert profile.submissions_suspended is False
-        assert not fake_client.hexists(
-            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, owner.username
-        )
+        assert not get_redis_connection().exists(holders_key)
 
     def test_owner_submissions_released_when_deletion_fails(self):
         project_trash = self.test_move_to_trash()
         owner = project_trash.asset.owner
-        fake_client = fakeredis.FakeStrictRedis()
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
 
         with patch(
-            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
-            return_value=fake_client,
-        ), patch(
             'kobo.apps.trash_bin.utils.project._delete_submissions',
             side_effect=RuntimeError('boom'),
         ):
@@ -558,9 +544,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
         profile = UserProfile.objects.get(user=owner)
         assert profile.submissions_suspended is False
-        assert not fake_client.hexists(
-            SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, owner.username
-        )
+        assert not get_redis_connection().exists(holders_key)
 
     def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
         """

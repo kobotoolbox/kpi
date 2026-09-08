@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import transaction
@@ -24,8 +26,8 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
     project_exports = []
 
     if asset.has_deployment:
-        with suspend_submissions(asset.owner):
-            _delete_submissions(request_author, asset)
+        with suspend_submissions(asset.owner) as heartbeat:
+            _delete_submissions(request_author, asset, heartbeat)
             asset.deployment.delete()
         project_exports = SubmissionExportTask.objects.filter(
             Q(data__source=f'{host}/api/v2/assets/{asset.uid}/')
@@ -61,7 +63,11 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
         rmdir(f'{owner_username}/asset_files/{asset_uid}', default_storage)
 
 
-def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
+def _delete_submissions(
+    request_author: settings.AUTH_USER_MODEL,
+    asset: 'kpi.Asset',
+    heartbeat: Callable[[], None],
+):
 
     # Test if XForm is still valid
     try:
@@ -102,6 +108,8 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
         # ^^^ End of dead code ^^^
 
     while True:
+        # Keep the owner's submissions suspended for as long as this loop runs
+        heartbeat()
         audit_logs = []
         submissions = list(
             asset.deployment.get_submissions(

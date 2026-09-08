@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-import fakeredis
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
+from django_redis import get_redis_connection
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.constants import (
@@ -22,16 +22,14 @@ class UpdateAttachmentStorageBytesTestCase(TestCase, AssetSubmissionTestMixin):
     def setUp(self):
         self.user = User.objects.create(username='storageuser')
         self._create_test_asset_and_submission(user=self.user)
-        self.redis_client = fakeredis.FakeStrictRedis()
-        patcher = patch(
-            'kobo.apps.openrosa.apps.logger.utils.suspension.get_redis_connection',
-            return_value=self.redis_client,
+        self.redis_client = get_redis_connection()
+        self.holders_key = (
+            f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{self.user.username}'
         )
-        patcher.start()
-        self.addCleanup(patcher.stop)
 
     def tearDown(self):
         settings.MONGO_DB.instances.delete_many({})
+        self.redis_client.delete(self.holders_key, f'{self.holders_key}:lock')
 
     def test_suspends_owner_while_counting_then_releases(self):
         captured = {}
@@ -58,6 +56,4 @@ class UpdateAttachmentStorageBytesTestCase(TestCase, AssetSubmissionTestMixin):
         assert profile.metadata['attachments_counting_status'] == 'complete'
         xform = Asset.objects.get(owner=self.user).deployment.xform
         assert profile.attachment_storage_bytes == xform.attachment_storage_bytes
-        assert not self.redis_client.exists(
-            f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{self.user.username}'
-        )
+        assert not self.redis_client.exists(self.holders_key)
