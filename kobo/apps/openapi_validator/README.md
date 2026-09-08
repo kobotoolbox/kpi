@@ -77,7 +77,7 @@ follow-up ticket.
 
 ⚠️ Intended for test environments only.
 
-When enabled, the middleware will immediately stop request processing and raise an `AssertionError` if any of the six validation error scenarios occur.
+When enabled, the middleware will immediately stop request processing and raise an `AssertionError` if any of the eight validation error scenarios occur.
 
 This is useful for detecting:
 
@@ -99,7 +99,7 @@ When enabled, this option appends every validation error to a CSV file
 Known, accepted mismatches live in a single constant,
 `OPENAPI_KNOWN_MISMATCHES` in `constants.py`, as tuples of:
 
-- Error code (one of the six above)
+- Error code (one of the eight above)
 - Endpoint pattern (resolved by the Django URL resolver, anchors stripped)
 - HTTP method
 

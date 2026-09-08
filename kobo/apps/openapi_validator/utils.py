@@ -1,4 +1,4 @@
-from django.urls import resolve
+from django.urls import Resolver404, resolve
 
 
 def get_django_route(path: str) -> str | None:
@@ -7,7 +7,7 @@ def get_django_route(path: str) -> str | None:
     """
     try:
         match = resolve(path)
-    except Exception:
+    except Resolver404:
         return None
 
     route = getattr(match, 'route', None)

@@ -1,8 +1,11 @@
 from unittest import mock
 
+import jsonschema
+from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.http import HttpResponse, JsonResponse
 from django.test import RequestFactory, TestCase, override_settings
+from referencing.exceptions import Unresolvable
 
 from kobo.apps.openapi_validator.middleware import OpenAPIValidationMiddleware
 
@@ -135,3 +138,56 @@ class OpenAPIValidationMiddlewareTestCase(TestCase):
                 b'', status=status_code, content_type='application/json'
             )
             assert self.middleware.process_response(request, response) is response
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_multipart_body_is_never_read(self):
+        # Reading `request.body` would buffer the upload and enforce
+        # DATA_UPLOAD_MAX_MEMORY_SIZE, which Django skips for streamed multipart
+        request = self.factory.post(
+            '/api/v2/assets/aXYZ123/files/',
+            data=b'whatever',
+            content_type='multipart/form-data; boundary=x',
+        )
+        request.META['CONTENT_LENGTH'] = str(settings.DATA_UPLOAD_MAX_MEMORY_SIZE + 1)
+
+        assert self.middleware.process_request(request) is None
+        assert not hasattr(request, '_body')
+
+    def test_broken_schema_is_not_reported_as_a_mismatch(self):
+        # Tooling errors propagate instead of being returned as a message that
+        # could end up whitelisted as an endpoint bug
+        with self.assertRaises(jsonschema.exceptions.UnknownType):
+            self.middleware._validate_json_data({}, {'type': 'no-such-type'})
+
+        with self.assertRaises(Unresolvable):
+            self.middleware._validate_json_data(
+                {}, {'$ref': '#/components/schemas/DoesNotExist'}
+            )
+
+
+class OpenAPIValidationMiddlewareChainTestCase(TestCase):
+    """
+    Through the real middleware stack, with the Django test client: proves the
+    MIDDLEWARE entry and that a strict-mode failure raised on the way out
+    reaches the test that made the request.
+    """
+
+    @override_settings(OPENAPI_VALIDATION_STRICT=True)
+    def test_response_mismatch_fails_the_calling_test(self):
+        with (
+            mock.patch(
+                'kobo.apps.openapi_validator.middleware.OPENAPI_KNOWN_MISMATCHES',
+                frozenset(),
+            ),
+            mock.patch.object(
+                OpenAPIValidationMiddleware,
+                '_validate_json_data',
+                return_value='boom',
+            ),
+            self.assertRaises(AssertionError) as cm,
+        ):
+            # Anonymous GET: a documented 401 with a JSON body
+            self.client.get('/me/')
+
+        assert 'OpenAPI validation error for /me/ [GET]' in str(cm.exception)
+        assert 'boom' in str(cm.exception)

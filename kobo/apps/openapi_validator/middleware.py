@@ -10,6 +10,8 @@ from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT202012
 
 from kpi.exceptions import (
     OpenAPIComponentRefNotFoundError,
@@ -44,7 +46,10 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             (re.compile('^' + re.sub(r'\{[^}]+\}', '[^/]+', path) + '$'), operations)
             for path, operations in self.paths.items()
         ]
-        self.ref_resolver = jsonschema.RefResolver(base_uri='', referrer=self.schema)
+        # `#/components/...` references are resolved against the schema document
+        self.registry = Registry().with_resource(
+            '', Resource.from_contents(self.schema, default_specification=DRAFT202012)
+        )
 
     def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         """
@@ -83,8 +88,13 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             body_required = (operation_spec.get('requestBody') or {}).get(
                 'required', False
             )
+            # Read the header rather than `request.body`: touching the body
+            # buffers the whole payload in memory and enforces
+            # DATA_UPLOAD_MAX_MEMORY_SIZE, which Django otherwise skips for
+            # multipart uploads it streams to disk
+            content_length = int(request.META.get('CONTENT_LENGTH') or 0)
 
-            if body_required and not getattr(request, 'body', None):
+            if body_required and not content_length:
                 error_message = (
                     f'OpenAPI validation error for {request.path} '
                     f'[{request.method}]: Missing required request body'
@@ -94,51 +104,50 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 )
                 return None
 
-            if hasattr(request, 'body') and request.body:
-                # Only JSON payloads can be checked against a schema. Other
-                # media types are accepted as-is, see README > Not validated
-                if 'json' in content_type.lower():
-                    try:
-                        body_data = json.loads(request.body.decode('utf-8'))
-                    except (UnicodeDecodeError, json.JSONDecodeError):
-                        error_message = (
-                            f'OpenAPI validation error for {request.path} '
-                            f'[{request.method}]: Invalid JSON request body'
-                        )
-                        self._handle_validation_error(
-                            request, error_message, 'invalid-json-payload'
-                        )
-                        # Cannot validate a body that did not parse
-                        return None
+            # Only JSON payloads can be checked against a schema. Other media
+            # types are accepted as-is, see README > Not validated
+            if content_length and 'json' in content_type.lower():
+                try:
+                    body_data = json.loads(request.body.decode('utf-8'))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    error_message = (
+                        f'OpenAPI validation error for {request.path} '
+                        f'[{request.method}]: Invalid JSON request body'
+                    )
+                    self._handle_validation_error(
+                        request, error_message, 'invalid-json-payload'
+                    )
+                    # Cannot validate a body that did not parse
+                    return None
 
-                    # Get request body schema
-                    try:
-                        request_schema = self._get_request_body_schema(
-                            operation_spec, content_type
-                        )
-                    except OpenAPIComponentRefNotFoundError:
-                        error_message = (
-                            f'OpenAPI validation error for {request.path} '
-                            f'[{request.method}]: Schema component reference not found'
-                        )
-                        self._handle_validation_error(
-                            request, error_message, 'request-payload-schema-not-found'
-                        )
-                        request_schema = None
+                # Get request body schema
+                try:
+                    request_schema = self._get_request_body_schema(
+                        operation_spec, content_type
+                    )
+                except OpenAPIComponentRefNotFoundError:
+                    error_message = (
+                        f'OpenAPI validation error for {request.path} '
+                        f'[{request.method}]: Schema component reference not found'
+                    )
+                    self._handle_validation_error(
+                        request, error_message, 'request-payload-schema-not-found'
+                    )
+                    request_schema = None
 
-                    if request_schema and (
-                        validation_error := self._validate_json_data(
-                            body_data, request_schema
-                        )
-                    ):
-                        error_message = (
-                            f'OpenAPI validation error for {request.path} '
-                            f'[{request.method}]: Request validation failed - '
-                            f'{validation_error}'
-                        )
-                        self._handle_validation_error(
-                            request, error_message, 'request-payload-validation'
-                        )
+                if request_schema and (
+                    validation_error := self._validate_json_data(
+                        body_data, request_schema
+                    )
+                ):
+                    error_message = (
+                        f'OpenAPI validation error for {request.path} '
+                        f'[{request.method}]: Request validation failed - '
+                        f'{validation_error}'
+                    )
+                    self._handle_validation_error(
+                        request, error_message, 'request-payload-validation'
+                    )
 
         return None
 
@@ -183,15 +192,13 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             response_schema = None
 
         if response_schema:
-            # HEAD and these statuses carry no body by definition, whatever the
-            # schema documents for the operation
-            no_body_expected = request.method.upper() == 'HEAD' or (
-                response.status_code in (204, 304)
-            )
-
-            # Parse response content. An empty body is validated too: the schema
-            # documents one, so its absence is a contract violation.
-            if hasattr(response, 'content') and not no_body_expected:
+            # 204 and 304 carry no body by definition, whatever the schema
+            # documents for the operation. Any other empty body is validated:
+            # the schema documents one, so its absence is a contract violation
+            if hasattr(response, 'content') and response.status_code not in (
+                204,
+                304,
+            ):
                 try:
                     response_data = json.loads(response.content.decode('utf-8'))
                 except (UnicodeDecodeError, json.JSONDecodeError):
@@ -277,7 +284,9 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         status_code: int,
         content_type: str,
     ) -> Optional[dict[str, Any]]:
-        """Extract the validation schema for the response."""
+        """
+        Extract the validation schema for the response.
+        """
         responses = operation_spec.get('responses', {})
 
         # Look for exact status code or 'default'
@@ -372,11 +381,11 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             'openapi_errors.csv',
         )
         if not os.path.isfile(openapi_error_log):
-            with open(openapi_error_log, 'w') as f:
+            with open(openapi_error_log, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow(['endpoint', 'method', 'error_code', 'test'])
 
-        with open(openapi_error_log, 'a') as f:
+        with open(openapi_error_log, 'a', newline='', encoding='utf-8') as f:
             row = [
                 request.path,
                 request.method,
@@ -391,7 +400,9 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             writer.writerow(row)
 
     def _resolve_schema_ref(self, ref: str) -> Optional[dict[str, Any]]:
-        """Resolve a $ref reference in the schema."""
+        """
+        Resolve a $ref reference in the schema.
+        """
         if not ref.startswith('#/'):
             return None
 
@@ -405,14 +416,21 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             return None
 
     def _validate_json_data(self, data: Any, schema: dict[str, Any]) -> str | None:
-        """Validate JSON data against a schema."""
+        """
+        Validate JSON data against a schema and return the first mismatch.
+
+        Only contract violations are returned. A broken `$ref` or an invalid
+        schema fragment is a tooling error, not an endpoint bug: it propagates
+        so it never ends up whitelisted as one.
+        """
         try:
-            jsonschema.validate(data, schema, resolver=self.ref_resolver)
-            return None
+            jsonschema.Draft202012Validator(schema, registry=self.registry).validate(
+                data
+            )
         except jsonschema.ValidationError as e:
             return e.message
-        except Exception as e:
-            return str(e)
+
+        return None
 
     def _validate_query_parameters(
         self, operation_spec: dict[str, Any], request: HttpRequest
