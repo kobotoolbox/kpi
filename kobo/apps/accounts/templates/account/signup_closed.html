@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 {% block content %}
-<div class="registration registration--complete">
+<section class="registration">
   <div class="registration--logo">
     <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>
     {% if not signup_closed_message %}
@@ -16,5 +16,5 @@
       {% trans "We are sorry, but the sign up is currently closed." %}
     </p>
   {% endif %}
-</div>
+</section>
 {% endblock %}
