@@ -21,3 +21,17 @@ EmailReauthenticationRequiredResponse = inline_serializer_class(
         'flows': serializers.ListField(child=serializers.DictField()),
     },
 )
+
+EmailConfirmationRequestPayload = inline_serializer_class(
+    name='EmailConfirmationRequestPayload',
+    fields={
+        'email': serializers.EmailField(),
+    },
+)
+
+EmailConfirmationRequestResponse = inline_serializer_class(
+    name='EmailConfirmationRequestResponse',
+    fields={
+        'detail': serializers.CharField(),
+    },
+)
