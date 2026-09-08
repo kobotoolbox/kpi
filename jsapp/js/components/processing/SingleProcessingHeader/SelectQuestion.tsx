@@ -12,8 +12,8 @@ import {
 import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
-import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -50,7 +50,8 @@ export default function SelectQuestion({
   }
 
   /**
-   * We display all questions with audio response type
+   * We display all questions with audio response type, plus text response
+   * type when the `nlpTextActionsEnabled` feature flag is on.
    */
   const { options, icons } = useMemo(() => {
     const assetContent = asset.content
@@ -60,8 +61,7 @@ export default function SelectQuestion({
       return { options: [], icons: {} }
     }
 
-    const isAudioRow = (type: string) =>
-      type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id
+    const isSupportedRow = (type: SurveyRow['type']) => isNlpSupported(type)
 
     // Mantine's Select has no per-option icon prop, so we keep them in a lookup
     // that `renderOption` (and the left section) can use.
@@ -78,17 +78,17 @@ export default function SelectQuestion({
 
     const result = assetContent.survey
       .filter((question): question is SurveyRow & { $xpath: NonNullable<SurveyRow['$xpath']> } => !!question.$xpath)
-      .filter(({ type }) => isAudioRow(type))
+      .filter(({ type }) => isSupportedRow(type))
       .map((question) => buildOption(question.$xpath, question))
 
-    // Add entries for audio questions answered in this submission but missing
-    // from the current schema (e.g. after a group rename).
+    // Add entries for audio/text questions answered in this submission but
+    // missing from the current schema (e.g. after a group rename).
     for (const submissionXpath of Object.keys(submission)) {
       if (result.some((o) => o.value === submissionXpath)) {
         continue
       }
       const foundRow = findRowByXpathOrLeafName(assetContent, submissionXpath)
-      if (!foundRow || !isAudioRow(foundRow.type)) {
+      if (!foundRow || !isSupportedRow(foundRow.type)) {
         continue
       }
       result.push(buildOption(submissionXpath, foundRow))
