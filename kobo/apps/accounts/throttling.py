@@ -20,6 +20,10 @@ class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
 
     scope = 'email_confirmation_request_email'
 
+    # Retries for the expiring-window race in `_consume()`. Losing it twice
+    # running would need two expiries inside the same handful of microseconds
+    CONSUME_ATTEMPTS = 3
+
     def get_rate(self):
         # Stored as a plain number, so an admin cannot enter a rate string DRF
         # fails to parse. 0 disables the limit; without this it would parse as
@@ -45,17 +49,20 @@ class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
         Count one request against the current window and return the new total
 
         `add` succeeds only when no window is open, so exactly one request starts
-        the count and every other one increments it.
+        the count and every other one increments it. A window expiring between
+        the two calls just means going round again: whoever opens the next window
+        wins, and this request counts against it rather than overwriting it.
         """
-        if self.cache.add(key, 1, self.duration):
-            return 1
+        for _ in range(self.CONSUME_ATTEMPTS):
+            if self.cache.add(key, 1, self.duration):
+                return 1
+            try:
+                return self.cache.incr(key)
+            except ValueError:
+                # The window expired between `add` and `incr`
+                continue
 
-        try:
-            return self.cache.incr(key)
-        except ValueError:
-            # The window expired between `add` and `incr`; start a fresh one
-            self.cache.set(key, 1, self.duration)
-            return 1
+        return 1
 
     def wait(self):
         """
