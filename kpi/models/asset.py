@@ -629,16 +629,22 @@ class Asset(
         """
 
         if version:
-            content = version.to_formpack_schema()['content']
             cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
         else:
-            content = self.content
             cache_key = f'attachment_xpaths:{self.uid}:no-version'
 
         cached_xpaths = cache.get(cache_key)
 
         if cached_xpaths is not None:
             return cached_xpaths
+
+        # Read the content only once the cache has been given its chance:
+        # expanding a version's content is the expensive part of this method,
+        # and `self.content` may be a deferred field
+        if version:
+            content = version.to_formpack_schema()['content']
+        else:
+            content = self.content
 
         survey = content['survey']
 
@@ -672,6 +678,31 @@ class Asset(
         cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
 
         return xpaths_list
+
+    def get_attachment_xpaths_from_version_uids(self, version_uids: list[str]) -> list:
+        """
+        Get the attachment xpaths of several form versions, merged.
+
+        Takes uids, where `get_attachment_xpaths_from_version()` takes an
+        `AssetVersion` and holds the per-version Redis cache both share.
+
+        Versions are merged, never superseded: a question renamed between two
+        of them lives at both xpaths, and keeping only the newest is what makes
+        an attachment collected under the older name unreachable.
+        """
+
+        # A `version_content` weighs several megabytes on a large form.
+        # `iterator()` keeps one version at a time in memory, where iterating
+        # the queryset itself would fill its result cache with all of them
+        versions = self.asset_versions.filter(
+            uid__in=version_uids, deployed=True
+        ).iterator()
+
+        xpaths = set()
+        for version in versions:
+            xpaths.update(self.get_attachment_xpaths_from_version(version) or [])
+
+        return list(xpaths)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
