@@ -25,6 +25,12 @@ import type { AssetUsageListParams } from '../../models/assetUsageListParams'
 
 import type { EmailAddress } from '../../models/emailAddress'
 
+import type { EmailConfirmationRequestPayload } from '../../models/emailConfirmationRequestPayload'
+
+import type { EmailConfirmationRequestResponse } from '../../models/emailConfirmationRequestResponse'
+
+import type { EmailReauthenticationRequiredResponse } from '../../models/emailReauthenticationRequiredResponse'
+
 import type { EmailRequestPayload } from '../../models/emailRequestPayload'
 
 import type { ErrorDetail } from '../../models/errorDetail'
@@ -227,6 +233,161 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
   return query
 }
 
+/**
+ * ## Request another account confirmation email
+
+Sends a fresh confirmation link to an email address that is registered but not yet
+verified. Confirmation links expire (after
+`ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS`, one day by default), so this is how a
+user who let theirs lapse gets a new one.
+
+Requires no authentication: the caller has just followed a dead confirmation link
+and has no session.
+
+Examples:
+```shell
+  curl -X POST https://kf.kobotoolbox.org/api/v2/email-confirmations/ \
+       -H 'Content-Type: application/json' \
+       -d '{"email": "someone@example.com"}'
+```
+
+> Response 200
+```json
+{
+    "detail": "If that email address needs confirming, a new confirmation email has been sent to it."
+}
+```
+
+### Which email is sent
+
+An account that has not verified any address yet is still being activated, and
+receives the account activation email. An account that already has a verified
+address is partway through an email change, and receives the address
+verification email instead.
+
+### The response never says whether the address is registered
+
+The same `200` and the same body come back whether the address belongs to an
+account, belongs to an account that has already verified it, or belongs to no
+account at all. Otherwise the endpoint would let anyone test whether a given
+person holds a KoboToolbox account.
+
+Mail goes out only in the first of those cases. An address that is already
+verified is left alone, so this cannot be used to send unsolicited mail to a
+verified account.
+
+A syntactically invalid address returns `400`. That reveals nothing about who is
+registered, and telling the user their address is malformed is more useful than
+silently doing nothing.
+
+### Throttling
+
+The endpoint is rate limited per requested email address, and returns `429` once
+that limit is reached. Limiting by address rather than by caller means requests
+cannot be spread across many source addresses to flood a single inbox.
+
+The limit is set by the `EMAIL_CONFIRMATION_REQUESTS_PER_HOUR` configuration
+option, and can be changed by an administrator without a restart.
+
+ */
+export type emailConfirmationsCreateResponse200 = {
+  data: EmailConfirmationRequestResponse
+  status: 200
+}
+
+export type emailConfirmationsCreateResponse400 = {
+  data: ErrorValidation
+  status: 400
+}
+
+export type emailConfirmationsCreateResponse429 = {
+  data: ErrorDetail
+  status: 429
+}
+
+export type emailConfirmationsCreateResponseSuccess = emailConfirmationsCreateResponse200 & {
+  headers: Headers
+}
+export type emailConfirmationsCreateResponseError = (
+  | emailConfirmationsCreateResponse400
+  | emailConfirmationsCreateResponse429
+) & {
+  headers: Headers
+}
+
+export type emailConfirmationsCreateResponse =
+  | emailConfirmationsCreateResponseSuccess
+  | emailConfirmationsCreateResponseError
+
+export const getEmailConfirmationsCreateUrl = () => {
+  return `/api/v2/email-confirmations/`
+}
+
+export const emailConfirmationsCreate = async (
+  emailConfirmationRequestPayload: EmailConfirmationRequestPayload,
+  options?: RequestInit,
+): Promise<emailConfirmationsCreateResponse> => {
+  return fetchWithAuth<emailConfirmationsCreateResponse>(getEmailConfirmationsCreateUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(emailConfirmationRequestPayload),
+  })
+}
+
+export const getEmailConfirmationsCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+    TError,
+    { data: EmailConfirmationRequestPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+  TError,
+  { data: EmailConfirmationRequestPayload },
+  TContext
+> => {
+  const mutationKey = ['emailConfirmationsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+    { data: EmailConfirmationRequestPayload }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return emailConfirmationsCreate(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type EmailConfirmationsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof emailConfirmationsCreate>>>
+export type EmailConfirmationsCreateMutationBody = EmailConfirmationRequestPayload
+export type EmailConfirmationsCreateMutationError = ErrorValidation | ErrorDetail
+
+export const useEmailConfirmationsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof emailConfirmationsCreate>>,
+    TError,
+    { data: EmailConfirmationRequestPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getEmailConfirmationsCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
 /**
  * ## List user's organizations
 
@@ -517,6 +678,8 @@ export const useOrganizationsPartialUpdate = <TError = ErrorValidation | ErrorDe
  * ## Retrieve organization asset usage tracker
 
 Tracks the total usage of each asset for the user in the given organization
+
+Use the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long and match anywhere in the name, case-insensitively. The standard query syntax is also supported: `?q=name__icontains:household` for a contains match, while `?q=name:Household survey` is an exact name match.
 
  */
 export type organizationsAssetUsageListResponse200 = {
@@ -3535,6 +3698,78 @@ export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>
 The new email will be unverified and replace existing unverified, non-primary emails.
 New email is not usable until verified.
 
+### Re-authentication
+
+Changing the email address is a sensitive action, so a valid session is not enough
+on its own: the user must have authenticated recently. "Recently" means within
+`ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the
+account has available must be fresh, the password, plus MFA when it is enabled.
+
+This section describes browser sessions. Requests authenticated with a stateless
+credential (token, Basic or OAuth2) are re-authenticated differently, in the
+request body, as described below.
+
+When re-authentication is needed the endpoint responds `403` without touching any
+email address:
+
+```json
+{
+  "detail": "Re-authentication is required for this action.",
+  "code": "reauthentication_required",
+  "flows": [
+    {"id": "reauthenticate"},
+    {"id": "mfa_reauthenticate", "types": ["totp"]}
+  ]
+}
+```
+
+`code` is the field to branch on: `detail` is translated, so it cannot be
+matched against reliably.
+
+`flows` lists the steps the client must walk the user through before retrying,
+in the same shape allauth's headless API uses — `reauthenticate` for the
+password, and `mfa_reauthenticate` in addition when the account has MFA enabled.
+Once every listed flow is completed the original request will succeed.
+
+### Re-authenticating without a browser session
+
+Requests authenticated with a stateless credential (token, Basic or OAuth2) have
+no session for allauth to record a re-authentication in, so they carry the proof
+in the request body instead:
+
+```json
+{
+  "email": "new@example.com",
+  "current_password": "…",
+  "mfa_code": "123456"
+}
+```
+
+`current_password` is required whenever the account has a usable password.
+`mfa_code` is required in addition when MFA is enabled, and accepts either a TOTP
+code or a recovery code. Both are rejected with a `400` naming the offending
+field, and neither is needed for an SSO-only account that has neither.
+
+Note that Basic authentication is refused outright for MFA-enabled accounts, so
+in practice the `mfa_code` case applies to token and OAuth2 callers.
+
+This endpoint is rate limited.
+
+### Trying this from the API docs
+
+A live KoboToolbox session takes precedence over the token set in **Authorize**:
+`SessionAuthentication` comes first in `DEFAULT_AUTHENTICATION_CLASSES`, so if you
+are logged in, that is what authenticates the call, and the token is never read.
+
+* **To exercise the session payload**, first call
+  `POST /api/v2/allauth/browser/v1/auth/reauthenticate` with your password, then
+  send `{"email": "…"}` here within `ACCOUNT_REAUTHENTICATION_TIMEOUT`. Without
+  that first call you will get the `403` above.
+* **To exercise the token payloads**, open the docs in a private window so that no
+  session cookie is sent, get your token from `/token/`, and authorize with the
+  full value including the keyword: `Token <your-token>`, not the bare key.
+  Swagger sends the header verbatim, so omitting the keyword returns `401`.
+
  */
 export type meEmailsCreateResponse201 = {
   data: EmailAddress
@@ -3551,10 +3786,25 @@ export type meEmailsCreateResponse401 = {
   status: 401
 }
 
+export type meEmailsCreateResponse403 = {
+  data: EmailReauthenticationRequiredResponse
+  status: 403
+}
+
+export type meEmailsCreateResponse429 = {
+  data: ErrorDetail
+  status: 429
+}
+
 export type meEmailsCreateResponseSuccess = meEmailsCreateResponse201 & {
   headers: Headers
 }
-export type meEmailsCreateResponseError = (meEmailsCreateResponse400 | meEmailsCreateResponse401) & {
+export type meEmailsCreateResponseError = (
+  | meEmailsCreateResponse400
+  | meEmailsCreateResponse401
+  | meEmailsCreateResponse403
+  | meEmailsCreateResponse429
+) & {
   headers: Headers
 }
 
@@ -3576,7 +3826,10 @@ export const meEmailsCreate = async (
   })
 }
 
-export const getMeEmailsCreateMutationOptions = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
+export const getMeEmailsCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail | EmailReauthenticationRequiredResponse,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,
@@ -3605,9 +3858,12 @@ export const getMeEmailsCreateMutationOptions = <TError = ErrorValidation | Erro
 
 export type MeEmailsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof meEmailsCreate>>>
 export type MeEmailsCreateMutationBody = EmailRequestPayload
-export type MeEmailsCreateMutationError = ErrorValidation | ErrorDetail
+export type MeEmailsCreateMutationError = ErrorValidation | ErrorDetail | EmailReauthenticationRequiredResponse
 
-export const useMeEmailsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
+export const useMeEmailsCreate = <
+  TError = ErrorValidation | ErrorDetail | EmailReauthenticationRequiredResponse,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,

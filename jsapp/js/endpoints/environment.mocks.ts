@@ -1,11 +1,15 @@
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
  * Production-like environment configuration for testing.
  * Contains complete lists of countries, languages, and sectors that the UI depends on.
+ *
+ * Exported so a story overriding a nested object can spread the default one first - see
+ * {@link makeEnvironmentMock}.
  */
-const environmentResponse = {
+export const environmentResponse = {
   registration_open: true,
   terms_of_service_url: '',
   privacy_policy_url: '',
@@ -437,11 +441,21 @@ const environmentResponse = {
   terms_of_service__sitewidemessage__exists: false,
   open_rosa_server: 'http://kc.kobo.local',
   allow_self_account_deletion: true,
-}
+  // `satisfies` rather than a type annotation: still fails the build when the generated model gains
+  // or renames a field, but keeps the literal's exact types for anyone reading values off it.
+} satisfies EnvironmentResponse
 
 /**
  * Mock API for environment config using Orval-generated handler with production-like data.
- * Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Use it in Storybook tests in `parameters.msw.handlers[]`, overriding whatever the story needs to
+ * differ.
+ *
+ * The merge is shallow, so a nested object has to be passed in full - spread
+ * {@link environmentResponse}'s copy of it first.
  */
-const environmentMock = getApiV2EnvironmentRetrieveMockHandler(environmentResponse)
+export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
+  getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
+
+/** The production-like defaults, registered globally in `.storybook/preview.tsx`. */
+const environmentMock = makeEnvironmentMock()
 export default environmentMock

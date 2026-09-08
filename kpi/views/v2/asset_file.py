@@ -1,5 +1,7 @@
 # coding: utf-8
-from django.http import HttpResponseRedirect
+from django.core.validators import URLValidator
+from django.core.validators import ValidationError as DjangoValidationError
+from django.http import Http404, HttpResponseRedirect
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -9,6 +11,7 @@ from drf_spectacular.utils import (
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from ssrf_protect.exceptions import SSRFProtectException
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
@@ -29,6 +32,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_201_created_response,
     open_api_204_empty_response,
 )
+from kpi.utils.ssrf import validate_url_against_ssrf
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -205,8 +209,16 @@ class AssetFileViewSet(
 
         asset_file = self.get_object()
 
-        if asset_file.metadata.get('redirect_url'):
-            return HttpResponseRedirect(asset_file.metadata.get('redirect_url'))
+        if redirect_url := asset_file.metadata.get('redirect_url'):
+            # The stored URL may predate validation (legacy rows, or rows
+            # written by `sync_kobocat_form_media`), so re-validate before
+            # sending clients there
+            try:
+                URLValidator(schemes=['http', 'https'])(redirect_url)
+                validate_url_against_ssrf(redirect_url)
+            except (DjangoValidationError, SSRFProtectException):
+                raise Http404
+            return HttpResponseRedirect(redirect_url)
 
         view = self.PrivateContentView.as_view(
             model=AssetFile,

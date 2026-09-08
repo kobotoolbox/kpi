@@ -20,6 +20,10 @@ export type OrganizationsAssetUsageListParams = {
    */
   ordering?: string
   /**
+   * Filter the results with search query
+   */
+  q?: string
+  /**
    * Paginate results with start parameter
    */
   start?: number
