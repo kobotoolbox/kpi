@@ -2,7 +2,6 @@ import { Group, Stack } from '@mantine/core'
 import { IconWorldFilled } from '@tabler/icons-react'
 import React from 'react'
 import autoBind from 'react-autobind'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
@@ -30,7 +29,7 @@ import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify, recordKeys } from '#/utils'
+import { copyToClipboard, formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import FormHistory from './FormHistory'
 
@@ -295,6 +294,14 @@ class FormLanding extends React.Component {
     )
   }
 
+  async copyCollectLink(text) {
+    if (await copyToClipboard(text)) {
+      notify(t('Copied to clipboard'))
+    } else {
+      notify.error(t('Could not copy to clipboard'))
+    }
+  }
+
   renderCollectLink() {
     const chosenMethod = this.state.selectedCollectMethod
     const chosenMethodLink = this.state.deployment__links[chosenMethod] || null
@@ -326,29 +333,18 @@ class FormLanding extends React.Component {
 
     if (chosenMethod === COLLECTION_METHODS.iframe_url.id) {
       return (
-        <CopyToClipboard
-          text={`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`}
-          onCopy={() => {
-            notify(t('Copied to clipboard'))
-          }}
-          options={{ format: 'text/plain' }}
-        >
-          <Button type='secondary' size='m' label={t('Copy')} />
-        </CopyToClipboard>
+        <Button
+          type='secondary'
+          size='m'
+          onClick={() => this.copyCollectLink(`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`)}
+          label={t('Copy')}
+        />
       )
     }
 
     return (
       <React.Fragment>
-        <CopyToClipboard
-          text={chosenMethodLink}
-          onCopy={() => {
-            notify(t('Copied to clipboard'))
-          }}
-          options={{ format: 'text/plain' }}
-        >
-          <Button type='secondary' size='m' label={t('Copy')} />
-        </CopyToClipboard>
+        <Button type='secondary' size='m' onClick={() => this.copyCollectLink(chosenMethodLink)} label={t('Copy')} />
 
         <Button
           type='secondary'

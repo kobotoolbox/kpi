@@ -23,6 +23,9 @@ const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/co
 const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formXform'))
 const FormJson = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formJson'))
 const SectionNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/sectionNotFound'))
+const SubmissionRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ '#/components/submissions/single/submissionRoute'),
+)
 const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formNotFound'))
 
 export const router = createHashRouter(
@@ -190,6 +193,15 @@ export const router = createHashRouter(
                 element={
                   <PermProtectedRoute
                     protectedComponent={FormSubScreens}
+                    requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
+                  />
+                }
+              />
+              <Route
+                path={ROUTES.FORM_SUBMISSION}
+                element={
+                  <PermProtectedRoute
+                    protectedComponent={SubmissionRoute}
                     requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                   />
                 }

@@ -25,7 +25,7 @@ import { QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { formatDate, formatTimeDate } from '#/utils'
-import AudioPlayer from '../common/audioPlayer'
+import AudioPlayer from '../../common/audioPlayer'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row')

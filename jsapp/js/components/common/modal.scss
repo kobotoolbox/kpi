@@ -137,7 +137,6 @@ $z-modal-x: 10;
 
   // Some modals have light background for the header, so we need some other
   // color than white
-  .modal-submission &,
   .modal--media-preview &,
   .modal--mfa-setup & {
     color: colors.$kobo-gray-600;
