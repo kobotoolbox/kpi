@@ -221,7 +221,7 @@ CONSTANCE_CONFIG = {
         '',
         'List of email domains configured across all managed SocialApps. '
         'Note: these domains are managed per-app through the email_domains field in '
-        'Admin > SocialApp.',
+        'Account Extras > Social app custom datas.',
         'disabled_textarea',
     ),
     'SHOW_KOBOTOOLBOX_LOGO': (
