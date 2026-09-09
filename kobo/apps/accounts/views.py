@@ -190,6 +190,118 @@ class EmailAddressViewSet(
 
 @extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
+    post=extend_schema(
+        description=read_md('accounts', 'email_confirmations/create.md'),
+        request={'application/json': EmailConfirmationRequestPayload},
+        responses=open_api_200_ok_response(
+            EmailConfirmationRequestResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            raise_throttled=True,
+            validations_errors={'email': ['Enter a valid email address.']},
+        ),
+        examples=get_email_confirmation_request_examples(),
+    ),
+)
+class EmailConfirmationView(APIView):
+    """
+    Send another account confirmation email, on request
+
+    Available actions:
+    - create         → POST     /api/v2/email-confirmations/
+
+    Documentation:
+    - docs/api/v2/email_confirmations/create.md
+
+    The response is identical whether the address is unverified, already verified,
+    or unknown, so the endpoint cannot be used to discover who holds an account.
+    Mail is only ever sent in the first of those cases.
+
+    Which email that is depends on the account: one with nothing verified yet is
+    being activated and gets the activation email, while one that already has a
+    verified address is partway through an email change and gets the address
+    verification email.
+    """
+
+    permission_classes = (AllowAny,)
+    versioning_class = APIV2Versioning
+    serializer_class = EmailConfirmationRequestSerializer
+    throttle_classes = (EmailConfirmationRequestEmailThrottle,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        for address in self._get_unverified_addresses(
+            serializer.validated_data['email']
+        ):
+            # An account with nothing verified yet is being activated; one that
+            # already has a verified address is changing it. Different moments in
+            # a user's life, so they get different emails
+            self._send_confirmation(
+                request,
+                address,
+                activation=not address.user_has_verified_address,
+            )
+
+        return Response(
+            {'detail': EMAIL_CONFIRMATION_REQUESTED_DETAIL},
+            status=status.HTTP_200_OK,
+        )
+
+    def _get_unverified_addresses(self, email):
+        """
+        Get every unverified row for this address whose owner is still active
+
+        One address can belong to several accounts, and each owner is entitled to
+        their own link. The annotation says whether that owner already has a
+        verified address, which is what tells an activation apart from a pending
+        email change.
+
+        Matched on the lowercased address, the way allauth looks this table up,
+        because `iexact` compiles to `UPPER(email) = UPPER(%s)`, which no index
+        covers and which turns into a sequential scan over a row per user.
+        """
+        return (
+            EmailAddress.objects.filter(
+                email=email.strip().lower(), verified=False, user__is_active=True
+            )
+            .annotate(
+                user_has_verified_address=Exists(
+                    EmailAddress.objects.filter(
+                        user_id=OuterRef('user_id'), verified=True
+                    )
+                )
+            )
+            .select_related('user')
+        )
+
+    def _send_confirmation(self, request, address, activation):
+        """
+        `activation` picks the template. allauth exposes that choice as its
+        `signup` flag, which in the send path selects the "activate your account"
+        email over the "verify your address" one and does nothing else, so a
+        resent activation link belongs on it even though no signup is happening
+
+        Delivery failures are logged rather than raised: mail is only ever
+        attempted for a registered address, so a 5xx would confirm the address is
+        registered.
+        """
+        try:
+            # Not allauth's `send_verification_email_to_address()`: that also
+            # queues a Django message, which an anonymous caller receives as a
+            # cookie reading "Confirmation email sent to <address>."
+            address.send_confirmation(request, signup=activation)
+        except Exception:
+            logging.exception(
+                'Failed to send a requested confirmation email for EmailAddress %s',
+                address.pk,
+            )
+
+
+@extend_schema(tags=['User / team / organization / usage'])
+@extend_schema_view(
     destroy=extend_schema(
         description=read_md('accounts', 'me/social/delete.md'),
         responses=open_api_204_empty_response(

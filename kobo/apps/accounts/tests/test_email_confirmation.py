@@ -1,3 +1,4 @@
+import threading
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
@@ -11,6 +12,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from kobo.apps.accounts.constants import EMAIL_CONFIRMATION_REQUESTED_DETAIL
+from kobo.apps.accounts.throttling import EmailConfirmationRequestEmailThrottle
 
 
 def make_user(username, email, verified, is_active=True):
@@ -229,6 +231,33 @@ class EmailConfirmationRequestThrottleTestCase(APITestCase):
         self.post('PENDING@example.com')
         response = self.post('Pending@Example.com')
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    def test_counting_survives_concurrent_requests(self):
+        """
+        Overlapping requests must not each be counted as the first one. DRF's
+        stock throttle reads, appends to and rewrites a list of timestamps as
+        three separate steps, so a burst can slip past the limit and still spend
+        only a single unit of the budget, making the burst repeatable
+        """
+        throttle = EmailConfirmationRequestEmailThrottle()
+        key = 'throttle_test_concurrency'
+        counts = []
+        lock = threading.Lock()
+
+        def hit():
+            count = throttle._consume(key)
+            with lock:
+                counts.append(count)
+
+        threads = [threading.Thread(target=hit) for _ in range(20)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert sorted(counts) == list(
+            range(1, 21)
+        ), 'each request must get its own number; duplicates mean lost counts'
 
     def test_other_addresses_keep_their_own_budget(self):
         """

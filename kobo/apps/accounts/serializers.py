@@ -48,6 +48,18 @@ class EmailAddressSerializer(serializers.ModelSerializer):
         )
 
 
+class EmailConfirmationRequestSerializer(serializers.Serializer):
+    """
+    Input for the unauthenticated "resend the confirmation email" endpoint
+
+    Validates the format of the address and nothing else. Whether the address
+    belongs to an account, and whether that account has already verified it, must
+    not change the response in any way, so neither is checked here.
+    """
+
+    email = serializers.EmailField(max_length=allauth_account_settings.EMAIL_MAX_LENGTH)
+
+
 # https://github.com/iMerica/dj-rest-auth/blob/6b394d9d6bb1f2979ea2d31e5a1199368d5616c1/dj_rest_auth/registration/serializers.py#L22
 # https://gitlab.com/glitchtip/glitchtip-backend/-/blob/master/users/serializers.py#L40
 class SocialAccountSerializer(serializers.ModelSerializer):
