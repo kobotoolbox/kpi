@@ -82,6 +82,13 @@ export const emailVerificationInfoMock = (email: string, display: string) =>
     }),
   )
 
+/**
+ * The activation key lookup itself breaking, which is a 5xx: the one lookup outcome `fetchAllauth` throws
+ * on. `once` leaves the handler behind it to answer the retry.
+ */
+export const emailVerificationServerErrorMock = ({ once }: { once?: boolean } = {}) =>
+  http.get(EMAIL_VERIFY_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })
+
 /** Looking up an activation key that has expired or was already used. */
 export const emailVerificationInvalidKeyMock = () =>
   http.get(EMAIL_VERIFY_URL, () =>
