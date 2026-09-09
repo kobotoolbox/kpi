@@ -35,9 +35,12 @@ def run():
             if not batch:
                 break
 
-            # `date_modified` is deliberately left untouched: these objects have
-            # not been updated for a while, which is what makes `task_restarter`
-            # treat them as stuck and restart them
-            model.objects.filter(pk__in=batch).update(status=TrashStatus.IN_PROGRESS)
-            released += len(batch)
+            # The predicates are reapplied so that a row restarted by a superuser
+            # in the meantime, which may have failed again with a real error by
+            # now, keeps its newer state. `date_modified` is deliberately left
+            # untouched: these objects have not been updated for a while, which
+            # is what makes `task_restarter` treat them as stuck and restart them
+            released += model.objects.filter(
+                empty_errors, pk__in=batch, status=TrashStatus.FAILED
+            ).update(status=TrashStatus.IN_PROGRESS)
             logging.info(f'[LRM 0032] released {released} {model.__name__} objects')
