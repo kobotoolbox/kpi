@@ -105,11 +105,11 @@ _registration.scss                  @magicznyleszek @p2edwards
 #### Documentation section
 /CODING_STYLE_BE.md                 @noliveleger
 /CODING_STYLE_FE.md                 @jamesrkiger @magicznyleszek
-/CONTRIBUTING.md                    @jamesrkiger @magicznyleszek @noliveleger
-/README.md                          @jamesrkiger @jnm @magicznyleszek @noliveleger
-/.github/CODEOWNERS                 @jamesrkiger @jnm @noliveleger @magicznyleszek
+/CONTRIBUTING.md                    @jamesrkiger @magicznyleszek @noliveleger @Akuukis
+/README.md                          @jamesrkiger @jnm @magicznyleszek @noliveleger @Akuukis
+/.github/CODEOWNERS                 @jamesrkiger @jnm @noliveleger @magicznyleszek @Akuukis
 /.github/FUNDING.yml                @jamesrkiger @jnm @noliveleger @magicznyleszek
-/.github/ISSUE_TEMPLATE.md          @jamesrkiger @jnm @noliveleger @magicznyleszek
-/.github/PULL_REQUEST_TEMPLATE.md   @jamesrkiger @jnm @noliveleger @magicznyleszek
+/.github/ISSUE_TEMPLATE.md          @jamesrkiger @jnm @noliveleger @magicznyleszek @Akuukis
+/.github/PULL_REQUEST_TEMPLATE.md   @jamesrkiger @jnm @noliveleger @magicznyleszek @Akuukis
 
 
