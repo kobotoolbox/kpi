@@ -148,7 +148,7 @@ export default function StepCreateAutomated({
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
-      <Flex component='section' direction='row' align='center' justify='center' mb='xxl'>
+      <Flex component='section' direction='row' align='center' justify='center' mb='xl'>
         <Group gap='xs'>
           <TextInput
             readOnly
