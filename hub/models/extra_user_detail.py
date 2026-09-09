@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.db import models
@@ -29,6 +30,10 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         verbose_name='SSO exempt',
         help_text='Exempt from managed-SSO-only login',
     )
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self._initially_sso_exempt = self.sso_exempt
 
     def __str__(self):
         return "{}'s data: {}".format(self.user.__str__(), repr(self.data))

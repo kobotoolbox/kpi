@@ -6,7 +6,7 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
-from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
+from kobo.apps.accounts.utils import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.accounts.tests.utils import MockProvider
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User

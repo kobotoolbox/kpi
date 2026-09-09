@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import ANY, MagicMock, patch
 
+import freezegun
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from constance.test import override_config
 from ddt import data, ddt, unpack
@@ -21,8 +22,6 @@ from kpi.tests.utils import baker_generators  # noqa
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
 from ..tasks import (
-    DEFAULT_IN_APP_MESSAGE_BODY,
-    create_inapp_message,
     managed_sso_sweep,
     notify_unlinked_users,
     update_linked_user,
@@ -31,7 +30,7 @@ from ..tasks import (
 from ..utils import (
     SOCIAL_APP_IDENTIFIER,
     remove_stale_managed_sso_reminders,
-    users_needing_update,
+    users_needing_update, update_or_create_in_app_message, DEFAULT_IN_APP_MESSAGE_BODY,
 )
 from .utils import MockProvider
 
@@ -460,6 +459,25 @@ class TestManagedSsoCelery(TestCase):
         )
         InAppMessageUsers.objects.get(user=user, in_app_message=message)
 
+    def test_message_created_even_if_no_unlinked_users(self):
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
+        )
+        managed_domain = SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain=self.default_domain
+        )
+        now = timezone.now()
+        with freezegun.freeze_time(now):
+            update_users(custom_data.pk, managed_domain.domain)
+        in_app_message = InAppMessage.objects.get(
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            generic_related_objects__contains={
+                SOCIAL_APP_IDENTIFIER: self.social_app.id
+            }
+        )
+        assert in_app_message.valid_until == now
+        assert not InAppMessageUsers.objects.filter(in_app_message=in_app_message).exists()
+
     def test_update_users_only_updates_once(self):
         custom_data = SocialAppCustomData.objects.create(
             social_app=self.social_app, managed=True
@@ -561,7 +579,7 @@ class TestManagedSsoCelery(TestCase):
         ).exists()
 
     def test_create_inapp_message_defaults_to_constant_body(self):
-        message = create_inapp_message(self.social_app)
+        message = update_or_create_in_app_message(self.social_app)
         assert message.body == DEFAULT_IN_APP_MESSAGE_BODY
 
     def test_managed_sso_sweep(self):

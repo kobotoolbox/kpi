@@ -1,20 +1,23 @@
+from datetime import timedelta
+
 import constance
 from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 from allauth.account.utils import cleanup_email_addresses
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.signals import social_account_added
 from django.contrib.auth import update_session_auth_hash
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from ..help.models import InAppMessage, InAppMessageUsers, MessageType
 from .models import SocialAppCustomData, SocialAppManagedDomain
 from .utils import (
     SOCIAL_APP_IDENTIFIER,
     remove_managed_sso_reminders,
-    user_account_is_managed_by_sso,
+    user_account_is_managed_by_sso, update_or_create_in_app_message, DEFAULT_IN_APP_MESSAGE_BODY,
 )
 
 
@@ -133,3 +136,44 @@ def enforce_managed_sso(sender=None, **kwargs):
         user.set_unusable_password()
         user.save()
         update_session_auth_hash(request, user)
+
+
+@receiver(post_save, sender=ExtraUserDetail)
+def manage_sso_exemption_change(sender=None, instance=None, **kwargs):
+    now = timezone.now()
+    user = instance.user
+    managing_sso = SocialAppManagedDomain.get_managing_sso(user)
+    custom_data = SocialAppCustomData.objects.get(social_app=managing_sso)
+    if instance._initially_sso_exempt == instance.sso_exempt or not managing_sso:
+        return
+    # non-exempt became exempt, delete their notification and expire the message if necessary
+    if not instance._initially_sso_exempt:
+        InAppMessageUsers.objects.filter(
+            user=instance.user,
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
+        ).delete()
+        InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: managing_sso.pk},
+            inappmessageusers__isnull=True,
+        ).update(valid_until=now)
+        return
+    # exempt became non-exempt, either update existing account or, if notifications were requested, notify them
+    has_social_account = SocialAccount.objects.filter(
+        user=user,
+        provider=managing_sso.provider_id,
+    ).exists()
+    if has_social_account:
+        user.set_unusable_password()
+        user.save()
+    else:
+        if custom_data.send_in_app_message:
+            existing_message = update_or_create_in_app_message(
+                social_app=managing_sso,
+                body = custom_data.in_app_message_body or DEFAULT_IN_APP_MESSAGE_BODY
+            )
+            # this will un-expire the message reminder if it was previously expired after all other users
+            # linked their accounts
+            existing_message.valid_until = now + timedelta(days=365)
+            existing_message.save()
+            InAppMessageUsers.objects.create(user=user, in_app_message=existing_message)

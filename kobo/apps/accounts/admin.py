@@ -20,8 +20,8 @@ from kobo.apps.accounts.models import (
     SocialAppCustomData,
     SocialAppManagedDomain,
 )
-from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY, update_users
-from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update
+from kobo.apps.accounts.tasks import update_users
+from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update, DEFAULT_IN_APP_MESSAGE_BODY
 
 
 @admin.register(EmailContent)
@@ -83,6 +83,7 @@ class DomainInline(admin.TabularInline):
 @admin.register(SocialAppCustomData)
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
     inlines = [DomainInline]
+    exclude = ['notify_on_manage_changed', 'notification_changed']
 
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
@@ -258,6 +259,10 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj._initially_managed_pre_save = obj._initially_managed
         obj._initial_domains_pre_save = obj._initial_domains
+        send_message = request.POST.get('send_in_app_message', 'off') == 'on'
+        in_app_message_body = request.POST.get('in_app_message_body') if send_message else None
+        obj.notify_on_manage_changed = send_message
+        obj.notification_message = in_app_message_body
         super().save_model(request, obj, form, change)
 
     def save_related(self, request: HttpRequest, form, formsets, change) -> None:
@@ -284,9 +289,7 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     update_users.delay(
                         social_app_custom_data_id=instance.pk,
                         domain=domain,
-                        requesting_user_id=request.user.pk,
-                        send_in_app_message=send_message,
-                        in_app_message_body=request.POST.get('in_app_message_body'),
+                        requesting_user_id=request.user.pk
                     )
 
             transaction.on_commit(update_all_domains)

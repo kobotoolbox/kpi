@@ -98,6 +98,8 @@ class SocialAppCustomData(models.Model):
     managed = models.BooleanField(
         default=False, help_text='Allow clients to manage users exclusively through SSO'
     )
+    send_in_app_message = models.BooleanField(default=False)
+    in_app_message_body = models.CharField(null=True)
 
     def __str__(self):
         return f'{self.social_app.name} Custom Data'
@@ -156,3 +158,20 @@ class SocialAppManagedDomain(models.Model):
         if self.domain:
             self.domain = self.domain.strip().lower()
         super().save(*args, **kwargs)
+
+    @classmethod
+    def get_managing_sso(cls, user):
+        domain = get_normalized_domain(user.email)
+        managed_domain = cls.objects.filter(
+            domain__iexact=domain, social_app__managed=True
+        ).first()
+        if managed_domain:
+            return managed_domain.social_app.social_app
+        return None
+
+
+def get_normalized_domain(email):
+    _, separator, domain = email.rpartition('@')
+    if not separator:
+        return ''
+    return domain.strip().lower()
