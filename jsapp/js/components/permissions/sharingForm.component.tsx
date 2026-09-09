@@ -183,7 +183,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
     return (
       <Stack
-        gap='xl'
+        gap='xxl'
         // The parent modal has `closeOnEscape` disabled (see `openSharingModal`), so we handle Escape here. Nested
         // confirmation modals render in their own portal, so their Escape presses never bubble up to this handler.
         onKeyDown={(evt: React.KeyboardEvent) => {
