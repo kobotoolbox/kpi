@@ -1,6 +1,13 @@
 import chai from 'chai'
 import type { SocialApp } from '#/api/models/socialApp'
-import { findManagedSsoProvider, validateEmail, validatePasswordConfirm, validateUsername } from './registerValidation'
+import { EMPTY_SIGNUP_METADATA_VALUES, type SignupMetadataValues } from './registerMetadataFields'
+import {
+  findManagedSsoProvider,
+  getMetadataValidators,
+  validateEmail,
+  validatePasswordConfirm,
+  validateUsername,
+} from './registerValidation'
 
 const USERNAME_MESSAGE =
   'Usernames must be between 2 and 30 characters in length, and may only consist of lowercase letters, numbers, and underscores, where the first character must be a letter.'
@@ -74,6 +81,53 @@ describe('findManagedSsoProvider', () => {
   it('returns undefined for an address with no domain, and when there are no social apps', () => {
     chai.expect(findManagedSsoProvider('someone', [managedApp])).to.equal(undefined)
     chai.expect(findManagedSsoProvider('someone@example.org', undefined)).to.equal(undefined)
+  })
+})
+
+describe('getMetadataValidators', () => {
+  /** The rules read the other metadata values, for the organization skip logic. */
+  const formValues = (overrides: Partial<SignupMetadataValues> = {}) => ({
+    metadata: { ...EMPTY_SIGNUP_METADATA_VALUES, ...overrides },
+  })
+
+  const configured = (name: string, required: boolean) => ({ [name]: { name, label: name, required } })
+
+  it('passes a blank field the instance does not ask for', () => {
+    chai.expect(getMetadataValidators({}).country('', formValues())).to.equal(null)
+  })
+
+  it('passes a blank field the instance asks for but does not require', () => {
+    chai.expect(getMetadataValidators(configured('country', false)).country('', formValues())).to.equal(null)
+  })
+
+  it('rejects a blank required field, whitespace included', () => {
+    const validators = getMetadataValidators(configured('name', true))
+    chai.expect(validators.name('   ', formValues())).to.equal('Required field')
+    chai.expect(validators.name('Caroline Herschel', formValues({ name: 'Caroline Herschel' }))).to.equal(null)
+  })
+
+  it('rejects an unticked required checkbox', () => {
+    const validators = getMetadataValidators(configured('newsletter_subscription', true))
+    chai.expect(validators.newsletter_subscription(false, formValues())).to.equal('Required field')
+    chai.expect(validators.newsletter_subscription(true, formValues())).to.equal(null)
+  })
+
+  it('stops requiring the organization fields once there is no organization', () => {
+    const validators = getMetadataValidators({
+      ...configured('organization_type', true),
+      ...configured('organization', true),
+      ...configured('organization_website', true),
+    })
+
+    chai.expect(validators.organization('', formValues({ organization_type: 'non-profit' }))).to.equal('Required field')
+    chai.expect(validators.organization('', formValues({ organization_type: 'none' }))).to.equal(null)
+    chai.expect(validators.organization_website('', formValues({ organization_type: 'none' }))).to.equal(null)
+  })
+
+  it('keeps requiring the organization when the type dropdown is not configured', () => {
+    // Without the dropdown there is no way to say "no organization", so there is nothing to skip.
+    const validators = getMetadataValidators(configured('organization', true))
+    chai.expect(validators.organization('', formValues({ organization_type: 'none' }))).to.equal('Required field')
   })
 })
 

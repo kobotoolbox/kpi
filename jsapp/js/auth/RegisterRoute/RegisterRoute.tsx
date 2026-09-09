@@ -115,6 +115,9 @@ export default function RegisterRoute() {
       >
         <RegisterForm
           socialApps={data?.socialApps}
+          userMetadataFields={data?.userMetadataFields}
+          sectorChoices={data?.sectorChoices}
+          countryChoices={data?.countryChoices}
           termsOfServiceUrl={data?.termsOfServiceUrl}
           privacyPolicyUrl={data?.privacyPolicyUrl}
           isConfigurationPending={isPending}

@@ -1,6 +1,7 @@
 import { Anchor, Checkbox, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
+import type { MetadataField } from '#/api/models/metadataField'
 import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
@@ -8,12 +9,23 @@ import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
+import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { PATHS } from '#/router/routerConstants'
 import {
+  EMPTY_SIGNUP_METADATA_VALUES,
+  SIGNUP_METADATA_FIELD_NAMES,
+  type SignupMetadataFieldName,
+  type SignupMetadataValues,
+  getMetadataFieldOptions,
+  getSignupMetadataFields,
+  isMetadataFieldRequired,
+  isMetadataFieldShown,
+} from './registerMetadataFields'
+import {
+  getMetadataValidators,
   validateEmail,
-  validateFullName,
   validatePassword,
   validatePasswordConfirm,
   validateTermsOfService,
@@ -21,13 +33,13 @@ import {
 } from './registerValidation'
 
 interface RegisterFormValues {
-  name: string
   email: string
   username: string
   password: string
   passwordConfirm: string
-  newsletterSubscription: boolean
   termsOfService: boolean
+  /** Instance configuration from `USER_METADATA_FIELDS`, so both the payload and a field error map correctly */
+  metadata: SignupMetadataValues
 }
 
 /**
@@ -35,6 +47,20 @@ interface RegisterFormValues {
  * counterpart on the endpoint, so an error can never point at them.
  */
 const SERVER_KNOWN_FIELDS: ReadonlyArray<keyof RegisterFormValues> = ['email', 'username', 'password']
+
+/**
+ * The configured fields that get their own block, below the credentials. `name` sits with the identity
+ * fields at the top and `newsletter_subscription` with the legal checkbox, so those two are placed by hand.
+ */
+const EXTRA_METADATA_FIELD_NAMES: SignupMetadataFieldName[] = SIGNUP_METADATA_FIELD_NAMES.filter(
+  (name) => name !== 'name' && name !== 'newsletter_subscription',
+)
+
+/** Only for the fields that render as text inputs */
+const METADATA_AUTOCOMPLETE: Partial<Record<SignupMetadataFieldName, string>> = {
+  organization: 'organization',
+  organization_website: 'url',
+}
 
 /** Turns every `[...]` marker into a link, taking the URLs in the order they are given. */
 function withLegalLinks(sentence: string, urls: string[]) {
@@ -74,6 +100,9 @@ function legalSentence(termsOfServiceUrl: string | null | undefined, privacyPoli
 export interface RegisterFormProps {
   /** From `/api/v2/environment/`. Used to spot an email domain that has to sign in through SSO. */
   socialApps: SocialApp[] | undefined
+  userMetadataFields: MetadataField[] | undefined
+  sectorChoices: string[][] | undefined
+  countryChoices: string[][] | undefined
   termsOfServiceUrl: string | null | undefined
   privacyPolicyUrl: string | null | undefined
   /** Blocks submitting until `/environment` loads */
@@ -86,6 +115,9 @@ export interface RegisterFormProps {
 
 export default function RegisterForm({
   socialApps,
+  userMetadataFields,
+  sectorChoices,
+  countryChoices,
   termsOfServiceUrl,
   privacyPolicyUrl,
   isConfigurationPending,
@@ -93,21 +125,21 @@ export default function RegisterForm({
   onSignedIn,
 }: RegisterFormProps) {
   const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
+  const metadataFields = getSignupMetadataFields(userMetadataFields)
 
   const form = useForm<RegisterFormValues>({
-    // The uncontrolled mode is recommended by Mantine Corp
-    mode: 'uncontrolled',
+    // Controlled, not Mantine's recommended uncontrolled mode: the organization dropdown decides whether
+    // two other inputs are on screen, and an uncontrolled form does not re-render as values change.
+    mode: 'controlled',
     initialValues: {
-      name: '',
       email: '',
       username: '',
       password: '',
       passwordConfirm: '',
-      newsletterSubscription: false,
       termsOfService: false,
+      metadata: { ...EMPTY_SIGNUP_METADATA_VALUES },
     },
     validate: {
-      name: validateFullName,
       email: (value) => validateEmail(value, socialApps),
       username: validateUsername,
       password: validatePassword,
@@ -115,8 +147,14 @@ export default function RegisterForm({
       // No checkbox to tick when there is no legal document, so nothing to require. Mantine reads these
       // rules fresh on every render, so this follows the label once `/environment` lands.
       termsOfService: legalLabel ? validateTermsOfService : undefined,
+      metadata: getMetadataValidators(metadataFields),
     },
   })
+
+  const metadataValues = form.getValues().metadata
+  const isFieldShown = (name: SignupMetadataFieldName) => isMetadataFieldShown(name, metadataFields, metadataValues)
+  const isFieldRequired = (name: SignupMetadataFieldName) =>
+    isMetadataFieldRequired(name, metadataFields, metadataValues)
 
   // Errors that belong to no single input, shown in a banner above the form.
   const [formErrors, setFormErrors] = useState<string[]>([])
@@ -156,18 +194,66 @@ export default function RegisterForm({
     }
 
     setFormErrors([])
-    // `SignupBody` is only `{email, username, password}` today. Backend needs to update the Orval types (and Backend
-    // code?)
+
+    // Only what this instance asks for, so a skipped organization field is left out rather than sent blank.
+    const metadata = Object.fromEntries(
+      SIGNUP_METADATA_FIELD_NAMES.filter((name) => isFieldShown(name)).map((name) => {
+        const value = values.metadata[name]
+        return [name, typeof value === 'string' ? value.trim() : value]
+      }),
+    )
+
+    // TODO: the headless signup endpoint only reads `{email, username, password}` - allauth's `SignupInput`
+    // never runs our `SignupForm`, so everything below it is accepted and quietly dropped, and the
+    // generated `SignupBody` has no room for it either. The cast goes with that fix, in DEV-2807.
     const body = {
       email: values.email.trim(),
       username: values.username.trim(),
       password: values.password,
-      name: values.name.trim(),
-      newsletter_subscription: values.newsletterSubscription,
       terms_of_service: values.termsOfService,
+      ...metadata,
     } as SignupBody
 
     signup.mutate({ data: body })
+  }
+
+  /** A configured field, as a dropdown where the backend gives it choices and a text input otherwise. */
+  function renderExtraField(name: SignupMetadataFieldName) {
+    const field = metadataFields[name]
+    if (!field || !isFieldShown(name)) {
+      return null
+    }
+
+    const inputProps = withAuthFieldError(form.getInputProps(`metadata.${name}`))
+    const options = getMetadataFieldOptions(name, { sectorChoices, countryChoices })
+
+    if (options) {
+      return (
+        <Select
+          key={name}
+          label={field.label}
+          data={options}
+          searchable
+          // Clearing a required field would only leave it invalid.
+          clearable={!isFieldRequired(name)}
+          {...inputProps}
+          // After the spread, so it wins: clearing hands back `null`, and both the form values and the
+          // payload want a blank string.
+          onChange={(value) => form.setFieldValue(`metadata.${name}`, value ?? '')}
+          required={isFieldRequired(name)}
+        />
+      )
+    }
+
+    return (
+      <TextInput
+        key={name}
+        label={field.label}
+        autoComplete={METADATA_AUTOCOMPLETE[name]}
+        {...inputProps}
+        required={isFieldRequired(name)}
+      />
+    )
   }
 
   return (
@@ -192,54 +278,52 @@ export default function RegisterForm({
       <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
         <Stack gap='xl'>
           <Stack gap='sm'>
-            <TextInput
-              label={t('Full name')}
-              autoComplete='name'
-              key={form.key('name')}
-              {...withAuthFieldError(form.getInputProps('name'))}
-              required
-            />
+            {isFieldShown('name') && (
+              <TextInput
+                label={metadataFields.name?.label}
+                autoComplete='name'
+                {...withAuthFieldError(form.getInputProps('metadata.name'))}
+                required={isFieldRequired('name')}
+              />
+            )}
             <TextInput
               label={t('Email')}
               type='email'
               autoComplete='email'
-              key={form.key('email')}
               {...withAuthFieldError(form.getInputProps('email'))}
               required
             />
             <TextInput
               label={t('Username')}
               autoComplete='username'
-              key={form.key('username')}
               {...withAuthFieldError(form.getInputProps('username'))}
               required
             />
             <PasswordInput
               label={t('Password')}
               autoComplete='new-password'
-              key={form.key('password')}
               {...withAuthFieldError(form.getInputProps('password'))}
               required
             />
             <PasswordInput
               label={t('Confirm password')}
               autoComplete='new-password'
-              key={form.key('passwordConfirm')}
               {...withAuthFieldError(form.getInputProps('passwordConfirm'))}
               required
             />
+            {EXTRA_METADATA_FIELD_NAMES.map(renderExtraField)}
           </Stack>
 
           <Stack gap='sm'>
-            <Checkbox
-              label={t('KoboToolbox news and features')}
-              key={form.key('newsletterSubscription')}
-              {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
-            />
+            {isFieldShown('newsletter_subscription') && (
+              <Checkbox
+                label={metadataFields.newsletter_subscription?.label}
+                {...withAuthFieldError(form.getInputProps('metadata.newsletter_subscription', { type: 'checkbox' }))}
+              />
+            )}
             {legalLabel && (
               <Checkbox
                 label={legalLabel}
-                key={form.key('termsOfService')}
                 {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
               />
             )}
