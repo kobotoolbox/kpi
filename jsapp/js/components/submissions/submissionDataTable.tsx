@@ -8,15 +8,14 @@ import { findRow, getRowName, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
+import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import SimpleTable from '#/components/common/SimpleTable'
-import Button from '#/components/common/button'
-import { goToProcessing } from '#/components/processing/routes.utils'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
   getMediaAttachment,
   getSubmissionDisplayData,
-  shouldProcessingBeAccessible,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { METADATA_COLUMN_LABELS } from '#/components/submissions/tableConstants'
@@ -24,7 +23,7 @@ import { getMetadataColumns } from '#/components/submissions/tableUtils'
 import { QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { formatDate, formatTimeDate } from '#/utils'
+import { formatDate, formatTimeDate, getSubmissionRootUuid } from '#/utils'
 import AudioPlayer from '../common/audioPlayer'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
@@ -49,18 +48,6 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   constructor(props: SubmissionDataTableProps) {
     super(props)
     autoBind(this)
-  }
-
-  /**
-   * Opens Single Processing for one response. With no row left to ask for the xpath,
-   * the path the response arrived under gets us there - files are found by xpath.
-   */
-  openProcessing(name: string, xpath: string) {
-    if (!this.props.asset?.content) {
-      return
-    }
-    const processingXpath = findRow(this.props.asset.content, name)?.$xpath ?? xpath
-    goToProcessing(this.props.asset.uid, processingXpath, this.props.submissionData._uuid)
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -189,7 +176,9 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES.video.id:
       case QUESTION_TYPES.file.id:
-        return this.renderAttachment(item.type, item.data, item.name, item.xpath)
+        return this.renderAttachment(item.type, item.data, item.xpath)
+      case QUESTION_TYPES.text.id:
+        return this.renderTextResponse(item.data, item.name)
       case QUESTION_TYPES.geopoint.id:
       case QUESTION_TYPES.geotrace.id:
       case QUESTION_TYPES.geoshape.id:
@@ -223,7 +212,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     )
   }
 
-  renderAttachment(type: AnyRowTypeName | null, filename: string, name: string, xpath: string) {
+  renderAttachment(type: AnyRowTypeName | null, filename: string, xpath: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath)
 
     // In the case that an attachment is missing, don't crash the page
@@ -244,21 +233,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     return (
       <>
         {type === QUESTION_TYPES.audio.id && (
-          <Group>
+          <Group w='100%'>
             <AudioPlayer mediaURL={attachment?.download_url} />
 
             <span className='print-only'>{attachmentShortFilename}</span>
-
-            {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
-              <Button
-                className='hide-on-print'
-                type='primary'
-                size='s'
-                endIcon='arrow-up-right'
-                label={t('Open')}
-                onClick={this.openProcessing.bind(this, name, xpath)}
-              />
-            )}
           </Group>
         )}
 
@@ -289,12 +267,38 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             asset={this.props.asset}
             submission={this.props.submissionData}
             attachmentUid={attachment.uid}
+            showProcessingAction
             onDeleted={() => {
               this.props.onAttachmentDeleted(attachment.uid)
             }}
           />
         )}
       </>
+    )
+  }
+
+  renderTextResponse(text: string, name: string) {
+    // `item.xpath` (passed to `renderAttachment`) is built for matching media attachments and gets a repeat-instance
+    // index baked in inside repeat groups (e.g. `group[2]/question`), which Processing's routing doesn't understand -
+    // it wants the question's static survey xpath, so we look that up by name instead, same as `renderAttachment`'s
+    // audio button does implicitly (its xpath comes from a `row.$xpath === attachment.question_xpath` match).
+    const questionXpath = this.props.asset.content && findRow(this.props.asset.content, name)?.$xpath
+
+    return (
+      <Group wrap='nowrap' align='flex-start'>
+        <bem.SubmissionDataTable__value style={{ flex: 1, minWidth: 0 }}>{text}</bem.SubmissionDataTable__value>
+
+        {text && questionXpath !== undefined && isNlpSupported(QUESTION_TYPES.text.id) && (
+          <MoreActionsMenu
+            className='hide-on-print'
+            processingAction={{
+              assetUid: this.props.asset.uid,
+              xpath: questionXpath,
+              submissionEditId: getSubmissionRootUuid(this.props.submissionData),
+            }}
+          />
+        )}
+      </Group>
     )
   }
 

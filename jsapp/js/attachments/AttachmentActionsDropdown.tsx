@@ -3,13 +3,14 @@ import { useState } from 'react'
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { useAssetsAttachmentsDestroy } from '#/api/react-query/survey-data'
-import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
+import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { getSubmissionRootUuid, notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 
 interface AttachmentActionsDropdownProps {
@@ -22,6 +23,13 @@ interface AttachmentActionsDropdownProps {
    * possibly in other places in UI.
    */
   onDeleted?: () => void
+  /**
+   * Also offer a "Translate & analyze" entry that opens Processing for this
+   * response's question, when NLP processing supports its type. Off by
+   * default: some callers of this dropdown (e.g. inside Processing itself)
+   * already are the Processing view, where the entry would be redundant.
+   */
+  showProcessingAction?: boolean
 }
 
 /**
@@ -72,35 +80,34 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   }
 
   const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submission)
+  const isProcessingActionShown = props.showProcessingAction && isNlpSupported(questionType)
 
   return (
     <span className={styles.attachmentActionsDropdown}>
       {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
-      <Menu withinPortal={false} closeOnClickOutside closeOnItemClick position='bottom-end'>
-        <Menu.Target>
-          <span style={{ position: 'relative' }}>
-            <ActionIcon size='md' variant='transparent' iconName='more' />
-          </span>
-        </Menu.Target>
-
-        <Menu.Dropdown>
-          <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
-            {t('Download')}
-          </Menu.Item>
-          {userCanChangeSubmission && (
-            <>
-              <Menu.Divider />
-              <Menu.Item
-                variant='danger'
-                onClick={() => setIsDeleteModalOpen(true)}
-                leftSection={<Icon name='trash' />}
-              >
-                {t('Delete')}
-              </Menu.Item>
-            </>
-          )}
-        </Menu.Dropdown>
-      </Menu>
+      <MoreActionsMenu
+        processingAction={
+          isProcessingActionShown
+            ? {
+                assetUid: props.asset.uid,
+                xpath: attachment.question_xpath,
+                submissionEditId: getSubmissionRootUuid(props.submission),
+              }
+            : undefined
+        }
+      >
+        <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
+          {t('Download')}
+        </Menu.Item>
+        {userCanChangeSubmission && (
+          <>
+            <Menu.Divider />
+            <Menu.Item variant='danger' onClick={() => setIsDeleteModalOpen(true)} leftSection={<Icon name='trash' />}>
+              {t('Delete')}
+            </Menu.Item>
+          </>
+        )}
+      </MoreActionsMenu>
 
       <Modal
         opened={isDeleteModalOpen}
