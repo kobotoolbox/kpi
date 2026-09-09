@@ -189,6 +189,9 @@ export default function FormHistory(props: FormHistoryProps) {
       columns={columns}
       data={rowData}
       maxHeight={425}
+      // A failed request also leaves us with zero rows, and the table's default "no data" wording would read as "this
+      // form was never changed". Say what actually happened instead; the retry button is in `bottomContent` below.
+      emptyMessage={historyInfiniteQuery.isError ? t('Could not load the form history.') : undefined}
       bottomContent={
         <InfiniteScrollTrigger
           hasNextPage={historyInfiniteQuery.hasNextPage}
