@@ -32,6 +32,7 @@ from ..tasks import (
     MassEmailSender,
     enqueue_mass_email_records,
     generate_mass_email_user_lists,
+    get_users_for_config,
     mark_old_enqueued_mass_email_record_as_failed,
     render_template,
     send_emails,
@@ -751,8 +752,8 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
 
     @data(
         (EmailStatus.ENQUEUED, -1, 1),
-        (EmailStatus.SENT, -1, 2),
-        (EmailStatus.FAILED, -1, 2),
+        (EmailStatus.SENT, -1, 1),
+        (EmailStatus.FAILED, -1, 1),
         (EmailStatus.ENQUEUED, 2, 1),
         (EmailStatus.SENT, 2, 2),
         (EmailStatus.FAILED, 2, 2),
