@@ -1,4 +1,5 @@
 import { Box, Image, Stack, Text, Title } from '@mantine/core'
+import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useParams } from 'react-router-dom'
 import {
@@ -45,15 +46,39 @@ function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
 }
 
 /** Missing, expired or already used key - the server does not tell us which, so neither do we. */
-function ActivationFailedPanel() {
+function ActivationFailedPanel({ onLinkRequested }: { onLinkRequested: () => void }) {
   return (
     <Stack gap='lg' ta='center'>
       <Title order={1} size='h3'>
         {t('Activation Failed')}
       </Title>
-      {/* Stays on screen after a new link is asked for, so it avoids telling anyone what to do next. */}
       <Text>{t('This activation link is no longer valid. You can request a new confirmation email.')}</Text>
-      <ResendVerificationLink label={t('Resend activation link')} />
+      <ResendVerificationLink label={t('Resend activation link')} onSent={onLinkRequested} />
+    </Stack>
+  )
+}
+
+/**
+ * A new link is on its way. Worded to fit an address nobody holds, since the one that was typed in was
+ * never checked against an account.
+ */
+function LinkRequestedPanel() {
+  return (
+    <Stack gap='lg' ta='center'>
+      <Image src={emailEnvelopeIllustration} alt='' maw={190} mx='auto' />
+
+      <Title order={1} size='h3'>
+        {t('Check your inbox')}
+      </Title>
+      <Text>
+        {t(
+          "If an account exists for this email address, a verification email has been sent. Be sure to check your spam folder if you don't see it within a few minutes.",
+        )}
+      </Text>
+      {/* TODO: switch from Django while doing login form DEV-1851 */}
+      <ButtonNew component='a' href={PATHS.LOGIN} variant='light' size='lg' fullWidth>
+        {t('Back to sign in')}
+      </ButtonNew>
     </Stack>
   )
 }
@@ -113,6 +138,7 @@ function ConfirmPromptPanel({ email, displayName, isConfirming, onConfirm }: Con
  */
 export default function ActivateAccountRoute() {
   const { key = '' } = useParams<{ key: string }>()
+  const [linkRequested, setLinkRequested] = useState(false)
 
   const verification = useAllauthBrowserV1AuthEmailVerifyGet({
     // allauth takes the verification key in this header, not in the URL.
@@ -142,7 +168,12 @@ export default function ActivateAccountRoute() {
     // `confirm.data` left over here is a rejection - a key that expired between the lookup and the click.
     // Only a 5xx or a dead connection reaches `isError`, and that leaves the prompt up to try again.
     if (!key || verification.data === null || verification.isError || confirm.data) {
-      return <ActivationFailedPanel />
+      // Only the failed panel can set this, so the new link always belongs to the address typed in there.
+      return linkRequested ? (
+        <LinkRequestedPanel />
+      ) : (
+        <ActivationFailedPanel onLinkRequested={() => setLinkRequested(true)} />
+      )
     }
     // `null` is handled above, so the only falsy value left is the one that means "still in flight".
     if (!verification.data) {

@@ -18,12 +18,14 @@ interface ResendVerificationLinkValues {
 export interface ResendVerificationLinkProps {
   /** Button wording, because each screen phrases the offer differently. */
   label: string
-  /** Left out when we have no address to send to, and then we ask for one. */
+  /** Left out when we have no address to send to, and then we show a field to type one into. */
   email?: string
+  /**
+   * Called once the request has gone through. Screens that answer with a panel of their own pass this,
+   * and then nothing is rendered here; without it the server's confirmation appears in place.
+   */
+  onSent?: () => void
 }
-
-/** Two steps: the offer on its own, then the email field when we have no address of our own. */
-type Step = 'idle' | 'askingEmail' | 'sent'
 
 /** Pulls the field error out of a 400, which the serializer reports as `{email: [message]}`. */
 function getEmailFieldMessage(error: OrvalFetchError): string | null {
@@ -35,14 +37,13 @@ function getEmailFieldMessage(error: OrvalFetchError): string | null {
 }
 
 /**
- * Asks for another confirmation email: the offer, then a field for the address when we don't have one, then
- * whatever the server made of it.
+ * Asks for another confirmation email, either straight away or once an address has been typed in.
  *
  * Nothing here says whether the address is registered. The endpoint answers the same way for an address
- * nobody holds, and its message is written to keep it that way.
+ * nobody holds, and the copy around it is written to keep it that way.
  */
-export default function ResendVerificationLink({ label, email }: ResendVerificationLinkProps) {
-  const [step, setStep] = useState<Step>('idle')
+export default function ResendVerificationLink({ label, email, onSent }: ResendVerificationLinkProps) {
+  const [sent, setSent] = useState(false)
   // For failures that belong to no field, like the throttle.
   const [requestError, setRequestError] = useState<string | null>(null)
 
@@ -57,7 +58,7 @@ export default function ResendVerificationLink({ label, email }: ResendVerificat
   // `fetchWithAuth`, which throws a `ServerError` wrapping them - so that is what `onError` really gets.
   const request = useEmailConfirmationsCreate<OrvalFetchError>({
     mutation: {
-      onSuccess: () => setStep('sent'),
+      onSuccess: () => (onSent ? onSent() : setSent(true)),
       // Handled here rather than by the default toast, so the message sits next to the button that failed.
       onError: (error) => {
         const fieldMessage = getEmailFieldMessage(error)
@@ -76,22 +77,18 @@ export default function ResendVerificationLink({ label, email }: ResendVerificat
     request.mutate({ data: { email: address } })
   }
 
-  function renderStep() {
-    if (step === 'sent') {
+  function renderControl() {
+    if (sent) {
       // Shown as the server wrote it: the wording is deliberately vague about whether the address is
       // registered, and rephrasing it here risks giving that away.
       const detail = request.data?.status === 200 ? request.data.data.detail : null
       return <Text>{detail || t('Check your inbox for a new confirmation link.')}</Text>
     }
 
-    if (step === 'idle') {
+    // An address we were handed needs no field, just the offer to send to it again.
+    if (email !== undefined) {
       return (
-        <ButtonNew
-          size='lg'
-          fullWidth
-          loading={request.isPending}
-          onClick={() => (email === undefined ? setStep('askingEmail') : send(email))}
-        >
+        <ButtonNew size='lg' fullWidth loading={request.isPending} onClick={() => send(email)}>
           {label}
         </ButtonNew>
       )
@@ -106,8 +103,6 @@ export default function ResendVerificationLink({ label, email }: ResendVerificat
             aria-label={t('Email')}
             type='email'
             autoComplete='email'
-            // The button that opened this field is gone, so without this the keyboard lands nowhere.
-            autoFocus
             key={form.key('email')}
             {...withAuthFieldError(form.getInputProps('email'))}
             required
@@ -127,7 +122,7 @@ export default function ResendVerificationLink({ label, email }: ResendVerificat
           {requestError}
         </Alert>
       )}
-      {renderStep()}
+      {renderControl()}
     </Stack>
   )
 }

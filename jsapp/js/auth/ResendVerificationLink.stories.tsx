@@ -1,6 +1,6 @@
 import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { expect, userEvent, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import {
   emailConfirmationInvalidEmailMock,
   emailConfirmationRequestedMock,
@@ -40,21 +40,45 @@ const meta: Meta<typeof ResendVerificationLink> = {
 export default meta
 type Story = StoryObj<typeof ResendVerificationLink>
 
-/** No address known, so it takes two steps: the invitation, then the field. */
+/** No address known, so the field is there from the start. */
 export const TypedAddress: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Nobody is asked for an address before they have asked for a link.
-    expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
-    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
-
-    await userEvent.type(await canvas.findByLabelText('Email'), EMAIL)
+    await userEvent.type(canvas.getByLabelText('Email'), EMAIL)
     await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
 
     await canvas.findByText(SENT_MESSAGE)
     // The form goes with it, so there is nothing to submit a second time.
     expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
+  },
+}
+
+/** With `onSent` the caller shows the outcome instead, so this renders nothing of its own. */
+export const HandsOffTheOutcome: Story = {
+  args: { onSent: fn() },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.type(canvas.getByLabelText('Email'), EMAIL)
+    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
+
+    await waitFor(() => expect(args.onSent).toHaveBeenCalled())
+    expect(canvas.queryByText(SENT_MESSAGE)).not.toBeInTheDocument()
+  },
+}
+
+/** Our own validation, before anything is sent. */
+export const InvalidAddress: Story = {
+  parameters: allowFailingButtonContrast,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.type(canvas.getByLabelText('Email'), 'caroline.herschel')
+    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
+
+    await canvas.findByText('Please enter a valid email address')
+    expect(canvas.getByLabelText('Email')).toBeInvalid()
   },
 }
 
@@ -93,8 +117,7 @@ export const RejectedAddress: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
-    await userEvent.type(await canvas.findByLabelText('Email'), EMAIL)
+    await userEvent.type(canvas.getByLabelText('Email'), EMAIL)
     await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
 
     // Under the input rather than in a banner, since that is the thing to change.

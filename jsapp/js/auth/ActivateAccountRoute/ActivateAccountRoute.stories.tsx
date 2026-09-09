@@ -99,7 +99,7 @@ export const InvalidKey: Story = {
   },
 }
 
-/** The way out of that dead end: the offer of a new link, then the address, then what the server made of it. */
+/** The way out of that dead end: the address, then a screen that stops short of confirming it exists. */
 export const InvalidKeyThenRequestNewLink: Story = {
   parameters: {
     msw: { handlers: [emailVerificationInvalidKeyMock(), emailConfirmationRequestedMock()] },
@@ -108,13 +108,13 @@ export const InvalidKeyThenRequestNewLink: Story = {
     const canvas = within(canvasElement)
 
     await canvas.findByRole('heading', { level: 1, name: 'Activation Failed' })
-    // Step one is the offer alone; the address comes only once it is taken up.
+    await userEvent.type(await canvas.findByLabelText('Email'), EMAIL)
+    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
+
+    // The whole panel is replaced, so nothing invites a second attempt.
+    await canvas.findByRole('heading', { level: 1, name: 'Check your inbox' })
+    await canvas.findByText(/If an account exists for this email address/)
     expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
-    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
-
-    await userEvent.type(await canvas.findByLabelText('Email'), 'caroline.herschel@kbtdev.org')
-    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
-
-    await canvas.findByText(/a new confirmation email has been sent to it/)
+    expect(canvas.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', '/accounts/login')
   },
 }
