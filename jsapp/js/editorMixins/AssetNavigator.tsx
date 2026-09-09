@@ -191,17 +191,17 @@ export default function AssetNavigator() {
 
       {/* Results */}
       {isLoading ? (
-        <Center py='xxl'>
+        <Center py='xl'>
           <Loader size='sm' />
         </Center>
       ) : isError ? (
-        <Center py='xxl'>
+        <Center py='xl'>
           <Text c='red' size='sm'>
             Error loading assets
           </Text>
         </Center>
       ) : assetsResponse?.data.results?.length === 0 ? (
-        <Center py='xxl'>
+        <Center py='xl'>
           <Text size='sm'>No assets found</Text>
         </Center>
       ) : (

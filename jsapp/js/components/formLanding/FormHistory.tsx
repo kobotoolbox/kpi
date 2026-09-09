@@ -178,7 +178,7 @@ export default function FormHistory(props: FormHistoryProps) {
 
   if (historyInfiniteQuery.isLoading) {
     return (
-      <Center p='xxl'>
+      <Center p='xl'>
         <Loader />
       </Center>
     )

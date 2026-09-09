@@ -239,7 +239,7 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
       </Group>
 
       {logs.length === 0 ? (
-        <Text ta='center' p='xxl'>
+        <Text ta='center' p='xl'>
           {t('There are no logs yet')}
         </Text>
       ) : (
