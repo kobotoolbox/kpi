@@ -32,7 +32,9 @@ const allowFailingButtonContrast = { a11y: { config: { rules: [{ id: 'color-cont
 const meta: Meta<typeof ResendVerificationLink> = {
   title: 'Components/ResendVerificationLink',
   component: ResendVerificationLink,
-  args: { label: 'Resend activation link' },
+  // `onSent` is spelled out because our global `argTypesRegex` otherwise hands every `on*` prop a spy, and a
+  // spy here is indistinguishable from a caller that wants to show the outcome itself.
+  args: { label: 'Resend activation link', onSent: undefined },
   parameters: { msw: { handlers: [emailConfirmationRequestedMock()] } },
   decorators: [cardWidthDecorator, queryClientDecorator],
 }
@@ -57,6 +59,8 @@ export const TypedAddress: Story = {
 /** With `onSent` the caller shows the outcome instead, so this renders nothing of its own. */
 export const HandsOffTheOutcome: Story = {
   args: { onSent: fn() },
+  // The button is still up at the end here, since nothing replaced it.
+  parameters: allowFailingButtonContrast,
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
 

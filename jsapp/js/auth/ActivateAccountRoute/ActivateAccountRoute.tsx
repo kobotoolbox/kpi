@@ -65,8 +65,6 @@ function ActivationFailedPanel({ onLinkRequested }: { onLinkRequested: () => voi
 function LinkRequestedPanel() {
   return (
     <Stack gap='lg' ta='center'>
-      <Image src={emailEnvelopeIllustration} alt='' maw={190} mx='auto' />
-
       <Title order={1} size='h3'>
         {t('Check your inbox')}
       </Title>
@@ -138,15 +136,21 @@ function ConfirmPromptPanel({ email, displayName, isConfirming, onConfirm }: Con
  */
 export default function ActivateAccountRoute() {
   const { key = '' } = useParams<{ key: string }>()
+
+  // Using key ensures this is all remounted and starting fresh. Avoids problem of seeing previous changes if user revisits with different activation key without page load.
+  return <ActivateAccountPanels key={key} activationKey={key} />
+}
+
+function ActivateAccountPanels({ activationKey }: { activationKey: string }) {
   const [linkRequested, setLinkRequested] = useState(false)
 
   const verification = useAllauthBrowserV1AuthEmailVerifyGet({
     // allauth takes the verification key in this header, not in the URL.
-    request: { headers: { 'X-Email-Verification-Key': key } },
+    request: { headers: { 'X-Email-Verification-Key': activationKey } },
     query: {
       // The generated query key ignores the header, so without the key two links would share an entry.
-      queryKey: [...getAllauthBrowserV1AuthEmailVerifyGetQueryKey(), key],
-      enabled: Boolean(key),
+      queryKey: [...getAllauthBrowserV1AuthEmailVerifyGetQueryKey(), activationKey],
+      enabled: Boolean(activationKey),
       retry: false,
       // A rejected key arrives as data, not as an error, so this is where "the key is no good" is decided:
       // `null` for anything but a 200.
@@ -167,7 +171,7 @@ export default function ActivateAccountRoute() {
     }
     // `confirm.data` left over here is a rejection - a key that expired between the lookup and the click.
     // Only a 5xx or a dead connection reaches `isError`, and that leaves the prompt up to try again.
-    if (!key || verification.data === null || verification.isError || confirm.data) {
+    if (!activationKey || verification.data === null || verification.isError || confirm.data) {
       // Only the failed panel can set this, so the new link always belongs to the address typed in there.
       return linkRequested ? (
         <LinkRequestedPanel />
@@ -184,7 +188,7 @@ export default function ActivateAccountRoute() {
         email={verification.data.email}
         displayName={verification.data.user.display}
         isConfirming={confirm.isPending}
-        onConfirm={() => confirm.mutate({ data: { key } })}
+        onConfirm={() => confirm.mutate({ data: { key: activationKey } })}
       />
     )
   }
