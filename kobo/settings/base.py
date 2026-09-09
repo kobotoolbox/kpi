@@ -62,7 +62,12 @@ if SESSION_COOKIE_DOMAIN:
     trusted_domains = [
         f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
     ]
-    CSRF_TRUSTED_ORIGINS = trusted_domains
+else:
+    trusted_domains = []
+CSRF_TRUSTED_ORIGINS = env.list(
+    # Separate multiple origins with commas, and do not use spaces
+    'DJANGO_CSRF_TRUSTED_ORIGINS', default=trusted_domains
+)
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
