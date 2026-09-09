@@ -26,6 +26,12 @@ export function useAuthConfiguration() {
           socialApps: response.data.social_apps,
           /** The `SUPPORT_EMAIL` constance setting, so private servers point people at their own team. */
           supportEmail: response.data.support_email,
+          /** `USER_METADATA_FIELDS`: fields used by this instace, required info too */
+          userMetadataFields: response.data.user_metadata_fields,
+          /** The admin-editable `SECTOR_CHOICES` setting */
+          sectorChoices: response.data.sector_choices,
+          /** The fixed country list */
+          countryChoices: response.data.country_choices,
         }
       },
     },
