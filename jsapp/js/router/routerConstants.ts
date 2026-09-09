@@ -54,6 +54,11 @@ export const ROUTES = Object.freeze({
  */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
   REGISTER: ROUTES.AUTH_ROOT + '/register',
+  /**
+   * Where the activation link in the sign up email lands. Has: :key
+   * Not reachable yet: `HEADLESS_FRONTEND_URLS` is unset, so allauth still links to the Django view.
+   */
+  ACTIVATE_ACCOUNT: ROUTES.AUTH_ROOT + '/activate/:key',
 }
 
 export const PROJECTS_ROUTES: { readonly [key: string]: string } = {
