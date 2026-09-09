@@ -515,7 +515,13 @@ def get_users_for_config(email_config):
         user_ids = [getattr(user, 'id', user) for user in users]
 
     if email_config.frequency == -1:
-        return user_ids
+        terminal_recipients = set(
+            MassEmailRecord.objects.filter(
+                email_job__email_config=email_config,
+                status__in=[EmailStatus.SENT, EmailStatus.FAILED, EmailStatus.STALE],
+            ).values_list('user_id', flat=True)
+        )
+        return [user_id for user_id in user_ids if user_id not in terminal_recipients]
     day_boundary = MassEmailSender.get_cache_key_date(now)
 
     cutoff_date = day_boundary - timedelta(days=email_config.frequency - 1)
