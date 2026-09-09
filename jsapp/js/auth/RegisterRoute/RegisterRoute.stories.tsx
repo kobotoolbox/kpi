@@ -311,8 +311,7 @@ export const SubmitPendingVerification: Story = {
     await fillForm(canvas)
     await submit(canvas)
 
-    // A 401 is the success on a KPI default, so getting this far is the point of the story. Masking the
-    // address is `maskEmail.tests`' business.
+    // A 401 is the success on a KPI default, so getting this far is the point of the story.
     await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
   },
 }
