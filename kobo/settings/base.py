@@ -66,7 +66,8 @@ else:
     trusted_domains = []
 CSRF_TRUSTED_ORIGINS = env.list(
     # Separate multiple origins with commas, and do not use spaces
-    'DJANGO_CSRF_TRUSTED_ORIGINS', default=trusted_domains
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    default=trusted_domains,
 )
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
