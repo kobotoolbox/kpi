@@ -83,7 +83,7 @@ function ConfirmPromptPanel({ email, displayName, isConfirming, onConfirm }: Con
   const [beforeUsername, afterUsername = ''] = t(
     'Please confirm that ##email## is an e-mail address for user ##username##',
   )
-    .replace('##email##', email)
+    .replace('##email##', () => email)
     .split('##username##')
 
   return (
