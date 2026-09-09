@@ -70,7 +70,10 @@
 }
 
 .label {
-  font-size: var(--mantine-font-size-xs);
+  /* Size comes from `--input-label-size`, which Mantine derives from the field's own `size` - see
+     `InputWrapper.ts` for the scale. */
+  /* Mantine ships labels at 500. Regular weight is what our designs ask for. */
+  font-weight: 400;
   color: var(--mantine-color-gray-1);
   margin-bottom: 5px;
 }
