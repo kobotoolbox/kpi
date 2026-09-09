@@ -5,15 +5,15 @@ import { useState } from 'react'
 import { fetchDelete } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import ButtonNew from '#/components/common/ButtonNew'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { notify } from '#/utils'
 
 export default function DeleteAccountModal(props: ModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const session = useSession()
+  const profile = useProfile()
 
   function isUsernameOk(username: string) {
-    return username === session.currentLoggedAccount.username
+    return username === profile.currentLoggedAccount.username
   }
 
   const usernameField = useField({
@@ -24,10 +24,10 @@ export default function DeleteAccountModal(props: ModalProps) {
 
   const handleConfirmDeleteAccount = () => {
     setIsDeleting(true)
-    fetchDelete(endpoints.ME, { confirm: session.currentLoggedAccount.extra_details__uid })
+    fetchDelete(endpoints.ME, { confirm: profile.currentLoggedAccount.extra_details__uid })
       .then(() => {
         setIsDeleting(false)
-        // We can't use `session.logOut` because it needs authentication to work, and after successful API call, account
+        // We can't use `profile.logOut` because it needs authentication to work, and after successful API call, account
         // is no longer authenticated. We force reload to leave the UI:
         window.location.replace('')
       })

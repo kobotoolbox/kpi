@@ -8,7 +8,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import TagsInput from '#/components/common/TagsInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { notify } from '#/utils'
 
 export type AssetTagsModalAsset = Pick<AssetResponse, 'uid'> & Partial<Pick<AssetResponse, 'tag_string'>>
@@ -22,14 +22,14 @@ export interface AssetTagsModalProps {
  * Lets a user edit an asset's comma-separated tags and save them through Orval/react-query.
  */
 export function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
-  const [isSessionLoaded, setIsSessionLoaded] = useState(!!sessionStore.isLoggedIn)
+  const [isSessionLoaded, setIsSessionLoaded] = useState(!!profileStore.isLoggedIn)
   const [tags, setTags] = useState<string[]>(() => (asset.tag_string ? asset.tag_string.split(',') : []))
 
   useEffect(() => {
-    // Some modal entrypoints can run before the session store finishes hydrating.
+    // Some modal entrypoints can run before the profile store finishes hydrating.
     // Waiting here keeps the form from rendering against incomplete auth state.
     const disposeSessionWhen = when(
-      () => sessionStore.isInitialLoadComplete,
+      () => profileStore.isInitialLoadComplete,
       () => setIsSessionLoaded(true),
     )
 

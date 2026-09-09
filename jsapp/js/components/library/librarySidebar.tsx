@@ -5,7 +5,7 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import { MODAL_TYPES } from '#/constants'
 import pageState from '#/pageState.store'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import myLibraryStore from './myLibraryStore'
 
 interface LibrarySidebarState {
@@ -58,7 +58,7 @@ export default class LibrarySidebar extends React.Component<{}, LibrarySidebarSt
           size='l'
           isFullWidth
           isUpperCase
-          isDisabled={!sessionStore.isLoggedIn}
+          isDisabled={!profileStore.isLoggedIn}
           onClick={this.showLibraryNewModal.bind(this)}
           label={t('new')}
         />

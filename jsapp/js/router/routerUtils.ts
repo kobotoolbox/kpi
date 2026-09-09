@@ -10,10 +10,7 @@
 
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
-// import session from '../stores/session';
-// import {when} from 'mobx';
-// import {redirectDocument} from 'react-router';
+import profileStore from '#/stores/profile'
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -55,8 +52,8 @@ export function getCurrentPath(): string {
  * (session, when, redirectDocument) and restore this function.
  */
 // export const authLoader = async () => {
-//   await when(() => session.isAuthStateKnown);
-//   if (!session.isLoggedIn) {
+//   await when(() => profile.isAuthStateKnown);
+//   if (!profile.isLoggedIn) {
 //     return redirectDocument(getLoginUrl());
 //   }
 //   return null;
@@ -252,9 +249,9 @@ export function getRouteAssetUid() {
  */
 export function isInvalidatedPasswordRouteBlockerActive() {
   return (
-    sessionStore.isLoggedIn &&
-    'validated_password' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.validated_password === false
+    profileStore.isLoggedIn &&
+    'validated_password' in profileStore.currentAccount &&
+    profileStore.currentAccount.validated_password === false
   )
 }
 
@@ -262,10 +259,10 @@ export function isInvalidatedPasswordRouteBlockerActive() {
 export function isTOSAgreementRouteBlockerActive() {
   return (
     envStore.data.terms_of_service__sitewidemessage__exists &&
-    sessionStore.isLoggedIn &&
+    profileStore.isLoggedIn &&
     // We check for email, because `currentAccount` can be two different things
-    'email' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.accepted_tos !== true
+    'email' in profileStore.currentAccount &&
+    profileStore.currentAccount.accepted_tos !== true
   )
 }
 

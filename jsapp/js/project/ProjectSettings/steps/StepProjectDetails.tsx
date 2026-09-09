@@ -12,7 +12,7 @@ import { userCan } from '#/components/permissions/utils'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { addRequiredToLabel } from '#/textUtils'
 import styles from '../ProjectSettings.module.scss'
 import BackButton from '../components/BackButton'
@@ -73,7 +73,7 @@ export default function StepProjectDetails({
   // MMO members should always see the delete button, even without delete_asset permission,
   // so they can click it and see the error explaining why they can't delete
   const isMMO = () => {
-    const account = sessionStore.currentAccount
+    const account = profileStore.currentAccount
     const orgUid = 'organization' in account ? account.organization?.uid : undefined
     if (orgUid) {
       const orgResponse = queryClient.getQueryData(getOrganizationsRetrieveQueryKey(orgUid)) as any

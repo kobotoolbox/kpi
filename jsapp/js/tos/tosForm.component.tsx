@@ -11,7 +11,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { currentLang, notify } from '#/utils'
-import { useSession } from '../stores/useSession'
+import { useProfile } from '../stores/useProfile'
 import styles from './tosForm.module.scss'
 
 /** A slug for the `sitewide_messages` endpoint */
@@ -57,7 +57,7 @@ export default function TOSForm() {
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({})
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
 
-  const { currentLoggedAccount } = useSession()
+  const { currentLoggedAccount } = useProfile()
   const logout = useLogout()
   const [organization] = useOrganizationAssumed()
 
@@ -98,7 +98,7 @@ export default function TOSForm() {
     getTOS()
   }, [])
 
-  // After session store is ready, we fill in all the fields for the form
+  // After profile store is ready, we fill in all the fields for the form
   // (including the non-required ones that will be hidden, but passed to the API
   // so that they will not get erased).
   useEffect(() => {
@@ -172,10 +172,10 @@ export default function TOSForm() {
       try {
         // Accepting TOS is simply POSTing to this endpoint
         await fetchPost(TOS_ACCEPT_ENDPOINT, {})
-        // TODO ideally we could make the sessionStore fetch new account data
+        // TODO ideally we could make the profileStore fetch new account data
         // or even override the `accepted_tos` flag without fetching. But this
         // requires the `app.js` file to be reworked in a bit different fashion,
-        // so that it could react to `sessionStore.accepted_tos` change. For now
+        // so that it could react to `profileStore.accepted_tos` change. For now
         // we do ugly and simple forced reload :)
         window.location.replace('')
       } catch (err) {

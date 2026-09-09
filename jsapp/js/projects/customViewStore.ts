@@ -5,7 +5,7 @@ import { handleApiFail, isAbortResponse } from '#/api'
 import searchBoxStore from '#/components/header/searchBoxStore'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse, FailResponse, PaginatedResponse, ProjectViewAsset } from '#/dataInterface'
-import session from '#/stores/session'
+import profile from '#/stores/profile'
 import { DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS } from './projectViews/constants'
 import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
 import { buildQueriesFromFilters } from './projectViews/utils'
@@ -342,8 +342,8 @@ class CustomViewStore {
 
     let newData: ProjectViewsSettings = {}
     // Get saved data
-    if ('email' in session.currentAccount && session.currentAccount.extra_details.project_views_settings) {
-      newData = session.currentAccount.extra_details.project_views_settings
+    if ('email' in profile.currentAccount && profile.currentAccount.extra_details.project_views_settings) {
+      newData = profile.currentAccount.extra_details.project_views_settings
     }
 
     newData[this.viewUid] = {
@@ -352,7 +352,7 @@ class CustomViewStore {
       fields: this.fields,
     }
 
-    session.setDetail(SAVE_DATA_NAME, newData)
+    profile.setDetail(SAVE_DATA_NAME, newData)
   }
 
   private resetSettings() {
@@ -362,7 +362,7 @@ class CustomViewStore {
   }
 
   /**
-   * Gets the settings for current view from session store (if they exists) with
+   * Gets the settings for current view from profile store (if they exist) with
    * fall back to defaults.
    */
   private loadSettings() {
@@ -374,8 +374,8 @@ class CustomViewStore {
     this.resetSettings()
 
     // Then we load the saved settings (if they exist)
-    if ('email' in session.currentAccount && session.currentAccount.extra_details[SAVE_DATA_NAME]?.[this.viewUid]) {
-      const savedViewData = session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
+    if ('email' in profile.currentAccount && profile.currentAccount.extra_details[SAVE_DATA_NAME]?.[this.viewUid]) {
+      const savedViewData = profile.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
       if (savedViewData.filters) {
         this.filters = savedViewData.filters
       }

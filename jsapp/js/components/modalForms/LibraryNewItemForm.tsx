@@ -10,11 +10,11 @@ import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
 import pageState from '#/pageState.store'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import KoboIcon from '../common/KoboIcon'
 
 export default function LibraryNewItemForm() {
-  const session = useSession()
+  const profile = useProfile()
   const navigate = useNavigate()
 
   function goToAssetCreator() {
@@ -60,7 +60,7 @@ export default function LibraryNewItemForm() {
     openLibraryUploadModal({ onBack: reopenThisModal })
   }
 
-  if (!session.currentLoggedAccount) {
+  if (!profile.currentLoggedAccount) {
     return <LoadingSpinner />
   }
 

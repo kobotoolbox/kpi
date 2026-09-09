@@ -14,7 +14,7 @@ import escape from 'lodash.escape'
 import toast from 'react-hot-toast'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import pageState from '#/pageState.store'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { actions } from './actions'
 import { renderJSXMessage } from './alertify'
 import assetUtils from './assetUtils'
@@ -300,7 +300,7 @@ export function removeAssetSharing(uid: string) {
       // Only non-owners should have the asset removed from their asset list.
       // This menu option is only open to non-owners so we don't need to check again.
       const isNonOwner = true
-      actions.permissions.removeAssetPermission(uid, undefined, true, isNonOwner, sessionStore.currentAccount.username)
+      actions.permissions.removeAssetPermission(uid, undefined, true, isNonOwner, profileStore.currentAccount.username)
     },
     oncancel: () => {
       dialog.destroy()

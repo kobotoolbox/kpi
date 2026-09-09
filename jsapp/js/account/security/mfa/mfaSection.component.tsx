@@ -11,7 +11,7 @@ import Tooltip from '#/components/common/tooltip'
 import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime } from '#/utils'
 import styles from './mfaSection.module.scss'
 
@@ -127,8 +127,8 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   render() {
     const isSuperuserMfaLocked =
       envStore.data.superuser_auth_enforcement &&
-      'is_superuser' in sessionStore.currentAccount &&
-      sessionStore.currentAccount.is_superuser
+      'is_superuser' in profileStore.currentAccount &&
+      profileStore.currentAccount.is_superuser
 
     const isDisabled = isSuperuserMfaLocked && this.state.isMfaActive
 

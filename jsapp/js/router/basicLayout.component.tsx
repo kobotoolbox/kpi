@@ -10,7 +10,7 @@ import bem from '#/bem'
 import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
 import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { cssVariablesResolverKobo, themeKobo } from '#/theme'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import ToasterConfig from '../toasterConfig'
@@ -39,7 +39,7 @@ export default function BasicLayout(props: BasicLayoutProps) {
             <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
               <MainHeaderBase>
                 <MainHeaderLogo />
-                {sessionStore.isLoggedIn && (
+                {profileStore.isLoggedIn && (
                   <RequireOrg>
                     <AccountMenu />
                   </RequireOrg>

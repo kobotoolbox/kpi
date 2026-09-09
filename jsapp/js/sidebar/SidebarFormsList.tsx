@@ -17,7 +17,7 @@ import {
   useProjectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
 import type { SidebarContext } from './common'
@@ -89,8 +89,8 @@ export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string
  * A list of projects grouped by status (deployed, draft, archived). It's meant to be displayed in the sidebar area.
  */
 export default function SidebarFormsList() {
-  const session = useSession()
-  const orgUid = session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const orgUid = profile.currentLoggedAccount?.organization?.uid
   const location = useLocation()
   const currentPath = location.pathname
 

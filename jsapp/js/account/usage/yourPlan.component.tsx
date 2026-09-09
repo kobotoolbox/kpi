@@ -9,7 +9,7 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
 import Badge, { type BadgeColor } from '#/components/common/badge'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatDate } from '#/utils'
 import { getSubscriptionChangeDetails } from '../stripe.utils'
 import { ProductsContext } from '../useProducts.hook'
@@ -28,7 +28,7 @@ const BADGE_COLOR_KEYS: { [key in SubscriptionChangeType]: BadgeColor } = {
 export const YourPlan = () => {
   const [subscriptions] = useState(() => subscriptionStore)
   const [env] = useState(() => envStore)
-  const [session] = useState(() => sessionStore)
+  const [profile] = useState(() => profileStore)
   const [productsContext] = useContext(ProductsContext)
   const [organization] = useOrganizationAssumed()
 
@@ -42,7 +42,7 @@ export const YourPlan = () => {
     } else if (subscriptions.canceledPlans.length) {
       date = subscriptions.canceledPlans[subscriptions.canceledPlans.length - 1].ended_at
     } else {
-      date = session.currentAccount.date_joined
+      date = profile.currentAccount.date_joined
     }
     return formatDate(date)
   }, [env.isReady, subscriptions.isInitialised])

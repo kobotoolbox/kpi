@@ -5,17 +5,17 @@ import { useAssetsList } from '#/api/react-query/manage-projects-and-library-con
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import styles from './DeleteAccountBanner.module.scss'
 import DeleteAccountModal from './DeleteAccountModal'
 
 export default function DeleteAccountBanner() {
   const [isModalOpened, { open, close }] = useDisclosure(false)
-  const session = useSession()
+  const profile = useProfile()
   const [organization] = useOrganizationAssumed()
   const isAccountOrganizationOwner = organization.is_mmo && organization.is_owner
 
-  const username = session.currentLoggedAccount.username
+  const username = profile.currentLoggedAccount.username
   const { data: assetsData, isPending } = useAssetsList({
     q: `(owner__username:${username} AND asset_type:survey)`,
     limit: 1,
