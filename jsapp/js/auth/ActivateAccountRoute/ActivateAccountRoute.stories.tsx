@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import { userEvent, within } from 'storybook/test'
+import { expect, userEvent, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import {
   emailVerificationInfoMock,
@@ -8,6 +8,7 @@ import {
   emailVerifyConfirmMock,
   emailVerifyConfirmWithoutSessionMock,
 } from '#/endpoints/allauth.mocks'
+import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
@@ -90,10 +91,30 @@ export const ConfirmedWithoutSession: Story = {
   },
 }
 
-/** A link that has expired or was already used. */
+/** A link that has expired or was already used, so the address gets asked for instead. */
 export const InvalidKey: Story = {
   parameters: { msw: { handlers: [emailVerificationInvalidKeyMock()] } },
   play: async ({ canvasElement }) => {
     await within(canvasElement).findByRole('heading', { level: 1, name: 'Activation Failed' })
+  },
+}
+
+/** The way out of that dead end: the address, then a screen that stops short of confirming it exists. */
+export const InvalidKeyThenRequestNewLink: Story = {
+  parameters: {
+    msw: { handlers: [emailVerificationInvalidKeyMock(), emailConfirmationRequestedMock()] },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Activation Failed' })
+    await userEvent.type(await canvas.findByLabelText('Email'), EMAIL)
+    await userEvent.click(canvas.getByRole('button', { name: 'Resend activation link' }))
+
+    // The whole panel is replaced, so nothing invites a second attempt.
+    await canvas.findByRole('heading', { level: 1, name: 'Check your inbox' })
+    await canvas.findByText(/If an account exists for this email address/)
+    expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
+    expect(canvas.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', '/accounts/login')
   },
 }
