@@ -1,6 +1,6 @@
 import { Anchor } from '@mantine/core'
 import cx from 'classnames'
-import { Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
 import { Outlet } from 'react-router-dom'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import StandaloneUILanguageSelector from '#/auth/StandaloneUILanguageSelector'
@@ -32,7 +32,8 @@ export default function AuthContainer() {
   const { authConfiguration, termsOfServiceUrl, privacyPolicyUrl } = data ?? {}
   // The background is the exception: we don't show the default one - to not blink it for split second before
   // swapping it with the custom one.
-  const initialBackgroundImageUrl = getInitialBackgroundImageUrl()
+  // Read once on mount: the meta tag is baked into the served HTML and never changes afterwards.
+  const initialBackgroundImageUrl = useMemo(getInitialBackgroundImageUrl, [])
   const hasCustomBackground = data
     ? authConfiguration?.theme === AuthThemeEnum.custom
     : initialBackgroundImageUrl !== undefined
