@@ -27,6 +27,16 @@ const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 // `QUERY_PARSER_MAX_TO_MANY_FILTERS`
 const MAX_SELECTED_TAGS = 10
 
+/**
+ * Wraps a tag name in quotes for the `q` search. Only spaces get normalized out of tag names (see
+ * `cleanupTags`), so a name may well contain a quote character, and the query grammar has no working
+ * escape sequence — so we quote with whichever character the name itself doesn't use. A name using
+ * both is unrepresentable, and would make the whole query fail to parse.
+ */
+function quoteTagName(tagName: string) {
+  return tagName.includes('"') ? `'${tagName}'` : `"${tagName}"`
+}
+
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch] = useDebouncedValue(searchQuery, 500)
@@ -41,10 +51,11 @@ export default function AssetNavigator() {
 
   let tagsOptions: string[] = []
   if (tagsListQuery.data?.status === 200) {
-    const tagsOptionsRaw = tagsListQuery.data?.data?.results.map((t: TagListResponse) => t.name)
+    const tagsOptionsRaw = tagsListQuery.data?.data?.results.map((tag: TagListResponse) => tag.name)
     // Because tags API has a bug we need to ensure only unique results are returned:
     // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
-    tagsOptions = [...new Set(tagsOptionsRaw)]
+    // The endpoint has no `ordering` parameter, so we sort here to keep the picker browsable
+    tagsOptions = [...new Set(tagsOptionsRaw)].sort((a, b) => a.localeCompare(b))
   }
 
   useEffect(() => {
@@ -79,9 +90,16 @@ export default function AssetNavigator() {
       queryParts.push(`(${debouncedSearch})`)
     }
 
-    // Include tags filtering
+    // Include tags filtering.
+    //
+    // `iexact`, not `icontains`: the names come from a list of tags that already exist, so a partial
+    // match would silently pull in assets carrying a *different*, longer tag (picking "health" would
+    // also match "health-services").
+    //
+    // Multiple tags are joined with `AND`, which the back end reads as "has every one of these" —
+    // each to-many leaf becomes its own subquery (see DEV-1581).
     if (selectedTags.length > 0) {
-      const tagQuery = selectedTags.map((t) => `tags__name__icontains:"${t}"`).join(' AND ')
+      const tagQuery = selectedTags.map((tagName) => `tags__name__iexact:${quoteTagName(tagName)}`).join(' AND ')
       queryParts.push(`(${tagQuery})`)
     }
 
@@ -104,6 +122,7 @@ export default function AssetNavigator() {
     limit: 200,
     ordering: '-date_modified',
   })
+  const assetsFoundCount = assetsResponse?.data.count || 0
 
   // Step 4. Setup drag and drop for library assets
   //
@@ -140,9 +159,11 @@ export default function AssetNavigator() {
 
   return (
     <Stack gap='sm' h='100%'>
-      {/* Searchbox */}
+      {/* Searchbox. These filters are labelled only by `aria-label`, as the aside is too narrow to
+      spend a row per visible label on, and the panel heading already says this is a library search */}
       <TextInput
-        placeholder='Search…'
+        aria-label={t('Search library')}
+        placeholder={t('Search…')}
         leftSection={<Icon name='search' />}
         value={searchQuery}
         onChange={(event) => setSearchQuery(event.currentTarget.value)}
@@ -153,11 +174,18 @@ export default function AssetNavigator() {
         data={tagsOptions}
         value={selectedTags}
         onChange={setSelectedTags}
-        placeholder='Filter by tags'
+        aria-label={t('Filter by tags')}
+        placeholder={t('Filter by tags')}
         maxValues={MAX_SELECTED_TAGS}
+        // `maxValues` silently stops accepting picks, so say why once the limit is in reach
+        description={
+          selectedTags.length === MAX_SELECTED_TAGS
+            ? t('You can filter by up to ##count## tags at a time').replace('##count##', String(MAX_SELECTED_TAGS))
+            : undefined
+        }
         searchable
         clearable
-        nothingFoundMessage='No tags found'
+        nothingFoundMessage={t('No tags found')}
         hidePickedOptions
         size='md'
         selectFirstOptionOnChange
@@ -168,7 +196,8 @@ export default function AssetNavigator() {
         data={collectionOptions}
         value={selectedCollection}
         onChange={setSelectedCollection}
-        placeholder='Select collection'
+        aria-label={t('Filter by collection')}
+        placeholder={t('Select collection')}
         searchable
         clearable
         size='md'
@@ -178,11 +207,14 @@ export default function AssetNavigator() {
       {/* Total count & toggle expanded info */}
       <Group justify='space-between' align='center'>
         <Text size='sm' fw={500}>
-          {assetsResponse?.data.results?.length || 0} assets found
+          {/* `count` (not the length of `results`) so the total isn't cut down to the page `limit` */}
+          {assetsFoundCount === 1
+            ? t('1 asset found')
+            : t('##count## assets found').replace('##count##', String(assetsFoundCount))}
         </Text>
 
         <Checkbox
-          label='Expand details'
+          label={t('Expand details')}
           checked={isExpanded}
           onChange={(event) => setIsExpanded(event.currentTarget.checked)}
           size='sm'
@@ -197,12 +229,12 @@ export default function AssetNavigator() {
       ) : isError ? (
         <Center py='xl'>
           <Text c='red' size='sm'>
-            Error loading assets
+            {t('Error loading assets')}
           </Text>
         </Center>
       ) : assetsResponse?.data.results?.length === 0 ? (
         <Center py='xl'>
-          <Text size='sm'>No assets found</Text>
+          <Text size='sm'>{t('No assets found')}</Text>
         </Center>
       ) : (
         <Stack gap='xs' ref={assetsListRef}>

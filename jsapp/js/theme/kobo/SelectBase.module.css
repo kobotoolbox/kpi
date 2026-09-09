@@ -70,6 +70,12 @@
   color: var(--mantine-color-gray-2);
 }
 
+/* Same `--mantine-color-dimmed` problem as `.empty`: 1.28:1 against a white
+   background, i.e. all but invisible. */
+.description {
+  color: var(--mantine-color-gray-2);
+}
+
 .groupLabel {
   color: var(--mantine-color-gray-4);
 }
