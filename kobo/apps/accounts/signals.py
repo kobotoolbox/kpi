@@ -15,9 +15,11 @@ from hub.models import ExtraUserDetail
 from ..help.models import InAppMessage, InAppMessageUsers, MessageType
 from .models import SocialAppCustomData, SocialAppManagedDomain
 from .utils import (
+    DEFAULT_IN_APP_MESSAGE_BODY,
     SOCIAL_APP_IDENTIFIER,
     remove_managed_sso_reminders,
-    user_account_is_managed_by_sso, update_or_create_in_app_message, DEFAULT_IN_APP_MESSAGE_BODY,
+    update_or_create_in_app_message,
+    user_account_is_managed_by_sso,
 )
 
 
@@ -140,12 +142,14 @@ def enforce_managed_sso(sender=None, **kwargs):
 
 @receiver(post_save, sender=ExtraUserDetail)
 def manage_sso_exemption_change(sender=None, instance=None, **kwargs):
-    now = timezone.now()
+    if instance._initially_sso_exempt == instance.sso_exempt:
+        return
     user = instance.user
     managing_sso = SocialAppManagedDomain.get_managing_sso(user)
-    custom_data = SocialAppCustomData.objects.get(social_app=managing_sso)
-    if instance._initially_sso_exempt == instance.sso_exempt or not managing_sso:
+    if not managing_sso:
         return
+    now = timezone.now()
+    custom_data = SocialAppCustomData.objects.get(social_app=managing_sso)
     # non-exempt became exempt, delete their notification and expire the message if necessary
     if not instance._initially_sso_exempt:
         InAppMessageUsers.objects.filter(

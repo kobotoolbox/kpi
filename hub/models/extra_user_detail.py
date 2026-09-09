@@ -76,6 +76,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 self.user.id,
                 self.validated_password,
             )
+        self._initially_sso_exempt = self.sso_exempt
 
     @classmethod
     def update_last_project_activity(cls, user_ids: set[int]) -> None:

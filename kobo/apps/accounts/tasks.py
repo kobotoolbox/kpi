@@ -4,7 +4,8 @@ from django.utils import timezone
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.accounts.utils import (
     remove_stale_managed_sso_reminders,
-    users_needing_update, update_or_create_in_app_message,
+    update_or_create_in_app_message,
+    users_needing_update,
 )
 from kobo.apps.help.models import InAppMessageUsers
 from kobo.apps.kobo_auth.shortcuts import User
@@ -44,7 +45,7 @@ def notify_unlinked_users(
         ' unregistered users for managed social '
         f'app {managed_social_app.name}'
     )
-    if not InAppMessageUsers.objects.filter(in_app_message==in_app_message).exists():
+    if not InAppMessageUsers.objects.filter(in_app_message=in_app_message).exists():
         now = timezone.now()
         in_app_message.valid_until = now
         in_app_message.save()

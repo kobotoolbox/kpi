@@ -21,7 +21,11 @@ from kobo.apps.accounts.models import (
     SocialAppManagedDomain,
 )
 from kobo.apps.accounts.tasks import update_users
-from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update, DEFAULT_IN_APP_MESSAGE_BODY
+from kobo.apps.accounts.utils import (
+    DEFAULT_IN_APP_MESSAGE_BODY,
+    user_is_managed_by_sso,
+    users_needing_update,
+)
 
 
 @admin.register(EmailContent)
@@ -83,7 +87,7 @@ class DomainInline(admin.TabularInline):
 @admin.register(SocialAppCustomData)
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
     inlines = [DomainInline]
-    exclude = ['notify_on_manage_changed', 'notification_changed']
+    exclude = ['send_in_app_message', 'in_app_message_body']
 
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
@@ -109,15 +113,13 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         confirmed = request.method == 'POST' and request.POST.get('_confirmed') == '1'
-        # The toggle field only exists once the confirmation page has been
-        # rendered, so it defaults to True on the first (unconfirmed) POST.
-        send_in_app_message = (
-            'send_in_app_message' in request.POST if confirmed else True
-        )
-        in_app_message_body = request.POST.get('in_app_message_body', '').strip()
+
         message_error = None
-        if confirmed and send_in_app_message and not in_app_message_body:
-            message_error = _('The in-app message cannot be empty.')
+        if confirmed:
+            send_in_app_message = 'send_in_app_message' in request.POST
+            in_app_message_body = request.POST.get('in_app_message_body', '').strip()
+            if send_in_app_message and not in_app_message_body:
+                message_error = _('The in-app message cannot be empty.')
 
         if request.method == 'POST' and (not confirmed or message_error):
             add = object_id is None
@@ -128,6 +130,8 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                 obj = None
                 initial_managed = False
                 initial_domains = set()
+                send_in_app_message = True
+                in_app_message_body = DEFAULT_IN_APP_MESSAGE_BODY
             else:
                 obj = self.get_object(request, unquote(object_id), to_field)
                 if not self.has_change_permission(request, obj):
@@ -138,6 +142,8 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     )
                 initial_managed = obj.managed
                 initial_domains = set(obj.domains.values_list('domain', flat=True))
+                send_in_app_message = obj.send_in_app_message
+                in_app_message_body = obj.in_app_message_body
 
             ModelForm = self.get_form(request, obj, change=not add)
             form = ModelForm(request.POST, request.FILES, instance=obj)
