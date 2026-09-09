@@ -5,6 +5,7 @@ import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import {
   emailVerificationInfoMock,
   emailVerificationInvalidKeyMock,
+  emailVerificationServerErrorMock,
   emailVerifyConfirmMock,
   emailVerifyConfirmWithoutSessionMock,
 } from '#/endpoints/allauth.mocks'
@@ -116,5 +117,30 @@ export const InvalidKeyThenRequestNewLink: Story = {
     await canvas.findByText(/If an account exists for this email address/)
     expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
     expect(canvas.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', '/accounts/login')
+  },
+}
+
+/** The lookup broke rather than the key: a retry, not the failure screen. */
+export const LinkCheckFailed: Story = {
+  parameters: { msw: { handlers: [emailVerificationServerErrorMock()] } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Something went wrong' })
+    await canvas.findByRole('button', { name: 'Retry' })
+  },
+}
+
+/** And the retry gets a link that was fine all along to its prompt, with no page reload. */
+export const LinkCheckRetrySucceeds: Story = {
+  parameters: {
+    // Order matters: the `once` failure answers the first lookup, the plain mock answers the retry.
+    msw: { handlers: [emailVerificationServerErrorMock({ once: true }), emailVerificationInfoMock(EMAIL, USERNAME)] },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.click(await canvas.findByRole('button', { name: 'Retry' }))
+    await canvas.findByText(/Please confirm that/)
   },
 }

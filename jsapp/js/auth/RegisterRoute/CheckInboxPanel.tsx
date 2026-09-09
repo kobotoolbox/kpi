@@ -2,7 +2,6 @@ import { Image, Stack, Text, Title } from '@mantine/core'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import { replaceSupportEmail } from '#/textUtils'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
-import { maskEmail } from './maskEmail'
 
 export interface CheckInboxPanelProps {
   /** The address the verification link went to. Masked before it is shown */
@@ -24,7 +23,7 @@ export default function CheckInboxPanel({ email }: CheckInboxPanelProps) {
 
       <Stack gap='xxs'>
         <Text>{t('We sent you a verification link to the email on record for this account:')}</Text>
-        <Text fw={500}>{maskEmail(email)}</Text>
+        <Text fw={500}>{email}</Text>
       </Stack>
 
       <Text>

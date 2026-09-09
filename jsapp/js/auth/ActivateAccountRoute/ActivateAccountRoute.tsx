@@ -81,6 +81,30 @@ function LinkRequestedPanel() {
   )
 }
 
+interface LinkCheckErrorPanelProps {
+  onRetry: () => void
+  isRetrying: boolean
+}
+
+/**
+ * The lookup failed on a 5xx or a dead connection, which says nothing about the key itself - so this offers another
+ * attempt rather than saying the link is invalid (which might be invalid in itself).
+ */
+function LinkCheckErrorPanel({ onRetry, isRetrying }: LinkCheckErrorPanelProps) {
+  return (
+    <Stack gap='lg' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Something went wrong')}
+      </Title>
+      {/* Deliberately generic, as there will probably be a toast with better server message */}
+      <Text>{t('We could not check your activation link. Please check your connection and try again.')}</Text>
+      <ButtonNew size='lg' fullWidth loading={isRetrying} onClick={onRetry}>
+        {t('Retry')}
+      </ButtonNew>
+    </Stack>
+  )
+}
+
 /** Waiting on the key lookup, which is the first thing this screen does. */
 function CheckingLinkPanel() {
   return (
@@ -169,15 +193,19 @@ function ActivateAccountPanels({ activationKey }: { activationKey: string }) {
     if (confirmStatus === 200 || confirmStatus === 401) {
       return <ConfirmedPanel isSignedIn={confirmStatus === 200} />
     }
-    // `confirm.data` left over here is a rejection - a key that expired between the lookup and the click.
-    // Only a 5xx or a dead connection reaches `isError`, and that leaves the prompt up to try again.
-    if (!activationKey || verification.data === null || verification.isError || confirm.data) {
+    // `confirm.data` left over here is a rejection - a key that expired between the lookup and the click. A
+    // confirm that hit a 5xx or a dead connection has no `data` at all, so the prompt stays up to try again.
+    if (!activationKey || verification.data === null || confirm.data) {
       // Only the failed panel can set this, so the new link always belongs to the address typed in there.
       return linkRequested ? (
         <LinkRequestedPanel />
       ) : (
         <ActivationFailedPanel onLinkRequested={() => setLinkRequested(true)} />
       )
+    }
+    // The lookup failing is not the key failing, so this is a retry rather than the failure screen
+    if (verification.isError && !verification.data) {
+      return <LinkCheckErrorPanel onRetry={() => verification.refetch()} isRetrying={verification.isFetching} />
     }
     // `null` is handled above, so the only falsy value left is the one that means "still in flight".
     if (!verification.data) {
