@@ -7,6 +7,7 @@ import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsIt
  */
 
 const SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/signup'
+const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
 
 /**
  * A successful signup under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since the  new account
@@ -67,3 +68,44 @@ export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.j
  */
 export const signupServerErrorMock = () =>
   http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
+/** Looking up an activation key that is still good. */
+export const emailVerificationInfoMock = (email: string, display: string) =>
+  http.get(EMAIL_VERIFY_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        email,
+        user: { id: 1, display, username: display, email, has_usable_password: true },
+      },
+      meta: { is_authenticating: true },
+    }),
+  )
+
+/** Looking up an activation key that has expired or was already used. */
+export const emailVerificationInvalidKeyMock = () =>
+  http.get(EMAIL_VERIFY_URL, () =>
+    HttpResponse.json(
+      { status: 400, errors: [{ code: 'invalid', param: 'key', message: 'Invalid or expired key.' }] },
+      { status: 400 },
+    ),
+  )
+
+/** Confirming an activation key: allauth logs the account in and answers with the user. */
+export const emailVerifyConfirmMock = () =>
+  http.post(EMAIL_VERIFY_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: { user: { id: 1, display: 'someone', username: 'someone', has_usable_password: true }, methods: [] },
+      meta: { is_authenticated: true },
+    }),
+  )
+
+/** With `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` off: verified, nobody signed in, reported as a 401. */
+export const emailVerifyConfirmWithoutSessionMock = () =>
+  http.post(EMAIL_VERIFY_URL, () =>
+    HttpResponse.json(
+      { status: 401, data: { flows: [{ id: 'login' }] }, meta: { is_authenticated: false } },
+      { status: 401 },
+    ),
+  )
