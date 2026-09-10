@@ -95,10 +95,6 @@ class BigModal extends React.Component {
         })
         break
 
-      case MODAL_TYPES.REPLACE_PROJECT:
-        // title is set by formEditors
-        break
-
       // TODO: Make a better generic modal component
       // See: https://github.com/kobotoolbox/kpi/issues/3643
       case MODAL_TYPES.MFA_MODALS:
@@ -180,13 +176,7 @@ class BigModal extends React.Component {
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
-            <ProjectSettings
-              context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
-              onSetModalTitle={this.setModalTitle}
-              formAsset={this.props.params.asset}
-            />
-          )}
+
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink && (
             <div className='enketo-holder'>
               <iframe src={this.state.enketopreviewlink} allow='camera *; microphone *; geolocation *' />
