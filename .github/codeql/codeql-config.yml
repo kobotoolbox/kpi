@@ -1,0 +1,6 @@
+name: CodeQL config
+paths-ignore:
+  # Vendored third-party code we don't maintain (DEV-2486).
+  # main/static/kobocat/js/ (application.js etc.) is first-party, keep scanning it.
+  - kobo/apps/openrosa/apps/main/static/kobocat/bootstrap
+  - kobo/apps/openrosa/apps/viewer/static/kobocat/js/jquery.dataTables.js
