@@ -14,7 +14,7 @@ import ToasterConfig from '../toasterConfig'
  */
 export default function AuthAppProviders({ children }: { children: React.ReactNode }) {
   return (
-    // TODO: give each auth screen its own title once there is more than one of them.
+    // Fallback title: react-document-title lets a screen's own nested `DocumentTitle` win.
     <DocumentTitle title='KoboToolbox'>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>

@@ -24,7 +24,7 @@ export default function AuthCard({ children, aside }: AuthCardProps) {
       {/* `bd='none'` beats the theme's unconditional `Paper` border with an inline style, no
           `!important` needed. `p={0}` because the padding belongs to the columns, so the divider can
           run the card's full height - and because a container query can't override an inline style. */}
-      <Paper component='section' radius={16} p={0} bd='none' className={styles.card}>
+      <Paper component='section' radius={20} p={0} bd='none' className={styles.card}>
         <Box className={styles.column}>{children}</Box>
 
         {aside && (
