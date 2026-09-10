@@ -34,7 +34,9 @@ def notify_unlinked_users(
         message = custom_data.in_app_message
         if message is None:
             logging.error(
-                '[Managed SSO] Custom data has send_in_app_message but no message to send. Cannot create'
+                f'[Managed SSO] Custom data for {custom_data.social_app.name}'
+                f' has send_in_app_message'
+                ' but no message to send. Cannot create'
                 ' managed SSO notifications.'
             )
             return
@@ -101,7 +103,6 @@ def update_users(
             )
             update_linked_user(user, social_app.provider_id)
         else:
-            logging.info(f'adding user to stuff')
             user_ids_needing_notification.append(user.id)
     if user_ids_needing_notification:
         if not custom_data.send_in_app_message:

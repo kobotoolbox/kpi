@@ -13,7 +13,6 @@ from kobo.apps.accounts.models import SocialAppManagedDomain
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kpi.utils.log import logging
 
 # Key used in InAppMessage.generic_related_objects, same convention as
 # the transfer identifier in kobo.apps.help.serializers

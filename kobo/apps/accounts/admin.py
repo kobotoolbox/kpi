@@ -284,7 +284,8 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                         **DEFAULT_IN_APP_MESSAGE_FIELDS,
                         body=body or DEFAULT_IN_APP_MESSAGE_BODY,
                         valid_from=timezone.now(),
-                        # validity will be extended if/when there are users to notify show it doesn't show to all users
+                        # validity will be extended if/when there are users to notify
+                        # so it doesn't show to all users
                         valid_until=timezone.now(),
                         last_editor=request.user,
                         generic_related_objects={
