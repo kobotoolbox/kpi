@@ -207,6 +207,45 @@ function getSupplementalKeysForSource(
   return collected
 }
 
+/**
+ * Appends one row per supplemental (NLP) key recorded for a question's source
+ * path - transcript, translations, analysis questions - including nested ones
+ * (e.g. qualVerification for a qual question).
+ */
+function addSupplementalDetailRows(
+  asset: AssetResponse,
+  submissionData: DataResponse | SubmissionResponse,
+  supplementalDetailKeys: { [key: string]: string[] },
+  sourceKey: string,
+  children: Array<DisplayResponse | DisplayGroup>,
+) {
+  getSupplementalKeysForSource(supplementalDetailKeys, sourceKey).forEach((sdKey: string) => {
+    // Create a unique xpath for the analysis/verification question
+    const specificXpath = sdKey.replace('_supplementalDetails/', '')
+
+    children.push(
+      new DisplayResponse(
+        // type
+        // TODO: should we aim at this being analysis question type name?
+        null,
+        // label
+        getColumnLabel(asset, sdKey, false),
+        // name
+        sdKey,
+        // xpath
+        specificXpath,
+        // listName
+        undefined,
+        // data
+        getSupplementalDetailsContent(submissionData, sdKey),
+      ),
+    )
+
+    // Check for nested supplemental details (e.g. qualVerification for a qual question)
+    addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, specificXpath, children)
+  })
+}
+
 function addXpathNode(parentGroup: DisplayGroup, repeatIndex: number | null, currentRowData: any) {
   const nodePath = []
   let childIndex = null
@@ -402,38 +441,7 @@ export function getSubmissionDisplayData(
 
         const rowxpath = flatPaths[rowName]
 
-        /**
-         * Recursively add qual related rows to output. Looks for the source key in the list of all possible keys.
-         */
-        const addSupplementalDetails = (sourceKey: string) => {
-          getSupplementalKeysForSource(supplementalDetailKeys, sourceKey).forEach((sdKey: string) => {
-            // Create a unique xpath for the analysis/verification question
-            const specificXpath = sdKey.replace('_supplementalDetails/', '')
-
-            parentGroup.children.push(
-              new DisplayResponse(
-                // type
-                // TODO: should we aim at this being analysis question type name?
-                null,
-                // label
-                getColumnLabel(asset, sdKey, false),
-                // name
-                sdKey,
-                // xpath
-                specificXpath,
-                // listName
-                undefined,
-                // data
-                getSupplementalDetailsContent(submissionData, sdKey),
-              ),
-            )
-
-            // Check for nested supplemental details (e.g. qualVerification for a qual question)
-            addSupplementalDetails(specificXpath)
-          })
-        }
-
-        addSupplementalDetails(rowxpath)
+        addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, rowxpath, parentGroup.children)
       }
     }
   }
@@ -481,6 +489,7 @@ function addUnaccountedAnswers(
   }
 
   const flatPaths = getSurveyFlatPaths(assetContent.survey ?? [], true)
+  const supplementalDetailKeys = sortAnalysisFormJsonKeys(asset.analysis_form_json?.additional_fields || [])
 
   for (const [key, value] of Object.entries(submissionData)) {
     if (displayedKeys.has(key) || NON_RESPONSE_SUBMISSION_KEYS.has(key)) {
@@ -509,6 +518,11 @@ function addUnaccountedAnswers(
 
     // Name and xpath are both the key - the path that finds the file too.
     group.children.push(new DisplayResponse(type, label, key, key, getRowListName(row), value))
+
+    // A submission made before its question moved into a group keeps both the
+    // answer and its NLP data under the pre-move path, so the NLP rows have to
+    // ride along here or they'd vanish with the moved answer.
+    addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, key, group.children)
   }
 }
 

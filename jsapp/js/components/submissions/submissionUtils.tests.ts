@@ -370,7 +370,33 @@ describe('getSubmissionDisplayData for a question moved into a group', () => {
       .expect(groupResponses.find((response) => response.data === 'This is french transcript text.'))
       .to.not.equal(undefined)
   })
+
+  it('should keep the NLP rows of a submission made before the move', () => {
+    // A submission made before the move stores both the answer and its
+    // `_supplementalDetails` under the pre-move flat name. The current form
+    // only knows the grouped path, so the answer surfaces through the
+    // unaccounted-answers path - which must bring the NLP rows along, or the
+    // transcript silently vanishes from the single-submission view.
+    const asset = withRowMovedIntoGroup(assetWithSupplementalDetails, 'Secret_password_as_an_audio_file', 'grp')
+    const submission: SubmissionResponse = JSON.parse(JSON.stringify(submissionWithSupplementalDetails))
+
+    const allResponses = getAllResponses(getSubmissionDisplayData(asset, 0, submission))
+
+    // (a) the audio answer itself, kept visible under its submission-era path.
+    chai
+      .expect(allResponses.find((response) => response.data === '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3'))
+      .to.not.equal(undefined)
+    // (b) the transcript row, attached next to the unaccounted answer.
+    chai
+      .expect(allResponses.find((response) => response.data === 'This is french transcript text.'))
+      .to.not.equal(undefined)
+  })
 })
+
+/** Every response in the display tree, from all groups at all depths. */
+function getAllResponses(group: DisplayGroup): DisplayResponse[] {
+  return group.children.flatMap((child) => (child instanceof DisplayGroup ? getAllResponses(child) : [child]))
+}
 
 describe('getRowData', () => {
   it('should find the answer of a question moved from one group to another', () => {
