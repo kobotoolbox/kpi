@@ -336,6 +336,9 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
 
   goToFormLanding() {
     pageState.hideModal()
+    if (this.props.onRequestClose) {
+      this.props.onRequestClose()
+    }
 
     let targetUid
     if (this.state.formAsset) {
