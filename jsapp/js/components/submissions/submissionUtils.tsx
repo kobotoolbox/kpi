@@ -169,6 +169,44 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   return sortedBySource
 }
 
+/** The last `/`-segment of a path, or the whole string when it has no `/`. */
+function getLeafName(path: string): string {
+  return path.includes('/') ? path.split('/').at(-1)! : path
+}
+
+/**
+ * Supplemental (NLP) keys recorded for a question's source path. The source is
+ * the xpath captured when the feature was enabled, so a question moved into or
+ * out of a group no longer matches it directly. Leaf names are unique per
+ * XLSForm, so fall back to every source sharing this leaf and return all their
+ * keys (deduped) - a question may carry keys from several eras.
+ */
+function getSupplementalKeysForSource(
+  supplementalDetailKeys: { [key: string]: string[] },
+  sourceKey: string,
+): string[] {
+  const direct = supplementalDetailKeys[sourceKey]
+  if (direct) {
+    return direct
+  }
+
+  const wantedLeaf = getLeafName(sourceKey)
+  const collected: string[] = []
+  const seen = new Set<string>()
+  for (const key of Object.keys(supplementalDetailKeys)) {
+    if (getLeafName(key) !== wantedLeaf) {
+      continue
+    }
+    for (const sdKey of supplementalDetailKeys[key]) {
+      if (!seen.has(sdKey)) {
+        seen.add(sdKey)
+        collected.push(sdKey)
+      }
+    }
+  }
+  return collected
+}
+
 function addXpathNode(parentGroup: DisplayGroup, repeatIndex: number | null, currentRowData: any) {
   const nodePath = []
   let childIndex = null
@@ -368,7 +406,7 @@ export function getSubmissionDisplayData(
          * Recursively add qual related rows to output. Looks for the source key in the list of all possible keys.
          */
         const addSupplementalDetails = (sourceKey: string) => {
-          supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
+          getSupplementalKeysForSource(supplementalDetailKeys, sourceKey).forEach((sdKey: string) => {
             // Create a unique xpath for the analysis/verification question
             const specificXpath = sdKey.replace('_supplementalDetails/', '')
 
@@ -686,6 +724,22 @@ export function getRowData(
     const rowData = getRegularGroupAnswers(data, path)
     if (recordKeys(rowData).length >= 1) {
       return rowData
+    }
+  }
+
+  // Question moved between groups: the submission stores its answer under the
+  // xpath of the form version it was made against, which no longer matches the
+  // current path or bare name. Leaf names are unique per XLSForm, so match the
+  // first flat key sharing this leaf (skipping back end and metadata keys).
+  for (const key of recordKeys(data)) {
+    if (typeof key !== 'string' || key.startsWith('_')) {
+      continue
+    }
+    if (key.startsWith('formhub/') || key.startsWith('meta/')) {
+      continue
+    }
+    if (getLeafName(key) === name && isAnswered(data[key])) {
+      return data[key]
     }
   }
   return null
