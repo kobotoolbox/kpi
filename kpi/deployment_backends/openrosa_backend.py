@@ -80,7 +80,11 @@ from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
-from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from kpi.utils.xml import (
+    find_element_by_leaf_name,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
@@ -567,20 +571,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
             if element is None:
                 # Submissions keep the xpath of the form version they were made
-                # against, so a current-version xpath may not exist in an older
-                # submission's XML (and vice versa) when a question moves into
-                # or out of a group. XLSForm names are unique form-wide, so the
-                # first leaf-name match is deterministic.
-                leaf = xpath.rsplit('/', 1)[-1]
-                for candidate in submission_root.iter():
-                    if candidate is submission_root:
-                        continue
-                    tag = candidate.tag
-                    if isinstance(tag, str) and '}' in tag:
-                        tag = tag.rsplit('}', 1)[-1]
-                    if tag == leaf and candidate.text:
-                        element = candidate
-                        break
+                # against, so a path from another version may not exist in the
+                # XML when the question moved into or out of a group
+                element = find_element_by_leaf_name(submission_root, xpath)
 
             if element is None:
                 raise XPathNotFoundException
