@@ -1536,7 +1536,7 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_BEAT_SCHEDULER = 'kobo.apps.beat.schedulers.ThrottledDatabaseScheduler'
 
 # helpful for certain debugging
-CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
+CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', True)
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
