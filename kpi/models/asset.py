@@ -600,6 +600,10 @@ class Asset(
         cached_xpaths = cache.get(cache_key)
 
         if cached_xpaths is not None:
+            # Memoize the hit too, otherwise every call on this instance pays a
+            # Redis round-trip and the query behind
+            # `latest_deployed_version_uid`
+            setattr(self, '_all_attachment_xpaths', cached_xpaths)
             return cached_xpaths
         elif only_cached_data:
             return None
@@ -625,23 +629,26 @@ class Asset(
         """
         Get attachment xpaths from a specific version.
 
-        Results are cached in Redis for 24 hours.
+        Results are cached in Redis for 24 hours, but only when a version is
+        given. A version's content never changes, so its uid alone says what
+        the entry holds and that entry can never go stale. `self.content`
+        offers no such marker: it changes on every save, and nothing
+        invalidates these keys. Reading it is also the cheap case, with no
+        `to_formpack_schema()` to pay for.
         """
+
+        cache_key = None
 
         if version:
             cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
-        else:
-            cache_key = f'attachment_xpaths:{self.uid}:no-version'
+            cached_xpaths = cache.get(cache_key)
 
-        cached_xpaths = cache.get(cache_key)
+            if cached_xpaths is not None:
+                return cached_xpaths
 
-        if cached_xpaths is not None:
-            return cached_xpaths
-
-        # Read the content only once the cache has been given its chance:
-        # expanding a version's content is the expensive part of this method,
-        # and `self.content` may be a deferred field
-        if version:
+            # Read the content only once the cache has been given its chance:
+            # expanding a version's content is the expensive part of this method,
+            # and `self.content` may be a deferred field
             content = version.to_formpack_schema()['content']
         else:
             content = self.content
@@ -666,16 +673,21 @@ class Asset(
 
             return xpaths
 
-        if xpaths := _get_xpaths(survey):
-            return xpaths
-
-        # Inject missing `$xpath` properties
-        self._insert_xpath(content)
-
         xpaths_list = _get_xpaths(survey)
 
+        if xpaths_list is None:
+            # Versions predating the NLP feature carry no `$xpath`. Inject the
+            # missing properties and read them again. An empty list needs no
+            # such treatment: a survey without a single question that takes an
+            # attachment has no xpath to offer either way
+            self._insert_xpath(content)
+            xpaths_list = _get_xpaths(survey)
+
         # Store in Redis cache
-        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
+        if cache_key:
+            cache.set(
+                cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL
+            )
 
         return xpaths_list
 

@@ -7,11 +7,13 @@ from functools import reduce
 from unittest.mock import patch
 
 from django.conf import settings
+from django.core.cache import cache
 from django.test import TestCase
 from model_bakery import baker
 
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.sluggify import sluggify_label
 
 
@@ -917,6 +919,59 @@ class TestAssetContent(TestCase):
         # Validate XPaths can still be retrieved even on old versions
         xpaths = asset.get_all_attachment_xpaths()
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
+
+    def test_get_attachment_xpaths_from_version_caches_populated_result(self):
+        """
+        The case worth caching is the one that costs something: a version that
+        does have media questions, whose xpaths are read back from an expanded
+        `to_formpack_schema()`.
+        """
+
+        version = self.asset.asset_versions.filter(deployed=True).first()
+        cache_key = f'attachment_xpaths:{self.asset.uid}:{version.uid}'
+        cache.delete(cache_key)
+
+        with patch.object(
+            AssetVersion,
+            'to_formpack_schema',
+            side_effect=AssetVersion.to_formpack_schema,
+            autospec=True,
+        ) as expand:
+            assert self.asset.get_attachment_xpaths_from_version(version) == ['Image']
+            assert cache.get(cache_key) == ['Image']
+            assert self.asset.get_attachment_xpaths_from_version(version) == ['Image']
+
+        assert expand.call_count == 1
+
+    def test_get_attachment_xpaths_without_version_follow_the_content(self):
+        """
+        Without a version the xpaths come from `self.content`, which changes on
+        every save while nothing invalidates the cache. Reading it must
+        therefore answer for the content as it stands, which no cache entry
+        keyed on the asset alone could do.
+        """
+
+        assert self.asset.get_attachment_xpaths_from_version() == ['Image']
+
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+
+        assert self.asset.get_attachment_xpaths_from_version() == ['Image_renamed']
+
+    def test_get_all_attachment_xpaths_memoizes_a_cache_hit(self):
+        """
+        A hit used to return before the instance memo was set, so each call paid
+        a Redis round-trip and the query behind `latest_deployed_version_uid`.
+        """
+
+        self.asset.get_all_attachment_xpaths()
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        with patch('kpi.models.asset.cache.get', side_effect=cache.get) as cache_get:
+            assert asset.get_all_attachment_xpaths() == ['Image']
+            assert asset.get_all_attachment_xpaths() == ['Image']
+
+        assert cache_get.call_count == 1
 
     def test_get_attachment_xpaths_from_version_uids_merges_versions(self):
         """
