@@ -1,6 +1,10 @@
 name: Python linter (Darker)
 
 on: workflow_call
+
+permissions:
+  contents: read
+
 jobs:
   darker:
     runs-on: ubuntu-24.04
