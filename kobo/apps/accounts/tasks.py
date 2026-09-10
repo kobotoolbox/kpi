@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 
@@ -25,37 +26,45 @@ def notify_unlinked_users(
     requesting_user: User = None,
     message_body: str = None,
 ):
-    # if there are no users to notify, still create the message in case users become eligible for notification
-    # later (ie have their sso-exemption removed or a domain added)
-    in_app_message = update_or_create_in_app_message(
-        managed_social_app, requesting_user, body=message_body
-    )
-    logging.info(
-        f'[Managed SSO] Creating in-app message for unregistered users for'
-        f' managed social app {managed_social_app.name}.'
-    )
-    created = InAppMessageUsers.objects.bulk_create(
-        [
-            InAppMessageUsers(user_id=user_id, in_app_message=in_app_message)
-            for user_id in user_ids
-        ]
-    )
-    logging.info(
-        f'[Managed SSO] Created {len(created)} notifications for'
-        ' unregistered users for managed social '
-        f'app {managed_social_app.name}'
-    )
-    if not InAppMessageUsers.objects.filter(in_app_message=in_app_message).exists():
-        now = timezone.now()
-        in_app_message.valid_until = now
-        in_app_message.save()
+    """
+    Add `user_ids` as recipients of the social app's single reminder, which is
+    created or refreshed with `message_body` on the way.
+
+    The reminder is kept even with no recipient, expired, so a user who later
+    loses their SSO exemption gets the message the admin chose.
+    """
+    with transaction.atomic():
+        # keeping this in a transaction means we don't have to worry later
+        # that we've already created the message but not the recipients, and
+        # that a recipient-less message is never visible to everyone
+        in_app_message = update_or_create_in_app_message(
+            managed_social_app, requesting_user, body=message_body
+        )
+        logging.info(
+            f'[Managed SSO] Creating in-app message for unregistered users for'
+            f' managed social app {managed_social_app.name}.'
+        )
+        created = InAppMessageUsers.objects.bulk_create(
+            [
+                InAppMessageUsers(user_id=user_id, in_app_message=in_app_message)
+                for user_id in user_ids
+            ]
+        )
+        logging.info(
+            f'[Managed SSO] Created {len(created)} notifications for'
+            ' unregistered users for managed social '
+            f'app {managed_social_app.name}'
+        )
+        if not in_app_message.inappmessageusers_set.exists():
+            in_app_message.valid_until = timezone.now()
+            in_app_message.save(update_fields=['valid_until'])
 
 
 @celery_app.task()
 def update_users(
     social_app_custom_data_id: int,
     domain: str,
-    requesting_user_id: int = None
+    requesting_user_id: int = None,
 ):
     # Only pks cross the task boundary: model instances are not JSON-serializable.
     # The flag and the domain are re-checked here because the admin can turn

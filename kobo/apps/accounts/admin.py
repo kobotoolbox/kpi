@@ -130,8 +130,6 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                 obj = None
                 initial_managed = False
                 initial_domains = set()
-                send_in_app_message = True
-                in_app_message_body = DEFAULT_IN_APP_MESSAGE_BODY
             else:
                 obj = self.get_object(request, unquote(object_id), to_field)
                 if not self.has_change_permission(request, obj):
@@ -142,8 +140,13 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     )
                 initial_managed = obj.managed
                 initial_domains = set(obj.domains.values_list('domain', flat=True))
-                send_in_app_message = obj.send_in_app_message
-                in_app_message_body = obj.in_app_message_body
+            if not confirmed:
+                # Default to notifying when managed SSO is being turned on;
+                # otherwise show what was chosen last time.
+                send_in_app_message = (
+                    obj.send_in_app_message if initial_managed else True
+                )
+                in_app_message_body = obj.in_app_message_body if obj else ''
 
             ModelForm = self.get_form(request, obj, change=not add)
             form = ModelForm(request.POST, request.FILES, instance=obj)
@@ -265,10 +268,14 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj._initially_managed_pre_save = obj._initially_managed
         obj._initial_domains_pre_save = obj._initial_domains
-        send_message = request.POST.get('send_in_app_message', 'off') == 'on'
-        in_app_message_body = request.POST.get('in_app_message_body') if send_message else None
-        obj.notify_on_manage_changed = send_message
-        obj.notification_message = in_app_message_body
+        # The in-app message controls only exist on the confirmation page, and
+        # only when managed SSO is on after the save: a plain save must not
+        # reset them.
+        if request.POST.get('_confirmed') == '1' and obj.managed:
+            obj.send_in_app_message = 'send_in_app_message' in request.POST
+            obj.in_app_message_body = request.POST.get(
+                'in_app_message_body', ''
+            ).strip()
         super().save_model(request, obj, form, change)
 
     def save_related(self, request: HttpRequest, form, formsets, change) -> None:
@@ -290,12 +297,11 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     domains_to_update.append(domain)
 
             def update_all_domains():
-                send_message = request.POST.get('send_in_app_message', 'off') == 'on'
                 for domain in domains_to_update:
                     update_users.delay(
                         social_app_custom_data_id=instance.pk,
                         domain=domain,
-                        requesting_user_id=request.user.pk
+                        requesting_user_id=request.user.pk,
                     )
 
             transaction.on_commit(update_all_domains)

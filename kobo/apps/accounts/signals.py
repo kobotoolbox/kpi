@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 import constance
 from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
@@ -14,8 +12,8 @@ from django.utils import timezone
 from hub.models import ExtraUserDetail
 from ..help.models import InAppMessage, InAppMessageUsers, MessageType
 from .models import SocialAppCustomData, SocialAppManagedDomain
+from .tasks import update_linked_user
 from .utils import (
-    DEFAULT_IN_APP_MESSAGE_BODY,
     SOCIAL_APP_IDENTIFIER,
     remove_managed_sso_reminders,
     update_or_create_in_app_message,
@@ -141,43 +139,39 @@ def enforce_managed_sso(sender=None, **kwargs):
 
 
 @receiver(post_save, sender=ExtraUserDetail)
-def manage_sso_exemption_change(sender=None, instance=None, **kwargs):
-    if instance._initially_sso_exempt == instance.sso_exempt:
+def manage_sso_exemption_change(sender=None, instance=None, raw=False, **kwargs):
+    """
+    Apply or lift managed SSO for one user when `sso_exempt` is toggled.
+    """
+    if raw or instance._initially_sso_exempt == instance.sso_exempt:
         return
     user = instance.user
-    managing_sso = SocialAppManagedDomain.get_managing_sso(user)
-    if not managing_sso:
+    social_app = SocialAppManagedDomain.get_managing_sso(user)
+    if social_app is None:
         return
-    now = timezone.now()
-    custom_data = SocialAppCustomData.objects.get(social_app=managing_sso)
-    # non-exempt became exempt, delete their notification and expire the message if necessary
-    if not instance._initially_sso_exempt:
+    reminders = InAppMessage.objects.filter(
+        message_type=MessageType.MANAGED_SSO_REMINDER,
+        generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: social_app.pk},
+    )
+    if instance.sso_exempt:
+        # Withdraw the reminder; an emptied one is expired, not left to be
+        # broadcast to everyone.
         InAppMessageUsers.objects.filter(
-            user=instance.user,
-            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
+            user=user, in_app_message__in=reminders
         ).delete()
-        InAppMessage.objects.filter(
-            message_type=MessageType.MANAGED_SSO_REMINDER,
-            generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: managing_sso.pk},
-            inappmessageusers__isnull=True,
-        ).update(valid_until=now)
+        reminders.filter(inappmessageusers__isnull=True).update(
+            valid_until=timezone.now()
+        )
         return
-    # exempt became non-exempt, either update existing account or, if notifications were requested, notify them
-    has_social_account = SocialAccount.objects.filter(
-        user=user,
-        provider=managing_sso.provider_id,
-    ).exists()
-    if has_social_account:
-        user.set_unusable_password()
-        user.save()
-    else:
-        if custom_data.send_in_app_message:
-            existing_message = update_or_create_in_app_message(
-                social_app=managing_sso,
-                body = custom_data.in_app_message_body or DEFAULT_IN_APP_MESSAGE_BODY
-            )
-            # this will un-expire the message reminder if it was previously expired after all other users
-            # linked their accounts
-            existing_message.valid_until = now + timedelta(days=365)
-            existing_message.save()
-            InAppMessageUsers.objects.create(user=user, in_app_message=existing_message)
+    # Same two tracks as `tasks.update_users()`, for this user only
+    if SocialAccount.objects.filter(
+        user=user, provider=social_app.provider_id
+    ).exists():
+        update_linked_user(user, social_app.provider_id)
+    elif social_app.custom_data.send_in_app_message:
+        # Reusing the app's reminder also un-expires it if everyone else had
+        # already linked their account.
+        reminder = update_or_create_in_app_message(
+            social_app, body=social_app.custom_data.in_app_message_body
+        )
+        InAppMessageUsers.objects.get_or_create(user=user, in_app_message=reminder)

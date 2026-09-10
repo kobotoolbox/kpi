@@ -19,6 +19,14 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 # the transfer identifier in kobo.apps.help.serializers
 SOCIAL_APP_IDENTIFIER = f'{SocialApp._meta.app_label}.{SocialApp._meta.model_name}'
 
+DEFAULT_IN_APP_MESSAGE_BODY = t(
+    'Dear ##username##,\n\n'
+    'Going forward, your organization will be managing all Kobo accounts '
+    'through ##sso_name##. Please connect your ##sso_name## account. '
+    'Your password will be disabled and you will be required to use ##sso_name## '
+    'to log in.'
+)
+
 
 class SplitPart(Func):
     function = 'SPLIT_PART'
@@ -176,37 +184,33 @@ def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):
     return users
 
 
-def update_or_create_in_app_message(social_app, requesting_user=None, body=None):
+def update_or_create_in_app_message(
+    social_app: 'socialaccount.SocialApp',
+    requesting_user: User | None = None,
+    body: str | None = None,
+) -> InAppMessage:
+    """
+    The single "connect your SSO account" reminder of a social app, created
+    on first use and otherwise refreshed with the current body and validity.
+    """
     now = timezone.now()
-    title = t('Update your account')
-    snippet = t('Please connect your ##sso_name## account')
-    body = body or DEFAULT_IN_APP_MESSAGE_BODY
-    #  … save raw strings into DB to let them be translated in
-    # the users' language in the API response, i.e. when front end
-    # exposes the message in the UI.
     defaults = {
-            'title': title,
-            'snippet': snippet,
-            'published': True,
-            'valid_from': now,
-            'body': body,
-            'valid_until': now + timedelta(days=365),
-            'always_display_as_new': True,
-            'last_editor': requesting_user
-        }
+        #  … save raw strings into DB to let them be translated in
+        # the users' language in the API response, i.e. when front end
+        # exposes the message in the UI.
+        'title': t('Update your account'),
+        'snippet': t('Please connect your ##sso_name## account'),
+        'body': body or DEFAULT_IN_APP_MESSAGE_BODY,
+        'published': True,
+        'valid_from': now,
+        'valid_until': now + timedelta(days=365),
+        'always_display_as_new': True,
+    }
+    if requesting_user is not None:
+        defaults['last_editor'] = requesting_user
     message, _ = InAppMessage.objects.update_or_create(
-        generic_related_objects={SOCIAL_APP_IDENTIFIER: social_app.pk},
         message_type=MessageType.MANAGED_SSO_REMINDER,
+        generic_related_objects={SOCIAL_APP_IDENTIFIER: social_app.pk},
         defaults=defaults,
-        create_defaults=defaults
     )
     return message
-
-
-DEFAULT_IN_APP_MESSAGE_BODY = t(
-    'Dear ##username##,\n\n'
-    'Going forward, your organization will be managing all Kobo accounts '
-    'through ##sso_name##. Please connect your ##sso_name## account. '
-    'Your password will be disabled and you will be required to use ##sso_name## '
-    'to log in.'
-)

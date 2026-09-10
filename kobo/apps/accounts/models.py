@@ -98,8 +98,15 @@ class SocialAppCustomData(models.Model):
     managed = models.BooleanField(
         default=False, help_text='Allow clients to manage users exclusively through SSO'
     )
-    send_in_app_message = models.BooleanField(default=False)
-    in_app_message_body = models.CharField(null=True)
+    send_in_app_message = models.BooleanField(
+        default=False,
+        help_text='Send unlinked accounts on managed domains an in-app message',
+    )
+    in_app_message_body = models.TextField(
+        blank=True,
+        default='',
+        help_text='Body of that in-app message; empty means the default text',
+    )
 
     def __str__(self):
         return f'{self.social_app.name} Custom Data'

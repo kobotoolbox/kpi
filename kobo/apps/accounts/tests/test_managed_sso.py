@@ -391,28 +391,68 @@ class TestManagedSsoUsers(TestCase, ManagedSSOTestMixin):
             assert message.valid_until > now
 
     def test_remove_sso_exemption_notifies_user_if_no_account(self):
+        """
+        The app's existing reminder is reused, with the admin's message, and
+        un-expired: it was expired once every other user had linked.
+        """
         now = timezone.now()
         self.custom_data.send_in_app_message = True
+        self.custom_data.in_app_message_body = 'custom body text'
+        self.custom_data.save()
+        expired_message = update_or_create_in_app_message(self.social_app)
+        expired_message.valid_until = now - timedelta(days=1)
+        expired_message.save()
+        self.exempt_socialaccount.delete()
+
+        self.exempt_user.extra_details.sso_exempt = False
+        self.exempt_user.extra_details.save()
+
+        recipient = InAppMessageUsers.objects.get(user=self.exempt_user)
+        assert recipient.in_app_message == expired_message
+        expired_message.refresh_from_db()
+        assert expired_message.valid_until > now
+        assert expired_message.body == 'custom body text'
+
+    def test_remove_sso_exemption_skips_notification_when_disabled(self):
+        self.custom_data.send_in_app_message = False
         self.custom_data.save()
         self.exempt_socialaccount.delete()
         self.exempt_user.extra_details.sso_exempt = False
         self.exempt_user.extra_details.save()
-        assert InAppMessageUsers.objects.filter(
-            user=self.exempt_user,
-            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
-            in_app_message__generic_related_objects__contains={
-                SOCIAL_APP_IDENTIFIER: self.social_app.pk
-            },
-            in_app_message__valid_until__gte=now,
+        assert not InAppMessageUsers.objects.filter(user=self.exempt_user).exists()
+        assert not InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER
         ).exists()
 
-    def test_remove_sso_exemption_unsets_password_if_account(self):
+    def test_remove_sso_exemption_converts_linked_user_to_sso_only(self):
         self.exempt_user.set_password('validpassword')
         self.exempt_user.save()
+        other_account = baker.make(
+            'socialaccount.SocialAccount',
+            user=self.exempt_user,
+            provider='another_provider',
+        )
         self.exempt_user.extra_details.sso_exempt = False
         self.exempt_user.extra_details.save()
         self.exempt_user.refresh_from_db()
         assert not self.exempt_user.has_usable_password()
+        assert not SocialAccount.objects.filter(pk=other_account.pk).exists()
+        assert SocialAccount.objects.filter(pk=self.exempt_socialaccount.pk).exists()
+
+    def test_toggling_sso_exemption_ignores_unmanaged_domains(self):
+        user = self._create_user(
+            'elsewhere',
+            has_password=True,
+            has_managed_account=True,
+            has_unmanaged_account=False,
+            domain='elsewhere.com',
+        )
+        user.extra_details.sso_exempt = True
+        user.extra_details.save()
+        user.extra_details.sso_exempt = False
+        user.extra_details.save()
+        user.refresh_from_db()
+        assert user.has_usable_password()
 
     def _make_unmanaged(self, change):
         if change == 'managed_off':
@@ -540,10 +580,12 @@ class TestManagedSsoCelery(TestCase, ManagedSSOTestMixin):
             message_type=MessageType.MANAGED_SSO_REMINDER,
             generic_related_objects__contains={
                 SOCIAL_APP_IDENTIFIER: self.social_app.id
-            }
+            },
         )
         assert in_app_message.valid_until == now
-        assert not InAppMessageUsers.objects.filter(in_app_message=in_app_message).exists()
+        assert not InAppMessageUsers.objects.filter(
+            in_app_message=in_app_message
+        ).exists()
 
     def test_update_users_is_idempotent(self):
         custom_data = SocialAppCustomData.objects.create(
@@ -725,11 +767,37 @@ class TestManagedSsoWithdrawal(TestCase):
         self.alice = User.objects.create(username='alice', email='alice@example.com')
         self.bob = User.objects.create(username='bob', email='bob@other.com')
         self.carol = User.objects.create(username='carol', email='carol@elsewhere.com')
-        # Create the reminders through the real path: one message and one
-        # recipient row per managed domain.
+        # Create the reminders through the real path: one message for the app
+        # and one recipient row per user.
         update_users(self.custom_data.pk, 'example.com')
         update_users(self.custom_data.pk, 'other.com')
         self.client = Client()
+
+    def test_removing_domain_withdraws_only_that_domain(self):
+        """
+        Removing one managed domain withdraws only its recipients; the shared
+        reminder stays live for the other domain and is not broadcast.
+        """
+        message = InAppMessage.objects.get(
+            message_type=MessageType.MANAGED_SSO_REMINDER
+        )
+        assert InAppMessageUsers.objects.filter(in_app_message=message).count() == 2
+
+        self.other_domain.delete()
+
+        assert not InAppMessageUsers.objects.filter(user=self.bob).exists()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+        message.refresh_from_db()
+        assert message.valid_until > timezone.now()
+
+        # bob's withdrawal must not leak the reminder to everyone
+        self.client.force_login(self.carol)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 0
+
+        self.client.force_login(self.alice)
+        response = self.client.get('/help/in_app_messages/')
+        assert response.json()['count'] == 1
 
     def test_turning_managed_off_withdraws_reminders(self):
         """
