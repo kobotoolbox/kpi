@@ -54,8 +54,7 @@ export default function SelectQuestion({
   }
 
   /**
-   * We display all questions with audio response type, plus text response
-   * type when the `nlpTextActionsEnabled` feature flag is on.
+   * We display all NLP supported questions
    */
   const { options, icons } = useMemo(() => {
     const assetContent = asset.content
@@ -72,7 +71,7 @@ export default function SelectQuestion({
     const icons: Record<string, IconName | undefined> = {}
 
     /**
-     * Builds the option for one audio/text question, or nothing when it isn't supported.
+     * Builds the option for NLP supported questions.
      * No `row` means the form no longer has the question, and then the attachment's
      * mimetype gives the type and the recorded path the label.
      */
