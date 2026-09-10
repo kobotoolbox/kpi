@@ -973,6 +973,24 @@ class TestAssetContent(TestCase):
 
         assert cache_get.call_count == 1
 
+    def test_get_all_attachment_xpaths_memo_does_not_outlive_a_deployment(self):
+        """
+        The memo answers for a set of deployed versions. Deploying another one
+        makes it wrong, and `save()` is what both a deployment and an edit go
+        through.
+        """
+
+        assert self.asset.get_all_attachment_xpaths() == ['Image']
+
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+
+        assert sorted(self.asset.get_all_attachment_xpaths()) == [
+            'Image',
+            'Image_renamed',
+        ]
+
     def test_get_attachment_xpaths_from_version_uids_merges_versions(self):
         """
         A question renamed between two versions lives at both xpaths, and a

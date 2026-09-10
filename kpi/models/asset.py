@@ -999,6 +999,11 @@ class Asset(
         *args,
         **kwargs,
     ):
+        # Deploying a version changes which ones the xpaths are read from, and
+        # `deploy()` ends up saving the asset. Drop the memo rather than let it
+        # outlive its answer; refilling it costs a Redis lookup at worst
+        self._all_attachment_xpaths = None
+
         is_new = self.pk is None
 
         if is_new:
