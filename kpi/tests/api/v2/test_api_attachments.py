@@ -1,6 +1,7 @@
 import uuid
 from unittest.mock import patch
 
+import pytest
 from django.http import QueryDict
 from django.test import override_settings
 from django.urls import reverse
@@ -10,6 +11,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.exceptions import XPathNotFoundException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.tests.utils.mock import guess_type_mock
@@ -331,3 +333,117 @@ class AttachmentApiTests(BaseAssetTestCase):
         self.client.get(thumb_url)
         # Thumbs should exist
         self.assertTrue(default_storage.exists(thumbnail))
+
+    def test_get_attachment_resolves_xpath_across_form_versions(self):
+        """
+        Keep an attachment reachable by both the pre-move and the post-move
+        xpath once a question is moved into a group and the form is redeployed.
+
+        Submissions keep the xpath of the version they were made against, so
+        without the leaf-name fallback a current-version xpath misses an older
+        submission's XML (and vice versa), which is the DEV-158 break.
+        """
+        clip = 'audio_conversion_test_clip.3gp'
+
+        def _make_submission(version_uid, audio_key):
+            _uuid = str(uuid.uuid4())
+            return {
+                '__version__': version_uid,
+                audio_key: clip,
+                '_uuid': _uuid,
+                'meta/instanceID': f'uuid:{_uuid}',
+                'meta/rootUuid': f'uuid:{_uuid}',
+                '_attachments': [
+                    {
+                        'download_url': f'http://testserver/someuser/{clip}',
+                        'filename': f'someuser/{clip}',
+                        'mimetype': 'video/3gpp',
+                    },
+                ],
+                '_submitted_by': 'someuser',
+            }
+
+        asset = Asset.objects.create(
+            content={
+                'survey': [
+                    {
+                        'type': 'audio',
+                        'name': 'Tell_me_a_story',
+                        'label': 'q',
+                        '$kuid': 'aud1',
+                    },
+                ]
+            },
+            owner=self.someuser,
+            asset_type='survey',
+        )
+        asset.deploy(backend='mock', active=True)
+        asset.save()
+
+        # A submission made before the move stores the answer at the root xpath.
+        old_submission = _make_submission(
+            asset.latest_deployed_version.uid, 'Tell_me_a_story'
+        )
+        with patch('mimetypes.guess_type') as guess_mock:
+            guess_mock.side_effect = guess_type_mock
+            asset.deployment.mock_submissions([old_submission])
+
+        # Move the question into a group and redeploy, as a new version would.
+        # The content is already normalized, so labels must stay translated lists.
+        asset.content['survey'] = [
+            {'type': 'begin_group', 'name': 'grp', 'label': ['grp'], '$kuid': 'grp1'},
+            {
+                'type': 'audio',
+                'name': 'Tell_me_a_story',
+                'label': ['q'],
+                '$kuid': 'aud1',
+            },
+            {'type': 'end_group', '$kuid': '/grp1'},
+        ]
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+        asset.save()
+
+        # A submission made after the move stores it at the grouped xpath.
+        new_submission = _make_submission(
+            asset.latest_deployed_version.uid, 'grp/Tell_me_a_story'
+        )
+        with patch('mimetypes.guess_type') as guess_mock:
+            guess_mock.side_effect = guess_type_mock
+            asset.deployment.mock_submissions([new_submission])
+
+        deployment = asset.deployment
+        old_id = old_submission['_id']
+        new_id = new_submission['_id']
+        old_att_id = old_submission['_attachments'][0]['id']
+        new_att_id = new_submission['_attachments'][0]['id']
+
+        # Old submission: native root xpath, plus the current grouped xpath by
+        # leaf-name fallback.
+        assert (
+            deployment.get_attachment(old_id, self.someuser, xpath='Tell_me_a_story').pk
+            == old_att_id
+        )
+        assert (
+            deployment.get_attachment(
+                old_id, self.someuser, xpath='grp/Tell_me_a_story'
+            ).pk
+            == old_att_id
+        )
+
+        # New submission: native grouped xpath, plus the pre-move root xpath by
+        # leaf-name fallback.
+        assert (
+            deployment.get_attachment(
+                new_id, self.someuser, xpath='grp/Tell_me_a_story'
+            ).pk
+            == new_att_id
+        )
+        assert (
+            deployment.get_attachment(new_id, self.someuser, xpath='Tell_me_a_story').pk
+            == new_att_id
+        )
+
+        # A leaf that never existed in either era still raises.
+        with pytest.raises(XPathNotFoundException):
+            deployment.get_attachment(old_id, self.someuser, xpath='no_such_question')

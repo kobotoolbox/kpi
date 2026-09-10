@@ -566,6 +566,23 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 raise InvalidXPathException
 
             if element is None:
+                # Submissions keep the xpath of the form version they were made
+                # against, so a current-version xpath may not exist in an older
+                # submission's XML (and vice versa) when a question moves into
+                # or out of a group. XLSForm names are unique form-wide, so the
+                # first leaf-name match is deterministic.
+                leaf = xpath.rsplit('/', 1)[-1]
+                for candidate in submission_root.iter():
+                    if candidate is submission_root:
+                        continue
+                    tag = candidate.tag
+                    if isinstance(tag, str) and '}' in tag:
+                        tag = tag.rsplit('}', 1)[-1]
+                    if tag == leaf and candidate.text:
+                        element = candidate
+                        break
+
+            if element is None:
                 raise XPathNotFoundException
             attachment_filename = element.text
             # Legacy DB rows may store the basename in either normalization
