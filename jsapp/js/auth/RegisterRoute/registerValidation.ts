@@ -1,4 +1,10 @@
 import type { SocialApp } from '#/api/models/socialApp'
+import {
+  type SignupMetadataFieldName,
+  type SignupMetadataFields,
+  type SignupMetadataValues,
+  isMetadataFieldRequired,
+} from './registerMetadataFields'
 
 /**
  * Client side validation for the registration form. The backend is authoritative, so this only saves a
@@ -14,8 +20,41 @@ const USERNAME_MAX_LENGTH = 30
 
 const requiredFieldMessage = () => t('Required field')
 
-export function validateFullName(value: string): string | null {
-  return value.trim() ? null : requiredFieldMessage()
+/** Mantine hands the whole form values object to every rule; the metadata rules only need this part. */
+interface FormValuesWithMetadata {
+  metadata: SignupMetadataValues
+}
+
+type MetadataValidator = (value: string | boolean, values: FormValuesWithMetadata) => string | null
+
+/**
+ * One rule per supported metadata field. Blank is an error only where the instance requires the field,
+ * which chan change mid-typing - hence reading the current values rather than deciding once.
+ */
+export function getMetadataValidators(
+  fields: SignupMetadataFields,
+): Record<SignupMetadataFieldName, MetadataValidator> {
+  const validate =
+    (name: SignupMetadataFieldName): MetadataValidator =>
+    (value, values) => {
+      if (!isMetadataFieldRequired(name, fields, values.metadata)) {
+        return null
+      }
+      // A required checkbox has to be ticked; everything else has to be non-blank.
+      const isFilled = typeof value === 'boolean' ? value : Boolean(value.trim())
+      return isFilled ? null : requiredFieldMessage()
+    }
+
+  return {
+    name: validate('name'),
+    country: validate('country'),
+    sector: validate('sector'),
+    organization_type: validate('organization_type'),
+    organization: validate('organization'),
+    organization_website: validate('organization_website'),
+    gender: validate('gender'),
+    newsletter_subscription: validate('newsletter_subscription'),
+  }
 }
 
 export function validateUsername(value: string): string | null {
