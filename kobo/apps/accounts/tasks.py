@@ -91,7 +91,6 @@ def update_users(
     )
     user_ids_needing_notification = []
     for user in users_to_update:
-        logging.info(f'{user=}')
         # 'managed_account' is an annotated field created by the query
         if user.managed_account > 0:
             if not _managed_custom_data(social_app_custom_data_id, domain).exists():
