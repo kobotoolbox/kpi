@@ -195,7 +195,11 @@ class MailerConnectionSessionLimitError(MailerError):
 
 
 class MissingXFormException(Exception):
-    pass
+    # Not translated on purpose: only stored as an ops diagnostic and grepped
+    def __init__(
+        self, message='Deployment links to a KoboCAT XForm that no longer exists'
+    ):
+        super().__init__(message)
 
 
 class NotSupportedFormatException(Exception):
