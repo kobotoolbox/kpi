@@ -51,13 +51,16 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     autoBind(this)
   }
 
-  openProcessing(name: string) {
-    if (this.props.asset?.content) {
-      const foundRow = findRow(this.props.asset?.content, name)
-      if (foundRow && foundRow.$xpath !== undefined) {
-        goToProcessing(this.props.asset.uid, foundRow.$xpath, this.props.submissionData._uuid)
-      }
+  /**
+   * Opens Single Processing for one response. With no row left to ask for the xpath,
+   * the path the response arrived under gets us there - files are found by xpath.
+   */
+  openProcessing(name: string, xpath: string) {
+    if (!this.props.asset?.content) {
+      return
     }
+    const processingXpath = findRow(this.props.asset.content, name)?.$xpath ?? xpath
+    goToProcessing(this.props.asset.uid, processingXpath, this.props.submissionData._uuid)
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -253,7 +256,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
                 size='s'
                 endIcon='arrow-up-right'
                 label={t('Open')}
-                onClick={this.openProcessing.bind(this, name)}
+                onClick={this.openProcessing.bind(this, name, xpath)}
               />
             )}
           </Group>
