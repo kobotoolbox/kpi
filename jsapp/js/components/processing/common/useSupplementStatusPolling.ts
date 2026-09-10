@@ -8,10 +8,9 @@ import {
   getAssetsPairedDataPartialUpdateMutationOptions,
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
+import { SUPPLEMENT_STATUS_POLL_INTERVAL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
-
-const POLL_INTERVAL = 3000
 
 interface Options {
   firstPollDelayMs?: number
@@ -23,7 +22,7 @@ interface Options {
  */
 export function useSupplementStatusPolling(asset: AssetResponse, submission: DataResponse, options: Options = {}) {
   const rootUuid = getSubmissionRootUuid(submission)
-  const firstPollDelayMs = Math.max(0, options.firstPollDelayMs ?? POLL_INTERVAL)
+  const firstPollDelayMs = Math.max(0, options.firstPollDelayMs ?? SUPPLEMENT_STATUS_POLL_INTERVAL)
 
   const mutationPending =
     queryClient.isMutating({ mutationKey: getAssetsAdvancedFeaturesCreateMutationOptions().mutationKey! }) > 0 ||
@@ -48,7 +47,7 @@ export function useSupplementStatusPolling(asset: AssetResponse, submission: Dat
 
     const pollStatus = () => {
       refetch()
-      timeoutId = setTimeout(pollStatus, POLL_INTERVAL)
+      timeoutId = setTimeout(pollStatus, SUPPLEMENT_STATUS_POLL_INTERVAL)
     }
 
     timeoutId = setTimeout(pollStatus, firstPollDelayMs)

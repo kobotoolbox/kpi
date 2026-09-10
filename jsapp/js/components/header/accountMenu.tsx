@@ -3,6 +3,7 @@ import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import { useLogout } from '#/auth/useLogout'
 import bem from '#/bem'
 import Menu from '#/components/common/Menu'
 import Avatar from '#/components/common/avatar'
@@ -28,6 +29,12 @@ export default function AccountMenu() {
   // quick access to logout matters more than quick access to languages.
   const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const logout = useLogout()
+
+  async function handleLogout() {
+    await logout.mutateAsync()
+    window.location.replace('')
+  }
 
   const toggleLanguageSelector = () => {
     setIsLanguageSelectorVisible(!isLanguageSelectorVisible)
@@ -150,7 +157,7 @@ export default function AccountMenu() {
             </bem.AccountBox__menuLI>
 
             <bem.AccountBox__menuLI m={'logout'} key='4'>
-              <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
+              <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={handleLogout}>
                 {t('Logout')}
               </ButtonNew>
             </bem.AccountBox__menuLI>

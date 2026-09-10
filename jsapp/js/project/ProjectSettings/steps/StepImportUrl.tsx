@@ -1,6 +1,6 @@
 import React from 'react'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import styles from '../ProjectSettings.module.scss'
 import BackButton from '../components/BackButton'
@@ -45,7 +45,13 @@ export default function StepImportUrl({
       </div>
 
       <div className={styles.input}>
-        <TextBox type='url' label={t('URL')} placeholder='https://' value={importUrl} onChange={onImportUrlChange} />
+        <TextInput
+          type='url'
+          label={t('URL')}
+          placeholder='https://'
+          value={importUrl}
+          onChange={(evt) => onImportUrlChange(evt.currentTarget.value)}
+        />
       </div>
 
       <footer className={styles.modalFooter}>

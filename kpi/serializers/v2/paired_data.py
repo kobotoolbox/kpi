@@ -5,10 +5,10 @@ import re
 from django.utils.translation import gettext as t
 from django_request_cache import cache_for_request
 from drf_spectacular.utils import extend_schema_field
+from formpack.constants import FUZZY_VERSION_RE
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -163,9 +163,9 @@ class PairedDataSerializer(serializers.Serializer):
         # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
         # for field name alternatives.
         valid_fields = [
-            f.path for f in form_pack.get_fields_for_versions(
-                form_pack.versions.keys()
-            ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
+            f.path
+            for f in form_pack.get_fields_for_versions(form_pack.versions.keys())
+            if not FUZZY_VERSION_RE.match(f.path)
         ]
 
         source_fields = source.data_sharing.get('fields') or valid_fields

@@ -25,6 +25,10 @@ export type OrganizationsMembersListParams = {
    */
   ordering?: OrganizationsMembersListOrdering
   /**
+   * Filter the results with a search query.
+   */
+  q?: string
+  /**
    * The initial index from which to return the results. Use with `limit`.
    */
   start?: number

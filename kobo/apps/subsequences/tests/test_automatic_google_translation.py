@@ -502,7 +502,7 @@ def test_find_the_most_recent_accepted_transcription():
             '_actionId': 'automatic_google_transcription',
         }
     }
-    action_data = action.attach_action_dependency(action_data)
+    action_data = action.attach_action_dependency(action_data, EMPTY_SUBMISSION)
     assert action_data == expected
 
     # Manual transcription is the most recent
@@ -522,8 +522,37 @@ def test_find_the_most_recent_accepted_transcription():
         }
     }
 
-    action_data = action.attach_action_dependency(action_data)
+    action_data = action.attach_action_dependency(action_data, EMPTY_SUBMISSION)
     assert action_data == expected
+
+
+def test_attach_action_dependency_for_text_source_question():
+    xpath = 'text_question'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    mock_asset = MagicMock()
+    mock_asset.content = {'survey': [{'type': 'text', 'name': xpath, '$xpath': xpath}]}
+    # A mock has no unset attributes, so spell out what the metadata helper
+    # relies on: nothing memoized yet, and no deployed version to cache against
+    mock_asset._survey_metadata = None
+    mock_asset.latest_deployed_version_uid = None
+    action = AutomaticGoogleTranslationAction(
+        xpath,
+        params,
+        asset=mock_asset,
+        prefetched_dependencies={'question_supplemental_data': {}},
+    )
+
+    submission_uuid = '2bb75d6b-45f5-48ac-9472-38d7246c84f7'
+    submission = {
+        'meta/rootUuid': f'uuid:{submission_uuid}',
+        '_uuid': submission_uuid,
+        xpath: 'Some free text answer',
+    }
+    result = action.attach_action_dependency({'language': 'fr'}, submission)
+
+    assert result['_dependency']['_actionId'] == 'submission'
+    assert result['_dependency']['_uuid'] == submission_uuid
+    assert result['_dependency']['_question_type'] == 'text'
 
 
 def test_async_translation_timeout_schedules_background_polling():

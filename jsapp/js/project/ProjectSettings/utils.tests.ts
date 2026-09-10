@@ -1,31 +1,41 @@
 import chai from 'chai'
 import envStore from '#/envStore'
 import type { ProjectSettingsFields } from './types'
-import { validateProjectFields } from './utils'
+import { getSettingsForEndpoint, validateProjectFields } from './utils'
 
-// Mock envStore to control metadata field configuration
+// Mocked so the tests control both which fields are required and the choices
+// that labels get looked up in.
 jest.mock('#/envStore', () => ({
   data: {
     getProjectMetadataField: jest.fn(),
     extra_project_metadata_fields: [],
+    sector_choices: [
+      { value: 'health', label: 'Health' },
+      { value: 'education', label: 'Education' },
+    ],
+    country_choices: [
+      { value: 'us', label: 'United States' },
+      { value: 'pl', label: 'Poland' },
+    ],
+    operational_purpose_choices: [{ value: 'research', label: 'Research' }],
   },
 }))
+
+const createValidFields = (): ProjectSettingsFields => ({
+  name: 'Test Project',
+  description: 'Test description',
+  sector: 'health',
+  country: ['us'],
+  operational_purpose: 'research',
+  collects_pii: 'No',
+  extra_metadata_fields: {},
+})
 
 describe('validateProjectFields', () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks()
     envStore.data.extra_project_metadata_fields = []
-  })
-
-  const createValidFields = (): ProjectSettingsFields => ({
-    name: 'Test Project',
-    description: 'Test description',
-    sector: { value: 'health', label: 'Health' },
-    country: [{ value: 'us', label: 'United States' }],
-    operational_purpose: { value: 'research', label: 'Research' },
-    collects_pii: { value: 'No', label: 'No' },
-    extra_metadata_fields: {},
   })
 
   /**
@@ -175,7 +185,7 @@ describe('validateProjectFields', () => {
       mockFieldMetadata('country', { required: true, label: 'Country' })
 
       const fields = createValidFields()
-      fields.country = [{ value: 'us', label: 'United States' }]
+      fields.country = ['us']
 
       const errors = validateProjectFields(fields)
 
@@ -334,6 +344,72 @@ describe('validateProjectFields', () => {
       const errors = validateProjectFields(fields)
 
       chai.expect(errors).deep.equal([])
+    })
+  })
+})
+
+describe('getSettingsForEndpoint', () => {
+  it('should pair the choice values up with their labels again', () => {
+    const settings = JSON.parse(getSettingsForEndpoint(createValidFields()))
+
+    chai.expect(settings).deep.equal({
+      description: 'Test description',
+      sector: { value: 'health', label: 'Health' },
+      country: [{ value: 'us', label: 'United States' }],
+      operational_purpose: { value: 'research', label: 'Research' },
+      collects_pii: { value: 'No', label: 'No' },
+      extra_metadata: {},
+    })
+  })
+
+  it('should handle multiple countries', () => {
+    const fields = createValidFields()
+    fields.country = ['us', 'pl']
+
+    const settings = JSON.parse(getSettingsForEndpoint(fields))
+
+    chai.expect(settings.country).deep.equal([
+      { value: 'us', label: 'United States' },
+      { value: 'pl', label: 'Poland' },
+    ])
+  })
+
+  it('should keep the value as label for choices that are no longer offered', () => {
+    const fields = createValidFields()
+    fields.sector = 'no_longer_a_choice'
+    fields.country = ['xx']
+
+    const settings = JSON.parse(getSettingsForEndpoint(fields))
+
+    chai.expect(settings.sector).deep.equal({ value: 'no_longer_a_choice', label: 'no_longer_a_choice' })
+    chai.expect(settings.country).deep.equal([{ value: 'xx', label: 'xx' }])
+  })
+
+  it('should keep empty choices as null', () => {
+    const fields = createValidFields()
+    fields.sector = null
+    fields.country = null
+    fields.operational_purpose = null
+    fields.collects_pii = null
+
+    const settings = JSON.parse(getSettingsForEndpoint(fields))
+
+    chai.expect(settings.sector).to.equal(null)
+    chai.expect(settings.country).to.equal(null)
+    chai.expect(settings.operational_purpose).to.equal(null)
+    chai.expect(settings.collects_pii).to.equal(null)
+  })
+
+  it('should pass extra metadata fields through untouched', () => {
+    const fields = createValidFields()
+    fields.extra_metadata_fields = { text_field: 'Some value', multi_field: ['option1'], single_field: null }
+
+    const settings = JSON.parse(getSettingsForEndpoint(fields))
+
+    chai.expect(settings.extra_metadata).deep.equal({
+      text_field: 'Some value',
+      multi_field: ['option1'],
+      single_field: null,
     })
   })
 })

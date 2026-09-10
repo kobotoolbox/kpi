@@ -6,11 +6,9 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
-import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
-import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
+import LibraryNewItemForm from '#/components/modalForms/LibraryNewItemForm'
 import SubmissionModal from '#/components/submissions/submissionModal'
-import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
 import { stores } from '#/stores'
@@ -82,14 +80,6 @@ class BigModal extends React.Component {
         this.setModalTitle(t('Create Library Item'))
         break
 
-      case MODAL_TYPES.LIBRARY_TEMPLATE:
-        this.setModalTitle(t('Template details'))
-        break
-
-      case MODAL_TYPES.LIBRARY_COLLECTION:
-        this.setModalTitle(t('Collection details'))
-        break
-
       case MODAL_TYPES.ENKETO_PREVIEW:
         this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
         actions.resources.createSnapshot({
@@ -107,17 +97,6 @@ class BigModal extends React.Component {
           title: getSubmissionTitle(this.props),
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid,
-        })
-        break
-
-      case MODAL_TYPES.REPLACE_PROJECT:
-        // title is set by formEditors
-        break
-
-      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
-        // title is set by BulkEditSubmissionsForm
-        this.setState({
-          modalClass: 'modal--large modal--large-shorter',
         })
         break
 
@@ -202,30 +181,7 @@ class BigModal extends React.Component {
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && (
-            <LibraryNewItemForm onSetModalTitle={this.setModalTitle} />
-          )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_TEMPLATE && (
-            <LibraryAssetForm
-              asset={this.props.params.asset}
-              assetType={ASSET_TYPES.template.id}
-              onSetModalTitle={this.setModalTitle}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_COLLECTION && (
-            <LibraryAssetForm
-              asset={this.props.params.asset}
-              assetType={ASSET_TYPES.collection.id}
-              onSetModalTitle={this.setModalTitle}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
-            <ProjectSettings
-              context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
-              onSetModalTitle={this.setModalTitle}
-              formAsset={this.props.params.asset}
-            />
-          )}
+          {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && <LibraryNewItemForm />}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink && (
             <div className='enketo-holder'>
               <iframe src={this.state.enketopreviewlink} allow='camera *; microphone *; geolocation *' />
@@ -247,14 +203,6 @@ class BigModal extends React.Component {
             <div>
               <LoadingSpinner message={false} />
             </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
-            <BulkEditSubmissionsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
-              asset={this.props.params.asset}
-              {...this.props.params}
-            />
           )}
           {this.props.params.type === MODAL_TYPES.MFA_MODALS && (
             <MFAModals onModalClose={this.onModalClose} {...this.props.params} />

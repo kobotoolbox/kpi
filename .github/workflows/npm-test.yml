@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - id: get_playwright_version
-        uses: eviden-actions/get-playwright-version@v1
+        uses: eviden-actions/get-playwright-version@v2
 
   build:
     runs-on: ubuntu-24.04

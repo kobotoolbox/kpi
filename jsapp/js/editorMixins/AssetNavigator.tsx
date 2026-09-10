@@ -2,7 +2,6 @@ import { Center, Checkbox, Group, Loader, MultiSelect, Select, Stack, Text, Text
 import { useDebouncedValue } from '@mantine/hooks'
 import * as Sentry from '@sentry/react'
 import React, { useState, useRef, useEffect } from 'react'
-import ReactDOM from 'react-dom'
 import type { Asset } from '#/api/models/asset'
 import type { TagListResponse } from '#/api/models/tagListResponse'
 import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
@@ -116,7 +115,7 @@ export default function AssetNavigator() {
   // (it's a copy operation, not a move).
   const assetsListRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const foundEl = ReactDOM.findDOMNode(assetsListRef.current)
+    const foundEl = assetsListRef.current
     if (foundEl instanceof Element === false) {
       return
     }

@@ -7,7 +7,6 @@ import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfa
 import mfaActions from '#/actions/mfaActions'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import Tooltip from '#/components/common/tooltip'
 import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
@@ -143,10 +142,6 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
         />
       </div>
     )
-
-    if (!envStore.isReady) {
-      return <LoadingSpinner />
-    }
 
     if (!envStore.data.mfa_enabled) {
       return null

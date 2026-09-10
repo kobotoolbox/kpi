@@ -102,6 +102,19 @@ class SocialAppCustomData(models.Model):
     def __str__(self):
         return f'{self.social_app.name} Custom Data'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._initially_managed = self.managed
+        if self.pk:
+            self._initial_domains = list(self.domains.values_list('domain', flat=True))
+        else:
+            self._initial_domains = []
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self._initially_managed = self.managed
+        self._initial_domains = list(self.domains.values_list('domain', flat=True))
+
 
 def validate_domain(value):
     normalized_value = value.strip().lower()
@@ -132,3 +145,14 @@ class SocialAppManagedDomain(models.Model):
         SocialAppCustomData, related_name='domains', on_delete=models.CASCADE
     )
     domain = models.CharField(unique=True, max_length=255, validators=[validate_domain])
+
+    @classmethod
+    def is_managed(cls, domain):
+        return cls.objects.filter(
+            domain__iexact=domain, social_app__managed=True
+        ).exists()
+
+    def save(self, *args, **kwargs):
+        if self.domain:
+            self.domain = self.domain.strip().lower()
+        super().save(*args, **kwargs)

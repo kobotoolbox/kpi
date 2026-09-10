@@ -2,7 +2,7 @@ import React from 'react'
 
 import type { FileRejection } from 'react-dropzone'
 import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
-import { MODAL_TYPES } from '#/constants'
+import { IMPORT_STATUS_POLL_INTERVAL, MODAL_TYPES } from '#/constants'
 import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import { router } from '#/router/legacy'
@@ -37,8 +37,6 @@ export interface ImportErrorResponse {
   }
 }
 
-const APPLY_IMPORT_CHECK_INTERVAL = 1000
-
 interface PollImportUntilDoneOptions {
   getDelayMs?: (attempt: number) => number
   onPoll?: (importData: ImportResponse, attempt: number) => void
@@ -68,7 +66,7 @@ export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOpt
 
     const scheduleNextCheck = () => {
       const nextAttempt = attempt + 1
-      const delayMs = typeof getDelayMs === 'function' ? getDelayMs(nextAttempt) : APPLY_IMPORT_CHECK_INTERVAL
+      const delayMs = typeof getDelayMs === 'function' ? getDelayMs(nextAttempt) : IMPORT_STATUS_POLL_INTERVAL
       timeoutId = window.setTimeout(runCheck, delayMs)
     }
 
@@ -237,18 +235,18 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
           (reason: ImportResponse) => {
             if (reason?.status === 'error') {
               const errLines = []
-              errLines.push(t('Import Failed!'))
+              errLines.push(<strong>{t('Import Failed!')}</strong>)
               if (name) {
-                errLines.push(<code>Name: {name}</code>)
+                errLines.push(<small>Name: {name}</small>)
               }
               if (reason.messages?.error) {
                 errLines.push(
-                  <code>
+                  <small>
                     {reason.messages.error_type}: {escapeHtml(reason.messages.error)}
-                  </code>,
+                  </small>,
                 )
               }
-              reject(<div>{join(errLines, <br />)}</div>)
+              reject(<div style={{ textAlign: 'left' }}>{join(errLines, <br />)}</div>)
             } else {
               reject(IMPORT_FAILED_GENERIC_MESSAGE)
             }

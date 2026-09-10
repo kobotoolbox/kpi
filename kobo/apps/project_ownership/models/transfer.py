@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
-from kobo.apps.help.models import InAppMessage, InAppMessageUsers
+from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
@@ -291,6 +291,7 @@ class Transfer(AbstractTimeStampedModel):
                 + timedelta(days=config.PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY),
                 last_editor=self.invite.sender,
                 generic_related_objects={transfer_identifier: self.pk},
+                message_type=MessageType.TRANSFER,
             )
 
             InAppMessageUsers.objects.bulk_create(

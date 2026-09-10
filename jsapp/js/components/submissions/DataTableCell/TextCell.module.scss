@@ -1,0 +1,12 @@
+@use 'scss/mixins';
+
+.cell {
+  @include mixins.centerRowFlex;
+  height: 100%;
+}
+
+.textContent {
+  @include mixins.textEllipsis;
+
+  flex: 1;
+}

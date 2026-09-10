@@ -1,25 +1,29 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import cx from 'classnames'
-import { observer } from 'mobx-react-lite'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
-import sessionStore from '#/stores/session'
+import { useSession } from '#/stores/useSession'
+import ManagedSsoConfirmModal from './ManagedSsoConfirmModal'
 import { deleteSocialAccount } from './sso.api'
-import { getConnectedSsoAccounts, getSsoProviders, isSsoAvailable } from './sso.utils'
+import { getConnectedApp, getSsoProviders, isSsoAvailable } from './sso.utils'
 import styles from './ssoSection.module.scss'
 
-const SsoSection = observer(() => {
+export default function SsoSection() {
+  const { currentLoggedAccount, refreshAccount } = useSession()
   const socialApps = getSsoProviders(envStore.data)
-  const socialAccounts = getConnectedSsoAccounts()
+  const connectedApp = getConnectedApp(envStore.data, currentLoggedAccount)
+  const isManaged = connectedApp?.managed ?? false
+
+  const [pendingManagedAppConfirm, setPendingManagedAppConfirm] = useState<SocialApp | null>(null)
+
+  const connectedAccount =
+    'social_accounts' in currentLoggedAccount ? currentLoggedAccount.social_accounts[0] : undefined
 
   const disconnectSocialAccount = () => {
-    if (socialAccounts.length) {
-      const socialAccount = socialAccounts[0]
-      deleteSocialAccount(socialAccount.provider, socialAccount.uid).then(
-        sessionStore.refreshAccount.bind(sessionStore),
-      )
+    if (connectedAccount) {
+      deleteSocialAccount(connectedAccount.provider, connectedAccount.uid).then(refreshAccount)
     }
   }
 
@@ -33,10 +37,10 @@ const SsoSection = observer(() => {
       }
       return `accounts/${providerPath}/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity`
     },
-    [sessionStore.currentAccount],
+    [currentLoggedAccount],
   )
 
-  if (!isSsoAvailable(envStore.data) && socialAccounts.length === 0) {
+  if (!isSsoAvailable(envStore.data) && !connectedAccount) {
     return <></>
   }
 
@@ -46,40 +50,52 @@ const SsoSection = observer(() => {
         <h2 className={securityStyles.securitySectionTitleText}>{t('Single-Sign On')}</h2>
       </div>
 
-      {socialAccounts.length === 0 ? (
+      {connectedAccount ? (
+        <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+          {connectedApp
+            ? t('Connected to ##app_name##').replace('##app_name##', connectedApp.name)
+            : t('Already connected')}
+        </div>
+      ) : (
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
           {t(
-            "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
-              'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
-              'address is different.',
+            'Connect your KoboToolbox account with an identity provider for single-sign on (SSO).' +
+              ' This will also update your email address in case your current address is different.',
           )}
         </div>
-      ) : (
-        <div className={cx(securityStyles.securitySectionBody, styles.body)}>{t('Already connected')}</div>
       )}
 
-      {socialAccounts.length === 0 ? (
-        <div className={cx(styles.options, styles.ssoSetup)}>
-          {socialApps.map((socialApp) => (
-            <a key={socialApp.name} href={providerLink(socialApp)}>
-              <Button
-                label={socialApp.name}
-                size='m'
-                type='primary'
-                onClick={() => {
-                  /*TODO: Handle NavLink and Button*/
-                }}
-              />
-            </a>
-          ))}
+      {connectedAccount ? (
+        <div className={styles.options}>
+          {!isManaged && <Button label={t('Disable')} size='m' type='primary' onClick={disconnectSocialAccount} />}
         </div>
       ) : (
-        <div className={styles.options}>
-          <Button label={t('Disable')} size='m' type='primary' onClick={disconnectSocialAccount} />
+        <div className={cx(styles.options, styles.ssoSetup)}>
+          {socialApps.map((socialApp) => (
+            <Button
+              key={socialApp.name}
+              label={socialApp.name}
+              size='m'
+              type='primary'
+              onClick={() => {
+                if (socialApp.managed) {
+                  setPendingManagedAppConfirm(socialApp)
+                } else {
+                  window.location.href = providerLink(socialApp)
+                }
+              }}
+            />
+          ))}
         </div>
+      )}
+
+      {pendingManagedAppConfirm && (
+        <ManagedSsoConfirmModal
+          providerName={pendingManagedAppConfirm.name}
+          connectHref={providerLink(pendingManagedAppConfirm)}
+          onClose={() => setPendingManagedAppConfirm(null)}
+        />
       )}
     </section>
   )
-})
-
-export default SsoSection
+}

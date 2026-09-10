@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import copy
-import re
 from collections import OrderedDict
 
+from formpack.constants import FUZZY_VERSION_RE
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kpi.utils.absolute_paths import insert_full_paths_in_place
 from kpi.utils.asset_translation_utils import (  # TRANSLATIONS_EQUAL,
     TRANSLATION_ADDED,
@@ -178,7 +177,7 @@ class FormpackXLSFormUtilsMixin:
         for idx in range(len(content[self.WORKING_SHEET]) - 1, 0, -1):
             field = content[self.WORKING_SHEET][idx]
             try:
-                if re.match(FUZZY_VERSION_PATTERN, field['name']):
+                if FUZZY_VERSION_RE.match(field['name']):
                     del content[self.WORKING_SHEET][idx]
             except KeyError:
                 pass

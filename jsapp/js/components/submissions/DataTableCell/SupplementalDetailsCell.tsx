@@ -6,15 +6,13 @@ import { ProcessingTab, goToProcessing } from '#/components/processing/routes.ut
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
 import { getSupplementalDetailsContent, hasUnacceptedAutomaticContent } from '../submissionUtils'
-import TextModalCell from './TextModalCell'
+import TextCell from './TextCell'
 
 interface SupplementalDetailsCellProps {
   asset: AssetResponse
   submission: SubmissionResponse
   columnKey: string
   columnName: string
-  submissionIndex: number
-  submissionTotal: number
 }
 
 /**
@@ -57,13 +55,15 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
     )
   }
 
-  // Default: just show the text modal
+  // Default: just show the text preview. No `xpath` is passed, as this cell
+  // is itself a supplemental detail (transcript/translation/qual), not a
+  // question with its own Processing entry point.
   return (
-    <TextModalCell
+    <TextCell
+      assetUid={props.asset.uid}
+      submissionData={props.submission}
       text={supplementalValue}
-      columnName={props.columnName}
-      submissionIndex={props.submissionIndex}
-      submissionTotal={props.submissionTotal}
+      questionLabel={props.columnName}
     />
   )
 }

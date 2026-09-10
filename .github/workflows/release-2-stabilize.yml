@@ -163,14 +163,15 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
+        name: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.current_released == 'true' && needs.version.outputs.prev_patch || format('origin/{0}', needs.version.outputs.prev_branch) }}
 
     # Patch releases skip QA and go straight to "Pending Image"
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       if: ${{ needs.version.outputs.current_released == 'true' }}
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
@@ -345,7 +346,7 @@ jobs:
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.changelog.result == 'skipped'
               && ':skip_forward: changelog update skipped due failed automated tests.'
-              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}/CHANGELOG.md) for `{1}..{0}`', needs.version.outputs.current_patch, needs.version.outputs.prev_patch)
+              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}-draft/CHANGELOG.md) for `{1}..{0}`', needs.version.outputs.current_patch, needs.version.outputs.prev_patch)
           }}
         - ${{ (needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out')
             && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)

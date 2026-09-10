@@ -56,10 +56,18 @@
   color: var(--mantine-color-gray-4);
 }
 
-/* Make the built in clear icon look the same as our icon */
+/* Make the built in clear icon smaller */
 .section button svg {
+  width: 1rem;
+  height: 1rem;
   stroke: currentcolor;
   stroke-width: 0.5;
+}
+
+/* Mantine dims this with `--mantine-color-dimmed`, which resolves to `gray-6` -
+   a divider grey in our inverted scale, so it barely shows on the dropdown. */
+.empty {
+  color: var(--mantine-color-gray-2);
 }
 
 .groupLabel {
