@@ -67,6 +67,55 @@
   }
 }
 
+/* folder variant — "folder" tabs, assumes grey background and white content underneath*/
+.root[data-variant='folder'] {
+  .tab {
+    position: relative;
+    font-size: var(--mantine-font-size-sm);
+    font-weight: 900;
+    line-height: 48px;
+    border-radius: var(--tab-radius);
+  }
+
+  .tab:hover {
+    color: var(--mantine-color-gray-1);
+    background-color: var(--mantine-color-gray-8);
+  }
+
+  .tab:active:not([data-active]) {
+    transform: translateY(1px);
+  }
+
+  .tab[data-active] {
+    color: var(--mantine-color-gray-1);
+    background-color: var(--mantine-color-white);
+  }
+
+  .tab[data-active]::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    height: var(--tabs-radius);
+    background-color: inherit;
+  }
+
+  @media (width < 600px) {
+    .tab {
+      flex: 1;
+      padding: 0 12px;
+      text-align: center;
+    }
+  }
+
+  @media (min-width: 600px) {
+    .tab {
+      padding: 0 24px;
+    }
+  }
+}
+
 /* Size variants done with font sizes, default is --mantine-font-size-md */
 .root[data-size='md'] {
   .tab {

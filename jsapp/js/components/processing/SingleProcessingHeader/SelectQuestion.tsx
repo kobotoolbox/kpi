@@ -12,12 +12,12 @@ import {
 import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import {
   findAttachmentByQuestionXpath,
   inferAttachmentQuestionType,
 } from '#/components/submissions/submissionMediaUtils'
-import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -54,7 +54,7 @@ export default function SelectQuestion({
   }
 
   /**
-   * We display all questions with audio response type
+   * We display all NLP supported questions
    */
   const { options, icons } = useMemo(() => {
     const assetContent = asset.content
@@ -64,22 +64,21 @@ export default function SelectQuestion({
       return { options: [], icons: {} }
     }
 
-    const isAudioRow = (type: string) =>
-      type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id
+    const isSupportedRow = (type: SurveyRow['type']) => isNlpSupported(type)
 
     // Mantine's Select has no per-option icon prop, so we keep them in a lookup
     // that `renderOption` (and the left section) can use.
     const icons: Record<string, IconName | undefined> = {}
 
     /**
-     * Builds the option for one audio question, or nothing when it isn't audio. No
-     * `row` means the form no longer has the question, and then the attachment's
+     * Builds the option for NLP supported questions.
+     * No `row` means the form no longer has the question, and then the attachment's
      * mimetype gives the type and the recorded path the label.
      */
     const buildOption = (optionXpath: string, row: SurveyRow | undefined) => {
       const attachment = row ? undefined : findAttachmentByQuestionXpath(submission, optionXpath)
       const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment))
-      if (!type || !isAudioRow(type)) {
+      if (!type || !isSupportedRow(type)) {
         return undefined
       }
 
@@ -99,7 +98,7 @@ export default function SelectQuestion({
       .filter((option) => option !== undefined)
 
     // Renames and removals leave answers under paths the current schema no longer
-    // has. Walking the submission's own keys keeps every option to real data.
+    // has. Walking the submission's own keys keeps every option tied to real data.
     for (const submissionXpath of Object.keys(submission)) {
       if (result.some((option) => option.value === submissionXpath)) {
         continue
