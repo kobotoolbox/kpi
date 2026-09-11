@@ -5,7 +5,8 @@ import RESTServicesList from './RESTServicesList'
 
 interface RESTServicesProps {
   asset: AssetResponse
-  hookUid: string
+  /** Absent when we are looking at the list of all the services */
+  hookUid?: string
 }
 
 /**
