@@ -1,6 +1,8 @@
 import { useState } from 'react'
 
 import { Text } from '@mantine/core'
+import { Group } from '@mantine/core'
+import { IconSearch } from '@tabler/icons-react'
 import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
@@ -13,12 +15,15 @@ import {
   useOrganizationsAssetUsageList,
 } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import DebouncedTextInput from '#/components/common/DebouncedTextInput'
+import KoboIcon from '#/components/common/KoboIcon'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import { MIN_SEARCH_PHRASE_LENGTH, TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { ROUTES } from '#/router/routerConstants'
-import { convertSecondsToMinutes } from '#/utils'
+import { convertSecondsToMinutes, notify } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
@@ -26,10 +31,15 @@ const ProjectBreakdown = () => {
   const [organization] = useOrganizationAssumed()
   const { intervalLabel } = useBillingPeriod()
   const [order, setOrder] = useState<ProjectsTableOrder>({})
+  const [searchPhrase, setSearchPhrase] = useState('')
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
     start: 0,
   })
+
+  const trimmedSearchPhrase = searchPhrase.trim()
+  const isSearchPhraseTooShort = trimmedSearchPhrase.length > 0 && trimmedSearchPhrase.length < MIN_SEARCH_PHRASE_LENGTH
+  const appliedSearchPhrase = isSearchPhraseTooShort ? '' : trimmedSearchPhrase
 
   function getQueryParams() {
     // TODO: align props with backend pagination params to simplify away this helper
@@ -38,6 +48,9 @@ const ProjectBreakdown = () => {
       const orderPrefix = order.direction === 'descending' ? '-' : ''
       const fieldName = order.fieldName === 'status' ? '_deployment_status' : order.fieldName
       queryParams.ordering = orderPrefix + fieldName
+    }
+    if (appliedSearchPhrase) {
+      queryParams.q = appliedSearchPhrase
     }
     return queryParams
   }
@@ -69,6 +82,22 @@ const ProjectBreakdown = () => {
 
   const updateOrder = (newOrder: ProjectsTableOrder) => {
     setOrder(newOrder)
+  }
+
+  const updateSearchPhrase = (newSearchPhrase: string) => {
+    setSearchPhrase(newSearchPhrase)
+    setPagination((currentPagination) => ({ ...currentPagination, start: 0 }))
+  }
+
+  function onSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    const enteredPhrase = event.currentTarget.value.trim()
+    if (enteredPhrase.length > 0 && enteredPhrase.length < MIN_SEARCH_PHRASE_LENGTH) {
+      notify.warning(TOO_SHORT_SEARCH_WARNING)
+    }
   }
 
   const columns: Array<UniversalTableColumn<CustomAssetUsage>> = [
@@ -147,9 +176,20 @@ const ProjectBreakdown = () => {
   return (
     <div className={styles.root}>
       {/* Margin bottom to match the padding top of parent */}
-      <Text mb={15}>
-        {t('Track usage for the current ##INTERVAL## across your projects').replace('##INTERVAL##', intervalLabel)}
-      </Text>
+      <Group justify='space-between' mb='md'>
+        <Text>
+          {t('Track usage for the current ##INTERVAL## across your projects').replace('##INTERVAL##', intervalLabel)}
+        </Text>
+        <DebouncedTextInput
+          value={searchPhrase}
+          onChange={updateSearchPhrase}
+          onKeyDown={onSearchKeyDown}
+          placeholder={t('Search projects')}
+          leftSection={<KoboIcon icon={IconSearch} size='sm' />}
+          aria-label={t('Search projects')}
+          w={260}
+        />
+      </Group>
       <UniversalTable<CustomAssetUsage, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}

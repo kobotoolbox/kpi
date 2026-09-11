@@ -23,7 +23,7 @@ const usageTopTabs: React.FC<UsageTopTabsProps> = ({ activeRoute }) => {
   return (
     <>
       <Tabs size='lg' value={activeTab} onChange={handleTabChange} pt={20} ml={40} mr={40} keepMounted={false}>
-        <Tabs.List>
+        <Tabs.List ml={10} mr={10}>
           <Tabs.Tab value={ACCOUNT_ROUTES.USAGE}> {t('Account Total')} </Tabs.Tab>
           <Tabs.Tab value={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}> {t('Per Project Total')} </Tabs.Tab>
         </Tabs.List>
