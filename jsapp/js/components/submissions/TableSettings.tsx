@@ -63,7 +63,7 @@ export default function TableSettings(props: TableSettingsProps) {
     const options: TableSettingsOption[] = [
       {
         value: '-1',
-        label: t('XML Values'),
+        label: t('Question & choice names'),
       },
     ]
 
@@ -140,7 +140,7 @@ export default function TableSettings(props: TableSettingsProps) {
   return (
     <Stack gap='md'>
       <Radio.Group
-        label={t('Display labels or XML values?')}
+        label={t('Column headers')}
         value={String(translationIndex)}
         onChange={(value) => setTranslationIndex(Number.parseInt(value, 10))}
       >
@@ -154,7 +154,7 @@ export default function TableSettings(props: TableSettingsProps) {
       <Checkbox
         checked={showGroupName}
         onChange={(event) => setShowGroupName(event.currentTarget.checked)}
-        label={t('Show group names in table headers')}
+        label={t('Show parent group in column headers')}
       />
 
       <Checkbox
