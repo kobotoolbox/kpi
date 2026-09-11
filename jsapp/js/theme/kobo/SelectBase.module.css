@@ -64,14 +64,8 @@
   stroke-width: 0.5;
 }
 
-/* Mantine dims this with `--mantine-color-dimmed`, which resolves to `gray-6` -
-   a divider grey in our inverted scale, so it barely shows on the dropdown. */
-.empty {
-  color: var(--mantine-color-gray-2);
-}
-
-/* Same `--mantine-color-dimmed` problem as `.empty`: 1.28:1 against a white
-   background, i.e. all but invisible. */
+/* Mantine dims these with `--mantine-color-dimmed`, which resolves to a very light gray, making it hard to read */
+.empty,
 .description {
   color: var(--mantine-color-gray-2);
 }

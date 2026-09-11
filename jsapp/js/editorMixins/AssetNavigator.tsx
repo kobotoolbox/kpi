@@ -28,10 +28,7 @@ const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 const MAX_SELECTED_TAGS = 10
 
 /**
- * Wraps a tag name in quotes for the `q` search. Only spaces get normalized out of tag names (see
- * `cleanupTags`), so a name may well contain a quote character, and the query grammar has no working
- * escape sequence — so we quote with whichever character the name itself doesn't use. A name using
- * both is unrepresentable, and would make the whole query fail to parse.
+ * Wraps a tag name in quotes for the `q` search to avoid potential query failure.
  */
 function quoteTagName(tagName: string) {
   return tagName.includes('"') ? `'${tagName}'` : `"${tagName}"`
@@ -75,10 +72,12 @@ export default function AssetNavigator() {
   })
   let collectionOptions: LabelValuePair[] = []
   if (collectionListQuery.data?.status === 200 && collectionListQuery.data?.data.results) {
-    collectionOptions = collectionListQuery.data.data.results.map((c: Asset) => ({
-      value: c.uid,
-      label: c.name || t('Unnamed collection'),
-    }))
+    collectionOptions = collectionListQuery.data.data.results.map((c: Asset) => {
+      return {
+        value: c.uid,
+        label: c.name || t('Unnamed collection'),
+      }
+    })
   }
 
   // Step 3. Fetch Main Assets List
@@ -92,12 +91,11 @@ export default function AssetNavigator() {
 
     // Include tags filtering.
     //
-    // `iexact`, not `icontains`: the names come from a list of tags that already exist, so a partial
-    // match would silently pull in assets carrying a *different*, longer tag (picking "health" would
+    // Uses `iexact`, not `icontains`: the names come from a list of tags that already exist,
+    // so a partial match would silently pull in assets carrying a *different*, longer tag (picking "health" would
     // also match "health-services").
     //
-    // Multiple tags are joined with `AND`, which the back end reads as "has every one of these" —
-    // each to-many leaf becomes its own subquery (see DEV-1581).
+    // Multiple tags are joined with `AND`, which the back end reads as "has every one of these".
     if (selectedTags.length > 0) {
       const tagQuery = selectedTags.map((tagName) => `tags__name__iexact:${quoteTagName(tagName)}`).join(' AND ')
       queryParts.push(`(${tagQuery})`)
@@ -159,8 +157,7 @@ export default function AssetNavigator() {
 
   return (
     <Stack gap='sm' h='100%'>
-      {/* Searchbox. These filters are labelled only by `aria-label`, as the aside is too narrow to
-      spend a row per visible label on, and the panel heading already says this is a library search */}
+      {/* Searchbox */}
       <TextInput
         aria-label={t('Search library')}
         placeholder={t('Search…')}
@@ -207,7 +204,6 @@ export default function AssetNavigator() {
       {/* Total count & toggle expanded info */}
       <Group justify='space-between' align='center'>
         <Text size='sm' fw={500}>
-          {/* `count` (not the length of `results`) so the total isn't cut down to the page `limit` */}
           {assetsFoundCount === 1
             ? t('1 asset found')
             : t('##count## assets found').replace('##count##', String(assetsFoundCount))}
