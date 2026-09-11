@@ -8,6 +8,11 @@ def create_project_history_log_middleware(get_response):
         response = get_response(request)
         if response.status_code == status.HTTP_404_NOT_FOUND:
             return response
+
+        # Nothing to log for a request that never matched a route
+        if request.resolver_match is None:
+            return response
+
         url_name = request.resolver_match.url_name
         if request.method in ['GET', 'HEAD'] and url_name != 'submission-list':
             return response

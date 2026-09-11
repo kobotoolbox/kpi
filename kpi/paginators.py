@@ -42,7 +42,7 @@ class DefaultPagination(LimitOffsetPagination):
                     'type': ['string', 'null'],
                     'nullable': True,
                     'format': 'uri',
-                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=400&{limit_param}=100'.format(  # noqa E501
+                    'example': 'https://kf.kobotoolbox.org/api-endpoint/?{offset_param}=400&{limit_param}=100'.format(  # noqa E501
                         offset_param=self.offset_query_param,
                         limit_param=self.limit_query_param,
                     ),
@@ -51,7 +51,7 @@ class DefaultPagination(LimitOffsetPagination):
                     'type': ['string', 'null'],
                     'nullable': True,
                     'format': 'uri',
-                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=200&{limit_param}=100'.format(  # noqa E501
+                    'example': 'https://kf.kobotoolbox.org/api-endpoint/?{offset_param}=200&{limit_param}=100'.format(  # noqa E501
                         offset_param=self.offset_query_param,
                         limit_param=self.limit_query_param,
                     ),
