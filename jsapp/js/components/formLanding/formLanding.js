@@ -25,6 +25,7 @@ import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
+import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -156,10 +157,7 @@ class FormLanding extends React.Component {
   }
   handleReplaceFormClick(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.REPLACE_PROJECT,
-      asset: this.state,
-    })
+    openReplaceProjectModal({ asset: this.state })
   }
   isCurrentVersionDeployed() {
     if (this.state.deployment__active && this.state.deployed_versions.count > 0 && this.state.deployed_version_id) {

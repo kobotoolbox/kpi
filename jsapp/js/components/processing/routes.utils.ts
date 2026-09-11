@@ -188,6 +188,15 @@ export function getActiveLanguageCode(): string | undefined {
 }
 
 /**
+ * Returns the fully resolved path for a processing tab route, with current
+ * params (uid, xpath, submissionEditId) applied. Useful for `<Link to>` so that
+ * middle-click / cmd-click open the correct URL in a new tab.
+ */
+export function getTabRoutePath(targetTabRoute: string) {
+  return applyCurrentRouteParams(targetTabRoute)
+}
+
+/**
  * Navigates to different tab within the same question and submission as
  * currently loaded. It replaces params with current values from the
  * `singleProcessingStore`.

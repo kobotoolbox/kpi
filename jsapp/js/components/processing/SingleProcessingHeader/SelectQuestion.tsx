@@ -12,8 +12,12 @@ import {
 import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
-import { QUESTION_TYPES } from '#/constants'
+import {
+  findAttachmentByQuestionXpath,
+  inferAttachmentQuestionType,
+} from '#/components/submissions/submissionMediaUtils'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -50,7 +54,7 @@ export default function SelectQuestion({
   }
 
   /**
-   * We display all questions with audio response type
+   * We display all NLP supported questions
    */
   const { options, icons } = useMemo(() => {
     const assetContent = asset.content
@@ -60,38 +64,50 @@ export default function SelectQuestion({
       return { options: [], icons: {} }
     }
 
-    const isAudioRow = (type: string) =>
-      type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id
+    const isSupportedRow = (type: SurveyRow['type']) => isNlpSupported(type)
 
     // Mantine's Select has no per-option icon prop, so we keep them in a lookup
     // that `renderOption` (and the left section) can use.
     const icons: Record<string, IconName | undefined> = {}
 
-    const buildOption = (optionXpath: string, row: SurveyRow) => {
-      const rowName = getRowName(row)
-      icons[optionXpath] = getRowTypeIcon(row.type)
+    /**
+     * Builds the option for NLP supported questions.
+     * No `row` means the form no longer has the question, and then the attachment's
+     * mimetype gives the type and the recorded path the label.
+     */
+    const buildOption = (optionXpath: string, row: SurveyRow | undefined) => {
+      const attachment = row ? undefined : findAttachmentByQuestionXpath(submission, optionXpath)
+      const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment))
+      if (!type || !isSupportedRow(type)) {
+        return undefined
+      }
+
+      icons[optionXpath] = getRowTypeIcon(type)
+      const rowName = row && getRowName(row)
       return {
         value: optionXpath,
-        label: getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName,
+        label: rowName
+          ? (getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName)
+          : (optionXpath.split('/').at(-1) ?? optionXpath),
       }
     }
 
     const result = assetContent.survey
       .filter((question): question is SurveyRow & { $xpath: NonNullable<SurveyRow['$xpath']> } => !!question.$xpath)
-      .filter(({ type }) => isAudioRow(type))
       .map((question) => buildOption(question.$xpath, question))
+      .filter((option) => option !== undefined)
 
-    // Add entries for audio questions answered in this submission but missing
-    // from the current schema (e.g. after a group rename).
+    // Renames and removals leave answers under paths the current schema no longer
+    // has. Walking the submission's own keys keeps every option tied to real data.
     for (const submissionXpath of Object.keys(submission)) {
-      if (result.some((o) => o.value === submissionXpath)) {
+      if (result.some((option) => option.value === submissionXpath)) {
         continue
       }
-      const foundRow = findRowByXpathOrLeafName(assetContent, submissionXpath)
-      if (!foundRow || !isAudioRow(foundRow.type)) {
-        continue
+      // Schema first: a renamed group still matches by leaf name.
+      const option = buildOption(submissionXpath, findRowByXpathOrLeafName(assetContent, submissionXpath))
+      if (option) {
+        result.push(option)
       }
-      result.push(buildOption(submissionXpath, foundRow))
     }
 
     return { options: result, icons }

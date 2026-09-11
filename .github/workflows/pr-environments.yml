@@ -17,12 +17,16 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      pull-requests: read  # gh pr view
     outputs:
       zulip_topic: ${{ steps.set_variables.outputs.zulip_topic }}
 

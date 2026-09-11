@@ -10,6 +10,9 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
   QualVersionItem,
@@ -351,6 +354,24 @@ export const getAllTranslationsFromSupplementData = (
   return latestVersions
 }
 
+// Question type support
+
+/** Whether a question type is an audio question (regular or background audio). */
+export const isAudioQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id
+
+/** Whether a question type is a text question. */
+export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.text.id
+
+/**
+ * Whether a question type is one NLP processing supports. Audio is always
+ * supported; text is gated behind the `nlpTextActionsEnabled` feature flag.
+ */
+export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
+  isAudioQuestionType(questionType) ||
+  (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+
 // Displays
 
 export enum StaticDisplays {
@@ -365,6 +386,18 @@ export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
   [ProcessingTab.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
   [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
+
+/**
+ * Returns the Processing tabs available for a given question type, in display
+ * order. Transcript is omitted for question types that have no audio/video
+ * response to transcribe (e.g. text).
+ */
+export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (isTextQuestionType(questionType)) {
+    return [ProcessingTab.Translations, ProcessingTab.Analysis]
+  }
+  return [ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis]
+}
 
 /**
  * Gets the default displays for a given processing tab.

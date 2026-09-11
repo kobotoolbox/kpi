@@ -21,14 +21,13 @@ from kpi.tests.utils import baker_generators  # noqa
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
 from ..tasks import (
-    DEFAULT_IN_APP_MESSAGE_BODY,
-    create_inapp_message,
     managed_sso_sweep,
     notify_unlinked_users,
     update_linked_user,
     update_users,
 )
 from ..utils import (
+    DEFAULT_IN_APP_MESSAGE_FIELDS,
     SOCIAL_APP_IDENTIFIER,
     remove_stale_managed_sso_reminders,
     users_needing_update,
@@ -400,6 +399,10 @@ class TestManagedSsoCelery(TestCase):
             generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.id},
             message_type=MessageType.MANAGED_SSO_REMINDER,
         )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True, in_app_message=message
+        )
+
         InAppMessageUsers.objects.create(
             user=user_already_received_message, in_app_message=message
         )
@@ -446,18 +449,24 @@ class TestManagedSsoCelery(TestCase):
         account = linked_accounts.first()
         assert account.provider == self.social_app.provider_id
 
-    def test_message_unlinked_users(self):
-        requesting_user = User.objects.create(username='adminuser')
-        user = self._create_user('needs_update', True, False, False)
-        notify_unlinked_users([user.id], self.social_app, requesting_user)
-        # the following will fail if the message has not been created or if
-        # there are multiple
-        message = InAppMessage.objects.get(
-            message_type=MessageType.MANAGED_SSO_REMINDER,
-            generic_related_objects__contains={
-                SOCIAL_APP_IDENTIFIER: self.social_app.id
-            },
+    def test_message_unlinked_users_unexpires_messages_if_new_users_notified(self):
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app, managed=True
         )
+        user = self._create_user('needs_update', True, False, False)
+        message = InAppMessage.objects.create(
+            **DEFAULT_IN_APP_MESSAGE_FIELDS,
+            body='body',
+            valid_until=timezone.now(),
+            valid_from=timezone.now(),
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.pk},
+        )
+        custom_data.in_app_message = message
+        custom_data.save()
+        notify_unlinked_users([user.id], custom_data)
+
+        custom_data.in_app_message.refresh_from_db()
+        assert custom_data.in_app_message.valid_until > timezone.now()
         InAppMessageUsers.objects.get(user=user, in_app_message=message)
 
     def test_update_users_only_updates_once(self):
@@ -467,6 +476,15 @@ class TestManagedSsoCelery(TestCase):
         managed_domain = SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
         )
+        message = InAppMessage.objects.create(
+            **DEFAULT_IN_APP_MESSAGE_FIELDS,
+            body='body',
+            valid_until=timezone.now(),
+            valid_from=timezone.now(),
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.pk},
+        )
+        custom_data.in_app_message = message
+        custom_data.save()
         self._create_user('multiple_accounts', False, True, True)
         self._create_user('no_accounts', True, False, False)
         with patch(
@@ -483,7 +501,7 @@ class TestManagedSsoCelery(TestCase):
 
     def test_update_users_skips_in_app_message_when_disabled(self):
         custom_data = SocialAppCustomData.objects.create(
-            social_app=self.social_app, managed=True
+            social_app=self.social_app, managed=True, send_in_app_message=False
         )
         managed_domain = SocialAppManagedDomain.objects.create(
             social_app=custom_data, domain=self.default_domain
@@ -493,7 +511,7 @@ class TestManagedSsoCelery(TestCase):
         # Track 2: unlinked user must not receive an in-app message.
         unlinked_user = self._create_user('unlinked', True, False, False)
 
-        update_users(custom_data.pk, managed_domain.domain, send_in_app_message=False)
+        update_users(custom_data.pk, managed_domain.domain)
 
         assert not InAppMessage.objects.filter(
             message_type=MessageType.MANAGED_SSO_REMINDER
@@ -502,26 +520,6 @@ class TestManagedSsoCelery(TestCase):
 
         linked_user.refresh_from_db()
         assert not linked_user.has_usable_password()
-
-    def test_update_users_uses_custom_in_app_message_body(self):
-        custom_data = SocialAppCustomData.objects.create(
-            social_app=self.social_app, managed=True
-        )
-        managed_domain = SocialAppManagedDomain.objects.create(
-            social_app=custom_data, domain=self.default_domain
-        )
-        self._create_user('unlinked', True, False, False)
-
-        update_users(
-            custom_data.pk,
-            managed_domain.domain,
-            in_app_message_body='custom body text',
-        )
-
-        message = InAppMessage.objects.get(
-            message_type=MessageType.MANAGED_SSO_REMINDER
-        )
-        assert message.body == 'custom body text'
 
     def test_update_users_stops_when_managed_turns_off_mid_run(self):
         """
@@ -559,10 +557,6 @@ class TestManagedSsoCelery(TestCase):
         assert not InAppMessage.objects.filter(
             message_type=MessageType.MANAGED_SSO_REMINDER
         ).exists()
-
-    def test_create_inapp_message_defaults_to_constant_body(self):
-        message = create_inapp_message(self.social_app)
-        assert message.body == DEFAULT_IN_APP_MESSAGE_BODY
 
     def test_managed_sso_sweep(self):
         social_app_managed = SocialApp.objects.create(
@@ -622,8 +616,16 @@ class TestManagedSsoWithdrawal(TestCase):
             provider=self.provider.id,
             provider_id='kobo',
         )
+        # in_app_message will have been created when the object was created in admin
+        message = InAppMessage.objects.create(
+            **DEFAULT_IN_APP_MESSAGE_FIELDS,
+            body='body',
+            valid_until=timezone.now(),
+            valid_from=timezone.now(),
+            generic_related_objects={SOCIAL_APP_IDENTIFIER: self.social_app.pk},
+        )
         self.custom_data = SocialAppCustomData.objects.create(
-            social_app=self.social_app, managed=True
+            social_app=self.social_app, managed=True, in_app_message=message
         )
         self.example_domain = SocialAppManagedDomain.objects.create(
             social_app=self.custom_data, domain='example.com'
@@ -681,6 +683,7 @@ class TestManagedSsoWithdrawal(TestCase):
         """
         bob_message = InAppMessageUsers.objects.get(user=self.bob).in_app_message
         alice_message = InAppMessageUsers.objects.get(user=self.alice).in_app_message
+        assert bob_message.pk == alice_message.pk
 
         self.other_domain.delete()
 
@@ -688,9 +691,7 @@ class TestManagedSsoWithdrawal(TestCase):
         assert InAppMessageUsers.objects.filter(user=self.alice).exists()
 
         now = timezone.now()
-        bob_message.refresh_from_db()
         alice_message.refresh_from_db()
-        assert bob_message.valid_until <= now
         assert alice_message.valid_until > now
 
         # bob's emptied reminder must not leak to everyone
@@ -707,6 +708,7 @@ class TestManagedSsoWithdrawal(TestCase):
         Deleting the social app cascades and withdraws every reminder, even
         though messages reference the app only through a JSON field.
         """
+
         self.social_app.delete()
 
         assert not InAppMessageUsers.objects.filter(

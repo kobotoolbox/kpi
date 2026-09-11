@@ -11,6 +11,10 @@ on:
     branches: [ 'release/**' ]
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
 
@@ -186,6 +190,9 @@ jobs:
       - version
       - tests
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+    permissions:
+      contents: read
+      pull-requests: write  # gh pr create/edit for the merge-conflict PR
     runs-on: ubuntu-24.04
     outputs:
       new_migrations: ${{ steps.detect-migrations.outputs.new_migrations }}
