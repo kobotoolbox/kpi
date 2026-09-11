@@ -322,7 +322,7 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     with transaction.atomic():
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
 
-        error = str(exception)
+        error = _format_failure_error(exception)
         obj_trash.metadata['failure_error'] = error
 
         # Transient failures (OOM kill, MongoDB unreachable, deadlock, Celery
@@ -342,10 +342,10 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
 
 def trash_bin_task_retry(model: TrashBinModel, **kwargs):
     obj_trash_id = kwargs['request'].get('args')[0]
-    exception = str(kwargs['reason'])
     with transaction.atomic():
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
-        obj_trash.metadata['failure_error'] = str(exception)
+        error = _format_failure_error(kwargs['reason'])
+        obj_trash.metadata['failure_error'] = error
         obj_trash.status = TrashStatus.RETRY
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
@@ -383,6 +383,14 @@ def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
         AuditLog.objects.bulk_create(audit_logs)
     if project_history_logs:
         ProjectHistoryLog.objects.bulk_create(project_history_logs)
+
+
+def _format_failure_error(exception: Exception | str) -> str:
+    """
+    Argless exceptions (e.g. a bare `TrashTaskInProgressError`) stringify to
+    an empty string; fall back to `repr()` so `failure_error` is never empty
+    """
+    return str(exception) or repr(exception)
 
 
 def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:

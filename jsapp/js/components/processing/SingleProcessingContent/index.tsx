@@ -1,5 +1,6 @@
-import classNames from 'classnames'
+import { Tabs } from '@mantine/core'
 import React from 'react'
+import { Link } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -7,7 +8,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
-import { goToTabRoute, isProcessingRouteActive } from '../routes.utils'
+import { getTabRoutePath, goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 import TabAnalysis from './TabAnalysis'
 import TabTranscript from './TabTranscript'
 import TabTranslations from './TabTranslations'
@@ -44,54 +45,56 @@ export default function SingleProcessingContent({
     protectorHelpers.safeExecute(hasUnsavedWork, callback)
   }
 
-  function handleTranscriptClick() {
-    safeExecute(() => goToTabRoute(PROCESSING_ROUTES.TRANSCRIPT))
+  /**
+   * Builds the `renderRoot` for each tab. Each tab needs to handle browser middle-click navigation as well as
+   * use the `safeExecute` protector when left clicking.
+   */
+  function renderTabLink(route: string) {
+    // Passes mantine props from renderRoot, this is needed for the tab to function as a link.
+    // We also spread the renderRoot props first and override it with our own later in order to prevent ugly prop surgery.
+    return (props: Record<string, unknown>) => (
+      <Link
+        {...props}
+        to={getTabRoutePath(route)}
+        onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          event.preventDefault()
+          safeExecute(() => goToTabRoute(route))
+        }}
+      />
+    )
   }
 
-  function handleTranslationsClick() {
-    safeExecute(() => goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS))
-  }
-
-  function handleAnalysisClick() {
-    safeExecute(() => goToTabRoute(PROCESSING_ROUTES.ANALYSIS))
+  // Determine active tab based on current route
+  let activeTab: string | null = null
+  if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
+    activeTab = PROCESSING_ROUTES.TRANSCRIPT
+  } else if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
+    activeTab = PROCESSING_ROUTES.TRANSLATIONS
+  } else if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
+    activeTab = PROCESSING_ROUTES.ANALYSIS
   }
 
   return (
     <section className={styles.root}>
-      <ul className={styles.tabs}>
-        <li
-          className={classNames({
-            [styles.tab]: true,
-            [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT),
-          })}
-          onClick={handleTranscriptClick}
-        >
-          {t('Transcript')}
-        </li>
+      <Tabs variant={'folder'} value={activeTab} tt={'uppercase'} h={48}>
+        <Tabs.List justify='left'>
+          <Tabs.Tab value={PROCESSING_ROUTES.TRANSCRIPT} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSCRIPT)}>
+            {t('Transcript')}
+          </Tabs.Tab>
 
-        <li
-          className={classNames({
-            [styles.tab]: true,
-            [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS),
-          })}
-          onClick={handleTranslationsClick}
-        >
-          {t('Translations')}
-        </li>
+          <Tabs.Tab value={PROCESSING_ROUTES.TRANSLATIONS} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSLATIONS)}>
+            {t('Translations')}
+          </Tabs.Tab>
 
-        <li
-          className={classNames({
-            [styles.tab]: true,
-            [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS),
-          })}
-          onClick={handleAnalysisClick}
-        >
-          {t('Analysis')}
-        </li>
-      </ul>
+          <Tabs.Tab value={PROCESSING_ROUTES.ANALYSIS} renderRoot={renderTabLink(PROCESSING_ROUTES.ANALYSIS)}>
+            {t('Analysis')}
+          </Tabs.Tab>
+        </Tabs.List>
+      </Tabs>
 
       <section className={styles.body}>
-        {isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT) && (
+        {activeTab === PROCESSING_ROUTES.TRANSCRIPT && (
           <TabTranscript
             asset={asset}
             questionXpath={questionXpath}
@@ -102,7 +105,7 @@ export default function SingleProcessingContent({
             advancedFeatures={advancedFeatures}
           />
         )}
-        {isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS) && (
+        {activeTab === PROCESSING_ROUTES.TRANSLATIONS && (
           <TabTranslations
             asset={asset}
             questionXpath={questionXpath}
@@ -113,7 +116,7 @@ export default function SingleProcessingContent({
             advancedFeatures={advancedFeatures}
           />
         )}
-        {isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS) && (
+        {activeTab === PROCESSING_ROUTES.ANALYSIS && (
           <TabAnalysis
             asset={asset}
             questionXpath={questionXpath}
