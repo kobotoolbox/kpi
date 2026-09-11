@@ -18,6 +18,7 @@ from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomai
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.utils import baker_generators  # noqa
+from kpi.utils.log import logging
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
 from ..tasks import (
@@ -239,7 +240,7 @@ class TestManagedSsoUsers(TestCase):
                 in form.errors['user']
             )
 
-    @data('managed_off', 'domain_deleted', 'app_deleted')
+    @data('managed_off', 'domain_deleted', 'app_deleted', 'sso_exempt')
     def test_restrictions_lift_when_no_longer_managed(self, change):
         """
         Every SSO-managed enforcement point must release once the domain is
@@ -331,6 +332,9 @@ class TestManagedSsoUsers(TestCase):
             SocialAppManagedDomain.objects.get(domain='example.com').delete()
         elif change == 'app_deleted':
             self.social_app.delete()
+        elif change == 'sso_exempt':
+            self.user.extra_details.sso_exempt = True
+            self.user.extra_details.save()
 
 
 class TestManagedSsoCelery(TestCase):
@@ -847,3 +851,72 @@ class TestManagedSsoWithdrawal(TestCase):
         self.client.force_login(self.alice)
         response = self.client.get('/help/in_app_messages/')
         assert response.json()['count'] == 1
+
+    def test_enabling_sso_exempt_withdraws_reminder(self):
+        assert InAppMessageUsers.objects.filter(user=self.bob).exists()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+        self.bob.extra_details.sso_exempt = True
+        self.bob.extra_details.save()
+        # Bob's reminder has been withdrawn
+        assert not InAppMessageUsers.objects.filter(user=self.bob).exists()
+
+        # message should not be expired since Alice still has a reminder
+        message = self.custom_data.in_app_message
+        message.refresh_from_db()
+        assert message.valid_until > timezone.now()
+        assert InAppMessageUsers.objects.filter(user=self.alice).exists()
+
+        # make Alice sso exempt
+        self.alice.extra_details.sso_exempt = True
+        self.alice.extra_details.save()
+
+        # Alice's notification has been withdrawn, message should be expired
+        assert not InAppMessageUsers.objects.filter(user=self.alice).exists()
+        message.refresh_from_db()
+        assert message.valid_until < timezone.now()
+
+    def test_disabling_sso_exempt_sends_reminder(self):
+        # all previous reminders removed, message is expired
+        InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).delete()
+        self.custom_data.in_app_message.valid_until = timezone.now()
+        self.custom_data.in_app_message.save()
+
+        self.bob.extra_details.sso_exempt = True
+        self.bob.extra_details.save()
+        # Bob is no longer exempt
+        self.bob.extra_details.sso_exempt = False
+        self.bob.extra_details.save()
+        assert InAppMessageUsers.objects.filter(
+            user=self.bob, in_app_message=self.custom_data.in_app_message
+        ).exists()
+        self.custom_data.in_app_message.refresh_from_db()
+        assert self.custom_data.in_app_message.valid_until > timezone.now()
+
+    def test_disabling_sso_exempt_does_not_send_reminder_if_none_configured(self):
+        self.custom_data.send_in_app_message = False
+        self.custom_data.save()
+        InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).delete()
+        self.bob.extra_details.sso_exempt = True
+        self.bob.extra_details.save()
+        self.bob.extra_details.sso_exempt = False
+        self.bob.extra_details.save()
+        assert not InAppMessageUsers.objects.filter(
+            user=self.bob, in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
+
+    def test_disabling_sso_exempt_does_not_error_if_message_missing(self):
+        self.custom_data.in_app_message.delete()
+        InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).delete()
+        with self.assertLogs(logger=logging.name, level='ERROR') as logs:
+            self.bob.extra_details.sso_exempt = True
+            self.bob.extra_details.save()
+            self.bob.extra_details.sso_exempt = False
+            self.bob.extra_details.save()
+
+        assert 'no message to send' in logs.output[0]

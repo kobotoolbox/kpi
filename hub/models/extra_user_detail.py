@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.db import models
@@ -32,6 +33,10 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
 
     def __str__(self):
         return "{}'s data: {}".format(self.user.__str__(), repr(self.data))
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self._initial_sso_exempt = self.sso_exempt
 
     def save(
         self,
@@ -71,6 +76,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 self.user.id,
                 self.validated_password,
             )
+        self._initial_sso_exempt = self.sso_exempt
 
     @classmethod
     def update_last_project_activity(cls, user_ids: set[int]) -> None:
