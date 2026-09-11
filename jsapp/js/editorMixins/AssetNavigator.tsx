@@ -1,14 +1,18 @@
-import { Center, Checkbox, Group, Loader, MultiSelect, Select, Stack, Text, TextInput } from '@mantine/core'
+import { Center, Checkbox, Group, Loader, Stack, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import * as Sentry from '@sentry/react'
 import React, { useState, useRef, useEffect } from 'react'
 import type { Asset } from '#/api/models/asset'
 import type { TagListResponse } from '#/api/models/tagListResponse'
 import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
+import MultiSelect from '#/components/common/MultiSelect'
+import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Icon from '#/components/common/icon'
 import { COMMON_QUERIES } from '#/constants'
 import type { LabelValuePair } from '#/dataInterface'
 import AssetNavigatorCard from './AssetNavigatorCard'
+import { formatTagValue } from './assetNavigatorUtils'
 
 // A stub types for sortable
 declare global {
@@ -26,13 +30,6 @@ const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 // Past this the `q` search rejects the query; mirrors the back end's
 // `QUERY_PARSER_MAX_TO_MANY_FILTERS`
 const MAX_SELECTED_TAGS = 10
-
-/**
- * Wraps a tag name in quotes for the `q` search to avoid potential query failure.
- */
-function quoteTagName(tagName: string) {
-  return tagName.includes('"') ? `'${tagName}'` : `"${tagName}"`
-}
 
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -97,7 +94,7 @@ export default function AssetNavigator() {
     //
     // Multiple tags are joined with `AND`, which the back end reads as "has every one of these".
     if (selectedTags.length > 0) {
-      const tagQuery = selectedTags.map((tagName) => `tags__name__iexact:${quoteTagName(tagName)}`).join(' AND ')
+      const tagQuery = selectedTags.map((tagName) => `tags__name__iexact:${formatTagValue(tagName)}`).join(' AND ')
       queryParts.push(`(${tagQuery})`)
     }
 
