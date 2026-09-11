@@ -17,7 +17,7 @@ import RequireAuth from './requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from './routerConstants'
 
 const Reports = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/reports/reports'))
-const FormLanding = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formLanding/formLanding'))
+const FormLanding = React.lazy(() => import(/* webpackPrefetch: true */ '#/project/FormLanding'))
 const FormSummary = React.lazy(() => import(/* webpackPrefetch: true */ '#/project/FormSummary'))
 const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formSubScreens'))
 const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formXform'))
