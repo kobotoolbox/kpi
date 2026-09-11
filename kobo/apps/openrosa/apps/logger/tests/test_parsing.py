@@ -2,6 +2,7 @@
 import os
 import re
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
@@ -15,7 +16,6 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
-from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.xml import minidom_parsestring
 
 XML = 'xml'
@@ -243,3 +243,49 @@ class TestXFormInstanceParser(TestBase):
                 f'{id_string}/signature',
             ]
             assert sorted(expected) == sorted(get_xform_media_question_xpaths(xf))
+
+    def test_get_xform_media_question_xpaths_ignores_a_node_without_ref(self):
+        bob = User.objects.get(username='bob')
+        xml_path = self._fixture_path('signature', 'project_with_ref_before.xml')
+        with open(xml_path) as f:
+            xml_str = f.read()
+
+        # A `mediatype` pointing at nothing used to raise a `KeyError`, which
+        # failed the submission being saved
+        xml_str = xml_str.replace(
+            '<upload ref="/project_with_ref_before/image" mediatype="image/*">',
+            '<upload mediatype="image/*">',
+        )
+        xform = XForm.objects.create(
+            xml=xml_str, user=bob, id_string='project_with_ref_before'
+        )
+
+        with self.assertLogs('console_logger', level='WARNING') as logs:
+            assert get_xform_media_question_xpaths(xform) == [
+                'project_with_ref_before/signature'
+            ]
+
+        assert 'media node with no usable `ref`' in logs.output[0]
+
+    def test_get_xform_media_question_xpaths_keeps_accents_of_a_latin1_form(self):
+        bob = User.objects.get(username='bob')
+        xml_path = self._fixture_path('signature', 'project_with_ref_before.xml')
+        with open(xml_path) as f:
+            xml_str = f.read()
+
+        # A form is held as text, so its declaration only says what it was
+        # encoded with on the way in. Handing those characters to a parser as
+        # UTF-8 bytes would have expat decode them as declared instead, and
+        # `signature_é` would come back as `signature_Ã©`
+        xml_str = xml_str.replace(
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<?xml version="1.0" encoding="ISO-8859-1"?>',
+        ).replace('/signature', '/signature_é')
+        xform = XForm.objects.create(
+            xml=xml_str, user=bob, id_string='project_with_ref_before'
+        )
+
+        assert sorted(get_xform_media_question_xpaths(xform)) == [
+            'project_with_ref_before/image',
+            'project_with_ref_before/signature_é',
+        ]
