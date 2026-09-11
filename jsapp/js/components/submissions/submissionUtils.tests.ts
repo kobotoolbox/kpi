@@ -1,10 +1,11 @@
 import { getRowName } from '#/assetUtils'
-import { QuestionTypeName } from '#/constants'
+import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   DisplayGroup,
   DisplayResponse,
   getMediaAttachment,
+  getRowData,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
   hasAnyUnacceptedAutomaticContent,
@@ -62,7 +63,7 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
-import type { AssetResponse, SubmissionSupplementalDetails } from '#/dataInterface'
+import type { AssetResponse, SubmissionResponse, SubmissionSupplementalDetails, SurveyRow } from '#/dataInterface'
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {
@@ -159,6 +160,42 @@ function withRenamedRow(asset: AssetResponse, oldName: string, newName: string):
     row.$xpath = [...row.$xpath.split('/').slice(0, -1), newName].join('/')
   }
   return renamedAsset
+}
+
+/**
+ * Wraps one existing question in a new group, the way redeploying a form with the
+ * question moved into a group would - changing the path the current form expects
+ * without rewriting how earlier eras were stored.
+ */
+function withRowMovedIntoGroup(asset: AssetResponse, rowName: string, groupName: string): AssetResponse {
+  const movedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
+  const survey = movedAsset.content?.survey
+  if (!survey) {
+    throw new Error('There is no survey to move a row in')
+  }
+  const index = survey.findIndex((surveyRow) => getRowName(surveyRow) === rowName)
+  if (index === -1) {
+    throw new Error(`There is no row named "${rowName}" to move`)
+  }
+
+  const [row] = survey.splice(index, 1)
+  if (row.$xpath !== undefined) {
+    row.$xpath = `${groupName}/${rowName}`
+  }
+  survey.splice(
+    index,
+    0,
+    {
+      name: groupName,
+      type: GroupTypeBeginName.begin_group,
+      $kuid: `${groupName}_kuid`,
+      $autoname: groupName,
+      label: [groupName],
+    } as SurveyRow,
+    row,
+    { type: GroupTypeEndName.end_group, $kuid: `/${groupName}_kuid` } as SurveyRow,
+  )
+  return movedAsset
 }
 
 /** The responses displayed directly in a group, i.e. without its subgroups. */
@@ -306,6 +343,74 @@ describe('getSubmissionDisplayData for answers the current form does not account
 
     chai.expect(groupResponses.map((response) => response.name)).to.deep.equal(['Favourite_color', 'Favourite_number'])
     chai.expect(groupResponses[1].data).to.equal(0)
+  })
+})
+
+describe('getSubmissionDisplayData for a question moved into a group', () => {
+  it('should keep the audio answer and its NLP rows when the question was moved after NLP was configured', () => {
+    // The question was moved into a group after transcript/translation were
+    // enabled, so its current path (`grp/...`) no longer equals the NLP source
+    // (the pre-move flat name kept in `analysis_form_json`). A submission made
+    // after the move stores the answer under the grouped path.
+    const asset = withRowMovedIntoGroup(assetWithSupplementalDetails, 'Secret_password_as_an_audio_file', 'grp')
+    const submission: SubmissionResponse = JSON.parse(JSON.stringify(submissionWithSupplementalDetails))
+    submission['grp/Secret_password_as_an_audio_file'] = submission.Secret_password_as_an_audio_file
+    delete submission.Secret_password_as_an_audio_file
+
+    const groupResponses = getGroupResponses(getSubmissionDisplayData(asset, 0, submission), 'grp')
+
+    // (a) the audio answer itself, found under the new grouped path.
+    chai
+      .expect(groupResponses.find((response) => response.data === '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3'))
+      .to.not.equal(undefined)
+    // (b) the transcript row, which without the leaf-name fallback silently
+    // vanishes because the source path recorded at NLP-config time no longer
+    // matches the moved question's current path.
+    chai
+      .expect(groupResponses.find((response) => response.data === 'This is french transcript text.'))
+      .to.not.equal(undefined)
+  })
+
+  it('should keep the NLP rows of a submission made before the move', () => {
+    // A submission made before the move stores both the answer and its
+    // `_supplementalDetails` under the pre-move flat name. The current form
+    // only knows the grouped path, so the answer surfaces through the
+    // unaccounted-answers path - which must bring the NLP rows along, or the
+    // transcript silently vanishes from the single-submission view.
+    const asset = withRowMovedIntoGroup(assetWithSupplementalDetails, 'Secret_password_as_an_audio_file', 'grp')
+    const submission: SubmissionResponse = JSON.parse(JSON.stringify(submissionWithSupplementalDetails))
+
+    const allResponses = getAllResponses(getSubmissionDisplayData(asset, 0, submission))
+
+    // (a) the audio answer itself, kept visible under its submission-era path.
+    chai
+      .expect(allResponses.find((response) => response.data === '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3'))
+      .to.not.equal(undefined)
+    // (b) the transcript row, attached next to the unaccounted answer.
+    chai
+      .expect(allResponses.find((response) => response.data === 'This is french transcript text.'))
+      .to.not.equal(undefined)
+  })
+})
+
+/** Every response in the display tree, from all groups at all depths. */
+function getAllResponses(group: DisplayGroup): DisplayResponse[] {
+  return group.children.flatMap((child) => (child instanceof DisplayGroup ? getAllResponses(child) : [child]))
+}
+
+describe('getRowData', () => {
+  it('should find the answer of a question moved from one group to another', () => {
+    // The current form has the question in `new_grp`, but the submission was made
+    // when it lived in `old_grp`. Neither the current path nor the bare name
+    // matches the stored key, so without the leaf-name fallback this returns null.
+    const survey = [
+      { name: 'new_grp', type: GroupTypeBeginName.begin_group, $kuid: 'g', $autoname: 'new_grp', label: ['New'] },
+      { name: 'q', type: QuestionTypeName.audio, $kuid: 'q', $autoname: 'q', label: ['Q'] },
+      { type: GroupTypeEndName.end_group, $kuid: '/g' },
+    ] as unknown as SurveyRow[]
+    const data = { 'old_grp/q': 'clip.mp3' } as unknown as SubmissionResponse
+
+    chai.expect(getRowData('q', survey, data)).to.equal('clip.mp3')
   })
 })
 

@@ -80,7 +80,11 @@ from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
-from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from kpi.utils.xml import (
+    find_element_by_leaf_name,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
@@ -564,6 +568,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 element = submission_root.find(xpath)
             except KeyError:
                 raise InvalidXPathException
+
+            if element is None:
+                # Submissions keep the xpath of the form version they were made
+                # against, so a path from another version may not exist in the
+                # XML when the question moved into or out of a group
+                element = find_element_by_leaf_name(submission_root, xpath)
 
             if element is None:
                 raise XPathNotFoundException
