@@ -19,7 +19,7 @@ import { PROJECTS_ROUTES, ROUTES } from './routerConstants'
 const Reports = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/reports/reports'))
 const FormLanding = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formLanding/formLanding'))
 const FormSummary = React.lazy(() => import(/* webpackPrefetch: true */ '#/project/FormSummary'))
-const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formSubScreens'))
+const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/project/FormSubScreens'))
 const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formXform'))
 const FormJson = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formJson'))
 const SectionNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/sectionNotFound'))
