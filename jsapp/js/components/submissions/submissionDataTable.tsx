@@ -4,13 +4,14 @@ import React from 'react'
 
 import { Group } from '@mantine/core'
 import autoBind from 'react-autobind'
-import { findRow, getRowName, renderQuestionTypeIcon } from '#/assetUtils'
+import { getRowName, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import SimpleTable from '#/components/common/SimpleTable'
 import { isNlpSupported } from '#/components/processing/common/utils'
+import { stripRepeatIndices } from '#/components/submissions/submissionMediaUtils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
@@ -178,7 +179,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.file.id:
         return this.renderAttachment(item.type, item.data, item.xpath)
       case QUESTION_TYPES.text.id:
-        return this.renderTextResponse(item.data, item.name)
+        return this.renderTextResponse(item.data, item.xpath)
       case QUESTION_TYPES.geopoint.id:
       case QUESTION_TYPES.geotrace.id:
       case QUESTION_TYPES.geoshape.id:
@@ -277,18 +278,15 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     )
   }
 
-  renderTextResponse(text: string, name: string) {
-    // `item.xpath` (passed to `renderAttachment`) is built for matching media attachments and gets a repeat-instance
-    // index baked in inside repeat groups (e.g. `group[2]/question`), which Processing's routing doesn't understand -
-    // it wants the question's static survey xpath, so we look that up by name instead, same as `renderAttachment`'s
-    // audio button does implicitly (its xpath comes from a `row.$xpath === attachment.question_xpath` match).
-    const questionXpath = this.props.asset.content && findRow(this.props.asset.content, name)?.$xpath
+  renderTextResponse(text: string, xpath: string) {
+    // Strip any repeat-instance index to get the question's static survey xpath.
+    const questionXpath = stripRepeatIndices(xpath)
 
     return (
       <Group wrap='nowrap' align='flex-start'>
         <bem.SubmissionDataTable__value style={{ flex: 1, minWidth: 0 }}>{text}</bem.SubmissionDataTable__value>
 
-        {text && questionXpath !== undefined && isNlpSupported(QUESTION_TYPES.text.id) && (
+        {text && isNlpSupported(QUESTION_TYPES.text.id) && (
           <MoreActionsMenu
             className='hide-on-print'
             processingAction={{

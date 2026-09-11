@@ -8,6 +8,7 @@ import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { isNlpSupported } from '#/components/processing/common/utils'
+import { stripRepeatIndices } from '#/components/submissions/submissionMediaUtils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
@@ -65,8 +66,9 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     }
   }
 
-  // We find the question that the attachment belongs to, to determine the text to display in the modal.
-  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
+  // Strip any repeat-instance index so this matches the survey row's static xpath.
+  const questionXpath = stripRepeatIndices(attachment.question_xpath)
+  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === questionXpath)?.type
   let attachmentTypeName = t('attachment')
   if (questionType === QuestionTypeName.audio) {
     attachmentTypeName = t('audio recording')
@@ -89,7 +91,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           isProcessingActionShown
             ? {
                 assetUid: props.asset.uid,
-                xpath: attachment.question_xpath,
+                xpath: questionXpath,
                 submissionEditId: getSubmissionRootUuid(props.submission),
               }
             : undefined
