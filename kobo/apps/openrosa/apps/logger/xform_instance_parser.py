@@ -534,7 +534,7 @@ def get_xform_media_question_xpaths(xform: 'logger.XForm') -> list:
             continue
 
         # We are returning XPaths, leading slash should be removed
-        media_field_xpaths.append(ref[1:])
+        media_field_xpaths.append(ref.lstrip('/'))
 
     return media_field_xpaths
 
