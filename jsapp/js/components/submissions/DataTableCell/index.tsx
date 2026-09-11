@@ -30,8 +30,8 @@ interface DataTableCellProps {
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
-  // Table settings encode the "XML Values" display option as a negative
-  // translation index (see `TableSettings`).
+  // Table settings encode the "Question & choice names" display option as
+  // a negative translation index (see `TableSettings`).
   const shouldShowSelectLabels = props.translationIndex > -1
   const submission = props.reactTableRow.original
   const submissionIndex = props.reactTableRow.index + 1

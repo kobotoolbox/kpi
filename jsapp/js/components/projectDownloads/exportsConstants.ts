@@ -41,7 +41,7 @@ export const EXPORT_FORMATS: {
 } = Object.freeze({
   // Unchecked wisdom from old component:
   // > The value of `formpack.constants.UNTRANSLATED` is `null` which is the same as `_default`
-  _default: { value: '_default', label: t('Labels') },
+  _default: { value: '_default', label: t('Question & choice labels') },
   // Unchecked wisdom from old component:
   // > The value of `formpack.constants.UNSPECIFIED_TRANSLATION` is `false` which is the same as `_xml`
   //
@@ -49,7 +49,7 @@ export const EXPORT_FORMATS: {
   // > Exports previously used `xml` (no underscore) for this, which works so
   // > long as the form has no language called `xml`. We shouldn't bank on that:
   // > https://en.wikipedia.org/wiki/Malaysian_Sign_Language
-  _xml: { value: '_xml', label: t('XML values and headers') },
+  _xml: { value: '_xml', label: t('Question & choice names') },
 })
 
 export type ExportMultiOptionName = 'details' | 'summary' | 'both'
