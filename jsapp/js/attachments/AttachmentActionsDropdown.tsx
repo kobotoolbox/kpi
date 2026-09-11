@@ -25,9 +25,8 @@ interface AttachmentActionsDropdownProps {
   onDeleted?: () => void
   /**
    * Also offer a "Translate & analyze" entry that opens Processing for this
-   * response's question, when NLP processing supports its type. Off by
-   * default: some callers of this dropdown (e.g. inside Processing itself)
-   * already are the Processing view, where the entry would be redundant.
+   * response's question, when NLP processing supports its type.
+   * Off by default.
    */
   showProcessingAction?: boolean
 }
