@@ -3,8 +3,8 @@ import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { findRowByXpathOrLeafName } from '#/assetUtils'
 import Icon from '#/components/common/icon'
-import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { isTextQuestionType } from '../common/utils'
 
 interface SidebarSubmissionTextProps {
   xpath: string
@@ -18,7 +18,7 @@ export default function SidebarSubmissionText({ asset, xpath, submission }: Side
     return null
   }
 
-  if (findRowByXpathOrLeafName(asset.content, xpath)?.type !== QUESTION_TYPES.text.id) {
+  if (!isTextQuestionType(findRowByXpathOrLeafName(asset.content, xpath)?.type)) {
     return null
   }
 
