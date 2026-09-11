@@ -24,7 +24,7 @@ import { useBillingPeriod } from './useBillingPeriod'
 
 const ProjectBreakdown = () => {
   const [organization] = useOrganizationAssumed()
-  const { billingPeriod, hasActivePlan } = useBillingPeriod()
+  const { intervalLabel } = useBillingPeriod()
   const [order, setOrder] = useState<ProjectsTableOrder>({})
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
@@ -148,10 +148,7 @@ const ProjectBreakdown = () => {
     <div className={styles.root}>
       {/* Margin bottom to match the padding top of parent */}
       <Text mb={15}>
-        {t('Track usage for the current ##INTERVAL## across your projects').replace(
-          '##INTERVAL##',
-          billingPeriod === 'year' ? t('year') : hasActivePlan ? t('billing period') : t('month'),
-        )}
+        {t('Track usage for the current ##INTERVAL## across your projects').replace('##INTERVAL##', intervalLabel)}
       </Text>
       <UniversalTable<CustomAssetUsage, ErrorDetail>
         pagination={pagination}

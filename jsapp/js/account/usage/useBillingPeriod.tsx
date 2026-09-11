@@ -7,14 +7,13 @@ import type { RecurringInterval } from '../stripe.types'
 import subscriptionStore from '../subscriptionStore'
 
 /**
- * Get the subscription interval (`'month'` or `'year'`) for the logged-in user, along with whether
- * they have an active plan at all.
+ * Get the subscription interval (`'month'` or `'year'`) for the logged-in user, plus whether that
+ * interval came from an active plan.
  *
- * Returns `{interval: 'month', hasActivePlan: false}` for users on the free plan (and on deployments
- * without Stripe). This is so we can give a more accurate 'billing period' description for users that
- * have active monthly plans.
+ * Returns `{interval: 'month', hasActivePlan: false}` for users on the free plan, and on deployments
+ * without Stripe.
  */
-export async function getSubscriptionInfo(): Promise<{
+async function getSubscriptionInfo(): Promise<{
   interval: RecurringInterval
   hasActivePlan: boolean
 }> {
@@ -38,7 +37,7 @@ export async function getSubscriptionInfo(): Promise<{
 
 export const useBillingPeriod = (): {
   billingPeriod: RecurringInterval
-  hasActivePlan: boolean
+  intervalLabel: string
   isLoading: boolean
 } => {
   const { data, isLoading } = useQuery({
@@ -46,11 +45,13 @@ export const useBillingPeriod = (): {
     queryFn: getSubscriptionInfo,
   })
 
+  // Default to 'month'/no plan while the query is still loading
+  const billingPeriod = data?.interval || 'month'
+  const hasActivePlan = data?.hasActivePlan ?? false
+
   return {
-    // Default to 'month'/no plan while the query is still loading.
-    // This ensures that the hook always returns a valid billing period
-    billingPeriod: data?.interval || 'month',
-    hasActivePlan: data?.hasActivePlan ?? false,
+    billingPeriod,
+    intervalLabel: billingPeriod === 'year' ? t('year') : hasActivePlan ? t('billing period') : t('month'),
     isLoading,
   }
 }
