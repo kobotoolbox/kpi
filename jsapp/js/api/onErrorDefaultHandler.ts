@@ -1,6 +1,8 @@
 import { type Query, QueryClient } from '@tanstack/react-query'
 import { notify } from '#/utils'
 import { ServerError } from './ServerError'
+import { flattenErrorBody } from './flattenErrorBody'
+import { getDisplayableErrorText } from './getDisplayableErrorText'
 
 /**
  * On error Orval's fetch mutator throws either:
@@ -24,25 +26,18 @@ const getGenericErrorMessage = () => t('An error occurred')
  */
 export function getApiErrorMessage(error: OrvalFetchError): string | null {
   if (error instanceof ServerError) {
-    const parsedResponse = error.parsedResponse as { error?: string; detail?: string } | string | undefined
+    const parsedResponse: unknown = error.parsedResponse
 
-    if (typeof parsedResponse === 'string' && parsedResponse.length > 0) {
-      return parsedResponse
+    // A string means `ServerError` couldn't parse the body as JSON: sometimes a
+    // plain-text backend message, sometimes a whole error page or traceback.
+    if (typeof parsedResponse === 'string') {
+      return getDisplayableErrorText(parsedResponse, error.response?.status)
     }
 
-    if (typeof parsedResponse === 'object' && parsedResponse !== null) {
-      if (typeof parsedResponse.error === 'string' && parsedResponse.error.length > 0) {
-        return parsedResponse.error
-      }
-
-      if (typeof parsedResponse.detail === 'string' && parsedResponse.detail.length > 0) {
-        return parsedResponse.detail
-      }
-    }
-
-    // Keep this as null so callers can fall back to endpoint-specific
-    // user-facing messages (instead of a generic HTTP status string).
-    return null
+    // Structured errors are backend copy written for the user, so they display
+    // whatever the status - see `getDisplayableErrorText`. Null means no message was
+    // found, letting callers fall back to their own copy over an HTTP status.
+    return flattenErrorBody(parsedResponse)
   }
 
   if (error instanceof TypeError || error instanceof DOMException) {
@@ -98,17 +93,19 @@ export function onErrorDefaultHandler(
   _context?: unknown,
 ): boolean | void {
   if (error instanceof ServerError) {
-    let detail: string | null = null
+    // Log the whole body rather than `detail`, which drops error page output on purpose. A suppressed traceback is
+    // still the fastest way to find out what broke.
+    let body: string | undefined
     try {
-      detail = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail)
+      body = typeof error.parsedResponse === 'string' ? error.parsedResponse : JSON.stringify(error.parsedResponse)
     } catch {
-      detail = String(error.detail)
+      body = String(error.parsedResponse)
     }
     notify(
       getApiErrorMessage(error) || getGenericErrorMessage(),
       'error',
       {},
-      `${error.name}: ${error.message} | ${detail}`,
+      [`${error.name}: ${error.message}`, body].filter(Boolean).join(' | '),
     )
   } else if (error instanceof TypeError) {
     notify(getApiErrorMessage(error) || getGenericErrorMessage(), 'error', {}, `${error.name}: ${error.message}`)

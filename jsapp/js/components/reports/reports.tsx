@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import clonedeep from 'lodash.clonedeep'
 import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
+import { getFailResponseMessage } from '#/api/getFailResponseMessage'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import bem from '#/bem'
 import Select from '#/components/common/Select'
@@ -506,16 +507,15 @@ export default function Reports(props: ReportsProps) {
 
   function renderLoadingOrError() {
     if (state.error) {
+      // The body used to be printed as it came, which meant a whole error page on the report screen.
+      const details = [state.error.statusText, getFailResponseMessage(state.error)].filter(Boolean).join(': ')
       return (
         <CenteredMessage
           message={
             <>
               {t('This report cannot be loaded.')}
               <br />
-              <code>
-                {state.error.statusText}
-                {': ' + state.error.responseText || t('An error occurred')}
-              </code>
+              <code>{details || t('An error occurred')}</code>
             </>
           }
         />
