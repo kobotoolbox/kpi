@@ -1,4 +1,4 @@
-import { Box, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core'
+import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconSearch } from '@tabler/icons-react'
 import { keepPreviousData } from '@tanstack/react-query'
@@ -7,7 +7,6 @@ import React, { useState } from 'react'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
-import { isSsoAvailable } from '#/account/security/sso/sso.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
@@ -263,26 +262,18 @@ function MembersRoute() {
         return member ? renderStatusBadge(member.user__has_mfa_enabled) : undefined
       },
     },
-  ]
-
-  // The SSO column is always shown, but is inert until the organization has the SSO add-on.
-  const isSsoColumnDisabled = !isSsoAvailable(envStore.data)
-  columns.push({
-    key: 'user__has_sso_enabled',
-    label: (
-      <Tooltip label={isSsoColumnDisabled ? t('Activate SSO add-on to enable') : t('SSO status')}>
-        <span className={isSsoColumnDisabled ? styles.disabledColumnHeader : undefined}>{t('SSO')}</span>
-      </Tooltip>
-    ),
-    size: 90,
-    cellFormatter: (obj: MemberListResponse) => {
-      if (isSsoColumnDisabled) {
-        return undefined
-      }
-      const { member } = getMemberOrInviteDetails(obj)
-      return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+    {
+      // Every team gets this column, whether or not it has the SSO add-on. Without the add-on nobody can have an SSO
+      // account, so it simply reads as inactive for everyone.
+      key: 'user__has_sso_enabled',
+      label: t('SSO'),
+      size: 90,
+      cellFormatter: (obj: MemberListResponse) => {
+        const { member } = getMemberOrInviteDetails(obj)
+        return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+      },
     },
-  })
+  ]
 
   // Actions column is only for owner and admins.
   if (isUserAdminOrOwner) {
@@ -393,5 +384,5 @@ function MembersRoute() {
   )
 }
 
-// `observer` so the SSO column appears as soon as `envStore` is ready.
+// `observer` so the team/organization label picks up `envStore` and `subscriptionStore` as soon as they are ready.
 export default observer(MembersRoute)
