@@ -172,6 +172,7 @@ def handle_sso_exempt_toggle(sender=None, instance=None, raw=None, **kwargs):
                 ' but no message to send. Cannot create'
                 f' managed SSO notification for new SSO user {user.username}'
             )
+            return
         InAppMessageUsers.objects.create(user=user, in_app_message=message)
         message.valid_until = timezone.now() + timedelta(days=365)
         message.save()
