@@ -10,12 +10,12 @@ import type { ComboboxItem } from '#/components/common/select.types'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
-import { QUESTION_TYPES, XML_VALUES_OPTION_VALUE } from '#/constants'
+import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
-import { StaticDisplays } from '../common/utils'
+import { StaticDisplays, isAudioQuestionType, isTextQuestionType } from '../common/utils'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -71,12 +71,8 @@ export default function SidebarDisplaySettings({
     // Audio and Text are mutually exclusive: only the one matching the current
     // question's type makes sense to offer.
     displays = displays.filter((display) => {
-      if (display === StaticDisplays.Audio) {
-        return questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id
-      }
-      if (display === StaticDisplays.Text) {
-        return questionType === QUESTION_TYPES.text.id
-      }
+      if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
+      if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
       return true
     })
 

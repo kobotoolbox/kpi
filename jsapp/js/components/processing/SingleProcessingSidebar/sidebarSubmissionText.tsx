@@ -1,6 +1,5 @@
-import { Box, Group, ScrollArea, Text } from '@mantine/core'
+import { Group, ScrollArea, Stack, Text } from '@mantine/core'
 import React from 'react'
-
 import type { DataResponse } from '#/api/models/dataResponse'
 import { findRowByXpathOrLeafName } from '#/assetUtils'
 import Icon from '#/components/common/icon'
@@ -29,15 +28,10 @@ export default function SidebarSubmissionText({ asset, xpath, submission }: Side
   }
 
   return (
-    <Box
-      bg='white'
-      p='lg'
-      h={200}
-      style={{ borderRadius: 'var(--mantine-radius-default)', display: 'flex', flexDirection: 'column' }}
-    >
-      <Group gap='xs' mb='sm' style={{ flexShrink: 0 }}>
+    <Stack bg='white' p='lg' mah={200} gap='sm' style={{ borderRadius: 'var(--mantine-radius-default)' }}>
+      <Group gap='xs' style={{ flexShrink: 0 }}>
         <Icon name='qt-text' size='m' />
-        <Text fw={600} c='blue' component='span'>
+        <Text fw={600} c='blue.3' component='span'>
           {t('Original response')}
         </Text>
       </Group>
@@ -48,6 +42,6 @@ export default function SidebarSubmissionText({ asset, xpath, submission }: Side
           {value}
         </Text>
       </ScrollArea>
-    </Box>
+    </Stack>
   )
 }
