@@ -23,5 +23,5 @@ export interface BaseSignup {
   sector?: string
   country?: string
   newsletter_subscription?: boolean
-  terms_of_service: boolean
+  terms_of_service?: boolean
 }

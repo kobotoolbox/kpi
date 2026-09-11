@@ -1,18 +1,3 @@
-"""
-KoboToolbox's extra signup fields.
-
-Wired up through `ACCOUNT_SIGNUP_FORM_CLASS`, which allauth injects as a base
-class of every signup form: the HTML page, the SSO page, and the headless JSON
-API. Declaring the fields here is what makes them work on
-`POST /api/v2/allauth/browser/v1/auth/signup` and what puts them in the OpenAPI
-schema that orval generates types from.
-
-Do not import `allauth.account.forms` here, even indirectly. allauth reads this
-setting while that module is still being imported, so importing it back raises
-`ImproperlyConfigured`. Models, constance and `I18nUtils` are imported inside the
-methods for the same reason: this module loads before the app registry is ready.
-"""
-
 import constance
 from django import forms
 from django.utils.safestring import mark_safe
@@ -49,8 +34,10 @@ def validate_email_domain(email, allow_managed_domains=False):
         ).exists()
         if managed:
             raise forms.ValidationError(
-                'Your organization has restricted the use of passwords. '
-                'Please sign up using SSO instead.'
+                t(
+                    'Your organization has restricted the use of passwords. '
+                    'Please sign up using SSO instead.'
+                )
             )
 
     blacklist_domains = constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS
@@ -136,8 +123,11 @@ class SignupExtraFieldsForm(forms.Form):
         required=False,
     )
     terms_of_service = forms.BooleanField(
-        # Label is dynamic; see constructor
-        required=True,
+        # Label is dynamic, and so is requiredness: servers without a
+        # `terms_of_service` sitewide message drop the field entirely, so the
+        # published schema must not advertise it as always required. The
+        # constructor requires it on servers that do have one.
+        required=False,
     )
 
     def signup(self, request, user):
@@ -227,7 +217,9 @@ class SignupExtraFieldsForm(forms.Form):
                 field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
 
-        if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
+        if SitewideMessage.objects.filter(slug='terms_of_service').exists():
+            self.fields['terms_of_service'].required = True
+        else:
             self.fields.pop('terms_of_service')
 
     def validate_conditionally_required_organization_fields(self):

@@ -1,12 +1,3 @@
-"""
-The headless signup endpoint is a separate code path from the templated signup
-page: allauth builds its own `SignupInput` rather than using
-`ACCOUNT_FORMS['signup']`. These tests pin down that both paths accept the same
-fields, enforce the same rules and store the same data.
-
-See `kobo/apps/accounts/signup_fields.py` for how the two are kept in sync.
-"""
-
 from constance.test import override_config
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase

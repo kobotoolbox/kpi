@@ -25224,7 +25224,6 @@ components:
       required:
       - email
       - username
-      - terms_of_service
     Signup:
       allOf:
       - $ref: '#/components/schemas/BaseSignup'

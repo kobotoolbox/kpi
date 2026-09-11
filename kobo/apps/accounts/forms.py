@@ -14,7 +14,6 @@ from django import forms
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.accounts.utils import get_normalized_domain, user_is_managed_by_sso
-
 from .models import SocialAppManagedDomain
 from .signup_fields import validate_email_domain
 

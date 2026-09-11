@@ -35150,8 +35150,7 @@
                 },
                 "required": [
                     "email",
-                    "username",
-                    "terms_of_service"
+                    "username"
                 ]
             },
             "Signup": {
