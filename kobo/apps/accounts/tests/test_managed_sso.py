@@ -18,6 +18,7 @@ from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomai
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.utils import baker_generators  # noqa
+from kpi.utils.log import logging
 from ..adapter import AccountAdapter
 from ..forms import UserTokenForm
 from ..tasks import (
@@ -906,3 +907,16 @@ class TestManagedSsoWithdrawal(TestCase):
         assert not InAppMessageUsers.objects.filter(
             user=self.bob, in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
         ).exists()
+
+    def test_disabling_sso_exempt_does_not_error_if_message_missing(self):
+        self.custom_data.in_app_message.delete()
+        InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).delete()
+        with self.assertLogs(logger=logging.name, level='ERROR') as logs:
+            self.bob.extra_details.sso_exempt = True
+            self.bob.extra_details.save()
+            self.bob.extra_details.sso_exempt = False
+            self.bob.extra_details.save()
+
+        assert 'no message to send' in logs.output[0]
