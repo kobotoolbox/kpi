@@ -25352,6 +25352,24 @@ components:
           $ref: '#/components/schemas/Email'
         username:
           $ref: '#/components/schemas/Username'
+        name:
+          type: string
+        organization:
+          type: string
+        organization_website:
+          type: string
+        organization_type:
+          type: string
+        gender:
+          type: string
+        sector:
+          type: string
+        country:
+          type: string
+        newsletter_subscription:
+          type: boolean
+        terms_of_service:
+          type: boolean
       required:
       - email
       - username

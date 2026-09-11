@@ -1,4 +1,3 @@
-import constance
 from allauth.account import app_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
@@ -12,27 +11,11 @@ from allauth.account.utils import (
 )
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
-from django.utils.safestring import mark_safe
-from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as t
 
-from hub.models.sitewide_message import SitewideMessage
-from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.utils import get_normalized_domain, user_is_managed_by_sso
-from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 from .models import SocialAppManagedDomain
-
-# Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
-CONFIGURABLE_METADATA_FIELDS = (
-    'name',
-    'organization',
-    'organization_type',
-    'organization_website',
-    'gender',
-    'sector',
-    'country',
-    'newsletter_subscription',
-)
+from .signup_fields import validate_email_domain
 
 
 class LoginForm(BaseLoginForm):
@@ -43,223 +26,33 @@ class LoginForm(BaseLoginForm):
         self.label_suffix = ''
 
 
-class KoboSignupMixin(forms.Form):
-    # NOTE: Fields that are not part of django's contrib.auth.User model
-    #       are saved to ExtraUserDetail, via django-allauth internals
-    # SEE:
-    #     - AccountAdapter (save_user) in kobo/apps/accounts/adapter.py
-    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances
-    name = forms.CharField(
-        label=USER_METADATA_DEFAULT_LABELS['name'],
-        required=False,
-    )
-    organization = forms.CharField(
-        label=USER_METADATA_DEFAULT_LABELS['organization'],
-        required=False,
-    )
-    organization_website = forms.CharField(
-        label=USER_METADATA_DEFAULT_LABELS['organization_website'],
-        required=False,
-        widget=forms.URLInput,
-    )
-    organization_website.widget.attrs['pattern'] = (
-        # Use r'' so we can copy-paste the literal without escaping backslashes
-        r'\s*(https?:\/\/)?([^\s.:\/]+\.)+([^\s.:\/]){2,}(:\d{1,5})?(\/.*)?\s*'
-    )
-    organization_website.widget.attrs['title'] = t(
-        'Please enter a valid URL'
-    )
+class KoboSignupMixin:
+    """
+    Validation shared by the HTML and SSO signup forms
 
-    organization_type = forms.ChoiceField(
-        label=USER_METADATA_DEFAULT_LABELS['organization_type'],
-        required=False,
-        choices=(
-            ('', ''),
-            ('non-profit', t('Non-profit organization')),
-            ('government', t('Government institution')),
-            ('educational', t('Educational organization')),
-            ('commercial', t('A commercial/for-profit company')),
-            ('none', t('I am not associated with any organization')),
-        ),
-    )
-    gender = forms.ChoiceField(
-        label=USER_METADATA_DEFAULT_LABELS['gender'],
-        required=False,
-        widget=forms.RadioSelect,
-        choices=(
-            ('male', t('Male')),
-            ('female', t('Female')),
-            ('other', t('Other')),
-        ),
-    )
-    sector = forms.ChoiceField(
-        label=USER_METADATA_DEFAULT_LABELS['sector'],
-        required=False,
-        # Don't set choices here; set them in the constructor so that changes
-        # made in the Django admin interface do not require a server restart
-    )
-    country = forms.ChoiceField(
-        label=USER_METADATA_DEFAULT_LABELS['country'],
-        required=False,
-        choices=(('', ''),) + COUNTRIES,
-    )
-    newsletter_subscription = forms.BooleanField(
-        label=USER_METADATA_DEFAULT_LABELS['newsletter_subscription'],
-        required=False,
-    )
-    terms_of_service = forms.BooleanField(
-        # Label is dynamic; see constructor
-        required=True,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.label_suffix = ''
-
-        # Set dynamic label for terms of service checkbox
-        if constance.config.TERMS_OF_SERVICE_URL:
-            terms_of_service_link = (
-                f'<a href="{constance.config.TERMS_OF_SERVICE_URL}"'
-                f' target="_blank">{t("Terms of Service")}</a>'
-            )
-        else:
-            terms_of_service_link = gettext('Terms of Service')
-        if constance.config.PRIVACY_POLICY_URL:
-            privacy_policy_link = (
-                f'<a href="{constance.config.PRIVACY_POLICY_URL}"'
-                f' target="_blank">{t("Privacy Policy")}</a>'
-            )
-        else:
-            privacy_policy_link = gettext('Privacy Policy')
-        self.fields['terms_of_service'].label = mark_safe(
-            t('I agree with the ##terms_of_service## and ##privacy_policy##')
-            .replace('##terms_of_service##', terms_of_service_link)
-            .replace('##privacy_policy##', privacy_policy_link)
-        )
-
-        # Remove upstream placeholders
-        for field_name in ['username', 'email', 'password1', 'password2']:
-            if field_name in self.fields:
-                self.fields[field_name].widget.attrs['placeholder'] = ''
-        if 'password1' in self.fields:
-            # Remove `help_text` on purpose since some guidance is provided by
-            # Constance setting. Moreover it is redundant with error messages.
-            self.fields['password1'].help_text = ''
-        if 'password2' in self.fields:
-            self.fields['password2'].label = t('Password confirmation')
-        if 'email' in self.fields:
-            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
-
-        # Intentional t() call on dynamic string because the default choices
-        # are translated (see static_lists.py)
-        # Strip "\r" for legacy data created prior to django-constance 2.7.
-        self.fields['sector'].choices = (('', ''),) + tuple(
-            (s.strip('\r'), t(s.strip('\r')))
-            for s in constance.config.SECTOR_CHOICES.split('\n')
-        )
-
-        # It's easier to _remove_ unwanted fields here in the constructor
-        # than to add a new fields *shrug*
-        desired_metadata_fields = I18nUtils.get_metadata_fields('user')
-        desired_metadata_fields = {
-            field['name']: field for field in desired_metadata_fields
-        }
-        for field_name in list(self.fields.keys()):
-            if field_name not in CONFIGURABLE_METADATA_FIELDS:
-                # This field is not allowed to be configured
-                continue
-
-            try:
-                desired_field = desired_metadata_fields[field_name]
-            except KeyError:
-                # This field is unwanted
-                self.fields.pop(field_name)
-                continue
-
-            field = self.fields[field_name]
-            # Part of 'skip logic' for organization fields
-            #     The 'Organization Type' dropdown hides 'Organization' and
-            # 'Organization Website' inputs if the user has selected
-            # 'I am not associated with an organization'. In that case the
-            # back end accepts omitted or blank values for organization and
-            # organization_website, even if they're 'required'.
-            #     Adding errors is easier than removing errors we don't want.
-            # So make these fields 'not required', remember we did, and add
-            # 'required' errors in the clean() function.
-            if (
-                desired_metadata_fields.get('organization_type')
-                and desired_field.get('required')
-                and field_name in ['organization', 'organization_website']
-            ):
-                # Potentially 'skippable' organization-related field
-                field.required = False
-                # Add a [data-required] attribute, used by
-                #   1. JS to replicate the 'required' appearance, and
-                #   2. clean() to remember these are conditionally required
-                field.widget.attrs.update({'data-required': True})
-            else:
-                # Any other field, require based on metadata
-                field.required = desired_field.get('required', False)
-            self.fields[field_name].label = desired_field['label']
-        if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
-            self.fields.pop('terms_of_service')
+    The fields live in `signup_fields.SignupExtraFieldsForm` so the headless API
+    gets them too. Only behaviour that must override allauth's stays here, since
+    that requires sitting above allauth's classes in the MRO.
+    """
 
     def clean(self):
         """
         Override parent form to pass extra user's attributes to validation.
         """
+        # Skips every allauth `clean()` below this mixin. `SignupForm.clean()`
+        # already redoes allauth's password checks, and running both would show
+        # each error twice
         super(forms.Form, self).clean()
 
-        # Part of 'skip logic' for organization fields.
-        # Add 'Field is required' errors for organization and organization_website,
-        # since we un-required them in case 'organization_type' is 'none'.
-        if 'organization_type' in self.fields:
-            for field_name in ['organization', 'organization_website']:
-                if (
-                    field_name in self.fields
-                    and self.fields[field_name].widget.attrs.get(
-                        'data-required'
-                    )
-                    and self.cleaned_data.get('organization_type') != 'none'
-                ):
-                    if not self.cleaned_data.get(field_name):
-                        self.add_error(field_name, t('This field is required.'))
+        self.validate_conditionally_required_organization_fields()
 
         return self.cleaned_data
 
     def clean_email(self, allow_managed_domains=False):
-        email = self.cleaned_data['email']
-        domain = email.split('@')[1].lower()
-        if not allow_managed_domains:
-            managed = SocialAppManagedDomain.objects.filter(
-                domain__iexact=domain, social_app__managed=True
-            ).exists()
-            if managed:
-                raise forms.ValidationError(
-                    'Your organization has restricted the use of passwords. '
-                    'Please sign up using SSO instead.'
-                )
-        blacklist_domains = constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS
-        blacklist_domain_set = {
-            d.strip().lower()
-            for d in blacklist_domains.splitlines()
-            if d.strip()
-        }
-
-        if domain.strip().lower() in blacklist_domain_set:
-            raise forms.ValidationError(
-                constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
-            )
-
-        allowed_domains = constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
-        allowed_domain_list = [domain.lower() for domain in allowed_domains.split('\n')]
-        # An empty domain list means all domains are allowed
-        if domain in allowed_domain_list or not allowed_domains:
-            return email
-        else:
-            raise forms.ValidationError(
-                constance.config.REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE
-            )
+        return validate_email_domain(
+            self.cleaned_data['email'],
+            allow_managed_domains=allow_managed_domains,
+        )
 
 
 class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
@@ -280,6 +73,10 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget.attrs['readonly'] = True
         self.label_suffix = ''
+        # Remove upstream placeholders (see `SignupForm.__init__`)
+        for field_name in ['username', 'email']:
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs['placeholder'] = ''
 
     def clean_email(self):
         # do not allow any other email besides the one retrieved from the SSO server
@@ -302,6 +99,27 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'gender',
         'newsletter_subscription',
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Presentation only. Kept here, not in `SignupExtraFieldsForm`, because
+        # that class runs before allauth adds the password fields
+
+        # Remove upstream placeholders
+        for field_name in ['username', 'email', 'password1', 'password2']:
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs['placeholder'] = ''
+        if 'password1' in self.fields:
+            # Remove `help_text` on purpose since some guidance is provided by
+            # Constance setting. Moreover it is redundant with error messages.
+            self.fields['password1'].help_text = ''
+        if 'password2' in self.fields:
+            self.fields['password2'].label = t('Password confirmation')
+        if 'email' in self.fields:
+            self.fields['email'].widget.attrs['placeholder'] = t(
+                'name@organization.org'
+            )
 
     def clean(self):
         """

@@ -15,4 +15,13 @@ import type { Username } from './username'
 export interface BaseSignup {
   email: Email
   username: Username
+  name?: string
+  organization?: string
+  organization_website?: string
+  organization_type?: string
+  gender?: string
+  sector?: string
+  country?: string
+  newsletter_subscription?: boolean
+  terms_of_service?: boolean
 }
