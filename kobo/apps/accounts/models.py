@@ -98,6 +98,16 @@ class SocialAppCustomData(models.Model):
     managed = models.BooleanField(
         default=False, help_text='Allow clients to manage users exclusively through SSO'
     )
+    send_in_app_message = models.BooleanField(
+        default=True, help_text='Notify unlinked users on managed SSO activation'
+    )
+    in_app_message = models.OneToOneField(
+        'help.InAppMessage',
+        on_delete=models.SET_NULL,
+        related_name='custom_data',
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f'{self.social_app.name} Custom Data'

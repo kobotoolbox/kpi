@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import CharField, Count, F, Func, Q, Value
 from django.db.models.functions import Lower
 from django.utils import timezone
+from django.utils.translation import gettext_noop as t
 
 from kobo.apps.accounts.models import SocialAppManagedDomain
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
@@ -16,6 +17,22 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 # Key used in InAppMessage.generic_related_objects, same convention as
 # the transfer identifier in kobo.apps.help.serializers
 SOCIAL_APP_IDENTIFIER = f'{SocialApp._meta.app_label}.{SocialApp._meta.model_name}'
+
+DEFAULT_IN_APP_MESSAGE_BODY = t(
+    'Dear ##username##,\n\n'
+    'Going forward, your organization will be managing all Kobo accounts '
+    'through ##sso_name##. Please connect your ##sso_name## account. '
+    'Your password will be disabled and you will be required to use ##sso_name## '
+    'to log in.'
+)
+
+DEFAULT_IN_APP_MESSAGE_FIELDS = {
+    'title': t('Update your account'),
+    'snippet': t('Please connect your ##sso_name## account'),
+    'always_display_as_new': True,
+    'message_type': MessageType.MANAGED_SSO_REMINDER,
+    'published': True,
+}
 
 
 class SplitPart(Func):
@@ -68,7 +85,7 @@ def remove_managed_sso_reminders(social_app_pk: int, domain: str | None = None):
     """
     messages = InAppMessage.objects.filter(
         message_type=MessageType.MANAGED_SSO_REMINDER,
-        generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: social_app_pk},
+        custom_data__social_app__pk=social_app_pk,
     )
     recipients = InAppMessageUsers.objects.filter(in_app_message__in=messages)
     if domain:
@@ -97,10 +114,10 @@ def remove_stale_managed_sso_reminders():
         message_type=MessageType.MANAGED_SSO_REMINDER, valid_until__gte=now
     )
     reminders_by_app = defaultdict(list)
-    for reminder_pk, related_objects in live_reminders.values_list(
-        'pk', 'generic_related_objects'
+    for reminder_pk, social_app_pk in live_reminders.values_list(
+        'pk', 'custom_data__social_app__pk'
     ):
-        reminders_by_app[related_objects.get(SOCIAL_APP_IDENTIFIER)].append(reminder_pk)
+        reminders_by_app[social_app_pk].append(reminder_pk)
     with transaction.atomic():
         for social_app_pk, reminder_pks in reminders_by_app.items():
             recipients = InAppMessageUsers.objects.filter(
@@ -150,9 +167,7 @@ def user_account_is_managed_by_sso(user, socialaccount):
 def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):
     users_already_received_message = InAppMessageUsers.objects.filter(
         in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
-        in_app_message__generic_related_objects__contains={
-            SOCIAL_APP_IDENTIFIER: social_app.pk,
-        },
+        in_app_message__custom_data__social_app__pk=social_app.pk,
     ).values_list('user_id', flat=True)
     users = (
         User.objects.exclude(extra_details__sso_exempt=True)
