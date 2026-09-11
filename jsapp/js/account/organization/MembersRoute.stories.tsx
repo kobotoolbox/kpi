@@ -2,12 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationMembersMock from '#/endpoints/organizationMembers.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { RequireOrg } from '#/router/RequireOrg'
 import ToasterConfig from '#/toasterConfig'
-import MembersRoute, { TOO_SHORT_WARNING } from './MembersRoute'
+import MembersRoute from './MembersRoute'
 
 /**
  * Nothing on this route asks for in-app messages, but `helpBubbleStore` does on load, and unmocked it 404s against the
@@ -94,7 +95,7 @@ export const SearchPhraseTooShort: Story = {
     // Nothing was filtered out, and crucially neither an error nor a nag surfaced.
     expect(canvas.getByText('bob')).toBeInTheDocument()
     expect(canvas.getByText('alice')).toBeInTheDocument()
-    expect(canvas.queryByText(TOO_SHORT_WARNING)).not.toBeInTheDocument()
+    expect(canvas.queryByText(TOO_SHORT_SEARCH_WARNING)).not.toBeInTheDocument()
   },
 }
 
@@ -107,7 +108,7 @@ export const SearchPhraseTooShortWarnsOnEnter: Story = {
     const input = await search(canvas, 'al')
     await userEvent.type(input, '{enter}')
 
-    await canvas.findByText(TOO_SHORT_WARNING)
+    await canvas.findByText(TOO_SHORT_SEARCH_WARNING)
     // The list is still all of them - the warning explains the lack of filtering, it isn't an error.
     expect(canvas.getByText('bob')).toBeInTheDocument()
   },

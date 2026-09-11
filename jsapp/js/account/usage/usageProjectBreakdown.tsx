@@ -15,11 +15,10 @@ import {
   useOrganizationsAssetUsageList,
 } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import AssetStatusBadge from '#/components/common/assetStatusBadge'
-import Button from '#/components/common/button'
 import DebouncedTextInput from '#/components/common/DebouncedTextInput'
-import Icon from '#/components/common/icon'
 import KoboIcon from '#/components/common/KoboIcon'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import { MIN_SEARCH_PHRASE_LENGTH, TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
@@ -28,15 +27,9 @@ import { convertSecondsToMinutes, notify } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
-const MIN_SEARCH_PHRASE_LENGTH = 3
-const TOO_SHORT_SEARCH_WARNING = t('Type at least ##CHARACTER_COUNT## characters to search').replace(
-  '##CHARACTER_COUNT##',
-  String(MIN_SEARCH_PHRASE_LENGTH),
-)
-
 const ProjectBreakdown = () => {
   const [organization] = useOrganizationAssumed()
-  const { billingPeriod, hasActivePlan } = useBillingPeriod()
+  const { intervalLabel } = useBillingPeriod()
   const [order, setOrder] = useState<ProjectsTableOrder>({})
   const [searchPhrase, setSearchPhrase] = useState('')
   const [pagination, setPagination] = useState({
@@ -184,12 +177,9 @@ const ProjectBreakdown = () => {
     <div className={styles.root}>
       {/* Margin bottom to match the padding top of parent */}
       <Group justify='space-between' mb='md'>
-      <Text>
-        {t('Track usage for the current ##INTERVAL## across your projects').replace(
-          '##INTERVAL##',
-          billingPeriod === 'year' ? t('year') : hasActivePlan ? t('billing period') : t('month'),
-        )}
-      </Text>
+        <Text>
+          {t('Track usage for the current ##INTERVAL## across your projects').replace('##INTERVAL##', intervalLabel)}
+        </Text>
         <DebouncedTextInput
           value={searchPhrase}
           onChange={updateSearchPhrase}

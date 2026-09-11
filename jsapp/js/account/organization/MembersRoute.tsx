@@ -26,6 +26,7 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
+import { MIN_SEARCH_PHRASE_LENGTH, TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import envStore from '#/envStore'
 import SortableProjectColumnHeader, {
   type SortableColumnOrder,
@@ -55,17 +56,6 @@ function renderStatusBadge(isEnabled: boolean | null | undefined) {
 type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role'
 
 const ORDERABLE_FIELDS: MembersTableOrderableField[] = ['user__username', 'status', 'date_joined', 'role']
-
-/**
- * We hold short phrase back instead of firing a request we already know fails on Backend.
- */
-export const MIN_SEARCH_PHRASE_LENGTH = 3
-
-/** Interpolated here rather than at the call site, so importers (stories) get the string the user actually sees. */
-export const TOO_SHORT_WARNING = t('Type at least ##CHARACTER_COUNT## characters to search').replace(
-  '##CHARACTER_COUNT##',
-  String(MIN_SEARCH_PHRASE_LENGTH),
-)
 
 function MembersRoute() {
   const [organization] = useOrganizationAssumed()
@@ -130,7 +120,7 @@ function MembersRoute() {
 
     const enteredPhrase = event.currentTarget.value.trim()
     if (enteredPhrase.length > 0 && enteredPhrase.length < MIN_SEARCH_PHRASE_LENGTH) {
-      notify.warning(TOO_SHORT_WARNING)
+      notify.warning(TOO_SHORT_SEARCH_WARNING)
     }
   }
 
