@@ -65,7 +65,7 @@ class SignupExtraFieldsForm(forms.Form):
     #       are saved to ExtraUserDetail, via django-allauth internals
     # SEE:
     #     - AccountAdapter (save_user) in kobo/apps/accounts/adapter.py
-    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances
+    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances    # noqa
     name = forms.CharField(
         label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
