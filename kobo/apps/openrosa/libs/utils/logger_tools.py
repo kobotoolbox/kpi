@@ -1033,30 +1033,38 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     """
     Soft delete replaced attachments when editing a submission
     """
-    # Retrieve all media questions of Xform
-    media_question_xpaths = get_xform_media_question_xpaths(instance.xform)
 
-    # If XForm does not have any media fields, do not go further
-    if not media_question_xpaths:
+    # Retrieve all media questions of the XForm. This runs for every single
+    # submission, so leave before parsing anything when the form has no media
+    # field: an empty list soft deletes nothing, which is also the right answer
+    # for a form that dropped its only media question in a later version
+    xform_media_question_xpaths = get_xform_media_question_xpaths(instance.xform)
+
+    if not xform_media_question_xpaths:
         return []
 
     # Parse instance XML to get the basename of each file of the updated
-    # submission
+    # submission, and the form versions it has been through
     xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+
+    # Add the media questions of the other form versions the submission has
+    # been through
+    media_question_xpaths = _get_submission_media_question_xpaths(
+        instance, xml_parsed, xform_media_question_xpaths
+    )
+
+    if not media_question_xpaths:
+        # Stripping the root node off the XForm's `ref` attributes left nothing
+        # usable. Leaving now matters: an empty list would let the loop below
+        # soft delete every attachment of the submission
+        return []
+
     basenames = []
 
     for media_question_xpath in media_question_xpaths:
-        root_name, xpath_without_root = media_question_xpath.split('/', 1)
-        try:
-            assert root_name == xml_parsed.tag
-        except AssertionError:
-            logging.warning(
-                'Instance XML root tag name does not match with its form'
-            )
-
         # With repeat groups, several nodes can have the same XPath. We
         # need to retrieve all of them
-        questions = xml_parsed.findall(xpath_without_root)
+        questions = xml_parsed.findall(media_question_xpath)
         for question in questions:
             try:
                 basename = question.text
@@ -1280,6 +1288,32 @@ def _get_instance_from_deprecated_id(
     return instance, old_uuid
 
 
+def _get_other_form_version_uids(
+    instance: Instance, xml_parsed: ET.Element
+) -> list[str]:
+    """
+    Return the uids of the form versions a submission has been through, minus
+    the one currently deployed, which the XForm already describes.
+    """
+
+    form_versions, submission_version = _get_form_versions(xml_parsed)
+    if submission_version and submission_version not in form_versions:
+        form_versions.append(submission_version)
+
+    if not form_versions:
+        # A submission carrying no version at all, collected before KPI started
+        # stamping `__version__`. Nothing places it in time
+        return []
+
+    deployed_version_uid = instance.xform.deployed_version_uid
+
+    return [
+        version_uid
+        for version_uid in form_versions
+        if version_uid != deployed_version_uid
+    ]
+
+
 def _get_submission_field_paths(xml: str) -> set:
     """
     Return a submission's field XPaths, relative to its root node, with the
@@ -1289,6 +1323,58 @@ def _get_submission_field_paths(xml: str) -> set:
     root = clean_and_parse_xml(xml).documentElement
 
     return _exclude_common_paths(_collect_element_paths(root))
+
+
+def _get_submission_media_question_xpaths(
+    instance: Instance,
+    xml_parsed: ET.Element,
+    xform_media_question_xpaths: list[str],
+) -> list[str]:
+    """
+    Return the media question XPaths a submission may hold a file under,
+    relative to its root node.
+
+    `get_xform_media_question_xpaths()` only describes the deployed version. A
+    submission collected with an older one holds its files under names that
+    version may no longer know, and an unmatched attachment is soft deleted
+    right after being saved. The versions recorded by `add_form_versions()`
+    close that gap; they are added, never substituted, so a wider list can only
+    spare attachments.
+    """
+
+    xpaths = []
+
+    for media_question_xpath in xform_media_question_xpaths:
+        # A `ref` attribute carries the root node, e.g. `myform/group/photo`,
+        # whereas the submission tree is searched from under the root. The
+        # XPaths coming from KPI below already have that shape
+        root_name, _, xpath_without_root = media_question_xpath.partition('/')
+        if root_name != xml_parsed.tag:
+            logging.warning('Instance XML root tag name does not match with its form')
+
+        if xpath_without_root and xpath_without_root not in xpaths:
+            xpaths.append(xpath_without_root)
+
+    version_uids = _get_other_form_version_uids(instance, xml_parsed)
+    if not version_uids:
+        # Nothing the XForm has not already described, which is the case for
+        # the vast majority of submissions. Neither the asset nor its cache is
+        # touched
+        return xpaths
+
+    asset = instance.xform.asset
+    if asset.pk is None:
+        # Every XForm belongs to an asset, but `XForm.asset` hands back an
+        # unsaved placeholder when `kpi_asset_uid` does not resolve, and
+        # querying its versions would raise. Keep the XForm's own answer rather
+        # than fail a submission over it
+        return xpaths
+
+    for xpath in asset.get_attachment_xpaths_from_version_uids(version_uids):
+        if xpath not in xpaths:
+            xpaths.append(xpath)
+
+    return xpaths
 
 
 def _get_xform_template_field_paths(xform_xml: str) -> set:
