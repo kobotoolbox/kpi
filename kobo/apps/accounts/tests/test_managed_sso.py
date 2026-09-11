@@ -892,3 +892,17 @@ class TestManagedSsoWithdrawal(TestCase):
         ).exists()
         self.custom_data.in_app_message.refresh_from_db()
         assert self.custom_data.in_app_message.valid_until > timezone.now()
+
+    def test_disabling_sso_exempt_does_not_send_reminder_if_none_configured(self):
+        self.custom_data.send_in_app_message = False
+        self.custom_data.save()
+        InAppMessageUsers.objects.filter(
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).delete()
+        self.bob.extra_details.sso_exempt = True
+        self.bob.extra_details.save()
+        self.bob.extra_details.sso_exempt = False
+        self.bob.extra_details.save()
+        assert not InAppMessageUsers.objects.filter(
+            user=self.bob, in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).exists()
