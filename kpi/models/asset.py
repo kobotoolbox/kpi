@@ -1075,44 +1075,48 @@ class Asset(
 
         self.set_deployment_status()
 
-        super().save(
-            force_insert=force_insert,
-            force_update=force_update,
-            update_fields=update_fields,
-            *args,
-            **kwargs
-        )
+        # The asset row and its new `AssetVersion` must land together: if the
+        # version fails to save (e.g. content Postgres rejects), the asset
+        # must not be left modified without a matching version. See #2740.
+        with transaction.atomic():
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                update_fields=update_fields,
+                *args,
+                **kwargs,
+            )
 
-        # Update languages for parent and previous parent.
-        # e.g. if a survey has been moved from one collection to another,
-        # we want both collections to be updated.
-        if self.parent is not None and update_parent_languages:
-            if (
-                self.parent_id != self.__parent_id_copy
-                and self.__parent_id_copy is not None
-            ):
-                try:
-                    previous_parent = Asset.objects.get(
-                        pk=self.__parent_id_copy)
-                    previous_parent.update_languages()
-                    self.__parent_id_copy = self.parent_id
-                except Asset.DoesNotExist:
-                    pass
+            # Update languages for parent and previous parent.
+            # e.g. if a survey has been moved from one collection to another,
+            # we want both collections to be updated.
+            if self.parent is not None and update_parent_languages:
+                if (
+                    self.parent_id != self.__parent_id_copy
+                    and self.__parent_id_copy is not None
+                ):
+                    try:
+                        previous_parent = Asset.objects.get(pk=self.__parent_id_copy)
+                        previous_parent.update_languages()
+                        self.__parent_id_copy = self.parent_id
+                    except Asset.DoesNotExist:
+                        pass
 
-            # If object is new, we can add its languages to its parent without
-            # worrying about removing its old values. It avoids an extra query.
-            if is_new:
-                self.parent.update_languages([self])
-            else:
-                # Otherwise, because we cannot know which languages are from
-                # this object, update will be performed with all parent's
-                # children.
-                self.parent.update_languages()
+                # If object is new, we can add its languages to its parent
+                # without worrying about removing its old values. It avoids an
+                # extra query.
+                if is_new:
+                    self.parent.update_languages([self])
+                else:
+                    # Otherwise, because we cannot know which languages are
+                    # from this object, update will be performed with all
+                    # parent's children.
+                    self.parent.update_languages()
 
-        if self.has_deployment:
-            self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
-        if self.new_version_required():
-            self.create_version()
+            if self.has_deployment:
+                self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
+            if self.new_version_required():
+                self.create_version()
 
     def set_deployment_status(self):
         if self.asset_type != ASSET_TYPE_SURVEY:
