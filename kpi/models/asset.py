@@ -1113,10 +1113,14 @@ class Asset(
                     # parent's children.
                     self.parent.update_languages()
 
-            if self.has_deployment:
-                self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
             if self.new_version_required():
                 self.create_version()
+
+        # Paired-data media are synced to the KoboCAT database and file
+        # storage, which the transaction above cannot roll back, so only sync
+        # them once the asset and its version are committed.
+        if self.has_deployment:
+            self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
 
     def set_deployment_status(self):
         if self.asset_type != ASSET_TYPE_SURVEY:
