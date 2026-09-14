@@ -161,6 +161,7 @@ jobs:
     needs:
       - version
       - tests
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v7
