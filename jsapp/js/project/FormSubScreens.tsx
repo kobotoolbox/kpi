@@ -92,7 +92,7 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
         )
       case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
         return (
-          <Suspense fallback={<div>Image Gallery</div>}>
+          <Suspense fallback={<div>{t('Image Gallery')}</div>}>
             <FormGallery asset={asset} />
           </Suspense>
         )
