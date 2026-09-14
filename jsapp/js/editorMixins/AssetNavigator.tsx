@@ -1,14 +1,18 @@
-import { Center, Checkbox, Group, Loader, MultiSelect, Select, Stack, Text, TextInput } from '@mantine/core'
+import { Center, Checkbox, Group, Loader, Stack, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import * as Sentry from '@sentry/react'
 import React, { useState, useRef, useEffect } from 'react'
 import type { Asset } from '#/api/models/asset'
 import type { TagListResponse } from '#/api/models/tagListResponse'
 import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
+import MultiSelect from '#/components/common/MultiSelect'
+import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Icon from '#/components/common/icon'
 import { COMMON_QUERIES } from '#/constants'
 import type { LabelValuePair } from '#/dataInterface'
 import AssetNavigatorCard from './AssetNavigatorCard'
+import { formatTagValue } from './assetNavigatorUtils'
 
 // A stub types for sortable
 declare global {
@@ -41,10 +45,11 @@ export default function AssetNavigator() {
 
   let tagsOptions: string[] = []
   if (tagsListQuery.data?.status === 200) {
-    const tagsOptionsRaw = tagsListQuery.data?.data?.results.map((t: TagListResponse) => t.name)
+    const tagsOptionsRaw = tagsListQuery.data?.data?.results.map((tag: TagListResponse) => tag.name)
     // Because tags API has a bug we need to ensure only unique results are returned:
     // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
-    tagsOptions = [...new Set(tagsOptionsRaw)]
+    // The endpoint has no `ordering` parameter, so we sort here to keep the picker browsable
+    tagsOptions = [...new Set(tagsOptionsRaw)].sort((a, b) => a.localeCompare(b))
   }
 
   useEffect(() => {
@@ -64,10 +69,12 @@ export default function AssetNavigator() {
   })
   let collectionOptions: LabelValuePair[] = []
   if (collectionListQuery.data?.status === 200 && collectionListQuery.data?.data.results) {
-    collectionOptions = collectionListQuery.data.data.results.map((c: Asset) => ({
-      value: c.uid,
-      label: c.name || t('Unnamed collection'),
-    }))
+    collectionOptions = collectionListQuery.data.data.results.map((c: Asset) => {
+      return {
+        value: c.uid,
+        label: c.name || t('Unnamed collection'),
+      }
+    })
   }
 
   // Step 3. Fetch Main Assets List
@@ -79,9 +86,15 @@ export default function AssetNavigator() {
       queryParts.push(`(${debouncedSearch})`)
     }
 
-    // Include tags filtering
+    // Include tags filtering.
+    //
+    // Uses `iexact`, not `icontains`: the names come from a list of tags that already exist,
+    // so a partial match would silently pull in assets carrying a *different*, longer tag (picking "health" would
+    // also match "health-services").
+    //
+    // Multiple tags are joined with `AND`, which the back end reads as "has every one of these".
     if (selectedTags.length > 0) {
-      const tagQuery = selectedTags.map((t) => `tags__name__icontains:"${t}"`).join(' AND ')
+      const tagQuery = selectedTags.map((tagName) => `tags__name__iexact:${formatTagValue(tagName)}`).join(' AND ')
       queryParts.push(`(${tagQuery})`)
     }
 
@@ -104,6 +117,7 @@ export default function AssetNavigator() {
     limit: 200,
     ordering: '-date_modified',
   })
+  const assetsFoundCount = assetsResponse?.data.count || 0
 
   // Step 4. Setup drag and drop for library assets
   //
@@ -142,7 +156,8 @@ export default function AssetNavigator() {
     <Stack gap='sm' h='100%'>
       {/* Searchbox */}
       <TextInput
-        placeholder='Search…'
+        aria-label={t('Search library')}
+        placeholder={t('Search…')}
         leftSection={<Icon name='search' />}
         value={searchQuery}
         onChange={(event) => setSearchQuery(event.currentTarget.value)}
@@ -153,11 +168,18 @@ export default function AssetNavigator() {
         data={tagsOptions}
         value={selectedTags}
         onChange={setSelectedTags}
-        placeholder='Filter by tags'
+        aria-label={t('Filter by tags')}
+        placeholder={t('Filter by tags')}
         maxValues={MAX_SELECTED_TAGS}
+        // `maxValues` silently stops accepting picks, so say why once the limit is in reach
+        description={
+          selectedTags.length === MAX_SELECTED_TAGS
+            ? t('You can filter by up to ##count## tags at a time').replace('##count##', String(MAX_SELECTED_TAGS))
+            : undefined
+        }
         searchable
         clearable
-        nothingFoundMessage='No tags found'
+        nothingFoundMessage={t('No tags found')}
         hidePickedOptions
         size='md'
         selectFirstOptionOnChange
@@ -168,7 +190,8 @@ export default function AssetNavigator() {
         data={collectionOptions}
         value={selectedCollection}
         onChange={setSelectedCollection}
-        placeholder='Select collection'
+        aria-label={t('Filter by collection')}
+        placeholder={t('Select collection')}
         searchable
         clearable
         size='md'
@@ -178,11 +201,13 @@ export default function AssetNavigator() {
       {/* Total count & toggle expanded info */}
       <Group justify='space-between' align='center'>
         <Text size='sm' fw={500}>
-          {assetsResponse?.data.results?.length || 0} assets found
+          {assetsFoundCount === 1
+            ? t('1 asset found')
+            : t('##count## assets found').replace('##count##', String(assetsFoundCount))}
         </Text>
 
         <Checkbox
-          label='Expand details'
+          label={t('Expand details')}
           checked={isExpanded}
           onChange={(event) => setIsExpanded(event.currentTarget.checked)}
           size='sm'
@@ -197,12 +222,12 @@ export default function AssetNavigator() {
       ) : isError ? (
         <Center py='xl'>
           <Text c='red' size='sm'>
-            Error loading assets
+            {t('Error loading assets')}
           </Text>
         </Center>
       ) : assetsResponse?.data.results?.length === 0 ? (
         <Center py='xl'>
-          <Text size='sm'>No assets found</Text>
+          <Text size='sm'>{t('No assets found')}</Text>
         </Center>
       ) : (
         <Stack gap='xs' ref={assetsListRef}>
