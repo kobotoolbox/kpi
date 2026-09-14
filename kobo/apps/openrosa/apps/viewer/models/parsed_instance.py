@@ -463,7 +463,10 @@ class ParsedInstance(models.Model):
             )
 
         if attachments_to_update:
-            xform_instances.bulk_write(attachments_to_update)
+            # Each operation targets its own document, so nothing depends on
+            # the order. Unordered lets the server apply them in parallel, and
+            # a single failing document no longer stops those that follow it
+            xform_instances.bulk_write(attachments_to_update, ordered=False)
 
 
 def _get_attachments_from_instance(instance_id) -> list[dict]:
