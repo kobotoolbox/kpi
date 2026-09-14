@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from .models import SocialAppManagedDomain
-from .signup_fields import SignupExtraFieldsForm
+from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -25,12 +25,13 @@ class AccountAdapter(DefaultAccountAdapter):
         super().login(request, user)
 
     def save_user(self, request, user, form, commit=True):
-        # Our extra fields are the ones `SignupExtraFieldsForm` declares, minus
-        # any this server disabled via `USER_METADATA_FIELDS` and hence the
-        # intersection with what was actually submitted
+        # Which extra fields a form carries depends on the flow: the API form has
+        # only newsletter/ToS, the HTML and SSO ones add profile metadata, and
+        # `USER_METADATA_FIELDS` may drop some per server. So take the full list
+        # and keep whatever was actually submitted
         extra_fields = [
             field_name
-            for field_name in SignupExtraFieldsForm.base_fields
+            for field_name in SIGNUP_EXTRA_FIELD_NAMES
             if field_name in form.cleaned_data
         ]
         with transaction.atomic():

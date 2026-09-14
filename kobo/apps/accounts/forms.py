@@ -1,3 +1,4 @@
+import constance
 from allauth.account import app_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
@@ -14,8 +15,10 @@ from django import forms
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.accounts.utils import get_normalized_domain, user_is_managed_by_sso
+from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
+
 from .models import SocialAppManagedDomain
-from .signup_fields import validate_email_domain
+from .signup_fields import apply_user_metadata_config, validate_email_domain
 
 
 class LoginForm(BaseLoginForm):
@@ -26,14 +29,131 @@ class LoginForm(BaseLoginForm):
         self.label_suffix = ''
 
 
-class KoboSignupMixin:
+class KoboSignupMixin(forms.Form):
     """
-    Validation shared by the HTML and SSO signup forms
+    The profile metadata collected by the HTML and SSO signup pages
 
-    The fields live in `signup_fields.SignupExtraFieldsForm` so the headless API
-    gets them too. Only behaviour that must override allauth's stays here, since
-    that requires sitting above allauth's classes in the MRO.
+    These fields are deliberately absent from the headless API: the SPA collects
+    them after login via `PATCH /me/` instead, which is the only route an SSO
+    user can take anyway. Signup fields the API does need live in
+    `signup_fields.SignupExtraFieldsForm`.
     """
+
+    # NOTE: Fields that are not part of django's contrib.auth.User model
+    #       are saved to ExtraUserDetail, via django-allauth internals
+    # SEE:
+    #     - AccountAdapter (save_user) in kobo/apps/accounts/adapter.py
+    #     - https://docs.allauth.org/en/latest/account/advanced.html#creating-and-populating-user-instances    # noqa
+    name = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['name'],
+        required=False,
+    )
+    organization = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['organization'],
+        required=False,
+    )
+    organization_website = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_website'],
+        required=False,
+        widget=forms.URLInput,
+    )
+    organization_website.widget.attrs['pattern'] = (
+        # Use r'' so we can copy-paste the literal without escaping backslashes
+        r'\s*(https?:\/\/)?([^\s.:\/]+\.)+([^\s.:\/]){2,}(:\d{1,5})?(\/.*)?\s*'
+    )
+    organization_website.widget.attrs['title'] = t('Please enter a valid URL')
+
+    organization_type = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['organization_type'],
+        required=False,
+        choices=(
+            ('', ''),
+            ('non-profit', t('Non-profit organization')),
+            ('government', t('Government institution')),
+            ('educational', t('Educational organization')),
+            ('commercial', t('A commercial/for-profit company')),
+            ('none', t('I am not associated with any organization')),
+        ),
+    )
+    gender = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['gender'],
+        required=False,
+        widget=forms.RadioSelect,
+        choices=(
+            ('male', t('Male')),
+            ('female', t('Female')),
+            ('other', t('Other')),
+        ),
+    )
+    sector = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['sector'],
+        required=False,
+        # Don't set choices here; set them in the constructor so that changes
+        # made in the Django admin interface do not require a server restart
+    )
+    country = forms.ChoiceField(
+        label=USER_METADATA_DEFAULT_LABELS['country'],
+        required=False,
+        choices=(('', ''),) + COUNTRIES,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+        # Intentional t() call on dynamic string because the default choices
+        # are translated (see static_lists.py)
+        # Strip "\r" for legacy data created prior to django-constance 2.7.
+        self.fields['sector'].choices = (('', ''),) + tuple(
+            (s.strip('\r'), t(s.strip('\r')))
+            for s in constance.config.SECTOR_CHOICES.split('\n')
+        )
+
+        apply_user_metadata_config(
+            self,
+            [
+                'name',
+                'organization',
+                'organization_type',
+                'organization_website',
+                'gender',
+                'sector',
+                'country',
+            ],
+        )
+
+        # Remove upstream placeholders
+        for field_name in ['username', 'email', 'password1', 'password2']:
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs['placeholder'] = ''
+        if 'password1' in self.fields:
+            # Remove `help_text` on purpose since some guidance is provided by
+            # Constance setting. Moreover it is redundant with error messages.
+            self.fields['password1'].help_text = ''
+        if 'password2' in self.fields:
+            self.fields['password2'].label = t('Password confirmation')
+        if 'email' in self.fields:
+            self.fields['email'].widget.attrs['placeholder'] = t(
+                'name@organization.org'
+            )
+
+    def validate_conditionally_required_organization_fields(self):
+        """
+        Part of 'skip logic' for organization fields. Add 'Field is required'
+        errors for organization and organization_website, since we un-required
+        them in case 'organization_type' is 'none'.
+        """
+        if 'organization_type' not in self.fields:
+            return
+
+        for field_name in ['organization', 'organization_website']:
+            if (
+                field_name in self.fields
+                and self.fields[field_name].widget.attrs.get('data-required')
+                and self.cleaned_data.get('organization_type') != 'none'
+            ):
+                if not self.cleaned_data.get(field_name):
+                    self.add_error(field_name, t('This field is required.'))
 
     def clean(self):
         """
@@ -41,7 +161,8 @@ class KoboSignupMixin:
         """
         # Skips every allauth `clean()` below this mixin. `SignupForm.clean()`
         # already redoes allauth's password checks, and running both would show
-        # each error twice
+        # each error twice. It also skips `SignupExtraFieldsForm.clean()`, whose
+        # checks only apply to the API.
         super(forms.Form, self).clean()
 
         self.validate_conditionally_required_organization_fields()
@@ -73,10 +194,6 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget.attrs['readonly'] = True
         self.label_suffix = ''
-        # Remove upstream placeholders (see `SignupForm.__init__`)
-        for field_name in ['username', 'email']:
-            if field_name in self.fields:
-                self.fields[field_name].widget.attrs['placeholder'] = ''
 
     def clean_email(self):
         # do not allow any other email besides the one retrieved from the SSO server
@@ -99,27 +216,6 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'gender',
         'newsletter_subscription',
     ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Presentation only. Kept here, not in `SignupExtraFieldsForm`, because
-        # that class runs before allauth adds the password fields
-
-        # Remove upstream placeholders
-        for field_name in ['username', 'email', 'password1', 'password2']:
-            if field_name in self.fields:
-                self.fields[field_name].widget.attrs['placeholder'] = ''
-        if 'password1' in self.fields:
-            # Remove `help_text` on purpose since some guidance is provided by
-            # Constance setting. Moreover it is redundant with error messages.
-            self.fields['password1'].help_text = ''
-        if 'password2' in self.fields:
-            self.fields['password2'].label = t('Password confirmation')
-        if 'email' in self.fields:
-            self.fields['email'].widget.attrs['placeholder'] = t(
-                'name@organization.org'
-            )
 
     def clean(self):
         """
