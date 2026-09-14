@@ -18,6 +18,10 @@ on:
 jobs:
 
 
+  resolve-author:
+    uses: './.github/workflows/resolve-author.yml'
+
+
   version:
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
@@ -159,14 +163,15 @@ jobs:
 
   on-failure:
     needs:
+      - resolve-author
       - version
       - validate
       - retarget-prs
       - delete-branch
       - delete-linear-release
-    if: ${{ !cancelled() && failure() }}
+    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.validate.result == 'failure' || needs.retarget-prs.result == 'failure' || needs.delete-branch.result == 'failure' || needs.delete-linear-release.result == 'failure') }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to skip release `${{ needs.version.outputs.current_minor }}`. @*devs* please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to skip release `${{ needs.version.outputs.current_minor }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."

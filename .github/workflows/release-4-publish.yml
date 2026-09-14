@@ -13,6 +13,9 @@ on:
 
 jobs:
 
+  resolve-author:
+    uses: './.github/workflows/resolve-author.yml'
+
   # Validate that the tag exists and matches the selected branch.
   current-branch:
     runs-on: ubuntu-24.04
@@ -217,15 +220,16 @@ jobs:
 
   on-failure:
     needs:
+      - resolve-author
       - version
       - changelog
       - github-release-kpi
       - github-release-kobo-docker
       - github-release-kobo-install
       - linear
-    if: ${{ !cancelled() && failure() }}
+    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.changelog.result == 'failure' || needs.github-release-kpi.result == 'failure' || needs.github-release-kobo-docker.result == 'failure' || needs.github-release-kobo-install.result == 'failure' || needs.linear.result == 'failure') }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. @*devs* please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."
