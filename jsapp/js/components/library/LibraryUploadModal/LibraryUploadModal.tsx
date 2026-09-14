@@ -9,7 +9,7 @@ import DropzoneNew from '#/components/common/DropzoneNew'
 import KoboIcon from '#/components/common/KoboIcon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import myLibraryStore from '#/components/library/myLibraryStore'
-import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
+import { ASSET_TYPES, IMPORT_STATUS_POLL_INTERVAL, MODAL_TYPES } from '#/constants'
 import type { CreateImportRequest, ImportResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { escapeHtml, join, notify, validFileTypes } from '#/utils'
@@ -121,7 +121,7 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
         return false
       }
 
-      return 1000
+      return IMPORT_STATUS_POLL_INTERVAL
     },
   })
 

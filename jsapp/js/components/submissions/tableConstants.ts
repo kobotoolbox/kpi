@@ -23,6 +23,8 @@ export const EXCLUDED_COLUMNS = [
   '_geolocation',
   'meta/instanceID',
   'meta/deprecatedID',
+  // Internal only: the list of form versions a submission has been through
+  'meta/formVersions',
   '_validation_status',
 ]
 

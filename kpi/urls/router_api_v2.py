@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
-from kobo.apps.accounts.views import SocialAppView
+from kobo.apps.accounts.views import EmailConfirmationView, SocialAppView
 from kobo.apps.audit_log.urls import router as audit_log_router
 from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
@@ -307,6 +307,17 @@ kobo_scim_url_patterns = [
     ),
 ]
 
+# Declared here rather than registered on a router: the endpoint is a single
+# unauthenticated POST that requests mail, not a collection, and a router would
+# also expose list/retrieve routes over other people's email addresses
+email_confirmation_url_patterns = [
+    path(
+        'email-confirmations/',
+        EmailConfirmationView.as_view(),
+        name='email-confirmation',
+    ),
+]
+
 # Declared here instead of registering a router, for two reasons: a router would
 # also expose a list route, and hidden SSO providers must stay unlisted; and the
 # default router lookup regex (`[^/.]+`) would reject a `provider_id` containing a
@@ -329,6 +340,7 @@ urls_patterns = (
     + supplement_url_patterns
     + qa_tag_tracker_url_patterns
     + kobo_scim_url_patterns
+    + email_confirmation_url_patterns
     + social_app_url_patterns
     + additional_urls
 )

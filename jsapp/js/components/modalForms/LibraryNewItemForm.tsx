@@ -6,19 +6,28 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import { openLibraryAssetModal } from '#/components/modalForms/openLibraryAssetModal'
-import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
-import pageState from '#/pageState.store'
+import { ASSET_TYPES } from '#/constants'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import KoboIcon from '../common/KoboIcon'
 
-export default function LibraryNewItemForm() {
+export interface LibraryNewItemFormProps {
+  /** Closes the modal this form is displayed in. */
+  onRequestClose?: () => void
+  /**
+   * Needed for "Back" button functionality in other modals. We pass it down to the other modals as importing it here
+   * would create a circular dependency.
+   */
+  reopenHomeModal?: () => void
+}
+
+export default function LibraryNewItemForm({ onRequestClose, reopenHomeModal }: LibraryNewItemFormProps) {
   const session = useSession()
   const navigate = useNavigate()
 
   function goToAssetCreator() {
-    pageState.hideModal()
+    onRequestClose?.()
 
     let targetPath: string = ROUTES.NEW_LIBRARY_ITEM
     const assetUid = getRouteAssetUid()
@@ -34,30 +43,25 @@ export default function LibraryNewItemForm() {
     navigate(targetPath)
   }
 
-  /** Mantine modals live outside `pageState`, so their "Back" button reopens this one. */
-  function reopenThisModal() {
-    pageState.showModal({ type: MODAL_TYPES.LIBRARY_NEW_ITEM })
-  }
-
   function goToCollection() {
-    pageState.hideModal()
+    onRequestClose?.()
     openLibraryAssetModal({
       assetType: ASSET_TYPES.collection.id,
-      onBack: reopenThisModal,
+      onBack: reopenHomeModal,
     })
   }
 
   function goToTemplate() {
-    pageState.hideModal()
+    onRequestClose?.()
     openLibraryAssetModal({
       assetType: ASSET_TYPES.template.id,
-      onBack: reopenThisModal,
+      onBack: reopenHomeModal,
     })
   }
 
   function goToUpload() {
-    pageState.hideModal()
-    openLibraryUploadModal({ onBack: reopenThisModal })
+    onRequestClose?.()
+    openLibraryUploadModal({ onBack: reopenHomeModal })
   }
 
   if (!session.currentLoggedAccount) {

@@ -85,6 +85,14 @@ $z-index-spinner: 8;
   border-bottom: 1px solid colors.$kobo-gray-200;
 }
 
+// The single row shown in place of data when there is none. No bottom border,
+// because there are no further rows for it to separate.
+.emptyMessageCell {
+  background-color: colors.$kobo-white;
+  padding: 40px 20px;
+  text-align: center;
+}
+
 .spinnerOverlay {
   z-index: $z-index-spinner;
   position: absolute;

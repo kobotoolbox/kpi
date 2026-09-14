@@ -4,9 +4,9 @@ import markdown
 from django.conf import settings
 from django.urls import reverse
 
-from kpi.utils.markdown import markdownify
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
+from kpi.utils.markdown import markdownify
 
 
 def custom_password_guidance_text(request):

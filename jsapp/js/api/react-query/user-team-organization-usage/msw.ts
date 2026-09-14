@@ -24,6 +24,8 @@ import { CustomAssetUsageDeploymentStatusEnum } from '../../models/customAssetUs
 
 import type { EmailAddress } from '../../models/emailAddress'
 
+import type { EmailConfirmationRequestResponse } from '../../models/emailConfirmationRequestResponse'
+
 import type { InviteCreateResponse } from '../../models/inviteCreateResponse'
 
 import type { InviteResponse } from '../../models/inviteResponse'
@@ -107,6 +109,13 @@ export const getApiV2AssetUsageListResponseMock = (
     submission_count_current_period: faker.number.int({ min: undefined, max: undefined }),
     submission_count_all_time: faker.number.int({ min: undefined, max: undefined }),
   })),
+  ...overrideResponse,
+})
+
+export const getApiV2EmailConfirmationsCreateResponseMock = (
+  overrideResponse: Partial<EmailConfirmationRequestResponse> = {},
+): EmailConfirmationRequestResponse => ({
+  detail: faker.string.alpha({ length: { min: 10, max: 20 } }),
   ...overrideResponse,
 })
 
@@ -1518,6 +1527,32 @@ export const getApiV2AssetUsageListMockHandler = (
   )
 }
 
+export const getApiV2EmailConfirmationsCreateMockHandler = (
+  overrideResponse?:
+    | EmailConfirmationRequestResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<EmailConfirmationRequestResponse> | EmailConfirmationRequestResponse),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/api/v2/email-confirmations{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2EmailConfirmationsCreateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
 export const getApiV2OrganizationsListMockHandler = (
   overrideResponse?:
     | PaginatedOrganizationResponseList
@@ -2385,6 +2420,7 @@ export const getMeSocialAccountsDestroyMockHandler = (
 }
 export const getUserTeamOrganizationUsageMock = () => [
   getApiV2AssetUsageListMockHandler(),
+  getApiV2EmailConfirmationsCreateMockHandler(),
   getApiV2OrganizationsListMockHandler(),
   getApiV2OrganizationsRetrieveMockHandler(),
   getApiV2OrganizationsPartialUpdateMockHandler(),

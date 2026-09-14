@@ -14,10 +14,9 @@ from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.utils.translation import gettext_lazy as t
 
-from kobo.apps.accounts.utils import get_normalized_domain, user_is_managed_by_sso
+from kobo.apps.accounts.utils import user_is_managed_by_sso
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
-
-from .models import SocialAppManagedDomain
+from .models import SocialAppManagedDomain, get_normalized_domain
 from .signup_fields import apply_user_metadata_config, validate_email_domain
 
 
