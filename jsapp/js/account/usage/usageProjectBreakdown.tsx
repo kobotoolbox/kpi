@@ -17,6 +17,7 @@ import {
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import DebouncedTextInput from '#/components/common/DebouncedTextInput'
 import KoboIcon from '#/components/common/KoboIcon'
+import Alert from '#/components/common/alert'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import { MIN_SEARCH_PHRASE_LENGTH, TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
@@ -99,6 +100,10 @@ const ProjectBreakdown = () => {
       notify.warning(TOO_SHORT_SEARCH_WARNING)
     }
   }
+
+  const emptyMessage = appliedSearchPhrase
+    ? t('No projects match "##SEARCH_PHRASE##"').replace('##SEARCH_PHRASE##', appliedSearchPhrase)
+    : t('There are no projects to display.')
 
   const columns: Array<UniversalTableColumn<CustomAssetUsage>> = [
     {
@@ -190,12 +195,26 @@ const ProjectBreakdown = () => {
           w={260}
         />
       </Group>
-      <UniversalTable<CustomAssetUsage, ErrorDetail>
-        pagination={pagination}
-        setPagination={setPagination}
-        queryResult={queryResult}
-        columns={columns}
-      />
+      {queryResult.isError ? (
+        /*
+         * `UniversalTable` renders nothing without a successful response, so the table would otherwise just disappear.
+         * A rejected search phrase is the likeliest cause here (the backend parses `q` as a boolean query), and the
+         * specifics already arrive in a toast.
+         */
+        <Alert type='error'>
+          {appliedSearchPhrase
+            ? t('Could not search the projects list. Try a different phrase.')
+            : t('Could not load the projects list.')}
+        </Alert>
+      ) : (
+        <UniversalTable<CustomAssetUsage, ErrorDetail>
+          pagination={pagination}
+          setPagination={setPagination}
+          queryResult={queryResult}
+          columns={columns}
+          emptyMessage={emptyMessage}
+        />
+      )}
     </div>
   )
 }
