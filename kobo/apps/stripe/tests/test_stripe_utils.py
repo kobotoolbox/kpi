@@ -211,7 +211,14 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         (UsageType.STORAGE_BYTES, '1000', '500', '60', True, 1000),
         # no plan, addon, or default plan, use inf
         (UsageType.ASR_SECONDS, None, None, None, False, inf),
-        (UsageType.MT_CHARACTERS, 'unparseable', None, None, False, inf),
+        # parseable subscription, no addon
+        (UsageType.STORAGE_BYTES, 'unparseable', None, None, False, inf),
+        # parseable subscription, unparseable addon
+        (UsageType.STORAGE_BYTES, '100', 'unparseable', None, True, 100),
+        # unparseable subscription, parseable addon
+        (UsageType.STORAGE_BYTES, 'unparseable', '100', None, True, 100),
+        # both unparseable
+        (UsageType.STORAGE_BYTES, 'unparseable', 'unparseable', None, True, inf),
     )
     @unpack
     def test_determine_limit_for_org(
