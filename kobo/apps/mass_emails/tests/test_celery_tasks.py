@@ -821,7 +821,9 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         """
         email_config = self._create_email_config('Test')
 
-        enqueue_mass_email_records(email_config)
+        enqueue_mass_email_records(
+            email_config, user_ids=[self.user1.id, self.user2.id]
+        )
 
         job = MassEmailJob.objects.filter(email_config=email_config).latest(
             'date_created'
