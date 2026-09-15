@@ -9,7 +9,7 @@ from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
-from kobo.apps.accounts.models import SocialAppManagedDomain
+from kobo.apps.accounts.models import SocialAppManagedDomain, get_normalized_domain
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -65,13 +65,6 @@ def user_has_paid_subscription(username):
         organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
         organizations_organization__djstripe_customers__subscriptions__items__price__unit_amount__gt=0,
     ).exists()
-
-
-def get_normalized_domain(email):
-    _, separator, domain = email.rpartition('@')
-    if not separator:
-        return ''
-    return domain.strip().lower()
 
 
 def remove_managed_sso_reminders(social_app_pk: int, domain: str | None = None):

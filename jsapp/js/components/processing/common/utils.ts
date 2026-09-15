@@ -388,6 +388,18 @@ export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
 ])
 
 /**
+ * Returns the Processing tabs available for a given question type, in display
+ * order. Transcript is omitted for question types that have no audio/video
+ * response to transcribe (e.g. text).
+ */
+export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (isTextQuestionType(questionType)) {
+    return [ProcessingTab.Translations, ProcessingTab.Analysis]
+  }
+  return [ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis]
+}
+
+/**
  * Gets the default displays for a given processing tab.
  *
  * @param tabName - The processing tab name

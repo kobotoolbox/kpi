@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import organizationMock from '#/endpoints/organization.mocks'
-import organizationMembersMock from '#/endpoints/organizationMembers.mocks'
+import organizationMembersMock, { buildMember } from '#/endpoints/organizationMembers.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { RequireOrg } from '#/router/RequireOrg'
 import ToasterConfig from '#/toasterConfig'
@@ -17,6 +17,20 @@ import MembersRoute, { TOO_SHORT_WARNING } from './MembersRoute'
 const helpBubbleMock = http.get('*/help/in_app_messages{/}?', () =>
   HttpResponse.json({ count: 0, next: null, previous: null, results: [] }),
 )
+
+/**
+ * Returns the cell of `username`'s row that sits under the `columnLabel` header. Both security columns render an
+ * icon-only badge, so there is no text to search for - the column has to be found by position.
+ */
+function cellUnderColumn(canvas: ReturnType<typeof within>, username: string, columnLabel: string) {
+  const columnIndex = canvas
+    .getAllByRole('columnheader')
+    .findIndex((header: HTMLElement) => header.textContent?.trim() === columnLabel)
+  expect(columnIndex).toBeGreaterThan(-1)
+
+  const row = canvas.getByText(username).closest('tr')
+  return row!.children[columnIndex]
+}
 
 /** Types into the search box and waits for the debounce to commit. */
 async function search(canvas: ReturnType<typeof within>, phrase: string) {
@@ -67,6 +81,33 @@ export const Default: Story = {
     await canvas.findByText('alice')
     expect(canvas.getByText('bob')).toBeInTheDocument()
     expect(canvas.getByRole('textbox', { name: /search members/i })).toHaveAttribute('placeholder', 'Search members')
+  },
+}
+
+/**
+ * The SSO column belongs to every team, including one on a server with no SSO provider configured - which is the case
+ * here, as the global `/environment` mock ships an empty `social_apps`. Members who have connected an SSO account get
+ * the active badge anyway, everyone else reads as inactive.
+ */
+export const SsoColumnWithoutSsoProvider: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        organizationMock(),
+        organizationMembersMock([
+          buildMember('alice', 'Alice Alvarez', { user__has_sso_enabled: true }),
+          buildMember('bob', 'Bob Brown', { user__has_sso_enabled: false }),
+        ]),
+        helpBubbleMock,
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByText('alice')
+
+    expect(cellUnderColumn(canvas, 'alice', 'SSO').querySelector('.k-icon-check')).toBeInTheDocument()
+    expect(cellUnderColumn(canvas, 'bob', 'SSO').querySelector('.k-icon-minus')).toBeInTheDocument()
   },
 }
 

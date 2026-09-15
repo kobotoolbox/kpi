@@ -162,7 +162,24 @@ class SocialAppManagedDomain(models.Model):
             domain__iexact=domain, social_app__managed=True
         ).exists()
 
+    @classmethod
+    def get_managing_sso(cls, user):
+        domain = get_normalized_domain(user.email)
+        managed_domain = cls.objects.filter(
+            domain__iexact=domain, social_app__managed=True
+        ).first()
+        if managed_domain:
+            return managed_domain.social_app.social_app
+        return None
+
     def save(self, *args, **kwargs):
         if self.domain:
             self.domain = self.domain.strip().lower()
         super().save(*args, **kwargs)
+
+
+def get_normalized_domain(email):
+    _, separator, domain = email.rpartition('@')
+    if not separator:
+        return ''
+    return domain.strip().lower()
