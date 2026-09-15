@@ -2126,15 +2126,20 @@ if start_port := env.int('METRICS_START_PORT', None):
 # Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
 GIT_REV = {}
 for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
+    ('short', ('rev-parse', '--short', 'HEAD')),
+    ('long', ('rev-parse', 'HEAD')),
+    ('branch', ('rev-parse', '--abbrev-ref', 'HEAD')),
+    ('tag', ('describe', '--exact-match', '--tags')),
 ):
     try:
         GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
+            # `safe.directory` lets git run against the root-owned source
+            # tree when the app runs as an unprivileged user
+            ('git', '-c', f'safe.directory={BASE_DIR}', *git_command),
+            stderr=subprocess.STDOUT,
+            text=True,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
         GIT_REV[git_rev_key] = False
 if GIT_REV['branch'] == 'HEAD':
     GIT_REV['branch'] = False
