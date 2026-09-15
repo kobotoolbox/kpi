@@ -26,6 +26,13 @@ export const EXCLUDED_COLUMNS = [
   // Internal only: the list of form versions a submission has been through
   'meta/formVersions',
   '_validation_status',
+  // `audit` delivers a log of how enumerators moved through the form as an
+  // attached CSV, so there is no response to put in a cell - only a file name
+  // that no view here can open. Two spellings, because the survey defines the
+  // question at the root, while a submission carries it in the `meta` block, as
+  // the ODK spec requires: https://getodk.github.io/xforms-spec/#metadata
+  META_QUESTION_TYPES.audit,
+  `meta/${META_QUESTION_TYPES.audit}`,
 ]
 
 /**
@@ -42,6 +49,7 @@ export const LAST_COLUMNS_ORDER: string[] = [
   META_QUESTION_TYPES.deviceid,
   META_QUESTION_TYPES.phonenumber,
   META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES['start-geopoint'],
   // Both the current and the legacy name of the form version column
   '__version__',
   '_version_',
@@ -64,7 +72,6 @@ export const METADATA_COLUMN_LABELS: { [key: string]: string } = {
   [META_QUESTION_TYPES.username]: t('username'),
   [META_QUESTION_TYPES.deviceid]: t('device ID'),
   [META_QUESTION_TYPES.phonenumber]: t('phone number'),
-  [META_QUESTION_TYPES.audit]: t('audit'),
   [ADDITIONAL_SUBMISSION_PROPS._submitted_by]: t('Submitted by'),
   [ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']]: t('rootUuid'),
 }

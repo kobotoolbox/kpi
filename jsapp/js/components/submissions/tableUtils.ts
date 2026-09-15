@@ -567,8 +567,9 @@ export function getAllDataColumns(
  * Returns a list of the metadata columns (keys) - i.e. the columns that are not
  * responses to the form questions:
  *
- * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `audit`) - only
- *    the ones that the form actually defines,
+ * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `today`) - only
+ *    the ones that the form actually defines, and that carry a response worth
+ *    showing (`audit` doesn't, see `EXCLUDED_COLUMNS`),
  * 2. additional submission properties added by Back end (e.g. `_id`).
  *
  * We filter `getAllDataColumns` down instead of building a list of our own, so

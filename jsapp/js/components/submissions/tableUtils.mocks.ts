@@ -316,3 +316,26 @@ export const assetWithNestedGroupsAndNLP = getApiV2AssetsRetrieveResponseMock({
   },
   effective_permissions: [{ codename: 'change_submissions' }],
 }) as unknown as AssetResponse
+
+/**
+ * `assetWithBgAudioAndNLP` with `start-geopoint` enabled, deliberately placed
+ * after the form questions while that mock's other meta questions sit before
+ * them - a meta question has to land in the same spot among the columns no
+ * matter where the form definition carries it.
+ */
+export const assetWithStartGeopoint = {
+  ...assetWithBgAudioAndNLP,
+  content: {
+    ...assetWithBgAudioAndNLP.content,
+    survey: [
+      ...(assetWithBgAudioAndNLP.content?.survey || []),
+      {
+        name: 'start-geopoint',
+        type: ANY_ROW_TYPE_NAMES['start-geopoint'],
+        $kuid: 'hT2sVnPqL',
+        $xpath: 'start-geopoint',
+        $autoname: 'start-geopoint',
+      },
+    ],
+  },
+} as unknown as AssetResponse
