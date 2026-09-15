@@ -1135,6 +1135,23 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     return soft_deleted_attachments
 
 
+def get_submission_form_version_uids(xml_parsed: ET.Element) -> list[str]:
+    """
+    Return the uids of every form version a submission has been through,
+    oldest first: the history kept in `meta/formVersions`, when it spanned
+    several, plus the one it declared in `__version__`.
+
+    Empty for a submission carrying no version at all, collected before KPI
+    started stamping `__version__`.
+    """
+
+    form_versions, submission_version = _get_form_versions(xml_parsed)
+    if submission_version and submission_version not in form_versions:
+        form_versions.append(submission_version)
+
+    return form_versions
+
+
 # Metadata nodes that carry no distinguishing power when routing a submission to
 # the right form, so they are stripped before comparing schemas. Matching is done
 # on the first path segment, which also drops their descendants (e.g.
@@ -1307,9 +1324,7 @@ def _get_other_form_version_uids(
     the one currently deployed, which the XForm already describes.
     """
 
-    form_versions, submission_version = _get_form_versions(xml_parsed)
-    if submission_version and submission_version not in form_versions:
-        form_versions.append(submission_version)
+    form_versions = get_submission_form_version_uids(xml_parsed)
 
     if not form_versions:
         # A submission carrying no version at all, collected before KPI started

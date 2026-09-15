@@ -33,6 +33,7 @@ from kpi.utils.strings import split_lines_to_list, strtobool
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
+    apply_repeat_indexes,
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
     get_or_create_element,
@@ -824,6 +825,24 @@ class XmlUtilsTestCase(TestCase):
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)
         self.assertEqual(re_source, re_target)
+
+    def test_apply_repeat_indexes(self):
+        """
+        Repeat indexes follow their group by name onto a path from another
+        form version, and drop away when that group is gone from it.
+        """
+        # A question renamed inside the same repeat keeps its occurrence
+        assert apply_repeat_indexes('visits[2]/photo', 'visits/picture') == (
+            'visits[2]/picture'
+        )
+        # Nested repeats each keep their own index
+        assert apply_repeat_indexes('a[1]/b[3]/q', 'a/b/q') == 'a[1]/b[3]/q'
+        # A question moved out of the repeat has a single occurrence
+        assert apply_repeat_indexes('visits[2]/photo', 'photo') == 'photo'
+        # A question moved into a plain group gets no index invented
+        assert apply_repeat_indexes('photo', 'grp/photo') == 'grp/photo'
+        # Nothing to carry over leaves the target untouched
+        assert apply_repeat_indexes('grp/photo', 'photo') == 'photo'
 
 
 class AttachmentFilenamesAndXpathsTestCase(TestCase):
