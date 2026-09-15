@@ -31,6 +31,7 @@ export interface DataResponse {
    */
   _geolocation: _DataResponseGeolocationItem[]
   _submission_time: string
+  _date_modified: string
   _validation_status: _DataResponseValidationStatus
   _submitted_by: string
   /**

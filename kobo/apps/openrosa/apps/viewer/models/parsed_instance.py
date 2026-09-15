@@ -310,7 +310,9 @@ class ParsedInstance(models.Model):
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
             SUBMISSION_TIME: self.instance.date_created.strftime(MONGO_STRFTIME),
-            DATE_MODIFIED: self.instance.date_modified.strftime(MONGO_STRFTIME),
+            DATE_MODIFIED: (
+                self.instance.date_modified or self.instance.date_created
+            ).strftime(MONGO_STRFTIME),
             VALIDATION_STATUS: self.instance.get_validation_status(),
             SUBMITTED_BY: self.submitted_by,
         }

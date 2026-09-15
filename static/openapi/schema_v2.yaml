@@ -17409,6 +17409,10 @@ components:
           type: string
           format: date-time
           title: ' submission time'
+        _date_modified:
+          type: string
+          format: date-time
+          title: ' date modified'
         _validation_status:
           oneOf:
           - $ref: '#/components/schemas/DataValidationStatus'
@@ -17482,6 +17486,7 @@ components:
       required:
       - __version__
       - _attachments
+      - _date_modified
       - _geolocation
       - _id
       - _status
