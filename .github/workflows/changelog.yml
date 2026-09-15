@@ -24,6 +24,10 @@ on:
         required: true
 
 
+permissions:
+  contents: read
+
+
 jobs:
   changelog:
     runs-on: ubuntu-24.04

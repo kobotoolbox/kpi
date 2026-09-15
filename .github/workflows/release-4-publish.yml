@@ -11,6 +11,10 @@ on:
         type: string
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
   # Validate that the tag exists and matches the selected branch.

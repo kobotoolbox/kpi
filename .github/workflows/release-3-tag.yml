@@ -17,6 +17,10 @@ on:
         default: false
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
   # Validate the selected branch and pass it downstream.
