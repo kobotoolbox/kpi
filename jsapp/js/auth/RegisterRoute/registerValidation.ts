@@ -29,7 +29,7 @@ type MetadataValidator = (value: string | boolean, values: FormValuesWithMetadat
 
 /**
  * One rule per supported metadata field. Blank is an error only where the instance requires the field,
- * which chan change mid-typing - hence reading the current values rather than deciding once.
+ * which can change mid-typing - hence reading the current values rather than deciding once.
  */
 export function getMetadataValidators(
   fields: SignupMetadataFields,

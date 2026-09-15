@@ -30,9 +30,7 @@ from formpack.constants import (
 )
 from formpack.schema.fields import (
     IdCopyField,
-    NotesCopyField,
     SubmissionTimeCopyField,
-    TagsCopyField,
     ValidationStatusCopyField,
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
@@ -871,14 +869,12 @@ class SubmissionExportTaskBase(ImportExportTask):
         '_uuid',
         SubmissionTimeCopyField,
         ValidationStatusCopyField,
-        NotesCopyField,
         # '_status' is always 'submitted_via_web' unless the submission was
         # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
         # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submitted_by',
         '__version__',
-        TagsCopyField,
         META_ROOT_UUID,
     )
 

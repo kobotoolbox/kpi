@@ -28,9 +28,11 @@ from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.exceptions import MissingXFormException
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
+from ..exceptions import TrashTaskInProgressError
 from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
@@ -47,6 +49,7 @@ from ..utils import (
     process_deletion,
     put_back,
     trash_bin_task_failure,
+    trash_bin_task_retry,
 )
 
 
@@ -1267,6 +1270,48 @@ class TaskRestarterTestCase(TestCase):
         self._fail(account_trash, 'deadlock detected')
 
         assert self._run_restarter() == 1
+
+    def test_failure_error_is_never_empty(self):
+        """
+        Argless exceptions stringify to '', which stranded FAILED objects with
+        no error and matched no transient pattern. `failure_error` must always
+        record something
+        """
+        account_trash = self._move_account_to_trash()
+
+        trash_bin_task_failure(
+            AccountTrash,
+            args=[account_trash.pk],
+            exception=TrashTaskInProgressError(),
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.FAILED
+        assert account_trash.metadata['failure_error'] == 'TrashTaskInProgressError()'
+
+        trash_bin_task_failure(
+            AccountTrash,
+            args=[account_trash.pk],
+            exception=MissingXFormException(),
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.metadata['failure_error']
+        assert account_trash.metadata['failure_error'] == str(MissingXFormException())
+
+    def test_retry_error_is_never_empty(self):
+        """
+        The retry path suffers the same argless-exception bug and must also
+        record a real error
+        """
+        account_trash = self._move_account_to_trash()
+
+        trash_bin_task_retry(
+            AccountTrash,
+            request={'args': [account_trash.pk]},
+            reason=TrashTaskInProgressError(),
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.RETRY
+        assert account_trash.metadata['failure_error'] == 'TrashTaskInProgressError()'
 
     def _fail(self, account_trash, error):
         """
