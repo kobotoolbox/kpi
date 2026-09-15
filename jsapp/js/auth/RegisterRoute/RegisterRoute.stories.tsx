@@ -1,6 +1,7 @@
 import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { RequestHandler } from 'msw'
+import { getWorker } from 'msw-storybook-addon'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
@@ -16,7 +17,7 @@ import {
   signupPendingVerificationMock,
   signupServerErrorMock,
 } from '#/endpoints/allauth.mocks'
-import { environmentResponse, makeEnvironmentFailsOnceMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { environmentResponse, environmentServerErrorMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
@@ -366,20 +367,11 @@ export const ServerUnavailable: Story = {
 
 /**
  * `/environment` fails, so every rule the form depends on - the legal documents, the domains that have to
- * use SSO, whether sign up is open at all - is unknown. The card asks for a retry, and the retry (which
- * this mock answers) brings the form back.
+ * use SSO, whether sign up is open at all - is unknown. The card asks for a retry, and a retry that reaches
+ * a server in a better mood brings the form back.
  */
 export const ConfigurationError: Story = {
-  parameters: {
-    msw: {
-      handlers: [
-        makeEnvironmentFailsOnceMock({
-          terms_of_service_url: TERMS_OF_SERVICE_URL,
-          privacy_policy_url: PRIVACY_POLICY_URL,
-        }),
-      ],
-    },
-  },
+  parameters: { msw: { handlers: [environmentServerErrorMock()] } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
@@ -387,6 +379,9 @@ export const ConfigurationError: Story = {
     // Not a form sitting behind the panel with its Terms of Service checkbox quietly missing.
     expect(canvas.queryByLabelText(/^Username/)).not.toBeInTheDocument()
 
+    // Put the endpoint back on its feet first, so the click has something to succeed with. The addon resets
+    // runtime handlers between stories, so this stays inside this one.
+    getWorker().use(environmentMock)
     await userEvent.click(canvas.getByRole('button', { name: 'Retry' }))
 
     await waitForEnvironment(canvas)
