@@ -329,7 +329,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     )
 
     // These rows used to be hardcoded here, which meant the modal showed rows
-    // the form doesn't even define (e.g. `audit`) and in an order of its own.
+    // the form doesn't even define (e.g. `today`) and in an order of its own.
     // Deriving them keeps this in sync with Data Table (see `orderColumns` in
     // `tableUtils.ts`). We pass the submission in, so that a submission made
     // with an older form version still shows its own metadata.

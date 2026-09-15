@@ -10,6 +10,7 @@ import { getSupplementalPathParts } from '#/components/processing/processingUtil
 import {
   DROPDOWN_FILTER_QUESTION_TYPES,
   EXCLUDED_COLUMNS,
+  EXCLUDED_ROW_TYPES,
   FILTER_EXACT_TYPES,
   LAST_COLUMNS_ORDER,
   SUBMISSION_ACTIONS_ID,
@@ -419,6 +420,21 @@ function moveBlockToFront(blocks: ColumnsBlock[], key: string) {
 }
 
 /**
+ * Whether this key's column holds metadata rather than a response to a form
+ * question. The name alone doesn't settle it - nothing reserves the meta question
+ * names, so an ordinary question called `today` is a form question like any other.
+ */
+function isMetadataKey(asset: AssetResponse, key: string): boolean {
+  const row = asset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === key)
+
+  // No row leaves nothing to judge by, as the asset only carries its latest
+  // survey. Assume metadata, which such a key nearly always is: Back end's own
+  // property (e.g. `_id`), or a meta question switched off after some submissions
+  // came in. It does mis-file a deleted question named after a meta question.
+  return row === undefined || Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type)
+}
+
+/**
  * This is the single source of truth for the order of columns. Takes a list of
  * columns (keys) and returns a new list ordered as:
  *
@@ -442,14 +458,20 @@ export function orderColumns(asset: AssetResponse, columns: string[]): string[] 
   // Split off the tail columns, then sort them by their position in
   // `LAST_COLUMNS_ORDER` - whatever order they arrived in doesn't matter, which
   // is what lets us feed this function columns discovered from submission data.
-  const lastBlocks = allBlocks.filter((block) => LAST_COLUMNS_ORDER.includes(block[0]))
-  const blocks = allBlocks.filter((block) => !LAST_COLUMNS_ORDER.includes(block[0]))
+  const isTailBlock = (block: ColumnsBlock) => LAST_COLUMNS_ORDER.includes(block[0]) && isMetadataKey(asset, block[0])
+  const lastBlocks = allBlocks.filter(isTailBlock)
+  const blocks = allBlocks.filter((block) => !isTailBlock(block))
   lastBlocks.sort((blockA, blockB) => LAST_COLUMNS_ORDER.indexOf(blockA[0]) - LAST_COLUMNS_ORDER.indexOf(blockB[0]))
 
   // Each of these moves to the front, so the order of the calls is reversed:
   // `background-audio` goes last to end up first, then `start`, then `end`.
-  moveBlockToFront(blocks, META_QUESTION_TYPES.end)
-  moveBlockToFront(blocks, META_QUESTION_TYPES.start)
+  // `start` and `end` only move when they really are the meta questions.
+  if (isMetadataKey(asset, META_QUESTION_TYPES.end)) {
+    moveBlockToFront(blocks, META_QUESTION_TYPES.end)
+  }
+  if (isMetadataKey(asset, META_QUESTION_TYPES.start)) {
+    moveBlockToFront(blocks, META_QUESTION_TYPES.start)
+  }
   const backgroundAudioName = getBackgroundAudioQuestionName(asset)
   if (backgroundAudioName !== null) {
     moveBlockToFront(blocks, backgroundAudioName)
@@ -501,26 +523,19 @@ export function getAllDataColumns(
     shouldKeepColumnAfterAttachmentDedupe(key, output, currentAttachmentPathsByLeaf, submissions),
   )
 
-  // exclude notes
+  // Drop the rows whose type never carries a response, by type rather than name,
+  // so an ordinary question named `audit` survives (see `EXCLUDED_ROW_TYPES`).
   output = output.filter((key) => {
     const foundPathKey = recordKeys(flatPaths).find((pathKey) => flatPaths[pathKey] === key)
 
-    // no path means this definitely is not a note type
+    // No path means this key is not a survey row, so it has no type to judge
     if (!foundPathKey) {
       return true
     }
 
-    const foundNoteRow = asset?.content?.survey?.find(
-      (row) =>
-        typeof foundPathKey !== 'undefined' && foundPathKey === getRowName(row) && row.type === QUESTION_TYPES.note.id,
-    )
+    const foundRow = asset?.content?.survey?.find((row) => foundPathKey === getRowName(row))
 
-    if (typeof foundNoteRow !== 'undefined') {
-      // filter out this row as this is a note type
-      return false
-    }
-
-    return true
+    return foundRow === undefined || !EXCLUDED_ROW_TYPES.includes(foundRow.type)
   })
 
   // exclude kobomatrix rows as data is not directly tied to them, but
@@ -567,8 +582,9 @@ export function getAllDataColumns(
  * Returns a list of the metadata columns (keys) - i.e. the columns that are not
  * responses to the form questions:
  *
- * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `audit`) - only
- *    the ones that the form actually defines,
+ * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `today`) - only
+ *    the ones that the form actually defines, and that carry a response worth
+ *    showing (`audit` doesn't, see `EXCLUDED_ROW_TYPES`),
  * 2. additional submission properties added by Back end (e.g. `_id`).
  *
  * We filter `getAllDataColumns` down instead of building a list of our own, so
@@ -589,7 +605,7 @@ export function getMetadataColumns(asset: AssetResponse, submissions?: Submissio
   // places: meta questions come from the form definition, while the additional
   // submission properties only ever show up in submission data.
   return getAllDataColumns(asset, submissions).filter(
-    (key) => metaRowNames.has(key) || LAST_COLUMNS_ORDER.includes(key),
+    (key) => metaRowNames.has(key) || (LAST_COLUMNS_ORDER.includes(key) && isMetadataKey(asset, key)),
   )
 }
 
