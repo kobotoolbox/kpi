@@ -590,13 +590,10 @@ def generate_mass_email_user_lists():
             with transaction.atomic():
                 enqueue_mass_email_records(email_config, user_ids=user_ids)
         except IntegrityError:
-            logging.warning(
-                f'Skipping duplicate record for config: {email_config.id}'
-            )
+            logging.warning(f'Skipping duplicate record for config: {email_config.id}')
             continue
 
         processed_configs.add(email_config.id)
 
-
-    cache.set(cache_key, list(processed_configs), timeout=60*60*24)
+    cache.set(cache_key, list(processed_configs), timeout=60 * 60 * 24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')
