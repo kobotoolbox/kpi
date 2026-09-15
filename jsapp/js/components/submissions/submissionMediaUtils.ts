@@ -3,6 +3,11 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import { type AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 
+/** Strips repeat-instance indices (e.g. `[2]`) to get the static survey xpath. */
+export function stripRepeatIndices(xpath: string): string {
+  return xpath.replace(/\[\d+\]/g, '')
+}
+
 /**
  * Finds the attachment a submission stored for the given question path. Matches on
  * `question_xpath`, the path recorded when the submission came in, so the file is

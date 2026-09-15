@@ -1,7 +1,25 @@
 import { QuestionTypeName } from '#/constants'
 import type { SubmissionAttachment } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import { findAttachmentByQuestionXpath, inferAttachmentQuestionType } from './submissionMediaUtils'
+import { findAttachmentByQuestionXpath, inferAttachmentQuestionType, stripRepeatIndices } from './submissionMediaUtils'
+
+describe('stripRepeatIndices', () => {
+  it('should leave a static xpath unchanged', () => {
+    chai.expect(stripRepeatIndices('outer_group/inner_group/question')).to.equal('outer_group/inner_group/question')
+  })
+
+  it('should strip a single repeat-instance index', () => {
+    chai.expect(stripRepeatIndices('children[1]/audio')).to.equal('children/audio')
+  })
+
+  it('should strip multiple repeat-instance indices from nested repeats', () => {
+    chai.expect(stripRepeatIndices('outer[2]/inner[10]/question')).to.equal('outer/inner/question')
+  })
+
+  it('should leave a bare question name unchanged', () => {
+    chai.expect(stripRepeatIndices('question')).to.equal('question')
+  })
+})
 
 function buildAttachment(overrides: Partial<SubmissionAttachment> = {}): SubmissionAttachment {
   return {
