@@ -94,7 +94,7 @@ function CheckingLinkPanel() {
 
 interface ConfirmPromptPanelProps {
   email: string
-  /** Corresponds to username */
+  /** allauth's display name for the user. */
   displayName: string
   isConfirming: boolean
   onConfirm: () => void
