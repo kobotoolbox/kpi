@@ -1,3 +1,4 @@
+import { getDisplayableErrorText } from './getDisplayableErrorText'
 import type { ErrorDetail } from './models/errorDetail'
 
 export class ServerError extends Error implements ErrorDetail {
@@ -15,7 +16,9 @@ export class ServerError extends Error implements ErrorDetail {
           : undefined
     } catch {
       parsedResponse = text
-      detail = text
+      // The body isn't JSON, so it can be an error page or a traceback. Several components render `detail` straight
+      // into the UI, so only keep it when it reads as a message.
+      detail = getDisplayableErrorText(text, response.status)
     }
     return new ServerError(response, detail, parsedResponse)
   }

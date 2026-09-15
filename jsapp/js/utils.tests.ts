@@ -1,3 +1,12 @@
+// Jest needs the mock defined before any imports, and `var` avoids the hoisting ReferenceError. Only `notify` touches
+// `react-hot-toast`, and we need to see what it hands over to be rendered.
+var mockedToastError: jest.Mock
+jest.mock('react-hot-toast', () => {
+  mockedToastError = jest.fn()
+  const toast = Object.assign(jest.fn(), { success: jest.fn(), error: mockedToastError })
+  return { toast }
+})
+
 import {
   formatSeconds,
   formatTimeFromSeconds,
@@ -6,6 +15,7 @@ import {
   getLangString,
   getSubmissionRootUuid,
   join,
+  notify,
   truncateFile,
   truncateString,
   truncateUrl,
@@ -211,6 +221,46 @@ describe('utils', () => {
     it('rounds seconds down to nearest minute if number is more than 3600 (an hour)', () => {
       const result = formatTimeFromSeconds(3601)
       chai.expect(result).to.deep.equal('1 hours')
+    })
+  })
+
+  // The API layer is where error page output is meant to be caught (see `getDisplayableErrorText`), but dozens of
+  // `notify.error()` call sites hand over backend text directly, so this is the backstop for those.
+  describe('notify', () => {
+    let consoleErrorSpy: jest.SpyInstance
+
+    beforeEach(() => {
+      jest.clearAllMocks()
+      // `notify` logs every message; we assert on it, no need to print it.
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore()
+    })
+
+    it('should replace markup with a generic message, moving it to the console', () => {
+      notify.error('<html><body><h1>Server error (500)</h1></body></html>')
+
+      chai.expect(mockedToastError.mock.calls[0][0]).to.equal('An error occurred')
+      chai.expect(consoleErrorSpy.mock.calls[0][0]).to.contain('Server error (500)')
+    })
+
+    it('should append the markup to an existing console message rather than lose either', () => {
+      notify.error('<h1>Server error (500)</h1>', undefined, '500 Internal Server Error')
+
+      chai.expect(consoleErrorSpy.mock.calls[0][0]).to.contain('500 Internal Server Error')
+      chai.expect(consoleErrorSpy.mock.calls[0][0]).to.contain('Server error (500)')
+    })
+
+    it('should leave anything that is not markup alone', () => {
+      notify.error('Invitation cannot be resent')
+      chai.expect(mockedToastError.mock.calls[0][0]).to.equal('Invitation cannot be resent')
+
+      // `notify()` used to unwrap a lone `detail` key here. That moved to
+      // `flattenErrorBody`, which also handles field errors and nesting.
+      notify.error('{"detail":"Not found."}')
+      chai.expect(mockedToastError.mock.calls[1][0]).to.equal('{"detail":"Not found."}')
     })
   })
 
