@@ -455,7 +455,7 @@ do ->
 
     it 'names library questions that only carry a label', () ->
       # A library question saved without a name only has one in `$autoname`, which
-      # is not where the "Data column name" field reads from
+      # is not where the "Question name" field reads from
       unnamedQuestion = -> $model.Survey.loadDict({
         survey: [
           {type: 'text', $autoname: 'choose_a_fruit', label: 'Choose a fruit'}
