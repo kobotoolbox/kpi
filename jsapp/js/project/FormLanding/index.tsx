@@ -49,6 +49,13 @@ type FormLandingState = Partial<AssetResponse> & {
   historyExpanded?: boolean
 }
 
+/** The `mixins.dmix` methods this component calls. Hand-written, as `mixins.tsx` doesn't export its own types. */
+interface DmixMethods {
+  removeSharing: () => void
+  saveCloneAs: (versionId?: string) => void
+  toggleDeploymentHistory: () => void
+}
+
 /**
  * URL of the permission that lets anonymous users submit data to a project. This is a function rather than a module
  * constant, because `permConfig` throws when asked before the app has fetched its config.
@@ -72,11 +79,13 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
   private unlisteners: Function[] = []
   private nonOwnerSelfRemovalUnlistener?: Function
 
-  // These come from `mixins.dmix`, applied through `reactMixin` at the bottom of this file. Keep the `declare` -
-  // without it TypeScript emits real fields set to `undefined`, which would shadow the mixin's methods.
-  declare removeSharing: () => void
-  declare saveCloneAs: (versionId?: string) => void
-  declare toggleDeploymentHistory: () => void
+  /**
+   * `reactMixin` at the bottom of this file puts `mixins.dmix`'s methods on the prototype, where TypeScript can't see
+   * them, so reach them through this cast rather than off `this` directly.
+   */
+  private get dmix() {
+    return this as unknown as DmixMethods
+  }
 
   constructor(props: FormLandingProps) {
     super(props)
@@ -290,14 +299,14 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
             deployedVersionsCount={asset.deployed_versions.count}
             deploymentActive={asset.deployment__active}
             deploymentStatus={asset.deployment_status}
-            onClone={(versionUid) => this.saveCloneAs(versionUid)}
+            onClone={(versionUid) => this.dmix.saveCloneAs(versionUid)}
           />
         </bem.FormView__cell>
         {asset.deployed_versions.count > 1 && (
           <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
             <ButtonNew
               size='md'
-              onClick={this.toggleDeploymentHistory.bind(this)}
+              onClick={this.dmix.toggleDeploymentHistory.bind(this)}
               leftIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
               variant='transparent'
             >
@@ -465,7 +474,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     this.nonOwnerSelfRemovalUnlistener = actions.permissions.removeAssetPermission.completed.listen(
       this.nonOwnerSelfRemovalCompleted.bind(this),
     )
-    this.removeSharing()
+    this.dmix.removeSharing()
   }
 
   nonOwnerSelfRemovalCompleted() {
@@ -556,7 +565,10 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
             )}
 
             {isLoggedIn && (
-              <Menu.Item onClick={() => this.saveCloneAs()} leftSection={<i className='k-icon k-icon-duplicate' />}>
+              <Menu.Item
+                onClick={() => this.dmix.saveCloneAs()}
+                leftSection={<i className='k-icon k-icon-duplicate' />}
+              >
                 {t('Clone this project')}
               </Menu.Item>
             )}
