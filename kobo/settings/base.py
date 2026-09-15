@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import warnings
 from datetime import timedelta
 from mimetypes import add_type
@@ -17,7 +16,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-from .utils import constance_env, dj_stripe_request_callback_method
+from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
 env = environ.Env()
 
@@ -2122,22 +2121,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-""" Try to identify the running codebase for informational purposes """
-# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
-GIT_REV = {}
-for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
-):
-    try:
-        GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
-        GIT_REV[git_rev_key] = False
-if GIT_REV['branch'] == 'HEAD':
-    GIT_REV['branch'] = False
+GIT_REV = get_git_rev(BASE_DIR)
 
 
 """
