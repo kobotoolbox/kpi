@@ -13,6 +13,7 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kpi.utils.log import logging
 
 
 def _get_default_usage_limits():
@@ -391,9 +392,13 @@ def determine_limit(
     # "unlimited" -> inf
     if limit == 'unlimited':
         limit = inf
-    # convert string to int
+    # convert string to float, or inf if unparseable
     else:
-        limit = float(limit)
+        try:
+            limit = float(limit)
+        except ValueError:
+            logging.warning(f'Cannot convert {limit} to float. Setting limit to inf.')
+            limit = inf
 
     # for storage, factor in addons if specified
     if usage_type == UsageType.STORAGE_BYTES and include_storage_addons:

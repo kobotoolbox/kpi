@@ -211,6 +211,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         (UsageType.STORAGE_BYTES, '1000', '500', '60', True, 1000),
         # no plan, addon, or default plan, use inf
         (UsageType.ASR_SECONDS, None, None, None, False, inf),
+        (UsageType.MT_CHARACTERS, 'unparseable', None, None, False, inf),
     )
     @unpack
     def test_determine_limit_for_org(
