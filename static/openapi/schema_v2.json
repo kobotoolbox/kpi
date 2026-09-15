@@ -24699,6 +24699,11 @@
                         "format": "date-time",
                         "title": " submission time"
                     },
+                    "_date_modified": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": " date modified"
+                    },
                     "_validation_status": {
                         "oneOf": [
                             {
@@ -24818,6 +24823,7 @@
                 "required": [
                     "__version__",
                     "_attachments",
+                    "_date_modified",
                     "_geolocation",
                     "_id",
                     "_status",
