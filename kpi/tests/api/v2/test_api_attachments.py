@@ -339,9 +339,10 @@ class AttachmentApiTests(BaseAssetTestCase):
         Keep an attachment reachable by both the pre-move and the post-move
         xpath once a question is moved into a group and the form is redeployed.
 
-        Submissions keep the xpath of the version they were made against, so
-        without the leaf-name fallback a current-version xpath misses an older
-        submission's XML (and vice versa), which is the DEV-158 break.
+        Submissions keep the xpath of the version they were made against, so a
+        current-version xpath misses an older submission's XML (and vice
+        versa), which is the DEV-158 break. The other version is found through
+        the submission's `__version__`, which every submission carries.
         """
         clip = 'audio_conversion_test_clip.3gp'
 
@@ -418,8 +419,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         old_att_id = old_submission['_attachments'][0]['id']
         new_att_id = new_submission['_attachments'][0]['id']
 
-        # Old submission: native root xpath, plus the current grouped xpath by
-        # leaf-name fallback.
+        # Old submission: native root xpath, plus the current grouped xpath
+        # resolved through its own version.
         assert (
             deployment.get_attachment(old_id, self.someuser, xpath='Tell_me_a_story').pk
             == old_att_id
@@ -431,8 +432,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             == old_att_id
         )
 
-        # New submission: native grouped xpath, plus the pre-move root xpath by
-        # leaf-name fallback.
+        # New submission: native grouped xpath, plus the pre-move root xpath
+        # resolved through its own version.
         assert (
             deployment.get_attachment(
                 new_id, self.someuser, xpath='grp/Tell_me_a_story'
@@ -447,3 +448,19 @@ class AttachmentApiTests(BaseAssetTestCase):
         # A leaf that never existed in either era still raises.
         with pytest.raises(XPathNotFoundException):
             deployment.get_attachment(old_id, self.someuser, xpath='no_such_question')
+
+        # A node no form version defines is never matched, even though it sits
+        # in the XML: on edits, Enketo keeps a record's original nodes, and a
+        # file referenced only by such a leftover may have been replaced since.
+        stray_submission = _make_submission(
+            asset.latest_deployed_version.uid, 'grp/Tell_me_a_story'
+        )
+        stray_submission['leftover'] = clip
+        with patch('mimetypes.guess_type') as guess_mock:
+            guess_mock.side_effect = guess_type_mock
+            asset.deployment.mock_submissions([stray_submission])
+
+        with pytest.raises(XPathNotFoundException):
+            deployment.get_attachment(
+                stray_submission['_id'], self.someuser, xpath='grp/leftover'
+            )

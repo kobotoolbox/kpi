@@ -62,43 +62,31 @@ def edit_submission_xml(
     element.text = value
 
 
-def find_element_by_leaf_name(root: ET.Element, xpath: str) -> Optional[ET.Element]:
+def apply_repeat_indexes(source_xpath: str, target_xpath: str) -> str:
     """
-    Return the element `xpath` points at by its last segment (the question
-    name) rather than its full path, or None when no such element exists.
+    Carry the `[n]` repeat indexes of `source_xpath` over to `target_xpath`,
+    matched by segment name, e.g. `visits[2]/photo` onto `visits/picture`
+    gives `visits[2]/picture`.
 
-    A submission keeps the paths of the form version it was made against, so
-    a path from another version may not exist in its XML once a question or
-    group was moved or renamed. XLSForm names are unique form-wide, which
-    makes the leaf a safe identity across versions.
-
-    Repeat occurrences are honoured: the `[n]` indexes carried by `xpath` are
-    matched, in order, against the candidate's position among same-named
-    siblings at each level (see `_positions_match()`). Without any index the
-    first match wins, like `Element.find()`.
+    Form versions describe questions without indexes, while a request for one
+    occurrence inside a repeat carries them. Group names are unique in a
+    deployed form, so an index follows its group wherever the question moved;
+    a group absent from `target_xpath` drops its index, the question having
+    left that repeat.
     """
-    leaf = re.sub(r'\[\d+\]$', '', xpath.rsplit('/', 1)[-1])
-    wanted_positions = [int(index) for index in re.findall(r'\[(\d+)\]', xpath)]
-    parents = {child: parent for parent in root.iter() for child in parent}
+    indexes = {}
+    for segment in source_xpath.split('/'):
+        name, _, index = segment.partition('[')
+        if index:
+            indexes[name] = index.rstrip(']')
 
-    for candidate in root.iter():
-        if candidate is root or _local_tag(candidate.tag) != leaf:
-            continue
-        if not wanted_positions:
-            return candidate
+    if not indexes:
+        return target_xpath
 
-        levels = []
-        node = candidate
-        while (parent := parents.get(node)) is not None:
-            siblings = [sibling for sibling in parent if sibling.tag == node.tag]
-            levels.append((siblings.index(node) + 1, len(siblings) > 1))
-            node = parent
-        levels.reverse()
-
-        if _positions_match(levels, wanted_positions):
-            return candidate
-
-    return None
+    return '/'.join(
+        f'{segment}[{indexes[segment]}]' if segment in indexes else segment
+        for segment in target_xpath.split('/')
+    )
 
 
 def fromstring_preserve_root_xmlns(
@@ -289,33 +277,6 @@ def _filter_nodes_by_xpaths(root: etree._Element, xpath_matches: list) -> None:
             parent.remove(node)
         else:
             stack.extend((child, node, node_path) for child in node)
-
-
-def _local_tag(tag: str) -> str:
-    """
-    Return an element tag without its `{namespace}` prefix, if any.
-    """
-    return tag.rsplit('}', 1)[-1] if isinstance(tag, str) else tag
-
-
-def _positions_match(levels: list[tuple[int, bool]], wanted: list[int]) -> bool:
-    """
-    Tell whether the `[n]` indexes of a requested path (`wanted`) describe an
-    element whose ancestry is `levels`, each level being its 1-based position
-    among same-named siblings and whether that name has several instances.
-
-    Requested indexes are consumed top-down and every multi-instance level
-    must consume one. A single-instance level may consume a `1` or be skipped,
-    because a plain group and a repeat with one instance look the same in
-    the XML.
-    """
-    if not levels:
-        return not wanted
-
-    (position, is_multi), rest = levels[0], levels[1:]
-    if wanted and wanted[0] == position and _positions_match(rest, wanted[1:]):
-        return True
-    return not is_multi and _positions_match(rest, wanted)
 
 
 class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):

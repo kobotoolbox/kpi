@@ -49,7 +49,11 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
-from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    create_instance,
+    get_submission_form_version_uids,
+    publish_xls_form,
+)
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -81,7 +85,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
 from kpi.utils.xml import (
-    find_element_by_leaf_name,
+    apply_repeat_indexes,
     fromstring_preserve_root_xmlns,
     xml_tostring,
 )
@@ -570,10 +574,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 raise InvalidXPathException
 
             if element is None:
-                # Submissions keep the xpath of the form version they were made
-                # against, so a path from another version may not exist in the
-                # XML when the question moved into or out of a group
-                element = find_element_by_leaf_name(submission_root, xpath)
+                # A path from another form version, the question having moved
+                # into or out of a group since. Resolve it against the versions
+                # the submission spans rather than against its XML: on edits,
+                # Enketo keeps the record's original nodes, which say nothing
+                # about where the form defines the question
+                for candidate in self._get_attachment_xpath_candidates(
+                    submission_root, xpath
+                ):
+                    if (element := submission_root.find(candidate)) is not None:
+                        break
 
             if element is None:
                 raise XPathNotFoundException
@@ -1487,6 +1497,35 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Delete file in KPI if requested
         file_.delete(force=True)
+
+    def _get_attachment_xpath_candidates(
+        self, submission_root: 'xml.etree.ElementTree.Element', xpath: str
+    ) -> list[str]:
+        """
+        Return where the media question `xpath` points at may live in the form
+        versions a submission spans, read from its `__version__` and
+        `meta/formVersions`, for when `xpath` itself is absent from its XML.
+
+        Versions give addresses, not identities: nothing ties `photo` in one
+        version to `grp/photo` in the next except the question name, unique
+        in a deployed form. Candidates are therefore the versions' media
+        xpaths sharing the requested last segment, with the `[n]` repeat
+        indexes carried by `xpath` applied to each.
+        """
+        version_uids = get_submission_form_version_uids(submission_root)
+        if not version_uids:
+            return []
+
+        leaf = xpath.rsplit('/', 1)[-1].partition('[')[0]
+        version_xpaths = self.asset.get_attachment_xpaths_from_version_uids(
+            version_uids
+        )
+
+        return [
+            apply_repeat_indexes(xpath, version_xpath)
+            for version_xpath in sorted(version_xpaths)
+            if version_xpath.rsplit('/', 1)[-1] == leaf
+        ]
 
     def _last_submission_time(self):
         try:

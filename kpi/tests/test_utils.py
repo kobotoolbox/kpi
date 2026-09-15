@@ -33,8 +33,8 @@ from kpi.utils.strings import split_lines_to_list, strtobool
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
+    apply_repeat_indexes,
     edit_submission_xml,
-    find_element_by_leaf_name,
     fromstring_preserve_root_xmlns,
     get_or_create_element,
     strip_nodes,
@@ -826,40 +826,23 @@ class XmlUtilsTestCase(TestCase):
         re_target = re.sub(pattern, r'\1', target)
         self.assertEqual(re_source, re_target)
 
-    def test_find_element_by_leaf_name(self):
+    def test_apply_repeat_indexes(self):
         """
-        Paths from another form version resolve by question name, and repeat
-        occurrences follow the `[n]` indexes instead of collapsing to the
-        first match.
+        Repeat indexes follow their group by name onto a path from another
+        form version, and drop away when that group is gone from it.
         """
-        root = fromstring_preserve_root_xmlns(
-            '<root xmlns="http://openrosa.org/formats">'
-            '<story>old.mp3</story>'
-            '<rpt><clip>first.mp3</clip></rpt>'
-            '<rpt><clip>second.mp3</clip></rpt>'
-            '<outer><inner><note>a</note></inner><inner><note>b</note></inner></outer>'
-            '<outer><inner><note>c</note></inner></outer>'
-            '</root>'
+        # A question renamed inside the same repeat keeps its occurrence
+        assert apply_repeat_indexes('visits[2]/photo', 'visits/picture') == (
+            'visits[2]/picture'
         )
-
-        def text_at(xpath):
-            element = find_element_by_leaf_name(root, xpath)
-            return None if element is None else element.text
-
-        # A question moved into a group since the submission was made
-        assert text_at('grp/story') == 'old.mp3'
-        # A renamed repeat: the requested occurrence, not the first match
-        assert text_at('renamed[2]/clip') == 'second.mp3'
-        assert text_at('renamed[1]/clip') == 'first.mp3'
-        # No index behaves like `find()`: first occurrence
-        assert text_at('renamed/clip') == 'first.mp3'
-        # Nested repeats keep every level's position
-        assert text_at('x[1]/y[2]/note') == 'b'
-        assert text_at('x[2]/y[1]/note') == 'c'
-        # Nothing invented for missing questions or occurrences
-        assert text_at('renamed[3]/clip') is None
-        assert text_at('x[2]/y[2]/note') is None
-        assert text_at('nope') is None
+        # Nested repeats each keep their own index
+        assert apply_repeat_indexes('a[1]/b[3]/q', 'a/b/q') == 'a[1]/b[3]/q'
+        # A question moved out of the repeat has a single occurrence
+        assert apply_repeat_indexes('visits[2]/photo', 'photo') == 'photo'
+        # A question moved into a plain group gets no index invented
+        assert apply_repeat_indexes('photo', 'grp/photo') == 'grp/photo'
+        # Nothing to carry over leaves the target untouched
+        assert apply_repeat_indexes('grp/photo', 'photo') == 'photo'
 
 
 class AttachmentFilenamesAndXpathsTestCase(TestCase):
