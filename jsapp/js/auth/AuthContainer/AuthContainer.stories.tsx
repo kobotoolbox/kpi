@@ -40,8 +40,8 @@ const makeAuthConfigurationMock = (override: Partial<AuthConfiguration>) =>
  */
 const authRouting = (outlet: React.ReactNode) =>
   reactRouterParameters({
-    location: { path: AUTH_ROUTES.TEST },
-    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'test', element: outlet }),
+    location: { path: AUTH_ROUTES.REGISTER },
+    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'register', element: outlet }),
   })
 
 /** Placeholder card content. The input gives the tab-order assertions something to land on. */
