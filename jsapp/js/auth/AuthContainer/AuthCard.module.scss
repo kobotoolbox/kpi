@@ -18,10 +18,6 @@
   display: flex;
   flex-direction: row;
   box-shadow: pageFrame.$card-shadow;
-  // To keep the panels that load results from resizing back and forth. Overrideable with `minHeight` prop.
-  // Sized to the tallest of those panels (the confirmed email one, illustration and button included), so anything
-  // taller simply grows past it.
-  min-height: 370px;
 }
 
 .column {

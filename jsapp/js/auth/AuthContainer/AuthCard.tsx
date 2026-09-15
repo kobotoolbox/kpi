@@ -6,11 +6,6 @@ export interface AuthCardProps {
   children: React.ReactNode
   /** Optional second column: supporting content beside the form on a wide card, below it on a narrow one. */
   aside?: React.ReactNode
-  /**
-   * Overrides minimum height (number is pixels), for a screen whose tallest state needs more room than that (or one
-   * that wants no floor at all - pass `0`).
-   */
-  minHeight?: React.CSSProperties['minHeight']
 }
 
 /**
@@ -18,19 +13,18 @@ export interface AuthCardProps {
  * to get the two column variant, which stacks into one column when the card is too narrow for both.
  *
  * Mantine gives us the card surface and the divider; the stylesheet covers what Mantine can't express
- * (the Figma box-shadow, the flex row, the minimum height that keeps swapped panels from resizing the
- * card, and the container query that drives the responsive padding and the stacking).
+ * (the Figma box-shadow, the flex row, and the container query that drives the responsive padding and
+ * the stacking).
  */
-export default function AuthCard({ children, aside, minHeight }: AuthCardProps) {
+export default function AuthCard({ children, aside }: AuthCardProps) {
   return (
     // The container query in the stylesheet can't be written against the element that declares
     // `container-type`, so the card is a child of this wrapper rather than being the wrapper itself.
     <div className={cx(styles.container, { [styles['container--twoColumns']]: aside })}>
       {/* `bd='none'` beats the theme's unconditional `Paper` border with an inline style, no
           `!important` needed. `p={0}` because the padding belongs to the columns, so the divider can
-          run the card's full height - and because a container query can't override an inline style.
-          `mih` is inline for that first reason too: it has to win over the stylesheet's default. */}
-      <Paper component='section' radius={20} p={0} bd='none' mih={minHeight} className={styles.card}>
+          run the card's full height - and because a container query can't override an inline style. */}
+      <Paper component='section' radius={20} p={0} bd='none' className={styles.card}>
         <Box className={styles.column}>{children}</Box>
 
         {aside && (
