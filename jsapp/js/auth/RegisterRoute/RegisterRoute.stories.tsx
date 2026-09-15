@@ -47,8 +47,8 @@ const supportingEnvironmentMock = makeEnvironmentMock({
   },
 })
 
-/** An instance that asks for the profile fields and requires most of them */
-const requiredMetadataEnvironmentMock = makeEnvironmentMock({
+/** An instance that asks for every profile field it can and requires most of them */
+const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
   terms_of_service_url: TERMS_OF_SERVICE_URL,
   privacy_policy_url: PRIVACY_POLICY_URL,
   user_metadata_fields: [
@@ -136,12 +136,6 @@ const waitForEnvironment = (canvas: Canvas) =>
  */
 const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
-/** Picks an option from a dropdown. Mantine renders the list in a portal, so it is outside the canvas. */
-async function selectOption(canvasElement: HTMLElement, label: string, option: string) {
-  await userEvent.click(field(within(canvasElement), label))
-  await userEvent.click(await within(canvasElement.ownerDocument.body).findByRole('option', { name: option }))
-}
-
 /** Fills every field with something the client accepts. */
 async function fillForm(canvas: Canvas, overrides: Partial<typeof VALID_INPUT> = {}) {
   const values = { ...VALID_INPUT, ...overrides }
@@ -217,28 +211,24 @@ export const ClientValidation: Story = {
   },
 }
 
-export const RequiredMetadataFields: Story = {
-  parameters: { msw: { handlers: storyHandlers({ environment: requiredMetadataEnvironmentMock }) } },
+/**
+ * The profile fields this instance requires through `USER_METADATA_FIELDS` are not asked for here: signup
+ * stays short and they are collected after logging in.
+ */
+export const RequiredProfileFieldsOmitted: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: requiredProfileFieldsEnvironmentMock }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
     await waitForEnvironment(canvas)
 
-    // Configured, but they belong to account settings - the signup endpoint has nowhere to put them.
-    expect(canvas.queryByLabelText(/^Bio/)).not.toBeInTheDocument()
-    expect(canvas.queryByLabelText(/^City/)).not.toBeInTheDocument()
+    for (const label of ['Country', 'Sector', 'Organization type', 'Organization name', 'Gender', 'Bio', 'City']) {
+      expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
+    }
 
     await submit(canvas)
-    // Six configured fields on top of the five this form always asks for.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(11)
-
-    await selectOption(canvasElement, 'Organization type', 'I am not associated with any organization')
-
-    // Both organization inputs leave, and their errors with them: the backend accepts them blank once the answer is
-    // "no organization", required or not.
-    expect(canvas.queryByLabelText(/^Organization name/)).not.toBeInTheDocument()
-    expect(canvas.queryByLabelText(/^Organization website/)).not.toBeInTheDocument()
-    expect(canvas.getAllByText('Required field')).toHaveLength(8)
+    // The same six as `ClientValidation`: what the instance configures makes no difference to this form.
+    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
   },
 }
 
