@@ -1,5 +1,4 @@
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.account.forms import SignupForm
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
@@ -13,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from .models import SocialAppManagedDomain
+from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -25,9 +25,15 @@ class AccountAdapter(DefaultAccountAdapter):
         super().login(request, user)
 
     def save_user(self, request, user, form, commit=True):
-        # Compare allauth SignupForm with our custom field
-        standard_fields = set(SignupForm().fields.keys())
-        extra_fields = set(form.fields.keys()).difference(standard_fields)
+        # Which extra fields a form carries depends on the flow: the API form has
+        # only newsletter/ToS, the HTML and SSO ones add profile metadata, and
+        # `USER_METADATA_FIELDS` may drop some per server. So take the full list
+        # and keep whatever was actually submitted
+        extra_fields = [
+            field_name
+            for field_name in SIGNUP_EXTRA_FIELD_NAMES
+            if field_name in form.cleaned_data
+        ]
         with transaction.atomic():
             user = super().save_user(request, user, form, commit)
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
