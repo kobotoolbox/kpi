@@ -6,8 +6,8 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
-from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.accounts.tests.utils import MockProvider
+from kobo.apps.accounts.utils import DEFAULT_IN_APP_MESSAGE_BODY
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.utils.transaction import immediate_on_commit
@@ -272,6 +272,8 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             generic_related_objects={social_app_key: self.social_app.pk},
             message_type=MessageType.MANAGED_SSO_REMINDER,
         )
+        self.custom_data.in_app_message = iam
+        self.custom_data.save()
         InAppMessageUsers.objects.create(user=unlinked_user, in_app_message=iam)
 
         url = reverse(
@@ -430,6 +432,8 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             list(self.custom_data.domains.values_list('domain', flat=True)),
             ['example.com'],
         )
+        assert self.custom_data.in_app_message.body == 'Custom message body'
+        assert self.custom_data.send_in_app_message is True
 
     def test_confirmed_with_message_toggled_off_saves_without_error(self):
         # Toggle off means no message field submitted: empty body must not block
@@ -473,16 +477,10 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         patched.assert_any_call(
             social_app_custom_data_id=new_custom_data.pk,
             domain='example.com',
-            requesting_user_id=self.admin_user.pk,
-            send_in_app_message=False,
-            in_app_message_body=None,
         )
         patched.assert_any_call(
             social_app_custom_data_id=new_custom_data.pk,
             domain='another.com',
-            requesting_user_id=self.admin_user.pk,
-            send_in_app_message=False,
-            in_app_message_body=None,
         )
 
     # initially managed, managed on save, expect task for existing, expect task for new
@@ -531,15 +529,9 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             patched.assert_any_call(
                 social_app_custom_data_id=self.custom_data.pk,
                 domain='example.com',
-                requesting_user_id=self.admin_user.pk,
-                send_in_app_message=True,
-                in_app_message_body='Custom message body',
             )
         if expect_task_for_new_domain:
             patched.assert_any_call(
                 social_app_custom_data_id=self.custom_data.pk,
                 domain='another.com',
-                requesting_user_id=self.admin_user.pk,
-                send_in_app_message=True,
-                in_app_message_body='Custom message body',
             )

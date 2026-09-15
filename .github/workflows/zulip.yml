@@ -17,6 +17,9 @@ on:
       ZULIP_API_KEY_GITHUB_ACTIONS_BOT:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   zulip:
     runs-on: ubuntu-24.04
