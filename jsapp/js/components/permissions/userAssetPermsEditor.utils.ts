@@ -28,6 +28,7 @@ export const EMPTY_EDITOR_STATE: UserAssetPermsEditorState = {
   isSubmitPending: false,
   isEditingUsername: false,
   isCheckingUsername: false,
+  isUsernamePristine: true,
   username: '',
   formView: false,
   formViewDisabled: false,

@@ -6,6 +6,9 @@ from typing import BinaryIO, Optional, Union
 import requests
 from django.conf import settings
 from django.core.cache import cache
+from ssrf_protect.exceptions import SSRFProtectException
+
+from kpi.utils.ssrf import validate_url_against_ssrf
 
 
 def calculate_hash(
@@ -103,9 +106,12 @@ def calculate_hash(
     # as `Content-Length`
     headers = {'Accept-Encoding': 'identity'}
     try:
+        # A URL that is blocked or cannot be resolved is hashed as a plain
+        # string, exactly like one whose server does not answer
+        validate_url_against_ssrf(source)
         response = requests.head(source, headers=headers)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, SSRFProtectException):
         return _finalize_hash(source, 'url')
 
     try:

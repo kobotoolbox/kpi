@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.core.exceptions import SuspiciousFileOperation
 
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
+from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 
 
@@ -40,7 +41,13 @@ def get_attachment_filenames_and_xpaths(
         else:
             if key in attachment_xpaths:
                 try:
-                    value = default_kobocat_storage.get_valid_name(value)
+                    # Attachments saved before basenames were normalized are
+                    # stored under the raw name, which `get_valid_name()` strips
+                    # of its combining marks. Key both forms so they resolve.
+                    raw_valid_name = default_kobocat_storage.get_valid_name(value)
+                    nfc_valid_name = default_kobocat_storage.get_valid_name(
+                        normalize_nfc(value)
+                    )
                 except SuspiciousFileOperation:
                     logging.error(f'Could not get valid name from {value}')
                     continue
@@ -55,6 +62,8 @@ def get_attachment_filenames_and_xpaths(
                         group = group_name.split('/')[-1]
                         key = key.replace(group, f'{group}[{group_index}]')
 
-                return_dict[value] = key
+                return_dict[nfc_valid_name] = key
+                if raw_valid_name != nfc_valid_name:
+                    return_dict[raw_valid_name] = key
 
     return return_dict

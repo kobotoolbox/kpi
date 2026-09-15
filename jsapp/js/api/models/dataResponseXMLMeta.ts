@@ -13,4 +13,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 export interface DataResponseXMLMeta {
   instanceID: string
   deprecatedID?: string
+  formVersions?: string
 }

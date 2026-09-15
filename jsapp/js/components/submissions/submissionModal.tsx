@@ -2,13 +2,14 @@ import './submissionModal.scss'
 
 import React from 'react'
 
+import { Loader } from '@mantine/core'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
-import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import SubmissionDataTable from '#/components/submissions/submissionDataTable'
@@ -45,8 +46,12 @@ interface SubmissionModalProps {
 }
 
 interface TranslationOption {
-  /** Empty string means unnamed language */
-  value: string | ''
+  /**
+   * The index of the translation. We use it (instead of the language name) as
+   * the value, because a language can be unnamed (i.e. `null`), and `Select`
+   * needs a non-empty string value for every option.
+   */
+  value: string
   label: string
 }
 
@@ -90,9 +95,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     let translationOptions: TranslationOption[] = []
 
     if (translations && translations.length > 1) {
-      translationOptions = translations.map((trns) => {
+      translationOptions = translations.map((trns, index) => {
         return {
-          value: trns || '',
+          value: String(index),
           label: trns || t('Unnamed language'),
         }
       })
@@ -374,12 +379,6 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   onValidationStatusChange(newValidationStatus: ValidationStatusOptionName) {
-    // `null` is not possible, because we have `isClearable={false}`, but TypeScript
-    // keeps complaining
-    if (newValidationStatus === null) {
-      return
-    }
-
     this.setState({ isValidationStatusChangePending: true })
 
     if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
@@ -392,9 +391,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   onLanguageChange(newValue: string | null) {
-    const index = this.state.translationOptions.findIndex((x) => x.value === newValue)
+    const index = Number(newValue)
     this.setState({
-      translationIndex: index || 0,
+      translationIndex: Number.isInteger(index) ? index : 0,
     })
   }
 
@@ -428,36 +427,30 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     return (
       <div className='submission-modal-dropdowns'>
         {this.state.translationOptions.length > 1 && (
-          <KoboSelect
+          <Select
             label={t('Language')}
-            name='submission-modal-language-switcher'
-            type='outline'
-            size='s'
-            options={this.state.translationOptions}
-            selectedOption={this.state.translationOptions[this.state.translationIndex].value}
-            onChange={(newSelectedOption: string | null) => {
+            size='xs'
+            clearable={false}
+            data={this.state.translationOptions}
+            value={String(this.state.translationIndex)}
+            onChange={(newSelectedOption) => {
               this.onLanguageChange(newSelectedOption)
             }}
           />
         )}
 
-        <KoboSelect
+        <Select<ValidationStatusOptionName>
           label={t('Validation status:')}
-          name='submission-modal-validation-status'
-          type='outline'
-          size='s'
-          options={VALIDATION_STATUS_OPTIONS}
-          selectedOption={selectedOption}
-          onChange={(newSelectedOption: string | null) => {
-            if (newSelectedOption !== null) {
-              const castOption = newSelectedOption as ValidationStatusOptionName
-              this.onValidationStatusChange(castOption)
-            } else {
-              this.onValidationStatusChange(ValidationStatusAdditionalName.no_status)
-            }
+          size='xs'
+          clearable={false}
+          data={VALIDATION_STATUS_OPTIONS}
+          value={selectedOption}
+          onChange={(newSelectedOption) => {
+            this.onValidationStatusChange(newSelectedOption ?? ValidationStatusAdditionalName.no_status)
           }}
-          isPending={this.state.isValidationStatusChangePending}
-          isDisabled={
+          rightSection={this.state.isValidationStatusChangePending ? <Loader size='xs' /> : undefined}
+          disabled={
+            this.state.isValidationStatusChangePending ||
             !(
               userCan('validate_submissions', this.props.asset) ||
               userHasPermForSubmission('validate_submissions', this.props.asset, this.state.submission)

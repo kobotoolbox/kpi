@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import isEqual from 'lodash.isequal'
 import { makeAutoObservable, reaction } from 'mobx'
-import { handleApiFail } from '#/api'
+import { handleApiFail, isAbortResponse } from '#/api'
 import searchBoxStore from '#/components/header/searchBoxStore'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse, FailResponse, PaginatedResponse, ProjectViewAsset } from '#/dataInterface'
@@ -12,7 +12,7 @@ import { buildQueriesFromFilters } from './projectViews/utils'
 import type { ProjectsTableOrder } from './projectsTable/projectsTable'
 
 const SAVE_DATA_NAME = 'project_views_settings'
-const PAGE_SIZE = 50
+export const PAGE_SIZE = 50
 
 const DEFAULT_VIEW_SETTINGS: ViewSettings = {
   filters: [],
@@ -41,6 +41,10 @@ class CustomViewStore {
   /** Whether the first page call was made after setup. */
   public isFirstLoadComplete = false
   public isLoading = false
+  /** Whether a next page call is currently in flight (i.e. infinite scroll is busy). */
+  public isLoadingNextPage = false
+  /** Whether the last next page call failed, so the UI can offer a retry. */
+  public hasNextPageError = false
   /** This starts with some default value, but `setUp` overrides it. */
   public defaultVisibleFields: ProjectFieldName[] = DEFAULT_VISIBLE_FIELDS
   /**
@@ -86,6 +90,8 @@ class CustomViewStore {
     this.assets = []
     this.isFirstLoadComplete = false
     this.isLoading = false
+    this.isLoadingNextPage = false
+    this.hasNextPageError = false
     this.nextPageUrl = null
     this.includeTypeFilter = includeTypeFilter
     this.loadSettings()
@@ -194,6 +200,11 @@ class CustomViewStore {
     this.isFirstLoadComplete = false
     this.isLoading = true
     this.assets = []
+    // The infinite scroll trigger reacts to `hasMoreAssets`, so the stale `next` url of the previous list has to go -
+    // otherwise the trigger would immediately ask for a "next" page that belongs to results we just dropped.
+    this.nextPageUrl = null
+    this.isLoadingNextPage = false
+    this.hasNextPageError = false
 
     // Step 2: Prepare url
     const url = new URL(this.baseUrl)
@@ -216,18 +227,22 @@ class CustomViewStore {
 
   /** Gets the next page of results (if available). */
   public fetchMoreAssets() {
-    if (this.nextPageUrl !== null) {
-      if (this.ongoingFetch) {
-        this.ongoingFetch.abort()
-      }
-      this.ongoingFetch = $.ajax({
-        dataType: 'json',
-        method: 'GET',
-        url: this.nextPageUrl,
-      })
-        .done(this.onFetchMoreAssetsDone.bind(this))
-        .fail(this.onAnyFail.bind(this))
+    // The infinite scroll trigger can ask for the next page repeatedly while one call is already in flight, so ignore
+    // such requests instead of aborting (and restarting) a call that is about to deliver the very same page.
+    if (this.nextPageUrl === null || this.isLoadingNextPage) {
+      return
     }
+
+    this.isLoadingNextPage = true
+    this.hasNextPageError = false
+
+    this.ongoingFetch = $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: this.nextPageUrl,
+    })
+      .done(this.onFetchMoreAssetsDone.bind(this))
+      .fail(this.onFetchMoreAssetsFail.bind(this))
   }
 
   public handleAssetChanged(modifiedAsset: AssetResponse) {
@@ -283,7 +298,8 @@ class CustomViewStore {
   private onFetchMoreAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {
     // This differs from `onFetchAssetsDone`, because it adds the Assets
     // to existing ones.
-    this.isLoading = false
+    this.isLoadingNextPage = false
+    this.hasNextPageError = false
     // Root cause: imports create new projects on the server, and default list ordering puts newest rows at the top. If
     // page 1 was fetched before that, its stored `next` offset can overlap with rows we already have when
     // `fetchMoreAssets` runs, so dedupe by uid before appending.
@@ -298,6 +314,16 @@ class CustomViewStore {
     })
     this.assets = this.assets.concat(uniqueNewAssets)
     this.nextPageUrl = response.next
+  }
+
+  private onFetchMoreAssetsFail(response: FailResponse) {
+    this.isLoadingNextPage = false
+    // An aborted call is not a real failure: `fetchAssets` aborts the ongoing call on purpose, and the fresh list it is
+    // loading must not start out with a "Retry" button attached to it.
+    if (!isAbortResponse(response)) {
+      this.hasNextPageError = true
+    }
+    handleApiFail(response)
   }
 
   private onAnyFail(response: FailResponse) {

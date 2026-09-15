@@ -4,9 +4,17 @@
 
 import * as Sentry from '@sentry/react'
 import type { FailResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
 import { ROOT_URL } from './constants'
+
+/**
+ * Whether a fail response is the result of us aborting the request on purpose (rather than an actual API error). Useful
+ * for callers that keep their own error state and shouldn't flag a request they cancelled themselves.
+ */
+export function isAbortResponse(response: FailResponse) {
+  return response.status === 0 && response.statusText === 'abort'
+}
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display
@@ -20,7 +28,7 @@ import { ROOT_URL } from './constants'
  */
 export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // Don't do anything if we purposefully aborted the request
-  if (response.status === 0 && response.statusText === 'abort') {
+  if (isAbortResponse(response)) {
     return
   }
 
@@ -142,11 +150,9 @@ export const fetchDataRaw = async <T>(
 
   // For when it's needed we pass authentication data
   if (method !== 'GET') {
-    // Need to support old token (64 characters - prior to Django 4.1)
-    // and new token (32 characters).
-    const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/)
-    if (csrfCookie) {
-      headers['X-CSRFToken'] = csrfCookie[1]
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers['X-CSRFToken'] = csrfToken
     }
 
     headers['Content-Type'] = JSON_HEADER

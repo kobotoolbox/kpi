@@ -19,7 +19,7 @@ import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { ROUTES } from '#/router/routerConstants'
-import { convertSecondsToMinutes, notify } from '#/utils'
+import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
@@ -48,10 +48,6 @@ const ProjectBreakdown = () => {
     query: {
       queryKey: getOrganizationsAssetUsageListQueryKey(organization.id, getQueryParams()),
       placeholderData: keepPreviousData,
-      throwOnError: () => {
-        notify(t('There was an error getting the list.'), 'error') // TODO: update message in backend (DEV-1218).
-        return false
-      },
     },
   })
 

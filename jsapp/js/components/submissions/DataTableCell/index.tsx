@@ -1,6 +1,6 @@
 import { Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
-import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   META_QUESTION_TYPES,
@@ -9,13 +9,13 @@ import {
 } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { formatTimeDateShort, recordKeys } from '#/utils'
-import { getMediaAttachment } from '../submissionUtils'
+import { findAttachmentByQuestionXpath, getMediaAttachment, inferAttachmentQuestionType } from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'
 import SupplementalDetailsCell from './SupplementalDetailsCell'
-import TextModalCell from './TextModalCell'
+import TextCell from './TextCell'
 
 interface DataTableCellProps {
   asset: AssetResponse
@@ -30,7 +30,9 @@ interface DataTableCellProps {
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
-  const shouldShowSelectMultipleLabels = props.translationIndex === 0
+  // Table settings encode the "XML Values" display option as a negative
+  // translation index (see `TableSettings`).
+  const shouldShowSelectLabels = props.translationIndex > -1
   const submission = props.reactTableRow.original
   const submissionIndex = props.reactTableRow.index + 1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
@@ -65,37 +67,46 @@ export default function DataTableCell(props: DataTableCellProps) {
 
   // Some repeat answers are stored under related nested keys, so a direct lookup for this column key can be
   // undefined even though repeat data exists in the submission payload.
+  //
+  // `null` is excluded explicitly, as `typeof null` is `'object'` and an empty
+  // response (e.g. `_submitted_by` of an anonymous submission) would otherwise be
+  // formatted as the string "null".
   if (
     !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP) &&
+    props.reactTableRow.value !== null &&
     (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
   ) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 
-  if (props.question && props.question.type && props.reactTableRow.value) {
-    if (recordKeys(TABLE_MEDIA_TYPES).includes(props.question.type)) {
-      let mediaAttachment = null
+  // A question renamed or removed after this submission came in has no row left, so
+  // its column gets no `props.question` - even though the response and its file are
+  // right here, under the path the attachment recorded back then.
+  const orphanedAttachment = props.question ? undefined : findAttachmentByQuestionXpath(submission, props.columnKey)
 
-      const attachmentIndex: number = submission._attachments.findIndex(
-        (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
-      )
+  const questionType = props.question?.type ?? (orphanedAttachment && inferAttachmentQuestionType(orphanedAttachment))
+  const questionXpath = props.question?.$xpath ?? orphanedAttachment?.question_xpath
 
-      if (props.question.type !== QUESTION_TYPES.text.id && submission._attachments[attachmentIndex]) {
-        mediaAttachment = getMediaAttachment(
-          submission,
-          props.reactTableRow.value,
-          submission._attachments[attachmentIndex].question_xpath,
-        )
-      }
+  if (questionType && props.reactTableRow.value) {
+    if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
+      // The cell value is only a basename, so the file has to be looked up by
+      // xpath - which for a renamed question no longer matches any column key.
+      const attachmentXpath =
+        orphanedAttachment?.question_xpath ??
+        submission._attachments.find(
+          (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
+        )?.question_xpath
 
-      if (
-        props.question.type === QUESTION_TYPES.audio.id ||
-        props.question.type === QUESTION_TYPES['background-audio'].id
-      ) {
-        if (mediaAttachment !== null && props.question.$xpath !== undefined) {
+      const mediaAttachment =
+        attachmentXpath === undefined
+          ? null
+          : getMediaAttachment(submission, props.reactTableRow.value, attachmentXpath)
+
+      if (questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id) {
+        if (mediaAttachment !== null && questionXpath !== undefined) {
           const audioXpath =
             typeof mediaAttachment === 'string' || !mediaAttachment.question_xpath
-              ? props.question.$xpath
+              ? questionXpath
               : mediaAttachment.question_xpath
           return (
             <AudioCell
@@ -103,17 +114,18 @@ export default function DataTableCell(props: DataTableCellProps) {
               xpath={audioXpath}
               submissionData={submission}
               mediaAttachment={mediaAttachment}
+              questionLabel={columnName}
             />
           )
         }
       }
 
-      if (mediaAttachment !== null && props.question.$xpath !== undefined) {
+      if (mediaAttachment !== null && questionXpath !== undefined) {
         return (
           <MediaCell
-            questionType={props.question.type}
+            questionType={questionType}
             mediaAttachment={mediaAttachment}
-            mediaName={props.reactTableRow.value}
+            displayValue={props.reactTableRow.value}
             submissionIndex={submissionIndex}
             submissionTotal={props.submissionCount}
             submission={submission}
@@ -123,53 +135,45 @@ export default function DataTableCell(props: DataTableCellProps) {
       }
     }
 
-    if (props.question.type === QUESTION_TYPES.select_one.id) {
-      const choice = props.choices.find(
-        (choiceItem) =>
-          choiceItem.list_name === props.question?.select_from_list_name &&
-          choiceItem.name === props.reactTableRow.value,
-      )
-      if (choice?.label && choice.label[props.translationIndex]) {
-        return <span className='trimmed-text'>{choice.label[props.translationIndex]}</span>
-      } else {
-        return <span className='trimmed-text'>{props.reactTableRow.value}</span>
-      }
-    }
     if (
-      props.question.type === QUESTION_TYPES.select_multiple.id &&
-      props.reactTableRow.value &&
-      shouldShowSelectMultipleLabels
+      shouldShowSelectLabels &&
+      (questionType === QUESTION_TYPES.select_one.id || questionType === QUESTION_TYPES.select_multiple.id)
     ) {
-      const values = props.reactTableRow.value.split(' ')
-      const labels: Array<string | null> = []
-      values.forEach((valueItem: string) => {
-        const choice = props.choices.find(
-          (choiceItem) =>
-            choiceItem.list_name === props.question?.select_from_list_name && choiceItem.name === valueItem,
-        )
-        if (choice && choice.label && choice.label[props.translationIndex]) {
-          labels.push(choice.label[props.translationIndex])
-        }
-      })
-
-      return <span className='trimmed-text'>{labels.join(', ')}</span>
+      return (
+        <span className='trimmed-text'>
+          {getSelectResponseLabel({
+            value: props.reactTableRow.value,
+            questionType,
+            listName: props.question?.select_from_list_name,
+            choices: props.choices,
+            translationIndex: props.translationIndex,
+          })}
+        </span>
+      )
     }
-    if (props.question.type === META_QUESTION_TYPES.start || props.question.type === META_QUESTION_TYPES.end) {
+    if (questionType === META_QUESTION_TYPES.start || questionType === META_QUESTION_TYPES.end) {
       return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
     }
   }
 
   if (props.columnKey === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
-    return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
+    // Empty check keeps an absent date an empty cell, as `moment` formats those
+    // as "Invalid date".
+    return (
+      <span className='trimmed-text'>
+        {props.reactTableRow.value ? formatTimeDateShort(props.reactTableRow.value) : ''}
+      </span>
+    )
   }
 
   if (props.question?.type === QUESTION_TYPES.text.id) {
     return (
-      <TextModalCell
+      <TextCell
+        assetUid={props.asset.uid}
+        xpath={props.question.$xpath}
+        submissionData={submission}
         text={props.reactTableRow.value}
-        columnName={columnName}
-        submissionIndex={submissionIndex}
-        submissionTotal={props.submissionCount}
+        questionLabel={columnName}
       />
     )
   }
@@ -185,8 +189,6 @@ export default function DataTableCell(props: DataTableCellProps) {
         submission={submission}
         columnKey={props.columnKey}
         columnName={columnName}
-        submissionIndex={submissionIndex}
-        submissionTotal={props.submissionCount}
       />
     )
   }

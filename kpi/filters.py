@@ -21,6 +21,7 @@ from kpi.constants import (
 from kpi.exceptions import (
     QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
+    QueryParserTooManyRelationalFilters,
     SearchQueryTooShortException,
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
@@ -398,6 +399,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         except (
             ParseError,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ):
             # Let's `SearchFilter` handle errors
@@ -478,6 +480,7 @@ class SearchFilter(filters.BaseFilterBackend):
         except (
             QueryParserBadSyntax,
             QueryParserNotSupportedFieldLookup,
+            QueryParserTooManyRelationalFilters,
             SearchQueryTooShortException,
         ) as e:
             # raising an exception if the default search query without a
@@ -485,9 +488,7 @@ class SearchFilter(filters.BaseFilterBackend):
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
         try:
-            # If we are searching on an n-to-many field, we may get multiple results
-            # from the same model, so we need to de-duplicate with distinct(). Rely
-            # on the view to tell us if this is not necessary
+            # n-to-many joins can duplicate rows; de-dupe unless the view opts out
             if getattr(view, 'skip_distinct', False):
                 return queryset.filter(q_obj)
             else:

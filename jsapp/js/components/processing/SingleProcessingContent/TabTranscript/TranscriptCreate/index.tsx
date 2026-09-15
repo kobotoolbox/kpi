@@ -6,14 +6,12 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import {
-  getSubmissionRootUuid,
-  isConflictingOngoingJobForSubmission,
-} from '#/components/processing/common/conflictingOngoingJob'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { getSubmissionRootUuid } from '#/utils'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
@@ -51,15 +49,16 @@ export default function TranscriptCreate({
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
 
-  const hasConflictingOngoingJob =
-    languageCode !== null &&
-    isConflictingOngoingJobForSubmission({
-      activeBulkActions,
-      actionType: 'transcript',
-      fieldXpath: questionXpath,
-      submissionUuid: getSubmissionRootUuid(submission),
-      selectedLanguage: languageCode,
-    })
+  // No `selectedLanguage`: every job on this question rewrites the transcript, so
+  // for `transcript` the check ignores the language anyway. Previously this was
+  // additionally gated on a language being picked, which kept the "begin" step
+  // (where none is picked yet) from ever knowing about a running job.
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+  })
 
   const attachment = getAttachmentForProcessing(questionXpath, submission)
 
@@ -72,7 +71,12 @@ export default function TranscriptCreate({
   return (
     <>
       {step === CreateSteps.Begin && (
-        <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep(CreateSteps.Language)} />
+        <StepBegin
+          asset={asset}
+          questionXpath={questionXpath}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
+          onNext={() => setStep(CreateSteps.Language)}
+        />
       )}
       {step === CreateSteps.Language && (
         <StepSelectLanguage

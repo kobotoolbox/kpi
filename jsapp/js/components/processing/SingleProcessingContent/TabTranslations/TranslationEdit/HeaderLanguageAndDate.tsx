@@ -38,8 +38,7 @@ export default function HeaderLanguageAndDate({
             onChange={(newSelectedOption: LanguageCode | null) => {
               newSelectedOption && onChangeLanguageCode(newSelectedOption)
             }}
-            size='s'
-            type='blue'
+            size='xs'
           />
         </label>
       ) : (

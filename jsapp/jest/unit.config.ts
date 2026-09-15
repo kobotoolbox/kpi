@@ -24,6 +24,8 @@ const config: Config = {
     '^#/(.*)$': '<rootDir>/../js/$1', // 📁 'js/*'
     // 🎨 mock all CSS modules imported (styles.root = 'root')
     '\\.(css|scss)$': 'identity-obj-proxy',
+    // 🖼️ webpack resolves these to a URL string; give tests a stand-in
+    '\\.(svg|png|jpg|gif|ttf|eot|woff2?)$': '<rootDir>/fileMock.js',
   },
 
   // Extensions to try in order (for import statements with no extension)

@@ -9,7 +9,7 @@ import {
 import Button from '#/components/common/button'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import protectorHelpers from '#/protector/protectorHelpers'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '#/utils'
 import styles from './index.module.scss'
 
 const selectNeighborResults = (data: assetsDataListResponse) => {
@@ -83,7 +83,7 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
       goToProcessing(
         assetUid,
         xpath,
-        removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']),
+        getSubmissionRootUuid(queryPrev.data!.submission),
         getActiveTab(),
         getActiveLanguageCode(),
       ),
@@ -96,7 +96,7 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
       goToProcessing(
         assetUid,
         xpath,
-        removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']),
+        getSubmissionRootUuid(queryNext.data!.submission),
         getActiveTab(),
         getActiveLanguageCode(),
       ),

@@ -1,7 +1,9 @@
 import React from 'react'
 
-import { fromJS } from 'immutable'
+import { MantineProvider } from '@mantine/core'
+import { List, Map } from 'immutable'
 import { createRoot } from 'react-dom/client'
+import { cssVariablesResolverKobo, themeKobo } from '#/theme'
 import { recordKeys } from '#/utils'
 import KoboMatrix from './containers/KoboMatrix'
 
@@ -38,8 +40,15 @@ class KoboMatrixRow {
 
     const _b = _o.toJSON()
     this.kobomatrix_list = _b['kobo--matrix_list']
-    this.data = fromJS(obj2)
-    var _c = fromJS(choices)
+    const colKuids = obj2.cols
+    const colEntries = colKuids.map((kuid) => [kuid, Map(obj2[kuid])])
+    this.data = Map({
+      ...Object.fromEntries(colEntries),
+      label: obj2.label,
+      cols: List(colKuids),
+    })
+    const choiceEntries = Object.entries(choices).map(([kuid, val]) => [kuid, Map(val)])
+    var _c = Map(Object.fromEntries(choiceEntries))
     this.data = this.data.set('choices', _c.toOrderedMap())
     this.kuid = _b.$kuid
   }
@@ -48,7 +57,15 @@ class KoboMatrixRow {
 export function renderKobomatrix(view, el) {
   const model = new KoboMatrixRow(view.model)
   const root = createRoot(el.get(0))
-  root.render(<KoboMatrix model={model} />)
+  // This is a detached React root, so the app's `MantineProvider` (in
+  // `basicLayout.component.tsx`) is not an ancestor and Mantine components here
+  // would find no theme in context. CSS variables are skipped because the app
+  // root already writes the same ones to `:root`.
+  root.render(
+    <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo} withCssVariables={false}>
+      <KoboMatrix model={model} />
+    </MantineProvider>,
+  )
   // TODO: should this root be unmounted at some point?
   // https://react.dev/reference/react-dom/client/createRoot#root-unmount
   // Maybe instantiate the root in KoboMatrixView, then unmount it when

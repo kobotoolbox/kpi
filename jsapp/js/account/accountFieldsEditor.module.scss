@@ -1,4 +1,3 @@
-@use 'js/components/common/textBox.module';
 @use 'scss/colors';
 
 .row {
@@ -18,18 +17,6 @@
   // a simple and elegant way - as opposed to adding more logic to the TSX file.
   &:empty {
     display: none;
-  }
-
-  .checkboxLabel {
-    margin-top: 6px;
-    margin-bottom: 6px;
-    color: colors.$kobo-gray-800;
-  }
-
-  :global {
-    .checkbox__wrapper {
-      margin-top: 6px;
-    }
   }
 }
 
@@ -63,17 +50,9 @@
 .checkboxLabel {
   width: 100%;
   color: colors.$kobo-gray-800;
+  // These stand in for a Mantine input label above a group of controls, so they
+  // are kept in sync by hand with `.label` in theme/kobo/InputBase.module.css.
   font-size: 12px;
-  line-height: textBox.$label-leading;
-  margin-bottom: textBox.$label-margin;
-}
-
-// Show 5 options without having to scroll for the last one
-.orgTypeDropdown :global .kobo-dropdown__menu > .k-select__menu {
-  max-height: none;
-}
-
-// Heighten bio field
-.row > .field :global textarea {
-  min-height: 2.5em;
+  margin-bottom: 5px;
+  display: block;
 }

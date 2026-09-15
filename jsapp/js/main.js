@@ -36,7 +36,7 @@ import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import Modal from 'react-modal'
 import AllRoutes from '#/router/allRoutes'
-import { csrfSafeMethod, currentLang } from '#/utils'
+import { csrfSafeMethod, currentLang, getCsrfToken } from '#/utils'
 import RegistrationPasswordApp from './registrationPasswordApp'
 
 const sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]')
@@ -86,17 +86,10 @@ if (gaTokenEl !== null && gaTokenEl.content) {
 // Setup the authentication of AJAX calls
 $.ajaxSetup({
   beforeSend: function (xhr, settings) {
-    let csrfToken = ''
-    try {
-      // Need to support old token (64 characters - prior to Django 4.1)
-      // and new token (32 characters).
-      csrfToken = document.cookie.match(/csrftoken=(\w{32,64})/)[1]
-    } catch (err) {
-      console.error('Cookie not matched')
-    }
     if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
       const cookies = new Cookies()
-      xhr.setRequestHeader('X-CSRFToken', csrfToken || cookies.get('csrftoken'))
+      // The fallback covers a token of any other length, which `getCsrfToken` deliberately ignores.
+      xhr.setRequestHeader('X-CSRFToken', getCsrfToken() || cookies.get('csrftoken'))
     }
   },
 })

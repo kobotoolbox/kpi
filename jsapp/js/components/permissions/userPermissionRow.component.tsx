@@ -1,16 +1,18 @@
+import { Box, FocusTrap, Group, Paper, Stack, Text } from '@mantine/core'
+import { IconPencil, IconTrash, IconX } from '@tabler/icons-react'
 import React from 'react'
-
-import alertify from 'alertifyjs'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
-import bem from '#/bem'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
+import ModalNew from '#/components/common/ModalNew'
 import Avatar from '#/components/common/avatar'
-import Button from '#/components/common/button'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
-import { escapeHtml } from '#/utils'
+import { KOBO_MODAL_OVERLAY_PROPS } from '#/theme/kobo/Modal'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
 import { PERMISSIONS_CODENAMES } from './permConstants'
@@ -32,6 +34,7 @@ interface UserPermissionRowProps {
 interface UserPermissionRowState {
   isEditFormVisible: boolean
   isBeingDeleted: boolean
+  isRemovePermissionsPromptVisible: boolean
 }
 
 export default class UserPermissionRow extends React.Component<UserPermissionRowProps, UserPermissionRowState> {
@@ -41,6 +44,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     this.state = {
       isEditFormVisible: false,
       isBeingDeleted: false,
+      isRemovePermissionsPromptVisible: false,
     }
   }
 
@@ -54,22 +58,15 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
   }
 
   showRemovePermissionsPrompt() {
-    const dialog = alertify.dialog('confirm')
-    const opts = {
-      title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace(
-        '##username##',
-        `<strong>${escapeHtml(this.props.username)}</strong>`,
-      ),
-      labels: { ok: t('Remove'), cancel: t('Cancel') },
-      onok: this.removeAllPermissions.bind(this),
-      oncancel: dialog.destroy,
-    }
-    dialog.set(opts).show()
+    this.setState({ isRemovePermissionsPromptVisible: true })
+  }
+
+  hideRemovePermissionsPrompt() {
+    this.setState({ isRemovePermissionsPromptVisible: false })
   }
 
   removeAllPermissions() {
-    this.setState({ isBeingDeleted: true })
+    this.setState({ isRemovePermissionsPromptVisible: false, isBeingDeleted: true })
 
     const isCurrentUser = this.props.username === sessionStore.currentAccount.username
 
@@ -98,91 +95,148 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
    * of related conditions.
    */
   renderPermissions(permissions: PermissionResponse[]) {
+    const permissionLabels: string[] = []
+
+    permissions.forEach((perm) => {
+      // UI already shows if a collection is discoverable, and we should not explicitly assign this permission.
+      if (perm.permission.includes(PERMISSIONS_CODENAMES.discover_asset)) {
+        return
+      }
+
+      // Keep this as key generation and to preserve previous mapping behavior.
+      getPermLabel(perm, this.props.asset.asset_type)
+
+      // Between UserPermissionRow and UserAssetPermsEditor, generation of permission labels takes a small but
+      // significantly different starting point. To avoid deeper complications we do a little bit of redundant work
+      // here (to get the permission definition) needed to generate contextual labels.
+      //
+      // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
+      const permDef = permConfig.getPermission(perm.permission)
+      if (permDef) {
+        permissionLabels.push(getFriendlyPermName(perm, this.props.asset.asset_type))
+      }
+    })
+
     return (
-      <bem.UserRow__perms>
-        {permissions.map((perm) => {
-          // UI already shows if a collection is discoverable, and we should not explcitly assign this permission, so
-          // we display nothing if we run into it
-          if (perm.permission.includes(PERMISSIONS_CODENAMES.discover_asset)) {
-            return null
-          }
+      <Text size='sm' ta='right' maw={400}>
+        {permissionLabels.join(' · ')}
+      </Text>
+    )
+  }
 
-          const permLabel = getPermLabel(perm, this.props.asset.asset_type)
+  /**
+   * A confirmation modal displayed on top of the Sharing modal, thus it needs the nested modal z-indexes.
+   */
+  renderRemovePermissionsPrompt() {
+    const [messageStart, messageEnd] = t('This action will remove all permissions for user ##username##').split(
+      '##username##',
+    )
 
-          let friendlyPermName = ''
-          // Between UserPermissionRow and UserAssetPermsEditor, generation of permission labels takes a small but
-          // significantly different starting point. To avoid deeper complications we do a little bit of redundant work
-          // here (to get the permission definition) needed to generate contextual labels.
-          //
-          // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
-          const permDef = permConfig.getPermission(perm.permission)
-          if (permDef) {
-            friendlyPermName = getFriendlyPermName(perm, this.props.asset.asset_type)
-          }
+    return (
+      <ModalNew
+        opened={this.state.isRemovePermissionsPromptVisible}
+        onClose={this.hideRemovePermissionsPrompt.bind(this)}
+        title={t('Remove permissions?')}
+        size='sm'
+        zIndex={KOBO_Z_INDEX.nestedModal}
+        overlayProps={{
+          ...KOBO_MODAL_OVERLAY_PROPS,
+          zIndex: KOBO_Z_INDEX.nestedModalOverlay,
+        }}
+      >
+        {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
+        <FocusTrap.InitialFocus />
 
-          return <bem.UserRow__perm key={permLabel}>{friendlyPermName}</bem.UserRow__perm>
-        })}
-      </bem.UserRow__perms>
+        <Stack>
+          <Text>
+            {messageStart}
+            <strong>{this.props.username}</strong>
+            {messageEnd}
+          </Text>
+
+          <Group justify='flex-end'>
+            <ButtonNew size='md' variant='light' onClick={this.hideRemovePermissionsPrompt.bind(this)}>
+              {t('Cancel')}
+            </ButtonNew>
+
+            <ButtonNew size='md' variant='danger' onClick={this.removeAllPermissions.bind(this)}>
+              {t('Remove')}
+            </ButtonNew>
+          </Group>
+        </Stack>
+      </ModalNew>
     )
   }
 
   render() {
-    const modifiers = []
     if (!this.props.isPendingOwner && this.props.permissions.length === 0) {
-      modifiers.push('deleted')
+      return null
     }
-    if (this.state.isBeingDeleted) {
-      modifiers.push('pending')
-    }
+
+    const isPending = this.state.isBeingDeleted
 
     return (
-      <bem.UserRow m={modifiers}>
-        <bem.UserRow__info>
-          <bem.UserRow__avatar>
-            <Avatar size='m' username={this.props.username} isUsernameVisible />
-          </bem.UserRow__avatar>
+      <Paper withBorder p='sm'>
+        {this.renderRemovePermissionsPrompt()}
 
-          {this.props.isUserOwner && <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>}
+        <Stack gap='xs'>
+          <Group
+            justify='space-between'
+            align='center'
+            wrap='nowrap'
+            style={{ opacity: isPending ? 0.5 : 1, pointerEvents: isPending ? 'none' : 'auto' }}
+          >
+            <Box miw={200}>
+              <Avatar size='m' username={this.props.username} isUsernameVisible />
+            </Box>
 
-          {this.props.isPendingOwner && <bem.UserRow__perms>{t('Pending owner')}</bem.UserRow__perms>}
+            {this.props.isUserOwner && <Text size='sm'>{t('is owner')}</Text>}
 
-          {!this.props.isUserOwner && !this.props.isPendingOwner && (
-            <div className='user-row__perms-actions'>
-              {this.renderPermissions(this.props.permissions)}
-              {this.props.userCanEditPerms && (
-                <>
-                  <Button
-                    type='secondary'
-                    size='m'
-                    startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
-                    onClick={this.toggleEditForm.bind(this)}
-                  />
+            {this.props.isPendingOwner && <Text size='sm'>{t('Pending owner')}</Text>}
 
-                  <Button
-                    type='secondary-danger'
-                    size='m'
-                    startIcon='trash'
-                    onClick={this.showRemovePermissionsPrompt.bind(this)}
-                  />
-                </>
-              )}
-            </div>
+            {!this.props.isUserOwner && !this.props.isPendingOwner && (
+              <Group gap='xs' align='center' wrap='nowrap'>
+                {this.renderPermissions(this.props.permissions)}
+                {this.props.userCanEditPerms && (
+                  <Group gap={6} wrap='nowrap'>
+                    <ActionIcon
+                      variant='light'
+                      size='md'
+                      aria-label={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
+                      tooltip={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
+                      onClick={this.toggleEditForm.bind(this)}
+                      icon={this.state.isEditFormVisible ? IconX : IconPencil}
+                    />
+
+                    <ActionIcon
+                      variant='danger-secondary'
+                      size='md'
+                      color='red'
+                      aria-label={t('Remove all permissions')}
+                      tooltip={t('Remove all permissions')}
+                      onClick={this.showRemovePermissionsPrompt.bind(this)}
+                      icon={IconTrash}
+                    />
+                  </Group>
+                )}
+              </Group>
+            )}
+          </Group>
+
+          {this.state.isEditFormVisible && (
+            <Box p='md' bg='gray.7' bdrs='sm'>
+              <UserAssetPermsEditor
+                asset={this.props.asset}
+                username={this.props.username}
+                permissions={this.props.permissions}
+                assignablePerms={this.props.assignablePerms}
+                nonOwnerPerms={this.props.nonOwnerPerms}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
+              />
+            </Box>
           )}
-        </bem.UserRow__info>
-
-        {this.state.isEditFormVisible && (
-          <bem.UserRow__editor>
-            <UserAssetPermsEditor
-              asset={this.props.asset}
-              username={this.props.username}
-              permissions={this.props.permissions}
-              assignablePerms={this.props.assignablePerms}
-              nonOwnerPerms={this.props.nonOwnerPerms}
-              onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
-            />
-          </bem.UserRow__editor>
-        )}
-      </bem.UserRow>
+        </Stack>
+      </Paper>
     )
   }
 }

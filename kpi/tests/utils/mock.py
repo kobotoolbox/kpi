@@ -1,6 +1,8 @@
 # coding: utf-8
 import json
+from ipaddress import ip_address
 from mimetypes import guess_type
+from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, unquote
 
 from django.conf import settings
@@ -9,6 +11,22 @@ from rest_framework import status
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.utils.xml import fromstring_preserve_root_xmlns
+
+
+def patch_ssrf_dns(ip: str = '1.2.3.4'):
+    """
+    Return a fresh `patch` object forcing `SSRFProtect._get_ip_address` to
+    resolve to `ip`.
+
+    `responses` mocks HTTP but not DNS, so any test whose mocked host does not
+    actually resolve would otherwise raise `SSRFProtectException` before the
+    request is made. Applied as a decorator or context manager. `new` is used
+    so the patch does not inject a mock argument into the decorated test.
+    """
+    return patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address(ip)),
+    )
 
 
 def enketo_edit_instance_response(request):

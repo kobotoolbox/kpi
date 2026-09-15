@@ -7,7 +7,7 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Select from '#/components/common/Select'
-import { getAssetUIDFromUrl, notify } from '#/utils'
+import { getAssetUIDFromUrl } from '#/utils'
 
 interface MemberRoleSelectorProps {
   username: string
@@ -23,11 +23,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
   const [organization] = useOrganizationAssumed()
 
   const orgMembersPatch = useOrganizationsMembersPartialUpdate({})
-  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
-    mutation: {
-      onError: () => notify(t('There was an error updating this invitation.'), 'error'), // TODO: update message in backend (DEV-1218).
-    },
-  })
+  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({})
 
   const handleRoleChange = async (role: InviteeRoleEnum | null) => {
     if (!role) return
@@ -48,6 +44,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
       <LoadingOverlay visible={orgMembersPatch.isPending || orgInvitesPatch.isPending} />
       <Select
         size='sm'
+        searchable={false} // too little options
         data={[
           {
             value: InviteeRoleEnum.admin,

@@ -1,18 +1,17 @@
+import { Box, Flex, Group, ScrollArea, Stack, Text } from '@mantine/core'
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
 import type { ServerError } from '#/api/ServerError'
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataCreate, useAssetsPairedDataPartialUpdate } from '#/api/react-query/survey-data'
-import bem from '#/bem'
-import Button from '#/components/common/button'
+import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import type { AssetResponse } from '#/dataInterface'
 import { getAssetUIDFromUrl, notify } from '#/utils'
 
-interface DataAttachmentColumnsFormProps {
-  onSetModalTitle: (newTitle: string) => void
-  onModalClose: () => void
+export interface DataAttachmentColumnsFormProps {
+  onRequestClose: () => void
   onAttachmentChanged?: () => void
   asset: AssetResponse
   source: Pick<AssetResponse, 'uid' | 'name' | 'url'>
@@ -24,8 +23,7 @@ interface DataAttachmentColumnsFormProps {
 /**
  * The content of the DATA_ATTACHMENT_COLUMNS modal
  *
- * @prop {function} onSetModalTitle - for changing the modal title by this component
- * @prop {function} onModalClose - causes the modal to close
+ * @prop {function} onRequestClose - causes the modal to close
  * @prop {object} asset - current asset
  * @prop {sourceAttributes} source
  * @prop {string} filename
@@ -33,9 +31,8 @@ interface DataAttachmentColumnsFormProps {
  * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
                                   otherwise, this is a new import
  */
-function DataAttachmentColumnsForm({
-  onSetModalTitle,
-  onModalClose,
+export function DataAttachmentColumnsForm({
+  onRequestClose,
   onAttachmentChanged,
   asset,
   source,
@@ -66,10 +63,6 @@ function DataAttachmentColumnsForm({
     })
 
   const isLoading = isCreatingAttachment || isPatchingAttachment
-
-  useEffect(() => {
-    onSetModalTitle(t('Import data from ##SOURCE_NAME##').replace('##SOURCE_NAME##', source.name))
-  }, [onSetModalTitle, source.name])
 
   useEffect(() => {
     const payload = sourceAssetResponse?.data
@@ -108,7 +101,7 @@ function DataAttachmentColumnsForm({
 
       const onSuccess = () => {
         onAttachmentChanged?.()
-        onModalClose()
+        onRequestClose()
       }
 
       const onFailure = (error: ServerError) => {
@@ -187,60 +180,64 @@ function DataAttachmentColumnsForm({
       createPairedDataMutate,
       filename,
       onAttachmentChanged,
-      onModalClose,
+      onRequestClose,
       patchPairedDataMutate,
       source.url,
     ],
   )
 
   return (
-    // TODO: Don't use BEM elements
-    // See: https://github.com/kobotoolbox/kpi/issues/3912
-    <bem.FormModal__form m='data-attachment-columns'>
-      <div className='header'>
-        <span className='modal-description'>
-          {t(
-            'You are about to import ##SOURCE_NAME##. Select or deselect in the list below to narrow down the number of questions to import.',
-          ).replace('##SOURCE_NAME##', source.name)}
-        </span>
+    <Stack gap={0}>
+      <Text size='md'>
+        {t(
+          'You are about to import ##SOURCE_NAME##. Select or deselect in the list below to narrow down the number of questions to import.',
+        ).replace('##SOURCE_NAME##', source.name)}
+      </Text>
 
-        <div className='bulk-options'>
-          <span className='bulk-options__description'>{t('Select below the questions you want to import')}</span>
+      <Flex mt={14} gap={10} align='center' justify='space-between' wrap='wrap'>
+        <Text fw='bold'>{t('Select below the questions you want to import')}</Text>
 
-          <div className='bulk-options__buttons'>
-            <Button type='secondary' size='s' onClick={onBulkSelect} label={t('Select all')} />
+        <Group gap={0} wrap='nowrap'>
+          <ButtonNew variant='light' size='sm' onClick={onBulkSelect}>
+            {t('Select all')}
+          </ButtonNew>
 
-            <span>{t('|')}</span>
+          <Text mx={12}>{t('|')}</Text>
 
-            <Button type='secondary' size='s' onClick={onBulkDeselect} label={t('Deselect all')} />
-          </div>
-        </div>
-      </div>
+          <ButtonNew variant='light' size='sm' onClick={onBulkDeselect}>
+            {t('Deselect all')}
+          </ButtonNew>
+        </Group>
+      </Flex>
 
-      {!isInitialised && <LoadingSpinner message={t('Loading imported questions')} />}
+      {!isInitialised && (
+        <Box mt={12}>
+          <LoadingSpinner message={t('Loading imported questions')} />
+        </Box>
+      )}
 
-      <MultiCheckbox
-        type='frame'
-        items={columnsToDisplay}
-        onChange={onColumnSelected}
-        disabled={isLoading || isFetchingSourceAsset}
-        className='data-attachment-columns-multicheckbox'
-      />
-
-      {isLoading && <LoadingSpinner message={t('Updating imported questions')} />}
-
-      <footer className='modal__footer'>
-        <Button
-          type='primary'
-          size='l'
-          isSubmit
-          onClick={onSubmit}
-          isDisabled={isLoading || !isInitialised}
-          label={t('Accept')}
-          className='data-attachment-modal-footer-button'
+      {/* The 200px tall bordered frame the `multi-checkbox--type-frame` styles used to provide */}
+      <ScrollArea h={200} mt={12} p={12} bd='1px solid var(--mantine-color-gray-6)' bdrs='xs'>
+        <MultiCheckbox
+          type='bare'
+          items={columnsToDisplay}
+          onChange={onColumnSelected}
+          disabled={isLoading || isFetchingSourceAsset}
         />
-      </footer>
-    </bem.FormModal__form>
+      </ScrollArea>
+
+      {isLoading && (
+        <Box mt={12}>
+          <LoadingSpinner message={t('Updating imported questions')} />
+        </Box>
+      )}
+
+      <Flex mt='md' justify='center'>
+        <ButtonNew size='lg' px={60} onClick={onSubmit} disabled={isLoading || !isInitialised}>
+          {t('Accept')}
+        </ButtonNew>
+      </Flex>
+    </Stack>
   )
 }
 

@@ -27,6 +27,10 @@ class ConfigurationFileSlug(models.TextChoices):
     LOGO = 'logo', 'Logo'
     LOGO_SMALL = 'logo_small', 'Small Logo'
     LOGIN_BACKGROUND = 'login_background', 'Login background'
+    LOGIN_SUPPORTING_IMAGE = (
+        'login_supporting_image',
+        'Login supporting image',
+    )
     COMMON_PASSWORDS_FILE = 'common_passwords_file', 'Common passwords file'
 
 

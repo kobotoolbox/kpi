@@ -8,13 +8,11 @@ import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-d
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
-import {
-  getSubmissionRootUuid,
-  isConflictingOngoingJobForSubmission,
-} from '#/components/processing/common/conflictingOngoingJob'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
+import { getSubmissionRootUuid } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './headerLanguageAndDate'

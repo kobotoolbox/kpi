@@ -10,8 +10,17 @@ from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db.models import CharField, Count, DateField, F, IntegerField, Sum, Value
-from django.db.models.functions import Cast, Concat
+from django.db.models import (
+    CharField,
+    Count,
+    DateField,
+    F,
+    Func,
+    IntegerField,
+    Sum,
+    Value,
+)
+from django.db.models.functions import Cast, Concat, Lower
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
@@ -179,7 +188,15 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     # get a count of the assets
     domain_assets = {
         domain: Asset.objects.filter(
-            owner__email__endswith='@' + domain,
+            owner__in=User.objects.annotate(
+                email_domain=Func(
+                    Lower('email'),
+                    Value('@'),
+                    Value(2),
+                    function='split_part',
+                    output_field=CharField(),
+                )
+            ).filter(email_domain=domain.lower()),
             date_created__date__range=(start_date, end_date),
         ).count()
         for domain in domain_users.keys()
@@ -201,7 +218,15 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
                 )
             )
             .filter(
-                user__email__endswith='@' + domain,
+                user__in=User.objects.annotate(
+                    email_domain=Func(
+                        Lower('email'),
+                        Value('@'),
+                        Value(2),
+                        function='split_part',
+                        output_field=CharField(),
+                    )
+                ).filter(email_domain=domain.lower()),
                 date__range=(start_date, end_date),
             )
             .aggregate(Sum('counter'))['counter__sum']
@@ -576,7 +601,7 @@ def generate_user_details_report(
         )
         .exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
-            mfa_is_active=F('mfa_methods__is_active'),
+            mfa_is_active=F('mfa_methods_wrapper__is_active'),
             metadata=F('extra_details__data'),
             joined_date=Cast('date_joined', CharField()),
             last_login_date=Cast('last_login', CharField()),

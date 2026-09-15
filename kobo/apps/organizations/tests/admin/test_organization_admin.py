@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.asset import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
@@ -147,6 +148,42 @@ class TestOrganizationAdminTestCase(TestCase):
         )
 
         assert 'already has an active Stripe subscription' in response.content.decode()
+
+    def test_autocomplete_results_include_organization_id(self):
+        """
+        Organization names are not unique, so the suggestions of the project view
+        organization selector must expose the ID to tell homonyms apart
+        """
+        homonym = Organization.objects.create(id='org5678', name='Test Organization')
+
+        response = self.client.get(
+            reverse('admin:autocomplete'),
+            data={
+                'term': 'Test Organization',
+                'app_label': 'project_views',
+                'model_name': 'projectview',
+                'field_name': 'organizations',
+            },
+        )
+
+        assert response.status_code == 200
+        assert {result['text'] for result in response.json()['results']} == {
+            f'Test Organization ({self.organization.id})',
+            f'Test Organization ({homonym.id})',
+        }
+
+    def test_project_view_form_shows_organization_id_of_selected_orgs(self):
+        project_view = ProjectView.objects.create(name='Test view', countries='*')
+        project_view.organizations.add(self.organization)
+
+        response = self.client.get(
+            reverse('admin:project_views_projectview_change', args=[project_view.pk])
+        )
+
+        assert response.status_code == 200
+        assert (
+            f'Test Organization ({self.organization.id})' in response.content.decode()
+        )
 
     def _manage_user_in_org(self, remove: bool = False):
         response = self._post_change_form({}, remove=remove)

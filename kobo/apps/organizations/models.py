@@ -25,7 +25,9 @@ from organizations.abstract import (
 )
 from organizations.utils import create_organization as create_organization_base
 
+from kpi.exceptions import MailerError
 from kpi.fields import KpiUidField
+from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 from kpi.utils.placeholders import replace_placeholders
 from .constants import (
@@ -92,6 +94,10 @@ class Organization(AbstractOrganization):
         max_length=20,
         choices=OrganizationType,
     )
+
+    def __str__(self) -> str:
+        # Names are not unique: include the ID so the admin can tell homonyms apart
+        return f'{self.name} ({self.id})'
 
     def add_user(self, user, is_admin=False):
         if not self.is_mmo and self.users.all().count():
@@ -277,6 +283,28 @@ class Organization(AbstractOrganization):
             return
 
 
+class EmptyOrganization(Organization):
+    """
+    Null object returned by `User.organization` for accounts which do not belong
+    to any organization, i.e. anonymous, inactive or removed users.
+
+    Being falsy keeps every `if organization` guard behaving as it did when the
+    property returned `None`, while attribute access such as `is_mmo` or
+    `is_admin_only()` no longer raises `AttributeError`. Since the instance is
+    never saved, its primary key stays `None` and every related lookup returns
+    an empty queryset, which makes all role checks resolve to `False`.
+    """
+
+    class Meta:
+        proxy = True
+
+    def __bool__(self) -> bool:
+        return False
+
+    def save(self, *args, **kwargs):
+        raise NotImplementedError('EmptyOrganization cannot be saved')
+
+
 class OrganizationUser(AbstractOrganizationUser):
 
     def __str__(self):
@@ -362,7 +390,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             language=sender_language,
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send organization invite acceptance email: {e}')
 
     def send_invite_email(self):
         is_registered_user = bool(self.invitee)
@@ -424,7 +455,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             language=invitee_language,
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send organization invite email: {e}')
 
     def send_refusal_email(self):
         """
@@ -454,7 +488,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             language=sender_language,
         )
 
-        Mailer.send(email_message)
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(f'Failed to send organization invite refusal email: {e}')
 
 
 create_organization = partial(create_organization_base, model=Organization)

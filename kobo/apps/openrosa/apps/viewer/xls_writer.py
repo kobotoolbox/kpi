@@ -1,7 +1,7 @@
 # coding: utf-8
 from collections import defaultdict
 
-from pyxform import Section, Question
+from pyxform import Question, Section
 from xlwt import Workbook
 
 from kobo.apps.openrosa.libs.utils.export_tools import question_types_to_exclude

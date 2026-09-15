@@ -84,9 +84,17 @@ module.exports = do ->
     toJSON2: ->
       outObj = {}
       for [key, val] in @attributesArray()
-        if key is 'type' and val.get('typeId') in ['select_one', 'select_multiple']
+        # The constructor merges the list name into the type value (e.g.
+        # "select_one colors"), so here we split it back apart to the shape the
+        # back end uses. A row can lack the list name (`select_one_external`
+        # keeps its choices in a sheet we don't load, and a freshly added select
+        # has no list yet), and we skip the column then rather than write out an
+        # `undefined` that would come back as the string "select_one undefined".
+        if key is 'type' and val.get('typeId') in ['select_one', 'select_multiple', 'select_one_external']
           outObj['type'] = val.get('typeId')
-          outObj['select_from_list_name'] = val.get('listName')
+          listName = val.get('listName')
+          if listName
+            outObj['select_from_list_name'] = listName
           continue
         else
           result = @getValue(key)
@@ -385,6 +393,11 @@ module.exports = do ->
         if _.isObject(newType)
           tpid = _.keys(newType)[0]
           p2 = _.values(newType)[0]
+        else if $configs.lookupRowType(newType)
+          # A few XLSForm types contain spaces (e.g. "phone number"), so we check
+          # the whole value before splitting it below. Otherwise we would treat
+          # the second word as a choice list name and fail to find the type.
+          tpid = newType
         else
           [tpid, p2, p3] = newType.split(" ")
 

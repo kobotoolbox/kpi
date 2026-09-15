@@ -3,4 +3,5 @@ import classes from './Checkbox.module.css'
 
 export const CheckboxThemeKobo = Checkbox.extend({
   classNames: classes,
+  defaultProps: { size: 'md' },
 })

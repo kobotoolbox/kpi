@@ -21,6 +21,7 @@ export interface DataResponse {
   'meta/instanceID': string
   'meta/rootUuid': string
   'meta/deprecatedID'?: string
+  'meta/formVersions'?: string
   _xform_id_string: string
   _uuid: string
   _attachments: _DataResponseAttachmentsItem[]
@@ -34,9 +35,6 @@ export interface DataResponse {
   _date_modified: string
   _validation_status: _DataResponseValidationStatus
   _submitted_by: string
-  /**
-   * Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.
-   * @nullable
-   */
+  /** Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects. */
   _supplementalDetails?: _DataResponseSupplementalDetails
 }

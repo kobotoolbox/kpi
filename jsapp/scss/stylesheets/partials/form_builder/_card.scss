@@ -164,6 +164,37 @@
     background-color: rgba(colors.$kobo-mid-red, 0.5);
 }
 
+// Question types we know of, but can't display or edit in Form Builder
+.card--unsupported {
+    background-color: colors.$kobo-light-amber;
+    border: variables.$cardBorderStyle;
+    border-color: colors.$kobo-amber;
+}
+
+.card__unsupported {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+}
+
+.card__unsupported-icon {
+    color: colors.$kobo-dark-amber;
+}
+
+.card__unsupported-text {
+    font-weight: normal;
+
+    p {
+        margin: 0;
+    }
+}
+
+.card__unsupported-name {
+    display: block;
+    font-weight: 600;
+}
+
 // ==========================================================================
 // Card indicator
 // ==========================================================================

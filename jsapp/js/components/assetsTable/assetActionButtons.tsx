@@ -1,6 +1,6 @@
 /**
  * This is intended to be displayed in multiple places:
- * - library item page (AssetRoute)
+ * - library item page (LibraryItemRoute)
  * - library table of items (AssetsTable row)
  */
 import './assetActionButtons.scss'
@@ -38,6 +38,7 @@ interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse
   has_deployment?: boolean
   deployment__active?: boolean
+  withinRow?: boolean
 }
 
 interface AssetActionButtonsState {
@@ -102,7 +103,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   share() {
-    manageAssetSharing(this.props.asset.uid)
+    manageAssetSharing(this.props.asset)
   }
 
   showTagsModal() {
@@ -312,6 +313,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
           onEditLanguages={this.editLanguages}
           onMoveToCollection={this.moveToCollection}
           onDelete={this.delete}
+          withinRow={this.props.withinRow}
         />
       </menu>
     )

@@ -1,0 +1,12 @@
+.root {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--clamped-title-lines);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  // Mantine modal titles use `line-height: 1`, which shears the descenders
+  // (g, y, p) off the last visible line once overflow is hidden.
+  line-height: 1.3;
+  // Long words and names without spaces must wrap instead of overflowing.
+  overflow-wrap: anywhere;
+}

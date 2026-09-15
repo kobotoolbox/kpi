@@ -1,3 +1,11 @@
+/* Make the "x" button on pills smaller, needs important */
+.remove {
+  --cb-size: 1.25em !important;
+  --cb-icon-size: 0.85em !important;
+
+  min-width: 1.5em;
+}
+
 .root[data-variant='gray-light'] {
   background-color: var(--mantine-color-gray-7);
   color: var(--mantine-color-gray-2);
@@ -20,6 +28,32 @@
 
     &:hover {
       color: var(--mantine-color-amber-0);
+    }
+  }
+}
+
+.root[data-variant='red-light'] {
+  background-color: var(--mantine-color-red-9);
+  color: var(--mantine-color-red-6);
+
+  .remove {
+    color: var(--mantine-color-red-6);
+
+    &:hover {
+      color: var(--mantine-color-red-5);
+    }
+  }
+}
+
+.root[data-variant='teal-light'] {
+  background-color: var(--mantine-color-teal-6);
+  color: var(--mantine-color-teal-2);
+
+  .remove {
+    color: var(--mantine-color-teal-2);
+
+    &:hover {
+      color: var(--mantine-color-teal-3);
     }
   }
 }

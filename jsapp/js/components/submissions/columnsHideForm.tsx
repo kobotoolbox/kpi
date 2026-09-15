@@ -1,25 +1,17 @@
-import './columnsHideDropdown.scss'
-
-import React from 'react'
-
+import { Box, Group, ScrollArea, Stack, Switch } from '@mantine/core'
 import Fuse from 'fuse.js'
+import React from 'react'
 import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import bem, { makeBem } from '#/bem'
-import Button from '#/components/common/button'
-import koboDropdownActions from '#/components/common/koboDropdownActions'
-import TextBox from '#/components/common/textBox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
+import ButtonNew from '#/components/common/ButtonNew'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan } from '#/components/permissions/utils'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-
-bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section')
-bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p')
-bem.ColumnsHideForm__list = makeBem(bem.ColumnsHideForm, 'list', 'ul')
-bem.ColumnsHideForm__listItem = makeBem(bem.ColumnsHideForm, 'list-item', 'li')
-bem.ColumnsHideForm__footer = makeBem(bem.ColumnsHideForm, 'footer', 'footer')
+import TextInput from '../common/TextInput'
+import Alert from '../common/alert'
 
 export interface ColumnsHideFormProps {
   asset: AssetResponse
@@ -27,6 +19,11 @@ export interface ColumnsHideFormProps {
   bulkActions: BulkActionResponse[]
   showGroupName: boolean
   translationIndex: number
+}
+
+interface ColumnsHideFormPropsInternal extends ColumnsHideFormProps {
+  /** Called when the form is done with its job, so that the wrapping dropdown can close itself. */
+  onRequestClose: () => void
 }
 
 interface ColumnsHideColumn {
@@ -41,10 +38,10 @@ interface ColumnsHideFormState {
   selectedColumns: string[]
 }
 
-class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideFormState> {
+class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, ColumnsHideFormState> {
   private unlisteners: Function[] = []
 
-  constructor(props: ColumnsHideFormProps) {
+  constructor(props: ColumnsHideFormPropsInternal) {
     super(props)
     this.state = {
       isPending: false, // for saving
@@ -85,22 +82,44 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
   }
 
   onTableUpdateSettingsCompleted() {
-    koboDropdownActions.hideAnyDropdown()
+    this.props.onRequestClose()
+  }
+
+  /**
+   * With `change_asset` the selection goes through `actions.table.updateSettings`,
+   * so we show progress and let `onTableUpdateSettingsCompleted` close the
+   * dropdown. Otherwise `tableStore` applies it synchronously as a session
+   * override - no request to wait for, so close right away.
+   */
+  private applySelection(applyToStore: () => void) {
+    const isSavedToAsset = userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
+
+    if (isSavedToAsset) {
+      this.setState({ isPending: true })
+    }
+
+    applyToStore()
+
+    if (!isSavedToAsset) {
+      this.props.onRequestClose()
+    }
   }
 
   onReset() {
-    this.setState({ isPending: true })
-    tableStore.showAllFields()
+    this.applySelection(() => {
+      tableStore.showAllFields()
+    })
   }
 
   onApply() {
-    this.setState({ isPending: true })
-    tableStore.setFieldsVisibility(
-      this.props.asset,
-      this.props.submissions,
-      this.props.bulkActions,
-      this.state.selectedColumns,
-    )
+    this.applySelection(() => {
+      tableStore.setFieldsVisibility(
+        this.props.asset,
+        this.props.submissions,
+        this.props.bulkActions,
+        this.state.selectedColumns,
+      )
+    })
   }
 
   onFieldToggleChange(fieldId: string, isSelected: boolean) {
@@ -137,58 +156,64 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
   render() {
     const filteredFieldsList = this.getFilteredFieldsList()
     return (
-      <bem.ColumnsHideForm>
-        <bem.ColumnsHideForm__message>
-          {t('These settings affects the experience for all project users.')}
-        </bem.ColumnsHideForm__message>
+      <Stack w={360} gap='sm' p='sm' mah='calc(100vh - 200px)' mih={200}>
+        <Box fz='sm'>
+          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
+            ? t('These settings affect the experience for all project users.')
+            : t('These settings only apply to your current session.')}
+        </Box>
 
-        <TextBox
+        <TextInput
           value={this.state.filterPhrase}
-          onChange={this.onFilterPhraseChange.bind(this)}
+          onChange={(evt) => this.onFilterPhraseChange(evt.currentTarget.value)}
           placeholder={t('Find a field')}
+          size='sm'
         />
 
         {filteredFieldsList.length !== 0 && (
-          <bem.ColumnsHideForm__list dir='auto'>
-            {filteredFieldsList.map((fieldObj) => (
-              <bem.ColumnsHideForm__listItem key={fieldObj.fieldId}>
-                <ToggleSwitch
-                  checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
-                  onChange={(isSelected: boolean) => {
-                    this.onFieldToggleChange(fieldObj.fieldId, isSelected)
-                  }}
-                  disabled={this.state.isPending}
-                  label={fieldObj.label}
-                />
-              </bem.ColumnsHideForm__listItem>
-            ))}
-          </bem.ColumnsHideForm__list>
+          <ScrollArea.Autosize mah={200} type='auto' dir='auto'>
+            <Stack gap='sm' p='xs'>
+              {filteredFieldsList.map((fieldObj) => (
+                <Box key={fieldObj.fieldId}>
+                  <Switch
+                    checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
+                    onChange={(event) => {
+                      this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
+                    }}
+                    disabled={this.state.isPending}
+                    label={fieldObj.label}
+                    size='sm'
+                  />
+                </Box>
+              ))}
+            </Stack>
+          </ScrollArea.Autosize>
         )}
 
-        {filteredFieldsList.length === 0 && (
-          <bem.ColumnsHideForm__message>{t('No results')}</bem.ColumnsHideForm__message>
-        )}
+        {filteredFieldsList.length === 0 && <Alert type='default'>{t('No results')}</Alert>}
 
-        <bem.ColumnsHideForm__footer>
-          <Button
-            type='secondary-danger'
-            size='s'
-            isFullWidth
+        <Group gap='sm'>
+          <ButtonNew
+            variant='danger-secondary'
+            size='sm'
             onClick={this.onReset.bind(this)}
-            isPending={this.state.isPending}
-            label={t('Reset')}
-          />
+            loading={this.state.isPending}
+            flex={1}
+          >
+            {t('Reset')}
+          </ButtonNew>
 
-          <Button
-            type='secondary'
-            size='s'
-            isFullWidth
+          <ButtonNew
+            variant='light'
+            size='sm'
             onClick={this.onApply.bind(this)}
-            isPending={this.state.isPending}
-            label={t('Apply')}
-          />
-        </bem.ColumnsHideForm__footer>
-      </bem.ColumnsHideForm>
+            loading={this.state.isPending}
+            flex={1}
+          >
+            {t('Apply')}
+          </ButtonNew>
+        </Group>
+      </Stack>
     )
   }
 }

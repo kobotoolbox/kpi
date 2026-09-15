@@ -1,8 +1,26 @@
+from datetime import timedelta
+
+import constance
 from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 from allauth.account.utils import cleanup_email_addresses
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.signals import social_account_added
+from django.contrib.auth import update_session_auth_hash
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from django.utils import timezone
+
+from hub.models import ExtraUserDetail
+from kpi.utils.log import logging
+from ..help.models import InAppMessage, InAppMessageUsers, MessageType
+from .models import SocialAppCustomData, SocialAppManagedDomain
+from .tasks import update_linked_user
+from .utils import (
+    SOCIAL_APP_IDENTIFIER,
+    remove_managed_sso_reminders,
+    user_account_is_managed_by_sso,
+)
 
 
 @receiver(social_account_added)
@@ -51,3 +69,110 @@ def update_email(*args, **kwargs):
         request=request,
         email_address=primary,
     )
+
+
+@receiver(post_save, sender=SocialAppManagedDomain)
+@receiver(post_delete, sender=SocialAppManagedDomain)
+@receiver(post_save, sender=SocialAppCustomData)
+@receiver(post_delete, sender=SocialAppCustomData)
+def sync_managed_sso_email_domains(sender=None, **kwargs):
+    """
+    Syncs the list of email domains across all managed SocialApps to the
+    REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS Constance config setting.
+    """
+    domains = (
+        SocialAppManagedDomain.objects.filter(social_app__managed=True)
+        .values_list('domain', flat=True)
+        .order_by('domain')
+    )
+    domain_string = '\n'.join(domains)
+    setattr(
+        constance.config,
+        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+        domain_string,
+    )
+
+
+@receiver(post_delete, sender=SocialAppCustomData)
+def remove_reminders_on_custom_data_delete(sender=None, instance=None, **kwargs):
+    """
+    Covers a direct deletion and the cascade from deleting the SocialApp.
+    """
+    remove_managed_sso_reminders(instance.pk)
+
+
+@receiver(post_delete, sender=SocialAppManagedDomain)
+def remove_reminders_on_domain_delete(sender=None, instance=None, **kwargs):
+    remove_managed_sso_reminders(instance.social_app_id, domain=instance.domain)
+
+
+@receiver(post_save, sender=SocialAppCustomData)
+def remove_reminders_on_managed_off(sender=None, instance=None, **kwargs):
+    if not instance.managed:
+        remove_managed_sso_reminders(instance.pk)
+
+
+@receiver(social_account_added)
+def enforce_managed_sso(sender=None, **kwargs):
+    sociallogin = kwargs.get('sociallogin')
+    request = kwargs.get('request')
+    user = sociallogin.user
+    incoming = sociallogin.account
+    if user_account_is_managed_by_sso(user, incoming):
+        app_provider_id = incoming.provider
+        app = SocialApp.objects.get(provider_id=app_provider_id)
+        InAppMessageUsers.objects.filter(
+            user=user,
+            in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER,
+            in_app_message__generic_related_objects__contains={
+                SOCIAL_APP_IDENTIFIER: app.pk
+            },
+        ).delete()
+        now = timezone.now()
+        # if all users have linked their accounts, expire the inapp message
+        InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            generic_related_objects__contains={SOCIAL_APP_IDENTIFIER: app.pk},
+            inappmessageusers__isnull=True,
+        ).update(valid_until=now)
+        user.set_unusable_password()
+        user.save()
+        update_session_auth_hash(request, user)
+
+
+@receiver(post_save, sender=ExtraUserDetail)
+def handle_sso_exempt_toggle(sender=None, instance=None, raw=None, **kwargs):
+    if raw or instance.sso_exempt == instance._initial_sso_exempt:
+        return
+    user = instance.user
+    if instance.sso_exempt:
+        # clean up any reminders to link SSO for this user
+        InAppMessageUsers.objects.filter(
+            user=user, in_app_message__message_type=MessageType.MANAGED_SSO_REMINDER
+        ).delete()
+        InAppMessage.objects.filter(
+            message_type=MessageType.MANAGED_SSO_REMINDER,
+            inappmessageusers__isnull=True,
+        ).update(valid_until=timezone.now())
+        return
+    social_app = SocialAppManagedDomain.get_managing_sso(user)
+    if not social_app:
+        return
+    custom_data = social_app.custom_data
+    if SocialAccount.objects.filter(
+        user=user, provider=social_app.provider_id
+    ).exists():
+        update_linked_user(user, social_app.provider_id)
+    elif custom_data.send_in_app_message:
+        message = social_app.custom_data.in_app_message
+        if not message:
+            logging.error(
+                f'[Managed SSO] Custom data for {social_app.name}'
+                f' has send_in_app_message'
+                ' but no message to send. Cannot create'
+                f' managed SSO notification for new SSO user {user.username}'
+            )
+            return
+        InAppMessageUsers.objects.create(user=user, in_app_message=message)
+        message.valid_until = timezone.now() + timedelta(days=365)
+        message.save()

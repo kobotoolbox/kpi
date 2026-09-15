@@ -11,6 +11,12 @@
   margin-bottom: 20px;
 }
 
+// Header of a column whose feature the organization hasn't activated yet. The
+// tooltip on it explains how to enable it.
+.disabledColumnHeader {
+  color: colors.$kobo-gray-500;
+}
+
 h2.headerText {
   color: colors.$kobo-storm;
   text-transform: uppercase;

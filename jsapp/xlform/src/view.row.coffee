@@ -64,6 +64,11 @@ module.exports = do ->
         return false
       return true
 
+    # Some unsupported types are rendered as an empty node (`hiddenInUI`), while
+    # the rest get a notice explaining why they can't be edited.
+    isHiddenInUI: ->
+      return @model.get('type').get('rowType')?.hiddenInUI is true
+
     ###
     # This needs to be safeguarded so much, as there is possibility row doesn't
     # have a `name` or doesn't have anything (e.g. newly created row)
@@ -113,9 +118,17 @@ module.exports = do ->
       return @
 
     _renderRow: ->
-      # For unsupported types we display alternative empty template
+      # For unsupported types we display an alternative template: either an
+      # empty one, or a notice telling the user we can't edit this question
       if not @isSupportedByUI()
-        @$el.html($viewTemplates.$$render('row.unsupportedRowView', @surveyView))
+        if @isHiddenInUI()
+          @$el.html($viewTemplates.$$render('row.unsupportedRowView', @surveyView))
+        else
+          @$el.html($viewTemplates.$$render(
+            'row.unsupportedRowNoticeView',
+            @model.get('type').get('rowType')?.label or @getRawType(),
+            @getRowName()
+          ))
         return @
 
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
@@ -322,6 +335,11 @@ module.exports = do ->
       if @isSupportedByUI() is false
         return
 
+      # Rows that failed to be created are rendered without a card, so there is
+      # nothing to apply locking to
+      if not @$card
+        return
+
       @$settings = @$card.find('> .card__settings').eq(0)
       isLockable = @isLockable()
 
@@ -507,6 +525,11 @@ module.exports = do ->
 
       # no locking for unsupported types
       if @isSupportedByUI() is false
+        return
+
+      # Rows that failed to be created are rendered without a card, so there is
+      # nothing to apply locking to
+      if not @$card
         return
 
       @$settings = @$card.find('> .card__settings')

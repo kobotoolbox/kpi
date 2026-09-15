@@ -7,10 +7,10 @@ import constance
 import requests
 from django.db import transaction
 from rest_framework import status
-from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
+from ssrf_protect.exceptions import SSRFProtectException
 
 from kpi.utils.log import logging
-from kpi.utils.strings import split_lines_to_list
+from kpi.utils.ssrf import validate_url_against_ssrf
 from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE, RETRIABLE_STATUS_CODES
 from ..exceptions import HookRemoteServerDownError
 from .hook import Hook
@@ -155,17 +155,6 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 }
             )
 
-        ssrf_protect_options = {}
-        if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
-            ssrf_protect_options['allowed_ip_addresses'] = split_lines_to_list(
-                constance.config.SSRF_ALLOWED_IP_ADDRESS
-            )
-
-        if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
-            ssrf_protect_options['denied_ip_addresses'] = split_lines_to_list(
-                constance.config.SSRF_DENIED_IP_ADDRESS
-            )
-
         # Update the status to PROCESSING to indicate the Celery task has begun
         # execution. This distinguishes it from the initial PENDING state created in
         # call_services() before the task was scheduled, confirming the task was
@@ -181,7 +170,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         log_status = HookLogStatus.FAILED
 
         try:
-            SSRFProtect.validate(self._hook.endpoint, options=ssrf_protect_options)
+            validate_url_against_ssrf(self._hook.endpoint)
             response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
             response.raise_for_status()
             status_code = response.status_code

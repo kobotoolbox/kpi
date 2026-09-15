@@ -1,10 +1,9 @@
 # coding: utf-8
 import re
-
 from collections import OrderedDict
 
 from formpack.constants import KOBO_LOCK_ALL, KOBO_LOCK_COLUMN
-from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
+from formpack.utils.replace_aliases import GEO_TYPES, META_TYPES
 
 
 class AssetContentAnalyzer:

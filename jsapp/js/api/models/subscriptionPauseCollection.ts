@@ -12,6 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 /**
  * If specified, payment collection for this subscription will be paused.
- * @nullable
  */
 export type SubscriptionPauseCollection = unknown | null

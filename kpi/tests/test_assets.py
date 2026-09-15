@@ -35,6 +35,7 @@ from kpi.constants import (
 from kpi.deployment_backends.mock_backend import MockDeploymentBackend
 from kpi.exceptions import DuplicateNameException
 from kpi.models import Asset, ImportTask
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.object_permission import get_all_objects_for_user
 
 # move this into a fixture file?
@@ -542,7 +543,9 @@ class AssetContentTests(AssetsTestCase):
         self.asset.save()
         with self.assertRaises(DuplicateNameException):
             self.asset.to_xlsx_io(versioned=True)
-        xlsx_io = self.asset.to_xlsx_io(versioned=True, raise_on_autoname_error=False)
+        xlsx_io = self.asset.to_xlsx_io(
+            versioned=True, handle_duplicates=HandleDuplicatesOptions.IGNORE
+        )
         workbook = openpyxl.load_workbook(xlsx_io)
         survey_sheet = workbook['survey']
         node_names = [c.value for c in survey_sheet['B'] if c.value == 'q1']

@@ -1,4 +1,6 @@
+import math
 from datetime import timedelta
+from unittest.mock import patch
 
 from constance.test import override_config
 from ddt import data, ddt, unpack
@@ -7,14 +9,18 @@ from django.core import mail
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as t
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import (
+    INVALID_ROLE_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
+    INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_MEMBER_ERROR,
     INVITE_OWNER_ERROR,
+    INVITE_RESENT_TOO_QUICKLY_ERROR,
+    INVITE_ROLE_LOCKED_ERROR,
+    INVITE_STATUS_RESERVED_ERROR,
     ORG_ADMIN_ROLE,
     ORG_MEMBER_ROLE,
 )
@@ -27,6 +33,7 @@ from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
+from kpi.exceptions import MailerError
 from kpi.models import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE
@@ -99,6 +106,21 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
                     mail.outbox[index].to[0],
                     invite.email if invite else invitation['invitee'],
                 )
+
+    def test_invitation_is_still_created_when_the_email_fails_to_send(self):
+        """
+        A `MailerError` while sending the invite email must be caught and
+        logged, not left to propagate and fail the request: the invitation
+        itself should still be created.
+        """
+        with patch(
+            'kobo.apps.organizations.models.Mailer.send',
+            side_effect=MailerError('boom'),
+        ):
+            response = self._create_invite(self.owner_user)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 0)
 
     @data(
         ('owner', status.HTTP_200_OK),
@@ -177,12 +199,16 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             self.detail_url(invitation.guid),
             data={'status': OrganizationInviteStatusChoices.RESENT},
         )
-        self.assertContains(
-            response,
-            'Invitation was resent too quickly',
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        )
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
         assert 'Retry-After' in response.headers
+        # `Retry-After` stays in seconds, the message is rounded up to minutes.
+        self.assertEqual(
+            response.data['detail'],
+            replace_placeholders(
+                str(INVITE_RESENT_TOO_QUICKLY_ERROR),
+                minutes=str(math.ceil(int(response.headers['Retry-After']) / 60)),
+            ),
+        )
 
     def test_admin_cannot_resend_invitation_if_not_pending(self):
         """
@@ -480,7 +506,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['detail'], INVITE_ALREADY_ACCEPTED_ERROR)
+        self.assertEqual(response.data['detail'], str(INVITE_ALREADY_ACCEPTED_ERROR))
 
     def test_invitee_cannot_accept_if_already_member_of_organization(self):
         """
@@ -517,7 +543,8 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_OWNER_ERROR), organization_name=self.another_organization.name
+                str(INVITE_OWNER_ERROR),
+                organization_name=self.another_organization.name,
             ),
         )
 
@@ -533,7 +560,8 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_MEMBER_ERROR), organization_name=self.another_organization.name
+                str(INVITE_MEMBER_ERROR),
+                organization_name=self.another_organization.name,
             ),
         )
 
@@ -718,3 +746,72 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['invitee'], second_account.username)
+
+
+class OrganizationInviteErrorFormatTestCase(BaseOrganizationInviteTestCase):
+    """
+    Invite errors must reach the client as a plain `detail` string, so the
+    frontend can display them without hard-coding its own copy (DEV-1218).
+    """
+
+    def _assert_detail(self, response, expected_message):
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # A `detail` keyed under the field name, or wrapped in a list, is not
+        # displayable by the frontend's generic error handler.
+        self.assertEqual(response.data['detail'], expected_message)
+
+    def test_resending_non_pending_invite_returns_detail(self):
+        self._create_invite(self.owner_user)
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
+        self._update_invite(
+            self.owner_user, invitation.guid, OrganizationInviteStatusChoices.CANCELLED
+        )
+
+        response = self._update_invite(
+            self.owner_user, invitation.guid, OrganizationInviteStatusChoices.RESENT
+        )
+        self._assert_detail(response, str(INVITE_CANNOT_BE_RESENT_ERROR))
+
+    def test_reserved_status_returns_detail(self):
+        self._create_invite(self.owner_user)
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
+
+        response = self._update_invite(
+            self.owner_user, invitation.guid, OrganizationInviteStatusChoices.EXPIRED
+        )
+        self._assert_detail(
+            response,
+            replace_placeholders(
+                str(INVITE_STATUS_RESERVED_ERROR),
+                status=OrganizationInviteStatusChoices.EXPIRED,
+            ),
+        )
+
+    def test_changing_role_after_acceptance_returns_detail(self):
+        self._create_invite(self.owner_user)
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
+        self._update_invite(
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
+        )
+
+        self.client.force_login(self.owner_user)
+        response = self.client.patch(
+            self.detail_url(invitation.guid), data={'role': ORG_ADMIN_ROLE}
+        )
+        self._assert_detail(response, str(INVITE_ROLE_LOCKED_ERROR))
+
+    def test_updating_member_with_invalid_role_returns_detail(self):
+        self.client.force_login(self.owner_user)
+        response = self.client.patch(
+            reverse(
+                self._get_endpoint('organization-members-detail'),
+                kwargs={
+                    'uid_organization': self.organization.id,
+                    'username': self.member_user.username,
+                },
+            ),
+            data={'role': 'not-a-role'},
+        )
+        self._assert_detail(response, str(INVALID_ROLE_ERROR))

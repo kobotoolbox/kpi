@@ -1,3 +1,5 @@
+_ = require('underscore')
+
 module.exports = do ->
   replaceSupportEmail = require('#/textUtils').replaceSupportEmail
 
@@ -135,6 +137,31 @@ module.exports = do ->
     <div style="display: none;">This type of row is not supported by UI yet.</div>
     """
     return template
+
+  ###
+  # Used by row types that are valid XLSForm types we can't edit yet, but that
+  # the user needs to know about (unlike `unsupportedRowView`, which is silent).
+  #
+  # We display the question name, because the label is not guaranteed to exist.
+  # The row is kept intact and saved back as it came in.
+  ###
+  unsupportedRowNoticeView = (typeLabel, rowName) ->
+    message = t('This question is of type "##type##", which cannot be displayed or edited here. It will be left unchanged when you save this form.')
+      .replace('##type##', _.escape(typeLabel))
+
+    nameHtml = ''
+    if rowName
+      nameHtml = """<code class="card__unsupported-name">#{_.escape(rowName)}</code>"""
+
+    return """
+    <div class="survey__row__item survey__row__item--question card card--unsupported">
+      <div class="card__unsupported">
+        <i class="k-icon k-icon--size-l k-icon-alert card__unsupported-icon"></i>
+        <div class="card__unsupported-text">#{nameHtml}<p>#{message}</p></div>
+      </div>
+    </div>
+    #{expandingSpacerHtml}
+    """
 
   # Empty js-group-icon is only sometimes used, but we need to reserve space for it
   groupView = ()->
@@ -416,6 +443,7 @@ module.exports = do ->
   return {
     xlfRowView: xlfRowView
     unsupportedRowView: unsupportedRowView
+    unsupportedRowNoticeView: unsupportedRowNoticeView
     expandChoiceList: expandChoiceList
     mandatorySettingSelector: mandatorySettingSelector
     paramsSettingsField: paramsSettingsField

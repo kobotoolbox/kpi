@@ -12,9 +12,8 @@ from django.core.mail import mail_admins
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.utils.export_tools import (
-    generate_export,
     generate_attachments_zip_export,
-    generate_kml_export
+    generate_export,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     mongo_sync_status,
@@ -40,14 +39,12 @@ def create_async_export(xform, export_type, query, force_xlsx, options=None):
         'query': query,
     }
     if export_type in [Export.XLS_EXPORT, Export.CSV_EXPORT]:
-        if options and "group_delimiter" in options:
-            arguments["group_delimiter"] = options["group_delimiter"]
-        if options and "split_select_multiples" in options:
-            arguments["split_select_multiples"] =\
-                options["split_select_multiples"]
-        if options and "binary_select_multiples" in options:
-            arguments["binary_select_multiples"] =\
-                options["binary_select_multiples"]
+        if options and 'group_delimiter' in options:
+            arguments['group_delimiter'] = options['group_delimiter']
+        if options and 'split_select_multiples' in options:
+            arguments['split_select_multiples'] = options['split_select_multiples']
+        if options and 'binary_select_multiples' in options:
+            arguments['binary_select_multiples'] = options['binary_select_multiples']
 
         # start async export
         if export_type == Export.XLS_EXPORT:
@@ -61,9 +58,6 @@ def create_async_export(xform, export_type, query, force_xlsx, options=None):
         # start async export
         result = create_zip_export.apply_async(
             (), arguments, countdown=10)
-    elif export_type == Export.KML_EXPORT:
-        # KML exports must be created through KPI v2 export tasks.
-        raise Export.ExportTypeError
     else:
         raise Export.ExportTypeError
     if result:
@@ -103,14 +97,13 @@ def create_xls_export(username, id_string, export_id, query=None,
         export.internal_status = Export.FAILED
         export.save()
         # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception("XLS Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e, sys.exc_info())
+        details = {'export_id': export_id, 'username': username, 'id_string': id_string}
+        report_exception(
+            'XLS Export Exception: Export ID - '
+            '%(export_id)s, /%(username)s/%(id_string)s' % details,
+            e,
+            sys.exc_info(),
+        )
         # Raise for now to let celery know we failed
         # - doesnt seem to break celery`
         raise
@@ -140,43 +133,10 @@ def create_csv_export(username, id_string, export_id, query=None,
         export.internal_status = Export.FAILED
         export.save()
         # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception("CSV Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e, sys.exc_info())
-        raise
-    else:
-        return gen_export.id
-
-
-@celery_app.task()
-def create_kml_export(username, id_string, export_id, query=None):
-    # we re-query the db instead of passing model objects according to
-    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#state
-
-    export = Export.objects.get(id=export_id)
-    try:
-        # though export is not available when for has 0 submissions, we
-        # catch this since it potentially stops celery
-        gen_export = generate_kml_export(
-            Export.KML_EXPORT, 'kml', username, id_string, export_id, query
-        )
-    except (Exception, NoRecordsFoundError) as e:
-        export.internal_status = Export.FAILED
-        export.save()
-        # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
+        details = {'export_id': export_id, 'username': username, 'id_string': id_string}
         report_exception(
-            "KML Export Exception: Export ID - "
-            "%(export_id)s, /%(username)s/%(id_string)s" % details,
+            'CSV Export Exception: Export ID - '
+            '%(export_id)s, /%(username)s/%(id_string)s' % details,
             e,
             sys.exc_info(),
         )
@@ -195,14 +155,12 @@ def create_zip_export(username, id_string, export_id, query=None):
         export.internal_status = Export.FAILED
         export.save()
         # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception("Zip Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e)
+        details = {'export_id': export_id, 'username': username, 'id_string': id_string}
+        report_exception(
+            'Zip Export Exception: Export ID - '
+            '%(export_id)s, /%(username)s/%(id_string)s' % details,
+            e,
+        )
         raise
     else:
         if not settings.TESTING:
@@ -253,14 +211,14 @@ def email_mongo_sync_status():
         after_report = mongo_sync_status(remongo=True)
     else:
         # no synchronization is needed
-        after_report = "No synchronization needed"
+        after_report = 'No synchronization needed'
 
     # send the before and after reports, along with instructions for
     # syncing manually, as an email to the administrators
-    mail_admins("Mongo DB sync status",
-                '\n\n'.join([before_report,
-                             after_report,
-                             SYNC_MONGO_MANUAL_INSTRUCTIONS]))
+    mail_admins(
+        'Mongo DB sync status',
+        '\n\n'.join([before_report, after_report, SYNC_MONGO_MANUAL_INSTRUCTIONS]),
+    )
 
 
 @shared_task(soft_time_limit=60, time_limit=90)

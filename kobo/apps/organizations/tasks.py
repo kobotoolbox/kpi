@@ -12,6 +12,8 @@ from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 from kobo.apps.project_ownership.models import Transfer
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.celery import celery_app
+from kpi.exceptions import MailerError
+from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 
 
@@ -89,4 +91,7 @@ def mark_organization_invite_as_expired():
             )
         )
 
-    Mailer.send(email_messages)
+    try:
+        Mailer.send(email_messages)
+    except MailerError as e:
+        logging.warning(f'Failed to send expired organization invite emails: {e}')

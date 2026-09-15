@@ -4,17 +4,10 @@ import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
-import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
-import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
-import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
-import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
-import TableMediaPreview from '#/components/submissions/tableMediaPreview'
-import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
 import { stores } from '#/stores'
@@ -78,24 +71,8 @@ class BigModal extends React.Component {
   componentDidMount() {
     var type = this.props.params.type
     switch (type) {
-      case MODAL_TYPES.SHARING:
-        this.setModalTitle(t('Sharing Permissions'))
-        break
-
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
-        break
-
-      case MODAL_TYPES.LIBRARY_NEW_ITEM:
-        this.setModalTitle(t('Create Library Item'))
-        break
-
-      case MODAL_TYPES.LIBRARY_TEMPLATE:
-        this.setModalTitle(t('Template details'))
-        break
-
-      case MODAL_TYPES.LIBRARY_COLLECTION:
-        this.setModalTitle(t('Collection details'))
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
@@ -116,38 +93,6 @@ class BigModal extends React.Component {
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid,
         })
-        break
-
-      case MODAL_TYPES.REST_SERVICES:
-        if (this.props.params.hookUid) {
-          this.setState({ title: t('Edit REST Service') })
-        } else {
-          this.setState({ title: t('New REST Service') })
-        }
-        break
-
-      case MODAL_TYPES.REPLACE_PROJECT:
-        // title is set by formEditors
-        break
-
-      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
-        // title is set by BulkEditSubmissionsForm
-        this.setState({
-          modalClass: 'modal--large modal--large-shorter',
-        })
-        break
-
-      // TODO: Make a better generic modal component
-      // See: https://github.com/kobotoolbox/kpi/issues/3643
-      case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
-        // Size and title will depend on its props
-        this.setState({
-          modalClass: 'modal--custom-header modal--media-preview',
-        })
-        break
-
-      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
-        // title is set by DataAttachmentColumnsForm
         break
 
       // TODO: Make a better generic modal component
@@ -212,8 +157,6 @@ class BigModal extends React.Component {
   }
 
   render() {
-    const uid = this.props.params.assetid || this.props.params.uid
-
     return (
       <Modal
         open
@@ -226,7 +169,6 @@ class BigModal extends React.Component {
         disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
-          {this.props.params.type === MODAL_TYPES.SHARING && <SharingForm assetUid={uid} />}
           {this.props.params.type === MODAL_TYPES.NEW_FORM && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.NEW}
@@ -234,30 +176,7 @@ class BigModal extends React.Component {
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && (
-            <LibraryNewItemForm onSetModalTitle={this.setModalTitle} />
-          )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_TEMPLATE && (
-            <LibraryAssetForm
-              asset={this.props.params.asset}
-              assetType={ASSET_TYPES.template.id}
-              onSetModalTitle={this.setModalTitle}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_COLLECTION && (
-            <LibraryAssetForm
-              asset={this.props.params.asset}
-              assetType={ASSET_TYPES.collection.id}
-              onSetModalTitle={this.setModalTitle}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
-            <ProjectSettings
-              context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
-              onSetModalTitle={this.setModalTitle}
-              formAsset={this.props.params.asset}
-            />
-          )}
+
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink && (
             <div className='enketo-holder'>
               <iframe src={this.state.enketopreviewlink} allow='camera *; microphone *; geolocation *' />
@@ -279,25 +198,6 @@ class BigModal extends React.Component {
             <div>
               <LoadingSpinner message={false} />
             </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.REST_SERVICES && (
-            <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
-          )}
-          {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
-            <BulkEditSubmissionsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
-              asset={this.props.params.asset}
-              {...this.props.params}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW && <TableMediaPreview {...this.props.params} />}
-          {this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS && (
-            <DataAttachmentColumnsForm
-              onSetModalTitle={this.setModalTitle}
-              onModalClose={this.onModalClose}
-              {...this.props.params}
-            />
           )}
           {this.props.params.type === MODAL_TYPES.MFA_MODALS && (
             <MFAModals onModalClose={this.onModalClose} {...this.props.params} />

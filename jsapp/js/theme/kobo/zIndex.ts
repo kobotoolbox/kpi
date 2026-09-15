@@ -1,5 +1,6 @@
 /** Numeric z-index values — use in JS/TS theme configs. */
 export const KOBO_Z_INDEX = {
+  accountMenu: 1101,
   modalOverlay: 3000,
   modal: 4000,
   tooltip: 4100,

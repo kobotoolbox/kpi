@@ -3,6 +3,7 @@ import type { SelectProps } from '@mantine/core'
 import { Select as MantineSelect } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import type { ComboboxData, ComboboxItem } from './select.types'
+import { handleSelectNavigationKeys } from './selectKeyboardNavigation'
 import { useSelectChevron } from './useSelectChevron'
 
 interface SelectPropsNarrow<Datum extends string = string> extends Omit<SelectProps, 'onChange'> {
@@ -12,7 +13,10 @@ interface SelectPropsNarrow<Datum extends string = string> extends Omit<SelectPr
 }
 
 const Select = <Datum extends string = string>(props: SelectPropsNarrow<Datum>) => {
-  const [value, setValue] = useState<Datum | null>(props.value || null)
+  // `??`, not `||`: an empty string is a legitimate option value (it's how a few
+  // of our dropdowns spell "no filter" or "default"), and only `null` means
+  // "nothing selected".
+  const [value, setValue] = useState<Datum | null>(props.value ?? null)
   const { rightSection, rightSectionWidth, onDropdownOpen, onDropdownClose } = useSelectChevron({
     size: props.size,
     rightSection: props.rightSection,
@@ -26,14 +30,21 @@ const Select = <Datum extends string = string>(props: SelectPropsNarrow<Datum>) 
   }
 
   useEffect(() => {
-    setValue(props.value || null)
+    setValue(props.value ?? null)
   }, [props.value])
+
+  // Adds advanced keyboard navigation, adding to caller's onKeyDown instead of overwriting it
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    props.onKeyDown?.(event)
+    handleSelectNavigationKeys(event)
+  }
 
   return (
     <MantineSelect
       {...props}
       value={value}
       onChange={onChange}
+      onKeyDown={onKeyDown}
       onDropdownOpen={onDropdownOpen}
       onDropdownClose={onDropdownClose}
       rightSection={rightSection}

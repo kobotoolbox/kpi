@@ -89,6 +89,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
         'status',
         'get_start_time',
         'get_failure_error',
+        'get_auto_restarts',
     ]
     list_filter = [StatusListFilter]
     search_fields = ['user__username', 'request_author__username']
@@ -141,6 +142,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
         'status',
         'get_start_time',
         'get_failure_error',
+        'get_auto_restarts',
     ]
     list_filter = [ProjectOwnerListFilter, StatusListFilter]
     search_fields = ['asset__name', 'asset__uid', 'request_author__username']
@@ -210,6 +212,7 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
         'status',
         'get_start_time',
         'get_failure_error',
+        'get_auto_restarts',
     ]
     list_filter = [AttachmentOwnerListFilter, StatusListFilter]
     search_fields = ['attachment_id', 'request_author__username']

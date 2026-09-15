@@ -11,6 +11,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { AuthLevelEnum } from './authLevelEnum'
 import type { ExportTypeEnum } from './exportTypeEnum'
+import type { HookPayloadTemplate } from './hookPayloadTemplate'
 import type { HookSettings } from './hookSettings'
 
 export interface Hook {
@@ -26,8 +27,7 @@ export interface Hook {
   readonly logs_url: string
   /** @maxLength 255 */
   name: string
-  /** @nullable */
-  payload_template?: string | null
+  payload_template?: HookPayloadTemplate
   readonly pending_count: number
   settings?: HookSettings
   subset_fields?: string[]

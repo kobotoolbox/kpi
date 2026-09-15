@@ -21,13 +21,24 @@ echo "current_branch=${current_branch}" >> $GITHUB_OUTPUT
 current_minor=`echo "${current_branch}" | cut -d '/' -f 2`
 echo "current_minor=${current_minor}" >> $GITHUB_OUTPUT
 
-current_patch="$(git tag -l "$current_minor*" | grep -E "^$current_minor.?$" | tail -1 || true)"
-if [[ $current_patch == "" ]]; then
-    current_patch=$current_minor
-elif [[ $current_patch == $current_minor ]]; then
-    current_patch="${current_minor}a"
-else
-    current_patch="$(echo ${current_patch%?})$(echo -n "$current_patch" | tail -c1 | tr "0-9a-z" "1-9a-z_")"
+# If the latest release tag already points to the branch tip, don't increment and use it (idempotent re-run).
+branch_tip=$(git rev-parse "origin/$current_branch" 2>/dev/null || true)
+latest_tag="$(git tag -l "$current_minor*" | grep -E "^$current_minor.?$" | tail -1 || true)"
+if [[ -n "$latest_tag" && -n "$branch_tip" ]]; then
+    latest_tag_commit=$(git rev-parse "refs/tags/$latest_tag^{commit}" 2>/dev/null || true)
+    if [[ "$latest_tag_commit" == "$branch_tip" ]]; then
+        current_patch="$latest_tag"
+    fi
+fi
+
+if [[ -z "${current_patch-}" ]]; then
+    if [[ -z "$latest_tag" ]]; then
+        current_patch=$current_minor
+    elif [[ $latest_tag == $current_minor ]]; then
+        current_patch="${current_minor}a"
+    else
+        current_patch="$(echo ${latest_tag%?})$(echo -n "$latest_tag" | tail -c1 | tr "0-9a-z" "1-9a-z_")"
+    fi
 fi
 echo "current_patch=${current_patch}" >> $GITHUB_OUTPUT
 echo "Current release branch: '${current_branch}'"
@@ -80,7 +91,8 @@ echo "prev_minor=${prev_minor}" >> $GITHUB_OUTPUT
 if [[ $current_patch == $current_minor ]]; then
     prev_patch="$(git tag -l "$prev_minor*" | grep -E "^$prev_minor.?$" | tail -1 || true)"
 else
-    prev_patch="$(git tag -l "$current_minor*" | grep -E "^$current_minor.?$" | tail -1 || true)"
+    # Exclude current_patch from candidates (it's the one we're about to create or already created)
+    prev_patch="$(git tag -l "$current_minor*" | grep -E "^$current_minor.?$" | grep -v "^${current_patch}$" | tail -1 || true)"
 fi
 echo "prev_patch=${prev_patch}" >> $GITHUB_OUTPUT
 echo "prev_branch=${prev_branch}" >> $GITHUB_OUTPUT

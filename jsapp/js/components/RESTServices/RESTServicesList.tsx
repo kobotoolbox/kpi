@@ -1,15 +1,20 @@
-import React from 'react'
-
-import alertify from 'alertifyjs'
-import bem from '#/bem'
-import Button from '#/components/common/button'
+import { Anchor, Box, Group, Stack, Text, Title } from '@mantine/core'
+import { IconHelpCircleFilled, IconPencil, IconTrash } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
+import { resolveLegacySvgIconByName } from '#/components/common/IconLegacySvgMappings'
+import KoboIcon from '#/components/common/KoboIcon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import type { ExternalServiceHookResponse, PaginatedResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
-import { escapeHtml, notify } from '#/utils'
+import { ROUTES } from '#/router/routerConstants'
+import { notify } from '#/utils'
 import { actions } from '../../actions'
-import { MODAL_TYPES } from '../../constants'
+import { openRESTServicesModal } from './openRESTServicesModal'
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html'
 
@@ -17,208 +22,197 @@ interface RESTServicesListProps {
   assetUid: string
 }
 
-interface RESTServicesListState {
-  isLoadingHooks: boolean
-  assetUid: string
-  hooks: ExternalServiceHookResponse[]
-}
+/**
+ * Lists all REST Services registered for a project. This is the landing view of
+ * the project's REST Services settings: it shows each service with its
+ * success/pending/failed counts and edit/delete actions, or an empty state when
+ * there are none. From here you can register a new service or open one to edit.
+ *
+ * Data comes from the Reflux `hooks` actions (a legacy global store), not from
+ * props, so we both fetch on mount and subscribe to updates.
+ */
+export default function RESTServicesList({ assetUid }: RESTServicesListProps) {
+  const [isLoadingHooks, setIsLoadingHooks] = useState(true)
+  const [hooks, setHooks] = useState<ExternalServiceHookResponse[]>([])
 
-export default class RESTServicesList extends React.Component<RESTServicesListProps, RESTServicesListState> {
-  constructor(props: RESTServicesListProps) {
-    super(props)
-    this.state = {
-      isLoadingHooks: true,
-      assetUid: props.assetUid,
-      hooks: [],
-    }
-  }
+  useEffect(() => {
+    // Subscribe to the shared store so the list refreshes when a hook is added,
+    // updated, or deleted elsewhere. `listen()` returns an unsubscribe function,
+    // which we collect and call in the cleanup below to avoid a memory leak.
+    const unlisteners = [
+      actions.hooks.getAll.completed.listen((data: PaginatedResponse<ExternalServiceHookResponse>) => {
+        setIsLoadingHooks(false)
+        setHooks(data.results)
+      }),
+    ]
 
-  componentDidMount() {
-    actions.hooks.getAll.completed.listen(this.onHooksUpdate.bind(this))
-
-    actions.hooks.getAll(this.state.assetUid, {
+    // Kick off the initial load.
+    actions.hooks.getAll(assetUid, {
       onComplete: (data: PaginatedResponse<ExternalServiceHookResponse>) => {
-        this.setState({
-          isLoadingHooks: false,
-          hooks: data.results,
-        })
+        setIsLoadingHooks(false)
+        setHooks(data.results)
       },
       onFail: () => {
-        this.setState({ isLoadingHooks: false })
+        setIsLoadingHooks(false)
         notify.error(t('Could not load REST Services'))
       },
     })
-  }
 
-  onHooksUpdate(data: PaginatedResponse<ExternalServiceHookResponse>) {
-    this.setState({
-      isLoadingHooks: false,
-      hooks: data.results,
-    })
-  }
-
-  editHook(hookUid: string) {
-    pageState.showModal({
-      assetUid: this.state.assetUid,
-      type: MODAL_TYPES.REST_SERVICES,
-      hookUid: hookUid,
-    })
-  }
-
-  deleteHookSafe(hookUid: string, hookName: string) {
-    if (this.state.assetUid) {
-      const dialog = alertify.dialog('confirm')
-      const title = t('Are you sure you want to delete ##target?').replace('##target', escapeHtml(hookName))
-      const message = t('You are about to delete ##target. This action cannot be undone.').replace(
-        '##target',
-        `<strong>${escapeHtml(hookName)}</strong>`,
-      )
-      const dialogOptions = {
-        title: title,
-        message: message,
-        labels: { ok: t('Confirm'), cancel: t('Cancel') },
-        onok: () => {
-          actions.hooks.delete(this.state.assetUid, hookUid)
-        },
-        oncancel: () => {
-          dialog.destroy()
-        },
-      }
-      dialog.set(dialogOptions).show()
+    return () => {
+      unlisteners.forEach((clb) => clb())
     }
-  }
+  }, [assetUid])
 
-  openNewRESTServiceModal() {
-    pageState.showModal({
-      assetUid: this.state.assetUid,
-      // hookUid: not provided intentionally
-      type: MODAL_TYPES.REST_SERVICES,
+  const deleteHookSafe = (hookUid: string, hookName: string) => {
+    if (!assetUid) {
+      return
+    }
+
+    // We want the service name shown in bold *inside* the sentence, so we split
+    // the translated string on the `##target` placeholder and drop the bold name
+    // between the two halves. `after = ''` guards against a translation that's
+    // missing the placeholder (in which case `split` returns a single piece).
+    const [before, after = ''] = t('You are about to delete ##target. This action cannot be undone.').split('##target')
+
+    openKoboConfirmModal({
+      title: t('Are you sure you want to delete ##target?').replace('##target', hookName),
+      children: (
+        <Text>
+          {before}
+          <strong>{hookName}</strong>
+          {after}
+        </Text>
+      ),
+      onConfirm: () => {
+        actions.hooks.delete(assetUid, hookUid)
+      },
     })
   }
 
-  getSupportUrl() {
+  const getSupportUrl = () => {
     if (envStore.isReady && envStore.data.support_url) {
       return envStore.data.support_url + REST_SERVICES_SUPPORT_URL
     }
     return undefined
   }
 
-  renderModalButton() {
-    return (
-      <Button
-        type='primary'
-        size='l'
-        onClick={this.openNewRESTServiceModal.bind(this)}
-        label={t('Register a New Service')}
-      />
-    )
+  if (isLoadingHooks) {
+    return <LoadingSpinner />
   }
 
-  renderEmptyView() {
-    const supportUrl = this.getSupportUrl()
+  const supportUrl = getSupportUrl()
 
-    return (
-      <bem.FormView m={'form-settings'} className='rest-services rest-services--empty'>
-        <bem.EmptyContent>
-          <bem.EmptyContent__icon className='k-icon k-icon-data-sync' />
+  const columns: Array<UniversalTableColumn<ExternalServiceHookResponse>> = [
+    {
+      key: 'name',
+      label: t('Service Name'),
+      grow: true,
+      cellFormatter: (hook) => (
+        <Anchor
+          component={Link}
+          to={ROUTES.FORM_REST_HOOK.replace(':uid', assetUid).replace(':hookUid', hook.uid)}
+          c={hook.active ? 'gray.2' : 'gray.4'}
+          underline='not-hover'
+        >
+          {hook.name}
+        </Anchor>
+      ),
+    },
+    { key: 'success_count', label: t('Success'), size: 100 },
+    { key: 'pending_count', label: t('Pending'), size: 100 },
+    { key: 'failed_count', label: t('Failed'), size: 100 },
+    {
+      key: 'actions',
+      label: '',
+      size: 100,
+      cellFormatter: (hook) => (
+        <Group gap='xs' justify='flex-end' wrap='nowrap'>
+          <ActionIcon
+            variant='light'
+            size='md'
+            icon={IconPencil}
+            tooltip={t('Edit')}
+            onClick={() => {
+              openRESTServicesModal({
+                assetUid: assetUid,
+                hookUid: hook.uid,
+              })
+            }}
+          />
 
-          <bem.EmptyContent__title>{t("This project doesn't have any REST Services yet!")}</bem.EmptyContent__title>
+          <ActionIcon
+            variant='danger-secondary'
+            size='md'
+            icon={IconTrash}
+            tooltip={t('Delete')}
+            onClick={() => deleteHookSafe(hook.uid, hook.name)}
+          />
+        </Group>
+      ),
+    },
+  ]
 
-          <bem.EmptyContent__message>
+  return (
+    <Stack gap='md'>
+      {hooks.length === 0 && (
+        <Stack align='center' gap='md' p='xl' ta='center'>
+          <Box c='gray.4'>
+            <KoboIcon icon={resolveLegacySvgIconByName('data-sync')} size={120} />
+          </Box>
+
+          <Title order={2} fw={400}>
+            {t("This project doesn't have any REST Services yet!")}
+          </Title>
+
+          <Text>
             {t('You can use REST Services to automatically post submissions to a third-party application.')}
             &nbsp;
             {supportUrl && (
-              <a href={supportUrl} target='_blank'>
+              <Anchor href={supportUrl} target='_blank'>
                 {t('Learn more')}
-              </a>
+              </Anchor>
             )}
-          </bem.EmptyContent__message>
+          </Text>
+        </Stack>
+      )}
 
-          {this.renderModalButton()}
-        </bem.EmptyContent>
-      </bem.FormView>
-    )
-  }
+      {hooks.length !== 0 && (
+        <Stack gap='md'>
+          <Group>
+            <Title order={2} fz='inherit' flex={1}>
+              {t('REST Services: ##number##').replace('##number##', String(hooks.length))}
+            </Title>
 
-  renderListView() {
-    return (
-      <bem.FormView m={'form-settings'} className='rest-services'>
-        <bem.FormView__cell m='rest-services-list'>
-          <header className='rest-services-list__header'>
-            <h2 className='rest-services-list__header-label'>
-              {t('REST Services: ##number##').replace('##number##', String(this.state.hooks.length))}
-            </h2>
+            {supportUrl && (
+              <ButtonNew
+                variant='transparent'
+                to={supportUrl}
+                component={Link}
+                target='_blank'
+                leftIcon={IconHelpCircleFilled}
+              >
+                {t('Need help?')}
+              </ButtonNew>
+            )}
+          </Group>
 
-            <a
-              className='rest-services-list__header-help-link rest-services-list__header-right'
-              href={this.getSupportUrl()}
-              target='_blank'
-            >
-              <i className='k-icon k-icon-help' />
-              {t('Need help?')}
-            </a>
-          </header>
+          <UniversalTableCore<ExternalServiceHookResponse> columns={columns} data={hooks} />
+        </Stack>
+      )}
 
-          <bem.FormView__cell m={['box']}>
-            <bem.ServiceRow m='header'>
-              <bem.ServiceRow__column m='name'>{t('Service Name')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='count'>{t('Success')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='count'>{t('Pending')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='count'>{t('Failed')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='actions' />
-            </bem.ServiceRow>
-
-            {this.state.hooks.map((hook) => {
-              const logsUrl = `/#/forms/${this.state.assetUid}/settings/rest/${hook.uid}`
-              return (
-                <bem.ServiceRow key={hook.uid} m={hook.active ? 'active' : 'inactive'}>
-                  <bem.ServiceRow__linkOverlay href={logsUrl} />
-
-                  <bem.ServiceRow__column m='name'>{hook.name}</bem.ServiceRow__column>
-
-                  <bem.ServiceRow__column m='count'>{hook.success_count}</bem.ServiceRow__column>
-
-                  <bem.ServiceRow__column m='count'>{hook.pending_count}</bem.ServiceRow__column>
-
-                  <bem.ServiceRow__column m='count'>{hook.failed_count}</bem.ServiceRow__column>
-
-                  <bem.ServiceRow__column m='actions'>
-                    <Button
-                      type='secondary'
-                      size='m'
-                      onClick={() => this.editHook(hook.uid)}
-                      tooltip={t('Edit')}
-                      tooltipPosition='right'
-                      startIcon='edit'
-                    />
-
-                    <Button
-                      type='secondary-danger'
-                      size='m'
-                      onClick={() => this.deleteHookSafe(hook.uid, hook.name)}
-                      tooltip={t('Delete')}
-                      tooltipPosition='right'
-                      startIcon='trash'
-                    />
-                  </bem.ServiceRow__column>
-                </bem.ServiceRow>
-              )
-            })}
-          </bem.FormView__cell>
-        </bem.FormView__cell>
-
-        {this.renderModalButton()}
-      </bem.FormView>
-    )
-  }
-
-  render() {
-    if (this.state.isLoadingHooks) {
-      return <LoadingSpinner />
-    } else if (this.state.hooks.length === 0) {
-      return this.renderEmptyView()
-    } else {
-      return this.renderListView()
-    }
-  }
+      <Group justify='flex-end'>
+        <ButtonNew
+          onClick={() => {
+            openRESTServicesModal({
+              assetUid: assetUid,
+              // hookUid: not provided intentionally
+            })
+          }}
+          size='lg'
+        >
+          {t('Register a New Service')}
+        </ButtonNew>
+      </Group>
+    </Stack>
+  )
 }

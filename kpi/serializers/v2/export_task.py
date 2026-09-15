@@ -74,6 +74,17 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
         return export_task
 
+    def to_representation(self, instance: SubmissionExportTask) -> dict:
+        ret = super().to_representation(instance)
+
+        # Ensure any historical 'kml_legacy' type in data is safely returned as 'kml'
+        data_ = ret.get('data')
+        if isinstance(data_, dict) and data_.get(EXPORT_SETTING_TYPE) == 'kml_legacy':
+            data_[EXPORT_SETTING_TYPE] = EXPORT_TYPE_KML
+            ret['data'] = data_
+
+        return ret
+
     def validate(self, attrs: dict) -> dict:
         data_ = self.validate_data(self._get_request.data)
         attrs[EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS] = data_[

@@ -1,0 +1,17 @@
+@use 'scss/breakpoints';
+@use 'scss/pageFrame';
+
+// Background, header, logo and footer are the frame shared with the standalone error pages.
+@include pageFrame.standaloneFrame;
+
+// Pushed to the far end so it stays in the corner whether or not the logo is shown.
+.languageSelector {
+  margin-inline-start: auto;
+}
+
+// Phone width: hand some of the frame's horizontal padding back to the card.
+@include breakpoints.breakpoint(veryNarrow) {
+  .main {
+    padding: 0 10px;
+  }
+}

@@ -5,8 +5,9 @@ import { recordValues } from './utils'
  * For our sanity, use camel case and match key with value.
  */
 export enum FeatureFlag {
-  // exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
-  bulkProcessingEnabled = 'bulkProcessingEnabled',
+  exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
+  authRedesignEnabled = 'authRedesignEnabled',
+  nlpTextActionsEnabled = 'nlpTextActionsEnabled',
 }
 
 /**

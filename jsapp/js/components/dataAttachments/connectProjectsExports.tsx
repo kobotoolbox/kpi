@@ -1,7 +1,7 @@
+import { Switch } from '@mantine/core'
 import Checkbox from '#/components/common/checkbox'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import type { ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 
 interface ConnectProjectsExportsProps {
@@ -27,7 +27,11 @@ export default function ConnectProjectsExports({
     return (
       <div className='connect-projects__export'>
         <div className='connect-projects__export-options'>
-          <ToggleSwitch onChange={onToggleSharingData} label={t('Data sharing enabled')} checked={isShared} />
+          <Switch
+            onChange={onToggleSharingData}
+            label={<strong>{t('Data sharing enabled')}</strong>}
+            checked={isShared}
+          />
 
           <Checkbox
             name='sharing'
@@ -54,7 +58,7 @@ export default function ConnectProjectsExports({
   return (
     <div className='connect-projects__export'>
       <div className='connect-projects__export-switch'>
-        <ToggleSwitch onChange={onToggleSharingData} label={t('Data sharing disabled')} checked={isShared} />
+        <Switch onChange={onToggleSharingData} label={t('Data sharing disabled')} checked={isShared} />
       </div>
     </div>
   )

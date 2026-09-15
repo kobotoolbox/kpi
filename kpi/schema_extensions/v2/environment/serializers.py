@@ -1,11 +1,68 @@
 from rest_framework import serializers
 
+from kpi.constants import AUTH_THEME_CHOICES
+
+
+class AuthConfigurationSerializer(serializers.Serializer):
+    """
+    Server branding and behaviour for the sign-in and account creation screens
+    """
+
+    theme = serializers.ChoiceField(
+        choices=AUTH_THEME_CHOICES,
+        help_text=(
+            'Appearance of everything outside the sign-in container. '
+            '`custom` whenever a login background image has been uploaded, '
+            '`default` otherwise'
+        ),
+    )
+    background_image_url = serializers.CharField(
+        allow_null=True,
+        help_text=(
+            'Relative URL of the login background image, or `null` when none '
+            'has been uploaded'
+        ),
+    )
+    show_kobotoolbox_logo = serializers.BooleanField(
+        help_text='Whether to display the KoboToolbox logo outside the container'
+    )
+    logo_url = serializers.CharField(
+        allow_null=True,
+        help_text=(
+            'Relative URL of the logo shown inside the container, or `null` '
+            'when none has been uploaded'
+        ),
+    )
+    supporting_image_url = serializers.CharField(
+        allow_null=True,
+        help_text=(
+            'Relative URL of the image displayed alongside the account '
+            'creation form, or `null` when none has been uploaded'
+        ),
+    )
+    supporting_text = serializers.CharField(
+        allow_blank=True,
+        help_text=(
+            'Rendered HTML displayed alongside the account creation form, '
+            'localized for the request language. Empty when unset'
+        ),
+    )
+    allow_login_with_username = serializers.BooleanField(
+        help_text=(
+            'Whether this server accepts a username at sign-in. Reflects the '
+            'login methods the server is configured with, so the sign-in form '
+            'never offers a credential the server would reject'
+        )
+    )
+
 
 class SocialAppSerializer(serializers.Serializer):
     provider = serializers.CharField()
     name = serializers.CharField()
     client_id = serializers.CharField()
     provider_id = serializers.CharField(allow_blank=True, allow_null=True)
+    managed = serializers.BooleanField()
+    domains = serializers.ListField(child=serializers.CharField())
 
 
 class MetadataFieldOptionSerializer(serializers.Serializer):
@@ -22,6 +79,9 @@ class MetadataFieldSerializer(serializers.Serializer):
 
 
 class EnvironmentResponseSerializer(serializers.Serializer):
+    registration_open = serializers.BooleanField(
+        help_text='Whether users may create their own accounts'
+    )
     terms_of_service_url = serializers.CharField(allow_blank=True, allow_null=True)
     privacy_policy_url = serializers.CharField(allow_blank=True, allow_null=True)
     source_code_url = serializers.CharField(allow_blank=True, allow_null=True)
@@ -75,6 +135,9 @@ class EnvironmentResponseSerializer(serializers.Serializer):
     custom_password_localized_help_text = serializers.CharField(
         help_text='Markdown string for custom password help text'
     )
+
+    # Sign-in and account creation
+    auth_configuration = AuthConfigurationSerializer()
 
     # Metadata Fields
     project_metadata_fields = MetadataFieldSerializer(many=True)

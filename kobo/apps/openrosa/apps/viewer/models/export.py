@@ -14,11 +14,10 @@ from kpi.deployment_backends.kc_access.storage import (
 class Export(models.Model):
     class ExportTypeError(Exception):
         def __str__(self):
-            return t("Invalid export type specified")
+            return t('Invalid export type specified')
 
     XLS_EXPORT = 'xls'
     CSV_EXPORT = 'csv'
-    KML_EXPORT = 'kml'
     ZIP_EXPORT = 'zip'
 
     EXPORT_MIMES = {
@@ -26,14 +25,12 @@ class Export(models.Model):
         'xlsx': 'vnd.openxmlformats',
         'csv': 'csv',
         'zip': 'zip',
-        'kml': 'vnd.google-earth.kml+xml'
     }
 
     EXPORT_TYPES = [
         (XLS_EXPORT, 'Excel'),
         (CSV_EXPORT, 'CSV'),
         (ZIP_EXPORT, 'ZIP'),
-        (KML_EXPORT, 'kml'),
     ]
 
     EXPORT_TYPE_DICT = dict(export_type for export_type in EXPORT_TYPES)
@@ -63,8 +60,8 @@ class Export(models.Model):
     export_url = models.URLField(null=True, default=None)
 
     class Meta:
-        app_label = "viewer"
-        unique_together = (("xform", "filename"),)
+        app_label = 'viewer'
+        unique_together = (('xform', 'filename'),)
 
     def save(self, *args, **kwargs):
         if not self.pk and self.xform:

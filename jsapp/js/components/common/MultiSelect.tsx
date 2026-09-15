@@ -3,6 +3,7 @@ import type { MultiSelectProps } from '@mantine/core'
 import { MultiSelect as MantineMultiSelect } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import type { ComboboxData } from './select.types'
+import { handleSelectNavigationKeys } from './selectKeyboardNavigation'
 import { useSelectChevron } from './useSelectChevron'
 
 interface MultiSelectPropsNarrow<Datum extends string = string>
@@ -32,6 +33,12 @@ const MultiSelect = <Datum extends string = string>(props: MultiSelectPropsNarro
     props.onChange?.(nextValue)
   }
 
+  // Adds advanced keyboard navigation, adding to caller's onKeyDown instead of overwriting it
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    props.onKeyDown?.(event)
+    handleSelectNavigationKeys(event)
+  }
+
   // Render the dropdown in-place by default.
   // In our app layout/modals, portal rendering has intermittently triggered
   // "ResizeObserver loop completed with undelivered notifications" when many
@@ -46,6 +53,7 @@ const MultiSelect = <Datum extends string = string>(props: MultiSelectPropsNarro
       {...props}
       value={value}
       onChange={onChange}
+      onKeyDown={onKeyDown}
       onDropdownOpen={onDropdownOpen}
       onDropdownClose={onDropdownClose}
       rightSection={rightSection}

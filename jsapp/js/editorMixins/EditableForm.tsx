@@ -9,12 +9,12 @@ import last from 'lodash.last'
 import DocumentTitle from 'react-document-title'
 import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker } from 'react-router-dom'
-import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import Select from '#/components/common/Select'
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -39,7 +39,6 @@ import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
   AssetTypeName,
-  type FormStyleDefinition,
   type FormStyleName,
   NAME_MAX_LENGTH,
   QuestionTypeName,
@@ -299,11 +298,8 @@ export default function EditableForm(props: EditableFormProps) {
     }))
   }
 
-  function onStyleChange(newStyle: null | FormStyleDefinition) {
-    let settingsStyle: FormStyleName
-    if (newStyle !== null) {
-      settingsStyle = newStyle.value
-    }
+  function onStyleChange(newValue: string | null) {
+    const settingsStyle = (newValue ?? '') as FormStyleName
 
     setState((currentState) => ({
       ...currentState,
@@ -313,7 +309,9 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function getStyleSelectVal(optionVal?: FormStyleName) {
-    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
+    // Styles we no longer offer leave the dropdown empty instead of adding an
+    // option that couldn't be picked again anyway.
+    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)?.value ?? null
   }
 
   function onSurveyChange() {
@@ -983,26 +981,22 @@ export default function EditableForm(props: EditableFormProps) {
                 )}
               </bem.FormBuilderAside__header>
 
-              <label className='kobo-select__label' htmlFor='webform-style'>
-                {hasSettings
-                  ? t('Select the form style that you would like to use. This will only affect web forms.')
-                  : t(
-                      'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.',
-                    )}
-              </label>
-
               <Select
-                className='kobo-select'
-                classNamePrefix='kobo-select'
                 id='webform-style'
                 name='webform-style'
+                label={
+                  hasSettings
+                    ? t('Select the form style that you would like to use. This will only affect web forms.')
+                    : t(
+                        'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.',
+                      )
+                }
                 value={getStyleSelectVal(styleValue)}
                 onChange={onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
-                options={AVAILABLE_FORM_STYLES}
-                menuPlacement='bottom'
-                isDisabled={isChangingAppearanceRestricted()}
-                isSearchable={false}
+                data={AVAILABLE_FORM_STYLES}
+                disabled={isChangingAppearanceRestricted()}
+                clearable={false}
               />
             </bem.FormBuilderAside__row>
 

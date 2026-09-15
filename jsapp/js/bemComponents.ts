@@ -6,24 +6,8 @@
 
 import bem, { makeBem } from '#/bem'
 
-bem.KoboSelect = makeBem(null, 'kobo-select')
-bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper')
-bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'span')
-bem.KoboSelect__error = makeBem(bem.KoboSelect, 'error')
-bem.KoboSelect__optionWrapper = makeBem(bem.KoboSelect, 'option-wrapper')
-bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge')
-
 bem.PageWrapper = makeBem(null, 'page-wrapper')
 bem.PageWrapper__content = makeBem(bem.PageWrapper, 'content')
-
-bem.EmptyContent = makeBem(null, 'empty-content', 'section')
-bem.EmptyContent__icon = makeBem(bem.EmptyContent, 'icon', 'i')
-bem.EmptyContent__title = makeBem(bem.EmptyContent, 'title', 'h1')
-bem.EmptyContent__message = makeBem(bem.EmptyContent, 'message', 'p')
-
-bem.ServiceRow = makeBem(null, 'service-row')
-bem.ServiceRow__column = makeBem(bem.ServiceRow, 'column')
-bem.ServiceRow__linkOverlay = makeBem(bem.ServiceRow, 'link-overlay', 'a')
 
 bem.FormBuilder = makeBem(null, 'form-builder')
 bem.FormBuilder__contents = makeBem(bem.FormBuilder, 'contents')
@@ -109,7 +93,6 @@ bem.GraphSettings__radio = makeBem(bem.GraphSettings, 'radio')
 bem.FormModal = makeBem(null, 'form-modal')
 bem.FormModal__form = makeBem(bem.FormModal, 'form', 'form')
 bem.FormModal__item = makeBem(bem.FormModal, 'item')
-bem.FormModal__group = makeBem(bem.FormModal, 'group')
 
 bem.Modal = makeBem(null, 'modal')
 bem.Modal__backdrop = makeBem(bem.Modal, 'backdrop')
@@ -131,15 +114,6 @@ bem.AccountBox__menuLI = makeBem(bem.AccountBox, 'menu-li', 'li')
 bem.AccountBox__menuItem = makeBem(bem.AccountBox, 'menu-item', 'div')
 bem.AccountBox__menuLink = makeBem(bem.AccountBox, 'menu-link', 'a')
 
-bem.UserRow = makeBem(null, 'user-row')
-bem.UserRow__info = makeBem(bem.UserRow, 'info')
-bem.UserRow__avatar = makeBem(bem.UserRow, 'avatar')
-bem.UserRow__name = makeBem(bem.UserRow, 'name')
-bem.UserRow__email = makeBem(bem.UserRow, 'email')
-bem.UserRow__perms = makeBem(bem.UserRow, 'perms')
-bem.UserRow__perm = makeBem(bem.UserRow, 'perm')
-bem.UserRow__editor = makeBem(bem.UserRow, 'editor')
-
 bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper')
 bem.FormSidebar = makeBem(null, 'form-sidebar')
 bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label')
@@ -150,12 +124,6 @@ bem.KDrawer = makeBem(null, 'k-drawer')
 bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav')
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav')
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside')
-
-bem.ToggleSwitch = makeBem(null, 'toggle-switch')
-bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label')
-bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input')
-bem.ToggleSwitch__slider = makeBem(bem.ToggleSwitch, 'slider', 'span')
-bem.ToggleSwitch__label = makeBem(bem.ToggleSwitch, 'label', 'span')
 
 bem.Breadcrumbs = makeBem(null, 'breadcrumbs')
 bem.Breadcrumbs__crumb = makeBem(bem.Breadcrumbs, 'crumb', 'a')

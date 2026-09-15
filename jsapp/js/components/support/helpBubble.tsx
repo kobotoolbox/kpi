@@ -116,9 +116,9 @@ class HelpBubble extends React.Component<HelpBubbleProps, HelpBubbleState> {
 
   interpolateMessageUserInfo(htmlString: string) {
     return htmlString
-      .replace('##username##', this.props.username)
-      .replace('##user_uid##', this.props.userUid)
-      .replace('##user_full_name##', this.props.userFullName || t('KoboToolbox user'))
+      .replaceAll('##username##', () => this.props.username)
+      .replaceAll('##user_uid##', () => this.props.userUid)
+      .replaceAll('##user_full_name##', () => this.props.userFullName || t('KoboToolbox user'))
   }
 
   renderSnippetRow(msg: InAppMessage, clickCallback: (messageUid: string) => void) {

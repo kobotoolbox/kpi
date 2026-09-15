@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react'
 
-import { Box, Flex, Modal, ScrollArea, Stack, Text } from '@mantine/core'
+import { Box, Flex, Modal, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
-import KoboSelect from '#/components/common/koboSelect'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
-import ToggleSwitch from '#/components/common/toggleSwitch'
+import type { ComboboxItem } from '#/components/common/select.types'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
@@ -42,13 +41,15 @@ export default function SidebarDisplaySettings({
 }: SidebarDisplaySettingsProps) {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
-  const assetLanguageOptions = useMemo<KoboSelectOption[]>(() => {
+  const assetLanguageOptions = useMemo<Array<ComboboxItem<string>>>(() => {
     const baseLabel = t('Labels')
     const languages = asset?.summary?.languages?.length ? asset?.summary?.languages : [null]
     return [
       { label: t('XML values'), value: XML_VALUES_OPTION_VALUE },
       ...languages.map((language) => ({
         label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
+        // An empty string is how the rest of the app spells "the form's default
+        // language".
         value: language ?? '',
       })),
     ]
@@ -169,13 +170,12 @@ export default function SidebarDisplaySettings({
 
           <Stack gap='lg'>
             <Box>
-              <KoboSelect
+              <Select
                 label={t('Display labels or XML values?')}
-                name='displayedLanguage'
-                type='outline'
-                size='s'
-                options={assetLanguageOptions}
-                selectedOption={questionLabelLanguage}
+                size='xs'
+                clearable={false}
+                data={assetLanguageOptions}
+                value={questionLabelLanguage}
                 onChange={(languageCode) => {
                   if (languageCode !== null) {
                     setQuestionLabelLanguage(languageCode)
@@ -192,9 +192,9 @@ export default function SidebarDisplaySettings({
 
                 return (
                   <Box key={entry}>
-                    <ToggleSwitch
-                      onChange={(isChecked) => {
-                        if (isChecked) {
+                    <Switch
+                      onChange={(event) => {
+                        if (event.currentTarget.checked) {
                           enableDisplay(entry)
                         } else {
                           disableDisplay(entry)
@@ -224,9 +224,9 @@ export default function SidebarDisplaySettings({
               } else {
                 return (
                   <Box key={entry}>
-                    <ToggleSwitch
-                      onChange={(isChecked) => {
-                        if (isChecked) {
+                    <Switch
+                      onChange={(event) => {
+                        if (event.currentTarget.checked) {
                           enableDisplay(entry)
                         } else {
                           disableDisplay(entry)

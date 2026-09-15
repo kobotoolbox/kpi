@@ -389,6 +389,13 @@ class ProjectViewViewSet(
 
         pv = ProjectView.objects.prefetch_related('organizations').get(uid=uid)
 
+        # Deactivated accounts, including the placeholders left behind by account
+        # removal, must not show up in project views, nor must their projects.
+        if obj_type == 'user':
+            queryset = queryset.filter(is_active=True)
+        else:
+            queryset = queryset.filter(owner__is_active=True)
+
         if '*' not in region:
             if obj_type == 'user':
                 queryset = queryset.filter(extra_details__data__country__in=region)

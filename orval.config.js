@@ -36,6 +36,14 @@ module.exports = {
         query: {
           shouldSplitQueryKey: true,
         },
+        tags: {
+          'Authentication (Allauth Headless)': {
+            mutator: {
+              path: './orval.allauthMutator.ts',
+              name: 'fetchAllauth',
+            },
+          },
+        },
       },
     },
     input: {

@@ -2,7 +2,7 @@
 @use 'scss/colors';
 
 .root {
-  padding: 40px;
+  padding: 40px 0 40px 0;
 }
 
 .headerText {
@@ -22,8 +22,9 @@
 .header {
   display: flex;
   width: 100%;
-  justify-content: space-between;
+  // No `space-between` here: the support article link sits next to the title.
   align-items: center;
+  gap: 16px;
 }
 
 .updated {

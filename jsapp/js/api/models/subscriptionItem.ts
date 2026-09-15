@@ -10,6 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { PriceWithProduct } from './priceWithProduct'
+import type { SubscriptionItemQuantity } from './subscriptionItemQuantity'
 
 export interface SubscriptionItem {
   /** @maxLength 255 */
@@ -19,7 +20,6 @@ export interface SubscriptionItem {
    * The quantity of the plan to which the customer should be subscribed.
    * @minimum 0
    * @maximum 2147483647
-   * @nullable
    */
-  quantity?: number | null
+  quantity?: SubscriptionItemQuantity
 }

@@ -34,10 +34,9 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
     height: 100%;
   }
 
-  &.assets-table--collection-content {
+  &.assets-table--no-scroll {
     // we disable horizontal scrolling to make the popover menu appear outside the table
     overflow-x: initial;
-    min-width: $assets-table-min-width;
   }
 }
 

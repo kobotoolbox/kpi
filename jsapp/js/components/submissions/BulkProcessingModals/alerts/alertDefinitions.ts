@@ -1,5 +1,6 @@
 import { formatTimeFromSeconds } from '#/utils'
 import {
+  evaluateAlreadyApproved,
   evaluateAlreadyTranscribed,
   evaluateAlreadyTranslated,
   evaluateConflictingJob,
@@ -15,6 +16,30 @@ import type { AlertDefinition, BulkActionType } from './types'
  * Alerts are evaluated in array order - first alert has highest priority
  */
 export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition[] {
+  // Approving works on content that is already there, so none of the alerts below
+  // apply - there is no quota, no language to pick and no source data to look for.
+  // The only thing worth warning about is rows that have nothing to approve.
+  if (actionType === 'approve') {
+    return [
+      {
+        id: 'already-approved',
+        type: 'warning',
+        evaluator: evaluateAlreadyApproved,
+        messageTemplate: ({ count = 0 }) =>
+          (count === 1
+            ? t('1 submission is already approved and will be ignored')
+            : t('##count## submissions are already approved and will be ignored')
+          ).replace('##count##', String(count)),
+      },
+      {
+        id: 'no-eligible-submissions',
+        type: 'error',
+        evaluator: evaluateNoEligibleSubmissions,
+        messageTemplate: () => t('There are no submissions to approve.'),
+      },
+    ]
+  }
+
   const isTranscription = actionType === 'transcript'
 
   return [

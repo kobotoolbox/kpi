@@ -12,6 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 /**
  * Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period.
- * @nullable
  */
 export type SubscriptionBillingThresholds = unknown | null

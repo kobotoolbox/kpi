@@ -14,6 +14,8 @@ import FormActivity from './FormActivity'
 const meta: Meta<typeof FormActivity> = {
   title: 'Features/FormActivity',
   component: FormActivity,
+  // Docs view doesn't work well and doesn't give us anything useful
+  tags: ['!autodocs'],
   argTypes: {},
   parameters: {
     msw: {
@@ -55,23 +57,26 @@ export const TestFilteringByActivityType: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement)
 
-    let selectItem: HTMLElement
-    let selectTriggerItem: HTMLElement
+    let selectInput: HTMLElement
     await step('Verify that the filter select is present', async () => {
       await waitFor(async () => {
-        selectItem = await canvas.findByRole('combobox')
-        await expect(selectItem).toBeInTheDocument()
-        selectTriggerItem = await within(selectItem).findByText('Filter by')
-        await expect(selectTriggerItem).toBeInTheDocument()
+        selectInput = await canvas.findByPlaceholderText('Filter by')
+        await expect(selectInput).toBeInTheDocument()
       })
     })
 
     await step('Select the "add media attachment" filter', async () => {
-      await userEvent.click(selectTriggerItem)
+      await userEvent.click(selectInput)
       await waitFor(async () => {
-        const optionItem = await within(selectItem).findByText('add media attachment')
-        await expect(optionItem).toBeInTheDocument()
-        await userEvent.click(optionItem)
+        // Options are rendered in a portal, so they are outside of the canvas.
+        const optionItem = Array.from(document.querySelectorAll('[role="option"]')).find(
+          (option) => option.textContent === 'add media attachment',
+        )
+        await expect(optionItem).toBeDefined()
+        await userEvent.click(optionItem as HTMLElement)
+      })
+      await waitFor(async () => {
+        await expect(selectInput).toHaveValue('add media attachment')
       })
     })
 

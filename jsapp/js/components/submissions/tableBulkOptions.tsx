@@ -20,10 +20,9 @@ import type {
   ValidationStatusName,
   ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
-import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'
-import pageState from '#/pageState.store'
 import { recordKeys, renderCheckbox } from '#/utils'
+import openDataAttachmentColumnsModal from '../modalForms/openBulkEditSubmissionsFormModal'
 import { buildFilterQuery } from './tableUtils'
 
 interface TableBulkOptionsProps {
@@ -97,7 +96,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       message: t(
         'You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.',
       ).replace('##', String(selectedCount)),
-      labels: { ok: t('Update Validation Status'), cancel: t('Cancel') },
+      labels: { ok: t('Update validation status'), cancel: t('Cancel') },
       onok: () => {
         apiFn(this.props.asset.uid, requestObj)
         // keep the dialog open
@@ -171,8 +170,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   }
 
   onEdit() {
-    pageState.showModal({
-      type: MODAL_TYPES.BULK_EDIT_SUBMISSIONS,
+    openDataAttachmentColumnsModal({
       asset: this.props.asset,
       data: this.props.data,
       totalSubmissions: this.props.totalRowsCount,

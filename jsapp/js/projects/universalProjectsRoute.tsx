@@ -16,7 +16,7 @@ import { dropImportXLSForms } from '#/dropzone.utils'
 import ProjectsTable from '#/projects/projectsTable/projectsTable'
 import { useSession } from '#/stores/useSession'
 import { notify, validFileTypes } from '#/utils'
-import customViewStore from './customViewStore'
+import customViewStore, { PAGE_SIZE } from './customViewStore'
 import projectViewsStore from './projectViews/projectViewsStore'
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
 import ProjectsFilter from './projectViews/projectsFilter'
@@ -192,6 +192,10 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
               onHideFieldRequested={customView.hideField.bind(customView)}
               onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
               hasMorePages={customView.hasMoreAssets}
+              isLoadingNextPage={customView.isLoadingNextPage}
+              hasNextPageError={customView.hasNextPageError}
+              // For a list that fits in a single page the end of it is obvious, so don't state the obvious.
+              showEndMessage={customView.assets.length > PAGE_SIZE}
               selectedRows={selectedRows}
               onRowsSelected={setSelectedRows}
             />

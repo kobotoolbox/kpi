@@ -18,7 +18,10 @@ class OrgUserAdminForm(forms.ModelForm):
                 'Users cannot be added to an organization that is not multi-member'
             )
 
+        previous_organization = user.organization
         cleaned_data['previous_organization'] = (
-            user.organization if user.organization != organization else None
+            previous_organization
+            if previous_organization and previous_organization != organization
+            else None
         )
         return cleaned_data

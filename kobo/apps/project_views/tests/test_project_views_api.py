@@ -3,10 +3,15 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models import ProjectView
-from kpi.constants import ASSET_TYPE_SURVEY, PERM_VIEW_ASSET
+from kpi.constants import (
+    ASSET_TYPE_SURVEY,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
+from kpi.utils.data_exports import CONFIG
 from kpi.utils.project_views import get_project_view_user_permissions_for_asset
 
 
@@ -132,6 +137,61 @@ class ProjectViewsApiTestCase(BaseTestCase):
         # `/api/v2/users/` list injects (regression from #6447)
         self.assertTrue(all('asset_count' in user for user in response.data['results']))
 
+    def test_inactive_owner_assets_are_hidden(self):
+        self._deactivate_external_user()
+
+        self.client.force_login(self.regular_user)
+        url = reverse(
+            self._get_endpoint('projectview-assets'),
+            kwargs={'uid_project_view': self.pv_country.uid},
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        uids = [a['uid'] for a in response.data['results']]
+        assert self.asset_ext_esp.uid not in uids
+        assert self.asset_org_esp.uid in uids
+
+    def test_inactive_users_are_hidden(self):
+        self._deactivate_external_user()
+
+        self.client.force_login(self.regular_user)
+        url = reverse(
+            self._get_endpoint('projectview-users'),
+            kwargs={'uid_project_view': self.pv_country.uid},
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        usernames = [u['username'] for u in response.data['results']]
+        assert self.external_user.username not in usernames
+
+    def test_inactive_accounts_are_excluded_from_exports(self):
+        self._deactivate_external_user()
+
+        asset_ids = CONFIG['assets']['queryset']().values_list('pk', flat=True)
+        assert self.asset_org_esp.pk in asset_ids
+        assert self.asset_ext_esp.pk not in asset_ids
+
+        user_ids = CONFIG['users']['queryset']().values_list('pk', flat=True)
+        assert self.regular_user.pk in user_ids
+        assert self.external_user.pk not in user_ids
+
+    def test_permission_check_on_asset_owned_by_organization_less_user(self):
+        """
+        Owners without an organization must not break permission checks
+        """
+
+        self._deactivate_external_user()
+
+        # Refetch to get an owner instance whose `organization` is not already
+        # cached for this request
+        asset = Asset.objects.get(pk=self.asset_ext_esp.pk)
+        assert not asset.owner.organization
+
+        assert asset.has_perm(self.regular_user, PERM_VIEW_SUBMISSIONS) is False
+        assert PERM_VIEW_SUBMISSIONS not in asset.get_perms(self.regular_user)
+
     def test_asset_permissions(self):
         # We test that get_project_view_user_permissions_for_asset correctly returns
         # permissions. Regular user should have PERM_VIEW_ASSET for asset_org_esp
@@ -146,3 +206,13 @@ class ProjectViewsApiTestCase(BaseTestCase):
             self.asset_org_esp, self.external_user
         )
         self.assertNotIn(PERM_VIEW_ASSET, perms_ext)
+
+    def _deactivate_external_user(self) -> None:
+        """
+        Leave `external_user` with no organization at all, which is the state
+        `User.organization` refuses to auto-create one for
+        """
+
+        self.external_user.organizations_organizationuser.all().delete()
+        self.external_user.is_active = False
+        self.external_user.save()

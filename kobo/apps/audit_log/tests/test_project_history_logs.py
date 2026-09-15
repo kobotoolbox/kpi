@@ -56,6 +56,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, AssetFile, ObjectPermission, PairedData
 from kpi.models.asset import AssetSetting
+from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.utils.strings import to_str
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -65,7 +66,10 @@ from kpi.utils.xml import (
 
 
 @ddt
-@override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
+# These tests create submissions as the superuser `adminuser`, which is blocked
+# by default (DEV-32). Opt into it here since the restriction is not what they
+# exercise.
+@override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock', ALLOW_SUPERUSER_SUBMISSIONS=True)
 class TestProjectHistoryLogs(BaseAuditLogTestCase):
     """
     Integration tests for flows that create ProjectHistoryLogs
@@ -923,6 +927,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['download_url'], media.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], media.md5_hash)
 
+    @patch_ssrf_dns()
     @responses.activate
     @data(
         # File or url, change asset name?
@@ -2272,4 +2277,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             },
             expected_action=expected_action,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+
+    def test_view_asset_data(self):
+        self.asset.deploy(backend='mock', active=True)
+        self._base_project_history_log_test(
+            url=reverse(
+                self._get_endpoint('submission-list'),
+                args=[self.asset.uid],
+            ),
+            method=self.client.get,
+            expected_action=AuditAction.VIEW_DATA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            request_data=None,
         )

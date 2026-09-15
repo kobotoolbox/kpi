@@ -194,7 +194,12 @@ class UpdateJSONFieldAttributes(Func):
         path: str | None = None,
         **extra,
     ):
-        expr = F(expression)
+        # `jsonb_set()` returns NULL whenever its target document is NULL,
+        # regardless of `create_missing` - coalesce once up front so every
+        # branch below can safely build on top of a real object.
+        expr = Coalesce(
+            F(expression), Value({}, output_field=JSONField()), output_field=JSONField()
+        )
 
         if path is None:
             if not isinstance(updates, dict):

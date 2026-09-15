@@ -30,12 +30,6 @@
       flex-wrap: wrap;
       gap: 12px;
 
-      .toggle-switch {
-        .toggle-switch__label {
-          font-weight: bold;
-        }
-      }
-
       .checkbox {
         min-width: 200px;
         width: 100%;
@@ -65,13 +59,9 @@
   margin-top: 10px;
   gap: 12px 24px;
 
-  .kobo-select__wrapper {
+  .connect-projects-select {
     flex: 3;
     min-width: 280px;
-
-    .kobo-select__placeholder {
-      color: colors.$kobo-gray-800;
-    }
   }
 
   .connect-projects-textbox {
@@ -129,54 +119,6 @@
     .connect-projects__import-options {
       @include mixins.centerRowFlex;
       gap: 10px;
-    }
-  }
-}
-
-.form-modal__form.form-modal__form--data-attachment-columns {
-  color: colors.$kobo-gray-600;
-
-  .bulk-options {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    .bulk-options__description {
-      font-weight: bold;
-    }
-
-    .bulk-options__buttons {
-      white-space: nowrap;
-
-      span {
-        margin: 12px;
-      }
-
-      a {
-        text-decoration: underline;
-        cursor: pointer;
-      }
-    }
-  }
-
-  .multi-checkbox {
-    margin-top: 12px;
-    height: 200px;
-  }
-
-  *[class*='loadingSpinner'] {
-    margin-top: 12px;
-  }
-
-  .modal__footer {
-    text-align: center;
-
-    .data-attachment-modal-footer-button {
-      padding-left: 60px;
-      padding-right: 60px;
     }
   }
 }

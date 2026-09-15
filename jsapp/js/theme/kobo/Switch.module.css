@@ -1,0 +1,67 @@
+/* Default/Off */
+.root .input + .track {
+  --switch-bg: var(--mantine-color-blue-8);
+  --switch-cursor: pointer;
+}
+
+/* On */
+.root .input:checked + .track {
+  --switch-bg: var(--mantine-color-blue-6);
+}
+
+/* Default/Off disabled */
+.root .input:disabled:not(:checked) + .track,
+.root .input[data-disabled]:not(:checked) + .track {
+  --switch-bg: var(--mantine-color-gray-6);
+  --switch-cursor: not-allowed;
+}
+
+/* On disabled */
+.root .input:disabled:checked + .track,
+.root .input[data-disabled]:checked + .track {
+  --switch-bg: var(--mantine-color-blue-7);
+  --switch-cursor: not-allowed;
+}
+
+.root .track .thumb {
+  --switch-thumb-bg-disabled: var(--mantine-color-gray-9);
+}
+
+.root .input:focus-visible + .track {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
+.root,
+.body,
+.labelWrapper,
+.label,
+.input {
+  cursor: pointer;
+}
+
+/* Matches the Checkbox label colour and 8px gap so inline controls line up. */
+.label,
+.description {
+  color: var(--mantine-color-gray-1);
+  padding-inline-start: 8px;
+}
+
+.root[data-disabled],
+.body[data-disabled],
+.labelWrapper[data-disabled],
+.label[data-disabled],
+.input:disabled,
+.input[data-disabled] {
+  cursor: not-allowed;
+}
+
+/* Mantine's disabled label colour is far too pale; use the shared choice-control token. */
+.label[data-disabled] {
+  color: var(--kobo-choice-control-disabled-label);
+  opacity: 1;
+}
+
+.error {
+  color: var(--mantine-color-red-6);
+}

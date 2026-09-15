@@ -8,10 +8,12 @@ from django.http import (
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseNotAllowed,
+    HttpResponseNotFound,
 )
 from django.middleware.locale import LocaleMiddleware
 from django.template import loader
 from django.template.loader import get_template
+from django.urls import Resolver404, resolve
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import gettext as t
 from django.utils.translation.trans_real import parse_accept_lang_header
@@ -39,6 +41,67 @@ ALLOWED_VIEWS_WITH_WEAK_PASSWORD = {
         'GET': []
     },
 }
+
+
+class OpenRosaTrailingSlashMiddleware(MiddlewareMixin):
+    """
+    OpenRosa endpoints (submission, formList and their variants) are reached
+    WITHOUT a trailing slash: clients (Collect, Enketo) build slash-less URLs,
+    and Django's APPEND_SLASH redirect would drop the POST body on submissions.
+
+    Without this, a slashed request falls through to CsrfViewMiddleware and
+    surfaces a misleading CSRF error (DEV-1039). Intercept before CSRF runs and
+    return an explicit 404 pointing at the correct, slash-less URL.
+    """
+
+    # Slash-stripped path suffixes that identify a would-be OpenRosa endpoint.
+    # Cheap pre-filter only; the resolver check below is authoritative.
+    OPENROSA_SUFFIXES = ('/submission', '/formList')
+
+    _openrosa_url_names_cache = None
+
+    def process_request(self, request):
+        path = request.path
+        if not path.endswith('/'):
+            return None
+
+        target = path.rstrip('/')
+        if not target.endswith(self.OPENROSA_SUFFIXES):
+            return None
+
+        # Only hijack the response when the slash-less path really resolves to
+        # an OpenRosa endpoint, so future `…/submission/` endpoints keep working
+        try:
+            match = resolve(target)
+        except Resolver404:
+            return None
+
+        if match.url_name not in self._openrosa_url_names():
+            return None
+
+        return HttpResponseNotFound(
+            'OpenRosa endpoints do not accept a trailing slash. '
+            f'Retry the request at {target}'
+        )
+
+    @classmethod
+    def _openrosa_url_names(cls) -> frozenset[str]:
+        """
+        URL names of the OpenRosa endpoints: the legacy slash-less routes and
+        the `*-openrosa` aliases registered by OpenRosaCompatibleExtendedRouter.
+
+        Built lazily (and derived from the router constant) to avoid importing
+        the URL configuration at module load and drifting from the router.
+        """
+        if cls._openrosa_url_names_cache is None:
+            from kpi.urls.router_api_v2 import OpenRosaCompatibleExtendedRouter
+
+            openrosa_aliases = OpenRosaCompatibleExtendedRouter.OPENROSA_ENDPOINT_NAMES
+            cls._openrosa_url_names_cache = frozenset(
+                {'submissions', 'form-list'}
+                | {f'{name}-openrosa' for name in openrosa_aliases}
+            )
+        return cls._openrosa_url_names_cache
 
 
 class HTTPResponseNotAllowedMiddleware(MiddlewareMixin):

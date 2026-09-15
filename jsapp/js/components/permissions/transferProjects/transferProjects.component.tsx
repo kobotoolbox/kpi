@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react'
-
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
-import TextBox from '#/components/common/textBox'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
@@ -233,14 +232,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
               {/* Unused element to prevent firefox autocomplete suggestions on username field */}
               <input type='text' style={{ display: 'none' }} />
               <div>
-                <TextBox
+                <TextInput
                   label={t('To complete the transfer, enter the username of the new project owner')}
-                  type='text'
                   value={transfer.usernameInput}
                   placeholder={t('Enter username here')}
                   required
-                  errors={transfer.usernameError}
-                  onChange={updateUsername}
+                  error={transfer.usernameError}
+                  onChange={(evt) => updateUsername(evt.currentTarget.value)}
                 />
               </div>
             </section>

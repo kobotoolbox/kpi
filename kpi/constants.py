@@ -204,3 +204,13 @@ UNSUPPORTED_INLINE_MIMETYPES = [
     'image/heic',
     'image/heif',
 ]
+
+# Appearance of the sign-in and account creation screens. The customizable
+# theme is exactly the case where an administrator has uploaded a login
+# background image; there is no separate switch
+AUTH_THEME_DEFAULT = 'default'
+AUTH_THEME_CUSTOM = 'custom'
+AUTH_THEME_CHOICES = [
+    (AUTH_THEME_DEFAULT, 'Default'),
+    (AUTH_THEME_CUSTOM, 'Customizable'),
+]

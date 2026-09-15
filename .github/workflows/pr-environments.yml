@@ -17,12 +17,16 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      pull-requests: read  # gh pr view
     outputs:
       zulip_topic: ${{ steps.set_variables.outputs.zulip_topic }}
 
@@ -49,7 +53,7 @@ jobs:
 
 
       - name: Clone kpi repo at PR branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: kobotoolbox/kpi
           #if the input type is PR, use the branch name from the previous step; otherwise, use the input value directly as the branch name

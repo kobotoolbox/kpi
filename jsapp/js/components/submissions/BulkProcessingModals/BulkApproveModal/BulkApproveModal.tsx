@@ -15,6 +15,8 @@ import { getSupplementalPathParts } from '#/components/processing/processingUtil
 import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
 import type { SubmissionResponse } from '#/dataInterface'
 import { notify } from '#/utils'
+import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
+import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
 export interface BulkApproveModalProps {
   fieldXpath: string
@@ -35,6 +37,14 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
   const isTranslationColumn = supplementalPathParts.type === 'translation'
   const language = supplementalPathParts.languageCode
 
+  // Both the count we show and the uuids we send come from here, so the modal can't
+  // promise to approve more submissions than it actually will.
+  const { activeAlerts, eligibleSubmissions, eligibleSubmissionUuids, hasErrors } = useBulkProcessingAlerts({
+    actionType: 'approve',
+    selectedSubmissions: props.selectedSubmissions,
+    fieldXpath: props.fieldXpath,
+  })
+
   const { mutate: bulkApprove, isPending } = useAssetsDataSupplementsBulkCreate({
     mutation: {
       onSuccess: (response) => {
@@ -43,7 +53,9 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
         if (acceptedCount > 0) {
           notify.success(t('Successfully approved ##count## submission(s)').replace('##count##', String(acceptedCount)))
         } else {
-          notify.warning(t('No submissions were approved. They may already be approved or have no data.'))
+          // We only send submissions that need approval, so if we end up here they
+          // got approved somewhere else while this modal was open.
+          notify.warning(t('No submissions were approved. They have been approved already.'))
         }
 
         // Invalidate the bulk actions list so React Query refetches it.
@@ -83,9 +95,6 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
     // or "_supplementalDetails/q1/translation_fr" -> "q1"
     const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
 
-    // Get submission UUIDs (_uuid) from selected submissions
-    const submissionUids = props.selectedSubmissions.map((submission) => submission._uuid)
-
     // Determine action_id based on column type
     const actionId = isTranslationColumn
       ? ActionIdEnum.automatic_google_translation
@@ -94,7 +103,9 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
     bulkApprove({
       uidAsset: props.assetUid,
       data: {
-        submission_uids: submissionUids,
+        // Only the submissions that still need approval. The backend skips the rest
+        // anyway, and sending them would make the count we showed wrong.
+        submission_uids: eligibleSubmissionUuids,
         question_xpath: sourceRowPath,
         action_id: actionId,
         ...(isTranslationColumn && language ? { language } : {}),
@@ -120,7 +131,7 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Alert type='info' iconName='information'>
-            <Text size='sm'>
+            <Text>
               {isTranslationColumn &&
                 t(
                   'The selected translations were automatically generated and should be reviewed to ensure accuracy. Once approved, they will be saved and displayed in your data table.',
@@ -132,24 +143,34 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
             </Text>
           </Alert>
 
-          <Text size='sm'>
+          {/*
+            On purpose we don't say "selected" here, because this number only counts
+            the rows that need approval, which can be fewer than what was selected.
+          */}
+          <Text>
             {isTranslationColumn &&
-              t('Do you want to approve the ##count## translations selected?').replace(
-                '##count##',
-                String(props.selectedSubmissions.length),
-              )}
+              (eligibleSubmissions.length === 1
+                ? t('Do you want to approve 1 translation?')
+                : t('Do you want to approve ##count## translations?').replace(
+                    '##count##',
+                    String(eligibleSubmissions.length),
+                  ))}
             {!isTranslationColumn &&
-              t('Do you want to approve the ##count## transcripts selected?').replace(
-                '##count##',
-                String(props.selectedSubmissions.length),
-              )}
+              (eligibleSubmissions.length === 1
+                ? t('Do you want to approve 1 transcript?')
+                : t('Do you want to approve ##count## transcripts?').replace(
+                    '##count##',
+                    String(eligibleSubmissions.length),
+                  ))}
           </Text>
+
+          <BulkProcessingAlerts activeAlerts={activeAlerts} />
 
           <Group justify='flex-end' mt='md'>
             <ButtonNew onClick={props.onRequestClose} variant='light' disabled={isPending}>
               {t('Cancel')}
             </ButtonNew>
-            <ButtonNew loading={isPending} onClick={handleApproveSubmissions}>
+            <ButtonNew loading={isPending} onClick={handleApproveSubmissions} disabled={hasErrors}>
               {t('Approve')}
             </ButtonNew>
           </Group>

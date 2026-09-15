@@ -2,9 +2,10 @@ import '#/components/common/miniAudioPlayer.scss'
 
 import React, { createRef } from 'react'
 
+import { IconAlertCircleFilled, IconPlayerPlayFilled, IconPlayerStopFilled } from '@tabler/icons-react'
 import bem, { makeBem } from '#/bem'
-import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
+import ActionIcon from '#/components/common/ActionIcon'
+import KoboIcon from '#/components/common/KoboIcon'
 import { formatSeconds, generateUuid, notify } from '#/utils'
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player')
@@ -14,6 +15,13 @@ interface MiniAudioPlayerProps {
   /** Not adviseable when you display multiple players at once. */
   preload?: boolean
   mediaURL: string
+  /**
+   * Backend-calculated duration in whole seconds. When provided, it is shown
+   * instead of the browser-decoded duration so the value matches the bulk
+   * processing feature exactly. The browser value is still used for seeking
+   * and the playhead while playing.
+   */
+  durationSeconds?: number
 }
 
 interface MiniAudioPlayerState {
@@ -25,6 +33,10 @@ interface MiniAudioPlayerState {
 }
 
 const PLAYER_STARTED_EVENT = 'MiniAudioPlayer:started'
+/** Shown while the real duration (backend or browser-decoded) isn't known yet. */
+const DURATION_PLACEHOLDER = '00:00:00'
+/** Shown when playback is broken. */
+const ERROR_PLAYBACK_PLACEHOLDER = '--:--:--'
 
 /** Custom audio player to be placed inline in small containers. */
 class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPlayerState> {
@@ -143,21 +155,32 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   }
 
   renderPlayer() {
+    // Prefer the backend-calculated duration for the idle display so it matches
+    // the bulk processing feature. Fall back to the browser-decoded duration
+    // when the backend value isn't available.
+    const totalTime = this.props.durationSeconds ?? this.state.totalTime
+
+    // A backend duration of 0 is a real answer: the backend truncates, so any
+    // recording under a second comes back as 0. We only hide the label while the
+    // duration is still unknown, which for the browser-decoded value means 0.
+    const isTotalTimeKnown = this.props.durationSeconds !== undefined || this.state.totalTime > 0
+
     return (
       <React.Fragment>
-        <Button
-          type='text'
-          startIcon={this.state.isPlaying ? 'stop' : 'play'}
-          size='s'
+        <ActionIcon
+          variant='transparent'
+          icon={this.state.isPlaying ? IconPlayerStopFilled : IconPlayerPlayFilled}
+          size='sm'
           onClick={this.onButtonClick.bind(this)}
         />
 
-        {this.state.totalTime > 0 && (
-          <bem.MiniAudioPlayer__time dateTime={this.state.totalTime}>
-            {this.state.isPlaying && formatSeconds(this.state.currentTime)}
-            {!this.state.isPlaying && formatSeconds(this.state.totalTime)}
-          </bem.MiniAudioPlayer__time>
-        )}
+        <bem.MiniAudioPlayer__time dateTime={isTotalTimeKnown ? totalTime : undefined}>
+          {isTotalTimeKnown
+            ? this.state.isPlaying
+              ? formatSeconds(this.state.currentTime)
+              : formatSeconds(totalTime)
+            : DURATION_PLACEHOLDER}
+        </bem.MiniAudioPlayer__time>
       </React.Fragment>
     )
   }
@@ -165,9 +188,9 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderLoading() {
     return (
       <React.Fragment>
-        <Button type='text' startIcon='play' size='s' onClick={() => null} isDisabled />
+        <ActionIcon variant='transparent' icon={IconPlayerPlayFilled} size='sm' disabled />
 
-        <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
+        <bem.MiniAudioPlayer__time>{DURATION_PLACEHOLDER}</bem.MiniAudioPlayer__time>
       </React.Fragment>
     )
   }
@@ -175,9 +198,9 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderError() {
     return (
       <React.Fragment>
-        <Icon name='alert' size='s' />
+        <KoboIcon icon={IconAlertCircleFilled} size='sm' />
 
-        <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
+        <bem.MiniAudioPlayer__time>{ERROR_PLAYBACK_PLACEHOLDER}</bem.MiniAudioPlayer__time>
       </React.Fragment>
     )
   }

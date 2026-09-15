@@ -7,10 +7,10 @@ import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import bem from '#/bem'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import InlineMessage from '#/components/common/inlineMessage'
-import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import { userCan } from '#/components/permissions/utils'
@@ -35,6 +35,13 @@ interface ReportsProps extends WithRouterProps {
   uid?: string
   assetid?: string
 }
+
+/**
+ * The default report has no `crid`, i.e. an empty string, but our `Select`
+ * treats an empty string as "nothing selected", so we use this sentinel value
+ * for the dropdown.
+ */
+const DEFAULT_REPORT_OPTION_VALUE = '__default_report__'
 
 // TODO FIXME: Instead of passing this whole state to child components as
 // `parentState`, please build some kind of store, or resolve this in other
@@ -395,24 +402,22 @@ export default function Reports(props: ReportsProps) {
       }
     })
     reportsSelectorOptions.unshift({
-      value: '',
+      value: DEFAULT_REPORT_OPTION_VALUE,
       label: t('Default Report'),
     })
 
     return (
       <bem.FormView__reportButtons>
         <div className='form-view__report-buttons-left'>
-          <KoboSelect
+          <Select
             className='custom-reports-selector'
-            name='custom-reports'
-            type='outline'
-            size='m'
-            isClearable={false}
-            options={reportsSelectorOptions}
-            selectedOption={state.currentCustomReport?.crid || ''}
+            size='sm'
+            clearable={false}
+            data={reportsSelectorOptions}
+            value={state.currentCustomReport?.crid || DEFAULT_REPORT_OPTION_VALUE}
             onChange={(newVal) => {
               if (newVal !== null) {
-                onSelectedReportChange(newVal)
+                onSelectedReportChange(newVal === DEFAULT_REPORT_OPTION_VALUE ? '' : newVal)
               }
             }}
           />

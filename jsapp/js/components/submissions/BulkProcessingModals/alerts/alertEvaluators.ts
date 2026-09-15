@@ -1,6 +1,14 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import {
+  getOngoingBulkActionSubmissionUuids,
+  hasTranscribableAudio,
+  hasTranscriptInAnyLanguage,
+  hasTranslatableTranscript,
+} from '#/components/submissions/bulkProcessingUtils'
+import { hasUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
+import { getSubmissionRootUuid } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 
 /**
@@ -135,16 +143,17 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     return null
   }
 
-  // Collect all submission UUIDs from conflicting jobs
+  // Submissions a conflicting job already finished stay eligible for a new job,
+  // so collect only the ones it is still working on.
   const conflictingUuids = new Set<string>()
   conflictingJobs.forEach((job) => {
-    job.submission_uuids.forEach((uuid) => conflictingUuids.add(uuid))
+    getOngoingBulkActionSubmissionUuids(job).forEach((uuid) => conflictingUuids.add(uuid))
   })
 
-  // Filter out submissions that are in conflicting jobs
+  // Job submission uuids are root uuids, so map before comparing.
   const filteredSubmissionUuids = submissions
-    .filter((submission) => conflictingUuids.has(submission._uuid))
-    .map((submission) => submission._uuid)
+    .map(getSubmissionRootUuid)
+    .filter((submissionRootUuid) => conflictingUuids.has(submissionRootUuid))
 
   if (filteredSubmissionUuids.length === 0) {
     return null
@@ -171,30 +180,19 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
-    let hasSource = false
-
-    if (actionType === 'transcript') {
-      // For transcription: check if there's an audio attachment for this field
-      hasSource =
-        submission._attachments?.some(
-          (attachment) => attachment.question_xpath === fieldXpath && !attachment.is_deleted,
-        ) ?? false
-    } else {
-      // For translation: check if there's a transcript
-      // Note 1: we assume here that there can be only one transcript
-      // Note 2: `fieldXpath` can be question xpath for transcript case, but for translation case it would be path to
-      // supplementalDetails, but we need to compare it to question xpath, so we use utility function
-      const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
-      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
-      hasSource = Boolean(transcript?.value)
-    }
+    // Both checks are shared with the ones gating the matching table header menu
+    // items, so the menu and this alert can't disagree on what has a source.
+    const hasSource =
+      actionType === 'transcript'
+        ? hasTranscribableAudio(submission, fieldXpath)
+        : hasTranslatableTranscript(submission, fieldXpath)
 
     if (!hasSource) {
-      missingSource.push(submission._uuid)
+      missingSource.push(getSubmissionRootUuid(submission))
     }
   })
 
@@ -217,20 +215,18 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
 
-  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
   const alreadyTranscribed: string[] = []
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
-    const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
-    const hasTranscript = Boolean(transcript?.value || transcript?.pendingReview)
-
-    if (hasTranscript) {
-      alreadyTranscribed.push(submission._uuid)
+    // Same check the transcription modal uses for its quota estimate, so the two
+    // can't disagree on which rows get skipped.
+    if (hasTranscriptInAnyLanguage(submission, fieldXpath)) {
+      alreadyTranscribed.push(getSubmissionRootUuid(submission))
     }
   })
 
@@ -269,7 +265,7 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
 
   submissions.forEach((submission) => {
     // Skip if already filtered by previous evaluators
-    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
       return
     }
 
@@ -278,7 +274,7 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     const translation = supplementalDetails?.translation?.[selectedLanguage]
 
     if (translation?.value) {
-      alreadyTranslated.push(submission._uuid)
+      alreadyTranslated.push(getSubmissionRootUuid(submission))
       totalCharacters += translation.value.length
     }
   })
@@ -293,6 +289,43 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     computedValues: {
       count: alreadyTranslated.length,
       characters: totalCharacters,
+    },
+  }
+}
+
+/**
+ * Checks for submissions with nothing left to approve, either because they are
+ * approved already or because there is no automatic content at all. The backend
+ * skips both.
+ *
+ * Uses the same check as the `Approve all selected` menu item and the `Review`
+ * button in a cell, so all three agree on what still needs approval.
+ */
+export function evaluateAlreadyApproved(context: AlertEvaluationContext): AlertEvaluationResult | null {
+  const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
+
+  const alreadyApproved: string[] = []
+
+  submissions.forEach((submission) => {
+    // Skip if already filtered by previous evaluators
+    if (previouslyFilteredSubmissionUuids.has(getSubmissionRootUuid(submission))) {
+      return
+    }
+
+    if (!hasUnacceptedAutomaticContent(submission, fieldXpath)) {
+      alreadyApproved.push(getSubmissionRootUuid(submission))
+    }
+  })
+
+  if (alreadyApproved.length === 0) {
+    return null
+  }
+
+  return {
+    type: 'warning',
+    filteredSubmissionUuids: alreadyApproved,
+    computedValues: {
+      count: alreadyApproved.length,
     },
   }
 }

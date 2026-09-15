@@ -20,7 +20,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('trench', '0003_auto_20190213_2330'),
     ]
 
     operations = [
@@ -53,14 +52,12 @@ class Migration(migrations.Migration):
             name='MfaMethod',
             fields=[
                 (
-                    'mfamethod_ptr',
-                    models.OneToOneField(
+                    'id',
+                    models.AutoField(
                         auto_created=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        parent_link=True,
                         primary_key=True,
                         serialize=False,
-                        to='trench.mfamethod',
+                        verbose_name='ID',
                     ),
                 ),
                 (
@@ -81,6 +78,5 @@ class Migration(migrations.Migration):
                 'verbose_name': 'MFA Method',
                 'verbose_name_plural': 'MFA Methods',
             },
-            bases=('trench.mfamethod',),
         ),
     ]

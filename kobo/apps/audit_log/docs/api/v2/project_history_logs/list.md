@@ -55,6 +55,7 @@ available actions:
 >       update-name
 >       update-settings
 >       update-qa
+>       view-data
 
 **Filterable fields by action:**
 

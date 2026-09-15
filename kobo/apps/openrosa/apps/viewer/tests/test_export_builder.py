@@ -10,8 +10,8 @@ from pyxform.builder import create_survey_from_xls
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.tests.export_helpers import viewer_fixture_path
 from kobo.apps.openrosa.libs.utils.export_tools import (
-    dict_to_joined_export,
     ExportBuilder,
+    dict_to_joined_export,
 )
 from kpi.utils.mongo_helper import MongoHelper
 

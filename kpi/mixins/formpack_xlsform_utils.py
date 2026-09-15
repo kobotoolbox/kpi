@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import copy
-import re
 from collections import OrderedDict
 
+from formpack.constants import FUZZY_VERSION_RE
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
+
 from kpi.utils.absolute_paths import insert_full_paths_in_place
 from kpi.utils.asset_translation_utils import (  # TRANSLATIONS_EQUAL,
     TRANSLATION_ADDED,
@@ -19,7 +19,11 @@ from kpi.utils.asset_translation_utils import (  # TRANSLATIONS_EQUAL,
     TRANSLATIONS_OUT_OF_ORDER,
     compare_translations,
 )
-from kpi.utils.autoname import autoname_fields_in_place, autovalue_choices_in_place
+from kpi.utils.autoname import (
+    HandleDuplicatesOptions,
+    autoname_fields_in_place,
+    autovalue_choices_in_place,
+)
 from kpi.utils.kobo_to_xlsform import (
     expand_rank_and_score_in_place,
     remove_empty_expressions_in_place,
@@ -57,8 +61,12 @@ class FormpackXLSFormUtilsMixin:
         else:
             return False
 
-    def _autoname(self, content, raise_on_error=True):
-        autoname_fields_in_place(content, '$autoname', raise_on_error)
+    def _autoname(
+        self,
+        content,
+        handle_duplicates: HandleDuplicatesOptions = HandleDuplicatesOptions.RAISE,
+    ):
+        autoname_fields_in_place(content, '$autoname', handle_duplicates)
         autovalue_choices_in_place(content, '$autovalue')
 
     def _insert_xpath(self, content):
@@ -169,7 +177,7 @@ class FormpackXLSFormUtilsMixin:
         for idx in range(len(content[self.WORKING_SHEET]) - 1, 0, -1):
             field = content[self.WORKING_SHEET][idx]
             try:
-                if re.match(FUZZY_VERSION_PATTERN, field['name']):
+                if FUZZY_VERSION_RE.match(field['name']):
                     del content[self.WORKING_SHEET][idx]
             except KeyError:
                 pass

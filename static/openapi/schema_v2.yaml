@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: KoboToolbox Primary API
   version: 2.0.0 (api_v2)
@@ -8397,6 +8397,112 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/email-confirmations/:
+    post:
+      operationId: api_v2_email_confirmations_create
+      description: |
+        ## Request another account confirmation email
+
+        Sends a fresh confirmation link to an email address that is registered but not yet
+        verified. Confirmation links expire (after
+        `ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS`, one day by default), so this is how a
+        user who let theirs lapse gets a new one.
+
+        Requires no authentication: the caller has just followed a dead confirmation link
+        and has no session.
+
+        Examples:
+        ```shell
+          curl -X POST https://kf.kobotoolbox.org/api/v2/email-confirmations/ \
+               -H 'Content-Type: application/json' \
+               -d '{"email": "someone@example.com"}'
+        ```
+
+        > Response 200
+        ```json
+        {
+            "detail": "If that email address needs confirming, a new confirmation email has been sent to it."
+        }
+        ```
+
+        ### Which email is sent
+
+        An account that has not verified any address yet is still being activated, and
+        receives the account activation email. An account that already has a verified
+        address is partway through an email change, and receives the address
+        verification email instead.
+
+        ### The response never says whether the address is registered
+
+        The same `200` and the same body come back whether the address belongs to an
+        account, belongs to an account that has already verified it, or belongs to no
+        account at all. Otherwise the endpoint would let anyone test whether a given
+        person holds a KoboToolbox account.
+
+        Mail goes out only in the first of those cases. An address that is already
+        verified is left alone, so this cannot be used to send unsolicited mail to a
+        verified account.
+
+        A syntactically invalid address returns `400`. That reveals nothing about who is
+        registered, and telling the user their address is malformed is more useful than
+        silently doing nothing.
+
+        ### Throttling
+
+        The endpoint is rate limited per requested email address, and returns `429` once
+        that limit is reached. Limiting by address rather than by caller means requests
+        cannot be spread across many source addresses to flood a single inbox.
+
+        The limit is set by the `EMAIL_CONFIRMATION_REQUESTS_PER_HOUR` configuration
+        option, and can be changed by an administrator without a restart.
+      tags:
+      - User / team / organization / usage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailConfirmationRequestPayload'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailConfirmationRequestResponse'
+              examples:
+                RequestAccepted:
+                  value:
+                    detail: If that email address needs confirming, a new confirmation
+                      email has been sent to it.
+                  summary: Request accepted
+          description: null
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                TooManyRequests:
+                  value:
+                    detail: Request was throttled. Expected available in 60 seconds.
+                  summary: Too many requests
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorValidation'
+              examples:
+                BadRequest:
+                  value:
+                    email:
+                    - Enter a valid email address.
+                  summary: Bad request
+          description: ''
   /api/v2/environment/:
     get:
       operationId: api_v2_environment_retrieve
@@ -8409,6 +8515,7 @@ paths:
         - Global static lists (sectors, countries, interface languages, operational purposes).
         - Metadata configuration (available project and user metadata fields).
         - Features configurations (MFA, password entropy meter, custom guidance text).
+        - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
         - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
       tags:
       - Configuration
@@ -8485,7 +8592,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/ImportCreateRequest'
-        required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8834,6 +8940,8 @@ paths:
         ## Retrieve organization asset usage tracker
 
         Tracks the total usage of each asset for the user in the given organization
+
+        Use the `q` query parameter to filter by project name (e.g. `?q=household survey`). Bare search terms must be at least 3 characters long and match anywhere in the name, case-insensitively. The standard query syntax is also supported: `?q=name__icontains:household` for a contains match, while `?q=name:Household survey` is an exact name match.
       parameters:
       - in: query
         name: limit
@@ -8845,6 +8953,11 @@ paths:
         schema:
           type: string
         description: Which field to use when ordering the results.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
       - in: query
         name: start
         schema:
@@ -9298,10 +9411,25 @@ paths:
   /api/v2/organizations/{uid_organization}/members/:
     get:
       operationId: api_v2_organizations_members_list
-      description: |
-        ## List Members
-
-        Retrieves all members in the specified organization.
+      description: "## List Members\n\nRetrieves all members and pending invitations
+        in the specified organization.\n\n### Searching\n\nSearch can be made with
+        the `q` parameter. It will implicitly match against the username, email, first
+        name, last name, and profile name (`extra_details__data__name`) of the members
+        or pending invitations.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?q=luis\n```\n\n>
+        [!WARNING]\n> **Explicit Field Searching:** Because this endpoint combines
+        active members (`OrganizationUser`) and pending invitations (`OrganizationInvitation`),
+        you cannot use an explicit boolean `OR` across different model fields in the
+        same query (e.g., `q=user__email:luis@example.com OR invitee__email:luis@example.com`).
+        Doing so will cause both query parsers to reject the invalid field, resulting
+        in a 400 Bad Request error.\n> \n> To search across both groups simultaneously,
+        simply rely on the generic query (e.g., `q=luis@example.com`) without specifying
+        prefixes. Use explicit field prefixes ONLY when you want to narrow the results
+        to a specific group (e.g., `q=user__email:luis@example.com` to target only
+        active members).\n\n### Sorting\n\nResults can be sorted with the `ordering`
+        parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/organizations/{uid_organization}/members/?ordering=-user__username\n```\n\nAllowed
+        ordering fields:\n\n- `user__username`\n- `status`\n- `date_joined` (or `date_added`,
+        `created`)\n- `role` (sorted by privilege rank: `member` → `admin` → `owner`)\n-
+        `user__has_sso_enabled`\n\nPrefix field names with `-` for descending sort.\n"
       parameters:
       - name: limit
         required: false
@@ -9315,6 +9443,32 @@ paths:
         description: Deprecated alias of `start`.
         schema:
           type: integer
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -created
+          - -date_added
+          - -date_joined
+          - -role
+          - -status
+          - -user__has_sso_enabled
+          - -user__username
+          - created
+          - date_added
+          - date_joined
+          - role
+          - status
+          - user__has_sso_enabled
+          - user__username
+        description: 'Which field to use when ordering the results. Note: `role` sorts
+          by privilege rank (`member` → `admin` → `owner`).'
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with a search query.
       - name: start
         required: false
         in: query
@@ -9690,6 +9844,7 @@ paths:
         >       update-name
         >       update-settings
         >       update-qa
+        >       view-data
 
         **Filterable fields by action:**
 
@@ -11482,6 +11637,68 @@ paths:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
           description: ''
+  /api/v2/social-apps/{provider_id}/:
+    get:
+      operationId: api_v2_social_apps_retrieve
+      description: |
+        ## Retrieve a single sign-on provider
+
+        Resolves the `provider_id` used in single sign-on URLs into the provider's display
+        name, so a client can render the "Log in with …" screen and tell a real provider
+        from a typo.
+
+        Returns display data only, never `client_id`, secrets, or the provider's server URL.
+
+        Examples:
+        ```shell
+          curl -X GET https://kf.kobotoolbox.org/api/v2/social-apps/nca/
+        ```
+
+        > Response 200
+        ```json
+        {
+            "provider_id": "nca",
+            "name": "Norwegian Church Aid"
+        }
+        ```
+
+        Requires no authentication, and resolves providers that are hidden from the login
+        page as well as those shown on it: a hidden provider is not advertised, but is
+        usable by anyone holding its link, and that link already contains the
+        `provider_id`. There is intentionally no endpoint listing all providers, the
+        `social_apps` property of `/api/v2/environment/` lists the public ones only.
+
+        An unknown `provider_id` returns `404`.
+      parameters:
+      - in: path
+        name: provider_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Configuration
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialAppDetail'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
   /api/v2/stripe/addons/:
     get:
       operationId: api_v2_stripe_addons_list
@@ -12184,8 +12401,10 @@ paths:
         **Total NLP Usage**
         - service_usage__total_nlp_usage__asr_seconds_all_time
         - service_usage__total_nlp_usage__mt_characters_all_time
+        - service_usage__total_nlp_usage__llm_requests_all_time
         - service_usage__total_nlp_usage__asr_seconds_current_period
         - service_usage__total_nlp_usage__mt_characters_current_period
+        - service_usage__total_nlp_usage__llm_requests_current_period
 
         **Total Storage/Submissions**
         - service_usage__total_storage_bytes
@@ -12201,6 +12420,7 @@ paths:
         - asr_seconds
         - mt_characters
         - storage_bytes
+        - llm_requests
 
         Value:
         - balance_value
@@ -12234,7 +12454,7 @@ paths:
         - sso_is_active
         - accepted_tos
         - extra_details__data__newsletter_subscription
-        - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
+        - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes, llm_requests)
         - account_restricted
 
         ## Filterable fields by list:
@@ -12604,6 +12824,78 @@ paths:
 
         The new email will be unverified and replace existing unverified, non-primary emails.
         New email is not usable until verified.
+
+        ### Re-authentication
+
+        Changing the email address is a sensitive action, so a valid session is not enough
+        on its own: the user must have authenticated recently. "Recently" means within
+        `ACCOUNT_REAUTHENTICATION_TIMEOUT` (5 minutes by default), and every method the
+        account has available must be fresh, the password, plus MFA when it is enabled.
+
+        This section describes browser sessions. Requests authenticated with a stateless
+        credential (token, Basic or OAuth2) are re-authenticated differently, in the
+        request body, as described below.
+
+        When re-authentication is needed the endpoint responds `403` without touching any
+        email address:
+
+        ```json
+        {
+          "detail": "Re-authentication is required for this action.",
+          "code": "reauthentication_required",
+          "flows": [
+            {"id": "reauthenticate"},
+            {"id": "mfa_reauthenticate", "types": ["totp"]}
+          ]
+        }
+        ```
+
+        `code` is the field to branch on: `detail` is translated, so it cannot be
+        matched against reliably.
+
+        `flows` lists the steps the client must walk the user through before retrying,
+        in the same shape allauth's headless API uses — `reauthenticate` for the
+        password, and `mfa_reauthenticate` in addition when the account has MFA enabled.
+        Once every listed flow is completed the original request will succeed.
+
+        ### Re-authenticating without a browser session
+
+        Requests authenticated with a stateless credential (token, Basic or OAuth2) have
+        no session for allauth to record a re-authentication in, so they carry the proof
+        in the request body instead:
+
+        ```json
+        {
+          "email": "new@example.com",
+          "current_password": "…",
+          "mfa_code": "123456"
+        }
+        ```
+
+        `current_password` is required whenever the account has a usable password.
+        `mfa_code` is required in addition when MFA is enabled, and accepts either a TOTP
+        code or a recovery code. Both are rejected with a `400` naming the offending
+        field, and neither is needed for an SSO-only account that has neither.
+
+        Note that Basic authentication is refused outright for MFA-enabled accounts, so
+        in practice the `mfa_code` case applies to token and OAuth2 callers.
+
+        This endpoint is rate limited.
+
+        ### Trying this from the API docs
+
+        A live KoboToolbox session takes precedence over the token set in **Authorize**:
+        `SessionAuthentication` comes first in `DEFAULT_AUTHENTICATION_CLASSES`, so if you
+        are logged in, that is what authenticates the call, and the token is never read.
+
+        * **To exercise the session payload**, first call
+          `POST /api/v2/allauth/browser/v1/auth/reauthenticate` with your password, then
+          send `{"email": "…"}` here within `ACCOUNT_REAUTHENTICATION_TIMEOUT`. Without
+          that first call you will get the `403` above.
+        * **To exercise the token payloads**, open the docs in a private window so that no
+          session cookie is sent, get your token from `/token/`, and authorize with the
+          full value including the keyword: `Token <your-token>`, not the bare key.
+          Swagger sends the header verbatim, so omitting the keyword returns `401`.
       tags:
       - User / team / organization / usage
       requestBody:
@@ -12611,6 +12903,33 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/EmailRequestPayload'
+            examples:
+              BrowserSession:
+                value:
+                  email: new@example.com
+                summary: Browser session
+                description: 'Nothing else is needed: the session already carries
+                  the re-authentication, provided it happened within `ACCOUNT_REAUTHENTICATION_TIMEOUT`.
+                  If it did not, the response is `403` listing the flows to complete
+                  first.'
+              TokenOrOAuth2WithoutMFA:
+                value:
+                  email: new@example.com
+                  current_password: <current password>
+                summary: Token or OAuth2 without MFA
+                description: A stateless credential has no session to re-authenticate
+                  in, so the current password proves the request instead. Required
+                  whenever the account has a usable password.
+              TokenOrOAuth2WithMFAEnabled:
+                value:
+                  email: new@example.com
+                  current_password: <current password>
+                  mfa_code: <TOTP or recovery code>
+                summary: Token or OAuth2 with MFA enabled
+                description: Accounts with MFA enabled must also send a code, either
+                  from the authenticator app or one of the recovery codes. Note that
+                  Basic authentication is refused outright for these accounts, so
+                  this applies to token and OAuth2 callers.
         required: true
       security:
       - BasicAuth: []
@@ -12645,6 +12964,36 @@ paths:
                     - Error message
                   summary: Bad request
           description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailReauthenticationRequiredResponse'
+              examples:
+                Re-authenticationRequired:
+                  value:
+                    detail: Re-authentication is required for this action.
+                    code: reauthentication_required
+                    flows:
+                    - id: reauthenticate
+                    - id: mfa_reauthenticate
+                      types:
+                      - totp
+                  summary: Re-authentication required
+          description: The session is valid but the user has not re-authenticated
+            recently enough. Walk the user through every flow listed in `flows`, then
+            retry this request.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                Throttled:
+                  value:
+                    detail: Request was throttled. Expected available in 3600 seconds.
+          description: Too many email change attempts. The endpoint is rate limited
+            because it accepts `current_password`.
   /me/social-accounts/:
     get:
       operationId: me_social_accounts_list
@@ -12778,6 +13127,17 @@ paths:
                   value:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
           description: ''
         '404':
           content:
@@ -15129,10 +15489,11 @@ components:
             only.
           readOnly: true
         parent:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          nullable: true
         settings:
           type: object
           properties:
@@ -15293,17 +15654,20 @@ components:
           type: string
           format: date-time
         date_deployed:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         version_id:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         version__content_hash:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         version_count:
           type: integer
           readOnly: true
@@ -15311,8 +15675,9 @@ components:
           type: boolean
           readOnly: true
         deployed_version_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           readOnly: true
         deployed_versions:
           type: object
@@ -15375,8 +15740,6 @@ components:
               type: string
             geojson:
               type: string
-            kml_legacy:
-              type: string
             spss_labels:
               type: string
             xls_legacy:
@@ -15388,7 +15751,6 @@ components:
           required:
           - csv
           - csv_legacy
-          - kml_legacy
           - xls
           - xls_legacy
           - zip_legacy
@@ -15397,16 +15759,18 @@ components:
           type: integer
           readOnly: true
         deployment__last_submission_time:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           readOnly: true
         deployment__encrypted:
           type: boolean
           readOnly: true
         deployment__uuid:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           readOnly: true
         deployment_status:
           allOf:
@@ -15896,9 +16260,9 @@ components:
           type:
           - array
           - 'null'
+          - 'null'
           items:
             type: string
-          nullable: true
           readOnly: true
         data_sharing:
           type: object
@@ -15908,21 +16272,24 @@ components:
           example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/
           readOnly: true
         project_ownership:
-          type: object
+          type:
+          - object
+          - 'null'
           additionalProperties: {}
-          nullable: true
           readOnly: true
         owner_label:
           type: string
           readOnly: true
         last_modified_by:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         created_by:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
       required:
       - access_types
       - analysis_form_json
@@ -15973,8 +16340,9 @@ components:
         uid:
           type: string
         seconds:
-          type: integer
-          nullable: true
+          type:
+          - integer
+          - 'null'
       required:
       - seconds
       - uid
@@ -16695,6 +17063,57 @@ components:
       - user
       - user_uid
       - username
+    AuthConfiguration:
+      type: object
+      description: Server branding and behaviour for the sign-in and account creation
+        screens
+      properties:
+        theme:
+          allOf:
+          - $ref: '#/components/schemas/AuthThemeEnum'
+          description: |-
+            Appearance of everything outside the sign-in container. `custom` whenever a login background image has been uploaded, `default` otherwise
+
+            * `default` - Default
+            * `custom` - Customizable
+        background_image_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the login background image, or `null` when
+            none has been uploaded
+        show_kobotoolbox_logo:
+          type: boolean
+          description: Whether to display the KoboToolbox logo outside the container
+        logo_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the logo shown inside the container, or `null`
+            when none has been uploaded
+        supporting_image_url:
+          type:
+          - string
+          - 'null'
+          description: Relative URL of the image displayed alongside the account creation
+            form, or `null` when none has been uploaded
+        supporting_text:
+          type: string
+          description: Rendered HTML displayed alongside the account creation form,
+            localized for the request language. Empty when unset
+        allow_login_with_username:
+          type: boolean
+          description: Whether this server accepts a username at sign-in. Reflects
+            the login methods the server is configured with, so the sign-in form never
+            offers a credential the server would reject
+      required:
+      - allow_login_with_username
+      - background_image_url
+      - logo_url
+      - show_kobotoolbox_logo
+      - supporting_image_url
+      - supporting_text
+      - theme
     AuthLevelEnum:
       enum:
       - no_auth
@@ -16703,6 +17122,14 @@ components:
       description: |-
         * `no_auth` - no_auth
         * `basic_auth` - basic_auth
+    AuthThemeEnum:
+      enum:
+      - default
+      - custom
+      type: string
+      description: |-
+        * `default` - Default
+        * `custom` - Customizable
     BaseProduct:
       type: object
       properties:
@@ -16715,8 +17142,9 @@ components:
             Applicable to both `service` and `good` types.
           maxLength: 5000
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: A description of this object.
         type:
           allOf:
@@ -16826,9 +17254,9 @@ components:
           type: string
           format: date-time
         cancelled_by:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/BulkActionUserResponse'
-          nullable: true
+          - type: 'null'
         skipped_uuids:
           type: array
           items:
@@ -16852,11 +17280,13 @@ components:
         count:
           type: integer
         next:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         previous:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         results:
           type: array
           items:
@@ -16921,9 +17351,9 @@ components:
           type: string
           format: date-time
         cancelled_by:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/BulkActionUserResponse'
-          nullable: true
+          - type: 'null'
       required:
       - action_id
       - created_by
@@ -16956,8 +17386,9 @@ components:
         status:
           $ref: '#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum'
         error:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - error
       - status
@@ -17344,6 +17775,8 @@ components:
           type: string
         meta/deprecatedID:
           type: string
+        meta/formVersions:
+          type: string
         _xform_id_string:
           type: string
           title: ' xform id string'
@@ -17478,7 +17911,7 @@ components:
                   $ref: '#/components/schemas/SupplementalDataAutomaticQual'
               required:
               - automatic_bedrock_qual
-          nullable: true
+          - type: 'null'
           description: Action-specific supplemental data attached to this submission.
             Structure varies by action type (transcription, translation, qual). Top-level
             keys are question XPaths, values are action objects.
@@ -17540,6 +17973,8 @@ components:
         instanceID:
           type: string
         deprecatedID:
+          type: string
+        formVersions:
           type: string
       required:
       - instanceID
@@ -17861,12 +18296,47 @@ components:
       - email
       - primary
       - verified
+    EmailConfirmationRequestPayload:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    EmailConfirmationRequestResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+    EmailReauthenticationRequiredResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+        code:
+          type: string
+        flows:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - code
+      - detail
+      - flows
     EmailRequestPayload:
       type: object
       properties:
         email:
           type: string
           format: email
+        current_password:
+          type: string
+        mfa_code:
+          type: string
       required:
       - email
     EnketoEditResponse:
@@ -17896,27 +18366,37 @@ components:
     EnvironmentResponse:
       type: object
       properties:
+        registration_open:
+          type: boolean
+          description: Whether users may create their own accounts
         terms_of_service_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         privacy_policy_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         source_code_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         support_email:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         support_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         academy_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         community_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         frontend_min_retry_time:
           type: integer
         frontend_max_retry_time:
@@ -17981,6 +18461,8 @@ components:
         custom_password_localized_help_text:
           type: string
           description: Markdown string for custom password help text
+        auth_configuration:
+          $ref: '#/components/schemas/AuthConfiguration'
         project_metadata_fields:
           type: array
           items:
@@ -18004,8 +18486,9 @@ components:
           type: string
           description: Placeholder text for submissions
         stripe_public_key:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         terms_of_service__sitewidemessage__exists:
           type: boolean
           description: Indicates if a sitewide message for TOS exists
@@ -18017,6 +18500,7 @@ components:
       - academy_url
       - allow_self_account_deletion
       - asr_mt_features_enabled
+      - auth_configuration
       - community_url
       - country_choices
       - custom_password_localized_help_text
@@ -18034,6 +18518,7 @@ components:
       - privacy_policy_url
       - project_history_log_lifespan
       - project_metadata_fields
+      - registration_open
       - sector_choices
       - social_apps
       - source_code_url
@@ -18631,8 +19116,9 @@ components:
           type: string
           maxLength: 255
         payload_template:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         pending_count:
           type: integer
           readOnly: true
@@ -18700,9 +19186,10 @@ components:
         status_str:
           type: string
         status_code:
-          type: integer
+          type:
+          - integer
+          - 'null'
           readOnly: true
-          nullable: true
         message:
           type: string
           readOnly: true
@@ -18748,19 +19235,44 @@ components:
       type: object
       properties:
         destination:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
         url:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
         name:
-          type: string
+          type:
+          - string
+          - 'null'
         assetUid:
-          type: string
-      required:
-      - assetUid
-      - destination
-      - url
+          type:
+          - string
+          - 'null'
+        base64Encoded:
+          type:
+          - string
+          - 'null'
+        library:
+          type:
+          - boolean
+          - 'null'
+        desired_type:
+          type:
+          - string
+          - 'null'
+        totalFiles:
+          type:
+          - integer
+          - 'null'
+        file:
+          type:
+          - string
+          - 'null'
+          format: binary
     ImportCreateResponse:
       type: object
       properties:
@@ -19109,9 +19621,10 @@ components:
           format: uri
           example: https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40
         last_login:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         extra_details:
           type: object
           properties:
@@ -19224,33 +19737,56 @@ components:
       type: object
       properties:
         role:
-          $ref: '#/components/schemas/MemberRoleEnum'
+          oneOf:
+          - allOf:
+            - $ref: '#/components/schemas/MemberRoleEnum'
+          - type: 'null'
         url:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/
         user:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user__username:
-          type: string
+          type:
+          - string
+          - 'null'
         user__email:
-          type: string
+          type:
+          - string
+          - 'null'
           format: email
         user__extra_details__name:
-          type: string
+          type:
+          - string
+          - 'null'
         user__has_mfa_enabled:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
+        user__has_sso_enabled:
+          type:
+          - boolean
+          - 'null'
         date_joined:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
         user__is_active:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
         invite:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/InviteResponse'
-          nullable: true
+          - type: 'null'
       required:
       - date_joined
       - invite
@@ -19260,6 +19796,7 @@ components:
       - user__email
       - user__extra_details__name
       - user__has_mfa_enabled
+      - user__has_sso_enabled
       - user__is_active
       - user__username
     MemberRoleEnum:
@@ -19284,10 +19821,11 @@ components:
         required:
           type: boolean
         options:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             $ref: '#/components/schemas/MetadataFieldOption'
-          nullable: true
       required:
       - label
       - name
@@ -19349,11 +19887,13 @@ components:
           description: The amount of each of the add-on's individual limits left to
             use.
         organization:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         product:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - created
       - id
@@ -20856,9 +21396,10 @@ components:
           example: https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40
           readOnly: true
         last_login:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         extra_details:
           type: object
           properties:
@@ -21149,8 +21690,9 @@ components:
           type: string
           maxLength: 255
         payload_template:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         pending_count:
           type: integer
           readOnly: true
@@ -21207,9 +21749,10 @@ components:
         status_str:
           type: string
         status_code:
-          type: integer
+          type:
+          - integer
+          - 'null'
           readOnly: true
-          nullable: true
         message:
           type: string
           readOnly: true
@@ -21449,22 +21992,25 @@ components:
             * `one_time` - One-time
             * `recurring` - Recurring
         recurring:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/Recurring'
-          nullable: true
+          - type: 'null'
         unit_amount:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-          nullable: true
           description: The unit amount in cents to be charged, represented as a whole
             integer if possible. Null if a sub-cent precision is required.
         human_readable_price:
           type: string
           readOnly: true
         metadata:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
@@ -21475,7 +22021,9 @@ components:
           type: string
           description: The product this price is associated with.
         transform_quantity:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Apply a transformation to the reported usage or set quantity
             before computing the amount billed. Cannot be combined with `tiers`.
       required:
@@ -21509,22 +22057,25 @@ components:
             * `one_time` - One-time
             * `recurring` - Recurring
         recurring:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/Recurring'
-          nullable: true
+          - type: 'null'
         unit_amount:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-          nullable: true
           description: The unit amount in cents to be charged, represented as a whole
             integer if possible. Null if a sub-cent precision is required.
         human_readable_price:
           type: string
           readOnly: true
         metadata:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
@@ -21534,7 +22085,9 @@ components:
         product:
           $ref: '#/components/schemas/BaseProduct'
         transform_quantity:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Apply a transformation to the reported usage or set quantity
             before computing the amount billed. Cannot be combined with `tiers`.
       required:
@@ -21557,8 +22110,9 @@ components:
             Applicable to both `service` and `good` types.
           maxLength: 5000
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: A description of this object.
         type:
           allOf:
@@ -22139,8 +22693,9 @@ components:
         interval_count:
           type: integer
         meter:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         usage_type:
           $ref: '#/components/schemas/StripeUsageType'
       required:
@@ -22659,12 +23214,39 @@ components:
         client_id:
           type: string
         provider_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+        managed:
+          type: boolean
+        domains:
+          type: array
+          items:
+            type: string
       required:
       - client_id
+      - domains
+      - managed
       - name
       - provider
+      - provider_id
+    SocialAppDetail:
+      type: object
+      description: |-
+        Public, display-only representation of a `SocialApp`
+
+        Fields are declared explicitly rather than through `ModelSerializer` so that
+        credentials (`client_id`, `secret`, `key`) and provider internals
+        (`settings`, which holds `server_url`) cannot leak by accident
+      properties:
+        provider_id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - name
       - provider_id
     StripeIntervalEnum:
       enum:
@@ -22712,10 +23294,11 @@ components:
         schedule:
           $ref: '#/components/schemas/SubscriptionSchedule'
         application_fee_percent:
-          type: string
+          type:
+          - string
+          - 'null'
           format: decimal
           pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
-          nullable: true
         djstripe_created:
           type: string
           format: date-time
@@ -22729,40 +23312,49 @@ components:
           type: string
           maxLength: 255
         livemode:
-          type: boolean
-          nullable: true
+          type:
+          - boolean
+          - 'null'
           description: Null here indicates that the livemode status is unknown or
             was previously unrecorded. Otherwise, this field indicates whether this
             record comes from Stripe test mode or live mode operation.
         created:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: The datetime this object was created in stripe.
         metadata:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: A description of this object.
         billing_cycle_anchor:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Determines the date of the first full invoice, and, for plans
             with `month` or `year` intervals, the day of the month for subsequent
             invoices.
         billing_thresholds:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Define thresholds at which an invoice will be sent, and the
             subscription advanced to a new billing period.
         cancel_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: A date in the future at which the subscription will automatically
             get canceled.
         cancel_at_period_end:
@@ -22773,9 +23365,10 @@ components:
             has a status of active is scheduled to be canceled at the end of the current
             period.
         canceled_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has been canceled, the date of that cancellation.
             If the subscription was canceled with ``cancel_at_period_end``, canceled_at
             will still reflect the date of the initial cancellation request, not the
@@ -22800,41 +23393,52 @@ components:
           description: Start of the current period for which the subscription has
             been invoiced.
         days_until_due:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 2147483647
           minimum: -2147483648
-          nullable: true
           description: Number of days a customer has to pay invoices generated by
             this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`.
         discount:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Describes the current discount applied to this subscription,
             if there is one. When billing, a discount applied to a subscription overrides
             a discount applied on a customer-wide basis.
         ended_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has ended (either because it was canceled
             or because the customer was switched to a subscription to a new plan),
             the date the subscription ended.
         next_pending_invoice_item_invoice:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Specifies the approximate timestamp on which any pending invoice
             items will be billed according to the schedule provided at pending_invoice_item_interval.
         pause_collection:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: If specified, payment collection for this subscription will
             be paused.
         pending_invoice_item_interval:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Specifies an interval for how often to bill for any pending
             invoice items. It is analogous to calling Create an invoice for the given
             subscription at the specified interval.
         pending_update:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: If specified, pending updates that will be applied to the subscription
             once the latest_invoice has been paid.
         proration_behavior:
@@ -22848,9 +23452,10 @@ components:
           - $ref: '#/components/schemas/ProrationBehaviorEnum'
           - $ref: '#/components/schemas/BlankEnum'
         proration_date:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If set, the proration will be calculated as though the subscription
             was updated at the given time. This can be used to apply exactly the same
             proration that was previewed with upcoming invoice endpoint. It can also
@@ -22858,16 +23463,18 @@ components:
             instead of by second, by providing the time that you wish to use for proration
             calculations
         quantity:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 2147483647
           minimum: -2147483648
-          nullable: true
           description: The quantity applied to this subscription. This value will
             be `null` for multi-plan subscriptions
         start_date:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Date when the subscription was first created. The date might
             differ from the created date due to backdating.
         status:
@@ -22884,48 +23491,56 @@ components:
             * `trialing` - Trialing
             * `unpaid` - Unpaid
         trial_end:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has a trial, the end of that trial.
         trial_start:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has a trial, the beginning of that trial.
         djstripe_owner_account:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The Stripe Account this object belongs to.
         customer:
           type: string
           description: The customer associated with this subscription.
         default_payment_method:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The default payment method for the subscription. It must belong
             to the customer associated with the subscription. If not set, invoices
             will use the default payment method in the customer's invoice settings.
         default_source:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The default payment source for the subscription. It must belong
             to the customer associated with the subscription and be in a chargeable
             state. If not set, defaults to the customer's default source.
         latest_invoice:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The most recent invoice this subscription has generated.
         pending_setup_intent:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: We can use this SetupIntent to collect user authentication
             when creating a subscription without immediate payment or updating a subscription's
             payment method, allowing you to optimize for off-session payments.
         plan:
-          type: integer
+          type:
+          - integer
+          - 'null'
           title: ID
-          nullable: true
           description: The plan associated with this subscription. This value will
             be `null` for multi-plan subscriptions
         default_tax_rates:
@@ -22957,10 +23572,11 @@ components:
         price:
           $ref: '#/components/schemas/PriceWithProduct'
         quantity:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 2147483647
           minimum: 0
-          nullable: true
           description: The quantity of the plan to which the customer should be subscribed.
       required:
       - id

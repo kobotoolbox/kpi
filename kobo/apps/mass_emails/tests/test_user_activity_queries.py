@@ -351,3 +351,21 @@ class UserActivityQueryTests(BaseTestCase):
         )
         inactive_users = get_inactive_users()
         self.assertFalse(user in inactive_users)
+
+    def test_deactivated_user_excluded_from_active_user_query(self):
+        """
+        Test that a user meeting the activity criteria is excluded from both
+        queries once their Django account is deactivated (is_active=False)
+        """
+        user = self._create_user('deactivated', self.recent_date)
+        active_users = get_active_users()
+        inactive_users = get_inactive_users()
+        self.assertTrue(user in active_users)
+        self.assertFalse(user in inactive_users)
+
+        user.is_active = False
+        user.save()
+        active_users = get_active_users()
+        inactive_users = get_inactive_users()
+        self.assertFalse(user in active_users)
+        self.assertFalse(user in inactive_users)

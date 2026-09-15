@@ -1,7 +1,18 @@
 # flake8: noqa: E501
+import time
 
 from django.conf import settings
 
+REDIS_LOCK_KEY = 'billing_and_usage_snapshot:run_lock'
+REDIS_LOCK_TTL = 300
+REDIS_LOCK_ACQUIRE_TIMEOUT = 5
+PG_LOCK_TIMEOUT = '30s'
+POST_TERMINATE_SLEEP = 3
+
+# used by migrations to determine if they are responsible for running CREATE_MV_SQL
+# when updating the sql, add a new version to the end of the list and gate the migration
+# on `if <my_new_version> == CREATE_MV_SQL_VERSIONS[-1]`
+CREATE_MV_SQL_VERSIONS = ['initial', '20260807']
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -9,7 +20,8 @@ CREATE_MV_BASE_SQL = f"""
         SELECT
             nuc.user_id,
             COALESCE(SUM(nuc.total_asr_seconds), 0) AS total_asr_seconds,
-            COALESCE(SUM(nuc.total_mt_characters), 0) AS total_mt_characters
+            COALESCE(SUM(nuc.total_mt_characters), 0) AS total_mt_characters,
+            COALESCE(SUM(nuc.total_llm_requests), 0) AS total_llm_requests
         FROM trackers_nlpusagecounter nuc
         GROUP BY nuc.user_id
     ),
@@ -32,6 +44,7 @@ CREATE_MV_BASE_SQL = f"""
             bus.storage_bytes_limit,
             bus.asr_seconds_limit,
             bus.mt_characters_limit,
+            bus.llm_requests_limit,
             COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
             COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
             COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period,
@@ -50,7 +63,11 @@ CREATE_MV_BASE_SQL = f"""
             SUM(
                 CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
                      THEN nuc.total_mt_characters ELSE 0 END
-            ) AS total_nlp_usage_mt_characters_current_period
+            ) AS total_nlp_usage_mt_characters_current_period,
+            SUM(
+                CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
+                     THEN nuc.total_llm_requests ELSE 0 END
+            ) AS total_nlp_usage_llm_requests_current_period
         FROM trackers_nlpusagecounter nuc
         JOIN user_billing_periods ubp ON nuc.user_id = ubp.user_id
         GROUP BY nuc.user_id
@@ -62,7 +79,8 @@ CREATE_MV_BASE_SQL = f"""
             ubp.current_period_end,
             ubp.organization_id,
             COALESCE(na.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
-            COALESCE(na.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period
+            COALESCE(na.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period,
+            COALESCE(na.total_nlp_usage_llm_requests_current_period, 0) AS total_nlp_usage_llm_requests_current_period
         FROM user_billing_periods ubp
         LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
@@ -175,8 +193,10 @@ CREATE_MV_BASE_SQL = f"""
             'total_nlp_usage', jsonb_build_object(
                 'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
                 'mt_characters_current_period', COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0),
+                'llm_requests_current_period', COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0),
                 'asr_seconds_all_time', COALESCE(unl.total_asr_seconds, 0),
-                'mt_characters_all_time', COALESCE(unl.total_mt_characters, 0)
+                'mt_characters_all_time', COALESCE(unl.total_mt_characters, 0),
+                'llm_requests_all_time', COALESCE(unl.total_llm_requests, 0)
             ),
             'total_storage_bytes', COALESCE(ubau.total_storage_bytes, 0),
             'total_submission_count', jsonb_build_object(
@@ -252,6 +272,23 @@ CREATE_MV_BASE_SQL = f"""
                                 ((COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)::numeric * 100) / NULLIF(ubau.mt_characters_limit, 0))::int,
                             'exceeded', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)) < 0
                         )
+                    END,
+                'llm_requests',
+                    CASE
+                        WHEN ubau.llm_requests_limit IS NULL THEN jsonb_build_object(
+                            'effective_limit', null,
+                            'balance_value', null,
+                            'balance_percent', 0,
+                            'exceeded', false
+                        )
+                        WHEN ubau.llm_requests_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.llm_requests_limit,
+                            'balance_value', (ubau.llm_requests_limit - COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0)::numeric * 100) / NULLIF(ubau.llm_requests_limit, 0))::int,
+                            'exceeded', (ubau.llm_requests_limit - COALESCE(ucpu.total_nlp_usage_llm_requests_current_period, 0)) < 0
+                        )
                     END
             )
         )::jsonb AS service_usage,
@@ -288,6 +325,7 @@ CREATE_MV_BASE_SQL = f"""
         au.last_login,
         unl.total_asr_seconds,
         unl.total_mt_characters,
+        unl.total_llm_requests,
         ua.total_assets,
         ua.deployed_assets,
         ou.id,
@@ -296,10 +334,12 @@ CREATE_MV_BASE_SQL = f"""
         ucpu.current_period_end,
         ucpu.total_nlp_usage_asr_seconds_current_period,
         ucpu.total_nlp_usage_mt_characters_current_period,
+        ucpu.total_nlp_usage_llm_requests_current_period,
         ubau.submission_limit,
         ubau.storage_bytes_limit,
         ubau.asr_seconds_limit,
         ubau.mt_characters_limit,
+        ubau.llm_requests_limit,
         ubau.total_storage_bytes,
         ubau.total_submission_count_all_time,
         ubau.total_submission_count_current_period,
@@ -446,6 +486,88 @@ else:
     }
 
 CREATE_MV_SQL = CREATE_MV_BASE_SQL.format(**MV_PARAMS)
+
+
+def drop_mv(apps, schema_editor):
+    from django.core.cache import cache
+
+    lock = None
+    acquired = False
+    try:
+        lock = cache.lock(REDIS_LOCK_KEY, timeout=REDIS_LOCK_TTL)
+    except Exception:
+        lock = None
+
+    try:
+        if lock is not None:
+            try:
+                acquired = lock.acquire(
+                    blocking=True, blocking_timeout=REDIS_LOCK_ACQUIRE_TIMEOUT
+                )
+            except Exception:
+                acquired = False
+
+        with schema_editor.connection.cursor() as cursor:
+            if not acquired:
+                terminate_backends_touching_mv(cursor)
+                time.sleep(POST_TERMINATE_SLEEP)
+                if lock is not None:
+                    try:
+                        acquired = lock.acquire(
+                            blocking=True,
+                            blocking_timeout=REDIS_LOCK_ACQUIRE_TIMEOUT,
+                        )
+                    except Exception:
+                        acquired = False
+
+            # Safety net: kill any stray backend still holding a lock on the
+            # MV now that we control the Redis lock - just in case.
+            terminate_backends_touching_mv(cursor)
+
+            cursor.execute(f"SET lock_timeout = '{PG_LOCK_TIMEOUT}'")
+            try:
+                cursor.execute(DROP_INDEXES_SQL)
+                cursor.execute(DROP_MV_SQL)
+            finally:
+                cursor.execute('RESET lock_timeout')
+    finally:
+        if acquired and lock is not None:
+            try:
+                lock.release()
+            except Exception:
+                pass
+
+
+def reschedule_lrm_recreate(apps, schema_editor):
+    LongRunningMigration = apps.get_model(
+        'long_running_migrations', 'LongRunningMigration'
+    )
+    LongRunningMigration.objects.filter(name='0019_recreate_user_reports_mv').update(
+        status='created'
+    )
+
+
+def terminate_backends_touching_mv(cursor):
+    """
+    Terminate any backend currently refreshing or holding a lock on
+    user_reports_userreportsmv. The MV is about to be dropped so losing an
+    in-flight refresh is harmless; killing the backend forces the Celery
+    snapshot task to release its Redis lock via its `finally` block.
+    """
+    cursor.execute("""
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE pid <> pg_backend_pid()
+          AND (
+              query ILIKE '%%REFRESH MATERIALIZED VIEW%%user_reports_userreportsmv%%'
+              OR pid IN (
+                  SELECT l.pid
+                  FROM pg_locks l
+                  JOIN pg_class c ON l.relation = c.oid
+                  WHERE c.relname = 'user_reports_userreportsmv'
+              )
+          );
+        """)
 
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;

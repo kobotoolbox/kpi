@@ -28,10 +28,12 @@ class WritableJSONField(serializers.Field):
         else:
             try:
                 return json.loads(data)
-            except Exception as e:
-                raise serializers.ValidationError(
-                    t('Unable to parse JSON: {error}').format(error=e)
-                )
+            # `RecursionError` comes from deeply nested input, and is neither a
+            # `ValueError` nor a `TypeError`
+            except (TypeError, ValueError, RecursionError) as e:
+                # The decoder message can echo the submitted payload back to the
+                # client; keep it server-side only
+                raise serializers.ValidationError(t('Unable to parse JSON')) from e
 
     def to_representation(self, value):
         return value

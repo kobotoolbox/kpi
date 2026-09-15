@@ -58,3 +58,4 @@ class AuditAction(models.TextChoices):
     TRANSFER = 'transfer'
     VERIFY_AUTOMATIC_QA_DATA = 'verify-automatic-qa-data'
     VERIFY_MANUAL_QA_DATA = 'verify-manual-qa-data'
+    VIEW_DATA = 'view-data'

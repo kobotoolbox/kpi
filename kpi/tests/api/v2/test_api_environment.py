@@ -13,12 +13,13 @@ from rest_framework import status
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.accounts.models import SocialAppCustomData
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.utils.mixins import RequiresStripeAPIKeyMixin
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.markdown import markdownify
 
 
 class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
@@ -87,7 +88,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                     '##support email##', config.SUPPORT_EMAIL
                 )
             ),
-            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
+            'mfa_code_length': settings.MFA_TOTP_DIGITS,
             'superuser_auth_enforcement': config.SUPERUSER_AUTH_ENFORCEMENT,
             # stripe key added below if stripe is enabled
             'stripe_public_key': None,
@@ -105,6 +106,17 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             'use_team_label': config.USE_TEAM_LABEL,
             'usage_limit_enforcement': config.USAGE_LIMIT_ENFORCEMENT,
             'allow_self_account_deletion': config.ALLOW_SELF_ACCOUNT_DELETION,
+            'registration_open': config.REGISTRATION_OPEN,
+            'auth_configuration': {
+                'theme': 'default',
+                'background_image_url': None,
+                'show_kobotoolbox_logo': config.SHOW_KOBOTOOLBOX_LOGO,
+                'logo_url': None,
+                'supporting_image_url': None,
+                'supporting_text': markdownify(I18nUtils.get_sitewide_message()),
+                # Derived from allauth, which accepts only a username by default
+                'allow_login_with_username': True,
+            },
         }
         if settings.STRIPE_ENABLED:
             from djstripe.models import APIKey
@@ -163,23 +175,38 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 31)
+        queries = FuzzyInt(18, 36)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        app = baker.make('socialaccount.SocialApp')
-        custom_data = SocialAppCustomData.objects.create(social_app=app, is_public=True)
+        managed_app = baker.make('socialaccount.SocialApp')
+        unmanaged_app = baker.make('socialaccount.SocialApp')
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=managed_app, is_public=True, managed=True
+        )
         custom_data.save()
+        SocialAppManagedDomain.objects.create(
+            social_app=custom_data, domain='example.com'
+        )
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
-        self.assertContains(response, app.name)
+        assert len(response.data['social_apps']) == 2
+        socialapps_response = sorted(
+            response.data['social_apps'], key=lambda k: k['managed']
+        )
+        assert socialapps_response[0]['managed'] is False
+        assert socialapps_response[0]['domains'] == []
+        assert socialapps_response[0]['name'] == unmanaged_app.name
+        assert socialapps_response[1]['managed'] is True
+        assert socialapps_response[1]['domains'] == ['example.com']
+        assert socialapps_response[1]['name'] == managed_app.name
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps_no_custom_data(self):
         SocialAppCustomData.objects.all().delete()
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 31)
+        queries = FuzzyInt(18, 36)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
 
@@ -242,3 +269,76 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.assertEqual(len(regions_field['options']), 2)
         self.assertEqual(regions_field['options'][0]['name'], 'africa')
         self.assertEqual(regions_field['options'][0]['label']['default'], 'Africa')
+
+    def test_auth_configuration_defaults_to_unbranded(self):
+        """
+        A server whose administrator has uploaded nothing gets the default
+        theme and no image URLs
+        """
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        auth_configuration = response.data['auth_configuration']
+        assert auth_configuration['theme'] == 'default'
+        assert auth_configuration['background_image_url'] is None
+        assert auth_configuration['logo_url'] is None
+        assert auth_configuration['supporting_image_url'] is None
+        assert auth_configuration['show_kobotoolbox_logo'] is True
+        assert auth_configuration['allow_login_with_username'] is True
+
+    @override_config(SHOW_KOBOTOOLBOX_LOGO=False)
+    def test_auth_configuration_logo_toggle_is_configurable(self):
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['auth_configuration']['show_kobotoolbox_logo'] is False
+
+    @override_settings(ACCOUNT_LOGIN_METHODS={'email'}, ACCOUNT_UNIQUE_EMAIL=True)
+    def test_auth_configuration_reports_accepted_login_methods(self):
+        """
+        The flag follows allauth rather than a preference of its own, so the
+        sign-in form never offers a credential the server would reject
+        """
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['auth_configuration']['allow_login_with_username'] is False
+
+    def test_auth_configuration_supporting_text_is_rendered_html(self):
+        SitewideMessage.objects.filter(slug='welcome_message').update(
+            body='Welcome to **this** server'
+        )
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            '<strong>this</strong>'
+            in response.data['auth_configuration']['supporting_text']
+        )
+
+    def test_auth_configuration_supporting_text_is_localized(self):
+        response = self.client.get(self.url, format='json', HTTP_ACCEPT_LANGUAGE='fr')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            'Le message de bienvenue'
+            in response.data['auth_configuration']['supporting_text']
+        )
+
+    def test_auth_configuration_supporting_text_is_blank_when_unset(self):
+        SitewideMessage.objects.filter(slug__startswith='welcome_message').delete()
+
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['auth_configuration']['supporting_text'] == ''
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_registration_open_is_exposed(self):
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['registration_open'] is False
+
+    def test_auth_configuration_available_to_anonymous_users(self):
+        """
+        The sign-in screen is rendered before the user has any credentials
+        """
+        self.client.logout()
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert 'auth_configuration' in response.data
