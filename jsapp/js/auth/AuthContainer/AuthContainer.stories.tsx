@@ -110,10 +110,6 @@ export const TwoColumnsStacked: Story = {
   decorators: [narrowViewportDecorator],
 }
 
-export const RaisedMinHeight: Story = {
-  parameters: { reactRouter: authRouting(<AuthCard minHeight={560}>{stubForm}</AuthCard>) },
-}
-
 /** Custom background should cause few things to appear differently */
 export const CustomTheme: Story = {
   parameters: {
