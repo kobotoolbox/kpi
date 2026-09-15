@@ -409,8 +409,8 @@ def determine_limit(
             addon_limit = inf
         else:
             try:
-                addon_limit = int(addon_limit or 0)
-            except ValueError:
+                addon_limit = int(addon_limit)
+            except (ValueError, TypeError):
                 if parseable_subscription_limit:
                     return limit
                 else:

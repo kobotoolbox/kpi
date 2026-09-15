@@ -212,7 +212,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         # no plan, addon, or default plan, use inf
         (UsageType.ASR_SECONDS, None, None, None, False, inf),
         # parseable subscription, no addon
-        (UsageType.STORAGE_BYTES, 'unparseable', None, None, False, inf),
+        (UsageType.ASR_SECONDS, 'unparseable', None, None, False, inf),
+        # parseable subscription, missing addon
+        (UsageType.STORAGE_BYTES, 'unparseable', None, None, True, inf),
         # parseable subscription, unparseable addon
         (UsageType.STORAGE_BYTES, '100', 'unparseable', None, True, 100),
         # unparseable subscription, parseable addon
