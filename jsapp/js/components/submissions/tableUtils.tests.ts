@@ -10,7 +10,12 @@ import {
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
 } from './tableUtils'
-import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP, assetWithStartGeopoint } from './tableUtils.mocks'
+import {
+  assetWithBgAudioAndNLP,
+  assetWithNestedGroupsAndNLP,
+  assetWithQuestionsNamedAfterMeta,
+  assetWithStartGeopoint,
+} from './tableUtils.mocks'
 
 describe('tableUtils', () => {
   describe('getColumnLabel', () => {
@@ -517,6 +522,15 @@ describe('tableUtils', () => {
       chai.expect(columns).to.not.include('meta/audit')
     })
 
+    it('should keep ordinary questions named after meta questions, in form order', () => {
+      // A question named `audit` is data - dropping it would lose it from the
+      // table, the "hide fields" list and the modal at once - and one named
+      // `start` has no business being pulled to the front.
+      const columns = getAllDataColumns(assetWithQuestionsNamedAfterMeta)
+
+      chai.expect(columns).to.deep.equal(['audit', 'start-geopoint', 'What_did_you_see', 'end', 'start'])
+    })
+
     it('should put metadata columns from submissions at the end in the canonical order', () => {
       // Note the reversed order of these properties - we want to make sure the
       // order of the columns doesn't depend on the order of submission props.
@@ -618,6 +632,25 @@ describe('tableUtils', () => {
       chai
         .expect(test)
         .to.deep.equal(['start', 'end', 'username', 'deviceid', 'phonenumber', 'today', 'start-geopoint'])
+    })
+
+    it('should not take ordinary questions for metadata, whatever they are named', () => {
+      const test = getMetadataColumns(assetWithQuestionsNamedAfterMeta)
+
+      chai.expect(test).to.deep.equal([])
+    })
+
+    it('should take a meta question the form no longer defines for metadata', () => {
+      // Nothing says whether such a key was a meta question switched off after
+      // this submission, or an ordinary question since deleted - the asset only
+      // carries the latest survey. Metadata is the safer guess of the two, and
+      // this pins it, as inverting it would drop a switched-off meta question
+      // into the middle of the table.
+      const submissions = [{ today: '2026-09-15' }] as unknown as SubmissionResponse[]
+
+      const test = getMetadataColumns(assetWithQuestionsNamedAfterMeta, submissions)
+
+      chai.expect(test).to.deep.equal(['today'])
     })
 
     it('should not return meta questions that the form does not define', () => {

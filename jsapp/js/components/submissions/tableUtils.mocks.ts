@@ -339,3 +339,71 @@ export const assetWithStartGeopoint = {
     ],
   },
 } as unknown as AssetResponse
+
+/**
+ * A form with ordinary questions that happen to be named after meta questions.
+ * Nothing reserves those names: the Form Builder only de-duplicates against the
+ * other questions of the survey, and an uploaded XLSForm is free to use them.
+ */
+export const assetWithQuestionsNamedAfterMeta = getApiV2AssetsRetrieveResponseMock({
+  uid: 'aQuEsTiOnSnAmEdAfTeRmEtA',
+  asset_type: AssetTypeName.survey,
+  content: {
+    survey: [
+      {
+        name: 'audit',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'aUd1TqUeSt',
+        label: ['Who audited this site?'],
+        $xpath: 'audit',
+        $autoname: 'audit',
+        required: false,
+      },
+      {
+        name: 'start-geopoint',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'gEoQuEsT1',
+        label: ['Where did you start?'],
+        $xpath: 'start-geopoint',
+        $autoname: 'start-geopoint',
+        required: false,
+      },
+      {
+        name: 'What_did_you_see',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'sAwQuEsT1',
+        label: ['What did you see?'],
+        $xpath: 'What_did_you_see',
+        $autoname: 'What_did_you_see',
+        required: false,
+      },
+      // These two are last on purpose: the meta questions of those names are
+      // pulled to the front, and these must not be.
+      {
+        name: 'end',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'eNdQuEsT1',
+        label: ['Which end of the village?'],
+        $xpath: 'end',
+        $autoname: 'end',
+        required: false,
+      },
+      {
+        name: 'start',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'sTaRtQuEs',
+        label: ['Who started the meeting?'],
+        $xpath: 'start',
+        $autoname: 'start',
+        required: false,
+      },
+    ],
+    settings: {
+      version: '1 (2026-09-15 10:00:00)',
+      id_string: 'questions_named_after_meta',
+    },
+    translated: ['label'],
+    translations: [null],
+  },
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse

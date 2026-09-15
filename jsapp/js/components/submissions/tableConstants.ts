@@ -26,14 +26,22 @@ export const EXCLUDED_COLUMNS = [
   // Internal only: the list of form versions a submission has been through
   'meta/formVersions',
   '_validation_status',
-  // `audit` delivers a log of how enumerators moved through the form as an
-  // attached CSV, so there is no response to put in a cell - only a file name
-  // that no view here can open. Two spellings, because the survey defines the
-  // question at the root, while a submission carries it in the `meta` block, as
-  // the ODK spec requires: https://getodk.github.io/xforms-spec/#metadata
-  META_QUESTION_TYPES.audit,
+  // The audit log, which a submission carries in its `meta` block per the ODK
+  // spec: https://getodk.github.io/xforms-spec/#metadata. The survey's own audit
+  // question is excluded by row type instead, see `EXCLUDED_ROW_TYPES`.
   `meta/${META_QUESTION_TYPES.audit}`,
 ]
+
+/**
+ * Rows of these types never become columns, as neither carries a response: a
+ * `note` is just text on the screen, and `audit` delivers a log of how enumerators
+ * moved through the form as an attached CSV, leaving the cell a file name that no
+ * view here can open.
+ *
+ * NOTE: row types, not column keys, on purpose - nothing reserves these names, so
+ * an ordinary question called `audit` is data like any other.
+ */
+export const EXCLUDED_ROW_TYPES: AnyRowTypeName[] = [QuestionTypeName.note, META_QUESTION_TYPES.audit]
 
 /**
  * These columns go at the very end of the list of columns, in this exact order.
@@ -42,7 +50,9 @@ export const EXCLUDED_COLUMNS = [
  *
  * NOTE: this is part of the single source of truth for the order of columns,
  * see `orderColumns` in `tableUtils.ts`. Anything listed here is also treated
- * as metadata by `getMetadataColumns`, so don't add form questions.
+ * as metadata by `getMetadataColumns`, so don't add form questions. A key only
+ * counts when the form has no ordinary question by that name - nothing reserves
+ * these names, so `today` may well be somebody's own question.
  */
 export const LAST_COLUMNS_ORDER: string[] = [
   META_QUESTION_TYPES.username,
