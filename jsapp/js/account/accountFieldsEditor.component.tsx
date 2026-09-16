@@ -7,24 +7,10 @@ import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import Textarea from '#/components/common/Textarea'
 import { addRequiredToLabel } from '#/textUtils'
-import { recordValues } from '#/utils'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
+import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
-import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'
-
-const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
-  return {
-    value: name,
-    label: label,
-  }
-})
-
-const GENDER_SELECT_OPTIONS = [
-  { value: 'male', label: t('Male') },
-  { value: 'female', label: t('Female') },
-  { value: 'other', label: t('Other') },
-]
 
 type UserFieldValue = string | boolean
 

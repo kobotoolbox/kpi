@@ -458,22 +458,15 @@ export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
   getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
 
 /**
- * Fails the first request and answers the second, for screens that offer a retry. The URL pattern is the
+ * A `/environment` that fails every time, for screens that have to cope without it. The URL pattern is the
  * generated handler's, so this replaces it rather than racing it.
  *
- * Give each story its own instance: the "have we failed yet" flag lives in the closure.
+ * Every time, not just once: the screen fetches twice on mount, so a single scripted failure gets followed
+ * by a success nobody asked for and the error state never renders. A story that also wants the recovery
+ * calls `getWorker().use(...)` with a working handler at the point it is ready for one.
  */
-export const makeEnvironmentFailsOnceMock = (override?: Partial<EnvironmentResponse>) => {
-  let hasFailed = false
-
-  return http.get('*/api/v2/environment{/}?', () => {
-    if (hasFailed) {
-      return HttpResponse.json({ ...environmentResponse, ...override })
-    }
-    hasFailed = true
-    return HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 })
-  })
-}
+export const environmentServerErrorMock = () =>
+  http.get('*/api/v2/environment{/}?', () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
 /** The production-like defaults, registered globally in `.storybook/preview.tsx`. */
 const environmentMock = makeEnvironmentMock()
