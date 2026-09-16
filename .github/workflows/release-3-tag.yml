@@ -23,6 +23,9 @@ permissions:
 
 jobs:
 
+  resolve-author:
+    uses: './.github/workflows/resolve-author.yml'
+
   # Validate the selected branch and pass it downstream.
   current-branch:
     runs-on: ubuntu-24.04
@@ -547,6 +550,7 @@ jobs:
 
   on-failure:
     needs:
+      - resolve-author
       - version
       - validate
       - pull-transifex
@@ -556,9 +560,9 @@ jobs:
       - bump
       - linear-release
       - deploy-issue
-    if: ${{ !cancelled() && failure() }}
+    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.validate.result == 'failure' || needs.pull-transifex.result == 'failure' || needs.tag.result == 'failure' || needs.changelog.result == 'failure' || needs.build-image.result == 'failure' || needs.bump.result == 'failure' || needs.linear-release.result == 'failure' || needs.deploy-issue.result == 'failure') }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. @*devs* please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."

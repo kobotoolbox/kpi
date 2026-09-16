@@ -15,6 +15,9 @@ permissions:
   contents: read
 
 jobs:
+  resolve-author:
+    uses: './.github/workflows/resolve-author.yml'
+
   deploy:
     runs-on: ubuntu-latest
     permissions:
@@ -115,11 +118,12 @@ jobs:
 
   notify-failure:
     needs:
+      - resolve-author
       - deploy
       - trigger-main-deploy
-    if: ${{ !cancelled() && failure() }}
+    if: ${{ !cancelled() && (needs.deploy.result == 'failure' || needs.trigger-main-deploy.result == 'failure') }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
       topic: "deployments to ${{ github.ref_name }}"
-      content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+      content: ":warning: ${{ needs.resolve-author.outputs.mention || '@*devs*' }}, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
