@@ -392,13 +392,13 @@ def determine_limit(
     # "unlimited" -> inf
     parseable_subscription_limit = True
     if limit == 'unlimited':
-        limit = inf
+        calculated_limit = inf
     # convert string to float, or inf if unparseable
     else:
         try:
-            limit = float(limit)
+            calculated_limit = float(limit)
         except ValueError:
-            limit = inf
+            calculated_limit = inf
             parseable_subscription_limit = False
 
     # for storage, factor in addons if specified
@@ -414,10 +414,11 @@ def determine_limit(
                         f'Cannot convert addon limit {addon_limit}'
                         ' to float. Defaulting to subscription limit.'
                     )
-                    return limit
+                    return calculated_limit
                 else:
                     logging.warning(
-                        f'Cannot convert addon limit {addon_limit}'
+                        f'Cannot convert subscription limit {limit} or '
+                        f'addon limit {addon_limit}'
                         ' to float. Defaulting to inf.'
                     )
                     return inf
@@ -425,10 +426,14 @@ def determine_limit(
         # if we've reached this point, we were able to parse the addon limit
         if not parseable_subscription_limit:
             logging.warning(
-                f'Cannot convert subscription limit {limit} to float. '
+                f'Cannot convert subscription limit {calculated_limit} to float. '
                 'Defaulting to addon limit.'
             )
-            limit = addon_limit
-        if addon_limit > limit:
-            limit = addon_limit
-    return limit
+            calculated_limit = addon_limit
+        if addon_limit > calculated_limit:
+            calculated_limit = addon_limit
+    if not parseable_subscription_limit:
+        logging.warning(
+            f'Cannot convert subscription limit {limit} to float. ' 'Defaulting to inf.'
+        )
+    return calculated_limit
