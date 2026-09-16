@@ -507,6 +507,7 @@ def get_users_for_config(email_config):
                     EmailStatus.FAILED,
                     EmailStatus.STALE,
                 ],
+                user__isnull=False,
             ).values('user_id')
         )
 
