@@ -256,7 +256,7 @@ export const SelectMultipleAsXmlValues: Story = {
     docs: {
       description: {
         story:
-          'Same data with the "Display XML Values" table setting, which arrives here as a negative translation index. No labels are looked up, so the response shows exactly as stored: "a b c".',
+          'Same data with the "Question & choice names" table setting, which arrives here as a negative translation index. No labels are looked up, so the response shows exactly as stored: "a b c".',
       },
     },
   },
