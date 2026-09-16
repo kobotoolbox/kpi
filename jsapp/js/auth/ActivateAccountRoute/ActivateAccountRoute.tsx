@@ -119,7 +119,7 @@ function CheckingLinkPanel() {
 
 interface ConfirmPromptPanelProps {
   email: string
-  /** allauth's `user_display()` value, the same one its Django template shows. */
+  /** allauth's display name for the user. */
   displayName: string
   isConfirming: boolean
   onConfirm: () => void

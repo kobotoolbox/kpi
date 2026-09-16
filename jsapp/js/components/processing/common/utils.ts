@@ -10,6 +10,9 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
   QualVersionItem,
@@ -351,32 +354,78 @@ export const getAllTranslationsFromSupplementData = (
   return latestVersions
 }
 
+// Question type support
+
+/** Whether a question type is an audio question (regular or background audio). */
+export const isAudioQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id
+
+/** Whether a question type is a text question. */
+export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.text.id
+
+/**
+ * Whether a question type is one NLP processing supports. Audio is always
+ * supported; text is gated behind the `nlpTextActionsEnabled` feature flag.
+ */
+export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
+  isAudioQuestionType(questionType) ||
+  (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+
 // Displays
 
 export enum StaticDisplays {
   // Keep the enum ordering, since it controls the order of display options in the UI
   Audio = 'Audio',
+  Text = 'Text',
   Data = 'Data',
   Transcript = 'Transcript',
 }
 
 export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
-  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
-  [ProcessingTab.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data]],
+  [
+    ProcessingTab.Translations,
+    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
 
 /**
- * Gets the default displays for a given processing tab.
+ * Returns the Processing tabs available for a given question type, in display
+ * order. Transcript is omitted for question types that have no audio/video
+ * response to transcribe (e.g. text).
+ */
+export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (isTextQuestionType(questionType)) {
+    return [ProcessingTab.Translations, ProcessingTab.Analysis]
+  }
+  return [ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis]
+}
+
+/**
+ * Gets the default displays for a given processing tab, dropping whichever of
+ * Audio/Text can't apply to the given question type (they're mutually
+ * exclusive, and the baked-in defaults above include both).
  *
  * @param tabName - The processing tab name
+ * @param questionType - The current question's type, if known
  * @returns Array of default displays for the tab, or empty array if undefined
  */
-export const getDefaultDisplaysForTab = (tabName: ProcessingTab | undefined): DisplaysList => {
+export const getDefaultDisplaysForTab = (
+  tabName: ProcessingTab | undefined,
+  questionType?: AnyRowTypeName,
+): DisplaysList => {
   if (tabName === undefined) {
     return []
   }
-  return DefaultDisplays.get(tabName) || []
+  const defaults = DefaultDisplays.get(tabName) || []
+
+  return defaults.filter((display) => {
+    if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
+    if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
+    return true
+  })
 }
 
 /**

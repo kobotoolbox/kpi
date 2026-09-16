@@ -3,8 +3,8 @@ import { recordValues } from '#/utils'
 
 /**
  * The choice lists for the user metadata fields the frontend owns, as opposed to `sector` and `country`,
- * whose options `/environment` sends. Shared by account settings and the signup form, which have to offer
- * the same answers - and the same ones as `KoboSignupMixin` on the backend.
+ * whose options `/environment` sends. Kept out of the components that render them so every screen asking
+ * for these details offers the same answers.
  */
 
 export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {

@@ -62,7 +62,13 @@ if SESSION_COOKIE_DOMAIN:
     trusted_domains = [
         f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
     ]
-    CSRF_TRUSTED_ORIGINS = trusted_domains
+else:
+    trusted_domains = []
+CSRF_TRUSTED_ORIGINS = env.list(
+    # Separate multiple origins with commas, and do not use spaces
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    default=trusted_domains,
+)
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
@@ -1839,6 +1845,9 @@ CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 s
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+# Adds our extra fields to every signup form, including the headless API's;
+# must point to a module that does not import `allauth.account.forms`
+ACCOUNT_SIGNUP_FORM_CLASS = 'kobo.apps.accounts.signup_fields.SignupExtraFieldsForm'
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(

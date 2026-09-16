@@ -1,6 +1,10 @@
 name: npm-test
 
 on: workflow_call
+
+permissions:
+  contents: read
+
 jobs:
   read-playwright-version:
     name: 'Read Playwright Version'

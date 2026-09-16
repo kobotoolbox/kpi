@@ -6,7 +6,6 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import LibraryNewItemForm from '#/components/modalForms/LibraryNewItemForm'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
@@ -76,10 +75,6 @@ class BigModal extends React.Component {
         // title is set by formEditors
         break
 
-      case MODAL_TYPES.LIBRARY_NEW_ITEM:
-        this.setModalTitle(t('Create Library Item'))
-        break
-
       case MODAL_TYPES.ENKETO_PREVIEW:
         this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
         actions.resources.createSnapshot({
@@ -98,10 +93,6 @@ class BigModal extends React.Component {
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid,
         })
-        break
-
-      case MODAL_TYPES.REPLACE_PROJECT:
-        // title is set by formEditors
         break
 
       // TODO: Make a better generic modal component
@@ -185,14 +176,7 @@ class BigModal extends React.Component {
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && <LibraryNewItemForm />}
-          {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
-            <ProjectSettings
-              context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
-              onSetModalTitle={this.setModalTitle}
-              formAsset={this.props.params.asset}
-            />
-          )}
+
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink && (
             <div className='enketo-holder'>
               <iframe src={this.state.enketopreviewlink} allow='camera *; microphone *; geolocation *' />

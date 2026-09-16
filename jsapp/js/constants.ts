@@ -72,11 +72,9 @@ export enum KeyNames {
 export const MODAL_TYPES = {
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
-  LIBRARY_NEW_ITEM: 'library-new-item',
   LIBRARY_UPLOAD: 'library-upload',
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
-  REPLACE_PROJECT: 'replace-project',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }
