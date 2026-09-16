@@ -405,6 +405,8 @@ def determine_limit(
     if usage_type == UsageType.STORAGE_BYTES and include_storage_addons:
         if addon_limit == 'unlimited':
             addon_limit = inf
+        elif not addon_limit:
+            addon_limit = calculated_limit
         else:
             try:
                 addon_limit = int(addon_limit)
