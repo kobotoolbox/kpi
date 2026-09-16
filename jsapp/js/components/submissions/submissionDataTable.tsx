@@ -8,15 +8,16 @@ import { getRowName, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
+import MenuItemProcessing from '#/components/common/MenuItemProcessing'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import SimpleTable from '#/components/common/SimpleTable'
 import { isNlpSupported } from '#/components/processing/common/utils'
-import { stripRepeatIndices } from '#/components/submissions/submissionMediaUtils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
   getMediaAttachment,
   getSubmissionDisplayData,
+  stripRepeatIndices,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { METADATA_COLUMN_LABELS } from '#/components/submissions/tableConstants'
@@ -283,18 +284,17 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     const questionXpath = stripRepeatIndices(xpath)
 
     return (
-      <Group wrap='nowrap' align='flex-start'>
+      <Group wrap='nowrap' align='flex-start' w='100%'>
         <bem.SubmissionDataTable__value style={{ flex: 1, minWidth: 0 }}>{text}</bem.SubmissionDataTable__value>
 
         {text && isNlpSupported(QUESTION_TYPES.text.id) && (
-          <MoreActionsMenu
-            className='hide-on-print'
-            processingAction={{
-              assetUid: this.props.asset.uid,
-              xpath: questionXpath,
-              submissionEditId: getSubmissionRootUuid(this.props.submissionData),
-            }}
-          />
+          <MoreActionsMenu className='hide-on-print'>
+            <MenuItemProcessing
+              assetUid={this.props.asset.uid}
+              xpath={questionXpath}
+              submissionEditId={getSubmissionRootUuid(this.props.submissionData)}
+            />
+          </MoreActionsMenu>
         )}
       </Group>
     )

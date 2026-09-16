@@ -1,14 +1,17 @@
-import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
+import { FocusTrap, Group, Stack } from '@mantine/core'
 import { useState } from 'react'
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { useAssetsAttachmentsDestroy } from '#/api/react-query/survey-data'
 import Button from '#/components/common/ButtonNew'
+import Menu from '#/components/common/Menu'
+import MenuItemProcessing from '#/components/common/MenuItemProcessing'
+import ModalNew from '#/components/common/ModalNew'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { isNlpSupported } from '#/components/processing/common/utils'
-import { stripRepeatIndices } from '#/components/submissions/submissionMediaUtils'
+import { stripRepeatIndices } from '#/components/submissions/submissionUtils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
@@ -86,17 +89,17 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   return (
     <span className={styles.attachmentActionsDropdown}>
       {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
-      <MoreActionsMenu
-        processingAction={
-          isProcessingActionShown
-            ? {
-                assetUid: props.asset.uid,
-                xpath: questionXpath,
-                submissionEditId: getSubmissionRootUuid(props.submission),
-              }
-            : undefined
-        }
-      >
+      <MoreActionsMenu>
+        {isProcessingActionShown && (
+          <>
+            <MenuItemProcessing
+              assetUid={props.asset.uid}
+              xpath={questionXpath}
+              submissionEditId={getSubmissionRootUuid(props.submission)}
+            />
+            <Menu.Divider />
+          </>
+        )}
         <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
           {t('Download')}
         </Menu.Item>
@@ -110,7 +113,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         )}
       </MoreActionsMenu>
 
-      <Modal
+      <ModalNew
         opened={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false)
@@ -144,7 +147,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
             </Button>
           </Group>
         </Stack>
-      </Modal>
+      </ModalNew>
     </span>
   )
 }
