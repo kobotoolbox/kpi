@@ -398,13 +398,11 @@ def determine_limit(
         try:
             limit = float(limit)
         except ValueError:
-            logging.warning(f'Cannot convert {limit} to float. Setting limit to inf.')
             limit = inf
             parseable_subscription_limit = False
 
     # for storage, factor in addons if specified
     if usage_type == UsageType.STORAGE_BYTES and include_storage_addons:
-        parseable_addon_limit = True
         if addon_limit == 'unlimited':
             addon_limit = inf
         else:
@@ -412,14 +410,25 @@ def determine_limit(
                 addon_limit = int(addon_limit)
             except (ValueError, TypeError):
                 if parseable_subscription_limit:
+                    logging.warning(
+                        f'Cannot convert addon limit {addon_limit}'
+                        ' to float. Defaulting to subscription limit.'
+                    )
                     return limit
                 else:
-                    addon_limit = inf
-                    parseable_addon_limit = False
+                    logging.warning(
+                        f'Cannot convert addon limit {addon_limit}'
+                        ' to float. Defaulting to inf.'
+                    )
+                    return inf
 
-        # take the max of the addon limit and the previously-calculated limit
-        if (
-            parseable_addon_limit and not parseable_subscription_limit
-        ) or addon_limit > limit:
+        # if we've reached this point, we were able to parse the addon limit
+        if not parseable_subscription_limit:
+            logging.warning(
+                f'Cannot convert subscription limit {limit} to float. '
+                'Defaulting to addon limit.'
+            )
+            limit = addon_limit
+        if addon_limit > limit:
             limit = addon_limit
     return limit
