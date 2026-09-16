@@ -392,13 +392,13 @@ def determine_limit(
     # "unlimited" -> inf
     parseable_subscription_limit = True
     if limit == 'unlimited':
-        calculated_limit = inf
+        subscription_limit = inf
     # convert string to float, or inf if unparseable
     else:
         try:
-            calculated_limit = float(limit)
+            subscription_limit = float(limit)
         except ValueError:
-            calculated_limit = inf
+            subscription_limit = inf
             parseable_subscription_limit = False
 
     # for storage, factor in addons if specified
@@ -406,7 +406,7 @@ def determine_limit(
         if addon_limit == 'unlimited':
             addon_limit = inf
         elif not addon_limit:
-            addon_limit = calculated_limit
+            addon_limit = subscription_limit
         else:
             try:
                 addon_limit = int(addon_limit)
@@ -416,7 +416,7 @@ def determine_limit(
                         f'Cannot convert addon limit {addon_limit}'
                         ' to float. Defaulting to subscription limit.'
                     )
-                    return calculated_limit
+                    return subscription_limit
                 else:
                     logging.warning(
                         f'Cannot convert subscription limit {limit} or '
@@ -428,14 +428,14 @@ def determine_limit(
         # if we've reached this point, we were able to parse the addon limit
         if not parseable_subscription_limit:
             logging.warning(
-                f'Cannot convert subscription limit {calculated_limit} to float. '
+                f'Cannot convert subscription limit {subscription_limit} to float. '
                 'Defaulting to addon limit.'
             )
-            calculated_limit = addon_limit
-        if addon_limit > calculated_limit:
-            calculated_limit = addon_limit
+            return addon_limit
+        if addon_limit > subscription_limit:
+            return addon_limit
     if not parseable_subscription_limit:
         logging.warning(
             f'Cannot convert subscription limit {limit} to float. Defaulting to inf.'
         )
-    return calculated_limit
+    return subscription_limit
