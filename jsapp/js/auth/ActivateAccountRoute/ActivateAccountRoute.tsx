@@ -1,4 +1,5 @@
 import { Box, Image, Stack, Text, Title } from '@mantine/core'
+import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useParams } from 'react-router-dom'
 import {
@@ -7,6 +8,7 @@ import {
   useAllauthBrowserV1AuthEmailVerifyPost,
 } from '#/api/react-query/authentication-allauth-headless'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
+import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import ButtonNew from '#/components/common/ButtonNew'
 import { PATHS } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
@@ -44,14 +46,37 @@ function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
 }
 
 /** Missing, expired or already used key - the server does not tell us which, so neither do we. */
-function ActivationFailedPanel() {
+function ActivationFailedPanel({ onLinkRequested }: { onLinkRequested: () => void }) {
   return (
     <Stack gap='lg' ta='center'>
       <Title order={1} size='h3'>
         {t('Activation Failed')}
       </Title>
-      {/* TODO: a dead end for now - offer a new confirmation email here DEV-2295 */}
-      <Text>{t('This activation link is no longer valid.')}</Text>
+      <Text>{t('This activation link is no longer valid. You can request a new confirmation email.')}</Text>
+      <ResendVerificationLink label={t('Resend activation link')} onSent={onLinkRequested} />
+    </Stack>
+  )
+}
+
+/**
+ * A new link is on its way. Worded to fit an address nobody holds, since the one that was typed in was
+ * never checked against an account.
+ */
+function LinkRequestedPanel() {
+  return (
+    <Stack gap='lg' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Check your inbox')}
+      </Title>
+      <Text>
+        {t(
+          "If an account exists for this email address, a verification email has been sent. Be sure to check your spam folder if you don't see it within a few minutes.",
+        )}
+      </Text>
+      {/* TODO: switch from Django while doing login form DEV-1851 */}
+      <ButtonNew component='a' href={PATHS.LOGIN} variant='light' size='lg' fullWidth>
+        {t('Back to sign in')}
+      </ButtonNew>
     </Stack>
   )
 }
@@ -141,6 +166,8 @@ export default function ActivateAccountRoute() {
 }
 
 function ActivateAccountPanels({ activationKey }: { activationKey: string }) {
+  const [linkRequested, setLinkRequested] = useState(false)
+
   const verification = useAllauthBrowserV1AuthEmailVerifyGet({
     // allauth takes the verification key in this header, not in the URL.
     request: { headers: { 'X-Email-Verification-Key': activationKey } },
@@ -169,7 +196,12 @@ function ActivateAccountPanels({ activationKey }: { activationKey: string }) {
     // `confirm.data` left over here is a rejection - a key that expired between the lookup and the click. A
     // confirm that hit a 5xx or a dead connection has no `data` at all, so the prompt stays up to try again.
     if (!activationKey || verification.data === null || confirm.data) {
-      return <ActivationFailedPanel />
+      // Only the failed panel can set this, so the new link always belongs to the address typed in there.
+      return linkRequested ? (
+        <LinkRequestedPanel />
+      ) : (
+        <ActivationFailedPanel onLinkRequested={() => setLinkRequested(true)} />
+      )
     }
     // The lookup failing is not the key failing, so this is a retry rather than the failure screen
     if (verification.isError && !verification.data) {
