@@ -800,9 +800,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         be returned.
         """
         email_config = self._create_email_config('One-off test', frequency=-1)
-        record = self._create_email_record(
-            self.user1, email_config, EmailStatus.SENT
-        )
+        record = self._create_email_record(self.user1, email_config, EmailStatus.SENT)
 
         # Simulate user deletion where on_delete=models.SET_NULL sets user_id to NULL
         self.user1.delete()
