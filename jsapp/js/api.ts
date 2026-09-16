@@ -3,8 +3,7 @@
  */
 
 import * as Sentry from '@sentry/react'
-import { containsHtmlMarkup } from '#/api/getDisplayableErrorText'
-import { getFailResponseMessage } from '#/api/getFailResponseMessage'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { FailResponse } from '#/dataInterface'
 import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
@@ -45,11 +44,9 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   const responseMessage = response.responseText
   let htmlMessage = ''
 
-  if (typeof responseMessage === 'string' && containsHtmlMarkup(responseMessage)) {
-    // Try plucking the useful error message from the HTML string - this works
-    // for Werkzeug Debugger only. It is being used on development environment,
-    // on production this would most probably result in an empty message (and
-    // thus falling back to the generic message below).
+  if (!response.responseJSON && typeof responseMessage === 'string') {
+    // The body isn't JSON, so it holds no message for the user - with one exception. The Werkzeug Debugger, used in
+    // development, puts the exception in `.errormsg`. On production this finds nothing and we fall back below.
     const htmlDoc = new DOMParser().parseFromString(responseMessage, 'text/html')
     htmlMessage = htmlDoc.getElementsByClassName('errormsg')[0]?.textContent?.trim() ?? ''
   }
@@ -58,10 +55,10 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   the message shown to the user, which uses (in descending order of priority)
   1. the toast message (if provided)
   2. the Werkzeug-plucked error (development only)
-  3. the response body, when it holds a message - see `getFailResponseMessage`
+  3. the JSON body, when it holds a message - see `flattenErrorBody`
   4. a generic error
   */
-  const backendMessage = htmlMessage || getFailResponseMessage(response)
+  const backendMessage = htmlMessage || flattenErrorBody(response.responseJSON)
 
   let displayMessage = backendMessage
 

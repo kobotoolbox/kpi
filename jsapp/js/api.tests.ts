@@ -63,19 +63,23 @@ describe('handleApiFail', () => {
     chai.expect(toastMessage()).to.equal('TypeError: unsupported operand')
   })
 
-  it('shows backend copy, from the parsed body first and the raw text otherwise', () => {
-    const parsed = failResponse(400, 'Bad Request')
-    parsed.responseJSON = { name: ['This field is required.'] }
-    handleApiFail(parsed)
+  it('shows backend copy out of the JSON body', () => {
+    const fieldErrors = failResponse(400, 'Bad Request')
+    fieldErrors.responseJSON = { name: ['This field is required.'] }
+    handleApiFail(fieldErrors)
     chai.expect(toastMessage()).to.equal('name: This field is required.')
 
     jest.clearAllMocks()
-    handleApiFail(failResponse(404, 'Not Found', '{"detail":"The submission could not be found"}'))
+    const detail = failResponse(404, 'Not Found')
+    detail.responseJSON = { detail: 'The submission could not be found' }
+    handleApiFail(detail)
     chai.expect(toastMessage()).to.equal('The submission could not be found')
   })
 
   it("prefers the caller's message over anything from the backend", () => {
-    handleApiFail(failResponse(404, 'Not Found', 'The submission could not be found'), 'Failed to accept invite.')
+    const response = failResponse(404, 'Not Found')
+    response.responseJSON = { detail: 'The submission could not be found' }
+    handleApiFail(response, 'Failed to accept invite.')
 
     chai.expect(toastMessage()).to.equal('Failed to accept invite.')
   })

@@ -46,15 +46,10 @@ describe('flattenErrorBody', () => {
     chai.expect(flattenErrorBody({ detail: { name: ['Required.'] } })).to.equal('name: Required.')
   })
 
-  it('takes raw response text too, which is all the legacy fetch wrapper has', () => {
-    chai.expect(flattenErrorBody('{"name":["This field is required."]}')).to.equal('name: This field is required.')
-    // Text that isn't JSON is already a message.
-    chai.expect(flattenErrorBody('Please try again after 5 seconds\n')).to.equal('Please try again after 5 seconds')
-  })
-
   it('returns null when there is no message to show', () => {
     chai.expect(flattenErrorBody(undefined)).to.equal(null)
-    chai.expect(flattenErrorBody('')).to.equal(null)
+    // Raw text, i.e. a body that failed to parse: an error page, a traceback, a proxy notice.
+    chai.expect(flattenErrorBody('<html><body><h1>Server error (500)</h1></body></html>')).to.equal(null)
     chai.expect(flattenErrorBody({})).to.equal(null)
     chai.expect(flattenErrorBody({ name: [] })).to.equal(null)
     chai.expect(flattenErrorBody({ name: ['   '] })).to.equal(null)

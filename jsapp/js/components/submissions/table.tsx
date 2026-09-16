@@ -8,7 +8,7 @@ import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
-import { getFailResponseMessage } from '#/api/getFailResponseMessage'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
@@ -439,9 +439,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       if (error.status !== 500) {
-        // A 4xx body can still be an error page, and `render()` only prints a string, so an unreadable body used to
-        // leave the table blank.
-        this.setState({ error: getFailResponseMessage(error) || t('Error: could not load data.'), loading: false })
+        // `render()` only prints a string, so the old `responseJSON.detail` read left the table blank whenever the body
+        // was keyed by field instead.
+        this.setState({
+          error: flattenErrorBody(error.responseJSON) || t('Error: could not load data.'),
+          loading: false,
+        })
       }
     }
 

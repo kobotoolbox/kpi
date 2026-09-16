@@ -57,32 +57,25 @@ function flatten(value: unknown, depth: number): string | null {
 }
 
 /**
- * Turns an error body into one line of text for the user, or `null` when there is no message in it.
- * The `body` is either parsed JSON or the raw response text.
+ * Turns a parsed JSON error body into one line of text for the user, or `null` when there is no message in it.
+ *
+ * Pass the parsed body, never the raw response text: a response that didn't parse as JSON is an error page, a traceback
+ * or a proxy notice, and none of those are written for a user.
  */
 export function flattenErrorBody(body: unknown): string | null {
-  let parsedBody = body
-
+  // Raw text, i.e. a body that failed to parse. Callers fall back to their own message.
   if (typeof body === 'string') {
-    const text = body.trim()
-    if (!text) {
-      return null
-    }
-    try {
-      parsedBody = JSON.parse(text)
-    } catch {
-      return text
-    }
+    return null
   }
 
-  if (isPlainObject(parsedBody)) {
+  if (isPlainObject(body)) {
     for (const key of ['error', 'detail'] as const) {
-      const value = parsedBody[key]
+      const value = body[key]
       if (typeof value === 'string' && value.trim()) {
         return value.trim()
       }
     }
   }
 
-  return flatten(parsedBody, 0)
+  return flatten(body, 0)
 }

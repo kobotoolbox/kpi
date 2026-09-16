@@ -8,21 +8,12 @@ jest.mock('#/utils', () => {
 
 import chai from 'chai'
 import { ServerError } from './ServerError'
-import { getDisplayableErrorText } from './getDisplayableErrorText'
 import { onErrorDefaultHandler } from './onErrorDefaultHandler'
 
-/**
- * Mirrors how `ServerError.new()` derives `detail`: a string body is one that failed `JSON.parse()`, and it only lands
- * in `detail` when it reads as a message.
- */
+/** Mirrors how `ServerError.new()` derives `detail`: a string body is one that failed `JSON.parse()`. */
 function makeServerError(status: number, statusText: string, body: unknown) {
   const response = { status, statusText } as Response
-  let detail: unknown
-  if (typeof body === 'string') {
-    detail = getDisplayableErrorText(body, status)
-  } else if (typeof body === 'object' && body !== null && 'detail' in body) {
-    detail = (body as { detail: unknown }).detail
-  }
+  const detail = typeof body === 'object' && body !== null && 'detail' in body ? body.detail : undefined
   return new ServerError(response, detail, body)
 }
 
@@ -58,12 +49,6 @@ describe('onErrorDefaultHandler', () => {
     chai.expect(mockedNotify.mock.calls[0][0]).to.not.contain('400')
   })
 
-  it('displays a plain-text backend message on a 4xx', () => {
-    handleAsMutation(makeServerError(429, 'Too Many Requests', 'Please try again after 5 seconds\n'))
-
-    chai.expect(mockedNotify.mock.calls[0][0]).to.equal('Please try again after 5 seconds')
-  })
-
   // Backend owns error content, and some endpoints answer a 5xx with copy meant for the user - `export_task.py` returns
   // a 503 telling you when to retry. JSON is the tell: only a real view produces it, Django's own pages never do.
   it("displays a backend message that arrived with a 5xx, when it's structured", () => {
@@ -74,9 +59,9 @@ describe('onErrorDefaultHandler', () => {
     chai.expect(mockedNotify.mock.calls[0][0]).to.equal('Another export is already in progress. Retry in 8s')
   })
 
-  // An unparseable body lands in `parsedResponse` as raw text, and used to be
-  // displayed verbatim - a whole error page inside a toast.
-  it('replaces error page output with a generic message, but keeps it in the console', () => {
+  // A body that failed `JSON.parse()` lands in `parsedResponse` as raw text, and used to be displayed verbatim - a
+  // whole error page inside a toast.
+  it('replaces a non-JSON body with a generic message, but keeps it in the console', () => {
     handleAsMutation(makeServerError(500, 'Internal Server Error', DJANGO_500_PAGE))
     chai.expect(mockedNotify.mock.calls[0][0]).to.equal('An error occurred')
     // 4th argument of notify() is the console-only message.

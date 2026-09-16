@@ -14,8 +14,7 @@ import { Cookies } from 'react-cookie'
 import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import { containsHtmlMarkup } from '#/api/getDisplayableErrorText'
-import { getFailResponseMessage } from '#/api/getFailResponseMessage'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isMapDisplayableGeopointType } from './constants'
 import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
@@ -62,14 +61,6 @@ const notify = (
 ): Toast['id'] => {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
-
-  // An error page never belongs in a toast. The API layer is where this should be caught (see
-  // `getDisplayableErrorText`), so this only covers paths that don't go through it.
-  if (atype === 'error' && typeof msg === 'string' && containsHtmlMarkup(msg)) {
-    // Keep the markup reachable for debugging, just not in the UI.
-    consoleMsg = typeof consoleMsg === 'string' ? `${consoleMsg} | ${msg}` : msg
-    msg = t('An error occurred')
-  }
 
   // If a specific console message is provided, display that instead of the default msg
   switch (atype) {
@@ -704,7 +695,7 @@ export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) 
  * describing the error, suitable for embedding in an alertify message.
  */
 export function getErrorMessage(err: FailResponse): string {
-  const message = getFailResponseMessage(err)
+  const message = flattenErrorBody(err.responseJSON)
 
   if (message) {
     // Both callers paste this into an alertify dialog as HTML, so escape it - even a real message can carry an angle

@@ -49,12 +49,13 @@ export default function AccessLogsSection() {
     try {
       await accessLogsMeExport.mutateAsync()
     } catch (error) {
-      // `handleApiFail()` displays `responseText`, and falls back to a generic
-      // message of its own when backend didn't send one.
+      // `handleApiFail()` only displays a JSON body, so hand the message over in the shape a backend would use. It
+      // falls back to a generic message of its own when there is none.
+      const message = getApiErrorMessage(error as OrvalFetchError)
       const failResponse: FailResponse = {
         status: error instanceof ServerError ? error.response.status : 0,
         statusText: (error as Error).message,
-        responseText: getApiErrorMessage(error as OrvalFetchError) ?? undefined,
+        responseJSON: message ? { detail: message } : undefined,
       }
       throw failResponse
     }

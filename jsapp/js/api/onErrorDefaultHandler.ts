@@ -2,7 +2,6 @@ import { type Query, QueryClient } from '@tanstack/react-query'
 import { notify } from '#/utils'
 import { ServerError } from './ServerError'
 import { flattenErrorBody } from './flattenErrorBody'
-import { getDisplayableErrorText } from './getDisplayableErrorText'
 
 /**
  * On error Orval's fetch mutator throws either:
@@ -26,18 +25,10 @@ const getGenericErrorMessage = () => t('An error occurred')
  */
 export function getApiErrorMessage(error: OrvalFetchError): string | null {
   if (error instanceof ServerError) {
-    const parsedResponse: unknown = error.parsedResponse
-
-    // A string means `ServerError` couldn't parse the body as JSON: sometimes a
-    // plain-text backend message, sometimes a whole error page or traceback.
-    if (typeof parsedResponse === 'string') {
-      return getDisplayableErrorText(parsedResponse, error.response?.status)
-    }
-
-    // Structured errors are backend copy written for the user, so they display
-    // whatever the status - see `getDisplayableErrorText`. Null means no message was
-    // found, letting callers fall back to their own copy over an HTTP status.
-    return flattenErrorBody(parsedResponse)
+    // A JSON body is backend copy written for the user, so it displays whatever the status - some endpoints answer a
+    // 5xx with a message worth reading. Anything else gives null, and callers fall back to their own copy rather than
+    // to an HTTP status.
+    return flattenErrorBody(error.parsedResponse)
   }
 
   if (error instanceof TypeError || error instanceof DOMException) {

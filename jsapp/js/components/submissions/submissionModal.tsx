@@ -6,7 +6,7 @@ import { Loader } from '@mantine/core'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
-import { getFailResponseMessage } from '#/api/getFailResponseMessage'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -224,7 +224,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         })
       })
       .fail((error: FailResponse) => {
-        const responseMessage = getFailResponseMessage(error)
+        const responseMessage = flattenErrorBody(error.responseJSON)
         if (responseMessage) {
           let error_message = responseMessage
           if (error_message === DETAIL_NOT_FOUND) {
