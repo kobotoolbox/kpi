@@ -584,7 +584,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           <Checkbox
             checked={this.state.showXMLNames}
             onChange={this.onShowXMLNamesChange.bind(this)}
-            label={t('Display XML names')}
+            label={t('Display question names')}
           />
 
           {this.renderEditButton()}

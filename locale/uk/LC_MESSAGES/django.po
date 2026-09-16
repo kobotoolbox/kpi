@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 15:50+0000\n"
+"POT-Creation-Date: 2026-09-16 10:33+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Yuliia Zakharchenko <y.zakharchenko@r2p.org.ua>, 2023\n"
 "Language-Team: Ukrainian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/uk/)\n"
@@ -672,7 +672,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1265
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1273
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -779,9 +779,9 @@ msgstr "Немає XLS-файлу для вашої форми %(id)s"
 msgid "Not shared."
 msgstr "Доступ не надано."
 
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:131
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:173
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:201
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:132
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:174
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:202
 #: kobo/apps/openrosa/libs/utils/logger_tools.py:701
 msgid "XML string must have a survey element."
 msgstr "XML-рядок повинен містити елемент опитування."
@@ -2018,7 +2018,7 @@ msgstr "Виняток у запиті: %(class)s: %(error)s"
 msgid "The requested file could not be found."
 msgstr "Запитуваний файл не знайдено."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1262
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1270
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
@@ -2998,15 +2998,15 @@ msgstr "Видалити надсилання"
 msgid "Validate submissions"
 msgstr "Підтвердити надсилання"
 
-#: kpi/models/asset.py:691
+#: kpi/models/asset.py:734
 msgid "Only partial permissions for submissions are supported"
 msgstr "Підтримуються лише часткові дозволи на надсилання"
 
-#: kpi/models/asset.py:1415
+#: kpi/models/asset.py:1463
 msgid "Can not assign '{}' permission to owner"
 msgstr "Не вдається призначити власнику право '{}'"
 
-#: kpi/models/asset.py:1419
+#: kpi/models/asset.py:1467
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Не вдається призначити дозвіл '{}'. Відсутні часткові дозволи."
 
@@ -3058,11 +3058,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:166
+#: kpi/models/import_export_task.py:164
 msgid "Cannot access data"
 msgstr "Не вдається отримати доступ до даних"
 
-#: kpi/models/import_export_task.py:831
+#: kpi/models/import_export_task.py:827
 msgid "This data does not exist or you do not have access to it"
 msgstr "Ці дані не існують або ви не маєте до них доступу"
 

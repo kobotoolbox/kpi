@@ -35271,6 +35271,12 @@
                     },
                     "username": {
                         "$ref": "#/components/schemas/Username"
+                    },
+                    "newsletter_subscription": {
+                        "type": "boolean"
+                    },
+                    "terms_of_service": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
