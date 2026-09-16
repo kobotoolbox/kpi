@@ -82,8 +82,8 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // show the error message to the user
   notify.error(displayMessage, undefined, consoleMessage)
 
-  // Sentry groups issues by message, so send the status rather than a body that
-  // differs on every request. The body itself rides along as extra context.
+  // Sentry titles and groups issues by this message, so keep it to the flattened body, falling back to the status. The
+  // raw body used to be the title, which made every single response its own issue; it goes along as context instead.
   Sentry.captureMessage(
     backendMessage || statusMessage || displayMessage,
     responseMessage ? { extra: { responseText: responseMessage } } : undefined,

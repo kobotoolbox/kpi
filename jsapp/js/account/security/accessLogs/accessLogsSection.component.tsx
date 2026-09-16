@@ -49,14 +49,25 @@ export default function AccessLogsSection() {
     try {
       await accessLogsMeExport.mutateAsync()
     } catch (error) {
-      // `handleApiFail()` only displays a JSON body, so hand the message over in the shape a backend would use. It
-      // falls back to a generic message of its own when there is none.
-      const message = getApiErrorMessage(error as OrvalFetchError)
+      // `<ExportToEmailButton/>` hands this to `handleApiFail()`, which reads the fields a jQuery failure has. Pass the
+      // untouched body along too - once a suppressed message stops reaching the toast, that's all the console gets.
       const failResponse: FailResponse = {
         status: error instanceof ServerError ? error.response.status : 0,
         statusText: (error as Error).message,
-        responseJSON: message ? { detail: message } : undefined,
       }
+
+      if (error instanceof ServerError) {
+        const body = error.parsedResponse
+        failResponse.responseText = typeof body === 'string' ? body : JSON.stringify(body)
+        if (typeof body === 'object' && body !== null) {
+          failResponse.responseJSON = body
+        }
+      } else {
+        // A browser-level failure (offline, blocked request) has no body, just a message worth showing.
+        const message = getApiErrorMessage(error as OrvalFetchError)
+        failResponse.responseJSON = message ? { detail: message } : undefined
+      }
+
       throw failResponse
     }
   }

@@ -703,5 +703,11 @@ export function getErrorMessage(err: FailResponse): string {
     return `<pre>${escapeHtml(message)}</pre>`
   }
 
+  // The dialog now says something generic, and these callers don't go through `handleApiFail`, so this is the only
+  // place the actual body gets recorded.
+  console.error(
+    '[getErrorMessage] ❌ ' + [`${err.status} ${err.statusText}`.trim(), err.responseText].filter(Boolean).join(' | '),
+  )
+
   return t('please check your connection and try again.')
 }
