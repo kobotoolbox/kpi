@@ -2,7 +2,6 @@ import { Box } from '@mantine/core'
 import React, { Suspense } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useLocation, useParams } from 'react-router-dom'
-import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import RESTServices from '#/components/RESTServices'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import FormMapWrapper from '#/components/map/formMapWrapper'
@@ -31,6 +30,8 @@ const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ '#/comp
 interface FormSubScreensProps {
   /** Asset uid for the cases where it doesn't come from the route. */
   uid?: string
+  /** Asset loaded and authorized by PermProtectedRoute. */
+  asset?: AssetResponse
 }
 
 /**
@@ -41,11 +42,8 @@ interface FormSubScreensProps {
 function FormSubScreens(props: FormSubScreensProps) {
   const params = useParams()
   const location = useLocation()
-  const assetUid = params.assetid || props.uid || params.uid || ''
-  const assetQuery = useAssetsRetrieve(assetUid)
-  // TODO: Legacy child components expect AssetResponse; we should unify these types in the future with the orval
-  // generated types. Most likely need to go into the legacy types and ensure their logic matches return of the hook.
-  const asset = assetQuery.data?.data as AssetResponse | undefined
+  // TODO: Move asset loading and authorization to React Query so this prop can be replaced with a shared query cache.
+  const asset = props.asset
 
   const renderSettingsEditor = (loadedAsset: AssetResponse) => {
     const docTitle = loadedAsset.name || t('Untitled')
