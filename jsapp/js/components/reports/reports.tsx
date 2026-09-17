@@ -505,7 +505,7 @@ export default function Reports(props: ReportsProps) {
   }
 
   function renderLoadingOrError() {
-    const docTitle = state.asset?.name || t('Untitled')
+    const docTitle = assetQuery.data?.data.name || t('Untitled')
     if (state.error) {
       return (
         <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>

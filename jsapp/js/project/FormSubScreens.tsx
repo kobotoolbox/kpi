@@ -115,11 +115,9 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
         )
       case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
         return (
-          <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Downloads')} | KoboToolbox`}>
-            <Suspense fallback={null}>
-              <ProjectDownloads asset={asset} />
-            </Suspense>
-          </DocumentTitle>
+          <Suspense fallback={null}>
+            <ProjectDownloads asset={asset} />
+          </Suspense>
         )
       case ROUTES.FORM_SETTINGS.replace(':uid', asset.uid):
         return this.renderSettingsEditor(asset)
