@@ -341,6 +341,24 @@ class QuestionXPathLookup(TestCase):
                 == 'q2'
             )
 
+            # And the shape that cannot be told apart from the one above: a row
+            # `populate_media_file_basename` backfilled from the stored path,
+            # answering `photo A.jpg` but holding the sanitized spelling of it.
+            # Same string, two right answers, and nothing on the row to choose
+            # by, so it is read as the raw name. That is what the column has
+            # held on every write since DEV-897, while the rows needing the
+            # other reading predate the column existing at all.
+            assert (
+                self.asset.deployment._get_question_xpath(
+                    {
+                        'filename': 'someuser/attachments/uuid/uuid/photo_A.jpg',
+                        'media_file_basename': 'photo_A.jpg',
+                    },
+                    filenames_and_xpaths,
+                )
+                == 'q2'
+            )
+
     def test_a_backfilled_row_carrying_a_suffix_still_resolves(self):
         """
         `populate_media_file_basename` copied the stored path's last segment
