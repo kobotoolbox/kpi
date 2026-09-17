@@ -8,6 +8,9 @@
  * of defined ROUTES.
  */
 
+import { getProfileFieldsValues } from '#/account/account.utils'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
+import { getBlankRequiredProfileFieldNames } from '#/auth/ProfileDetailsBlocker/profileDetails.utils'
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
@@ -270,14 +273,40 @@ export function isTOSAgreementRouteBlockerActive() {
 }
 
 /**
+ * ProfileDetails is displayed when the instance requires profile fields that the account has left blank.
+ *
+ * Called without an organization this answers the widest possible reading, counting the user as a lone one
+ * so that every required field counts. A `false` from that reading is final and costs no organization
+ * request; a `true` has to be asked again once the organization is known, because members of an MMO cannot
+ * write the organization fields, so a blank one there is not theirs to fix. `useIsProfileDetailsBlockerActive`
+ * is what does both passes.
+ */
+export function isProfileDetailsRouteBlockerActive(organization?: OrganizationResponse): boolean {
+  const account = sessionStore.currentAccount
+
+  // We check for email, because `currentAccount` can be two different things. `/environment` is what says
+  // which fields are required at all, so there is no answer before it lands.
+  if (!envStore.isReady || !sessionStore.isLoggedIn || !('email' in account)) {
+    return false
+  }
+
+  const blankFieldNames = getBlankRequiredProfileFieldNames(getProfileFieldsValues(account.extra_details), {
+    configuredFieldNames: envStore.data.getUserMetadataFieldNames(),
+    requiredFieldNames: envStore.data.getUserMetadataRequiredFieldNames(),
+    isMmoMember: Boolean(organization?.is_mmo),
+  })
+
+  return blankFieldNames.length > 0
+}
+
+/**
  * Whether we currently display a route blocker type component. It's one that
  * displays some UI requiring user to take action and blocks any navigation,
  * thus blocking user from using any part of the app. E.g. `TOSAgreement` when
  * user have not accepted the new TOS yet.
  *
- * Only covers the blockers that keep `BasicLayout` parts.
- * `ProfileDetailsBlocker` renders its own frame, so it has nothing to ask this
- * and is deliberately absent.
+ * `ProfileDetails` is deliberately absent: its screen has no account menu to ask this, and the reading
+ * available here is the widest one, which would hide navigation from MMO members who are not blocked at all.
  */
 export function isAnyRouteBlockerActive() {
   return isInvalidatedPasswordRouteBlockerActive() || isTOSAgreementRouteBlockerActive()

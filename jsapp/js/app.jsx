@@ -4,6 +4,7 @@
 import '#/bemComponents' // importing it so it exists
 
 import { useDisclosure } from '@mantine/hooks'
+import { observer } from 'mobx-react-lite'
 import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
@@ -15,12 +16,15 @@ import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
 import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
+import { useIsProfileDetailsBlockerActive } from '#/auth/ProfileDetailsBlocker/useIsProfileDetailsBlockerActive'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import FormViewSideTabs from '#/components/formViewSideTabs'
 import MainHeader from '#/components/header/mainHeader.component'
 import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
+import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
@@ -110,8 +114,24 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
 /**
  * The route blockers, and the app itself when none of them applies. An active blocker takes the place of the whole
  * page (see `isAnyRouteBlockerActive`), and the order below is the order they get their turn.
+ *
+ * Observes the stores it asks, because the answers change as the session and `/environment` land.
  */
-function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+const RouteBlockerOrApp = observer(function RouteBlockerOrApp({
+  shouldDisplayMain,
+  inFormBuilder,
+  isFormSingle,
+  isLibrarySingle,
+}) {
+  // Before the early returns, so the hook order stays the same on every render.
+  const isProfileDetailsBlockerActive = useIsProfileDetailsBlockerActive()
+
+  // Two of the three answers below come from `/environment`, and nothing in the app works without it anyway
+  // - so hold everything back rather than show the app and take it away a moment later.
+  if (!envStore.isReady) {
+    return <LoadingSpinner />
+  }
+
   if (isInvalidatedPasswordRouteBlockerActive()) {
     return <InvalidatedPassword />
   }
@@ -120,26 +140,29 @@ function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isL
     return <TOSAgreement />
   }
 
+  // Undefined until the organization request that settles this one has come back.
+  if (isProfileDetailsBlockerActive === undefined) {
+    return <LoadingSpinner />
+  }
+
+  if (isProfileDetailsBlockerActive) {
+    return <ProfileDetailsBlocker />
+  }
+
   // TODO: We have multiple routes that shouldn't display `MainHeader`,
   // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
   // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
   // opt for a more sane, and singluar(!) solution.
-  //
-  // `ProfileDetailsBlocker` is a route blocker like the two above, but one that needs the providers around
-  // it, so it wraps the app instead of replacing it. It holds a spinner until the session and `/environment`
-  // have landed, then renders the app untouched when there is nothing to complete.
   return (
-    <ProfileDetailsBlocker>
-      <AppPageWrapper
-        shouldDisplayMain={shouldDisplayMain}
-        inFormBuilder={inFormBuilder}
-        isFormSingle={isFormSingle}
-        isLibrarySingle={isLibrarySingle}
-        assetUid={getRouteAssetUid()}
-      />
-    </ProfileDetailsBlocker>
+    <AppPageWrapper
+      shouldDisplayMain={shouldDisplayMain}
+      inFormBuilder={inFormBuilder}
+      isFormSingle={isFormSingle}
+      isLibrarySingle={isLibrarySingle}
+      assetUid={getRouteAssetUid()}
+    />
   )
-}
+})
 
 class App extends React.Component {
   constructor(props) {
