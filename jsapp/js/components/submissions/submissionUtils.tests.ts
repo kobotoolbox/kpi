@@ -11,6 +11,7 @@ import {
   hasUnacceptedAutomaticContent,
   removeEmptyFromSupplementalDetails,
   removeEmptyObjects,
+  stripRepeatIndices,
 } from './submissionUtils'
 import {
   allQualSurveyDisplayData,
@@ -961,5 +962,23 @@ describe('hasAnyUnacceptedAutomaticContent', () => {
     )
 
     chai.expect(result).to.be.false
+  })
+})
+
+describe('stripRepeatIndices', () => {
+  it('should leave a static xpath unchanged', () => {
+    chai.expect(stripRepeatIndices('outer_group/inner_group/question')).to.equal('outer_group/inner_group/question')
+  })
+
+  it('should strip a single repeat-instance index', () => {
+    chai.expect(stripRepeatIndices('children[1]/audio')).to.equal('children/audio')
+  })
+
+  it('should strip multiple repeat-instance indices from nested repeats', () => {
+    chai.expect(stripRepeatIndices('outer[2]/inner[10]/question')).to.equal('outer/inner/question')
+  })
+
+  it('should leave a bare question name unchanged', () => {
+    chai.expect(stripRepeatIndices('question')).to.equal('question')
   })
 })
