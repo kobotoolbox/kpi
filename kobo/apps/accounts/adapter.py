@@ -1,17 +1,21 @@
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+import requests
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
-from django.db import transaction
+from django.core.cache import cache
+from django.db import models, transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
-from .models import SocialAppManagedDomain
+from .models import SocialAppCustomData, SocialAppManagedDomain
 from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
@@ -71,6 +75,101 @@ class AccountAdapter(DefaultAccountAdapter):
             return f'{url}?next={next}'
         return url
 
+    def get_logout_redirect_url(self, request):
+        default_url = super().get_logout_redirect_url(request)
+        if not request or not getattr(request, 'user', None) or not request.user.is_authenticated:
+            return default_url
+
+        try:
+            social_account = SocialAccount.objects.filter(user=request.user).first()
+            if not social_account:
+                return default_url
+
+            social_app = SocialApp.objects.filter(
+                models.Q(provider_id=social_account.provider)
+                | models.Q(provider=social_account.provider)
+            ).first()
+            if not social_app:
+                return default_url
+
+            custom_data = getattr(social_app, 'custom_data', None)
+            if (
+                not custom_data
+                or custom_data.logout_behavior != SocialAppCustomData.LogoutBehavior.RP_INITIATED
+            ):
+                return default_url
+
+            end_session_endpoint = (
+                custom_data.end_session_endpoint
+                or (social_app.settings and social_app.settings.get('end_session_endpoint'))
+                or self._discover_end_session_endpoint(social_app, social_account)
+            )
+            if not end_session_endpoint:
+                return default_url
+
+            parsed = urlparse(end_session_endpoint)
+            query_params = dict(parse_qsl(parsed.query))
+
+            id_token = (
+                social_account.extra_data.get('id_token')
+                if isinstance(social_account.extra_data, dict)
+                else None
+            ) or (hasattr(request, 'session') and request.session.get('oidc_id_token'))
+            if id_token:
+                query_params['id_token_hint'] = id_token
+
+            post_logout_redirect_uri = (
+                custom_data.post_logout_redirect_uri
+                or (social_app.settings and social_app.settings.get('post_logout_redirect_uri'))
+                or request.build_absolute_uri(resolve_url(settings.LOGIN_URL or '/'))
+            )
+            if post_logout_redirect_uri:
+                query_params['post_logout_redirect_uri'] = post_logout_redirect_uri
+
+            if social_app.client_id:
+                query_params['client_id'] = social_app.client_id
+
+            return urlunparse(parsed._replace(query=urlencode(query_params)))
+        except Exception:
+            return default_url
+
+    def _discover_end_session_endpoint(self, social_app, social_account):
+        try:
+            provider = social_account.get_provider()
+            if hasattr(provider, 'server_metadata') and isinstance(
+                provider.server_metadata, dict
+            ):
+                endpoint = provider.server_metadata.get('end_session_endpoint')
+                if endpoint:
+                    return endpoint
+        except Exception:
+            pass
+
+        server_url = (social_app.settings or {}).get('server_url')
+        if not server_url:
+            return None
+
+        cache_key = f'oidc_end_session_{social_app.pk}_{server_url}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached or None
+
+        well_known_url = server_url.rstrip('/')
+        if not well_known_url.endswith('/.well-known/openid-configuration'):
+            well_known_url += '/.well-known/openid-configuration'
+
+        try:
+            resp = requests.get(well_known_url, timeout=5)
+            if resp.status_code == 200:
+                endpoint = resp.json().get('end_session_endpoint')
+                cache.set(cache_key, endpoint or '', timeout=3600)
+                return endpoint
+        except Exception:
+            pass
+
+        cache.set(cache_key, '', timeout=300)
+        return None
+
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
@@ -89,6 +188,13 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
+        # Stash id_token in session if present on incoming social account
+        account = getattr(sociallogin, 'account', None)
+        extra_data = getattr(account, 'extra_data', None)
+        id_token = extra_data.get('id_token') if isinstance(extra_data, dict) else None
+        if id_token and hasattr(request, 'session'):
+            request.session['oidc_id_token'] = id_token
+
         """Allow only one linked SSO account per user."""
         # Only the connect flow links a new provider; login/signup are exempt.
         if sociallogin.state.get('process') != AuthProcess.CONNECT:

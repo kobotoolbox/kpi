@@ -150,6 +150,27 @@ class SocialAppCustomData(models.Model):
         super().save(*args, **kwargs)
         self._initially_managed = self.managed
         self._initial_domains = list(self.domains.values_list('domain', flat=True))
+        if self.social_app_id:
+            social_app = self.social_app
+            settings_changed = False
+            current_settings = dict(social_app.settings or {})
+            auth_params = dict(current_settings.get('auth_params', {}))
+            if self.logout_behavior == self.LogoutBehavior.PROMPT_LOGIN:
+                if auth_params.get('prompt') != 'login':
+                    auth_params['prompt'] = 'login'
+                    current_settings['auth_params'] = auth_params
+                    social_app.settings = current_settings
+                    settings_changed = True
+            elif auth_params.get('prompt') == 'login':
+                del auth_params['prompt']
+                if auth_params:
+                    current_settings['auth_params'] = auth_params
+                else:
+                    current_settings.pop('auth_params', None)
+                social_app.settings = current_settings
+                settings_changed = True
+            if settings_changed:
+                social_app.save(update_fields=['settings'])
 
 
 def validate_domain(value):
