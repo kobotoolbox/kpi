@@ -14,6 +14,7 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
+import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
@@ -123,14 +124,20 @@ function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isL
   // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
   // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
   // opt for a more sane, and singluar(!) solution.
+  //
+  // `ProfileDetailsBlocker` is a route blocker like the two above, but one that needs the providers around
+  // it, so it wraps the app instead of replacing it. It holds a spinner until the session and `/environment`
+  // have landed, then renders the app untouched when there is nothing to complete.
   return (
-    <AppPageWrapper
-      shouldDisplayMain={shouldDisplayMain}
-      inFormBuilder={inFormBuilder}
-      isFormSingle={isFormSingle}
-      isLibrarySingle={isLibrarySingle}
-      assetUid={getRouteAssetUid()}
-    />
+    <ProfileDetailsBlocker>
+      <AppPageWrapper
+        shouldDisplayMain={shouldDisplayMain}
+        inFormBuilder={inFormBuilder}
+        isFormSingle={isFormSingle}
+        isLibrarySingle={isLibrarySingle}
+        assetUid={getRouteAssetUid()}
+      />
+    </ProfileDetailsBlocker>
   )
 }
 

@@ -274,6 +274,10 @@ export function isTOSAgreementRouteBlockerActive() {
  * displays some UI requiring user to take action and blocks any navigation,
  * thus blocking user from using any part of the app. E.g. `TOSAgreement` when
  * user have not accepted the new TOS yet.
+ *
+ * Only covers the blockers that keep `BasicLayout` parts.
+ * `ProfileDetailsBlocker` renders its own frame, so it has nothing to ask this
+ * and is deliberately absent.
  */
 export function isAnyRouteBlockerActive() {
   return isInvalidatedPasswordRouteBlockerActive() || isTOSAgreementRouteBlockerActive()

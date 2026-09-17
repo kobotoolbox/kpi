@@ -8,6 +8,7 @@ import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsIt
 
 const SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/signup'
 const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
+const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
 
 /**
  * A successful signup under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since the  new account
@@ -68,6 +69,12 @@ export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.j
  */
 export const signupServerErrorMock = () =>
   http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
+/** A logout that never answers, so the button it was clicked on stays in its loading state. */
+export const logoutNeverAnswersMock = () =>
+  http.delete(SESSION_URL, async () => {
+    await delay('infinite')
+  })
 
 /** Looking up an activation key that is still good. */
 export const emailVerificationInfoMock = (email: string, display: string) =>

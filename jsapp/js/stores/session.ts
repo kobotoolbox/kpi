@@ -4,7 +4,7 @@ import { dataInterface } from '#/dataInterface'
 import type { AccountResponse, FailResponse } from '#/dataInterface'
 import type { ProjectViewsSettings } from '#/projects/customViewStore'
 import { ANON_USERNAME } from '#/users/utils'
-import { currentLang, log } from '#/utils'
+import { currentLang, log, notify } from '#/utils'
 
 class SessionStore {
   currentAccount: AccountResponse | { username: string; date_joined: string } = {
@@ -49,7 +49,12 @@ class SessionStore {
       }),
       action('verifyLoginFailure', (xhr: FailResponse) => {
         this.isPending = false
+        // Nothing more is coming, so let the app render: `AllRoutes` holds a spinner until this is set, and
+        // leaving it unset on a failure means spinning for good. Whoever this is stays anonymous, because
+        // `currentAccount` never got filled in.
+        this.isAuthStateKnown = true
         log('login not verified', xhr.status, xhr.statusText)
+        notify.error(t('Could not check whether you are signed in. Please reload the page.'))
       }),
     )
   }

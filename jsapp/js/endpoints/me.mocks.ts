@@ -1,3 +1,5 @@
+import { http, HttpResponse } from 'msw'
+import type { AccountFieldsErrors } from '#/account/account.constants'
 import type { MeListResponse } from '#/api/models/meListResponse'
 import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 
@@ -43,3 +45,35 @@ export const meMockResponse: MeListResponse = {
  */
 const meMock = getMeRetrieveMockHandler(meMockResponse)
 export default meMock
+
+/**
+ * Hand written handlers for `PATCH /me/`, because the interesting outcomes are the rejections and the
+ * generated handler only knows how to answer 200 with faker data.
+ *
+ * The trailing `{/}?` matches the endpoint with or without its trailing slash, the same way the generated
+ * handlers do.
+ */
+const ME_URL = '*/me{/}?'
+
+/** Profile details saved. The body is not read - the screen reloads the page on success. */
+export const meUpdateSuccessMock = () => http.patch(ME_URL, () => HttpResponse.json(meMockResponse))
+
+/**
+ * A rejected save, in either of the two shapes the endpoint answers in.
+ *
+ * `fieldErrors` go under `extra_details` because that is where the fields were sent, and
+ * `CurrentUserSerializer.validate_extra_details` reports them there. `detail` is what the endpoint uses for
+ * anything about the request as a whole, which has no field to sit under.
+ */
+export const meUpdateErrorsMock = ({
+  fieldErrors,
+  detail,
+  status = 400,
+}: {
+  fieldErrors?: AccountFieldsErrors
+  detail?: string
+  status?: number
+}) =>
+  http.patch(ME_URL, () =>
+    HttpResponse.json({ ...(fieldErrors && { extra_details: fieldErrors }), ...(detail && { detail }) }, { status }),
+  )
