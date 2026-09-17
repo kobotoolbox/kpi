@@ -60,11 +60,11 @@ export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
 }
 
 class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSideTabsProps, FormViewSideTabsState> {
-  // Stub functions for cleaner reference
+  // Needed to reference the reactMixin functions
   declare currentAssetID: () => string | undefined
   declare isActiveRoute: (path: string) => boolean
 
-  unlisteners: Function[] = []
+  private unlisteners: Function[] = []
 
   constructor(props: FormViewSideTabsProps) {
     super(props)
@@ -95,10 +95,15 @@ class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSid
   }
 
   triggerRefresh(evt: React.MouseEvent<HTMLAnchorElement>) {
-    if (evt.currentTarget.classList.contains('active') && this.state.asset) {
+    const target = evt.target
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    if (target.classList.contains('active') && this.state.asset) {
       this.props.router.navigate(ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid))
 
-      const path = evt.currentTarget.dataset.path
+      const path = target.getAttribute('data-path')
       if (path) {
         window.setTimeout(() => {
           this.props.router.navigate(path)
