@@ -62,6 +62,33 @@ def edit_submission_xml(
     element.text = value
 
 
+def apply_repeat_indexes(source_xpath: str, target_xpath: str) -> str:
+    """
+    Carry the `[n]` repeat indexes of `source_xpath` over to `target_xpath`,
+    matched by segment name, e.g. `visits[2]/photo` onto `visits/picture`
+    gives `visits[2]/picture`.
+
+    Form versions describe questions without indexes, while a request for one
+    occurrence inside a repeat carries them. Group names are unique in a
+    deployed form, so an index follows its group wherever the question moved;
+    a group absent from `target_xpath` drops its index, the question having
+    left that repeat.
+    """
+    indexes = {}
+    for segment in source_xpath.split('/'):
+        name, _, index = segment.partition('[')
+        if index:
+            indexes[name] = index.rstrip(']')
+
+    if not indexes:
+        return target_xpath
+
+    return '/'.join(
+        f'{segment}[{indexes[segment]}]' if segment in indexes else segment
+        for segment in target_xpath.split('/')
+    )
+
+
 def fromstring_preserve_root_xmlns(
     text: Union[str, bytes],
 ) -> ET.Element:
