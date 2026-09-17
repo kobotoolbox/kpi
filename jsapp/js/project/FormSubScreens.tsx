@@ -105,7 +105,8 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
         return (
           <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
             <FormMapWrapper asset={asset} />
-          </DocumentTitle>)
+          </DocumentTitle>
+        )
       case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
         return (
           <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
@@ -137,11 +138,10 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
       case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
         return (
           <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Activity')} | KoboToolbox`}>
-              <FormActivity />
+            <FormActivity />
           </DocumentTitle>
         )
     }
-
 
     // TODO: this fallback screen is a leftover - nothing ever fills the url in, so the iframe is always empty. To be
     // removed in DEV-2748.
@@ -176,17 +176,17 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
     const uid = this.props.params.assetid || this.props.params.uid
     const docTitle = asset.name || t('Untitled')
     return (
-    <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Sharing')} | KoboToolbox`}>
-      <bem.FormView m='form-settings-sharing'>
-        <LimitNotifications />
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Sharing')} | KoboToolbox`}>
+        <bem.FormView m='form-settings-sharing'>
+          <LimitNotifications />
 
-        {uid && <SharingForm assetUid={uid} />}
+          {uid && <SharingForm assetUid={uid} />}
 
-        <Box mt='xl'>
-          <TransferProjects asset={asset} />
-        </Box>
-      </bem.FormView>
-    </DocumentTitle>  
+          <Box mt='xl'>
+            <TransferProjects asset={asset} />
+          </Box>
+        </bem.FormView>
+      </DocumentTitle>
     )
   }
 

@@ -509,25 +509,26 @@ export default function Reports(props: ReportsProps) {
     if (state.error) {
       return (
         <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
-        <CenteredMessage
-          message={
-            <>
-              {t('This report cannot be loaded.')}
-              <br />
-              <code>
-                {state.error.statusText}
-                {': ' + state.error.responseText || t('An error occurred')}
-              </code>
-            </>
-          }
-        />
+          <CenteredMessage
+            message={
+              <>
+                {t('This report cannot be loaded.')}
+                <br />
+                <code>
+                  {state.error.statusText}
+                  {': ' + state.error.responseText || t('An error occurred')}
+                </code>
+              </>
+            }
+          />
         </DocumentTitle>
       )
     } else {
       return (
         <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
           <LoadingSpinner />
-        </DocumentTitle>)
+        </DocumentTitle>
+      )
     }
   }
 
@@ -541,7 +542,7 @@ export default function Reports(props: ReportsProps) {
 
   const asset = state.asset
   const currentCustomReport = state.currentCustomReport
-  let docTitle = asset.name || t('Untitled')
+  const docTitle = asset.name || t('Untitled')
 
   const fullReportData = state.reportData || []
   /**
