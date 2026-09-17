@@ -505,8 +505,10 @@ export default function Reports(props: ReportsProps) {
   }
 
   function renderLoadingOrError() {
+    const docTitle = state.asset?.name || t('Untitled')
     if (state.error) {
       return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
         <CenteredMessage
           message={
             <>
@@ -519,9 +521,13 @@ export default function Reports(props: ReportsProps) {
             </>
           }
         />
+        </DocumentTitle>
       )
     } else {
-      return <LoadingSpinner />
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
+          <LoadingSpinner />
+        </DocumentTitle>)
     }
   }
 
@@ -569,7 +575,7 @@ export default function Reports(props: ReportsProps) {
   }
 
   return (
-    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+    <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
       <bem.FormView m={formViewModifiers}>
         <bem.ReportView>
           <h1>{t('Reports')}</h1>
