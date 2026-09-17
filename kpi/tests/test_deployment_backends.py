@@ -12,6 +12,7 @@ from kpi.exceptions import DeploymentDataException
 from kpi.models.asset import Asset, AssetFile
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.storage import is_filesystem_storage
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 
 
 class CreateDeployment(TestCase):
@@ -211,3 +212,191 @@ class MockDeployment(TestCase):
                 meta_data.delete()
                 if default_kobocat_storage.exists(data_file_path):
                     default_kobocat_storage.delete(data_file_path)
+
+
+class QuestionXPathLookup(TestCase):
+    """
+    Which name an attachment is hung on its question by.
+    """
+
+    def setUp(self):
+        someuser = User.objects.create(username='someuser')
+        self.asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1', 'label': 'Q1.'}]},
+            owner=someuser,
+        )
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+
+        # What `get_attachment_filenames_and_xpaths()` builds out of the
+        # submission: the names it carries at its media questions
+        self.filenames_and_xpaths = {'holiday.jpg': 'q1'}
+
+    def test_a_suffixed_path_resolves_through_the_name_the_client_sent(self):
+        """
+        Django appends a suffix to avoid a collision on the storage, so the
+        stored path is not the name the submission carries. Around a million
+        rows on production are in that state.
+        """
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': 'holiday.jpg',
+            },
+            self.filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_a_name_ending_in_a_suffix_is_not_mistaken_for_its_neighbour(self):
+        """
+        `_without_suffix()` cannot tell a suffix Django added from a name that
+        legitimately ends in one, and would hand this file to `holiday.jpg`.
+        The exact match on the name the client sent is tried first, so the
+        heuristic is only ever reached once it has failed.
+        """
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': 'holiday.jpg', 'q2': 'holiday_MtYT6pg.jpg'}, ['q1', 'q2']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': 'holiday_MtYT6pg.jpg',
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q2'
+
+    def test_an_unsanitized_name_resolves_without_a_round_trip(self):
+        """
+        The column holds the name before Django touched it, spaces included,
+        while the sanitized keys turn those into underscores. Keying the raw
+        form is what lets the two meet without both sides throwing the same
+        detail away first.
+        """
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': 'Screenshot 2024 at 18.31.jpg'}, ['q1']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': (
+                    'someuser/attachments/uuid/uuid/Screenshot_2024_at_18.31.jpg'
+                ),
+                'media_file_basename': 'Screenshot 2024 at 18.31.jpg',
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_two_names_sanitizing_alike_stay_on_their_own_questions(self):
+        """
+        The shape this change exists for. `get_valid_name()` turns both of
+        these into `photo_A.jpg`, so a single key was left for two questions
+        and the file of whichever was read first followed the other one.
+
+        Both reading orders are tried, because keying the raw name is only half
+        of it: the raw and sanitized families have to be merged with the raw
+        one winning, or the question read last takes the shared key and one
+        file goes with it.
+        """
+
+        for values in (
+            {'q1': 'photo A.jpg', 'q2': 'photo_A.jpg'},
+            {'q2': 'photo_A.jpg', 'q1': 'photo A.jpg'},
+        ):
+            filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+                values, ['q1', 'q2']
+            )
+
+            assert (
+                self.asset.deployment._get_question_xpath(
+                    {
+                        'filename': 'someuser/attachments/uuid/uuid/photo_A.jpg',
+                        'media_file_basename': 'photo A.jpg',
+                    },
+                    filenames_and_xpaths,
+                )
+                == 'q1'
+            )
+
+            # Its own name was taken on the storage by the file above, hence
+            # the collision suffix on the path
+            assert (
+                self.asset.deployment._get_question_xpath(
+                    {
+                        'filename': (
+                            'someuser/attachments/uuid/uuid/photo_A_XyZ1234.jpg'
+                        ),
+                        'media_file_basename': 'photo_A.jpg',
+                    },
+                    filenames_and_xpaths,
+                )
+                == 'q2'
+            )
+
+    def test_a_backfilled_row_carrying_a_suffix_still_resolves(self):
+        """
+        `populate_media_file_basename` copied the stored path's last segment
+        into the column, collision suffix included, so those rows need the same
+        `_without_suffix()` fallback as the ones holding nothing at all.
+        """
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': 'holiday.jpg'}, ['q1']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': 'holiday_MtYT6pg.jpg',
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_a_row_predating_the_column_still_resolves_on_its_path(self):
+        """
+        2,395,614 rows hold no `media_file_basename`, a set that cannot grow
+        since `save_attachments()` always populates it.
+        """
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': None,
+            },
+            self.filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_a_decomposed_name_resolves_against_the_real_keys(self):
+        """
+        `get_valid_name()` drops combining marks, so a decomposed name survives
+        only in the forms `get_attachment_filenames_and_xpaths()` keys beside
+        the sanitized ones. Build the keys with it rather than by hand, so
+        dropping one of them shows up here.
+        """
+
+        decomposed = 'Guérisseur.jpg'
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': decomposed}, ['q1']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': f'someuser/attachments/uuid/uuid/{decomposed}',
+                'media_file_basename': decomposed,
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
