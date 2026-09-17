@@ -1,21 +1,11 @@
-import React from 'react'
+import type React from 'react'
 
-import { MantineProvider } from '@mantine/core'
-import { ModalsProvider } from '@mantine/modals'
-import { Notifications } from '@mantine/notifications'
-import { QueryClientProvider } from '@tanstack/react-query'
-import DocumentTitle from 'react-document-title'
-import { queryClient } from '#/api/queryClient'
 import bem from '#/bem'
 import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
 import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import sessionStore from '#/stores/session'
-import { cssVariablesResolverKobo, themeKobo } from '#/theme'
-import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
-import ToasterConfig from '../toasterConfig'
 import { RequireOrg } from './RequireOrg'
-import { Tracking } from './useTracking'
 
 interface BasicLayoutProps {
   children: React.ReactNode
@@ -24,33 +14,27 @@ interface BasicLayoutProps {
 /**
  * This is a base component that accepts any children. It has the minimum root
  * layout elements: Main header and place underneath it for content.
+ *
+ * Providers are not its business: the route blockers that use it render inside `App`'s provider tree
+ * (see `app.jsx`).
  */
 export default function BasicLayout(props: BasicLayoutProps) {
   return (
-    <DocumentTitle title='KoboToolbox'>
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
-          <Notifications />
-          <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
-            <Tracking />
-            <ToasterConfig />
-            <div className='header-stretch-bg' />
+    <>
+      <div className='header-stretch-bg' />
 
-            <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
-              <MainHeaderBase>
-                <MainHeaderLogo />
-                {sessionStore.isLoggedIn && (
-                  <RequireOrg>
-                    <AccountMenu />
-                  </RequireOrg>
-                )}
-              </MainHeaderBase>
+      <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
+        <MainHeaderBase>
+          <MainHeaderLogo />
+          {sessionStore.isLoggedIn && (
+            <RequireOrg>
+              <AccountMenu />
+            </RequireOrg>
+          )}
+        </MainHeaderBase>
 
-              <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
-            </bem.PageWrapper>
-          </ModalsProvider>
-        </MantineProvider>
-      </QueryClientProvider>
-    </DocumentTitle>
+        <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
+      </bem.PageWrapper>
+    </>
   )
 }

@@ -106,6 +106,34 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
   )
 }
 
+/**
+ * The route blockers, and the app itself when none of them applies. An active blocker takes the place of the whole
+ * page (see `isAnyRouteBlockerActive`), and the order below is the order they get their turn.
+ */
+function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+  if (isInvalidatedPasswordRouteBlockerActive()) {
+    return <InvalidatedPassword />
+  }
+
+  if (isTOSAgreementRouteBlockerActive()) {
+    return <TOSAgreement />
+  }
+
+  // TODO: We have multiple routes that shouldn't display `MainHeader`,
+  // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
+  // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
+  // opt for a more sane, and singluar(!) solution.
+  return (
+    <AppPageWrapper
+      shouldDisplayMain={shouldDisplayMain}
+      inFormBuilder={inFormBuilder}
+      isFormSingle={isFormSingle}
+      isLibrarySingle={isLibrarySingle}
+      assetUid={getRouteAssetUid()}
+    />
+  )
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props)
@@ -138,20 +166,7 @@ class App extends React.Component {
   }
 
   render() {
-    if (isInvalidatedPasswordRouteBlockerActive()) {
-      return <InvalidatedPassword />
-    }
-
-    if (isTOSAgreementRouteBlockerActive()) {
-      return <TOSAgreement />
-    }
-
-    const assetUid = getRouteAssetUid()
-
-    // TODO: We have multiple routes that shouldn't display `MainHeader`,
-    // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
-    // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
-    // opt for a more sane, and singluar(!) solution.
+    // Every provider wraps the route blockers too, so a blocker screen gets the same context as the app.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
@@ -162,12 +177,11 @@ class App extends React.Component {
                 <Tracking />
                 <ToasterConfig />
 
-                <AppPageWrapper
+                <RouteBlockerOrApp
                   shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
                   inFormBuilder={this.isFormBuilder()}
                   isFormSingle={this.isFormSingle()}
                   isLibrarySingle={this.isLibrarySingle()}
-                  assetUid={assetUid}
                 />
               </RootContextProvider>
             </ModalsProvider>
