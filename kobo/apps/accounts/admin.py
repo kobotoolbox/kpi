@@ -82,6 +82,8 @@ class DomainInline(admin.TabularInline):
 
 @admin.register(SocialAppCustomData)
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
+    list_display = ('social_app', 'is_public', 'managed', 'logout_behavior')
+    list_filter = ('is_public', 'managed', 'logout_behavior')
     inlines = [DomainInline]
 
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
