@@ -535,11 +535,7 @@ export default function Reports(props: ReportsProps) {
 
   const asset = state.asset
   const currentCustomReport = state.currentCustomReport
-  let docTitle
-
-  if (asset?.content) {
-    docTitle = asset.name || t('Untitled')
-  }
+  let docTitle = asset.name || t('Untitled')
 
   const fullReportData = state.reportData || []
   /**
