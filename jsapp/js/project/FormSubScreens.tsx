@@ -104,48 +104,48 @@ function FormSubScreens(props: FormSubScreensProps) {
   const hookUid = params.hookUid ?? ''
 
   switch (location.pathname) {
-      case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
-        return (
-          <Suspense fallback={null}>
-            <DataTable asset={asset} />
-          </Suspense>
-        )
-      case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
-        return (
-          <Suspense fallback={<div>{t('Image Gallery')}</div>}>
-            <FormGallery asset={asset} />
-          </Suspense>
-        )
-      case ROUTES.FORM_MAP.replace(':uid', asset.uid):
-        return <FormMapWrapper asset={asset} />
-      case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
-        return <FormMapWrapper asset={asset} viewby={viewby} />
-      case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
-        return (
-          <Suspense fallback={null}>
-            <ProjectDownloads asset={asset} />
-          </Suspense>
-        )
-      case ROUTES.FORM_SETTINGS.replace(':uid', asset.uid):
-        return renderSettingsEditor(asset)
-      case ROUTES.FORM_MEDIA.replace(':uid', asset.uid):
-        return renderUpload(asset)
-      case ROUTES.FORM_SHARING.replace(':uid', asset.uid):
-        return renderSharing(asset)
-      case ROUTES.FORM_RECORDS.replace(':uid', asset.uid):
-        return renderRecords(asset)
-      case ROUTES.FORM_REST.replace(':uid', asset.uid):
-        return <RESTServices asset={asset} />
-      case ROUTES.FORM_REST_HOOK.replace(':uid', asset.uid).replace(':hookUid', hookUid):
-        return <RESTServices asset={asset} hookUid={hookUid} />
-      case ROUTES.FORM_RESET.replace(':uid', asset.uid):
-        return renderReset()
-      case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
-        return <FormActivity />
-    }
+    case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
+      return (
+        <Suspense fallback={null}>
+          <DataTable asset={asset} />
+        </Suspense>
+      )
+    case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
+      return (
+        <Suspense fallback={<div>{t('Image Gallery')}</div>}>
+          <FormGallery asset={asset} />
+        </Suspense>
+      )
+    case ROUTES.FORM_MAP.replace(':uid', asset.uid):
+      return <FormMapWrapper asset={asset} />
+    case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
+      return <FormMapWrapper asset={asset} viewby={viewby} />
+    case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
+      return (
+        <Suspense fallback={null}>
+          <ProjectDownloads asset={asset} />
+        </Suspense>
+      )
+    case ROUTES.FORM_SETTINGS.replace(':uid', asset.uid):
+      return renderSettingsEditor(asset)
+    case ROUTES.FORM_MEDIA.replace(':uid', asset.uid):
+      return renderUpload(asset)
+    case ROUTES.FORM_SHARING.replace(':uid', asset.uid):
+      return renderSharing(asset)
+    case ROUTES.FORM_RECORDS.replace(':uid', asset.uid):
+      return renderRecords(asset)
+    case ROUTES.FORM_REST.replace(':uid', asset.uid):
+      return <RESTServices asset={asset} />
+    case ROUTES.FORM_REST_HOOK.replace(':uid', asset.uid).replace(':hookUid', hookUid):
+      return <RESTServices asset={asset} hookUid={hookUid} />
+    case ROUTES.FORM_RESET.replace(':uid', asset.uid):
+      return renderReset()
+    case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
+      return <FormActivity />
+  }
 
-    // For TS, should never happen
-    return null
+  // For TS, should never happen
+  return null
 }
 
 export default FormSubScreens
