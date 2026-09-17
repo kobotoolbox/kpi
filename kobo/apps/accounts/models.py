@@ -6,6 +6,7 @@ from allauth.account.signals import email_confirmed
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 
 EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9.-]+\.[a-zA-Z0-9_-]{2,}$')
 
@@ -107,6 +108,31 @@ class SocialAppCustomData(models.Model):
         related_name='custom_data',
         null=True,
         blank=True,
+    )
+    class LogoutBehavior(models.TextChoices):
+        LOCAL_ONLY = 'local_only', _('Local logout only')
+        RP_INITIATED = 'rp_initiated', _('RP-initiated logout (IdP end session)')
+        PROMPT_LOGIN = 'prompt_login', _('Prompt login on next sign-in')
+
+    logout_behavior = models.CharField(
+        max_length=20,
+        choices=LogoutBehavior.choices,
+        default=LogoutBehavior.LOCAL_ONLY,
+        help_text=_('Logout behavior for this SSO provider'),
+    )
+    end_session_endpoint = models.URLField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'Custom OIDC end session endpoint (optional; auto-discovered if left blank)'
+        ),
+    )
+    post_logout_redirect_uri = models.URLField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'URL to redirect to after IdP logout (optional; defaults to Kobo login page)'
+        ),
     )
 
     def __str__(self):
