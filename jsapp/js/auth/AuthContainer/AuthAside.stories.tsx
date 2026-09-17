@@ -1,9 +1,9 @@
 import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import RegisterAside from './RegisterAside'
+import AuthAside from './AuthAside'
 
 /**
- * The registration screen's supporting column on its own
+ * The supporting column on its own, as any authentication screen gets it
  */
 
 /** Inline so the story stays offline */
@@ -34,9 +34,9 @@ const columnDecorator: Decorator = (Story) => (
   </main>
 )
 
-const meta: Meta<typeof RegisterAside> = {
-  title: 'Features/RegisterAside',
-  component: RegisterAside,
+const meta: Meta<typeof AuthAside> = {
+  title: 'Features/AuthAside',
+  component: AuthAside,
   decorators: [columnDecorator],
   parameters: {
     // Only one rule is failing.
@@ -46,7 +46,7 @@ const meta: Meta<typeof RegisterAside> = {
 }
 
 export default meta
-type Story = StoryObj<typeof RegisterAside>
+type Story = StoryObj<typeof AuthAside>
 
 export const TextAndImage: Story = {
   args: { imageUrl: EXAMPLE_IMAGE_URL, text: EXAMPLE_TEXT },
