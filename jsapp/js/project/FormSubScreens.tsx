@@ -1,8 +1,8 @@
 import { Box } from '@mantine/core'
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import reactMixin from 'react-mixin'
 import { actions } from '#/actions'
+import assetStore, { type AssetStoreData } from '#/assetStore'
 import bem from '#/bem'
 import RESTServices from '#/components/RESTServices'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -12,7 +12,6 @@ import TransferProjects from '#/components/permissions/transferProjects/transfer
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import mixins from '#/mixins'
 import FormMedia from '#/project/FormMedia'
 import { ProjectSettings } from '#/project/ProjectSettings'
 import { type WithRouterProps, withRouter } from '#/router/legacy'
@@ -32,58 +31,89 @@ const FormGallery = React.lazy(
 const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/activity/FormActivity'))
 
 interface FormSubScreensProps extends WithRouterProps {
-  /** Asset uid for the cases where it doesn't come from the route (also used by `mixins.dmix`). */
+  /** Asset uid for the cases where it doesn't come from the route. */
   uid?: string
 }
-
-/**
- * `mixins.dmix` assigns the whole loaded asset onto this component's state, but the state starts out as an empty
- * object - hence all the asset properties being optional here.
- */
-type FormSubScreensState = Partial<AssetResponse>
 
 /**
  * Renders one of the project sub-screens - the Data ones (Table, Gallery, Map, Downloads) and the Settings ones (form
  * media, sharing, REST Services, activity, etc.). All of those routes point at this single component, which then picks
  * the screen by matching the current pathname against `ROUTES`.
  */
-class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreensState> {
-  constructor(props: FormSubScreensProps) {
-    super(props)
-    this.state = {}
-  }
+function FormSubScreens(props: FormSubScreensProps) {
+  const [asset, setAsset] = useState<AssetResponse>()
 
-  // TODO: `mixins.dmix` loads the asset in its own `componentDidMount` too, and `react-mixin` runs both. Left as it
-  // was, to be untangled in DEV-2748.
-  componentDidMount() {
-    const uid = this.props.params.assetid || this.props.uid || this.props.params.uid
-    if (uid) {
-      actions.resources.loadAsset({ id: uid })
-    }
-  }
-
-  /**
-   * The asset that `mixins.dmix` put into the state, or `undefined` while it's still being loaded. As `dmix` only ever
-   * assigns the asset as a whole, `uid` being there means the rest of it is there too.
-   */
-  private getAsset(): AssetResponse | undefined {
-    return this.state.uid ? (this.state as AssetResponse) : undefined
-  }
-
-  render() {
-    const asset = this.getAsset()
-
-    // Nothing to render until the asset lands
-    if (!asset) {
-      return false
+  useEffect(() => {
+    const uid = props.params.assetid || props.uid || props.params.uid
+    if (!uid) {
+      return
     }
 
-    // Each of these is only in the path of one of the routes below. The `''` fallbacks are safe, as they make the
-    // `case`s using them build a path that no other route's pathname can match.
-    const viewby = this.props.params.viewby ?? ''
-    const hookUid = this.props.params.hookUid ?? ''
+    const cancelListener = assetStore.listen((data: AssetStoreData) => {
+      const loadedAsset = data[uid]
+      if (loadedAsset) {
+        setAsset(loadedAsset)
+      }
+    })
+    setAsset(assetStore.getAsset(uid))
+    actions.resources.loadAsset({ id: uid })
 
-    switch (this.props.router.location.pathname) {
+    return cancelListener
+  }, [props.params.assetid, props.params.uid, props.uid])
+
+  const renderSettingsEditor = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+    return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <bem.FormView m='form-settings'>
+          <LimitNotifications />
+          <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={loadedAsset} />
+        </bem.FormView>
+      </DocumentTitle>
+    )
+  }
+
+  const renderSharing = (loadedAsset: AssetResponse) => {
+    // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
+    // still hold the previous asset for a moment.
+    const uid = props.params.assetid || props.params.uid
+
+    return (
+      <bem.FormView m='form-settings-sharing'>
+        <LimitNotifications />
+
+        {uid && <SharingForm assetUid={uid} />}
+
+        <Box mt='xl'>
+          <TransferProjects asset={loadedAsset} />
+        </Box>
+      </bem.FormView>
+    )
+  }
+
+  const renderRecords = (loadedAsset: AssetResponse) => (
+    <bem.FormView className='connect-projects'>
+      <Suspense fallback={null}>
+        <ConnectProjects asset={loadedAsset} />
+      </Suspense>
+    </bem.FormView>
+  )
+
+  const renderReset = () => <LoadingSpinner />
+
+  const renderUpload = (loadedAsset: AssetResponse) => <FormMedia asset={loadedAsset} />
+
+  // Nothing to render until the asset lands
+  if (!asset) {
+    return false
+  }
+
+  // Each of these is only in the path of one of the routes below. The `''` fallbacks are safe, as they make the
+  // `case`s using them build a path that no other route's pathname can match.
+  const viewby = props.params.viewby ?? ''
+  const hookUid = props.params.hookUid ?? ''
+
+  switch (props.router.location.pathname) {
       case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
         return (
           <Suspense fallback={null}>
@@ -107,19 +137,19 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
           </Suspense>
         )
       case ROUTES.FORM_SETTINGS.replace(':uid', asset.uid):
-        return this.renderSettingsEditor(asset)
+        return renderSettingsEditor(asset)
       case ROUTES.FORM_MEDIA.replace(':uid', asset.uid):
-        return this.renderUpload(asset)
+        return renderUpload(asset)
       case ROUTES.FORM_SHARING.replace(':uid', asset.uid):
-        return this.renderSharing(asset)
+        return renderSharing(asset)
       case ROUTES.FORM_RECORDS.replace(':uid', asset.uid):
-        return this.renderRecords(asset)
+        return renderRecords(asset)
       case ROUTES.FORM_REST.replace(':uid', asset.uid):
         return <RESTServices asset={asset} />
       case ROUTES.FORM_REST_HOOK.replace(':uid', asset.uid).replace(':hookUid', hookUid):
         return <RESTServices asset={asset} hookUid={hookUid} />
       case ROUTES.FORM_RESET.replace(':uid', asset.uid):
-        return this.renderReset()
+        return renderReset()
       case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
         return <FormActivity />
     }
@@ -139,57 +169,6 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
         </bem.FormView>
       </DocumentTitle>
     )
-  }
-
-  renderSettingsEditor(asset: AssetResponse) {
-    const docTitle = asset.name || t('Untitled')
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView m='form-settings'>
-          <LimitNotifications />
-          <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={asset} />
-        </bem.FormView>
-      </DocumentTitle>
-    )
-  }
-
-  renderSharing(asset: AssetResponse) {
-    // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
-    // still hold the previous asset for a moment.
-    const uid = this.props.params.assetid || this.props.params.uid
-
-    return (
-      <bem.FormView m='form-settings-sharing'>
-        <LimitNotifications />
-
-        {uid && <SharingForm assetUid={uid} />}
-
-        <Box mt='xl'>
-          <TransferProjects asset={asset} />
-        </Box>
-      </bem.FormView>
-    )
-  }
-
-  renderRecords(asset: AssetResponse) {
-    return (
-      <bem.FormView className='connect-projects'>
-        <Suspense fallback={null}>
-          <ConnectProjects asset={asset} />
-        </Suspense>
-      </bem.FormView>
-    )
-  }
-
-  renderReset() {
-    return <LoadingSpinner />
-  }
-
-  renderUpload(asset: AssetResponse) {
-    return <FormMedia asset={asset} />
-  }
 }
-
-reactMixin(FormSubScreens.prototype, mixins.dmix)
 
 export default withRouter(FormSubScreens)
