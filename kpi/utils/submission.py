@@ -58,10 +58,8 @@ def _collect_filenames_and_xpaths(
                     # in nested groups (i.e. calling this function recursively)
                     # to keep a trace of each (parent) group index
                     child_indexes[key] = index + 1
-                    child_names, child_sanitized_names = (
-                        _collect_filenames_and_xpaths(
-                            item_list, attachment_xpaths, child_indexes
-                        )
+                    child_names, child_sanitized_names = _collect_filenames_and_xpaths(
+                        item_list, attachment_xpaths, child_indexes
                     )
                     by_name.update(child_names)
                     by_sanitized_name.update(child_sanitized_names)
