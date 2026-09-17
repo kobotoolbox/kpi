@@ -1,11 +1,11 @@
 import { Stack, Text, Title } from '@mantine/core'
 import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
+import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
 import ButtonNew from '#/components/common/ButtonNew'
 import CheckInboxPanel from './CheckInboxPanel'
-import RegisterAside from './RegisterAside'
 import RegisterForm from './RegisterForm'
 
 function SignupClosedPanel() {
@@ -78,13 +78,6 @@ export default function RegisterRoute() {
   // the card empty. The server rejects a closed signup with a 403 regardless.
   const isRegistrationClosed = data?.registrationOpen === false
 
-  const supportingImageUrl = data?.authConfiguration.supporting_image_url
-  const supportingText = data?.authConfiguration.supporting_text
-  // Decided here, not inside `RegisterAside`: `AuthCard` opens the column for any truthy `aside`, so an
-  // aside that renders nothing would still widen the card and draw the divider. The accepted cost is a
-  // card that starts one column wide and grows once `/environment` lands.
-  const hasSupportingContent = Boolean(supportingImageUrl) || Boolean(supportingText)
-
   function renderCard() {
     // `!data` matters as much as `isError`: a failed background refetch leaves the last good response in
     // place, and swapping a half filled form for this panel over a blip would throw that typing away.
@@ -111,7 +104,14 @@ export default function RegisterRoute() {
     }
     return (
       <AuthCard
-        aside={hasSupportingContent ? <RegisterAside imageUrl={supportingImageUrl} text={supportingText} /> : undefined}
+        aside={
+          shouldRenderAuthAside(data?.authConfiguration) && (
+            <AuthAside
+              imageUrl={data?.authConfiguration.supporting_image_url}
+              text={data?.authConfiguration.supporting_text}
+            />
+          )
+        }
       >
         <RegisterForm
           socialApps={data?.socialApps}
