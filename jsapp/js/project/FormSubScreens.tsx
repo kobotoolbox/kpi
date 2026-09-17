@@ -1,9 +1,8 @@
 import { Box } from '@mantine/core'
-import React, { Suspense, useEffect, useState } from 'react'
+import React, { Suspense } from 'react'
 import DocumentTitle from 'react-document-title'
-import { actions } from '#/actions'
-import assetStore, { type AssetStoreData } from '#/assetStore'
-import bem from '#/bem'
+import { useLocation, useParams } from 'react-router-dom'
+import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import RESTServices from '#/components/RESTServices'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import FormMapWrapper from '#/components/map/formMapWrapper'
@@ -14,7 +13,6 @@ import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import FormMedia from '#/project/FormMedia'
 import { ProjectSettings } from '#/project/ProjectSettings'
-import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 
 const ConnectProjects = React.lazy(
@@ -30,7 +28,7 @@ const FormGallery = React.lazy(
 
 const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/activity/FormActivity'))
 
-interface FormSubScreensProps extends WithRouterProps {
+interface FormSubScreensProps {
   /** Asset uid for the cases where it doesn't come from the route. */
   uid?: string
 }
@@ -41,34 +39,24 @@ interface FormSubScreensProps extends WithRouterProps {
  * the screen by matching the current pathname against `ROUTES`.
  */
 function FormSubScreens(props: FormSubScreensProps) {
-  const [asset, setAsset] = useState<AssetResponse>()
-
-  useEffect(() => {
-    const uid = props.params.assetid || props.uid || props.params.uid
-    if (!uid) {
-      return
-    }
-
-    const cancelListener = assetStore.listen((data: AssetStoreData) => {
-      const loadedAsset = data[uid]
-      if (loadedAsset) {
-        setAsset(loadedAsset)
-      }
-    })
-    setAsset(assetStore.getAsset(uid))
-    actions.resources.loadAsset({ id: uid })
-
-    return cancelListener
-  }, [props.params.assetid, props.params.uid, props.uid])
+  const params = useParams()
+  const location = useLocation()
+  const assetUid = params.assetid || props.uid || params.uid || ''
+  const assetQuery = useAssetsRetrieve(assetUid)
+  // TODO: Legacy child components expect AssetResponse; we should unify these types in the future with the orval
+  // generated types. Most likely need to go into the legacy types and ensure their logic matches return of the hook.
+  const asset = assetQuery.data?.data as AssetResponse | undefined
 
   const renderSettingsEditor = (loadedAsset: AssetResponse) => {
     const docTitle = loadedAsset.name || t('Untitled')
     return (
+      // TODO: `form-view` scss classes can be replaced with style props and the file can be removed once we update the
+      // legacy components that use it to mantine style props. For now we can keep using the classes to avoid inconsistencies
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView m='form-settings'>
+        <Box className='form-view form-view--form-settings'>
           <LimitNotifications />
           <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={loadedAsset} />
-        </bem.FormView>
+        </Box>
       </DocumentTitle>
     )
   }
@@ -76,10 +64,11 @@ function FormSubScreens(props: FormSubScreensProps) {
   const renderSharing = (loadedAsset: AssetResponse) => {
     // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
     // still hold the previous asset for a moment.
-    const uid = props.params.assetid || props.params.uid
+    const uid = params.assetid || params.uid
 
     return (
-      <bem.FormView m='form-settings-sharing'>
+      // TODO: `form-view` scss classes can be replaced with style props
+      <Box className='form-view form-view--form-settings-sharing'>
         <LimitNotifications />
 
         {uid && <SharingForm assetUid={uid} />}
@@ -87,16 +76,17 @@ function FormSubScreens(props: FormSubScreensProps) {
         <Box mt='xl'>
           <TransferProjects asset={loadedAsset} />
         </Box>
-      </bem.FormView>
+      </Box>
     )
   }
 
   const renderRecords = (loadedAsset: AssetResponse) => (
-    <bem.FormView className='connect-projects'>
+    // TODO: `form-view` scss classes can be replaced with style props
+    <Box className='form-view connect-projects'>
       <Suspense fallback={null}>
         <ConnectProjects asset={loadedAsset} />
       </Suspense>
-    </bem.FormView>
+    </Box>
   )
 
   const renderReset = () => <LoadingSpinner />
@@ -110,10 +100,10 @@ function FormSubScreens(props: FormSubScreensProps) {
 
   // Each of these is only in the path of one of the routes below. The `''` fallbacks are safe, as they make the
   // `case`s using them build a path that no other route's pathname can match.
-  const viewby = props.params.viewby ?? ''
-  const hookUid = props.params.hookUid ?? ''
+  const viewby = params.viewby ?? ''
+  const hookUid = params.hookUid ?? ''
 
-  switch (props.router.location.pathname) {
+  switch (location.pathname) {
       case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
         return (
           <Suspense fallback={null}>
@@ -154,21 +144,8 @@ function FormSubScreens(props: FormSubScreensProps) {
         return <FormActivity />
     }
 
-    const docTitle = asset.name || t('Untitled')
-
-    // TODO: this fallback screen is a leftover - nothing ever fills the url in, so the iframe is always empty. To be
-    // removed in DEV-2748.
-    const iframeUrl = ''
-
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView>
-          <bem.FormView__cell m='iframe'>
-            <iframe src={iframeUrl} />
-          </bem.FormView__cell>
-        </bem.FormView>
-      </DocumentTitle>
-    )
+    // For TS, should never happen
+    return null
 }
 
-export default withRouter(FormSubScreens)
+export default FormSubScreens
