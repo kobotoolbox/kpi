@@ -74,7 +74,7 @@ export default function LibraryNewItemForm({ onRequestClose, reopenHomeModal }: 
         <button onClick={goToAssetCreator}>
           <Stack gap={5} align='center'>
             <KoboIcon icon={IconLibrary} size='xl' color='var(--mantine-color-gray-2)' />
-            {t('Question Block')}
+            {t('Questions')}
           </Stack>
         </button>
 
