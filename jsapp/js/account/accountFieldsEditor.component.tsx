@@ -47,7 +47,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
     if (!metadata[fieldName]?.label) {
-      // Here it means a field is on screen that the Backend never configured, which is worth knowing about.
+      // Here it means a field is on screen that the Backend never configured, which is worth knowing about
       console.error(`No label for fieldname "${fieldName}"`)
     }
     return envStore.data.getUserMetadataFieldLabel(fieldName)
