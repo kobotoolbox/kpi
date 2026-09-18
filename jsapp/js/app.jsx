@@ -109,6 +109,9 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
 /**
  * The route blockers, and the app itself when none of them applies. An active blocker takes the place of the whole
  * page (see `isAnyRouteBlockerActive`), and the order below is the order they get their turn.
+ *
+ * Only the app branch gets `RootContextProvider`: its billing requests are for the account routes, and one of them
+ * (`/stripe/addons/`) answers 403 to exactly the user `InvalidatedPassword` is up for.
  */
 function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
   if (isInvalidatedPasswordRouteBlockerActive()) {
@@ -122,15 +125,17 @@ function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isL
   // TODO: We have multiple routes that shouldn't display `MainHeader`,
   // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
   // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
-  // opt for a more sane, and singluar(!) solution.
+  // opt for a more sane, and singular(!) solution.
   return (
-    <AppPageWrapper
-      shouldDisplayMain={shouldDisplayMain}
-      inFormBuilder={inFormBuilder}
-      isFormSingle={isFormSingle}
-      isLibrarySingle={isLibrarySingle}
-      assetUid={getRouteAssetUid()}
-    />
+    <RootContextProvider>
+      <AppPageWrapper
+        shouldDisplayMain={shouldDisplayMain}
+        inFormBuilder={inFormBuilder}
+        isFormSingle={isFormSingle}
+        isLibrarySingle={isLibrarySingle}
+        assetUid={getRouteAssetUid()}
+      />
+    </RootContextProvider>
   )
 }
 
@@ -166,24 +171,23 @@ class App extends React.Component {
   }
 
   render() {
-    // Every provider wraps the route blockers too, so a blocker screen gets the same context as the app.
+    // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
+    // query client as the app. `RootContextProvider` is the exception - see `RouteBlockerOrApp`.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
             <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
-              <RootContextProvider>
-                <Tracking />
-                <ToasterConfig />
+              <Tracking />
+              <ToasterConfig />
 
-                <RouteBlockerOrApp
-                  shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
-                  inFormBuilder={this.isFormBuilder()}
-                  isFormSingle={this.isFormSingle()}
-                  isLibrarySingle={this.isLibrarySingle()}
-                />
-              </RootContextProvider>
+              <RouteBlockerOrApp
+                shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
+                inFormBuilder={this.isFormBuilder()}
+                isFormSingle={this.isFormSingle()}
+                isLibrarySingle={this.isLibrarySingle()}
+              />
             </ModalsProvider>
           </MantineProvider>
 
