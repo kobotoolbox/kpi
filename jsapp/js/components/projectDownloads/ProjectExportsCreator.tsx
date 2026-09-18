@@ -422,7 +422,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     }
   }
 
-  function getQuestionsList(): Array<{ label: string; path: string; parents: string[] }> {
+  function getQuestionsList(): Array<{ label: string; path: string; parents: string[]; questionType?: string }> {
     const selectableRows = Array.from(getAllSelectableRows())
 
     const flatQuestionsList = getFlatQuestionsList(
@@ -439,6 +439,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
           label: foundFlatQuestion.label,
           path: foundFlatQuestion.path,
           parents: foundFlatQuestion.parents,
+          questionType: foundFlatQuestion.type,
         }
       }
 
@@ -469,18 +470,13 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
         checkboxLabel = row.label
       }
 
-      const lookupKey = row.path.includes('/') ? row.path.split('/').at(-1)! : row.path
-      const surveyQuestion = props.asset.content?.survey?.find(
-        (o) => o.name === lookupKey || o.$autoname === lookupKey,
-      )
-
       return {
         checked: state.selectedRows.has(row.path) || row.path === ADDITIONAL_SUBMISSION_PROPS._uuid,
         disabled: !state.isCustomSelectionEnabled || row.path === ADDITIONAL_SUBMISSION_PROPS._uuid,
-        label: surveyQuestion?.type ? (
+        label: row.questionType ? (
           <Group gap={4} wrap='nowrap' align='flex-start'>
             <span style={{ color: '#828ba5', flexShrink: 0 }}>
-              {renderQuestionTypeIcon(surveyQuestion.type)}
+              {renderQuestionTypeIcon(row.questionType)}
             </span>
             {checkboxLabel}
           </Group>
