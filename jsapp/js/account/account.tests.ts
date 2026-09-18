@@ -71,8 +71,6 @@ describe('areOrganizationFieldsSkipped', () => {
   })
 
   it('ignores a stale value on an instance that does not ask for the type', () => {
-    // The relaxation is the server's, and the server only applies it where `organization_type` is
-    // configured. A `'none'` left in `extra_details` from before must not let the other two through.
     const configuredFieldNames: UserFieldName[] = ['organization', 'organization_website']
 
     chai.expect(areOrganizationFieldsSkipped({ organization_type: 'none' }, configuredFieldNames)).to.equal(false)
