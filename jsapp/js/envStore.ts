@@ -165,10 +165,6 @@ export class EnvStoreData {
     return dict
   }
 
-  /**
-   * The label an administrator gave a user metadata field, falling back to the field name for one this
-   * instance does not configure - anything showing a message about a field needs something to call it.
-   */
   public getUserMetadataFieldLabel(fieldName: UserFieldName): string {
     return this.getUserMetadataFieldsAsSimpleDict()[fieldName]?.label || fieldName
   }
