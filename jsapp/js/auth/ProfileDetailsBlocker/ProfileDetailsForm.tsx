@@ -119,7 +119,7 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
 
     // TODO: the generated `PatchedCurrentUserExtraDetails` is wrong - `ExtraDetailField` in
     // `kpi/schema_extensions/v2/me/extensions.py` leaves `gender` out and types
-    // `newsletter_subscription` as a string. The cast goes when that is fixed.
+    // `newsletter_subscription` as a string. The cast goes when DEV-2903 is fixed.
     const extraDetails = editedFields as PatchedCurrentUser['extra_details']
     save.mutate({ data: { extra_details: extraDetails } })
   }
