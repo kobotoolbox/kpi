@@ -3,6 +3,7 @@ import Fuse from 'fuse.js'
 import React from 'react'
 import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import { renderQuestionTypeIcon } from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
@@ -145,19 +146,36 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
         {filteredFieldsList.length !== 0 && (
           <ScrollArea.Autosize mah={200} type='auto' dir='auto'>
             <Stack gap='sm' p='xs'>
-              {filteredFieldsList.map((fieldObj) => (
-                <Box key={fieldObj.fieldId}>
-                  <Switch
-                    checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
-                    onChange={(event) => {
-                      this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
-                    }}
-                    disabled={this.state.isPending}
-                    label={fieldObj.label}
-                    size='sm'
-                  />
-                </Box>
-              ))}
+              {filteredFieldsList.map((fieldObj) => {
+                const lookupKey = fieldObj.fieldId.includes('/')
+                  ? fieldObj.fieldId.split('/').at(-1)!
+                  : fieldObj.fieldId
+                const surveyQuestion = this.props.asset.content?.survey?.find(
+                  (o) => o.name === lookupKey || o.$autoname === lookupKey,
+                )
+                return (
+                  <Box key={fieldObj.fieldId}>
+                    <Switch
+                      checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
+                      onChange={(event) => {
+                        this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
+                      }}
+                      disabled={this.state.isPending}
+                      label={
+                        <Group gap={4} wrap='nowrap' align='flex-start'>
+                          {surveyQuestion?.type && (
+                            <span style={{ color: '#828ba5', flexShrink: 0 }}>
+                              {renderQuestionTypeIcon(surveyQuestion.type)}
+                            </span>
+                          )}
+                          {fieldObj.label}
+                        </Group>
+                      }
+                      size='sm'
+                    />
+                  </Box>
+                )
+              })}
             </Stack>
           </ScrollArea.Autosize>
         )}
