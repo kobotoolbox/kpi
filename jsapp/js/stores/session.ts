@@ -13,6 +13,7 @@ class SessionStore {
   }
   isAuthStateKnown = false
   isLoggedIn = false
+  isValidatedPassword = false
   isInitialLoadComplete = false
   isPending = false
   isInitialRoute = true
@@ -40,6 +41,7 @@ class SessionStore {
         if ('email' in account) {
           this.currentAccount = account
           this.isLoggedIn = true
+          this.isValidatedPassword = account.validated_password
           // Save UI language to Back-end for language usage statistics.
           // Logging in causes the whole page to be reloaded, so we don't need
           // to do it more than once.
