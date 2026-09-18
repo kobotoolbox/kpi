@@ -14,7 +14,7 @@ $field-label-spacing: 5px;
   flex-direction: row;
   align-content: flex-start;
   align-items: flex-start;
-  gap: 0  20px;
+  gap: 0 20px;
   width: 100%;
 
   &:not(:last-child) {
@@ -60,7 +60,7 @@ $field-label-spacing: 5px;
     min-width: 100%;
   }
 
-  .row.rowSocial >*:not(:last-child, :first-child) {
+  .row.rowSocial > *:not(:last-child, :first-child) {
     margin-bottom: $field-label-spacing;
   }
 }
