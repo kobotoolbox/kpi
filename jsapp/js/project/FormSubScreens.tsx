@@ -82,24 +82,37 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
     // `case`s using them build a path that no other route's pathname can match.
     const viewby = this.props.params.viewby ?? ''
     const hookUid = this.props.params.hookUid ?? ''
+    const docTitle = asset.name || t('Untitled')
 
     switch (this.props.router.location.pathname) {
       case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
         return (
-          <Suspense fallback={null}>
-            <DataTable asset={asset} />
-          </Suspense>
+          <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Table')} | KoboToolbox`}>
+            <Suspense fallback={null}>
+              <DataTable asset={asset} />
+            </Suspense>
+          </DocumentTitle>
         )
       case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
         return (
-          <Suspense fallback={<div>{t('Image Gallery')}</div>}>
-            <FormGallery asset={asset} />
-          </Suspense>
+          <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Gallery')} | KoboToolbox`}>
+            <Suspense fallback={<div>{t('Image Gallery')}</div>}>
+              <FormGallery asset={asset} />
+            </Suspense>
+          </DocumentTitle>
         )
       case ROUTES.FORM_MAP.replace(':uid', asset.uid):
-        return <FormMapWrapper asset={asset} />
+        return (
+          <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
+            <FormMapWrapper asset={asset} />
+          </DocumentTitle>
+        )
       case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
-        return <FormMapWrapper asset={asset} viewby={viewby} />
+        return (
+          <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
+            <FormMapWrapper asset={asset} viewby={viewby} />
+          </DocumentTitle>
+        )
       case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
         return (
           <Suspense fallback={null}>
@@ -121,10 +134,12 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
       case ROUTES.FORM_RESET.replace(':uid', asset.uid):
         return this.renderReset()
       case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
-        return <FormActivity />
+        return (
+          <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Activity')} | KoboToolbox`}>
+            <FormActivity />
+          </DocumentTitle>
+        )
     }
-
-    const docTitle = asset.name || t('Untitled')
 
     // TODO: this fallback screen is a leftover - nothing ever fills the url in, so the iframe is always empty. To be
     // removed in DEV-2748.
@@ -144,7 +159,7 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
   renderSettingsEditor(asset: AssetResponse) {
     const docTitle = asset.name || t('Untitled')
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('General')} | KoboToolbox`}>
         <bem.FormView m='form-settings'>
           <LimitNotifications />
           <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={asset} />
@@ -157,27 +172,32 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
     // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
     // still hold the previous asset for a moment.
     const uid = this.props.params.assetid || this.props.params.uid
-
+    const docTitle = asset.name || t('Untitled')
     return (
-      <bem.FormView m='form-settings-sharing'>
-        <LimitNotifications />
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Sharing')} | KoboToolbox`}>
+        <bem.FormView m='form-settings-sharing'>
+          <LimitNotifications />
 
-        {uid && <SharingForm assetUid={uid} />}
+          {uid && <SharingForm assetUid={uid} />}
 
-        <Box mt='xl'>
-          <TransferProjects asset={asset} />
-        </Box>
-      </bem.FormView>
+          <Box mt='xl'>
+            <TransferProjects asset={asset} />
+          </Box>
+        </bem.FormView>
+      </DocumentTitle>
     )
   }
 
   renderRecords(asset: AssetResponse) {
+    const docTitle = asset.name || t('Untitled')
     return (
-      <bem.FormView className='connect-projects'>
-        <Suspense fallback={null}>
-          <ConnectProjects asset={asset} />
-        </Suspense>
-      </bem.FormView>
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Connect Projects')} | KoboToolbox`}>
+        <bem.FormView className='connect-projects'>
+          <Suspense fallback={null}>
+            <ConnectProjects asset={asset} />
+          </Suspense>
+        </bem.FormView>
+      </DocumentTitle>
     )
   }
 
@@ -186,7 +206,12 @@ class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreens
   }
 
   renderUpload(asset: AssetResponse) {
-    return <FormMedia asset={asset} />
+    const docTitle = asset.name || t('Untitled')
+    return (
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Media')} | KoboToolbox`}>
+        <FormMedia asset={asset} />
+      </DocumentTitle>
+    )
   }
 }
 
