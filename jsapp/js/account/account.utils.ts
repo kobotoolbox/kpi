@@ -62,7 +62,7 @@ export function getEditableProfileFieldNames({
   isMmoMember: boolean
 }): UserFieldName[] {
   if (!isMmoMember) {
-    // Copied, because callers pass arrays that live in a store and some of them keep the result in state.
+    // Copied for safety
     return [...configuredFieldNames]
   }
   return configuredFieldNames.filter((name) => !MMO_MANAGED_FIELD_NAMES.includes(name))
