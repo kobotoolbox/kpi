@@ -178,7 +178,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   let fieldCount = 0 // field counter to adjust wrapping with spacers
 
   return (
-    <div>
+    <div className={styles.root}>
       <div className={styles.flexFields}>
         {/* Full name */}
         {/* Comma operator evaluates left-to-right, returns rightmost operand.
@@ -366,7 +366,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
       </div>
 
-      <div className={styles.row}>
+      <div className={cx(styles.row, styles.rowSocial)}>
         {/* Social */}
         {(isFieldToBeDisplayed('twitter') || isFieldToBeDisplayed('linkedin') || isFieldToBeDisplayed('instagram')) && (
           <>
