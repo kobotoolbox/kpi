@@ -2,6 +2,11 @@
 
 $field-min-width: 14em;
 $fields-x-gap: 20px;
+$field-label-spacing: 5px;
+
+.root {
+  container-type: inline-size;
+}
 
 .row {
   display: flex;
@@ -9,7 +14,7 @@ $fields-x-gap: 20px;
   flex-direction: row;
   align-content: flex-start;
   align-items: flex-start;
-  gap: 0 20px;
+  gap: 0  20px;
   width: 100%;
 
   &:not(:last-child) {
@@ -32,9 +37,6 @@ $fields-x-gap: 20px;
   align-items: flex-start; // better alignment when there's error feedback
   gap: 15px $fields-x-gap;
   margin-bottom: 15px;
-  // So the spacers below can react to the room the fields actually have, which is not the viewport: this
-  // editor sits in an auth card column as well as on the full width account settings page.
-  container-type: inline-size;
 
   .field {
     flex: 1;
@@ -53,6 +55,14 @@ $fields-x-gap: 20px;
   .spacer {
     display: none;
   }
+
+  .field {
+    min-width: 100%;
+  }
+
+  .row.rowSocial >*:not(:last-child, :first-child) {
+    margin-bottom: $field-label-spacing;
+  }
 }
 
 .field {
@@ -67,6 +77,6 @@ $fields-x-gap: 20px;
   // These stand in for a Mantine input label above a group of controls, so they
   // match what an `md` field's label gets - see `INPUT_SIZE_TO_LABEL_SIZES` in theme/kobo/InputWrapper.ts.
   font-size: var(--mantine-font-size-md);
-  margin-bottom: 5px;
+  margin-bottom: $field-label-spacing;
   display: block;
 }
