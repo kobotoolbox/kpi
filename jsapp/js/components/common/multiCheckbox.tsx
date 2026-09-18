@@ -16,7 +16,7 @@ export interface MultiCheckboxItem {
   [propName: string]: any
   checked: boolean
   disabled?: boolean
-  label: string
+  label: React.ReactNode
   hint?: string
 }
 
