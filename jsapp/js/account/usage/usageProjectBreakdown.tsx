@@ -129,7 +129,7 @@ const ProjectBreakdown = () => {
     },
     {
       key: 'llm_requests',
-      label: t('Automatic analysis requests'),
+      label: t('Automatic Analysis Requests'),
       size: 100,
       cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_llm_requests.toLocaleString(),
     },

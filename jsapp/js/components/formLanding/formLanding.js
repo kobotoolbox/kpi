@@ -462,13 +462,13 @@ class FormLanding extends React.Component {
                 onClick={this.handleNonOwnerSelfRemovalClick}
                 leftSection={<i className='k-icon k-icon-trash' />}
               >
-                {t('Remove shared project')}
+                {t('Remove project access')}
               </Menu.Item>
             )}
 
             {isLoggedIn && (
               <Menu.Item onClick={() => this.saveCloneAs()} leftSection={<i className='k-icon k-icon-duplicate' />}>
-                {t('Clone this project')}
+                {t('Duplicate this project')}
               </Menu.Item>
             )}
 

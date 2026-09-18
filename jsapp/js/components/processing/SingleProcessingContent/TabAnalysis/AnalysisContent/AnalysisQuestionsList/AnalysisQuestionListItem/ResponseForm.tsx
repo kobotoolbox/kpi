@@ -247,7 +247,7 @@ export default function ResponseForm({
             {shouldDisplayAIGeneratedBadge && (
               <Group c='var(--mantine-color-blue-5)' gap='xs'>
                 <Icon name='sparkles' size='m' />
-                <Text>{t('AI generated')}</Text>
+                <Text>{t('AI-generated')}</Text>
               </Group>
             )}
             {shouldDisplayVerificationCheckbox && (

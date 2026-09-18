@@ -45,14 +45,14 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           checked={anonCanView}
           disabled={!this.props.userCanShare}
           onChange={() => this.togglePerms('view_asset')}
-          label={t('Anyone can view this form')}
+          label={t('Anyone with the link can view this form')}
         />
 
         <Checkbox
           checked={anonCanViewData}
           disabled={!this.props.userCanShare}
           onChange={() => this.togglePerms('view_submissions')}
-          label={t('Anyone can view submissions made to this form')}
+          label={t('Anyone with the link can view submissions made to this form')}
         />
 
         {anonCanView && <TextInput label={t('Shareable link')} readOnly value={url} />}

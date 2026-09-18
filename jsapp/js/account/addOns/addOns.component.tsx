@@ -184,7 +184,7 @@ export default function addOns() {
                   setIsBusy={setIsBusy}
                   subscribedAddOns={subscribedAddOns}
                   organization={organization}
-                  displayName={t('Automatic analysis requests')}
+                  displayName={t('Automatic Analysis Requests')}
                   description={t('Buy requests to generate more responses for your analysis questions.')}
                 />
               )}
