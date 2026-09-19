@@ -5,8 +5,10 @@ import zipfile
 from collections import defaultdict
 from datetime import timedelta
 from io import StringIO
+from typing import Union
 
 from celery import shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 from constance import config
 from dateutil import relativedelta
 from django.conf import settings
@@ -22,6 +24,13 @@ from kpi.utils.log import logging
 from .models import Instance, XForm
 from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from .models.instance import InstanceHistory
+from .utils.attachment_restore import (
+    AttachmentRestorer,
+    ProjectAlreadyBeingRestoredError,
+    get_project_xform,
+    log_collector,
+    send_restore_log,
+)
 from .utils.suspension import release_orphaned_suspensions
 
 
@@ -106,8 +115,7 @@ def generate_stats_zip(output_filename):
     with default_storage.open(output_filename, 'wb') as output_file:
         zip_file = zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED)
         for filename, report_settings in REPORTS.items():
-            model_name_plural = report_settings[
-                'model']._meta.verbose_name_plural
+            model_name_plural = report_settings['model']._meta.verbose_name_plural
             fieldnames = [
                 'Year',
                 'Month',
@@ -138,6 +146,65 @@ def fix_stale_submissions_suspended_flag():
         logging.info(
             f'Removed `submissions_suspended` flag on user {username}’s profile'
         )
+
+
+@celery_app.task(
+    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
+    queue='kpi_low_priority_queue',
+)
+def restore_soft_deleted_attachments(
+    asset_uid: str,
+    dry_run: bool = True,
+    resume: bool = True,
+    email_to: Union[str, list] = None,
+):
+    """
+    Restore the attachments of one project that were soft deleted by mistake.
+
+    Meant to be launched by hand from the periodic task admin, where support
+    fills in `asset_uid`. `email_to` is filled in by
+    `kobo.apps.openrosa.apps.logger.admin.PeriodicTaskAdmin` with the address of
+    whoever hits "Run selected tasks", unless it is already set.
+
+    Writing nothing is the default: `dry_run` has to be turned off on purpose,
+    which the management command spells `--no-dry-run`, so that the same run
+    is asked for the same way from a shell and from the admin.
+
+    The run resumes where the previous one stopped, so hitting the soft time
+    limit only costs the batch in progress: the task mails what it has and
+    re-queues itself. A hard kill, an OOM or a pod eviction, leaves the saved
+    cursor behind but nothing to pick it up, so it takes another click.
+    """
+
+    lines, log = log_collector()
+
+    try:
+        xform = get_project_xform(asset_uid)
+    except ValueError as e:
+        if email_to:
+            send_restore_log(email_to, asset_uid, [f'FAILED. {e}'])
+        raise
+
+    try:
+        AttachmentRestorer(xform, dry_run=dry_run, resume=resume, log=log).run()
+    except ProjectAlreadyBeingRestoredError as e:
+        # Somebody got there first, which is not a failure worth retrying
+        log(str(e))
+    except SoftTimeLimitExceeded:
+        log(
+            'Interrupted by the task time limit. Progress is saved and the job'
+            ' has been re-queued; it will pick up where it stopped.'
+        )
+        restore_soft_deleted_attachments.delay(
+            asset_uid=asset_uid, dry_run=dry_run, email_to=email_to
+        )
+    except Exception as e:
+        log(f'FAILED. {type(e).__name__}: {e}')
+        raise
+    finally:
+        if email_to:
+            send_restore_log(email_to, asset_uid, lines)
 
 
 @celery_app.task(
