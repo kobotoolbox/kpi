@@ -1,0 +1,10 @@
+{% extends "admin/djcelery/change_periodictask_form.html" %}
+
+{% block submit_buttons_bottom %}
+  {{ block.super }}
+  {% if run_on_a_project %}
+    <div class="submit-row">
+      <input type="submit" name="_run_task" value="Save and run this task now">
+    </div>
+  {% endif %}
+{% endblock %}

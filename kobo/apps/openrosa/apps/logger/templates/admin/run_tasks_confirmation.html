@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {# Sends `cancel-link` back one page #}
+  <script src="{% static 'admin/js/cancel.js' %}" async></script>
+{% endblock %}
+
+{# Django's admin CSS only styles the confirmation buttons under this class #}
+{% block bodyclass %}{{ block.super }} delete-confirmation{% endblock %}
+
+{% block content %}
+  <p>
+    These tasks work on one project, named in their keyword arguments. A single
+    row is shared by everyone, so what is shown below is whoever saved it last,
+    which may not be what you filled in.
+  </p>
+
+  <ul>
+    {% for periodic_task, kwargs, saved_kwargs in confirmable %}
+      <li>
+        <strong>{{ periodic_task.name }}</strong> on project
+        <code>{{ kwargs.asset_uid }}</code>
+        {% if kwargs.dry_run is False %}
+          &mdash; <strong>this run will write</strong>
+        {% else %}
+          &mdash; reports only, writes nothing
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <form method="post" action="{{ action_url }}">{% csrf_token %}
+    <div>
+      {% for obj in queryset %}
+        <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+      {% endfor %}
+      {# Sent back so that a row saved by somebody else while this page was #}
+      {# open is shown again rather than run with what nobody confirmed #}
+      {% for periodic_task, kwargs, saved_kwargs in confirmable %}
+        <input type="hidden" name="confirmed_kwargs_{{ periodic_task.pk }}" value="{{ saved_kwargs }}">
+      {% endfor %}
+      <input type="hidden" name="action" value="run_tasks">
+      <input type="hidden" name="select_across" value="0">
+      <input type="hidden" name="index" value="0">
+      <input type="hidden" name="run_confirmed" value="yes">
+      <input type="submit" value="Yes, run them">
+      <a href="#" class="button cancel-link">No, take me back</a>
+    </div>
+  </form>
+{% endblock %}
