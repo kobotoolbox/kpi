@@ -69,12 +69,23 @@ def grant_all_model_level_perms(
         # The user is anonymous, so pare down the permissions to only those
         # that the configuration allows for anonymous users
         q_query = Q()
-        for allowed_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+        for allowed_permission in get_allowed_anonymous_permissions():
             app_label, codename = perm_parse(allowed_permission)
             q_query |= Q(content_type__app_label=app_label, codename=codename)
         permissions_to_assign = permissions_to_assign.filter(q_query)
 
     user.user_permissions.add(*permissions_to_assign)
+
+
+def get_allowed_anonymous_permissions() -> set:
+    """Settings ceiling narrowed by the Constance list of the same name."""
+    from constance import config
+
+    from kpi.utils.strings import split_lines_to_list
+
+    ceiling = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
+    configured = set(split_lines_to_list(config.ALLOWED_ANONYMOUS_PERMISSIONS))
+    return ceiling & configured
 
 
 def is_user_anonymous(user):
