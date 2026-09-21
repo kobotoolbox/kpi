@@ -1689,6 +1689,15 @@ class LibraryImportOwnershipTest(BaseTestCase):
             self.assertEqual(child.owner, owner)
             self.assertEqual(child.created_by, admin.username)
             self.assertTrue(child.is_excluded_from_projects_list)
+            self.assertTrue(
+                ObjectPermission.objects.filter(
+                    asset=child,
+                    user=admin,
+                    permission__codename=PERM_MANAGE_ASSET,
+                    deny=False,
+                    inherited=False,
+                ).exists()
+            )
 
     def test_org_owner_upload_keeps_ownership_and_grants_no_extra_perm(self):
         """
@@ -1752,3 +1761,41 @@ class LibraryImportOwnershipTest(BaseTestCase):
         )
         remaining = Asset.objects.filter(uid=uid)
         self.assertTrue(not remaining.exists() or remaining.first().pending_delete)
+
+    def test_org_member_can_delete_child_of_own_transferred_collection(self):
+        """
+        Catches the regression where children of a transferred collection only
+        inherit view/change (`HERITABLE_PERMISSIONS`), so without a per-child
+        manage grant the uploading member cannot delete a single item they
+        uploaded.
+        """
+        owner = self.user
+        member = User.objects.get(username='anotheruser')
+        self._enable_mmo(owner, member=member)
+
+        messages = self._post_upload(
+            self._library_content(), 'Member collection', login_user=member
+        )
+        collection = Asset.objects.get(uid=messages['created'][0]['uid'])
+        children = list(collection.children.all())
+        self.assertGreater(len(children), 1)
+        child = children[0]
+
+        # The member (still logged in from the upload) deletes a single child.
+        response = self.client.delete(
+            reverse(
+                self._get_endpoint('asset-detail'),
+                kwargs={'uid_asset': child.uid},
+            )
+        )
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT, msg=response.data
+        )
+        remaining_child = Asset.objects.filter(uid=child.uid)
+        self.assertTrue(
+            not remaining_child.exists() or remaining_child.first().pending_delete
+        )
+        # The collection and the other children are untouched.
+        self.assertTrue(Asset.objects.filter(uid=collection.uid).exists())
+        for other in children[1:]:
+            self.assertTrue(Asset.objects.filter(uid=other.uid).exists())

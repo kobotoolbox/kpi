@@ -280,8 +280,22 @@ class ImportTask(ImportExportTask):
         with transaction.atomic():
             obj = create_assets(kls, structure)
             if grant_manage:
-                obj.assign_perm(self.user, PERM_MANAGE_ASSET)
+                # `create_assets` may build a collection with children (library
+                # sheet), so grant on the whole tree.
+                self._grant_manage_to_uploader(obj)
         return obj
+
+    def _grant_manage_to_uploader(self, obj: Asset) -> None:
+        """
+        Grant the uploader manage rights on an imported asset and, for a
+        collection, on each of its children. Collections only pass view/change
+        down (`HERITABLE_PERMISSIONS`), so manage must be granted per asset, as
+        the API does for each asset it creates.
+        """
+        obj.assign_perm(self.user, PERM_MANAGE_ASSET)
+        if obj.asset_type == ASSET_TYPE_COLLECTION:
+            for child in obj.children.all():
+                child.assign_perm(self.user, PERM_MANAGE_ASSET)
 
     def _run_task(self, messages):
         self.status = ImportExportStatusChoices.PROCESSING
@@ -387,9 +401,10 @@ class ImportTask(ImportExportTask):
             }
             if transfer:
                 extra_args['is_excluded_from_projects_list'] = True
-            # Children inherit perms from their parent collection, so grant the
-            # uploader manage rights only on the top-level items.
-            grant_manage = transfer and item.parent is None
+            # Collections only pass view/change down, so grant manage on every
+            # created asset (like the API does). Explicit grants survive the
+            # later parent assignment, which only recalculates inherited perms.
+            grant_manage = transfer
 
             if item.get_type() == 'collection':
                 # FIXME: seems to allow importing nested collections, even
@@ -551,13 +566,13 @@ class ImportTask(ImportExportTask):
                 'last_modified_by': self.user.username,
             }
             if real_owner != self.user:
-                # Create the collection and grant the uploader manage rights
-                # atomically (mirrors `AssetSerializer.create`).
+                # Create the collection and grant the uploader manage rights on
+                # it and its children atomically (mirrors
+                # `AssetSerializer.create`).
                 structure['is_excluded_from_projects_list'] = True
                 with transaction.atomic():
                     collection = _load_library_content(structure)
-                    # Children inherit perms from the collection.
-                    collection.assign_perm(self.user, PERM_MANAGE_ASSET)
+                    self._grant_manage_to_uploader(collection)
             else:
                 collection = _load_library_content(structure)
             messages['created'].append(
