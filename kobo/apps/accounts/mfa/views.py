@@ -4,11 +4,13 @@ from allauth.mfa.internal.flows.add import validate_can_add_authenticator
 from allauth.mfa.totp.internal import auth as totp_auth
 from django.conf import settings
 from django.contrib.auth import logout
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import resolve_url
 from django.urls import reverse
 from django.utils.translation import gettext as t
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -93,7 +95,11 @@ class MfaMethodActivationView(APIView):
     def post(request: Request, method: str) -> Response:
         user = request.user
         adapter = get_adapter()
-        validate_can_add_authenticator(user)
+        try:
+            validate_can_add_authenticator(user)
+        except DjangoValidationError as e:
+            # Return allauth's user-facing message as a 400 instead of a 500
+            raise ValidationError(e.messages)
 
         mfa, created = MfaMethodsWrapper.objects.get_or_create(
             user_id=user.pk,

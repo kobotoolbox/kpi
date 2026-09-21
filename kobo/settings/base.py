@@ -2273,6 +2273,9 @@ MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
 MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
+# Keep parity with the previous (django-trench) implementation, which did not
+# require a verified email address to enable MFA.
+MFA_ALLOW_UNVERIFIED_EMAIL = env.bool('MFA_ALLOW_UNVERIFIED_EMAIL', True)
 
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [

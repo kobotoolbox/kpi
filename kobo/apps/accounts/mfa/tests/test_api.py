@@ -1,5 +1,6 @@
-from constance.test import override_config
+from allauth.account.models import EmailAddress
 from allauth.mfa.models import Authenticator
+from constance.test import override_config
 from django.test import override_settings
 from django.urls import reverse
 from freezegun import freeze_time
@@ -61,6 +62,47 @@ class MfaApiTestCase(BaseTestCase):
         ).secret
         assert first_secret != second_secret
         assert first_response.json() != second_response.json()
+
+    @override_config(MFA_ENABLED=True)
+    def test_activate_mfa_with_unverified_email(self):
+        """
+        Catches the regression where a user with an unverified email address
+        gets a 500 (Django ValidationError) when enabling MFA on servers that
+        do not enforce email verification.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        EmailAddress.objects.create(
+            user=anotheruser,
+            email=anotheruser.email or 'unverified@example.com',
+            verified=False,
+            primary=True,
+        )
+        self.client.force_login(anotheruser)
+
+        response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'details' in response.data
+
+    @override_config(MFA_ENABLED=True)
+    @override_settings(MFA_ALLOW_UNVERIFIED_EMAIL=False)
+    def test_activate_mfa_with_unverified_email_can_be_disallowed(self):
+        """
+        Catches the regression where opting back into email verification lets a
+        Django ValidationError escape as a 500 instead of a clean 400.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        EmailAddress.objects.create(
+            user=anotheruser,
+            email=anotheruser.email or 'unverified@example.com',
+            verified=False,
+            primary=True,
+        )
+        self.client.force_login(anotheruser)
+
+        response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_regenerate_codes(self):
         response = self.client.post(
