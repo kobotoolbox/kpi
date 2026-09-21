@@ -26,8 +26,12 @@ export function EnketoPreviewModal(props: EnketoPreviewModalProps) {
   }
 
   return (
-    <Box>
-      <iframe src={previewUrl} title={t('Form Preview')} />
+    <Box display={'flex'} w={'100%'} h='70vh' style={{ flexDirection: 'column' }}>
+      <iframe
+        src={previewUrl}
+        title={t('Form Preview')}
+        style={{ display: 'block', width: '100%', height: '100%', flex: 1, border: 0 }}
+      />
     </Box>
   )
 }
