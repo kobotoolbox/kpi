@@ -3,6 +3,8 @@ export const PATHS = Object.freeze({
   LOGIN: '/accounts/login',
   RESET: '/accounts/password/reset/',
   MS_SSO: '/accounts/microsoft/login/',
+  /** allauth's own one-time code prompt. Redirects to `LOGIN` when no verification is pending. */
+  MFA_AUTHENTICATE: '/accounts/2fa/authenticate/',
 })
 
 // List of React app routes (the # ones)
@@ -53,6 +55,8 @@ export const ROUTES = Object.freeze({
  * logged in chrome (header, drawer, route blockers) applies to them - see `#/auth/routes`.
  */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
+  /** The redesigned sign-in screen. `PATHS.LOGIN` is the Django one it will eventually replace. */
+  LOGIN: ROUTES.AUTH_ROOT + '/login',
   REGISTER: ROUTES.AUTH_ROOT + '/register',
   /**
    * Where the activation link in the sign up email lands. Has: :key

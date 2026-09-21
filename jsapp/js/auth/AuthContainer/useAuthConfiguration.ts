@@ -7,8 +7,7 @@ import {
 /**
  * Everything the authentication page frame needs from `/environment`. Anonymous-safe.
  *
- * Later auth screens will read `logo_url`, `supporting_text`, `supporting_image_url`,
- * `allow_login_with_username` and `registration_open` from here too.
+ * Later auth screens will read `logo_url`, `supporting_text` and `supporting_image_url` from here too.
  */
 export function useAuthConfiguration() {
   return useEnvironmentRetrieve({
@@ -23,6 +22,7 @@ export function useAuthConfiguration() {
           privacyPolicyUrl: response.data.privacy_policy_url,
           /** Same constance setting allauth's `AccountAdapter.is_open_for_signup()` reads. */
           registrationOpen: response.data.registration_open,
+          allowLoginWithUsername: response.data.auth_configuration.allow_login_with_username,
           socialApps: response.data.social_apps,
           /** The `SUPPORT_EMAIL` constance setting, so private servers point people at their own team. */
           supportEmail: response.data.support_email,

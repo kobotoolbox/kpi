@@ -7,6 +7,7 @@ import RequireFeatureFlag from '#/router/RequireFeatureFlag'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import AuthAppProviders from './AuthAppProviders'
 
+const LoginRoute = React.lazy(() => import(/* webpackPrefetch: true */ './LoginRoute/LoginRoute'))
 const RegisterRoute = React.lazy(() => import(/* webpackPrefetch: true */ './RegisterRoute/RegisterRoute'))
 const ActivateAccountRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './ActivateAccountRoute/ActivateAccountRoute'),
@@ -31,6 +32,7 @@ export default function authRoutes() {
         </RequireFeatureFlag>
       }
     >
+      <Route path={AUTH_ROUTES.LOGIN} element={<LoginRoute />} />
       <Route path={AUTH_ROUTES.REGISTER} element={<RegisterRoute />} />
       <Route path={AUTH_ROUTES.ACTIVATE_ACCOUNT} element={<ActivateAccountRoute />} />
     </Route>

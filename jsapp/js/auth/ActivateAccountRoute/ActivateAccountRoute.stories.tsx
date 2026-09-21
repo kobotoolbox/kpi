@@ -11,7 +11,7 @@ import {
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import { ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
 import ActivateAccountRoute from './ActivateAccountRoute'
 
@@ -116,7 +116,7 @@ export const InvalidKeyThenRequestNewLink: Story = {
     await canvas.findByRole('heading', { level: 1, name: 'Check your inbox' })
     await canvas.findByText(/If an account exists for this email address/)
     expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
-    expect(canvas.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', '/accounts/login')
+    expect(canvas.getByRole('link', { name: 'Back to sign in' })).toHaveAttribute('href', AUTH_ROUTES.LOGIN)
   },
 }
 
