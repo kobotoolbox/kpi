@@ -158,7 +158,7 @@ export default function AccountMenu() {
 
             <bem.AccountBox__menuLI m={'logout'} key='4'>
               <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={handleLogout}>
-                {t('Logout')}
+                {t('Log out')}
               </ButtonNew>
             </bem.AccountBox__menuLI>
           </bem.AccountBox__menu>

@@ -169,7 +169,7 @@ class FormSummary extends React.Component<{}, FormSummaryState> {
 
     return (
       <bem.FormView__row m='team'>
-        <bem.FormView__cell m={['label', 'first']}>{t('Team members')}</bem.FormView__cell>
+        <bem.FormView__cell m={['label', 'first']}>{t('Shared with')}</bem.FormView__cell>
         {userCan('change_asset', asset) && (
           <a onClick={this.sharingModal.bind(this)} className='team-sharing-button'>
             <i className='k-icon k-icon-user-share' />
@@ -208,7 +208,7 @@ class FormSummary extends React.Component<{}, FormSummaryState> {
             </bem.FormView__column>
             <bem.FormView__column m='right'>
               <bem.FormView__row m='quick-links'>
-                <bem.FormView__cell m={['label', 'first']}>{t('Quick Links')}</bem.FormView__cell>
+                <bem.FormView__cell m={['label', 'first']}>{t('Quick links')}</bem.FormView__cell>
                 <bem.FormView__cell m='box'>{this.renderQuickLinks()}</bem.FormView__cell>
               </bem.FormView__row>
 
