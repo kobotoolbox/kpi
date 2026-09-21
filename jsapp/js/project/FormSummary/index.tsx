@@ -145,10 +145,6 @@ class FormSummary extends React.Component<{}, FormSummaryState> {
     if (this.state.url) {
       openEnketoPreviewModal({ assetUrl: this.state.url })
     }
-    //pageState.showModal({
-    //  type: MODAL_TYPES.ENKETO_PREVIEW,
-    //  assetUrl: this.state.url,
-    //})
   }
 
   renderTeam() {

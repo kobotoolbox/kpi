@@ -16,14 +16,14 @@ import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { openEnketoPreviewModal } from '#/components/enketoPreview/openEnketoPreviewModal'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
+import { COLLECTION_METHODS } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
-import pageState from '#/pageState.store'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
@@ -81,10 +81,9 @@ class FormLanding extends React.Component {
   }
   handleEnketoPreviewClick(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetUrl: this.state.url,
-    })
+    if (this.state.url) {
+      openEnketoPreviewModal({ assetUrl: this.state.url })
+    }
   }
   callUnarchiveAsset() {
     // This component is using `mixins.dmix`, so the asset object is being stored in state
