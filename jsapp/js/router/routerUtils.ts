@@ -278,7 +278,7 @@ export function isTOSAgreementRouteBlockerActive() {
  * Called without an organization this answers the widest possible reading, counting the user as a lone one
  * so that every required field counts. A `false` from that reading is final and costs no organization
  * request; a `true` has to be asked again once the organization is known, because members of an MMO cannot
- * write the organization fields, so a blank one there is not theirs to fix. `useIsProfileDetailsBlockerActive`
+ * write the organization fields, so a blank one there is not theirs to fix. `useProfileDetailsBlockerState`
  * is what does both passes.
  */
 export function isProfileDetailsRouteBlockerActive(organization?: OrganizationResponse): boolean {

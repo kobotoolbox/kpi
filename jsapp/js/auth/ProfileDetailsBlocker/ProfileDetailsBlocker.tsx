@@ -1,19 +1,18 @@
 import { observer } from 'mobx-react-lite'
 import { getProfileFieldsValues } from '#/account/account.utils'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import ProfileDetailsScreen from './ProfileDetailsScreen'
 
+export interface ProfileDetailsBlockerProps {
+  isMmoMember: boolean
+}
+
 /**
  * Route blocker for the required profile details this instance asks for and the account has left blank. See
- * {@link useIsProfileDetailsBlockerActive}, which decides who gets it.
- *
- * `useOrganizationAssumed` usually wants `RequireOrg` above it. Here the same guarantee comes from that hook
- * instead: it only ever says yes once the organization request has come back.
+ * {@link useProfileDetailsBlockerState}, which decides who gets it.
  */
-function ProfileDetailsBlocker() {
-  const [organization] = useOrganizationAssumed()
+function ProfileDetailsBlocker({ isMmoMember }: ProfileDetailsBlockerProps) {
   const account = sessionStore.currentAccount
 
   // Cannot happen - being blocked means being logged in - but it is what narrows `currentAccount` from its
@@ -28,7 +27,7 @@ function ProfileDetailsBlocker() {
       fieldsContext={{
         configuredFieldNames: envStore.data.getUserMetadataFieldNames(),
         requiredFieldNames: envStore.data.getUserMetadataRequiredFieldNames(),
-        isMmoMember: Boolean(organization.is_mmo),
+        isMmoMember,
       }}
       // The same forced reload the other two route blockers do. `sessionStore.refreshAccount()` would
       // flip this screen without one, but it reports neither success nor failure, so a refresh that

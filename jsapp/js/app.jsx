@@ -16,7 +16,8 @@ import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
 import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
-import { useIsProfileDetailsBlockerActive } from '#/auth/ProfileDetailsBlocker/useIsProfileDetailsBlockerActive'
+import ProfileDetailsErrorScreen from '#/auth/ProfileDetailsBlocker/ProfileDetailsErrorScreen'
+import { useProfileDetailsBlockerState } from '#/auth/ProfileDetailsBlocker/useProfileDetailsBlockerState'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
@@ -127,7 +128,7 @@ const RouteBlockerOrApp = observer(function RouteBlockerOrApp({
   isLibrarySingle,
 }) {
   // Before the early returns, so the hook order stays the same on every render.
-  const isProfileDetailsBlockerActive = useIsProfileDetailsBlockerActive()
+  const profileDetails = useProfileDetailsBlockerState()
 
   // Two of the three answers below come from `/environment`, and nothing in the app works without it anyway
   // - so hold everything back rather than show the app and take it away a moment later.
@@ -143,13 +144,18 @@ const RouteBlockerOrApp = observer(function RouteBlockerOrApp({
     return <TOSAgreement />
   }
 
-  // Undefined until the organization request that settles this one has come back.
-  if (isProfileDetailsBlockerActive === undefined) {
+  // Three branches because the organization request can leave this undecided: pending waits, failed gets a
+  // screen with a way out rather than an endless spinner.
+  if (profileDetails.status === 'pending') {
     return <LoadingSpinner />
   }
 
-  if (isProfileDetailsBlockerActive) {
-    return <ProfileDetailsBlocker />
+  if (profileDetails.status === 'error') {
+    return <ProfileDetailsErrorScreen onRetry={() => window.location.reload()} />
+  }
+
+  if (profileDetails.status === 'active') {
+    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} />
   }
 
   // TODO: We have multiple routes that shouldn't display `MainHeader`,

@@ -14,8 +14,8 @@ import type { ProfileFieldsContext } from './profileDetails.utils'
  * all belongs to `ProfileDetailsBlocker`, and mounting that instead would mean these stories were about
  * `sessionStore` rather than about the form.
  *
- * The frame around the card - the server theme, the supporting column - belongs to `AuthPageFrame` and
- * `AuthCard`, and is covered by their stories rather than repeated here.
+ * The frame around the card - the server theme, the logo, the footer - belongs to `AuthPageFrame`, and is
+ * covered by its stories rather than repeated here.
  */
 
 /** An instance asking for the organization block, with the fields an administrator marks required. */

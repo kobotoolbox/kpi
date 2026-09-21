@@ -5,17 +5,23 @@ import {
 import { isProfileDetailsRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 
+export type ProfileDetailsBlockerState =
+  | { status: 'inactive' }
+  /** Carries `is_mmo` so the form does not have to ask for the organization a second time. */
+  | { status: 'active'; isMmoMember: boolean }
+  /** Waiting on the organization, without which there is no answer. */
+  | { status: 'pending' }
+  /** The organization could not be read, so there is no answer to give. */
+  | { status: 'error' }
+
 /**
  * Whether the required profile details have to block the app, which takes two passes: the cheap reading of
  * the account on its own, and - only when that one says something is missing - the exact one that knows the
  * organization. See {@link isProfileDetailsRouteBlockerActive} for why the organization matters.
  *
- * `undefined` means "not settled yet": the organization request is still on its way, or it failed. Waiting
- * it out is what `RequireOrg` does everywhere else in the app.
- *
  * Reads the session store directly, so it has to be called from an `observer`.
  */
-export function useIsProfileDetailsBlockerActive(): boolean | undefined {
+export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
   const account = sessionStore.currentAccount
   const organizationId = 'email' in account ? account.organization?.uid : undefined
 
@@ -32,18 +38,27 @@ export function useIsProfileDetailsBlockerActive(): boolean | undefined {
   })
 
   if (!isPossiblyActive) {
-    return false
+    return { status: 'inactive' }
   }
 
   // No organization, so no request went out and there is nothing to refine: for somebody who is not in one,
   // the reading above is already the exact one.
   if (!organizationId) {
-    return true
+    return { status: 'active', isMmoMember: false }
   }
 
-  if (organizationQuery.data?.status !== 200) {
-    return undefined
+  if (organizationQuery.data?.status === 200) {
+    const organization = organizationQuery.data.data
+    const isMmoMember = Boolean(organization.is_mmo)
+    // Asked again now that MMO status is known: it can take the organization's own fields out of the count.
+    return isProfileDetailsRouteBlockerActive(organization) ? { status: 'active', isMmoMember } : { status: 'inactive' }
   }
 
-  return isProfileDetailsRouteBlockerActive(organizationQuery.data.data)
+  // Terminal, because React Query has used up its retries by now. A non-200 counts too: the endpoint answers
+  // 404 for an organization the account has been moved out of.
+  if (organizationQuery.isError || organizationQuery.data) {
+    return { status: 'error' }
+  }
+
+  return { status: 'pending' }
 }
