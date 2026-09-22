@@ -43,13 +43,17 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
   const menuRef = React.useRef<HTMLDivElement>(null)
   const assetType = props.asset.asset_type
   const [organization] = useOrganizationAssumed()
-  const isAdmin = organization.request_user_role === MemberRoleEnum.admin
+  const isMmoAdmin = organization.is_mmo && organization.request_user_role === MemberRoleEnum.admin
   const isMmoMember = organization.is_mmo && organization.request_user_role === MemberRoleEnum.member
+  // `owner_label` is the organization name for org-owned assets, so this
+  // checks the admin belongs to the org that owns the asset.
+  const isOwnedByUserOrg = props.asset.owner_label === organization.name
   const userCanEdit = userCan('change_asset', props.asset)
-  // Org admins can delete org-owned assets (backend enforces the rest). MMO
+  // Org admins can delete their org's assets (backend enforces the rest). MMO
   // members are gated on manage_asset; everyone else on delete_asset.
   const userCanDelete =
-    isAdmin || (isMmoMember ? userCan('manage_asset', props.asset) : userCan('delete_asset', props.asset))
+    (isMmoAdmin && isOwnedByUserOrg) ||
+    (isMmoMember ? userCan('manage_asset', props.asset) : userCan('delete_asset', props.asset))
 
   // In the table row context, close the menu when the mouse leaves the row
   React.useEffect(() => {
