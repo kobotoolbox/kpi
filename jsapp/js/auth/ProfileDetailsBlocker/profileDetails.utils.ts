@@ -49,6 +49,10 @@ export function getBlankRequiredProfileFieldNames(
   })
 }
 
+export function doBlankFieldsDependOnMmoStatus(blankFieldNames: readonly UserFieldName[]): boolean {
+  return blankFieldNames.some((name) => MMO_MANAGED_FIELD_NAMES.includes(name))
+}
+
 /** Narrows to something we can safely call `Object.entries` on. */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

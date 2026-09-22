@@ -2,6 +2,7 @@ import chai from 'chai'
 import type { AccountFieldsValues, UserFieldName } from '#/account/account.constants'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'
 import {
+  doBlankFieldsDependOnMmoStatus,
   getBlankRequiredProfileFieldNames,
   getRequiredProfileFieldErrors,
   splitProfileUpdateErrors,
@@ -97,6 +98,20 @@ describe('getBlankRequiredProfileFieldNames', () => {
     })
 
     chai.expect(result).to.deep.equal(['organization_type'])
+  })
+})
+
+describe('doBlankFieldsDependOnMmoStatus', () => {
+  it('says no when everything missing is the user’s own to fill in', () => {
+    chai.expect(doBlankFieldsDependOnMmoStatus(['name', 'city'])).to.equal(false)
+  })
+
+  it('says yes for a field an organization fills in for its members', () => {
+    chai.expect(doBlankFieldsDependOnMmoStatus(['name', 'organization_type'])).to.equal(true)
+  })
+
+  it('says no when nothing is missing at all', () => {
+    chai.expect(doBlankFieldsDependOnMmoStatus([])).to.equal(false)
   })
 })
 

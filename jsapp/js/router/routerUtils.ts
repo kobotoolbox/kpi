@@ -8,9 +8,13 @@
  * of defined ROUTES.
  */
 
+import type { UserFieldName } from '#/account/account.constants'
 import { getProfileFieldsValues } from '#/account/account.utils'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { getBlankRequiredProfileFieldNames } from '#/auth/ProfileDetailsBlocker/profileDetails.utils'
+import {
+  doBlankFieldsDependOnMmoStatus,
+  getBlankRequiredProfileFieldNames,
+} from '#/auth/ProfileDetailsBlocker/profileDetails.utils'
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
@@ -272,31 +276,34 @@ export function isTOSAgreementRouteBlockerActive() {
   )
 }
 
-/**
- * ProfileDetails is displayed when the instance requires profile fields that the account has left blank.
- *
- * Called without an organization this answers the widest possible reading, counting the user as a lone one
- * so that every required field counts. A `false` from that reading is final and costs no organization
- * request; a `true` has to be asked again once the organization is known, because members of an MMO cannot
- * write the organization fields, so a blank one there is not theirs to fix. `useProfileDetailsBlockerState`
- * is what does both passes.
- */
-export function isProfileDetailsRouteBlockerActive(organization?: OrganizationResponse): boolean {
+/** The required profile fields the current account has left blank */
+function getBlankRequiredFieldNamesForCurrentAccount(organization?: OrganizationResponse): UserFieldName[] {
   const account = sessionStore.currentAccount
 
   // We check for email, because `currentAccount` can be two different things. `/environment` is what says
   // which fields are required at all, so there is no answer before it lands.
   if (!envStore.isReady || !sessionStore.isLoggedIn || !('email' in account)) {
-    return false
+    return []
   }
 
-  const blankFieldNames = getBlankRequiredProfileFieldNames(getProfileFieldsValues(account.extra_details), {
+  return getBlankRequiredProfileFieldNames(getProfileFieldsValues(account.extra_details), {
     configuredFieldNames: envStore.data.getUserMetadataFieldNames(),
     requiredFieldNames: envStore.data.getUserMetadataRequiredFieldNames(),
     isMmoMember: Boolean(organization?.is_mmo),
   })
+}
 
-  return blankFieldNames.length > 0
+/**
+ * ProfileDetails is displayed when the instance requires profile fields that the account has left blank.Called without
+ * an organization this answers the widest reading. A `false` from that is final; a `true` may have to be asked again
+ * once the organization is known (see {@link doesProfileDetailsRouteBlockerNeedOrganization})
+ */
+export function isProfileDetailsRouteBlockerActive(organization?: OrganizationResponse): boolean {
+  return getBlankRequiredFieldNamesForCurrentAccount(organization).length > 0
+}
+
+export function doesProfileDetailsRouteBlockerNeedOrganization(): boolean {
+  return doBlankFieldsDependOnMmoStatus(getBlankRequiredFieldNamesForCurrentAccount())
 }
 
 /**

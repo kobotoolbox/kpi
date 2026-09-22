@@ -2,12 +2,18 @@ import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
-import { isProfileDetailsRouteBlockerActive } from '#/router/routerUtils'
+import {
+  doesProfileDetailsRouteBlockerNeedOrganization,
+  isProfileDetailsRouteBlockerActive,
+} from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 
 export type ProfileDetailsBlockerState =
   | { status: 'inactive' }
-  /** Carries `is_mmo` so the form does not have to ask for the organization a second time. */
+  /**
+   * Carries `is_mmo` so the form does not have to ask for the organization a second time.
+   * It is also `true` when the organization was never asked for.
+   */
   | { status: 'active'; isMmoMember: boolean }
   /** Waiting on the organization, without which there is no answer. */
   | { status: 'pending' }
@@ -15,9 +21,8 @@ export type ProfileDetailsBlockerState =
   | { status: 'error' }
 
 /**
- * Whether the required profile details have to block the app, which takes two passes: the cheap reading of
- * the account on its own, and - only when that one says something is missing - the exact one that knows the
- * organization. See {@link isProfileDetailsRouteBlockerActive} for why the organization matters.
+ * Whether the required profile details have to block the app, which takes two passes: the account, and the organization
+ * (see {@link isProfileDetailsRouteBlockerActive} why it matters).
  *
  * Reads the session store directly, so it has to be called from an `observer`.
  */
@@ -27,11 +32,12 @@ export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
 
   // The widest reading, and the common answer by far: most people have their details filled in already.
   const isPossiblyActive = isProfileDetailsRouteBlockerActive()
+  const needsOrganization = doesProfileDetailsRouteBlockerNeedOrganization()
 
   const organizationQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
-      // Nothing missing means nothing to ask the organization about, so the request never goes out.
-      enabled: isPossiblyActive && Boolean(organizationId),
+      // Nothing the organization owns is missing, so there is nothing to ask it about.
+      enabled: needsOrganization && Boolean(organizationId),
       staleTime: Number.POSITIVE_INFINITY, // Same as `RequireOrg`, which is where the rest of the app gets it.
       queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
     },
@@ -41,8 +47,10 @@ export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
     return { status: 'inactive' }
   }
 
-  // No organization, so no request went out and there is nothing to refine: for somebody who is not in one,
-  // the reading above is already the exact one.
+  if (!needsOrganization) {
+    return { status: 'active', isMmoMember: true }
+  }
+
   if (!organizationId) {
     return { status: 'active', isMmoMember: false }
   }

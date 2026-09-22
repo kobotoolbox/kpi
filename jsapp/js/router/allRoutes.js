@@ -8,6 +8,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import permConfig from '#/components/permissions/permConfig'
 import { isRootRoute, redirectToLogin } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
+import AuthCheckFailed from './AuthCheckFailed'
 import router from './router'
 
 const AllRoutes = class AllRoutes extends React.Component {
@@ -57,6 +58,11 @@ const AllRoutes = class AllRoutes extends React.Component {
   }
 
   render() {
+    // The check failed, so there is no telling who this is, and neither of the two branches below can cope with that
+    if (sessionStore.isAuthStateCheckFailed) {
+      return <AuthCheckFailed />
+    }
+
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
     if (!this.state.isPermsConfigReady || !sessionStore.isAuthStateKnown) {
