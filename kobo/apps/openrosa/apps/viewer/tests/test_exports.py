@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_datetime
 from openpyxl import load_workbook
 
-from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -33,6 +33,7 @@ from kobo.apps.openrosa.libs.utils.export_tools import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields import KpiUidField
 from kpi.utils.storage import is_filesystem_storage
 
 AMBULANCE_KEY = (
@@ -85,6 +86,34 @@ class TestExports(TestBase):
         export = generate_export(Export.XLS_EXPORT, 'xls', self.user.username,
                                  self.xform.id_string, existing_export.id)
         self.assertEqual(existing_export.id, export.id)
+
+    def test_xls_export_after_project_transfer(self):
+        """
+        Submissions must appear in XLS exports when the project was
+        transferred to another owner, i.e. when `XForm.mongo_uuid` is set
+        and MongoDB documents' `_userform_id` no longer matches
+        `{username}_{id_string}`.
+        """
+        self._publish_transportation_form()
+        self._submit_transport_instance()
+        # Simulate a project-ownership transfer, which assigns a `mongo_uuid`
+        # to the XForm and rewrites `_userform_id` in MongoDB (see
+        # kobo.apps.project_ownership.utils.rewrite_mongo_userform_id)
+        mongo_uuid = KpiUidField.generate_unique_id()
+        XForm.objects.filter(pk=self.xform.pk).update(mongo_uuid=mongo_uuid)
+        settings.MONGO_DB.instances.update_many(
+            {'_userform_id': f'{self.user.username}_{self.xform.id_string}'},
+            {'$set': {'_userform_id': mongo_uuid}},
+        )
+
+        export = generate_export(
+            Export.XLS_EXPORT, 'xlsx', self.user.username, self.xform.id_string
+        )
+        with default_storage.open(export.filepath) as f:
+            wb = load_workbook(f)
+        main_sheet = wb[wb.sheetnames[0]]
+        # header row + 1 submission row (headers-only == the DEV-2862 bug)
+        self.assertEqual(main_sheet.max_row, 2)
 
     def test_delete_file_on_export_delete(self):
         self._publish_transportation_form()
