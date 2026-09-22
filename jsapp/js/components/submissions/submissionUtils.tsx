@@ -3,7 +3,7 @@ import get from 'lodash.get'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   type SurveyFlatPaths,
-  findRowByXpathOrLeafName,
+  findRowByXpath,
   getRowName,
   getSurveyFlatPaths,
   getTranslatedRowLabel,
@@ -30,6 +30,7 @@ import {
 import type { AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type {
   AnalysisFormJsonField,
+  AssetContent,
   AssetResponse,
   SubmissionAttachment,
   SubmissionResponse,
@@ -167,6 +168,46 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
     sortedBySource[field.source].push(expandedPath)
   })
   return sortedBySource
+}
+
+/**
+ * Appends one row per supplemental (NLP) key recorded for a question's path - transcript,
+ * translations, analysis questions - nested ones included. Matched by exact path: a question
+ * configured on both sides of a move is listed under both, so leaf-name matching would hand one
+ * row the other path's keys and render it as a blank NLP row.
+ */
+function addSupplementalDetailRows(
+  asset: AssetResponse,
+  submissionData: DataResponse | SubmissionResponse,
+  supplementalDetailKeys: { [key: string]: string[] },
+  sourceKey: string,
+  children: Array<DisplayResponse | DisplayGroup>,
+) {
+  supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
+    // Create a unique xpath for the analysis/verification question
+    const specificXpath = sdKey.replace('_supplementalDetails/', '')
+
+    children.push(
+      new DisplayResponse(
+        // type
+        // TODO: should we aim at this being analysis question type name?
+        null,
+        // label
+        getColumnLabel(asset, sdKey, false),
+        // name
+        sdKey,
+        // xpath
+        specificXpath,
+        // listName
+        undefined,
+        // data
+        getSupplementalDetailsContent(submissionData, sdKey),
+      ),
+    )
+
+    // Check for nested supplemental details (e.g. qualVerification for a qual question)
+    addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, specificXpath, children)
+  })
 }
 
 function addXpathNode(parentGroup: DisplayGroup, repeatIndex: number | null, currentRowData: any) {
@@ -362,40 +403,11 @@ export function getSubmissionDisplayData(
         const rowObj = new DisplayResponse(row.type, rowLabel, rowName, xpath.join('/'), rowListName, rowData)
         parentGroup.children.push(rowObj)
 
+        // This row's own path only; earlier versions of it get their own row from
+        // `addUnaccountedAnswers`.
         const rowxpath = flatPaths[rowName]
 
-        /**
-         * Recursively add qual related rows to output. Looks for the source key in the list of all possible keys.
-         */
-        const addSupplementalDetails = (sourceKey: string) => {
-          supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
-            // Create a unique xpath for the analysis/verification question
-            const specificXpath = sdKey.replace('_supplementalDetails/', '')
-
-            parentGroup.children.push(
-              new DisplayResponse(
-                // type
-                // TODO: should we aim at this being analysis question type name?
-                null,
-                // label
-                getColumnLabel(asset, sdKey, false),
-                // name
-                sdKey,
-                // xpath
-                specificXpath,
-                // listName
-                undefined,
-                // data
-                getSupplementalDetailsContent(submissionData, sdKey),
-              ),
-            )
-
-            // Check for nested supplemental details (e.g. qualVerification for a qual question)
-            addSupplementalDetails(specificXpath)
-          })
-        }
-
-        addSupplementalDetails(rowxpath)
+        addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, rowxpath, parentGroup.children)
       }
     }
   }
@@ -443,6 +455,7 @@ function addUnaccountedAnswers(
   }
 
   const flatPaths = getSurveyFlatPaths(assetContent.survey ?? [], true)
+  const supplementalDetailKeys = sortAnalysisFormJsonKeys(asset.analysis_form_json?.additional_fields || [])
 
   for (const [key, value] of Object.entries(submissionData)) {
     if (displayedKeys.has(key) || NON_RESPONSE_SUBMISSION_KEYS.has(key)) {
@@ -461,9 +474,8 @@ function addUnaccountedAnswers(
       continue
     }
 
-    // A renamed group leaves the question findable by leaf name, with its real type and
-    // choice list. A renamed or removed one leaves only its attachment's mimetype.
-    const row = findRowByXpathOrLeafName(assetContent, key)
+    // With no row left, an attachment's mimetype is all there is to type the answer by.
+    const row = findRowForUnaccountedAnswer(assetContent, key)
     const attachment = row ? undefined : findAttachmentByQuestionXpath(submissionData, key)
     const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment)) ?? null
     const label = getColumnLabel(asset, key, false, translationIndex)
@@ -471,7 +483,27 @@ function addUnaccountedAnswers(
 
     // Name and xpath are both the key - the path that finds the file too.
     group.children.push(new DisplayResponse(type, label, key, key, getRowListName(row), value))
+
+    // NLP content sits under the same old path as the answer, which the traversal of the
+    // current form never reaches.
+    addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, key, group.children)
   }
+}
+
+/**
+ * The current form's row for an answer stored under a path the form no longer has, found by
+ * leaf name - only a row can supply the choice list a `select_one`/`select_multiple` needs for
+ * labels. A single match is required, as the wrong row's labels are worse than none.
+ */
+function findRowForUnaccountedAnswer(assetContent: AssetContent, key: string): SurveyRow | undefined {
+  const exactMatch = findRowByXpath(assetContent, key)
+  if (exactMatch) {
+    return exactMatch
+  }
+
+  const leafName = key.split('/').at(-1)
+  const leafMatches = (assetContent.survey ?? []).filter((row) => getRowName(row) === leafName)
+  return leafMatches.length === 1 ? leafMatches[0] : undefined
 }
 
 /** The path of whatever holds the given path, empty string for the root level. */
@@ -631,6 +663,9 @@ function isAnswered(value: SubmissionResponseValue) {
  * Tells which submission key holds a given row's answer, or `undefined` when none
  * does. Not for groups, whose data is assembled from their children (see
  * `getRowData`). Split out so the traversal can record what got displayed.
+ *
+ * Only the row's own path is asked for. Reading a bare name too - which this used to do -
+ * lets a question inside a group claim a root-level answer of the same name.
  */
 function findSubmissionKeyForRow(
   name: string,
@@ -646,10 +681,6 @@ function findSubmissionKeyForRow(
 
   if (isAnswered(data[path])) {
     return path
-  }
-  // Some submissions store an answer under the bare name rather than the full path.
-  if (isAnswered(data[name])) {
-    return name
   }
   return undefined
 }

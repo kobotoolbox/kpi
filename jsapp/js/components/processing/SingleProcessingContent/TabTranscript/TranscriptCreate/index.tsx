@@ -8,13 +8,13 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
-import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getProcessingQuestionType, getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { getSubmissionRootUuid } from '#/utils'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
-import { getProcessedFileLabel, getQuestionType } from '../common/utils'
+import { getProcessedFileLabel } from '../common/utils'
 import { getAttachmentForProcessing } from '../transcript.utils'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
@@ -44,9 +44,11 @@ export default function TranscriptCreate({
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
 
+  const processedFileLabel = getProcessedFileLabel(getProcessingQuestionType(asset, questionXpath, submission))
+
   const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
     '##type##',
-    getProcessedFileLabel(getQuestionType(asset, questionXpath)),
+    processedFileLabel,
   )
 
   // No `selectedLanguage`: every job on this question rewrites the transcript, so
@@ -73,7 +75,7 @@ export default function TranscriptCreate({
       {step === CreateSteps.Begin && (
         <StepBegin
           asset={asset}
-          questionXpath={questionXpath}
+          processedFileLabel={processedFileLabel}
           hasConflictingOngoingJob={hasConflictingOngoingJob}
           onNext={() => setStep(CreateSteps.Language)}
         />

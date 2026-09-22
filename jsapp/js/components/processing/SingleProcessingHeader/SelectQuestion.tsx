@@ -2,22 +2,12 @@ import { Group } from '@mantine/core'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
-import {
-  findRowByXpathOrLeafName,
-  getLanguageIndex,
-  getRowName,
-  getRowTypeIcon,
-  getTranslatedRowLabel,
-} from '#/assetUtils'
+import { getLanguageIndex, getRowName, getRowTypeIcon, getTranslatedRowLabel } from '#/assetUtils'
 import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { isNlpSupported } from '#/components/processing/common/utils'
+import { getProcessingQuestionType, isNlpSupported } from '#/components/processing/common/utils'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
-import {
-  findAttachmentByQuestionXpath,
-  inferAttachmentQuestionType,
-} from '#/components/submissions/submissionMediaUtils'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -64,21 +54,18 @@ export default function SelectQuestion({
       return { options: [], icons: {} }
     }
 
-    const isSupportedRow = (type: SurveyRow['type']) => isNlpSupported(type)
-
     // Mantine's Select has no per-option icon prop, so we keep them in a lookup
     // that `renderOption` (and the left section) can use.
     const icons: Record<string, IconName | undefined> = {}
 
     /**
-     * Builds the option for NLP supported questions.
-     * No `row` means the form no longer has the question, and then the attachment's
-     * mimetype gives the type and the recorded path the label.
+     * The option for an NLP supported question, or `undefined` when the path holds nothing
+     * NLP can work with. `row` supplies the translated label where the form still has one;
+     * without it the type comes from the submission, so a moved question is still offered.
      */
-    const buildOption = (optionXpath: string, row: SurveyRow | undefined) => {
-      const attachment = row ? undefined : findAttachmentByQuestionXpath(submission, optionXpath)
-      const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment))
-      if (!type || !isSupportedRow(type)) {
+    const buildOption = (optionXpath: string, row?: SurveyRow) => {
+      const type = row?.type ?? getProcessingQuestionType(asset, optionXpath, submission)
+      if (!type || !isNlpSupported(type)) {
         return undefined
       }
 
@@ -97,14 +84,18 @@ export default function SelectQuestion({
       .map((question) => buildOption(question.$xpath, question))
       .filter((option) => option !== undefined)
 
-    // Renames and removals leave answers under paths the current schema no longer
-    // has. Walking the submission's own keys keeps every option tied to real data.
-    for (const submissionXpath of Object.keys(submission)) {
-      if (result.some((option) => option.value === submissionXpath)) {
+    // A question renamed, moved or deleted since has no row above, but the submission still
+    // holds its content. Files and NLP keys only: every string key would offer metadata too.
+    const submissionXpaths = new Set<string>([
+      ...(submission._attachments ?? []).map((attachment) => attachment.question_xpath),
+      ...Object.keys(submission._supplementalDetails ?? {}),
+    ])
+
+    for (const submissionXpath of submissionXpaths) {
+      if (!submissionXpath || result.some((option) => option.value === submissionXpath)) {
         continue
       }
-      // Schema first: a renamed group still matches by leaf name.
-      const option = buildOption(submissionXpath, findRowByXpathOrLeafName(assetContent, submissionXpath))
+      const option = buildOption(submissionXpath)
       if (option) {
         result.push(option)
       }

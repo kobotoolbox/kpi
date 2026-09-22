@@ -1,4 +1,5 @@
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getRowName } from '#/assetUtils'
 import {
   AssetTypeName,
   GroupTypeBeginName,
@@ -3712,3 +3713,99 @@ export const allQualSurveyDisplayData = {
     },
   ],
 } as const satisfies DisplayGroup
+
+/**
+ * Renames one row of a copy of the asset, as deploying a new form version would, leaving
+ * earlier submissions with keys the form no longer accounts for.
+ */
+export function withRenamedRow(asset: AssetResponse, oldName: string, newName: string): AssetResponse {
+  // Fixtures are plain JSON, and this test environment has no `structuredClone`.
+  const renamedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
+  const row = renamedAsset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === oldName)
+  if (!row) {
+    throw new Error(`There is no row named "${oldName}" to rename`)
+  }
+
+  if (row.name !== undefined) {
+    row.name = newName
+  }
+  if (row.$autoname !== undefined) {
+    row.$autoname = newName
+  }
+  if (row.$xpath !== undefined) {
+    row.$xpath = [...row.$xpath.split('/').slice(0, -1), newName].join('/')
+  }
+  return renamedAsset
+}
+
+/**
+ * Moves one row of a copy of the asset into a group of its own, leaving earlier submissions with
+ * their answer, their file and their NLP content under the path they came in with. The NLP
+ * sources end up listed under both paths, as `get_analysis_form_json()` emits one per configured
+ * question and the pre-move configuration keeps its own path.
+ */
+export function withRowMovedIntoNewGroup(asset: AssetResponse, rowName: string, groupName: string): AssetResponse {
+  const movedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
+  const survey = movedAsset.content?.survey
+  const rowIndex = survey?.findIndex((surveyRow) => getRowName(surveyRow) === rowName) ?? -1
+  if (!survey || rowIndex === -1) {
+    throw new Error(`There is no row named "${rowName}" to move`)
+  }
+
+  const [row] = survey.splice(rowIndex, 1)
+  if (row.$xpath !== undefined) {
+    row.$xpath = `${groupName}/${rowName}`
+  }
+  survey.push(
+    {
+      name: groupName,
+      type: GroupTypeBeginName.begin_group,
+      $kuid: `${groupName}-kuid`,
+      label: [groupName],
+      $autoname: groupName,
+    },
+    row,
+    { type: GroupTypeEndName.end_group, $kuid: `/${groupName}-kuid` },
+  )
+
+  const additionalFields = movedAsset.analysis_form_json?.additional_fields
+  additionalFields?.push(
+    ...additionalFields
+      .filter((field) => field.source === rowName)
+      .map((field) => ({
+        ...field,
+        source: `${groupName}/${rowName}`,
+        name: `${groupName}/${field.name}`,
+        dtpath: `${groupName}/${field.dtpath}`,
+      })),
+  )
+
+  return movedAsset
+}
+
+/** The same submission as made against a form version that already had the question moved. */
+export function withAnswerMovedIntoGroup(
+  submission: SubmissionResponse,
+  rowName: string,
+  groupName: string,
+): SubmissionResponse {
+  const movedSubmission: SubmissionResponse = JSON.parse(JSON.stringify(submission))
+  const movedPath = `${groupName}/${rowName}`
+
+  movedSubmission[movedPath] = movedSubmission[rowName]
+  delete movedSubmission[rowName]
+
+  const supplementalDetails = movedSubmission._supplementalDetails
+  if (supplementalDetails?.[rowName]) {
+    supplementalDetails[movedPath] = supplementalDetails[rowName]
+    delete supplementalDetails[rowName]
+  }
+
+  movedSubmission._attachments?.forEach((attachment) => {
+    if (attachment.question_xpath === rowName) {
+      attachment.question_xpath = movedPath
+    }
+  })
+
+  return movedSubmission
+}

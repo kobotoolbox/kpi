@@ -15,6 +15,24 @@ export function findAttachmentByQuestionXpath(
   return submission._attachments?.find((attachment) => attachment.question_xpath === questionXpath)
 }
 
+/**
+ * The attachment stored under the first of the given paths that has one, for a Data Table
+ * column standing for several paths at once. Order matters - pass the column's own path first,
+ * so it wins over the legacy aliases it absorbed.
+ */
+export function findAttachmentByQuestionXpaths(
+  submission: DataResponse | SubmissionResponse,
+  questionXpaths: string[],
+): SubmissionAttachment | undefined {
+  for (const questionXpath of questionXpaths) {
+    const attachment = findAttachmentByQuestionXpath(submission, questionXpath)
+    if (attachment) {
+      return attachment
+    }
+  }
+  return undefined
+}
+
 /** `application/ogg` counts - a generic prefix, but we do play Ogg as audio. */
 function isAudioMimetype(mimetype: string) {
   return mimetype.startsWith('audio/') || mimetype === 'application/ogg'

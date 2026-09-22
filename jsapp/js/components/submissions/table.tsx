@@ -9,7 +9,7 @@ import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import { renderQuestionTypeIcon } from '#/assetUtils'
+import { getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -54,7 +54,7 @@ import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
   buildFilterQuery,
-  getAllDataColumns,
+  getAllDataColumnsWithAliases,
   getColumnHXLTags,
   getColumnLabel,
   getVisibleAudioXpaths,
@@ -774,7 +774,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Builds and gathers all necessary react-table data and stores in state.
    */
   _prepColumns(data: SubmissionResponse[]) {
-    const allColumns = getAllDataColumns(this.props.asset, data, this.props.activeBulkActions)
+    const { columns: allColumns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+      this.props.asset,
+      data,
+      this.props.activeBulkActions,
+    )
 
     let showLabels = this.state.showLabels
     let showGroupName = this.state.showGroupName
@@ -819,18 +823,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // so it's quite the task :)
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
 
-    allColumns.forEach((key: string) => {
-      let q: SurveyRow | undefined
-      let rootParentGroup: string | undefined
-      if (key.includes('/')) {
-        const qParentG = key.split('/')
-        rootParentGroup = qParentG[0]
-        q = survey?.find(
-          (o) => o.name === qParentG[qParentG.length - 1] || o.$autoname === qParentG[qParentG.length - 1],
-        )
-      } else {
-        q = survey?.find((o) => o.name === key || o.$autoname === key)
+    // Keyed by the whole path, as that is what a column key is. Leaf-name matching finds a
+    // namesake row in another group and labels the column from a question it never held.
+    const rowsByPath = new Map<string, SurveyRow>()
+    const flatPaths = getSurveyFlatPaths(survey ?? [], true, true)
+    survey?.forEach((row) => {
+      const rowPath = flatPaths[getRowName(row)]
+      if (rowPath) {
+        rowsByPath.set(rowPath, row)
       }
+    })
+
+    allColumns.forEach((key: string) => {
+      const q: SurveyRow | undefined = rowsByPath.get(key)
+      const rootParentGroup: string | undefined = key.includes('/') ? key.split('/')[0] : undefined
 
       if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {
         return false
@@ -915,6 +921,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             asset={this.props.asset}
             reactTableRow={row}
             columnKey={key}
+            legacyAttachmentPaths={legacyAttachmentPathsByColumn.get(key)}
             question={q}
             choices={choices}
             showGroupName={this.state.showGroupName}

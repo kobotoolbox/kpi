@@ -8,10 +8,17 @@ import type { SupplementalDataManualTranslation } from '#/api/models/supplementa
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 
+import type { DataResponse } from '#/api/models/dataResponse'
+import { findRowByXpath } from '#/assetUtils'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import {
+  findAttachmentByQuestionXpath,
+  inferAttachmentQuestionType,
+} from '#/components/submissions/submissionMediaUtils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
@@ -371,6 +378,36 @@ export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): bo
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
   isAudioQuestionType(questionType) ||
   (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+
+/**
+ * The type of the question a processing route was opened at.
+ *
+ * The form is asked first, so the type is there before the submission loads. With no row for
+ * the path - renamed, moved or removed since - an attachment's mimetype says which kind of
+ * media, and a plain string with no file says text. Paths are matched exactly; leaf names pick
+ * the wrong question's type sooner or later.
+ */
+export function getProcessingQuestionType(
+  asset: AssetResponse,
+  xpath: string,
+  submission?: DataResponse,
+): AnyRowTypeName | undefined {
+  const row = asset.content && findRowByXpath(asset.content, xpath)
+  if (row) {
+    return row.type
+  }
+
+  if (!submission) {
+    return undefined
+  }
+
+  const attachment = findAttachmentByQuestionXpath(submission, xpath)
+  if (attachment) {
+    return inferAttachmentQuestionType(attachment)
+  }
+
+  return typeof submission[xpath] === 'string' ? QUESTION_TYPES.text.id : undefined
+}
 
 // Displays
 

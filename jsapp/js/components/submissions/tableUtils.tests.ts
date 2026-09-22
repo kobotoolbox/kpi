@@ -3,6 +3,7 @@ import type { AnyRowTypeName } from '#/constants'
 import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
 import {
   getAllDataColumns,
+  getAllDataColumnsWithAliases,
   getColumnLabel,
   getMetadataColumns,
   getSelectResponseLabel,
@@ -393,6 +394,96 @@ describe('tableUtils', () => {
       const shouldDrop = shouldDropLegacyAttachmentColumn(submissions, legacyKey, currentPaths)
 
       chai.expect(shouldDrop).to.equal(false)
+    })
+
+    // `get_valid_name()`, collision suffixes and Unicode normalization all change a stored
+    // file name, so a mismatch with the response says nothing about which question it is.
+    it('should drop the legacy column even when the stored file name differs from the response', () => {
+      const currentKey = 'Secret_password_as_an_audio_file'
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password_HkT3Qp.mp3',
+              is_deleted: false,
+            },
+          ],
+          [currentKey]: 'secret-password.mp3',
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include(currentKey)
+      chai.expect(columns).to.not.include(legacyKey)
+    })
+  })
+
+  // Pre-move submissions keep their files under the dropped path, so the column that replaced
+  // it has to know which paths it now stands for.
+  describe('getAllDataColumnsWithAliases', () => {
+    const currentKey = 'Secret_password_as_an_audio_file'
+    const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+
+    it('should record a dropped legacy path against the column that replaces it', () => {
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [currentKey]: 'secret-password.mp3',
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const { columns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+        assetWithBgAudioAndNLP,
+        submissions,
+      )
+
+      chai.expect(columns).to.not.include(legacyKey)
+      chai.expect(legacyAttachmentPathsByColumn.get(currentKey)).to.deep.equal([legacyKey])
+    })
+
+    it('should record nothing for a column that kept its own legacy duplicate', () => {
+      const submissions = [
+        {
+          _attachments: [
+            { question_xpath: currentKey, media_file_basename: 'new-secret-password.mp3', is_deleted: false },
+            { question_xpath: legacyKey, media_file_basename: 'old-secret-password.mp3', is_deleted: false },
+          ],
+          [currentKey]: 'new-secret-password.mp3',
+          [legacyKey]: 'old-secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const { columns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+        assetWithBgAudioAndNLP,
+        submissions,
+      )
+
+      chai.expect(columns).to.include(legacyKey)
+      chai.expect(legacyAttachmentPathsByColumn.get(currentKey)).to.equal(undefined)
+    })
+
+    it('should record no aliases for a form whose submissions never moved a question', () => {
+      const submissions = [
+        {
+          _attachments: [{ question_xpath: currentKey, media_file_basename: 'secret-password.mp3', is_deleted: false }],
+          [currentKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const { legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(legacyAttachmentPathsByColumn.size).to.equal(0)
     })
   })
 

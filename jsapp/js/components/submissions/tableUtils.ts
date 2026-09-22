@@ -238,23 +238,20 @@ function hasNonEmptyValue(value: unknown): boolean {
 }
 
 /**
- * Checks which path(s) attachment metadata links a basename to.
+ * Checks which of the two paths this submission has an attachment filed under.
  *
- * Filename/value matches alone are unsafe for dedupe. We use
- * `_attachments.question_xpath` to confirm whether evidence points to no path,
- * one path, or both paths.
+ * Only `question_xpath` counts, as the back end recorded it. File names are no evidence:
+ * two questions can hold files of the same name, and a stored name need not match the
+ * response that named it.
  */
 function getAttachmentPathEvidence(
   submission: SubmissionResponse,
   legacyKey: string,
   currentPath: string,
-  basename: string,
 ): 'none' | 'single' | 'both' {
   const matchingAttachments = (submission._attachments || []).filter(
     (attachment) =>
-      !attachment.is_deleted &&
-      attachment.media_file_basename === basename &&
-      (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
+      !attachment.is_deleted && (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
   )
 
   const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
@@ -312,7 +309,7 @@ export function shouldDropLegacyAttachmentColumn(
         return false
       }
 
-      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath, String(legacyValue))
+      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath)
       if (evidence === 'both') {
         return false
       }
@@ -359,31 +356,34 @@ function buildCurrentAttachmentPathsByLeaf(
 }
 
 /**
- * Decides if a column should stay after stale attachment dedupe checks.
- *
- * Keeps `getAllDataColumns` readable by isolating the keep/drop decision for
- * one column, including safety checks for missing submissions and no matches.
+ * The columns that take over a legacy attachment column's data, or `undefined` when the
+ * column has to stay. Returns paths rather than a boolean so the table can tell a cell
+ * which other paths its column now stands for.
  */
-function shouldKeepColumnAfterAttachmentDedupe(
+function findColumnsReplacingLegacyAttachmentColumn(
   key: string,
   allColumns: string[],
   currentAttachmentPathsByLeaf: Map<string, string[]>,
   submissions?: SubmissionResponse[],
-): boolean {
+): string[] | undefined {
   const keyParts = key.split('/')
   const leafName = keyParts[keyParts.length - 1]
   const currentPaths = currentAttachmentPathsByLeaf.get(leafName)
 
   if (!currentPaths || currentPaths.includes(key)) {
-    return true
+    return undefined
   }
 
   const matchingCurrentPaths = currentPaths.filter((currentPath) => allColumns.includes(currentPath))
   if (matchingCurrentPaths.length === 0 || !submissions || submissions.length === 0) {
-    return true
+    return undefined
   }
 
-  return !shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)
+  if (!shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)) {
+    return undefined
+  }
+
+  return matchingCurrentPaths
 }
 
 /**
@@ -480,9 +480,21 @@ export function orderColumns(asset: AssetResponse, columns: string[]): string[] 
   return [...blocks, ...lastBlocks].flat()
 }
 
+export interface DataColumns {
+  /** The column keys, in the order Data Table shows them (see `orderColumns`). */
+  columns: string[]
+  /**
+   * The legacy xpaths each column absorbed, keyed by the column that survived the dedupe
+   * below. A question moved between groups gets one column, but a pre-move submission keeps
+   * its file under the old path, so a cell has to look under both. Empty for most columns.
+   */
+  legacyAttachmentPathsByColumn: Map<string, string[]>
+}
+
 /**
  * Returns a complete and unique list of columns (keys) that contain displayable
- * data that is useful for users.
+ * data that is useful for users, plus the legacy attachment paths the dedupe
+ * collapsed into them (see `DataColumns`).
  *
  * Gathers all possible columns based on asset survey definition and optionally
  * all the columns from provided submissions. Passing submissions is useful for
@@ -490,11 +502,11 @@ export function orderColumns(asset: AssetResponse, columns: string[]): string[] 
  *
  * NOTE: includes supplemental details columns (AKA processing columns).
  */
-export function getAllDataColumns(
+export function getAllDataColumnsWithAliases(
   asset: AssetResponse,
   submissions?: SubmissionResponse[],
   bulkActions?: BulkActionResponse[],
-) {
+): DataColumns {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -519,9 +531,27 @@ export function getAllDataColumns(
   // a non-empty overlapping value in at least one submission.
   const currentAttachmentPathsByLeaf = buildCurrentAttachmentPathsByLeaf(asset, flatPaths)
 
-  output = output.filter((key) =>
-    shouldKeepColumnAfterAttachmentDedupe(key, output, currentAttachmentPathsByLeaf, submissions),
-  )
+  const legacyAttachmentPathsByColumn = new Map<string, string[]>()
+  output = output.filter((key) => {
+    const replacingColumns = findColumnsReplacingLegacyAttachmentColumn(
+      key,
+      output,
+      currentAttachmentPathsByLeaf,
+      submissions,
+    )
+    if (replacingColumns === undefined) {
+      return true
+    }
+
+    // This column is about to disappear, and the columns taking over have to find its files.
+    for (const replacingColumn of replacingColumns) {
+      legacyAttachmentPathsByColumn.set(replacingColumn, [
+        ...(legacyAttachmentPathsByColumn.get(replacingColumn) ?? []),
+        key,
+      ])
+    }
+    return false
+  })
 
   // Drop the rows whose type never carries a response, by type rather than name,
   // so an ordinary question named `audit` survives (see `EXCLUDED_ROW_TYPES`).
@@ -575,7 +605,16 @@ export function getAllDataColumns(
   // Ordering happens here, at the very end, rather than in each consumer - that
   // way everything built on top of this function agrees on the order for free
   // (see `orderColumns`).
-  return orderColumns(asset, output)
+  return { columns: orderColumns(asset, output), legacyAttachmentPathsByColumn }
+}
+
+/** The column keys alone, for callers that list columns and render no cells. */
+export function getAllDataColumns(
+  asset: AssetResponse,
+  submissions?: SubmissionResponse[],
+  bulkActions?: BulkActionResponse[],
+): string[] {
+  return getAllDataColumnsWithAliases(asset, submissions, bulkActions).columns
 }
 
 /**
