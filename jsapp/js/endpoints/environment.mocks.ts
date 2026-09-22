@@ -1,3 +1,4 @@
+import { http, HttpResponse } from 'msw'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
@@ -455,6 +456,17 @@ export const environmentResponse = {
  */
 export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
   getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
+
+/**
+ * A `/environment` that fails every time, for screens that have to cope without it. The URL pattern is the
+ * generated handler's, so this replaces it rather than racing it.
+ *
+ * Every time, not just once: the screen fetches twice on mount, so a single scripted failure gets followed
+ * by a success nobody asked for and the error state never renders. A story that also wants the recovery
+ * calls `getWorker().use(...)` with a working handler at the point it is ready for one.
+ */
+export const environmentServerErrorMock = () =>
+  http.get('*/api/v2/environment{/}?', () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
 /** The production-like defaults, registered globally in `.storybook/preview.tsx`. */
 const environmentMock = makeEnvironmentMock()

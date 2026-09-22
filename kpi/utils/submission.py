@@ -13,9 +13,39 @@ def get_attachment_filenames_and_xpaths(
     """
     Return a dictionary of all valid attachment filenames of a submission mapped
     to their respective XPath.
+
+    Each value is keyed twice, under the name the client sent and under the
+    sanitized forms of it, so that an attachment resolves whether it kept that
+    name or only the one Django wrote to storage.
     """
 
-    return_dict = {}
+    by_name, by_sanitized_name = _collect_filenames_and_xpaths(
+        data, attachment_xpaths, child_indexes
+    )
+
+    # Raw names last, so they win. The two families collide as soon as one
+    # value is the sanitized form of another, `photo A.jpg` and `photo_A.jpg`
+    # both sanitizing to `photo_A.jpg`: merged in this order, that key means
+    # the question actually named `photo_A.jpg`, and the other question keeps
+    # its own. Merged the other way, or built in a single pass as this used to
+    # be, the question read last would take both files.
+    return {**by_sanitized_name, **by_name}
+
+
+def _collect_filenames_and_xpaths(
+    data: dict, attachment_xpaths: list, child_indexes: dict = None
+) -> tuple[dict, dict]:
+    """
+    Return the names a submission carries at its media questions, split into
+    the ones the client sent and the sanitized ones, so that the caller can
+    decide which family outranks the other.
+
+    They have to stay apart until the whole submission has been walked, since
+    a value nested in a repeat group can collide with one at the root.
+    """
+
+    by_name, by_sanitized_name = {}, {}
+
     for key, value in data.items():
 
         if not child_indexes:
@@ -28,26 +58,32 @@ def get_attachment_filenames_and_xpaths(
                     # in nested groups (i.e. calling this function recursively)
                     # to keep a trace of each (parent) group index
                     child_indexes[key] = index + 1
-                    return_dict.update(
-                        get_attachment_filenames_and_xpaths(
-                            item_list, attachment_xpaths, child_indexes
-                        )
+                    child_names, child_sanitized_names = _collect_filenames_and_xpaths(
+                        item_list, attachment_xpaths, child_indexes
                     )
+                    by_name.update(child_names)
+                    by_sanitized_name.update(child_sanitized_names)
 
         elif isinstance(value, dict):
-            return_dict.update(
-                get_attachment_filenames_and_xpaths(value, attachment_xpaths)
+            child_names, child_sanitized_names = _collect_filenames_and_xpaths(
+                value, attachment_xpaths
             )
+            by_name.update(child_names)
+            by_sanitized_name.update(child_sanitized_names)
         else:
             if key in attachment_xpaths:
                 try:
-                    # Attachments saved before basenames were normalized are
-                    # stored under the raw name, which `get_valid_name()` strips
-                    # of its combining marks. Key both forms so they resolve.
+                    # The name the client sent, unsanitized, which is what
+                    # `Attachment.media_file_basename` has held since DEV-897
+                    nfc_name = normalize_nfc(value)
+
+                    # The sanitized forms serve every side holding a name Django
+                    # already processed: the rows `populate_media_file_basename`
+                    # backfilled, and the stored path. Both are kept because
+                    # `get_valid_name()` strips the combining marks of an NFD
+                    # name, so the two orders do not give the same string.
                     raw_valid_name = default_kobocat_storage.get_valid_name(value)
-                    nfc_valid_name = default_kobocat_storage.get_valid_name(
-                        normalize_nfc(value)
-                    )
+                    nfc_valid_name = default_kobocat_storage.get_valid_name(nfc_name)
                 except SuspiciousFileOperation:
                     logging.error(f'Could not get valid name from {value}')
                     continue
@@ -62,8 +98,9 @@ def get_attachment_filenames_and_xpaths(
                         group = group_name.split('/')[-1]
                         key = key.replace(group, f'{group}[{group_index}]')
 
-                return_dict[nfc_valid_name] = key
+                by_name[nfc_name] = key
+                by_sanitized_name[nfc_valid_name] = key
                 if raw_valid_name != nfc_valid_name:
-                    return_dict[raw_valid_name] = key
+                    by_sanitized_name[raw_valid_name] = key
 
-    return return_dict
+    return by_name, by_sanitized_name

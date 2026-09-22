@@ -6,7 +6,7 @@ import bem from '#/bem'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Avatar from '#/components/common/avatar'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
-import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
@@ -35,7 +35,9 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           setLatestSubmissionDate(response.results[0]['end'])
         }
       })
-      .fail(handleApiFail)
+      // Only the response, because jQuery's second argument is its own `textStatus` and `handleApiFail` reads that as
+      // a message to display.
+      .fail((response: FailResponse) => handleApiFail(response))
   }, [])
 
   const lastDeployedDate = props.asset.deployed_versions?.results?.[0]?.date_modified

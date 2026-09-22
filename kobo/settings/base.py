@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import warnings
 from datetime import timedelta
 from mimetypes import add_type
@@ -17,7 +16,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-from .utils import constance_env, dj_stripe_request_callback_method
+from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
 env = environ.Env()
 
@@ -1845,6 +1844,9 @@ CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 s
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+# Adds our extra fields to every signup form, including the headless API's;
+# must point to a module that does not import `allauth.account.forms`
+ACCOUNT_SIGNUP_FORM_CLASS = 'kobo.apps.accounts.signup_fields.SignupExtraFieldsForm'
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
@@ -2122,22 +2124,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-""" Try to identify the running codebase for informational purposes """
-# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
-GIT_REV = {}
-for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
-):
-    try:
-        GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
-        GIT_REV[git_rev_key] = False
-if GIT_REV['branch'] == 'HEAD':
-    GIT_REV['branch'] = False
+GIT_REV = get_git_rev(BASE_DIR)
 
 
 """
