@@ -8,7 +8,10 @@ import {
 } from '@tabler/icons-react'
 import React from 'react'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import {
+  getOrganizationsRetrieveQueryKey,
+  useOrganizationsRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import assetUtils from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
 import KoboIcon from '#/components/common/KoboIcon'
@@ -17,6 +20,7 @@ import Icon from '#/components/common/icon'
 import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetDownloads, AssetResponse } from '#/dataInterface'
+import { useSession } from '#/stores/useSession'
 
 interface AssetMoreActionsProps {
   asset: AssetResponse
@@ -42,12 +46,22 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const menuRef = React.useRef<HTMLDivElement>(null)
   const assetType = props.asset.asset_type
-  const [organization] = useOrganizationAssumed()
-  const isMmoAdmin = organization.is_mmo && organization.request_user_role === MemberRoleEnum.admin
-  const isMmoMember = organization.is_mmo && organization.request_user_role === MemberRoleEnum.member
+  // Not `useOrganizationAssumed`: library item routes are reachable by
+  // anonymous users, and this component renders outside `<RequireOrg />`.
+  const session = useSession()
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const orgQuery = useOrganizationsRetrieve(organizationId!, {
+    query: {
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      staleTime: Number.POSITIVE_INFINITY,
+    },
+  })
+  const organization = orgQuery.data?.status === 200 ? orgQuery.data.data : undefined
+  const isMmoAdmin = organization?.is_mmo === true && organization.request_user_role === MemberRoleEnum.admin
+  const isMmoMember = organization?.is_mmo === true && organization.request_user_role === MemberRoleEnum.member
   // `owner_label` is the organization name for org-owned assets, so this
   // checks the admin belongs to the org that owns the asset.
-  const isOwnedByUserOrg = props.asset.owner_label === organization.name
+  const isOwnedByUserOrg = organization !== undefined && props.asset.owner_label === organization.name
   const userCanEdit = userCan('change_asset', props.asset)
   // Org admins can delete their org's assets (backend enforces the rest). MMO
   // members are gated on manage_asset; everyone else on delete_asset.
