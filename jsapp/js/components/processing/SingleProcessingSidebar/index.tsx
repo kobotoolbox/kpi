@@ -5,13 +5,13 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
+import { getProcessingQuestionType } from '../common/questionType'
 import type { DisplaysList } from '../common/types'
 import {
   StaticDisplays,
   getAllTranslationsFromSupplementData,
   getDefaultDisplaysForTab,
   getLatestTranscriptVersionItem,
-  getProcessingQuestionType,
 } from '../common/utils'
 import { getActiveTab } from '../routes.utils'
 import styles from './index.module.scss'
