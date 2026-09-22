@@ -5,7 +5,6 @@ import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
 import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import sessionStore from '#/stores/session'
-import { RequireOrg } from './RequireOrg'
 
 interface BasicLayoutProps {
   children: React.ReactNode
@@ -26,11 +25,7 @@ export default function BasicLayout(props: BasicLayoutProps) {
       <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
         <MainHeaderBase>
           <MainHeaderLogo />
-          {sessionStore.isLoggedIn && sessionStore.isValidatedPassword && (
-            <RequireOrg>
-              <AccountMenu />
-            </RequireOrg>
-          )}
+          {sessionStore.isLoggedIn && <AccountMenu />}
         </MainHeaderBase>
 
         <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
