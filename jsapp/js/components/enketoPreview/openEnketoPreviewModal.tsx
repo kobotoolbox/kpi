@@ -9,7 +9,6 @@ export function openEnketoPreviewModal(props: EnketoPreviewModalParams) {
   const modalId = modals.open({
     title: t('Form Preview'),
     size: 'xl',
-    closeOnEscape: false,
     children: <EnketoPreviewModal assetUrl={props.assetUrl} onRequestClose={() => modals.close(modalId)} />,
   })
 
