@@ -1096,3 +1096,8 @@ export function hasAnyUnacceptedAutomaticContent(
 ): boolean {
   return submissions.some((submission) => hasUnacceptedAutomaticContent(submission, columnKey))
 }
+
+/** Strips repeat-instance indices (e.g. `[2]`) to get the static survey xpath. */
+export function stripRepeatIndices(xpath: string): string {
+  return xpath.replace(/\[\d+\]/g, '')
+}

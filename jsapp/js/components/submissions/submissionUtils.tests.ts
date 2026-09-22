@@ -11,6 +11,7 @@ import {
   hasUnacceptedAutomaticContent,
   removeEmptyFromSupplementalDetails,
   removeEmptyObjects,
+  stripRepeatIndices,
 } from './submissionUtils'
 import {
   allQualSurveyDisplayData,
@@ -292,6 +293,15 @@ describe('getSubmissionDisplayData for answers the current form does not account
       subscriberid: 'subscriberid not found',
       today: '2020-04-06',
     }
+    const responses = getResponses(getSubmissionDisplayData(simpleSurveyAsset, 0, submission))
+
+    chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
+  })
+
+  it('should not add a row for the audit file, which is no answer either', () => {
+    // A submission carries the audit log under `meta`, where nothing marks it as
+    // Back end's own property the way a leading underscore does.
+    const submission = { ...simpleSurveySubmission, 'meta/audit': 'audit-1.csv' }
     const responses = getResponses(getSubmissionDisplayData(simpleSurveyAsset, 0, submission))
 
     chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
@@ -961,5 +971,23 @@ describe('hasAnyUnacceptedAutomaticContent', () => {
     )
 
     chai.expect(result).to.be.false
+  })
+})
+
+describe('stripRepeatIndices', () => {
+  it('should leave a static xpath unchanged', () => {
+    chai.expect(stripRepeatIndices('outer_group/inner_group/question')).to.equal('outer_group/inner_group/question')
+  })
+
+  it('should strip a single repeat-instance index', () => {
+    chai.expect(stripRepeatIndices('children[1]/audio')).to.equal('children/audio')
+  })
+
+  it('should strip multiple repeat-instance indices from nested repeats', () => {
+    chai.expect(stripRepeatIndices('outer[2]/inner[10]/question')).to.equal('outer/inner/question')
+  })
+
+  it('should leave a bare question name unchanged', () => {
+    chai.expect(stripRepeatIndices('question')).to.equal('question')
   })
 })
