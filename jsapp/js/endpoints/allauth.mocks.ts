@@ -9,8 +9,12 @@ import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsIt
 const SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/signup'
 const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
 const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
-/** Exported so a story can put its own handler here and inspect the credentials the form posted. */
+/** Exported so a story can put its own handler here and inspect the credentials the form posted */
 export const LOGIN_URL = '*/api/v2/allauth/browser/v1/auth/login'
+/** Asking for a reset link */
+export const PASSWORD_REQUEST_URL = '*/api/v2/allauth/browser/v1/auth/password/request'
+/** `GET` checks the key from the link, `POST` sets the new password */
+export const PASSWORD_RESET_URL = '*/api/v2/allauth/browser/v1/auth/password/reset'
 
 /**
  * A successful signup under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since the  new account
@@ -188,3 +192,59 @@ export const emailVerifyConfirmWithoutSessionMock = () =>
       { status: 401 },
     ),
   )
+
+/** A rejected reset request. `param: 'email'` puts the message under the input; omit it for the banner. */
+export const passwordRequestErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
+  http.post(PASSWORD_REQUEST_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))
+
+/** A reset request that never answers, so the submit button stays in its loading state. */
+export const passwordRequestNeverAnswersMock = () =>
+  http.post(PASSWORD_REQUEST_URL, async () => {
+    await delay('infinite')
+  })
+
+/** The server itself broke, which is the only way into the request form's `onError`. */
+export const passwordRequestServerErrorMock = () =>
+  http.post(PASSWORD_REQUEST_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
+/** Looking up a reset key that is still good, so the new password form may be shown. */
+export const passwordResetKeyValidMock = () =>
+  http.get(PASSWORD_RESET_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: { user: { id: 1, display: 'sallyride', username: 'sallyride', has_usable_password: true } },
+    }),
+  )
+
+/** A reset key that has expired or was already used. */
+export const passwordResetKeyInvalidMock = () =>
+  http.get(PASSWORD_RESET_URL, () =>
+    HttpResponse.json(
+      { status: 400, errors: [{ code: 'invalid', param: 'key', message: 'Invalid or expired key.' }] },
+      { status: 400 },
+    ),
+  )
+
+/** A good key looked up while signed in: allauth will not reset a password from a link behind a session. */
+export const passwordResetKeyConflictMock = () =>
+  http.get(PASSWORD_RESET_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
+
+/**
+ * A reset that changed the password and signed the account in: `ACCOUNT_LOGIN_ON_PASSWORD_RESET` on. With it
+ * off - the KPI default - allauth answers 401, and the story covering that builds its own response.
+ */
+export const passwordResetDoneAndSignedInMock = () =>
+  http.post(PASSWORD_RESET_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        user: { id: 1, display: 'sallyride', username: 'sallyride', has_usable_password: true },
+        methods: [{ method: 'password', at: 1700000000, username: 'sallyride' }],
+      },
+      meta: { is_authenticated: true },
+    }),
+  )
+
+/** A rejected reset. `param: 'password'` lands under the input; `param: 'key'` ends the whole attempt. */
+export const passwordResetErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
+  http.post(PASSWORD_RESET_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))

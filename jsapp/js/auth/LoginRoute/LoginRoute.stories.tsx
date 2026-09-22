@@ -13,7 +13,7 @@ import {
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import { AUTH_ROUTES, PATHS, ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
 import LoginRoute from './LoginRoute'
 
@@ -124,9 +124,8 @@ export const Default: Story = {
     expect(field(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
     expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
 
-    // Still the Django screen: the redesign lands in DEV-1852.
-    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', PATHS.RESET)
-    // A router link, so signing up does not reload the page.
+    // Both router links, so neither recovery nor signing up reloads the page.
+    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
     expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.REGISTER)
   },
 }
