@@ -470,14 +470,23 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
   handleNonOwnerSelfRemovalClick(evt: React.MouseEvent<HTMLElement>) {
     evt.preventDefault()
-    // Subscribe only for this one removal - a `manage_asset` user removing somebody else must not redirect us.
+    // `removeSharing` opens a confirm dialog and cancelling it dispatches nothing, so a listener from an earlier
+    // click may still be attached. Drop it first, otherwise it piles up and outlives the component.
+    this.nonOwnerSelfRemovalUnlistener?.()
     this.nonOwnerSelfRemovalUnlistener = actions.permissions.removeAssetPermission.completed.listen(
       this.nonOwnerSelfRemovalCompleted.bind(this),
     )
     this.dmix.removeSharing()
   }
 
-  nonOwnerSelfRemovalCompleted() {
+  /**
+   * Only a non-owner dropping their own permissions should send us away. `removeAssetSharing` is the sole caller that
+   * passes `isNonOwner`, so a `manage_asset` user removing somebody else leaves us on the page.
+   */
+  nonOwnerSelfRemovalCompleted(_assetUid: string, isNonOwner: boolean | undefined) {
+    if (!isNonOwner) {
+      return
+    }
     this.nonOwnerSelfRemovalUnlistener?.()
     this.nonOwnerSelfRemovalUnlistener = undefined
     this.goToProjectsList()
