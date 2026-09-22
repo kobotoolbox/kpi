@@ -8,6 +8,24 @@ export const AUTO_SAVE_TYPING_DELAY = 3000
 // related to Qualitative Analysis) need to exclude notes from output.
 export const QUAL_NOTE_TYPE: ResponseManualQualActionParams['type'] = 'qualNote'
 
+/**
+ * Why we don't display them?
+ * - `qualNote` questions make sense only in the context of writing responses to
+ *   Qualitative Analysis questions - they bear no data.
+ * - `qualSource` fields say where a response came from. That's bookkeeping we
+ *   need internally, not an answer users would expect to see.
+ */
+const NON_DISPLAYABLE_SUPPLEMENTAL_FIELD_TYPES: string[] = [QUAL_NOTE_TYPE, 'qualSource']
+
+/**
+ * Tells whether a supplemental details field (i.e. an item of the asset's
+ * `analysis_form_json.additional_fields`) may be shown outside of the Single
+ * Processing route.
+ */
+export function isDisplayableSupplementalField(field: { type: string }): boolean {
+  return !NON_DISPLAYABLE_SUPPLEMENTAL_FIELD_TYPES.includes(field.type)
+}
+
 interface AnalysisLabels {
   _default: string
   [langCode: string]: string

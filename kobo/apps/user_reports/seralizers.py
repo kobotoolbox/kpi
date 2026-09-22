@@ -2,13 +2,7 @@ from typing import Any
 
 from rest_framework import serializers
 
-from kobo.apps.organizations.constants import UsageType
-from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils.subscription_limits import (
-    get_organizations_effective_limits,
-)
 from kobo.apps.user_reports.models import UserReports
-from kpi.utils.usage_calculator import calculate_usage_balance
 
 
 class UserReportsSerializer(serializers.ModelSerializer):
@@ -62,36 +56,3 @@ class UserReportsSerializer(serializers.ModelSerializer):
         su['current_period_start'] = current_period_start
         su['current_period_end'] = current_period_end
         return su
-
-    def _calculate_usage_balances(self, obj) -> dict[str, Any]:
-        """
-        Calculate usage balances against organization limits.
-
-        This is the only remaining runtime calculation, but it's much more
-        efficient since all usage data is pre-computed.
-        """
-        if not obj.organization_id:
-            return {}
-
-        organization = Organization.objects.get(id=obj.organization_id)
-        limits = get_organizations_effective_limits([organization], True, True)
-        org_limits = limits.get(organization.id, {})
-
-        return {
-            'submission': calculate_usage_balance(
-                limit=org_limits.get(f'{UsageType.SUBMISSION}_limit', float('inf')),
-                usage=obj.total_submission_count_current_period,
-            ),
-            'storage_bytes': calculate_usage_balance(
-                limit=org_limits.get(f'{UsageType.STORAGE_BYTES}_limit', float('inf')),
-                usage=obj.total_storage_bytes,
-            ),
-            'asr_seconds': calculate_usage_balance(
-                limit=org_limits.get(f'{UsageType.ASR_SECONDS}_limit', float('inf')),
-                usage=obj.total_nlp_usage_asr_seconds_current_period,
-            ),
-            'mt_characters': calculate_usage_balance(
-                limit=org_limits.get(f'{UsageType.MT_CHARACTERS}_limit', float('inf')),
-                usage=obj.total_nlp_usage_mt_characters_current_period,
-            ),
-        }

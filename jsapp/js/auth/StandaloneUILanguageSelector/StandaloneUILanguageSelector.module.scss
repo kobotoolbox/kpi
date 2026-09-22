@@ -1,0 +1,42 @@
+@use 'scss/colors';
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: 5px;
+  background-color: hsl(0deg 0% 100% / 80%);
+  color: colors.$kobo-gray-800;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.toggle:hover {
+  background-color: colors.$kobo-white;
+}
+
+.toggle:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
+.toggle--onCustomBackground {
+  border: 0;
+  background-color: hsl(0deg 0% 100% / 25%);
+  color: colors.$kobo-white;
+}
+
+.toggle--onCustomBackground:hover {
+  background-color: hsl(0deg 0% 100% / 35%);
+}
+
+.dropdown {
+  min-width: 160px;
+  max-height: min(320px, 60vh);
+  overflow-y: auto;
+}

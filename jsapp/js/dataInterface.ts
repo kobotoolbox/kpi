@@ -197,7 +197,7 @@ export interface SubmissionAttachment {
   is_deleted?: boolean
 }
 
-interface TransxObject {
+export interface TransxObject {
   languageCode: LanguageCode
   value?: string | null
   /** transcripts only */

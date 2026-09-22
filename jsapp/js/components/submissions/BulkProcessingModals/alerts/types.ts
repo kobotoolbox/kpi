@@ -35,6 +35,11 @@ export interface AlertEvaluationContext {
   requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
+  /**
+   * Every submission uuid in this pipeline is a root uuid (`getSubmissionRootUuid`), since that is the only id the
+   * bulk endpoints know. Evaluators must keep it that way, or an edited submission slips past the skip check below and
+   * gets evaluated twice.
+   */
   previouslyFilteredSubmissionUuids: Set<string>
 }
 
@@ -43,7 +48,7 @@ export interface AlertEvaluationContext {
  */
 export interface AlertEvaluationResult {
   type: AlertSeverity
-  /** Submission Uuids filtered out by this evaluator */
+  /** Root uuids of the submissions this evaluator filtered out */
   filteredSubmissionUuids: string[]
   /** Computed values for messages */
   computedValues: Record<string, any>
@@ -70,6 +75,6 @@ export interface ActiveAlert {
   type: AlertSeverity
   message: string
   computedValues: Record<string, any>
-  /** Optional UUIDs filtered by this alert, used by modal-specific follow-up calculations */
+  /** Optional root uuids filtered by this alert, used by modal-specific follow-up calculations */
   filteredSubmissionUuids?: string[]
 }

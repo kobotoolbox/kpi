@@ -1,6 +1,4 @@
 import { action, makeAutoObservable } from 'mobx'
-import { fetchPost } from '#/api'
-import { endpoints } from '#/api.endpoints'
 import type { Json } from '#/components/common/common.interfaces'
 import { dataInterface } from '#/dataInterface'
 import type { AccountResponse, FailResponse } from '#/dataInterface'
@@ -77,34 +75,6 @@ class SessionStore {
         }
       }),
     )
-  }
-
-  public logOut() {
-    dataInterface.logout().then(
-      action('logOutSuccess', () => {
-        // Reload so a new CSRF token is issued
-        window.setTimeout(() => {
-          window.location.replace('')
-        }, 1)
-      }),
-      action('logOutFailed', () => {
-        console.error('logout failed for some reason. what should happen now?')
-      }),
-    )
-  }
-
-  /**
-   * Useful if you need to log out all sessions.
-   */
-  public async logOutAll() {
-    try {
-      // Logging out is simply POSTing to this endpoint
-      await fetchPost(endpoints.LOGOUT_ALL, {})
-      // After that we force reload
-      window.location.replace('')
-    } catch (err) {
-      // `fetchPost` is handling the error
-    }
   }
 
   private saveUiLanguage() {

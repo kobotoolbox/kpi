@@ -1,0 +1,29 @@
+@use 'scss/colors';
+
+// Inside a Data Table cell this dropdown is not supposed to look like an input:
+// the row only gives it 28px of height, and the status pill carries all of the
+// visual weight.
+.cellInput {
+  height: 28px;
+  min-height: 28px;
+  border: 0;
+  background-color: transparent;
+  color: colors.$kobo-gray-700;
+  cursor: pointer;
+}
+
+// The selected status is displayed as a `Pill` in the left section. The input
+// keeps its value (for screen readers), but displaying it as well would only
+// duplicate the pill.
+.cellInputWithPill {
+  color: transparent;
+}
+
+.cellSection[data-position='left'] {
+  // Let the pill hug its label instead of being centered inside a fixed width
+  // slot, while still keeping it clear of the chevron.
+  width: auto;
+  inset-inline-end: var(--input-right-section-width);
+  justify-content: flex-start;
+  padding: 0;
+}

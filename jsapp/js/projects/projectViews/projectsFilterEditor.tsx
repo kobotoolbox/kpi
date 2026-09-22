@@ -1,10 +1,10 @@
 import React from 'react'
 
+import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
-import KoboSelect from '#/components/common/koboSelect'
-import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
-import { generateUuid, recordValues } from '#/utils'
+import { recordValues } from '#/utils'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
 import styles from './projectsFilterEditor.module.scss'
@@ -94,14 +94,11 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       {/* Filter field selector */}
       <div className={styles.column}>
         {!props.hideLabels && <span className={styles.label}>{t('Filter by')}</span>}
-        <KoboSelect
-          name={generateUuid()}
-          type='outline'
-          size='m'
-          isClearable
-          isSearchable
-          options={getFieldSelectorOptions()}
-          selectedOption={props.filter.fieldName || null}
+        <Select
+          size='sm'
+          clearable
+          data={getFieldSelectorOptions()}
+          value={props.filter.fieldName || null}
           onChange={onFieldSelectorChange}
           placeholder={t('Select field')}
         />
@@ -110,18 +107,15 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       {/* Filter condition selector */}
       <div className={styles.column}>
         {!props.hideLabels && <span className={styles.label}>{t('Condition')}</span>}
-        <KoboSelect
-          name={generateUuid()}
-          type='outline'
-          size='m'
-          isClearable
-          isSearchable
-          options={getConditionSelectorOptions()}
-          selectedOption={props.filter.condition || null}
+        <Select
+          size='sm'
+          clearable
+          data={getConditionSelectorOptions()}
+          value={props.filter.condition || null}
           onChange={onConditionSelectorChange}
           placeholder={t('Select condition')}
           // Requires field to be selected first
-          isDisabled={!props.filter.fieldName}
+          disabled={!props.filter.fieldName}
         />
       </div>
 
@@ -131,26 +125,23 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
         {!isFilterConditionValueRequired(props.filter.condition) && <div />}
         {isFilterConditionValueRequired(props.filter.condition) && !isCountryFilterSelected && (
-          <TextBox
+          <TextInput
             value={props.filter.value || ''}
-            onChange={onFilterValueChange}
+            onChange={(evt) => onFilterValueChange(evt.currentTarget.value)}
             placeholder={t('Enter value')}
             // Requires field to be selected first
             disabled={!props.filter.fieldName}
-            size='m'
+            size='sm'
           />
         )}
         {isFilterConditionValueRequired(props.filter.condition) && isCountryFilterSelected && (
-          <KoboSelect
-            name={generateUuid()}
-            type='outline'
-            size='m'
-            isClearable
-            isSearchable
+          <Select
+            size='sm'
+            clearable
             placeholder={t('Country')}
-            selectedOption={props.filter.value || ''}
-            options={COUNTRIES}
-            onChange={(code: string | null) => {
+            value={props.filter.value || null}
+            data={COUNTRIES}
+            onChange={(code) => {
               onFilterValueChange(code || '')
             }}
           />

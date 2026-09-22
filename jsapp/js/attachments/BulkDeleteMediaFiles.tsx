@@ -8,7 +8,7 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, FailResponse, SubmissionResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid, notify } from '#/utils'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
 
 interface BulkDeleteMediaFilesProps {
@@ -31,9 +31,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
   )
 
   const handleConfirmDelete = async () => {
-    const selectedRootUuids = props.selectedSubmissions.map((submission) =>
-      submission['meta/rootUuid'] ? removeDefaultUuidPrefix(submission['meta/rootUuid']) : submission['_uuid'],
-    )
+    const selectedRootUuids = props.selectedSubmissions.map(getSubmissionRootUuid)
     setIsDeletePending(true)
 
     try {

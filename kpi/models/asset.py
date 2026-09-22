@@ -12,12 +12,12 @@ from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
-
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
+
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
@@ -65,6 +65,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -499,7 +500,7 @@ class Asset(
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
-        self._autoname(self.content, raise_on_error=False)
+        self._autoname(self.content, handle_duplicates=HandleDuplicatesOptions.IGNORE)
         self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
@@ -599,6 +600,10 @@ class Asset(
         cached_xpaths = cache.get(cache_key)
 
         if cached_xpaths is not None:
+            # Memoize the hit too, otherwise every call on this instance pays a
+            # Redis round-trip and the query behind
+            # `latest_deployed_version_uid`
+            setattr(self, '_all_attachment_xpaths', cached_xpaths)
             return cached_xpaths
         elif only_cached_data:
             return None
@@ -624,20 +629,29 @@ class Asset(
         """
         Get attachment xpaths from a specific version.
 
-        Results are cached in Redis for 24 hours.
+        Results are cached in Redis for 24 hours, but only when a version is
+        given. A version's content never changes, so its uid alone says what
+        the entry holds and that entry can never go stale. `self.content`
+        offers no such marker: it changes on every save, and nothing
+        invalidates these keys. Reading it is also the cheap case, with no
+        `to_formpack_schema()` to pay for.
         """
 
+        cache_key = None
+
         if version:
-            content = version.to_formpack_schema()['content']
             cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
+            cached_xpaths = cache.get(cache_key)
+
+            if cached_xpaths is not None:
+                return cached_xpaths
+
+            # Read the content only once the cache has been given its chance:
+            # expanding a version's content is the expensive part of this method,
+            # and `self.content` may be a deferred field
+            content = version.to_formpack_schema()['content']
         else:
             content = self.content
-            cache_key = f'attachment_xpaths:{self.uid}:no-version'
-
-        cached_xpaths = cache.get(cache_key)
-
-        if cached_xpaths is not None:
-            return cached_xpaths
 
         survey = content['survey']
 
@@ -659,18 +673,48 @@ class Asset(
 
             return xpaths
 
-        if xpaths := _get_xpaths(survey):
-            return xpaths
-
-        # Inject missing `$xpath` properties
-        self._insert_xpath(content)
-
         xpaths_list = _get_xpaths(survey)
 
+        if xpaths_list is None:
+            # Versions predating the NLP feature carry no `$xpath`. Inject the
+            # missing properties and read them again. An empty list needs no
+            # such treatment: a survey without a single question that takes an
+            # attachment has no xpath to offer either way
+            self._insert_xpath(content)
+            xpaths_list = _get_xpaths(survey)
+
         # Store in Redis cache
-        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
+        if cache_key:
+            cache.set(
+                cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL
+            )
 
         return xpaths_list
+
+    def get_attachment_xpaths_from_version_uids(self, version_uids: list[str]) -> list:
+        """
+        Get the attachment xpaths of several form versions, merged.
+
+        Takes uids, where `get_attachment_xpaths_from_version()` takes an
+        `AssetVersion` and holds the per-version Redis cache both share.
+
+        Versions are merged, never superseded: a question renamed between two
+        of them lives at both xpaths, and keeping only the newest is what makes
+        an attachment collected under the older name unreachable.
+        """
+
+        # A `version_content` weighs several megabytes on a large form.
+        # `iterator()` keeps one version at a time in memory, where iterating
+        # the queryset itself would fill its result cache with all of them
+        versions = self.asset_versions.filter(
+            uid__in=version_uids, deployed=True
+        ).iterator()
+
+        xpaths = set()
+        for version in versions:
+            xpaths.update(self.get_attachment_xpaths_from_version(version) or [])
+
+        return list(xpaths)
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -955,6 +999,11 @@ class Asset(
         *args,
         **kwargs,
     ):
+        # Deploying a version changes which ones the xpaths are read from, and
+        # `deploy()` ends up saving the asset. Drop the memo rather than let it
+        # outlive its answer; refilling it costs a Redis lookup at worst
+        self._all_attachment_xpaths = None
+
         is_new = self.pk is None
 
         if is_new:

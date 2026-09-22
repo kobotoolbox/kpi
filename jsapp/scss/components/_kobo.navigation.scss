@@ -179,34 +179,6 @@
     }
   }
 
-  .account-box__menu-li--lang {
-    position: relative;
-    border-top: 1px solid colors.$kobo-gray-300;
-    padding-bottom: 5px;
-
-    ul {
-      margin-top: 5px;
-      background-color: colors.$kobo-white;
-      color: colors.$kobo-gray-700;
-      min-width: 140px;
-      padding: 0;
-      border: 1px solid colors.$kobo-gray-300;
-
-      li {
-        text-transform: capitalize;
-        padding: 0;
-
-        &:not(:last-child) {
-          border-bottom: 1px solid colors.$kobo-gray-300;
-        }
-
-        a {
-          padding: 10px 15px;
-        }
-      }
-    }
-  }
-
   .account-box__menu-li--logout {
     padding-top: 5px;
   }
@@ -315,25 +287,6 @@
       padding: 6px 12px;
       display: block;
       font-size: 12px;
-    }
-  }
-}
-
-// temporary fix for language menu on touch devices
-@media screen and (pointer: coarse) {
-  .account-box__menu .account-box__menu-li--lang {
-    ul {
-      opacity: 1;
-      position: static;
-      border: 1px solid colors.$kobo-gray-300;
-      margin-left: 12px;
-      padding: 0;
-      max-height: 1000px;
-      box-shadow: none;
-
-      li {
-        padding: 6px 18px;
-      }
     }
   }
 }

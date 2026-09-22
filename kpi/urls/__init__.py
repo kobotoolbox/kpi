@@ -7,6 +7,7 @@ from hub.models import ConfigurationFile
 from kpi.utils.log import logging
 from kpi.views import home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.error_pages import dev_error_page_preview
 from kpi.views.token import TokenView
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.logout import logout_from_all_devices
@@ -70,3 +71,14 @@ if settings.DEBUG and settings.ENV == 'dev':
         urlpatterns = [
             path('__debug__/', include(debug_toolbar.urls)),
         ] + urlpatterns
+
+    # While `DEBUG` is on, Django serves its own technical 404/500 pages, so
+    # `handler404`/`handler500` never run. These routes make the standalone error
+    # app reachable in a browser during development.
+    urlpatterns = [
+        re_path(
+            r'^__dev__/error/(?P<error_code>404|500)/$',
+            dev_error_page_preview,
+            name='dev-error-page-preview',
+        ),
+    ] + urlpatterns

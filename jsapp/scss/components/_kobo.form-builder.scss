@@ -259,6 +259,22 @@ $s-form-builder-content-width: 1024px;
   }
 }
 
+// The aside's light gray background washes out both unchecked track colours from
+// the Switch theme, so darken them here. Set `background-color` rather than
+// `--switch-bg` to stay ahead of the theme's var declarations, which means the
+// disabled state needs restating too — kept paler than the enabled one so it
+// still reads as unavailable, mirroring the checked pair (blue-6 / blue-7).
+.form-builder-aside__switch {
+  .mantine-Switch-input:not(:checked) + .mantine-Switch-track {
+    background-color: var(--mantine-color-gray-4);
+  }
+
+  .mantine-Switch-input:disabled:not(:checked) + .mantine-Switch-track,
+  .mantine-Switch-input[data-disabled]:not(:checked) + .mantine-Switch-track {
+    background-color: var(--mantine-color-gray-5);
+  }
+}
+
 // CASCADE MODAL CONTENTS
 
 .cascade-popup {

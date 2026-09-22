@@ -76,8 +76,9 @@ class UserOrganizationCreationTestCase(TestCase):
         self.user.extra_details.date_removed = timezone.now()
         self.user.extra_details.save(update_fields=['date_removed'])
 
-        # Access property, should return None and NOT create an Organization
-        self.assertIsNone(self.user.organization)
+        # Access property, should return a falsy `EmptyOrganization` and NOT
+        # create an Organization
+        assert not self.user.organization
 
         after_count = Organization.objects.filter(
             organization_users__user=self.user
@@ -98,8 +99,9 @@ class UserOrganizationCreationTestCase(TestCase):
         self.user.is_active = False
         self.user.save(update_fields=['is_active'])
 
-        # Access property,should return None and NOT create an Organization
-        self.assertIsNone(self.user.organization)
+        # Access property, should return a falsy `EmptyOrganization` and NOT
+        # create an Organization
+        assert not self.user.organization
 
         after_count = Organization.objects.filter(
             organization_users__user=self.user

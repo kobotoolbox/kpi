@@ -6,13 +6,6 @@
 
 import bem, { makeBem } from '#/bem'
 
-bem.KoboSelect = makeBem(null, 'kobo-select')
-bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper')
-bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'span')
-bem.KoboSelect__error = makeBem(bem.KoboSelect, 'error')
-bem.KoboSelect__optionWrapper = makeBem(bem.KoboSelect, 'option-wrapper')
-bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge')
-
 bem.PageWrapper = makeBem(null, 'page-wrapper')
 bem.PageWrapper__content = makeBem(bem.PageWrapper, 'content')
 

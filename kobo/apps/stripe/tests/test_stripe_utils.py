@@ -211,6 +211,16 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         (UsageType.STORAGE_BYTES, '1000', '500', '60', True, 1000),
         # no plan, addon, or default plan, use inf
         (UsageType.ASR_SECONDS, None, None, None, False, inf),
+        # parseable subscription, no addon
+        (UsageType.ASR_SECONDS, 'unparseable', None, None, False, inf),
+        # parseable subscription, missing addon
+        (UsageType.STORAGE_BYTES, 'unparseable', None, None, True, inf),
+        # parseable subscription, unparseable addon
+        (UsageType.STORAGE_BYTES, '100', 'unparseable', None, True, 100),
+        # unparseable subscription, parseable addon
+        (UsageType.STORAGE_BYTES, 'unparseable', '100', None, True, 100),
+        # both unparseable
+        (UsageType.STORAGE_BYTES, 'unparseable', 'unparseable', None, True, inf),
     )
     @unpack
     def test_determine_limit_for_org(
@@ -551,6 +561,67 @@ class OrganizationsUtilsTestCase(BaseTestCase):
                 == 2
             )
 
+    def test_get_paid_subscription_limits_none_returns_all_orgs(self):
+        """
+        Passing None fetches limits for every org without building a giant
+        subscriber_id IN clause.
+        """
+        first_metadata = {
+            f'{UsageType.MT_CHARACTERS}_limit': '100',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        second_metadata = {
+            f'{UsageType.MT_CHARACTERS}_limit': '200',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        generate_plan_subscription(self.organization, metadata=first_metadata)
+        generate_plan_subscription(self.second_organization, metadata=second_metadata)
+
+        limits_by_org = {
+            row['org_id']: row for row in get_paid_subscription_limits(None)
+        }
+
+        assert self.organization.id in limits_by_org
+        assert self.second_organization.id in limits_by_org
+        assert (
+            limits_by_org[self.organization.id][f'{UsageType.MT_CHARACTERS}_limit']
+            == '100'
+        )
+        assert (
+            limits_by_org[self.second_organization.id][
+                f'{UsageType.MT_CHARACTERS}_limit'
+            ]
+            == '200'
+        )
+
+    def test_effective_limits_addon_merge_does_not_mutate_shared_default(self):
+        """
+        Orgs without a subscription share one default-limits object; merging a
+        one-time addon for one org must not change any other org's limits.
+        """
+        generate_free_plan()
+        submission_addon = _create_one_time_addon_product(
+            {f'{UsageType.SUBMISSION}_limit': '10'}
+        )
+        customer = baker.make(Customer, subscriber=self.organization)
+        _create_payment(
+            product=submission_addon,
+            price=submission_addon.default_price,
+            customer=customer,
+        )
+
+        results = get_organizations_effective_limits(include_onetime_addons=True)
+
+        # org with the addon gets the free-plan default (5000) plus the addon (10)
+        assert results[self.organization.id][f'{UsageType.SUBMISSION}_limit'] == 5010
+        # every other org keeps the untouched shared default
+        assert (
+            results[self.second_organization.id][f'{UsageType.SUBMISSION}_limit']
+            == 5000
+        )
+
     @data(
         (True, False, 'My plan'),
         (True, True, 'My plan and My addon'),
@@ -578,8 +649,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             product = subscription.plan.product
             product.name = 'My addon'
             product.save()
-        org_user = self.organization.organization_users.first()
-        assert get_plan_name(org_user) == expected_name
+        assert get_plan_name(self.organization) == expected_name
 
     def test_get_default_plan_name(self):
         assert get_default_plan_name() is None

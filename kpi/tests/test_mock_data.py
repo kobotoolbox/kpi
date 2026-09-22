@@ -2,8 +2,8 @@ from collections import OrderedDict
 from copy import deepcopy
 from unittest.mock import patch
 
-from formpack import FormPack
 from django.test import TestCase, override_settings
+from formpack import FormPack
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data

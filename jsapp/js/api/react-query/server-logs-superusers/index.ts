@@ -961,8 +961,10 @@ Supports exact matching and range operators (e.g., gte, lte)
 **Total NLP Usage**
 - service_usage__total_nlp_usage__asr_seconds_all_time
 - service_usage__total_nlp_usage__mt_characters_all_time
+- service_usage__total_nlp_usage__llm_requests_all_time
 - service_usage__total_nlp_usage__asr_seconds_current_period
 - service_usage__total_nlp_usage__mt_characters_current_period
+- service_usage__total_nlp_usage__llm_requests_current_period
 
 **Total Storage/Submissions**
 - service_usage__total_storage_bytes
@@ -978,6 +980,7 @@ Metric:
 - asr_seconds
 - mt_characters
 - storage_bytes
+- llm_requests
 
 Value:
 - balance_value
@@ -1011,7 +1014,7 @@ Supports exact matching and range operators (e.g., gte, lte)
 - sso_is_active
 - accepted_tos
 - extra_details__data__newsletter_subscription
-- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
+- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes, llm_requests)
 - account_restricted
 
 ## Filterable fields by list:

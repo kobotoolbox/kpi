@@ -23,8 +23,68 @@ export const EXCLUDED_COLUMNS = [
   '_geolocation',
   'meta/instanceID',
   'meta/deprecatedID',
+  // Internal only: the list of form versions a submission has been through
+  'meta/formVersions',
   '_validation_status',
+  // The audit log, which a submission carries in its `meta` block per the ODK
+  // spec: https://getodk.github.io/xforms-spec/#metadata. The survey's own audit
+  // question is excluded by row type instead, see `EXCLUDED_ROW_TYPES`.
+  `meta/${META_QUESTION_TYPES.audit}`,
 ]
+
+/**
+ * Rows of these types never become columns, as neither carries a response: a
+ * `note` is just text on the screen, and `audit` delivers a log of how enumerators
+ * moved through the form as an attached CSV, leaving the cell a file name that no
+ * view here can open.
+ *
+ * NOTE: row types, not column keys, on purpose - nothing reserves these names, so
+ * an ordinary question called `audit` is data like any other.
+ */
+export const EXCLUDED_ROW_TYPES: AnyRowTypeName[] = [QuestionTypeName.note, META_QUESTION_TYPES.audit]
+
+/**
+ * These columns go at the very end of the list of columns, in this exact order.
+ * They hold metadata that is of lesser interest to users than the responses to
+ * the form questions.
+ *
+ * NOTE: this is part of the single source of truth for the order of columns,
+ * see `orderColumns` in `tableUtils.ts`. Anything listed here is also treated
+ * as metadata by `getMetadataColumns`, so don't add form questions. A key only
+ * counts when the form has no ordinary question by that name - nothing reserves
+ * these names, so `today` may well be somebody's own question.
+ */
+export const LAST_COLUMNS_ORDER: string[] = [
+  META_QUESTION_TYPES.username,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES['start-geopoint'],
+  // Both the current and the legacy name of the form version column
+  '__version__',
+  '_version_',
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
+  ADDITIONAL_SUBMISSION_PROPS._submitted_by,
+  ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid'],
+]
+
+/**
+ * Human friendly labels for the metadata columns (i.e. the columns that are not
+ * responses to the form questions, so they have no label in the form
+ * definition). Anything not listed here falls back to displaying the column key.
+ */
+export const METADATA_COLUMN_LABELS: { [key: string]: string } = {
+  [META_QUESTION_TYPES.start]: t('start'),
+  [META_QUESTION_TYPES.end]: t('end'),
+  [META_QUESTION_TYPES.today]: t('today'),
+  [META_QUESTION_TYPES.username]: t('username'),
+  [META_QUESTION_TYPES.deviceid]: t('device ID'),
+  [META_QUESTION_TYPES.phonenumber]: t('phone number'),
+  [ADDITIONAL_SUBMISSION_PROPS._submitted_by]: t('Submitted by'),
+  [ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']]: t('rootUuid'),
+}
 
 export enum SortValues {
   ASCENDING = 'ASCENDING',

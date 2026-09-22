@@ -3,6 +3,7 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { ServiceUsageResponse } from '#/api/models/serviceUsageResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { SubmissionResponse } from '#/dataInterface'
+import { getSubmissionRootUuid } from '#/utils'
 import { getAlertDefinitions } from './alertDefinitions'
 import type { ActiveAlert, AlertEvaluationContext, BulkActionType } from './types'
 
@@ -31,7 +32,10 @@ interface UseBulkProcessingAlertsReturn {
   hasBlockingError: boolean
   /** Submissions eligible after filtering */
   eligibleSubmissions: SubmissionResponse[]
-  /** UUIDs of eligible submissions */
+  /**
+   * Root uuids of the eligible submissions, ready to POST as `submission_uuids`. Send these rather than mapping
+   * `eligibleSubmissions` yourself, or edited rows get rejected as unknown.
+   */
   eligibleSubmissionUuids: string[]
 }
 
@@ -100,10 +104,10 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
 
     // Compute eligible submissions (not filtered)
     const eligibleSubmissions = selectedSubmissions.filter(
-      (submission) => !filteredSubmissionUuids.has(submission._uuid),
+      (submission) => !filteredSubmissionUuids.has(getSubmissionRootUuid(submission)),
     )
 
-    const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
+    const eligibleSubmissionUuids = eligibleSubmissions.map(getSubmissionRootUuid)
 
     // Compute evaluation state
     const hasErrors = activeAlerts.some((alert) => alert.type === 'error')

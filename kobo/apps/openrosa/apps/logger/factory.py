@@ -3,10 +3,10 @@
 # django-factories but it mimics their functionality...
 from datetime import timedelta
 
-from pyxform import custom_values, Survey
+from pyxform import Survey, custom_values
 from pyxform.builder import create_survey_element_from_dict
 
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 
 XFORM_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000"
 ONE_HOUR = timedelta(0, 3600)

@@ -5,8 +5,8 @@ from zoneinfo import ZoneInfo
 
 from django.test import TestCase
 from django.utils import timezone
-
 from formpack.utils.expand_content import SCHEMA_VERSION
+
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
 from kpi.serializers.v2.asset_version import AssetVersionListSerializer
@@ -159,8 +159,8 @@ class AssetVersionTestCase(TestCase):
             version = AssetVersion.objects.create(
                 asset=asset, version_content={'survey': []}, deployed=deployed
             )
-            date_modified = base_date if tied else (
-                base_date + timedelta(minutes=index)
+            date_modified = (
+                base_date if tied else (base_date + timedelta(minutes=index))
             )
             # `date_modified` is auto-set, so force our controlled value
             AssetVersion.objects.filter(pk=version.pk).update(
@@ -190,11 +190,11 @@ class AssetVersionTestCase(TestCase):
             asset,
             [
                 (False, '0.1'),  # undeployed change before any deployment
-                (True, '1'),     # first deployment
-                (True, '2'),     # second deployment
+                (True, '1'),  # first deployment
+                (True, '2'),  # second deployment
                 (False, '2.1'),  # form change after the 2nd deployment
                 (False, '2.2'),
-                (True, '3'),     # third deployment
+                (True, '3'),  # third deployment
                 (False, '3.1'),
             ],
             base_date,
@@ -206,8 +206,7 @@ class AssetVersionTestCase(TestCase):
         rows = list(asset.asset_versions.all())
         with self.assertNumQueries(1):
             computed_by_uid = {
-                version.uid: serializer.get_version_number(version)
-                for version in rows
+                version.uid: serializer.get_version_number(version) for version in rows
             }
         self.assertEqual(computed_by_uid, expected_by_uid)
 
@@ -264,7 +263,7 @@ class AssetVersionTestCase(TestCase):
             asset,
             [
                 (False, '0.1'),  # draft before the deployment
-                (True, '1'),     # deployment
+                (True, '1'),  # deployment
                 (False, '1.1'),  # draft after the deployment (not "1.2")
             ],
             tied,

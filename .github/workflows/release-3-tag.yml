@@ -6,14 +6,10 @@ concurrency:
   cancel-in-progress: false
 
 
-# Pipeline: determine version → pull-transifex → tag → build-image → [bump, linear, deploy-to-master] → notify
+# Pipeline: determine version → pull-transifex → tag → build-image → bump → [linear-release, deploy-issue] → notify
 on:
   workflow_dispatch:
     inputs:
-      release_branch:
-        description: 'Release branch to tag (e.g. release/2.026.27). Leave empty to auto-detect the latest.'
-        required: false
-        type: string
       force:
         description: 'Skip branch eligibility checks (for security hotfixes on older branches).'
         required: false
@@ -21,42 +17,36 @@ on:
         default: false
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
-  # Determine which release branch to work on.
-  # If the user provided one, use it. Otherwise, find the latest release branch.
+  resolve-author:
+    uses: './.github/workflows/resolve-author.yml'
+
+  # Validate the selected branch and pass it downstream.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
-    - name: Determine release branch
+    - name: Validate selected branch is a release branch
       id: branch
       env:
-        INPUT_BRANCH: ${{ inputs.release_branch }}
+        REF_NAME: ${{ github.ref_name }}
       run: |
         set -xe
-        if [[ -n "$INPUT_BRANCH" ]]; then
-          # Validate that the branch exists
-          if ! git show-branch "origin/$INPUT_BRANCH" &>/dev/null; then
-            echo "::error::Branch '$INPUT_BRANCH' does not exist."
-            exit 1
-          fi
-          echo "current_branch=$INPUT_BRANCH" >> "$GITHUB_OUTPUT"
-        else
-          # Auto-detect: find the latest release branch (the one whose next is main)
-          # Use the same logic as find_releases.sh but just find the latest
-          LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
-          if [[ -z "$LATEST" ]]; then
-            echo "::error::No release branches found."
-            exit 1
-          fi
-          echo "current_branch=$LATEST" >> "$GITHUB_OUTPUT"
+        if [[ "$REF_NAME" != release/* ]]; then
+          echo "::error::This workflow must be run from a release branch (e.g. release/2.026.27). You selected '$REF_NAME'. Please re-run and pick the correct branch in the 'Use workflow from' dropdown."
+          exit 1
         fi
+        echo "current_branch=$REF_NAME" >> "$GITHUB_OUTPUT"
 
 
   version:
@@ -78,7 +68,7 @@ jobs:
     if: ${{ !cancelled() && !failure() && inputs.force != true }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -132,7 +122,7 @@ jobs:
     if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -141,18 +131,38 @@ jobs:
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
         ref: ${{ needs.version.outputs.current_branch }}
 
+    - name: Skip if translations already pulled
+      id: check
+      env:
+        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
+      run: |
+        # Skip if last commit is already a transifex pull (re-run after successful pull but failed tag)
+        if git log -1 --format='%s' | grep -q '^chore: pull transifex translations for '; then
+          echo "::notice::Translations already pulled (last commit is a transifex pull). Skipping."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        # Skip if the tag already exists (re-run after successful tag without a pull)
+        elif git rev-parse "refs/tags/$CURRENT_PATCH" &>/dev/null; then
+          echo "::notice::Tag $CURRENT_PATCH already exists. Skipping transifex pull to avoid moving branch past tag."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Pull Transifex translations
+      if: steps.check.outputs.skip != 'true'
       uses: transifex/cli-action@v2
       with:
         token: ${{ secrets.TRANSIFEX_API }}
         args: 'pull -a -f --mode reviewed'
 
     - name: Commit translations if changed
+      if: steps.check.outputs.skip != 'true'
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
         BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
-        if git diff-index --quiet HEAD; then
+        git status
+        git add .
+        if git diff --cached --quiet; then
+          echo "No translation changes to commit."
           exit 0
         fi
         # Abort if someone pushed to the branch while translations were being pulled
@@ -161,7 +171,6 @@ jobs:
           echo "::error::Unexpected commits on $BRANCH since checkout. Aborting."
           exit 1
         fi
-        git add .
         git commit -m "chore: pull transifex translations for $VERSION"
         git push
 
@@ -169,6 +178,7 @@ jobs:
   # Regenerate changelog with all tags known (authoritative, replaces stabilize draft).
   changelog:
     needs:
+      - pull-transifex
       - version
       - validate
     if: ${{ !cancelled() && !failure() }}
@@ -193,7 +203,7 @@ jobs:
     outputs:
       tag_created: ${{ steps.create-tag.outputs.tag_created }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -254,7 +264,7 @@ jobs:
     env:
       DOCKER_HUB_REPO: kobotoolbox/kpi
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 1
@@ -322,7 +332,7 @@ jobs:
       - build-image
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.version.outputs.current_branch }}
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -396,55 +406,151 @@ jobs:
         fi
 
 
-  linear:
+  linear-release:
     runs-on: ubuntu-24.04
     needs:
       - version
       - bump
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
-        ref: ${{ needs.version.outputs.current_branch }}
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
         fetch-depth: 0
         fetch-tags: true
 
     # Final sync from prev_patch catches any unreleased commits from the prev
     # branch that were merged forward (the stabilize workflow uses branch tip
     # which excludes these).
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         release_version: ${{ needs.version.outputs.current_patch }}
+        name: ${{ needs.version.outputs.current_patch }}
         base_ref: ${{ needs.version.outputs.prev_patch }}
 
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
         release_version: ${{ needs.version.outputs.current_patch }}
         stage: "Pending Release (preview on kf.master)"
 
 
-  # Create deployment Linear issue
-  # TODO
+  # Create deployment Linear issue for the Infrastructure team.
+  # Detects if any new migrations reference SKIP_HEAVY_MIGRATIONS.
+  deploy-issue:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - bump
+    if: ${{ !cancelled() && !failure() }}
+    outputs:
+      issue-identifier: ${{ steps.create.outputs.issue-identifier }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: refs/tags/${{ needs.version.outputs.current_patch }}
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Detect heavy migrations
+      id: heavy
+      env:
+        PREV_PATCH: ${{ needs.version.outputs.prev_patch }}
+      run: |
+        # Find migration files added/changed since the previous tag
+        MIGRATION_FILES=$(git diff --name-only "$PREV_PATCH"..HEAD -- '*/migrations/*.py' \
+          | grep -v '__init__.py' || true)
+
+        if [[ -z "$MIGRATION_FILES" ]]; then
+          echo "has_heavy=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Check which migration files reference SKIP_HEAVY_MIGRATIONS
+        HEAVY_FILES=""
+        while IFS= read -r file; do
+          if [[ -f "$file" ]] && grep -q 'SKIP_HEAVY_MIGRATIONS' "$file"; then
+            HEAVY_FILES="${HEAVY_FILES}${file}"$'\n'
+          fi
+        done <<< "$MIGRATION_FILES"
+
+        if [[ -n "$HEAVY_FILES" ]]; then
+          echo "has_heavy=true" >> "$GITHUB_OUTPUT"
+          echo "heavy_files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${HEAVY_FILES}EOF" >> "$GITHUB_OUTPUT"
+        else
+          echo "has_heavy=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Fetch deploy template from Linear
+      id: template
+      uses: ./.github/actions/fetch-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        issue-id: 'INFRA-565'
+
+    - name: Build issue description
+      id: body
+      env:
+        VERSION: ${{ needs.version.outputs.current_patch }}
+        HAS_HEAVY: ${{ steps.heavy.outputs.has_heavy }}
+        HEAVY_FILES: ${{ steps.heavy.outputs.heavy_files }}
+        TEMPLATE: ${{ steps.template.outputs.body }}
+      run: |
+        # Build the heavy migrations warning block
+        HEAVY_BLOCK=""
+        if [[ "$HAS_HEAVY" == "true" ]]; then
+          HEAVY_BLOCK=$(printf '%s\n' \
+            "> [!CAUTION]" \
+            "> This release contains migrations that use \`SKIP_HEAVY_MIGRATIONS\`." \
+            "> Review the following files and run the heavy migrations manually after deployment:" \
+            ">" \
+          )
+          while IFS= read -r file; do
+            [[ -n "$file" ]] && HEAVY_BLOCK="${HEAVY_BLOCK}"$'\n'"> - \`$file\`"
+          done <<< "$HEAVY_FILES"
+        fi
+
+        # Substitute placeholders in template
+        BODY="${TEMPLATE/\$HEAVY_MIGRATIONS/$HEAVY_BLOCK}"
+        BODY="${BODY//\$VERSION/$VERSION}"
+
+        {
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Upsert Linear deployment issue
+      id: create
+      uses: ./.github/actions/upsert-linear-issue
+      with:
+        linear-api-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        title: "Deploy kpi ${{ needs.version.outputs.current_patch }}"
+        description: ${{ steps.body.outputs.body }}
+        team-id: 'cb3bc542-ef8f-4f91-9876-dd9d33c00333'
+        label-ids: '["144fdb8b-f79f-44fb-8ac8-72ddc8c2e133"]'
 
 
   notify:
     needs:
       - version
       - changelog
-      - linear
+      - linear-release
+      - deploy-issue
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":package: `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub. `kobo-docker` and `kobo-install` bumped. @*sysadmin*: please deploy."
+      content: ":package: `${{ needs.version.outputs.current_patch }}` tagged, built and pushed to Docker Hub. `kobo-docker` and `kobo-install` bumped. @*sysadmin*: please deploy ${{ needs.deploy-issue.outputs.issue-identifier }}"
 
 
   on-failure:
     needs:
+      - resolve-author
       - version
       - validate
       - pull-transifex
@@ -452,10 +558,11 @@ jobs:
       - changelog
       - build-image
       - bump
-      - linear
-    if: ${{ !cancelled() && failure() }}
+      - linear-release
+      - deploy-issue
+    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.validate.result == 'failure' || needs.pull-transifex.result == 'failure' || needs.tag.result == 'failure' || needs.changelog.result == 'failure' || needs.build-image.result == 'failure' || needs.bump.result == 'failure' || needs.linear-release.result == 'failure' || needs.deploy-issue.result == 'failure') }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. @*devs* please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."

@@ -95,13 +95,19 @@ PROJECT_HISTORY_LOGS_EXPORT_FIELDS = (
 
 CONFIG = {
     'assets': {
-        'queryset': Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
+        # `owner__is_active` keeps project view exports consistent with their API
+        # counterparts, which exclude deactivated and removed accounts. The
+        # queryset is lazy because traversing a relation requires the app
+        # registry to be ready, which it is not while this module is imported.
+        'queryset': lambda: Asset.objects.filter(
+            asset_type=ASSET_TYPE_SURVEY, owner__is_active=True
+        ),
         'q_term': 'settings__country_codes__in_array',
         'key': SETTINGS,
         'columns': ASSET_FIELDS + ASSET_FIELDS_EXTRA + SETTINGS_FIELDS,
     },
     'users': {
-        'queryset': User.objects.all(),
+        'queryset': lambda: User.objects.filter(is_active=True),
         'q_term': 'extra_details__data__country__in',
         'key': METADATA,
         'columns': USER_FIELDS + METADATA_FIELDS,
@@ -165,7 +171,7 @@ def get_user_data(filtered_queryset: QuerySet) -> QuerySet:
     return (
         filtered_queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
-            mfa_is_active=F('mfa_methods__is_active'),
+            mfa_is_active=F('mfa_methods_wrapper__is_active'),
             metadata=F('extra_details__data'),
             asset_count=Count('assets'),
         )

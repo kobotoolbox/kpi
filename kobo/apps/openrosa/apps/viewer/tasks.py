@@ -39,14 +39,12 @@ def create_async_export(xform, export_type, query, force_xlsx, options=None):
         'query': query,
     }
     if export_type in [Export.XLS_EXPORT, Export.CSV_EXPORT]:
-        if options and "group_delimiter" in options:
-            arguments["group_delimiter"] = options["group_delimiter"]
-        if options and "split_select_multiples" in options:
-            arguments["split_select_multiples"] =\
-                options["split_select_multiples"]
-        if options and "binary_select_multiples" in options:
-            arguments["binary_select_multiples"] =\
-                options["binary_select_multiples"]
+        if options and 'group_delimiter' in options:
+            arguments['group_delimiter'] = options['group_delimiter']
+        if options and 'split_select_multiples' in options:
+            arguments['split_select_multiples'] = options['split_select_multiples']
+        if options and 'binary_select_multiples' in options:
+            arguments['binary_select_multiples'] = options['binary_select_multiples']
 
         # start async export
         if export_type == Export.XLS_EXPORT:
@@ -99,14 +97,13 @@ def create_xls_export(username, id_string, export_id, query=None,
         export.internal_status = Export.FAILED
         export.save()
         # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception("XLS Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e, sys.exc_info())
+        details = {'export_id': export_id, 'username': username, 'id_string': id_string}
+        report_exception(
+            'XLS Export Exception: Export ID - '
+            '%(export_id)s, /%(username)s/%(id_string)s' % details,
+            e,
+            sys.exc_info(),
+        )
         # Raise for now to let celery know we failed
         # - doesnt seem to break celery`
         raise
@@ -136,14 +133,13 @@ def create_csv_export(username, id_string, export_id, query=None,
         export.internal_status = Export.FAILED
         export.save()
         # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception("CSV Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e, sys.exc_info())
+        details = {'export_id': export_id, 'username': username, 'id_string': id_string}
+        report_exception(
+            'CSV Export Exception: Export ID - '
+            '%(export_id)s, /%(username)s/%(id_string)s' % details,
+            e,
+            sys.exc_info(),
+        )
         raise
     else:
         return gen_export.id
@@ -159,14 +155,12 @@ def create_zip_export(username, id_string, export_id, query=None):
         export.internal_status = Export.FAILED
         export.save()
         # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception("Zip Export Exception: Export ID - "
-                         "%(export_id)s, /%(username)s/%(id_string)s"
-                         % details, e)
+        details = {'export_id': export_id, 'username': username, 'id_string': id_string}
+        report_exception(
+            'Zip Export Exception: Export ID - '
+            '%(export_id)s, /%(username)s/%(id_string)s' % details,
+            e,
+        )
         raise
     else:
         if not settings.TESTING:
@@ -217,14 +211,14 @@ def email_mongo_sync_status():
         after_report = mongo_sync_status(remongo=True)
     else:
         # no synchronization is needed
-        after_report = "No synchronization needed"
+        after_report = 'No synchronization needed'
 
     # send the before and after reports, along with instructions for
     # syncing manually, as an email to the administrators
-    mail_admins("Mongo DB sync status",
-                '\n\n'.join([before_report,
-                             after_report,
-                             SYNC_MONGO_MANUAL_INSTRUCTIONS]))
+    mail_admins(
+        'Mongo DB sync status',
+        '\n\n'.join([before_report, after_report, SYNC_MONGO_MANUAL_INSTRUCTIONS]),
+    )
 
 
 @shared_task(soft_time_limit=60, time_limit=90)

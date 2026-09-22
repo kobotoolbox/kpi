@@ -23,7 +23,7 @@ export default function ColumnsHideDropdown(props: ColumnsHideFormProps) {
     >
       <Menu.Target>
         <ButtonNew variant='transparent' size='md' leftIcon='hide' mr='lg'>
-          {t('hide fields')}
+          {t('Hide fields')}
         </ButtonNew>
       </Menu.Target>
 

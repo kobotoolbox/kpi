@@ -45,7 +45,15 @@ export default function TranscriptTab({
     isSupplementVersionAutomatic(transcriptVersion) &&
     (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
   ) {
-    return <TranscriptPoll key={submissionKey} asset={asset} questionXpath={questionXpath} submission={submission} />
+    return (
+      <TranscriptPoll
+        key={submissionKey}
+        asset={asset}
+        questionXpath={questionXpath}
+        submission={submission}
+        activeBulkActions={activeBulkActions}
+      />
+    )
   }
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (

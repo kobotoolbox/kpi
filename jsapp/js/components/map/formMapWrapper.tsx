@@ -2,17 +2,15 @@ import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
 import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
-import type { WithRouterProps } from '#/router/legacy'
-import FormMap from '.'
+import FormMap, { SUBMISSIONS_PER_PAGE } from '.'
 
-interface FormMapWrapperProps extends WithRouterProps {
+interface FormMapWrapperProps {
   asset: AssetResponse
   /** A question/row name for map to focus on given question data */
   viewby?: string
 }
 
 const DEFAULT_PAGE_SIZE = 1
-const SUBMISSIONS_PER_PAGE = 1000
 
 /**
  * Wrapper for the `FormMap` component so we can use hooks without doing a full refactor of `FormMap`

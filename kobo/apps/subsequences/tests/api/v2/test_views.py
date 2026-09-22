@@ -155,3 +155,73 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
             },
         )
         assert res.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_cannot_create_transcription_on_text_question(self):
+        asset = self._create_text_asset()
+        res = self.client.post(
+            self._advanced_features_url(asset),
+            data={
+                'action': 'manual_transcription',
+                'params': json.dumps([{'language': 'en'}]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert not QuestionAdvancedFeature.objects.filter(
+            asset=asset, action='manual_transcription'
+        ).exists()
+
+    def test_can_create_translation_on_text_question(self):
+        asset = self._create_text_asset()
+        res = self.client.post(
+            self._advanced_features_url(asset),
+            data={
+                'action': 'manual_translation',
+                'params': json.dumps([{'language': 'fr'}]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_201_CREATED
+
+    def test_can_create_qual_on_text_question(self):
+        asset = self._create_text_asset()
+        res = self.client.post(
+            self._advanced_features_url(asset),
+            data={
+                'action': 'manual_qual',
+                'params': json.dumps([self._qual_text_param()]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_201_CREATED
+
+    def test_can_create_qual_on_audio_question(self):
+        # regression: audio remains a valid qual source
+        res = self.client.post(
+            self.list_actions_url,
+            data={
+                'action': 'manual_qual',
+                'params': json.dumps([self._qual_text_param()]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_201_CREATED
+
+    def _advanced_features_url(self, asset):
+        return reverse(
+            'api_v2:advanced-features-list',
+            kwargs={'uid_asset': asset.uid},
+        )
+
+    def _create_text_asset(self):
+        return Asset.objects.create(
+            owner=self.asset.owner,
+            content={'survey': [{'type': 'text', 'label': 'q1', 'name': 'q1'}]},
+        )
+
+    def _qual_text_param(self):
+        return {
+            'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
+            'type': 'qualText',
+            'labels': {'_default': 'Summary'},
+        }

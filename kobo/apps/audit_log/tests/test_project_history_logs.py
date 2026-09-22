@@ -56,6 +56,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, AssetFile, ObjectPermission, PairedData
 from kpi.models.asset import AssetSetting
+from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.utils.strings import to_str
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -926,6 +927,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['download_url'], media.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], media.md5_hash)
 
+    @patch_ssrf_dns()
     @responses.activate
     @data(
         # File or url, change asset name?

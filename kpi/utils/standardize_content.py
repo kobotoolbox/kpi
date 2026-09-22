@@ -1,8 +1,8 @@
 # coding: utf-8
 from copy import deepcopy
 
+from formpack.utils.expand_content import SCHEMA_VERSION, expand_content
 from formpack.utils.replace_aliases import replace_aliases
-from formpack.utils.expand_content import expand_content, SCHEMA_VERSION
 
 ALLOWED_TYPES = {
     'score__row': True,

@@ -1,28 +1,16 @@
 import React from 'react'
 
-import cx from 'classnames'
+import { Checkbox } from '@mantine/core'
+import { IconBrandInstagramFilled, IconBrandLinkedinFilled, IconBrandTwitterFilled } from '@tabler/icons-react'
+import KoboIcon from '#/components/common/KoboIcon'
 import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
+import Textarea from '#/components/common/Textarea'
 import { addRequiredToLabel } from '#/textUtils'
-import { recordValues } from '#/utils'
-import Checkbox from '../components/common/checkbox'
-import TextBox from '../components/common/textBox'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
+import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
-import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'
-
-const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
-  return {
-    value: name,
-    label: label,
-  }
-})
-
-const GENDER_SELECT_OPTIONS = [
-  { value: 'male', label: t('Male') },
-  { value: 'female', label: t('Female') },
-  { value: 'other', label: t('Other') },
-]
 
 type UserFieldValue = string | boolean
 
@@ -197,14 +185,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (fieldCount++,
           (
             <div className={styles.field}>
-              <TextBox
+              <TextInput
+                size='sm'
                 label={getLabel('name')}
                 required={isRequired('name')}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
+                onChange={(evt) => onAnyFieldChange('name', evt.currentTarget.value)}
                 value={props.values.name}
-                errors={props.errors?.name}
+                error={props.errors?.name}
                 placeholder={t('Use this to display your real name to other users')}
-                renderFocused
+                autoFocus
               />
             </div>
           ))}
@@ -263,12 +252,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (fieldCount++,
           (
             <div className={styles.field}>
-              <TextBox
+              <TextInput
+                size='sm'
                 label={getLabel('city')}
                 required={isRequired('city')}
                 value={props.values.city || ''}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
-                errors={props.errors?.city}
+                onChange={(evt) => onAnyFieldChange('city', evt.currentTarget.value)}
+                error={props.errors?.city}
               />
             </div>
           ))}
@@ -296,7 +286,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {isOrganizationTypeFieldToBeDisplayed() &&
           (fieldCount++,
           (
-            <div className={cx(styles.field, styles.orgTypeDropdown)}>
+            <div className={styles.field}>
               <Select
                 size='sm'
                 label={getLabel('organization_type')}
@@ -327,12 +317,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Organization */}
         {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped() && (
           <div className={styles.field}>
-            <TextBox
+            <TextInput
+              size='sm'
               label={getLabel('organization')}
               required={isRequired('organization')}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization')}
+              onChange={(evt) => onAnyFieldChange('organization', evt.currentTarget.value)}
               value={props.values.organization}
-              errors={props.errors?.organization}
+              error={props.errors?.organization}
             />
           </div>
         )}
@@ -340,15 +331,16 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Organization Website */}
         {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped() && (
           <div className={styles.field}>
-            <TextBox
+            <TextInput
               label={getLabel('organization_website')}
               type='url'
+              size='sm'
               value={props.values.organization_website || ''}
               required={isRequired('organization_website')}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization_website')}
-              onBlur={updateWebsiteAddress}
-              onKeyPress={onWebsiteKeydown}
-              errors={props.errors?.organization_website}
+              onChange={(evt) => onAnyFieldChange('organization_website', evt.currentTarget.value)}
+              onBlur={(evt) => updateWebsiteAddress(evt.currentTarget.value)}
+              onKeyDown={(evt) => onWebsiteKeydown(evt.key)}
+              error={props.errors?.organization_website}
             />
           </div>
         )}
@@ -358,13 +350,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Bio */}
         {isFieldToBeDisplayed('bio') && (
           <div className={styles.field}>
-            <TextBox
-              type='text-multiline'
+            <Textarea
+              autosize
+              size='sm'
+              minRows={2}
               label={getLabel('bio')}
               required={isRequired('bio')}
               value={props.values.bio || ''}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
-              errors={props.errors?.bio}
+              onChange={(evt) => onAnyFieldChange('bio', evt.currentTarget.value)}
+              error={props.errors?.bio}
             />
           </div>
         )}
@@ -379,12 +373,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             {/* Twitter */}
             {isFieldToBeDisplayed('twitter') && (
               <div className={styles.field}>
-                <TextBox
-                  startIcon='logo-twitter'
+                <TextInput
+                  size='sm'
+                  leftSection={<KoboIcon icon={IconBrandTwitterFilled} size='sm' />}
                   placeholder={getLabelWithRequired('twitter')}
                   value={props.values.twitter || ''}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
-                  errors={props.errors?.twitter}
+                  onChange={(evt) => onAnyFieldChange('twitter', evt.currentTarget.value)}
+                  error={props.errors?.twitter}
                 />
               </div>
             )}
@@ -392,12 +387,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             {/* LinkedIn */}
             {isFieldToBeDisplayed('linkedin') && (
               <div className={styles.field}>
-                <TextBox
-                  startIcon='logo-linkedin'
+                <TextInput
+                  size='sm'
+                  leftSection={<KoboIcon icon={IconBrandLinkedinFilled} size='sm' />}
                   placeholder={getLabelWithRequired('linkedin')}
                   value={props.values.linkedin || ''}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
-                  errors={props.errors?.linkedin}
+                  onChange={(evt) => onAnyFieldChange('linkedin', evt.currentTarget.value)}
+                  error={props.errors?.linkedin}
                 />
               </div>
             )}
@@ -405,12 +401,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             {/* Instagram */}
             {isFieldToBeDisplayed('instagram') && (
               <div className={styles.field}>
-                <TextBox
-                  startIcon='logo-instagram'
+                <TextInput
+                  size='sm'
+                  leftSection={<KoboIcon icon={IconBrandInstagramFilled} size='sm' />}
                   placeholder={getLabelWithRequired('instagram')}
                   value={props.values.instagram || ''}
-                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'instagram')}
-                  errors={props.errors?.instagram}
+                  onChange={(evt) => onAnyFieldChange('instagram', evt.currentTarget.value)}
+                  error={props.errors?.instagram}
                 />
               </div>
             )}
@@ -426,7 +423,9 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
               <Checkbox
                 checked={props.values.newsletter_subscription || false}
-                onChange={(isChecked: boolean) => onAnyFieldChange('newsletter_subscription', isChecked)}
+                onChange={(evt: React.ChangeEvent<HTMLInputElement>) =>
+                  onAnyFieldChange('newsletter_subscription', evt.currentTarget.checked)
+                }
                 label={getLabel('newsletter_subscription')}
               />
             </div>

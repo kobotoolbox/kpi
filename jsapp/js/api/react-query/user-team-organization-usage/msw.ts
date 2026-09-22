@@ -24,6 +24,8 @@ import { CustomAssetUsageDeploymentStatusEnum } from '../../models/customAssetUs
 
 import type { EmailAddress } from '../../models/emailAddress'
 
+import type { EmailConfirmationRequestResponse } from '../../models/emailConfirmationRequestResponse'
+
 import type { InviteCreateResponse } from '../../models/inviteCreateResponse'
 
 import type { InviteResponse } from '../../models/inviteResponse'
@@ -107,6 +109,13 @@ export const getApiV2AssetUsageListResponseMock = (
     submission_count_current_period: faker.number.int({ min: undefined, max: undefined }),
     submission_count_all_time: faker.number.int({ min: undefined, max: undefined }),
   })),
+  ...overrideResponse,
+})
+
+export const getApiV2EmailConfirmationsCreateResponseMock = (
+  overrideResponse: Partial<EmailConfirmationRequestResponse> = {},
+): EmailConfirmationRequestResponse => ({
+  detail: faker.string.alpha({ length: { min: 10, max: 20 } }),
   ...overrideResponse,
 })
 
@@ -838,15 +847,16 @@ export const getApiV2OrganizationsMembersListResponseMock = (
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+    role: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(MemberRoleEnum)), null]),
     url: faker.internet.url(),
     user: faker.internet.url(),
-    user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     user__email: faker.internet.email(),
-    user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    user__has_mfa_enabled: faker.datatype.boolean(),
+    user__extra_details__name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    user__has_mfa_enabled: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+    user__has_sso_enabled: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
-    user__is_active: faker.datatype.boolean(),
+    user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
     invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
   })),
   ...overrideResponse,
@@ -871,15 +881,16 @@ export const getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock = (
 export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
-  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+  role: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(MemberRoleEnum)), null]),
   url: faker.internet.url(),
   user: faker.internet.url(),
-  user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   user__email: faker.internet.email(),
-  user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  user__has_mfa_enabled: faker.datatype.boolean(),
+  user__extra_details__name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  user__has_mfa_enabled: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+  user__has_sso_enabled: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
-  user__is_active: faker.datatype.boolean(),
+  user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
   ...overrideResponse,
 })
@@ -903,15 +914,16 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock
 export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
-  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+  role: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(MemberRoleEnum)), null]),
   url: faker.internet.url(),
   user: faker.internet.url(),
-  user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   user__email: faker.internet.email(),
-  user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  user__has_mfa_enabled: faker.datatype.boolean(),
+  user__extra_details__name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  user__has_mfa_enabled: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+  user__has_sso_enabled: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
-  user__is_active: faker.datatype.boolean(),
+  user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([
     { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
     null,
@@ -1507,6 +1519,32 @@ export const getApiV2AssetUsageListMockHandler = (
               ? await overrideResponse(info)
               : overrideResponse
             : getApiV2AssetUsageListResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2EmailConfirmationsCreateMockHandler = (
+  overrideResponse?:
+    | EmailConfirmationRequestResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<EmailConfirmationRequestResponse> | EmailConfirmationRequestResponse),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/api/v2/email-confirmations{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2EmailConfirmationsCreateResponseMock(),
         ),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       )
@@ -2382,6 +2420,7 @@ export const getMeSocialAccountsDestroyMockHandler = (
 }
 export const getUserTeamOrganizationUsageMock = () => [
   getApiV2AssetUsageListMockHandler(),
+  getApiV2EmailConfirmationsCreateMockHandler(),
   getApiV2OrganizationsListMockHandler(),
   getApiV2OrganizationsRetrieveMockHandler(),
   getApiV2OrganizationsPartialUpdateMockHandler(),

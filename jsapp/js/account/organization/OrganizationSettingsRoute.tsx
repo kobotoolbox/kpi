@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
+import { ORGANIZATION_TYPES } from '#/account/accountFieldOptions'
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -11,22 +12,14 @@ import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsPartialUpdate,
 } from '#/api/react-query/user-team-organization-usage'
+import Select from '#/components/common/Select'
+import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
-import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { getSimpleMMOLabel } from './organization.utils'
-
-export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
-  'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
-  government: { name: 'government', label: t('Government institution') },
-  educational: { name: 'educational', label: t('Educational organization') },
-  commercial: { name: 'commercial', label: t('A commercial/for-profit company') },
-  none: { name: 'none', label: t('I am not associated with any organization') },
-}
 
 /**
  * Renders few fields with organization related settings, like name or website
@@ -114,14 +107,14 @@ export default function OrganizationSettingsRoute() {
           On all instances, both owner and admins should be able to edit
           organization name.
         */}
-        <TextBox
+        <TextInput
           className={styles.field}
           label={t('##TEAM_OR_ORGANIZATION## name').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
           value={name}
           required
-          onChange={handleChangeName}
+          onChange={(evt) => handleChangeName(evt.currentTarget.value)}
           disabled={!isUserAdminOrOwner || orgQuery.isFetching || patchOrganization.isPending}
-          errors={name === ''}
+          error={name === ''}
         />
 
         {/*
@@ -130,15 +123,15 @@ export default function OrganizationSettingsRoute() {
           visible.
         */}
         {isStripeEnabled && (
-          <TextBox
+          <TextInput
             className={styles.field}
             type='url'
             label={t('##TEAM_OR_ORGANIZATION## website').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
             value={website}
             required
-            onChange={handleChangeWebsite}
+            onChange={(evt) => handleChangeWebsite(evt.currentTarget.value)}
             disabled={!isUserAdminOrOwner || orgQuery.isFetching || patchOrganization.isPending}
-            errors={website === ''}
+            error={website === ''}
           />
         )}
       </section>
@@ -150,20 +143,19 @@ export default function OrganizationSettingsRoute() {
       */}
       {isStripeEnabled && orgType && (
         <section className={styles.fieldsRow}>
-          <KoboSelect
+          <Select
             className={styles.fieldLong}
-            name='org-settings-type'
-            type='outline'
-            size='l'
-            isDisabled // always disabled
+            size='md'
+            disabled // always disabled
+            searchable={false}
             label={t('##TEAM_OR_ORGANIZATION## type').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
-            options={[
+            data={[
               {
                 value: 'orgType',
                 label: currentTypeLabel,
               },
             ]}
-            selectedOption='orgType'
+            value='orgType'
             onChange={() => null}
           />
         </section>

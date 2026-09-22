@@ -11,22 +11,30 @@ on:
         type: string
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
-  # Validate that the tag actually exists and derive the release branch from it.
+  resolve-author:
+    uses: './.github/workflows/resolve-author.yml'
+
+  # Validate that the tag exists and matches the selected branch.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
-    - name: Validate tag and derive release branch
+    - name: Validate tag and selected branch match
       id: branch
       env:
         TAG: ${{ inputs.tag }}
+        REF_NAME: ${{ github.ref_name }}
       run: |
         set -xe
         if ! git rev-parse "refs/tags/$TAG" &>/dev/null; then
@@ -34,7 +42,12 @@ jobs:
           exit 1
         fi
         MINOR=$(echo "$TAG" | grep -oP '^\d+\.\d+\.\d+')
-        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
+        EXPECTED_BRANCH="release/$MINOR"
+        if [[ "$REF_NAME" != "$EXPECTED_BRANCH" ]]; then
+          echo "::error::Tag '$TAG' belongs to branch '$EXPECTED_BRANCH', but you selected '$REF_NAME'. Please re-run and pick '$EXPECTED_BRANCH' in the 'Use workflow from' dropdown."
+          exit 1
+        fi
+        echo "current_branch=$EXPECTED_BRANCH" >> "$GITHUB_OUTPUT"
 
 
   version:
@@ -55,7 +68,7 @@ jobs:
     outputs:
       body: ${{ steps.changelog.outputs.body }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -89,7 +102,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Create GitHub release for kpi
       env:
@@ -183,13 +196,13 @@ jobs:
       - github-release-kobo-install
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
-    - uses: linear/linear-release-action@af56a9a388625921f3757a2f988e4d7aca958377 # v.0.15.0
+    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
       with:
-        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: complete
         release_version: ${{ inputs.tag }}
 
@@ -211,15 +224,16 @@ jobs:
 
   on-failure:
     needs:
+      - resolve-author
       - version
       - changelog
       - github-release-kpi
       - github-release-kobo-docker
       - github-release-kobo-install
       - linear
-    if: ${{ !cancelled() && failure() }}
+    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.changelog.result == 'failure' || needs.github-release-kpi.result == 'failure' || needs.github-release-kobo-docker.result == 'failure' || needs.github-release-kobo-install.result == 'failure' || needs.linear.result == 'failure') }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. @*devs* please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."

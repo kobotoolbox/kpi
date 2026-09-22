@@ -11,6 +11,7 @@ import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import styles from './changePasswordRoute.module.scss'
+import { ACCOUNT_ROUTES } from './routes.constants'
 import UpdatePasswordForm from './security/password/updatePasswordForm.component'
 
 bem.AccountSettings = makeBem(null, 'account-settings')
@@ -22,6 +23,10 @@ bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions')
 const ChangePasswordRoute = class ChangePassword extends React.Component<WithRouterProps> {
   close() {
     this.props.router.navigate(-1)
+  }
+
+  onPasswordUpdated() {
+    this.props.router.navigate(ACCOUNT_ROUTES.SECURITY)
   }
 
   render() {
@@ -44,7 +49,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
             </bem.AccountSettings__item>
 
             <div className={styles.fieldsWrapper}>
-              <UpdatePasswordForm />
+              <UpdatePasswordForm onSuccess={this.onPasswordUpdated.bind(this)} />
             </div>
           </bem.AccountSettings__item>
         </bem.AccountSettings>

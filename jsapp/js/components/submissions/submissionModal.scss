@@ -51,21 +51,9 @@
   justify-content: space-between;
   margin-bottom: 20px;
 
-  .k-select {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    width: auto;
-
-    .k-select__label {
-      white-space: nowrap;
-      margin: 0;
-    }
-
-    .kobo-dropdown {
-      min-width: 140px;
-    }
+  // Keep the dropdowns wide enough for their labels and longest options
+  > * {
+    min-width: 140px;
   }
 }
 

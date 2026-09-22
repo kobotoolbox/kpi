@@ -29,7 +29,10 @@ module.exports = do ->
       rIds = []
       gatherId = (r)->
         rIds.push(r.cid)
-      survey.forEachRow(gatherId, includeGroups: true)
+      # `includeErrors` needs to match the options `_reset` renders with,
+      # otherwise error rows are in the DOM but missing here, and we report
+      # a mismatch that never happened
+      survey.forEachRow(gatherId, includeGroups: true, includeErrors: true)
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)

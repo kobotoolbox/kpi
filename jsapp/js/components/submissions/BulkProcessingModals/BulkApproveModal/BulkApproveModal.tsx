@@ -131,7 +131,7 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Alert type='info' iconName='information'>
-            <Text size='sm'>
+            <Text>
               {isTranslationColumn &&
                 t(
                   'The selected translations were automatically generated and should be reviewed to ensure accuracy. Once approved, they will be saved and displayed in your data table.',
@@ -147,7 +147,7 @@ export function BulkApproveModal(props: BulkApproveModalProps) {
             On purpose we don't say "selected" here, because this number only counts
             the rows that need approval, which can be fewer than what was selected.
           */}
-          <Text size='sm'>
+          <Text>
             {isTranslationColumn &&
               (eligibleSubmissions.length === 1
                 ? t('Do you want to approve 1 translation?')

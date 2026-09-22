@@ -1,11 +1,63 @@
 import { EXPORT_FORMATS } from '#/components/projectDownloads/exportsConstants'
-import type { AssetResponse, ExportDataLang } from '#/dataInterface'
+import type { AssetResponse, ExportDataLang, ExportSettingSettings } from '#/dataInterface'
+import { recordEntries } from '#/utils'
 
 export interface ExportFormatOption {
   value: ExportDataLang
   label: string
   /** Present only for languages (not for `EXPORT_FORMATS`). */
   langIndex?: number
+}
+
+/**
+ * Every export setting that the exports creator form builds on its own (see
+ * `onSubmit` in `ProjectExportsCreator`). The form sends some of them only for
+ * some export types - `flatten` for GeoJSON, `xls_types_as_text` for XLS - so
+ * when one of these keys is missing from a payload, it means "the selected
+ * export type doesn't take it".
+ */
+const FORM_MANAGED_EXPORT_SETTINGS: ReadonlyArray<keyof ExportSettingSettings> = [
+  'fields',
+  'fields_from_all_versions',
+  'flatten',
+  'group_sep',
+  'hierarchy_in_labels',
+  'include_media_url',
+  'lang',
+  'multiple_select',
+  'query',
+  'type',
+  'xls_types_as_text',
+]
+
+/**
+ * Returns the settings the form built, plus any setting from an existing saved
+ * export setting that the form has no field for (`submission_ids`, for example).
+ *
+ * Needed because saving overwrites the whole `export_settings` object: without
+ * copying those over, exporting from this form would delete options that were
+ * set up through the API.
+ *
+ * Settings from `FORM_MANAGED_EXPORT_SETTINGS` are never copied - the form is
+ * the only source of truth for them. Example: you export GeoJSON, so
+ * `flatten: true` lands in the payload and gets saved. Then you switch to KML
+ * and export again; this payload has no `flatten`, because KML doesn't support
+ * it. Copying the saved `flatten` back in would make the API reject the export.
+ */
+export function preserveApiOnlySettings(
+  formSettings: ExportSettingSettings,
+  savedSettings: ExportSettingSettings,
+): ExportSettingSettings {
+  const mergedSettings = { ...formSettings }
+
+  recordEntries(savedSettings).forEach(([key, value]) => {
+    if (FORM_MANAGED_EXPORT_SETTINGS.includes(key) || Object.prototype.hasOwnProperty.call(mergedSettings, key)) {
+      return
+    }
+    mergedSettings[key] = value
+  })
+
+  return mergedSettings
 }
 
 /**

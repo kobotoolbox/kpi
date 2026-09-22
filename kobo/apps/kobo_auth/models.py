@@ -1,10 +1,17 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.db.models import Func, Value
+from django.db.models.functions import Lower
 from django_request_cache import cache_for_request
 
 from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kobo.apps.organizations.models import Organization, create_organization
+from kobo.apps.organizations.models import (
+    EmptyOrganization,
+    Organization,
+    create_organization,
+)
 from kpi.utils.database import update_autofield_sequence, use_db
 from kpi.utils.permissions import is_user_anonymous
 
@@ -14,6 +21,18 @@ class User(AbstractUser):
     class Meta:
         db_table = 'auth_user'
         swappable = 'AUTH_USER_MODEL'
+        indexes = [
+            models.Index(
+                Func(
+                    Lower('email'),
+                    Value('@'),
+                    Value(2),
+                    function='split_part',
+                    output_field=models.CharField(),
+                ),
+                name='auth_user_email_domain_idx',
+            ),
+        ]
 
     def has_perm(self, perm, obj=None):
         # If it is a KoboCAT permissions, check permission in KoboCAT DB first
@@ -49,9 +68,15 @@ class User(AbstractUser):
 
     @property
     @cache_for_request
-    def organization(self) -> Organization | None:
+    def organization(self) -> Organization:
+        """
+        Return the organization the user belongs to, or a falsy
+        `EmptyOrganization` when they belong to none, so that callers can access
+        organization attributes without guarding against `None` first.
+        """
+
         if is_user_anonymous(self):
-            return None
+            return EmptyOrganization()
 
         # Database allows multiple organizations per user, but we restrict it to one.
         if (
@@ -67,7 +92,7 @@ class User(AbstractUser):
             date_removed = None
 
         if not self.is_active or date_removed:
-            return None
+            return EmptyOrganization()
 
         return create_organization(
             self, f"{self.username}'s organization"

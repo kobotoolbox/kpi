@@ -38,6 +38,7 @@ interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse
   has_deployment?: boolean
   deployment__active?: boolean
+  withinRow?: boolean
 }
 
 interface AssetActionButtonsState {
@@ -312,6 +313,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
           onEditLanguages={this.editLanguages}
           onMoveToCollection={this.moveToCollection}
           onDelete={this.delete}
+          withinRow={this.props.withinRow}
         />
       </menu>
     )

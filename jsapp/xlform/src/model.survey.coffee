@@ -143,6 +143,48 @@ module.exports = do ->
           row.get('select_from_list_name').set('value', uniqueListName, {silent: true})
       return
 
+    # Gives a row a data column name that is unique within this survey, so the
+    # name Formbuilder shows matches the one that ends up in the XLSForm.
+    # Order matters: `finalize()` first fills in an empty name from the label,
+    # then `deduplicate()` appends an incrementor if that name is already taken
+    # (e.g. "choose_a_fruit" -> "choose_a_fruit_001").
+    # Only call this once the row is inserted - same as `insert_row()` does - so
+    # both steps can see the sibling rows they compare against.
+    _ensure_row_name_is_unique: (row)->
+      name_detail = row.get('name')
+      # Score/rank sub-rows keep `name` as a plain string rather than a RowDetail,
+      # and never become an XLSForm column of their own
+      return unless name_detail?.deduplicate
+
+      # `finalize()` derives the name from the label and throws without one. Such
+      # a row can't be exported anyway, so skip it instead of breaking the drop.
+      row.finalize()  if row.get('label')
+
+      # Only rename on a real clash: `deduplicate()` re-sluggifies, which truncates
+      # at 30 characters and rewrites characters that are legal in a name but not
+      # in a label (a dot, say), mangling names that were already fine.
+      if @_is_row_name_taken(name_detail)
+        name_detail.set 'value', name_detail.deduplicate(@)
+      return
+
+    # Whether another row already uses this name. Skips the row owning `name_detail`
+    # so it isn't counted as its own duplicate, and compares lowercased because
+    # that is what the sluggifier treats as a clash.
+    _is_row_name_taken: (name_detail)->
+      name = name_detail.get('value')
+      return false unless name
+      name = name.toLowerCase()
+      isTaken = false
+      @forEachRow(
+        (r) ->
+          return if r.get('name') is name_detail
+          if r.getValue('name')?.toLowerCase() is name
+            isTaken = true
+          return
+        {includeGroups: true}
+      )
+      return isTaken
+
     # Inserts library items (questions or groups) into the form.
     # Called from surveyScope.addExternalItemAtPosition() after fetching the asset.
     insertSurvey: (survey, index=-1, targetGroupId)->
@@ -177,6 +219,15 @@ module.exports = do ->
             }
           )
 
+          # Name the group and every row inside it, after the insert so each one
+          # sees its new siblings
+          @_ensure_row_name_is_unique(row)
+          if row.forEachRow
+            row.forEachRow(
+              (r) => @_ensure_row_name_is_unique(r),
+              {includeGroups: true}
+            )
+
           # Groups don't trigger change events automatically
           @trigger('change')
         # Single questions
@@ -184,14 +235,13 @@ module.exports = do ->
           # Give select questions unique choice lists
           @_ensure_row_list_is_copied(row)
 
-          # Make the name unique if needed
-          name_detail = row.get('name')
-          name_detail.set 'value', name_detail.deduplicate(@)
-
-          target.rows.add(
+          # `add` builds a fresh row out of the JSON, so name that one - renaming
+          # the library row we were handed would have no effect here
+          insertedRow = target.rows.add(
             row.toJSON(),
             at: index_incr
           )
+          @_ensure_row_name_is_unique(insertedRow)
       return
 
     toFlatJSON: (stringify=false, spaces=4)->

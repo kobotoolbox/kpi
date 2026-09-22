@@ -1,0 +1,80 @@
+@use 'scss/breakpoints';
+@use 'scss/mixins';
+@use 'scss/colors';
+
+.root {
+  width: 100%;
+
+  @media print {
+    display: none;
+  }
+}
+
+.tabs {
+  background: colors.$kobo-white;
+  border-bottom: 1px solid colors.$kobo-gray-300;
+  text-align: center;
+  height: 48px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  text-transform: uppercase;
+  line-height: 48px;
+  cursor: pointer;
+  position: relative;
+  color: colors.$kobo-gray-700;
+  font-weight: normal;
+
+  &:hover,
+  &.active {
+    color: colors.$kobo-gray-800;
+  }
+
+  &.active {
+    font-weight: 700;
+    border-bottom: 4px solid colors.$kobo-teal;
+  }
+
+  &.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .tabs {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 15px;
+  }
+
+  .tab {
+    @include mixins.textEllipsis;
+  }
+}
+
+@include breakpoints.breakpoint(narrow) {
+  .tabs {
+    gap: 30px;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .tab {
+    font-size: 15px;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .tabs {
+    gap: 60px;
+  }
+}

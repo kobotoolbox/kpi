@@ -21,6 +21,7 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
+import { getBlockedBulkTranslationLanguages } from '#/components/submissions/bulkProcessingUtils'
 import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -99,7 +100,13 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
+  // `fieldXpath` points at the transcript column being translated, so the source question is one level up from it.
   const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
+  const hiddenLanguages = useMemo(
+    () => getBlockedBulkTranslationLanguages(props.selectedSubmissions, props.fieldXpath),
+    [props.fieldXpath, props.selectedSubmissions],
+  )
 
   // Use bulk processing alerts hook
   // Near-limit should reflect only the submissions that still need translation.
@@ -124,15 +131,16 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     }, 0)
   }, [props.selectedSubmissions, props.fieldXpath, selectedLanguage, sourceRowPath])
 
-  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
-    actionType: 'translation',
-    selectedSubmissions: props.selectedSubmissions,
-    selectedLanguage: selectedLanguage || undefined,
-    fieldXpath: props.fieldXpath,
-    requiredAmount: requiredCharacters,
-    serviceUsageData: serviceUsageData || undefined,
-    activeBulkActions: props.activeBulkActions,
-  })
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions, eligibleSubmissionUuids } =
+    useBulkProcessingAlerts({
+      actionType: 'translation',
+      selectedSubmissions: props.selectedSubmissions,
+      selectedLanguage: selectedLanguage || undefined,
+      fieldXpath: props.fieldXpath,
+      requiredAmount: requiredCharacters,
+      serviceUsageData: serviceUsageData || undefined,
+      activeBulkActions: props.activeBulkActions,
+    })
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
@@ -142,7 +150,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
     return sum + supplementalValue.length
   }, 0)
-  const eligibleSubmissionUuids = eligibleSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
@@ -177,9 +184,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t(
-              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
-            )
+            {t('Your ##total_selected## transcripts are a total of ##total_characters## characters.')
               .replace('##total_selected##', String(eligibleSubmissions.length))
               .replace('##total_characters##', String(totalCharacters))}
           </Text>
@@ -191,6 +196,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               value={selectedLanguage}
               required
               suggestedLanguages={suggestedLanguages}
+              hiddenLanguages={hiddenLanguages}
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
             />

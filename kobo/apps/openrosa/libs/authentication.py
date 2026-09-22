@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.conf import settings
-from django.utils.translation import gettext as t
 from django.http import HttpResponse
+from django.utils.translation import gettext as t
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 

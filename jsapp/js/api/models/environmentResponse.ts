@@ -1,3 +1,4 @@
+import type { AuthConfiguration } from './authConfiguration'
 import type { EnvironmentResponseAcademyUrl } from './environmentResponseAcademyUrl'
 import type { EnvironmentResponseCommunityUrl } from './environmentResponseCommunityUrl'
 import type { EnvironmentResponsePrivacyPolicyUrl } from './environmentResponsePrivacyPolicyUrl'
@@ -21,6 +22,8 @@ import type { MetadataField } from './metadataField'
 import type { SocialApp } from './socialApp'
 
 export interface EnvironmentResponse {
+  /** Whether users may create their own accounts */
+  registration_open: boolean
   terms_of_service_url: EnvironmentResponseTermsOfServiceUrl
   privacy_policy_url: EnvironmentResponsePrivacyPolicyUrl
   source_code_url: EnvironmentResponseSourceCodeUrl
@@ -51,6 +54,7 @@ export interface EnvironmentResponse {
   enable_custom_password_guidance_text: boolean
   /** Markdown string for custom password help text */
   custom_password_localized_help_text: string
+  auth_configuration: AuthConfiguration
   project_metadata_fields: MetadataField[]
   extra_project_metadata_fields: MetadataField[]
   user_metadata_fields: MetadataField[]

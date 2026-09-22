@@ -3,7 +3,7 @@ import { List, Map, type OrderedMap } from 'immutable'
 import orderBy from 'lodash.orderby'
 import React from 'react'
 import autoBind from 'react-autobind'
-import Select from 'react-select'
+import Select from '#/components/common/Select'
 import Checkbox from '#/components/common/checkbox'
 import type { AnyRowTypeName } from '#/constants'
 import type { LabelValuePair, SurveyChoice } from '#/dataInterface'
@@ -339,10 +339,9 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
   /**
    * Handles changing of column type
    */
-  colChangeType(e: null | { value: string | null }) {
+  colChangeType(newType: string | null) {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
-    const newType = e?.value || null
     const prevType = data.getIn([colKuid, 'type']) as string
 
     // warn only if existing column type is one of (Select One, Select Many)
@@ -449,7 +448,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
    */
   getSelectTypeVal(expandedCol: string) {
     const typeVal = this.getCol(expandedCol, 'type')
-    return this.state.typeChoices.find((option) => option.value === typeVal)
+    return this.state.typeChoices.find((option) => option.value === typeVal)?.value ?? null
   }
 
   /**
@@ -666,13 +665,15 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 <span>{t('Response Type')}</span>
                 <Select
                   value={this.getSelectTypeVal(expandedCol)}
-                  isClearable={false}
-                  options={this.state.typeChoices}
+                  clearable={false}
+                  data={this.state.typeChoices}
                   onChange={this.colChangeType.bind(this)}
-                  className='kobo-select'
-                  classNamePrefix='kobo-select'
-                  menuPlacement='auto'
-                  isSearchable={false}
+                  // Matches the sibling text inputs, which `_kobomatrix.scss` lays out
+                  // as 30px tall fixed-width inline blocks next to their label.
+                  size='xs'
+                  w={310}
+                  display='inline-block'
+                  style={{ verticalAlign: 'middle' }}
                 />
               </label>
               <label>
@@ -687,7 +688,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 />
               </label>
               <label>
-                <span>{t('Data Column Suffix')}</span>
+                <span>{t('Question Name Suffix')}</span>
                 <input
                   type='text'
                   value={this.getCol(expandedCol, 'name')}
@@ -708,7 +709,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 <div className='matrix-cols__options'>
                   <div className='matrix-cols__options--row-head'>
                     <span>{t('Label')}</span>
-                    <span>{t('Data Column Name')}</span>
+                    <span>{t('Choice Name')}</span>
                   </div>
                   {orderedChoices.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
@@ -816,7 +817,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                       />
                     </label>
                     <label>
-                      <span>{t('Data Column Prefix')}</span>
+                      <span>{t('Question Name Prefix')}</span>
                       <input
                         type='text'
                         value={item.name}

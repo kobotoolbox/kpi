@@ -3,10 +3,17 @@
  */
 
 import * as Sentry from '@sentry/react'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { FailResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
 import { ROOT_URL } from './constants'
+
+/**
+ * jQuery calls `.fail()` handlers with `(jqXHR, textStatus, errorThrown)`, so `.fail(handleApiFail)` passes one of these
+ * as the toast message. None of them is copy for a user.
+ */
+const JQUERY_TEXT_STATUSES = ['error', 'timeout', 'abort', 'parsererror', 'nocontent', 'notmodified']
 
 /**
  * Whether a fail response is the result of us aborting the request on purpose (rather than an actual API error). Useful
@@ -17,12 +24,12 @@ export function isAbortResponse(response: FailResponse) {
 }
 
 /**
- * Useful for handling the fail responses from API. Its main goal is to display
- * a helpful error toast notification and to pass the error message to Sentry.
+ * Useful for handling the fail responses from API. Its main goal is to display a helpful error toast notification and
+ * to pass the error message to Sentry.
  *
- * It can detect if we got HTML string as response and uses a generic message
- * instead of spitting it out. The error message displayed to the user can be
- * customized using the optional `toastMessage` argument.
+ * It detects response bodies that aren't messages (an HTML error page, a traceback) and uses a generic message instead
+ * of spitting them out - the raw body still goes to the console and to Sentry. The error message displayed to the user
+ * can be customized using the optional `toastMessage` argument.
  *
  * @deprecated - instead, use react-query + Orval.
  */
@@ -32,37 +39,32 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
     return
   }
 
+  const customMessage = toastMessage && !JQUERY_TEXT_STATUSES.includes(toastMessage) ? toastMessage : undefined
+
   const responseMessage = response.responseText
   let htmlMessage = ''
 
-  // Detect if response is HTML code string
-  if (
-    typeof responseMessage === 'string' &&
-    responseMessage.includes('</html>') &&
-    responseMessage.includes('</body>')
-  ) {
-    // Try plucking the useful error message from the HTML string - this works
-    // for Werkzeug Debugger only. It is being used on development environment,
-    // on production this would most probably result in undefined message (and
-    // thus falling back to the generic message below).
+  if (!response.responseJSON && typeof responseMessage === 'string') {
+    // The body isn't JSON, so it holds no message for the user - with one exception. The Werkzeug Debugger, used in
+    // development, puts the exception in `.errormsg`. On production this finds nothing and we fall back below.
     const htmlDoc = new DOMParser().parseFromString(responseMessage, 'text/html')
-    htmlMessage = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML
+    htmlMessage = htmlDoc.getElementsByClassName('errormsg')[0]?.textContent?.trim() ?? ''
   }
-
-  const message = htmlMessage || responseMessage
 
   /*
   the message shown to the user, which uses (in descending order of priority)
   1. the toast message (if provided)
-  2. the html-plucked error
-  3. the raw response
+  2. the Werkzeug-plucked error (development only)
+  3. the JSON body, when it holds a message - see `flattenErrorBody`
   4. a generic error
   */
-  let displayMessage = message
+  const backendMessage = htmlMessage || flattenErrorBody(response.responseJSON)
 
-  if (toastMessage || !displayMessage) {
-    // display toastMessage or, if we don't have *any* message available, use a generic error
-    displayMessage = toastMessage || t('An error occurred')
+  let displayMessage = backendMessage
+
+  if (customMessage || !displayMessage) {
+    // display the caller's message or, if we don't have *any* message available, use a generic error
+    displayMessage = customMessage || t('An error occurred')
 
     if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have
@@ -71,16 +73,21 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
     }
   }
 
-  let errorMessageDisplay = message
-  if (response.status || response.statusText) {
-    errorMessageDisplay = `${response.status} ${response.statusText}`
-  }
+  const statusMessage = response.status || response.statusText ? `${response.status} ${response.statusText}` : ''
+
+  // The body no longer reaches the toast, so log it here instead - a suppressed
+  // traceback is still the fastest way to find out what actually broke.
+  const consoleMessage = [statusMessage, responseMessage].filter(Boolean).join(' | ') || displayMessage
 
   // show the error message to the user
-  notify.error(displayMessage, undefined, errorMessageDisplay)
+  notify.error(displayMessage, undefined, consoleMessage)
 
-  // send the message to our error tracker
-  Sentry.captureMessage(message || displayMessage)
+  // Sentry titles and groups issues by this message, so keep it to the flattened body, falling back to the status. The
+  // raw body used to be the title, which made every single response its own issue; it goes along as context instead.
+  Sentry.captureMessage(
+    backendMessage || statusMessage || displayMessage,
+    responseMessage ? { extra: { responseText: responseMessage } } : undefined,
+  )
 }
 
 const JSON_HEADER = 'application/json'
@@ -150,11 +157,9 @@ export const fetchDataRaw = async <T>(
 
   // For when it's needed we pass authentication data
   if (method !== 'GET') {
-    // Need to support old token (64 characters - prior to Django 4.1)
-    // and new token (32 characters).
-    const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/)
-    if (csrfCookie) {
-      headers['X-CSRFToken'] = csrfCookie[1]
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers['X-CSRFToken'] = csrfToken
     }
 
     headers['Content-Type'] = JSON_HEADER

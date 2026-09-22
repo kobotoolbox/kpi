@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import Optional
 
 from constance import config
@@ -12,6 +11,7 @@ from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
+from formpack.constants import FUZZY_VERSION_RE
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
@@ -20,7 +20,6 @@ from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
@@ -1084,7 +1083,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 valid_fields = [
                     f.path for f in form_pack.get_fields_for_versions(
                         form_pack.versions.keys()
-                    ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
+                    )
+                    if not FUZZY_VERSION_RE.match(f.path)
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:

@@ -20,6 +20,7 @@ import { renderJSXMessage } from './alertify'
 import assetUtils from './assetUtils'
 import { openAssetTagsModal } from './components/AssetTagsModal'
 import myLibraryStore from './components/library/myLibraryStore'
+import { openLibraryAssetModal } from './components/modalForms/openLibraryAssetModal'
 import { openSharingModal } from './components/permissions/openSharingModal'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
@@ -401,11 +402,6 @@ export function manageAssetSharing(asset: AssetResponse | ProjectViewAsset) {
   openSharingModal({ asset: asset })
 }
 
-/** Opens a modal for replacing an asset using a file. */
-export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
-  pageState.showModal({ type: MODAL_TYPES.REPLACE_PROJECT, asset: asset })
-}
-
 /**
  * Opens a modal for modifying asset languages and translation strings. It can
  * receive `uid` and will fetch all data by itself, or be given all the data
@@ -425,18 +421,9 @@ export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
  * `template` and `collection`.
  */
 export function manageAssetSettings(asset: AssetResponse) {
-  let modalType
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    modalType = MODAL_TYPES.LIBRARY_TEMPLATE
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    modalType = MODAL_TYPES.LIBRARY_COLLECTION
-  }
-  if (modalType) {
-    pageState.showModal({
-      type: modalType,
-      asset: asset,
-    })
-  } else {
+  if (asset.asset_type !== ASSET_TYPES.template.id && asset.asset_type !== ASSET_TYPES.collection.id) {
     throw new Error(`Unsupported asset type: ${asset.asset_type}.`)
   }
+
+  openLibraryAssetModal({ asset })
 }

@@ -1,0 +1,104 @@
+import { Stack } from '@mantine/core'
+import { IconFolderFilled, IconLibrary, IconTemplate, IconUpload } from '@tabler/icons-react'
+import { useNavigate } from 'react-router-dom'
+import bem from '#/bem'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
+import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import { openLibraryAssetModal } from '#/components/modalForms/openLibraryAssetModal'
+import { ASSET_TYPES } from '#/constants'
+import { ROUTES } from '#/router/routerConstants'
+import { getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
+import { useSession } from '#/stores/useSession'
+import KoboIcon from '../common/KoboIcon'
+
+export interface LibraryNewItemFormProps {
+  /** Closes the modal this form is displayed in. */
+  onRequestClose?: () => void
+  /**
+   * Needed for "Back" button functionality in other modals. We pass it down to the other modals as importing it here
+   * would create a circular dependency.
+   */
+  reopenHomeModal?: () => void
+}
+
+export default function LibraryNewItemForm({ onRequestClose, reopenHomeModal }: LibraryNewItemFormProps) {
+  const session = useSession()
+  const navigate = useNavigate()
+
+  function goToAssetCreator() {
+    onRequestClose?.()
+
+    let targetPath: string = ROUTES.NEW_LIBRARY_ITEM
+    const assetUid = getRouteAssetUid()
+    if (isAnyLibraryItemRoute() && assetUid) {
+      const found = managedCollectionsStore.find(assetUid)
+      if (found && found.asset_type === ASSET_TYPES.collection.id) {
+        // when creating from within a collection page, make the new asset
+        // a child of this collection
+        targetPath = ROUTES.NEW_LIBRARY_CHILD.replace(':uid', found.uid)
+      }
+    }
+
+    navigate(targetPath)
+  }
+
+  function goToCollection() {
+    onRequestClose?.()
+    openLibraryAssetModal({
+      assetType: ASSET_TYPES.collection.id,
+      onBack: reopenHomeModal,
+    })
+  }
+
+  function goToTemplate() {
+    onRequestClose?.()
+    openLibraryAssetModal({
+      assetType: ASSET_TYPES.template.id,
+      onBack: reopenHomeModal,
+    })
+  }
+
+  function goToUpload() {
+    onRequestClose?.()
+    openLibraryUploadModal({ onBack: reopenHomeModal })
+  }
+
+  if (!session.currentLoggedAccount) {
+    return <LoadingSpinner />
+  }
+
+  return (
+    <bem.FormModal__form className='project-settings project-settings--form-source'>
+      <bem.FormModal__item m='form-source-buttons'>
+        <button onClick={goToAssetCreator}>
+          <Stack gap={5} align='center'>
+            <KoboIcon icon={IconLibrary} size='xl' color='var(--mantine-color-gray-2)' />
+            {t('Question Block')}
+          </Stack>
+        </button>
+
+        <button onClick={goToTemplate}>
+          <Stack gap={5} align='center'>
+            <KoboIcon icon={IconTemplate} size='xl' color='var(--mantine-color-gray-2)' />
+            {t('Template')}
+          </Stack>
+        </button>
+
+        <button onClick={goToUpload}>
+          <Stack gap={5} align='center'>
+            <KoboIcon icon={IconUpload} size='xl' color='var(--mantine-color-gray-2)' />
+            {t('Upload')}
+          </Stack>
+        </button>
+
+        <button onClick={goToCollection}>
+          <Stack gap={5} align='center'>
+            <KoboIcon icon={IconFolderFilled} size='xl' color='var(--mantine-color-gray-2)' />
+            {t('Collection')}
+          </Stack>
+        </button>
+      </bem.FormModal__item>
+    </bem.FormModal__form>
+  )
+}

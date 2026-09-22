@@ -12,7 +12,7 @@ from typing import Iterator, Optional, Union
 
 from bson import json_util
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousFileOperation
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -35,10 +35,12 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
+from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
@@ -823,6 +825,48 @@ class BaseDeploymentBackend(abc.ABC):
             queryset = PairedData.objects(self.asset).values()
             return queryset
 
+    def _get_question_xpath(self, attachment: dict, filenames_and_xpaths: dict) -> str:
+        """
+        Return the XPath of the question an attachment answers.
+
+        `media_file_basename` holds the name the client sent, which is what the
+        submission carries at the question, and it never picks up the suffix
+        Django appends to avoid a collision on the storage. Reading the stored
+        path instead is what sends a suffixed file through `_without_suffix()`,
+        a guess that a name legitimately ending in `_xxxxxxx` defeats.
+        """
+
+        if media_file_basename := attachment.get('media_file_basename'):
+            basename = normalize_nfc(media_file_basename)
+
+            # The column holds the unsanitized name the client sent, which
+            # `get_attachment_filenames_and_xpaths()` keys as is
+            if (question_xpath := filenames_and_xpaths.get(basename)) is not None:
+                return question_xpath
+
+            # Unless the row was backfilled by `populate_media_file_basename`,
+            # which copied the stored path's last segment, so already sanitized
+            # and carrying the collision suffix where there was one. Rows
+            # predating DEV-897 hold the raw name too, only truncated past 255
+            try:
+                valid_name = default_kobocat_storage.get_valid_name(basename)
+            except SuspiciousFileOperation:
+                logging.error(f'Could not get valid name from {basename}')
+                return ''
+
+            return filenames_and_xpaths.get(
+                valid_name,
+                filenames_and_xpaths.get(self._without_suffix(valid_name), ''),
+            )
+
+        # Fallback on old attachments whose don't have `media_file_basename` populated
+        basename = normalize_nfc(os.path.basename(attachment['filename']))
+
+        return filenames_and_xpaths.get(
+            basename,
+            filenames_and_xpaths.get(self._without_suffix(basename), ''),
+        )
+
     def _inject_properties(
         self,
         submission: dict,
@@ -914,20 +958,23 @@ class BaseDeploymentBackend(abc.ABC):
                         continue
 
             filename = attachment['filename']
+
+            # fall back until LRM 0027/0028 are not completed
+            root_uuid = remove_uuid_prefix(
+                submission.get(META_ROOT_UUID) or submission['_uuid']
+            )
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,
                 'attachments',
                 # KoboCAT accepts submissions even when they lack `formhub/uuid`
                 self.form_uuid or submission['formhub/uuid'],
-                submission['_uuid'],
+                root_uuid,
                 os.path.basename(filename)
             )
 
             # Retrieve XPath and add it to attachment dictionary
-            basename = os.path.basename(attachment['filename'])
-            attachment['question_xpath'] = filenames_and_xpaths.get(
-                basename,
-                filenames_and_xpaths.get(self._without_suffix(basename), ''),
+            attachment['question_xpath'] = self._get_question_xpath(
+                attachment, filenames_and_xpaths
             )
 
             # Remove unwanted keys

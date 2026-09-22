@@ -1,7 +1,9 @@
 import React from 'react'
 
+import { MantineProvider } from '@mantine/core'
 import { List, Map } from 'immutable'
 import { createRoot } from 'react-dom/client'
+import { cssVariablesResolverKobo, themeKobo } from '#/theme'
 import { recordKeys } from '#/utils'
 import KoboMatrix from './containers/KoboMatrix'
 
@@ -55,7 +57,15 @@ class KoboMatrixRow {
 export function renderKobomatrix(view, el) {
   const model = new KoboMatrixRow(view.model)
   const root = createRoot(el.get(0))
-  root.render(<KoboMatrix model={model} />)
+  // This is a detached React root, so the app's `MantineProvider` (in
+  // `basicLayout.component.tsx`) is not an ancestor and Mantine components here
+  // would find no theme in context. CSS variables are skipped because the app
+  // root already writes the same ones to `:root`.
+  root.render(
+    <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo} withCssVariables={false}>
+      <KoboMatrix model={model} />
+    </MantineProvider>,
+  )
   // TODO: should this root be unmounted at some point?
   // https://react.dev/reference/react-dom/client/createRoot#root-unmount
   // Maybe instantiate the root in KoboMatrixView, then unmount it when

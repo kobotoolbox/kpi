@@ -10,6 +10,7 @@ import {
   useOrganizationsInvitesPartialUpdate,
   useOrganizationsInvitesRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+import { useLogout } from '#/auth/useLogout'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
@@ -25,6 +26,7 @@ import { notify, sleep } from '#/utils'
 export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const [isModalOpen, setIsModalOpen] = useState(true)
   const session = useSession()
+  const logout = useLogout()
 
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
@@ -76,8 +78,9 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     })
   }
 
-  const handleSignOut = () => {
-    session.logOut()
+  async function handleSignOut() {
+    await logout.mutateAsync()
+    window.location.replace('')
   }
 
   let content: React.ReactNode = null

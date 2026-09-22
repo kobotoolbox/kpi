@@ -8,8 +8,11 @@ import type { SupplementalDataManualTranslation } from '#/api/models/supplementa
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 
-import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
   QualVersionItem,
@@ -189,6 +192,48 @@ export const getLatestTranscriptVersionItem = (
     .sort(TransxVersionSortFunction)[0] as TranscriptVersionItem | undefined
 }
 
+/**
+ * Language codes that must not be offered as translation targets, given the `language`/`locale` pair of the transcript
+ * a translation would come from.
+ *
+ * Not just `[language]`, for two reasons. The back end translates from `locale` when it is set and never validates it
+ * against `language`, so `{language: 'es', locale: 'fr-CA'}` is storable and would be translated from French. And
+ * columns are keyed by base language (the back end does `language.split('-')[0]`), so `fr-CA` and `fr` end up sharing
+ * one column. Both codes come back, which also covers a regional target if one ever reaches the dropdown.
+ */
+export const getBlockedTargetLanguages = (language: LanguageCode, locale?: LocaleCode | null): LanguageCode[] => {
+  const source = locale || language
+  return [...new Set([source, source.split('-')[0]])]
+}
+
+/**
+ * Language codes a new translation must not target, based on the transcript it would be sourced from. Empty when there
+ * is nothing to translate yet.
+ *
+ * Picks the source the way the back end does (`RequiresTranscriptionMixin.attach_action_dependency`): most recent
+ * *acceptance* date, skipping versions that were never accepted. `getLatestTranscriptVersionItem` sorts by creation
+ * date instead, and the two disagree when versions were accepted out of order, so don't swap one for the other.
+ */
+export const getTranslationSourceLanguages = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+): LanguageCode[] => {
+  const usableVersions = getAllTranscriptsFromSupplementData(supplementData, xpath)
+    .flatMap<TranscriptVersionItem>((transcript) => transcript._versions)
+    // An unaccepted version is not a source yet, and one with no text was deleted or never finished. `_dateAccepted` is
+    // typed as a required string on manual versions but comes back empty, so check the value rather than the key.
+    .filter((version) => Boolean(version._dateAccepted) && isSupplementVersionWithValue(version))
+
+  // Newest acceptance first. These are ISO-8601 strings, so comparing them as strings gives chronological order.
+  const latestAccepted = usableVersions.sort((a, b) => (a._dateAccepted! < b._dateAccepted! ? 1 : -1))[0]
+
+  if (!latestAccepted) {
+    return []
+  }
+
+  return getBlockedTargetLanguages(latestAccepted._data.language, latestAccepted._data.locale)
+}
+
 // Qual
 
 /**
@@ -309,32 +354,78 @@ export const getAllTranslationsFromSupplementData = (
   return latestVersions
 }
 
+// Question type support
+
+/** Whether a question type is an audio question (regular or background audio). */
+export const isAudioQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id
+
+/** Whether a question type is a text question. */
+export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.text.id
+
+/**
+ * Whether a question type is one NLP processing supports. Audio is always
+ * supported; text is gated behind the `nlpTextActionsEnabled` feature flag.
+ */
+export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
+  isAudioQuestionType(questionType) ||
+  (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+
 // Displays
 
 export enum StaticDisplays {
   // Keep the enum ordering, since it controls the order of display options in the UI
   Audio = 'Audio',
+  Text = 'Text',
   Data = 'Data',
   Transcript = 'Transcript',
 }
 
 export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
-  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
-  [ProcessingTab.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data]],
+  [
+    ProcessingTab.Translations,
+    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
 
 /**
- * Gets the default displays for a given processing tab.
+ * Returns the Processing tabs available for a given question type, in display
+ * order. Transcript is omitted for question types that have no audio/video
+ * response to transcribe (e.g. text).
+ */
+export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (isTextQuestionType(questionType)) {
+    return [ProcessingTab.Translations, ProcessingTab.Analysis]
+  }
+  return [ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis]
+}
+
+/**
+ * Gets the default displays for a given processing tab, dropping whichever of
+ * Audio/Text can't apply to the given question type (they're mutually
+ * exclusive, and the baked-in defaults above include both).
  *
  * @param tabName - The processing tab name
+ * @param questionType - The current question's type, if known
  * @returns Array of default displays for the tab, or empty array if undefined
  */
-export const getDefaultDisplaysForTab = (tabName: ProcessingTab | undefined): DisplaysList => {
+export const getDefaultDisplaysForTab = (
+  tabName: ProcessingTab | undefined,
+  questionType?: AnyRowTypeName,
+): DisplaysList => {
   if (tabName === undefined) {
     return []
   }
-  return DefaultDisplays.get(tabName) || []
+  const defaults = DefaultDisplays.get(tabName) || []
+
+  return defaults.filter((display) => {
+    if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
+    if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
+    return true
+  })
 }
 
 /**

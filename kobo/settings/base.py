@@ -1,7 +1,5 @@
 import logging
 import os
-import string
-import subprocess
 import warnings
 from datetime import timedelta
 from mimetypes import add_type
@@ -18,7 +16,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-from .utils import constance_env, dj_stripe_request_callback_method
+from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
 env = environ.Env()
 
@@ -63,7 +61,13 @@ if SESSION_COOKIE_DOMAIN:
     trusted_domains = [
         f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
     ]
-    CSRF_TRUSTED_ORIGINS = trusted_domains
+else:
+    trusted_domains = []
+CSRF_TRUSTED_ORIGINS = env.list(
+    # Separate multiple origins with commas, and do not use spaces
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    default=trusted_domains,
+)
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
@@ -131,7 +135,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'trench',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -167,6 +170,7 @@ MIDDLEWARE = [
     'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
+    'kobo.apps.openrosa.libs.utils.middleware.OpenRosaTrailingSlashMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -217,6 +221,19 @@ CONSTANCE_CONFIG = {
         'support team for assistance.',
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
+    ),
+    'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS': (
+        '',
+        'List of email domains configured across all managed SocialApps. '
+        'Note: these domains are managed per-app through the email_domains field in '
+        'Account Extras > Social app custom datas.',
+        'disabled_textarea',
+    ),
+    'SHOW_KOBOTOOLBOX_LOGO': (
+        True,
+        'Show the KoboToolbox logo on the sign-in and account creation pages. '
+        'Turn this off to display only the logo uploaded under '
+        'Configuration files',
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
@@ -353,6 +370,13 @@ CONSTANCE_CONFIG = {
     'SUPERUSER_AUTH_ENFORCEMENT': (
         False,
         'Require MFA for superusers with a usable password',
+    ),
+    'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR': (
+        5,
+        'Number of times per hour a new account confirmation email may be '
+        'requested for any one email address, through '
+        '/api/v2/email-confirmations/. Limits how much mail an inbox can be made '
+        'to receive by someone else. Set to 0 to disable the limit.',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
         constance_env(
@@ -634,6 +658,14 @@ CONSTANCE_CONFIG = {
         'Number of days before enqueued mass email records are marked as failed.',
         'positive_int',
     ),
+    'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS': (
+        12,
+        'Number of hours an enqueued mass email record can sit before it is '
+        're-checked against its MassEmailConfig criteria at send time. '
+        'Records still matching are sent normally; records that no longer '
+        'match are marked stale.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -744,6 +776,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
     ],
+    'disabled_textarea': [
+        'django.forms.fields.CharField',
+        {'widget': 'django.forms.Textarea', 'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -753,6 +789,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+        'SHOW_KOBOTOOLBOX_LOGO',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -769,6 +807,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'USE_TEAM_LABEL',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
@@ -794,6 +833,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
         'SUPERUSER_AUTH_ENFORCEMENT',
+        'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',
@@ -1046,6 +1086,12 @@ REST_FRAMEWORK = {
         'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
+    'DEFAULT_THROTTLE_RATES': {
+        # Changing the email address accepts `current_password` from clients
+        # without a browser session; throttle it so it cannot be used to guess
+        # passwords. Generous for the legitimate case, which is rare.
+        'email_change': env.str('EMAIL_CHANGE_THROTTLE_RATE', '10/hour'),
+    },
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -1086,6 +1132,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
         'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
@@ -1521,13 +1568,19 @@ CELERY_BEAT_SCHEDULE = {
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     'perform-maintenance': {
         'task': 'kpi.tasks.perform_maintenance',
@@ -1559,7 +1612,10 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-failed': {
@@ -1570,12 +1626,6 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'project-ownership-mark-as-expired': {
         'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
-        'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
-    },
-    # Schedule every 30 minutes
-    'attachment-cleanup-for-users-exceeding-limits': {
-        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
@@ -1623,7 +1673,10 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=0, hour=0),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # the long deletions and transfers running there, and must not end up
+        # stuck behind the very backlog it exists to clear
+        'options': {'queue': 'kpi_queue'},
     },
     # Schedule every day at midnight UTC
     'delete-expired-logs': {
@@ -1665,7 +1718,8 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
-            'Unlock accounts locked by `sync_storage_counters` task'
+            'Unlock accounts left suspended by a storage recount or a trash bin'
+            ' deletion which died'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -1692,6 +1746,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    'enforce-managed-sso': {
+        'task': 'kobo.apps.accounts.tasks.managed_sso_sweep',
+        'schedule': crontab(hour=0, minute=45),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 if STRIPE_ENABLED:
@@ -1702,6 +1761,12 @@ if STRIPE_ENABLED:
     CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
         'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
         'schedule': crontab(minute='*/' + str(minute_interval)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
+
+    CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -1779,6 +1844,9 @@ CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 s
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+# Adds our extra fields to every signup form, including the headless API's;
+# must point to a module that does not import `allauth.account.forms`
+ACCOUNT_SIGNUP_FORM_CLASS = 'kobo.apps.accounts.signup_fields.SignupExtraFieldsForm'
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
@@ -1787,12 +1855,20 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'user_token': 'kobo.apps.accounts.forms.UserTokenForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
+# How long a re-authentication remains valid before a sensitive action (e.g.
+# changing the email address) demands it again
+ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
+    'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
+)
+SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
@@ -1845,9 +1921,17 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-MAX_MASS_EMAILS_PER_DAY = 1000
-MASS_EMAIL_THROTTLE_PER_SECOND = 40
-MASS_EMAIL_SLEEP_SECONDS = 1
+# Size these to the SMTP provider actually configured for this deployment
+# (one provider at a time).
+# See kpi.utils.mailer.Mailer and kobo.apps.mass_emails.tasks.MassEmailSender.
+MAX_MASS_EMAILS_PER_DAY = env.int('MAX_MASS_EMAILS_PER_DAY', 10000)
+# This throttle applies only to mass email, not to transactional email
+# (e.g. forgot password). Set it well under the provider's real per-second
+# limit so there's still headroom left for transactional email, which
+# shares the same provider account but doesn't go through this throttle.
+MASS_EMAIL_THROTTLE_PER_SECOND = env.float('MASS_EMAIL_THROTTLE_PER_SECOND', 10)
+# Margin under the provider's SMTP idle timeout.
+MAILER_CONNECTION_IDLE_TIMEOUT = env.int('MAILER_CONNECTION_IDLE_TIMEOUT', 10)
 # change the interval between "daily" email sends for testing. this will set both
 # the frequency of the task and the expiry time of the cached email limits. should
 # only be True on small testing instances
@@ -2040,22 +2124,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-""" Try to identify the running codebase for informational purposes """
-# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
-GIT_REV = {}
-for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
-):
-    try:
-        GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
-        GIT_REV[git_rev_key] = False
-if GIT_REV['branch'] == 'HEAD':
-    GIT_REV['branch'] = False
+GIT_REV = get_git_rev(BASE_DIR)
 
 
 """
@@ -2198,32 +2267,6 @@ MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
 
-TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
-    'USER_ACTIVE_FIELD': 'is_active',
-    'BACKUP_CODES_QUANTITY': 5,
-    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
-    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
-    'DEFAULT_VALIDITY_PERIOD': 30,
-    'ENCRYPT_BACKUP_CODES': True,
-    'SECRET_KEY_LENGTH': 32,
-    'CONFIRM_DISABLE_WITH_CODE': True,
-    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
-    'ALLOW_BACKUP_CODES_REGENERATION': True,
-    'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
-    },
-    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
-}
-
-
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
@@ -2231,6 +2274,11 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
+
+# Max to-many lookups in a single `q` search: each becomes its own EXISTS
+# subquery, so an unbounded count lets a search fan out.
+# See `kpi.utils.query_parser`.
+QUERY_PARSER_MAX_TO_MANY_FILTERS = 10
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -2387,10 +2435,26 @@ LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
 S3_DELETE_BATCH_SIZE = 1000
 AZURE_DELETE_BATCH_SIZE = 256
+USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 
-# Number of stuck tasks should be restarted at a time
+# Number of stuck project ownership tasks and transfers restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
+MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
+MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+
+# Number of times a trash bin task that failed on a transient (infrastructure)
+# error is automatically restarted before it requires manual intervention
+TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
+
+# How long a trash bin object stays locked while it is being deleted. Must be
+# greater than or equal to the Celery hard time limit of the task
+TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
+SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
@@ -2401,6 +2465,10 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Cache time-to-live (in seconds) for the survey question types and default
+# language used by NLP actions
+SURVEY_METADATA_CACHE_TTL = 86400
 
 # Configure the Referrer-Policy response header so OpenStreetMap tile servers
 # receive an acceptable referrer. See:

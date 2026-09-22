@@ -1,5 +1,6 @@
 import math
 from datetime import timedelta
+from unittest.mock import patch
 
 from constance.test import override_config
 from ddt import data, ddt, unpack
@@ -32,6 +33,7 @@ from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
+from kpi.exceptions import MailerError
 from kpi.models import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE
@@ -104,6 +106,21 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
                     mail.outbox[index].to[0],
                     invite.email if invite else invitation['invitee'],
                 )
+
+    def test_invitation_is_still_created_when_the_email_fails_to_send(self):
+        """
+        A `MailerError` while sending the invite email must be caught and
+        logged, not left to propagate and fail the request: the invitation
+        itself should still be created.
+        """
+        with patch(
+            'kobo.apps.organizations.models.Mailer.send',
+            side_effect=MailerError('boom'),
+        ):
+            response = self._create_invite(self.owner_user)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(mail.outbox), 0)
 
     @data(
         ('owner', status.HTTP_200_OK),

@@ -47,12 +47,11 @@ export interface EnvironmentResponse {
 }
 
 /*
- * NOTE: This store is written to use MobX, but its imports do not need to be
- * exported with `observer()`. We also do not need to add this to a root store.
- *
- * This is because this store's value does not actually change as they store
- * constant environment variables that are set by the docker container. Thus it
- * JustWorks™ given our frontend architecture.
+ * NOTE: This store is written to use MobX. Components that read `isReady`
+ * conditionally must be wrapped with `observer()` so they re-render when the
+ * initial fetch completes. Components that only read `data` after `isReady` is
+ * guaranteed (e.g. children rendered by an observer-gated parent) do not need
+ * `observer()` themselves.
  */
 
 export interface UserMetadataField {
@@ -72,6 +71,8 @@ export interface SocialApp {
   provider: string
   provider_id: string
   client_id: string
+  managed: boolean
+  domains: string[]
 }
 
 export interface ExtraProjectMetadataOption {

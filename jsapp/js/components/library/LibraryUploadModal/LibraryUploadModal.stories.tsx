@@ -1,6 +1,7 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { expect, userEvent, within } from 'storybook/test'
 import ButtonNew from '#/components/common/ButtonNew'
 import { MODAL_TYPES } from '#/constants'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
@@ -31,6 +32,8 @@ function StoryTrigger(args: { mode: 'form' | 'uploading' }) {
 const meta: Meta<typeof StoryTrigger> = {
   title: 'Features/LibraryUploadModal',
   component: StoryTrigger,
+  // Docs view doesn't work well and doesn't give us anything useful
+  tags: ['!autodocs'],
   decorators: [
     (Story) => {
       const queryClient = new QueryClient({
@@ -76,10 +79,24 @@ export const UploadForm: Story = {
   args: {
     mode: 'form',
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole('button', { name: /open library upload modal/i }))
+
+    // The upload form flow is now visible inside the modal.
+    expect(await canvas.findByText(/import an xlsform from your computer/i)).toBeInTheDocument()
+  },
 }
 
 export const UploadingXls: Story = {
   args: {
     mode: 'uploading',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole('button', { name: /open library upload modal/i }))
+
+    // The uploading/processing flow is now visible inside the modal.
+    expect(await canvas.findByText(/uploading xls file/i)).toBeInTheDocument()
   },
 }

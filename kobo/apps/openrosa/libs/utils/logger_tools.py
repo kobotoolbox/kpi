@@ -7,6 +7,8 @@ import os
 import re
 import sys
 import traceback
+import unicodedata
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
@@ -82,6 +84,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_submission_date_from_xml,
     get_uuid_from_xml,
     get_xform_media_question_xpaths,
+    set_form_versions,
+    strip_form_versions,
 )
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -95,6 +99,8 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.fields.kpi_uid import UUID_LENGTH
+from kpi.utils.files import normalize_nfc
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -111,6 +117,77 @@ uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
                         re.DOTALL)
 
 mongo_instances = settings.MONGO_DB.instances
+
+# A KPI `AssetVersion` uid: the `v` prefix of its `KpiUidField`, then exactly
+# `UUID_LENGTH` characters from `shortuuid`'s alphabet, which is alphanumeric.
+# Anything else is discarded rather than written back into the document
+version_uid_regex = re.compile(rf'^v[A-Za-z0-9]{{{UUID_LENGTH}}}$')
+
+
+def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -> str:
+    """
+    Tag the submission with every form version it has been through.
+
+    A submission spans more than one version in two situations:
+    - it is edited, through Enketo or through a bulk edit, while a newer
+      version of the form is deployed;
+    - it is collected offline with an older version and sent only after a
+      newer one has been deployed.
+
+    The versions are written to `meta/formVersions` as a space-separated list,
+    oldest first. `__version__` is left untouched. When there is nothing to
+    record, which is the case for the vast majority of submissions, the XML is
+    returned unchanged so that it keeps the exact bytes the client sent.
+
+    `previous_xml` is the submission being edited, and it is the only source of
+    history: what the incoming XML claims under `meta/formVersions` is
+    discarded, since a client could otherwise drop the versions it has really
+    been through. A new submission passes `None` and starts from nothing.
+
+    The node is read through `ElementTree` but written textually, so that
+    `strip_form_versions()` gives the client payload back byte for byte and
+    `xml_hash` keeps identifying what was actually submitted.
+    """
+
+    deployed_version_uid = xform.deployed_version_uid
+
+    xml_parsed = fromstring_preserve_root_xmlns(xml)
+    _, submission_version = _get_form_versions(xml_parsed)
+
+    form_versions = []
+    if previous_xml is not None:
+        # 1) Retrieve every version the record being edited has already been through…
+        # Don't trust what the client sent, retrieve form versions from previous version
+        form_versions, previous_version = _get_form_versions(
+            fromstring_preserve_root_xmlns(previous_xml)
+        )
+        if previous_version and previous_version not in form_versions:
+            # `meta/formVersions` is absent from a record that only ever knew
+            # one version, so its `__version__` is the only trace of it
+            form_versions.append(previous_version)
+
+    if submission_version and submission_version not in form_versions:
+        # 2) … then, the version the client says it collected with
+        form_versions.append(submission_version)
+
+    if deployed_version_uid and deployed_version_uid not in form_versions:
+        # 3) … and last, the version deployed when the submission arrived. A
+        # form we cannot place has none, which is a reason to add nothing,
+        # never a reason to drop the history above
+        form_versions.append(deployed_version_uid)
+
+    if len(form_versions) < 2:
+        # A single version, so nothing worth recording. Stripping also clears a
+        # node the client made up, or one inherited by `duplicate_submission()`
+        return strip_form_versions(xml)
+
+    form_versions_text = ' '.join(form_versions)
+    recorded = xml_parsed.find(common_tags.META_FORM_VERSIONS)
+    if recorded is not None and recorded.text == form_versions_text:
+        # Already what we would write, so leave the bytes alone
+        return xml
+
+    return set_form_versions(xml, form_versions_text)
 
 
 def check_submission_permissions(
@@ -230,9 +307,12 @@ def create_instance(
 
     xml = smart_str(xml_file.read())
     validate_xml_chars(xml)
-    xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
+    # `Instance.get_hash()` excludes `meta/formVersions`, so duplicate detection
+    # compares what the client sent and stays unaffected by a redeployment
+    # landing between two POSTs of the same submission
+    xml_hash = Instance.get_hash(xml)
     if (
         settings.STRIPE_ENABLED
         and constance.config.USAGE_LIMIT_ENFORCEMENT
@@ -903,12 +983,19 @@ def save_attachments(
         # `MultiPartParserWithRawFilenames` to preserve the original filename
         # before Django’s sanitizing process.
         original_name = getattr(f, '_raw_filename', None) or f.name
-        media_file_basename = os.path.basename(original_name)
+        media_file_basename = normalize_nfc(os.path.basename(original_name))
+        # NFC-normalize the stored name too: `get_valid_name`'s `\w` regex drops
+        # NFD combining marks, stripping the accent from `media_file.name`.
+        f.name = normalize_nfc(f.name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
+        # Legacy rows may be stored in NFD, so match both forms.
         existing_attachment = Attachment.objects.filter(
             instance=instance,
-            media_file_basename=media_file_basename,
+            media_file_basename__in={
+                media_file_basename,
+                unicodedata.normalize('NFD', media_file_basename),
+            },
         ).first()
 
         uploaded_file_hash = calculate_hash(f, 'sha1')
@@ -955,30 +1042,38 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     """
     Soft delete replaced attachments when editing a submission
     """
-    # Retrieve all media questions of Xform
-    media_question_xpaths = get_xform_media_question_xpaths(instance.xform)
 
-    # If XForm does not have any media fields, do not go further
-    if not media_question_xpaths:
+    # Retrieve all media questions of the XForm. This runs for every single
+    # submission, so leave before parsing anything when the form has no media
+    # field: an empty list soft deletes nothing, which is also the right answer
+    # for a form that dropped its only media question in a later version
+    xform_media_question_xpaths = get_xform_media_question_xpaths(instance.xform)
+
+    if not xform_media_question_xpaths:
         return []
 
     # Parse instance XML to get the basename of each file of the updated
-    # submission
+    # submission, and the form versions it has been through
     xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+
+    # Add the media questions of the other form versions the submission has
+    # been through
+    media_question_xpaths = _get_submission_media_question_xpaths(
+        instance, xml_parsed, xform_media_question_xpaths
+    )
+
+    if not media_question_xpaths:
+        # Stripping the root node off the XForm's `ref` attributes left nothing
+        # usable. Leaving now matters: an empty list would let the loop below
+        # soft delete every attachment of the submission
+        return []
+
     basenames = []
 
     for media_question_xpath in media_question_xpaths:
-        root_name, xpath_without_root = media_question_xpath.split('/', 1)
-        try:
-            assert root_name == xml_parsed.tag
-        except AssertionError:
-            logging.warning(
-                'Instance XML root tag name does not match with its form'
-            )
-
         # With repeat groups, several nodes can have the same XPath. We
         # need to retrieve all of them
-        questions = xml_parsed.findall(xpath_without_root)
+        questions = xml_parsed.findall(media_question_xpath)
         for question in questions:
             try:
                 basename = question.text
@@ -987,7 +1082,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
             # Only keep non-empty fields
             if basename:
-                basenames.append(basename)
+                basenames.append(normalize_nfc(basename))
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
@@ -1015,9 +1110,11 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     latest_attachments, remaining_attachments_ids = [], []
     basename_set = set(basenames)
     for attachment in queryset:
-        if attachment.media_file_basename in basename_set:
+        # Legacy rows may be stored in NFD; normalize both sides before comparing
+        normalized_basename = normalize_nfc(attachment.media_file_basename)
+        if normalized_basename in basename_set:
             latest_attachments.append(attachment)
-            basename_set.remove(attachment.media_file_basename)
+            basename_set.remove(normalized_basename)
         else:
             remaining_attachments_ids.append(attachment.id)
     remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)
@@ -1055,7 +1152,7 @@ _COMMON_INSTANCE_FIELDS = frozenset(
     {
         'formhub',
         'meta',
-        '__version__',
+        common_tags.VERSION,
         'start',
         'end',
         'today',
@@ -1123,7 +1220,9 @@ def _get_instance(
             uuid=old_uuid,
             root_uuid=instance.root_uuid,
         )
-        instance.xml = xml
+        # The record being edited is already in memory, so its version history
+        # costs nothing to read and is trusted over the incoming XML
+        instance.xml = add_form_versions(xml, xform, previous_xml=instance.xml)
         instance.uuid = new_uuid
     else:
         get_user = (
@@ -1146,7 +1245,7 @@ def _get_instance(
         # Avoid `Instance.objects.create()` so that we can set a Python-only
         # attribute, `defer_counting`, before saving
         instance = Instance()
-        instance.xml = xml
+        instance.xml = add_form_versions(xml, xform)
         instance.user = submitted_by
         instance.status = status
         instance.xform = xform
@@ -1200,6 +1299,32 @@ def _get_instance_from_deprecated_id(
     return instance, old_uuid
 
 
+def _get_other_form_version_uids(
+    instance: Instance, xml_parsed: ET.Element
+) -> list[str]:
+    """
+    Return the uids of the form versions a submission has been through, minus
+    the one currently deployed, which the XForm already describes.
+    """
+
+    form_versions, submission_version = _get_form_versions(xml_parsed)
+    if submission_version and submission_version not in form_versions:
+        form_versions.append(submission_version)
+
+    if not form_versions:
+        # A submission carrying no version at all, collected before KPI started
+        # stamping `__version__`. Nothing places it in time
+        return []
+
+    deployed_version_uid = instance.xform.deployed_version_uid
+
+    return [
+        version_uid
+        for version_uid in form_versions
+        if version_uid != deployed_version_uid
+    ]
+
+
 def _get_submission_field_paths(xml: str) -> set:
     """
     Return a submission's field XPaths, relative to its root node, with the
@@ -1209,6 +1334,58 @@ def _get_submission_field_paths(xml: str) -> set:
     root = clean_and_parse_xml(xml).documentElement
 
     return _exclude_common_paths(_collect_element_paths(root))
+
+
+def _get_submission_media_question_xpaths(
+    instance: Instance,
+    xml_parsed: ET.Element,
+    xform_media_question_xpaths: list[str],
+) -> list[str]:
+    """
+    Return the media question XPaths a submission may hold a file under,
+    relative to its root node.
+
+    `get_xform_media_question_xpaths()` only describes the deployed version. A
+    submission collected with an older one holds its files under names that
+    version may no longer know, and an unmatched attachment is soft deleted
+    right after being saved. The versions recorded by `add_form_versions()`
+    close that gap; they are added, never substituted, so a wider list can only
+    spare attachments.
+    """
+
+    xpaths = []
+
+    for media_question_xpath in xform_media_question_xpaths:
+        # A `ref` attribute carries the root node, e.g. `myform/group/photo`,
+        # whereas the submission tree is searched from under the root. The
+        # XPaths coming from KPI below already have that shape
+        root_name, _, xpath_without_root = media_question_xpath.partition('/')
+        if root_name != xml_parsed.tag:
+            logging.warning('Instance XML root tag name does not match with its form')
+
+        if xpath_without_root and xpath_without_root not in xpaths:
+            xpaths.append(xpath_without_root)
+
+    version_uids = _get_other_form_version_uids(instance, xml_parsed)
+    if not version_uids:
+        # Nothing the XForm has not already described, which is the case for
+        # the vast majority of submissions. Neither the asset nor its cache is
+        # touched
+        return xpaths
+
+    asset = instance.xform.asset
+    if asset.pk is None:
+        # Every XForm belongs to an asset, but `XForm.asset` hands back an
+        # unsaved placeholder when `kpi_asset_uid` does not resolve, and
+        # querying its versions would raise. Keep the XForm's own answer rather
+        # than fail a submission over it
+        return xpaths
+
+    for xpath in asset.get_attachment_xpaths_from_version_uids(version_uids):
+        if xpath not in xpaths:
+            xpaths.append(xpath)
+
+    return xpaths
 
 
 def _get_xform_template_field_paths(xform_xml: str) -> set:
@@ -1265,6 +1442,41 @@ def _has_edit_xform_permission(
         return getattr(request.user, 'has_partial_perms', False)
 
     return False
+
+
+def _get_form_versions(xml_parsed: ET.Element) -> tuple[list[str], str | None]:
+    """
+    Return what a parsed submission already says about form versions.
+
+    The first item is the history accumulated in `meta/formVersions`, oldest
+    first, empty when the submission has never spanned two versions. The second
+    is the single version the client declared in `__version__`, `None` when the
+    submission carries no such node.
+
+    Both come from the client, and `ElementTree` hands them over with their
+    entities decoded, so anything that does not look like a uid is discarded.
+    Otherwise `_write_form_versions()` would interpolate markup straight back
+    into the document and leave it malformed.
+    """
+
+    form_versions = []
+    submission_version = None
+
+    form_versions_element = xml_parsed.find(common_tags.META_FORM_VERSIONS)
+    if form_versions_element is not None and form_versions_element.text:
+        form_versions = [
+            uid
+            for uid in form_versions_element.text.split()
+            if version_uid_regex.match(uid)
+        ]
+
+    version = xml_parsed.find(common_tags.VERSION)
+    if version is not None and version.text:
+        candidate = version.text.strip()
+        if version_uid_regex.match(candidate):
+            submission_version = candidate
+
+    return form_versions, submission_version
 
 
 def _update_mongo_for_xform(xform, only_update_missing=True):

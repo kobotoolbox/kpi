@@ -30,6 +30,9 @@ on:
       next_patch:
         value: ${{ jobs.version.outputs.next_patch }}
 
+permissions:
+  contents: read
+
 jobs:
   version:
     runs-on: ubuntu-24.04
@@ -46,7 +49,7 @@ jobs:
       next_minor: ${{ steps.version.outputs.next_minor }}
       next_patch: ${{ steps.version.outputs.next_patch }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
