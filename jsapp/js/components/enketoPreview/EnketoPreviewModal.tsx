@@ -17,7 +17,7 @@ export function EnketoPreviewModal(props: EnketoPreviewModalProps) {
 
   const previewUrl = snapshotMutation.data?.status === 201 ? snapshotMutation.data.data.enketopreviewlink : undefined
 
-  if (snapshotMutation.isPending) {
+  if (snapshotMutation.isIdle || snapshotMutation.isPending) {
     return <LoadingSpinner />
   }
 
