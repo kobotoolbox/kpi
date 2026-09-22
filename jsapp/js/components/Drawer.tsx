@@ -36,6 +36,7 @@ export default function Drawer() {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.NEW_FORM,
+      disableBackdropClose: true,
     })
   }
 
