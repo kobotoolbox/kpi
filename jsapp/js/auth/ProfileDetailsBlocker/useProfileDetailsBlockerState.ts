@@ -11,8 +11,8 @@ import sessionStore from '#/stores/session'
 export type ProfileDetailsBlockerState =
   | { status: 'inactive' }
   /**
-   * Carries `is_mmo` so the form does not have to ask for the organization a second time.
-   * It is also `true` when the organization was never asked for.
+   * Carries `is_mmo` so the form does not have to ask for the organization a second time. Reads `true` until the
+   * organization answers, so its fields stay out of the form until they are known to be the user's to edit.
    */
   | { status: 'active'; isMmoMember: boolean }
   /** Waiting on the organization, without which there is no answer. */
@@ -36,27 +36,34 @@ export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
 
   const organizationQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
-      // Nothing the organization owns is missing, so there is nothing to ask it about.
-      enabled: needsOrganization && Boolean(organizationId),
+      // Every blocked account asks, even when the answer only decides which fields the form shows.
+      enabled: isPossiblyActive && Boolean(organizationId),
       staleTime: Number.POSITIVE_INFINITY, // Same as `RequireOrg`, which is where the rest of the app gets it.
       queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      // No error toast: a failure either lands on `ProfileDetailsErrorScreen` or costs nothing but the
+      // organization's own fields. `RequireOrg` swallows this query's errors too.
+      throwOnError: () => false,
     },
   })
+  const organization = organizationQuery.data?.status === 200 ? organizationQuery.data.data : undefined
 
   if (!isPossiblyActive) {
     return { status: 'inactive' }
   }
 
-  if (!needsOrganization) {
-    return { status: 'active', isMmoMember: true }
-  }
-
+  // Nothing to wait for, and no organization to manage those fields.
   if (!organizationId) {
     return { status: 'active', isMmoMember: false }
   }
 
-  if (organizationQuery.data?.status === 200) {
-    const organization = organizationQuery.data.data
+  // Everything missing is the user's own to fill in, so the organization cannot change this answer - the form goes
+  // up without waiting, even if the request fails. Its fields do wait: a member who edits one gets the whole PATCH
+  // rejected, while anybody else just sees them a moment late.
+  if (!needsOrganization) {
+    return { status: 'active', isMmoMember: organization ? Boolean(organization.is_mmo) : true }
+  }
+
+  if (organization) {
     const isMmoMember = Boolean(organization.is_mmo)
     // Asked again now that MMO status is known: it can take the organization's own fields out of the count.
     return isProfileDetailsRouteBlockerActive(organization) ? { status: 'active', isMmoMember } : { status: 'inactive' }
