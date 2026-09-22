@@ -30,6 +30,7 @@ export function EnketoPreviewModal(props: EnketoPreviewModalProps) {
       <iframe
         src={previewUrl}
         title={t('Form Preview')}
+        allow='camera *; microphone *; geolocation *'
         style={{ display: 'block', width: '100%', height: '100%', flex: 1, border: 0 }}
       />
     </Box>
