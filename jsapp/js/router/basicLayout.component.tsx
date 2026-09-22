@@ -26,7 +26,7 @@ export default function BasicLayout(props: BasicLayoutProps) {
       <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
         <MainHeaderBase>
           <MainHeaderLogo />
-          {sessionStore.isLoggedIn && sessionStore.isValidatedPassword && (
+          {sessionStore.isLoggedIn && (
             <RequireOrg>
               <AccountMenu />
             </RequireOrg>
