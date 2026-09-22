@@ -298,6 +298,15 @@ describe('getSubmissionDisplayData for answers the current form does not account
     chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
   })
 
+  it('should not add a row for the audit file, which is no answer either', () => {
+    // A submission carries the audit log under `meta`, where nothing marks it as
+    // Back end's own property the way a leading underscore does.
+    const submission = { ...simpleSurveySubmission, 'meta/audit': 'audit-1.csv' }
+    const responses = getResponses(getSubmissionDisplayData(simpleSurveyAsset, 0, submission))
+
+    chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
+  })
+
   it('should display an answer of zero, rather than take it for no answer at all', () => {
     // A zero is falsy, so it used to read as nothing answered - which blanked the row
     // and had this pass append the answer a second time.
