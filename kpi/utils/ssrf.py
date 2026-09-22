@@ -7,6 +7,21 @@ from ssrf_protect.ssrf_protect import SSRFProtect
 from kpi.utils.strings import split_lines_to_list
 
 
+class SSRFProtectedSession(requests.Session):
+    """
+    Session that validates every URL against SSRF rules before it is
+    requested, including each hop of a redirect chain.
+
+    `Session.send()` runs once for the initial request and once per redirect
+    hop (via `Session.resolve_redirects()`), so overriding it covers the
+    whole chain for any HTTP verb.
+    """
+
+    def send(self, request, **kwargs):
+        validate_url_against_ssrf(request.url)
+        return super().send(request, **kwargs)
+
+
 def ssrf_safe_get(url: str, **kwargs) -> requests.Response:
     """
     Perform a GET request, validating every URL in the redirect chain against
