@@ -65,6 +65,7 @@ import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
 import AssetNavigator from './AssetNavigator'
+import FormbuilderAssetLabel from './FormbuilderAssetLabel'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
@@ -783,7 +784,7 @@ export default function EditableForm(props: EditableFormProps) {
 
           <bem.FormBuilderHeader__cell m='name'>
             <bem.FormModal__item>
-              {renderAssetLabel()}
+              <FormbuilderAssetLabel asset={state.asset} desiredAssetType={state.desiredAssetType} />
               <input
                 type='text'
                 maxLength={NAME_MAX_LENGTH}
@@ -1043,42 +1044,6 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     return <LoadingSpinner />
-  }
-
-  function renderAssetLabel() {
-    if (!state.asset) {
-      return null
-    }
-
-    const assetTypeLabel = getFormBuilderAssetType(state.asset.asset_type, state.desiredAssetType)?.label || 'asset'
-
-    // Case 1: there is no asset yet (creting a new) or asset is not locked
-    if (!state.asset?.content || !hasAssetAnyLocking(state.asset.content)) {
-      return assetTypeLabel
-      // Case 2: asset is locked fully or partially
-    } else {
-      let lockedLabel = t('Partially locked ##type##').replace('##type##', assetTypeLabel)
-      if (isAssetAllLocked(state.asset.content)) {
-        lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel)
-      }
-      return (
-        <span className='locked-asset-type-label'>
-          <i className='k-icon k-icon-lock' />
-
-          {lockedLabel}
-
-          {envStore.isReady && envStore.data.support_url && (
-            <a
-              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
-              target='_blank'
-              data-tip={t('Read more about Locking')}
-            >
-              <i className='k-icon k-icon-help' />
-            </a>
-          )}
-        </span>
-      )
-    }
   }
 
   function toggleCascade() {
