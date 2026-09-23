@@ -4,19 +4,20 @@ import React from 'react'
 
 import { Group } from '@mantine/core'
 import autoBind from 'react-autobind'
-import { findRow, getRowName, renderQuestionTypeIcon } from '#/assetUtils'
+import { getRowName, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
+import MenuItemProcessing from '#/components/common/MenuItemProcessing'
+import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import SimpleTable from '#/components/common/SimpleTable'
-import Button from '#/components/common/button'
-import { goToProcessing } from '#/components/processing/routes.utils'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
   getMediaAttachment,
   getSubmissionDisplayData,
-  shouldProcessingBeAccessible,
+  stripRepeatIndices,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { METADATA_COLUMN_LABELS } from '#/components/submissions/tableConstants'
@@ -24,7 +25,7 @@ import { getMetadataColumns } from '#/components/submissions/tableUtils'
 import { QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { formatDate, formatTimeDate } from '#/utils'
+import { formatDate, formatTimeDate, getSubmissionRootUuid } from '#/utils'
 import AudioPlayer from '../common/audioPlayer'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
@@ -49,15 +50,6 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   constructor(props: SubmissionDataTableProps) {
     super(props)
     autoBind(this)
-  }
-
-  openProcessing(name: string) {
-    if (this.props.asset?.content) {
-      const foundRow = findRow(this.props.asset?.content, name)
-      if (foundRow && foundRow.$xpath !== undefined) {
-        goToProcessing(this.props.asset.uid, foundRow.$xpath, this.props.submissionData._uuid)
-      }
-    }
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -186,7 +178,9 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES.video.id:
       case QUESTION_TYPES.file.id:
-        return this.renderAttachment(item.type, item.data, item.name, item.xpath)
+        return this.renderAttachment(item.type, item.data, item.xpath)
+      case QUESTION_TYPES.text.id:
+        return this.renderTextResponse(item.data, item.xpath)
       case QUESTION_TYPES.geopoint.id:
       case QUESTION_TYPES.geotrace.id:
       case QUESTION_TYPES.geoshape.id:
@@ -220,7 +214,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     )
   }
 
-  renderAttachment(type: AnyRowTypeName | null, filename: string, name: string, xpath: string) {
+  renderAttachment(type: AnyRowTypeName | null, filename: string, xpath: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath)
 
     // In the case that an attachment is missing, don't crash the page
@@ -241,21 +235,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     return (
       <>
         {type === QUESTION_TYPES.audio.id && (
-          <Group>
+          <Group w='100%'>
             <AudioPlayer mediaURL={attachment?.download_url} />
 
             <span className='print-only'>{attachmentShortFilename}</span>
-
-            {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
-              <Button
-                className='hide-on-print'
-                type='primary'
-                size='s'
-                endIcon='arrow-up-right'
-                label={t('Open')}
-                onClick={this.openProcessing.bind(this, name)}
-              />
-            )}
           </Group>
         )}
 
@@ -286,12 +269,34 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             asset={this.props.asset}
             submission={this.props.submissionData}
             attachmentUid={attachment.uid}
+            showProcessingAction
             onDeleted={() => {
               this.props.onAttachmentDeleted(attachment.uid)
             }}
           />
         )}
       </>
+    )
+  }
+
+  renderTextResponse(text: string, xpath: string) {
+    // Strip any repeat-instance index to get the question's static survey xpath.
+    const questionXpath = stripRepeatIndices(xpath)
+
+    return (
+      <Group wrap='nowrap' align='flex-start' w='100%'>
+        <bem.SubmissionDataTable__value style={{ flex: 1, minWidth: 0 }}>{text}</bem.SubmissionDataTable__value>
+
+        {text && isNlpSupported(QUESTION_TYPES.text.id) && (
+          <MoreActionsMenu className='hide-on-print'>
+            <MenuItemProcessing
+              assetUid={this.props.asset.uid}
+              xpath={questionXpath}
+              submissionEditId={getSubmissionRootUuid(this.props.submissionData)}
+            />
+          </MoreActionsMenu>
+        )}
+      </Group>
     )
   }
 
@@ -326,7 +331,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     )
 
     // These rows used to be hardcoded here, which meant the modal showed rows
-    // the form doesn't even define (e.g. `audit`) and in an order of its own.
+    // the form doesn't even define (e.g. `today`) and in an order of its own.
     // Deriving them keeps this in sync with Data Table (see `orderColumns` in
     // `tableUtils.ts`). We pass the submission in, so that a submission made
     // with an older form version still shows its own metadata.

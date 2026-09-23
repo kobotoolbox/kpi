@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 15:15+0000\n"
+"POT-Creation-Date: 2026-09-08 15:50+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Tino Kreutzer <tino.kreutzer@kobotoolbox.org>, 2017\n"
 "Language-Team: Chinese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/zh/)\n"
@@ -20,6 +20,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: zh\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:410
+msgid "Page ##current_page## of ##total_pages##"
+msgstr ""
+
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:441
+msgid "##number## rows"
+msgstr ""
 
 #: jsapp/js/account/DeleteAccountBanner.tsx:31
 msgid ""
@@ -72,32 +80,33 @@ msgid "To complete this action, please enter your username below"
 msgstr ""
 
 #: jsapp/js/account/DeleteAccountModal.tsx:66
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:89
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:89
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:120
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:69
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:87
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:119
 #: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:110
-#: jsapp/js/alertify.ts:170 jsapp/js/assetQuickActions.tsx:79
-#: jsapp/js/assetQuickActions.tsx:111 jsapp/js/assetQuickActions.tsx:153
-#: jsapp/js/assetQuickActions.tsx:222 jsapp/js/assetQuickActions.tsx:296
-#: jsapp/js/assetQuickActions.tsx:347
+#: jsapp/js/alertify.ts:170 jsapp/js/assetQuickActions.tsx:80
+#: jsapp/js/assetQuickActions.tsx:112 jsapp/js/assetQuickActions.tsx:154
+#: jsapp/js/assetQuickActions.tsx:223 jsapp/js/assetQuickActions.tsx:297
+#: jsapp/js/assetQuickActions.tsx:348
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:125
 #: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:98
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:103
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:79
+#: jsapp/js/components/common/openKoboConfirmModal.tsx:13
 #: jsapp/js/components/dataAttachments/connectProjects.tsx:287
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:76
-#: jsapp/js/components/map/MapSettings.tsx:260
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:122
-#: jsapp/js/components/permissions/userPermissionRow.component.tsx:64
+#: jsapp/js/components/map/MapSettings.tsx:258
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:162
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:248
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:159
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:159
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ConfirmEditModal.tsx:26
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:149
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:295
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:82
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:150
+#: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:16
+#: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:65
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:171
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkProcessingWarningModal.tsx:25
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:313
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:215
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:237
 #: jsapp/js/components/submissions/submissionModal.tsx:268
 #: jsapp/js/components/submissions/tableBulkOptions.tsx:100
 #: jsapp/js/components/submissions/tableBulkOptions.tsx:161
@@ -128,43 +137,23 @@ msgstr "其他"
 msgid "Use this to display your real name to other users"
 msgstr "使用此项以向其他用户显示你的真实姓名"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:376
-msgid "Social"
-msgstr "社交媒体"
-
-#: jsapp/js/account/accountFieldsEditor.component.tsx:425
+#: jsapp/js/account/accountFieldsEditor.component.tsx:426
 msgid "Newsletter"
 msgstr "内部通讯"
 
-#: jsapp/js/account/accountSettingsRoute.tsx:76
+#: jsapp/js/account/accountSettingsRoute.tsx:75
 msgid "You have unsaved changes. Leave settings without saving?"
 msgstr "你有未保存的更改。确定不保存设置就离开？"
 
-#: jsapp/js/account/accountSettingsRoute.tsx:85
+#: jsapp/js/account/accountSettingsRoute.tsx:84
 msgid "Updated profile successfully"
 msgstr "用户配置文件更新成功"
 
-#: jsapp/js/account/accountSettingsRoute.tsx:139
+#: jsapp/js/account/accountSettingsRoute.tsx:138
 #: jsapp/js/project/FormLanguagesManager/utils.ts:10
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:94
 msgid "Save Changes"
 msgstr "保存更改"
-
-#: jsapp/js/account/accountSettingsRoute.tsx:157
-msgid ""
-"You can now control whether to allow anonymous submissions in web forms for "
-"each project. Previously, this was an account-wide setting."
-msgstr "现在你可以控制是否允许网络表单中每个项目的匿名提交。此前，这仅设置于帐户范围内。"
-
-#: jsapp/js/account/accountSettingsRoute.tsx:162
-msgid ""
-"This privacy feature is now a per-project setting. New projects will require"
-" authentication by default."
-msgstr "现在每个项目均设置有隐私功能。在使用新项目之前默认需要进行身份验证。"
-
-#: jsapp/js/account/accountSettingsRoute.tsx:166
-msgid "Learn more about these changes here."
-msgstr "在此处了解更多有关这些变更的信息。"
 
 #: jsapp/js/account/accountSidebar.tsx:43
 #: jsapp/js/account/accountSidebar.tsx:69
@@ -174,6 +163,7 @@ msgstr "用户配置文件"
 #: jsapp/js/account/accountSidebar.tsx:44
 #: jsapp/js/account/accountSidebar.tsx:70
 #: jsapp/js/account/security/securityRoute.component.tsx:15
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:277
 msgid "Security"
 msgstr "安全"
 
@@ -197,26 +187,95 @@ msgid "ACCOUNT"
 msgstr "账户"
 
 #: jsapp/js/account/accountSidebar.tsx:74
-#: jsapp/js/account/organization/MembersRoute.tsx:206
+#: jsapp/js/account/organization/MembersRoute.tsx:202
 msgid "Members"
 msgstr "成员"
 
 #: jsapp/js/account/accountSidebar.tsx:83
 #: jsapp/js/project/projectTopTabs.component.tsx:106
 #: jsapp/js/project/projectTopTabs.component.tsx:114
-#: jsapp/xlform/src/view.row.templates.coffee:56
-#: jsapp/xlform/src/view.row.templates.coffee:80
-#: jsapp/xlform/src/view.surveyApp.coffee:754
+#: jsapp/xlform/src/view.row.templates.coffee:58
+#: jsapp/xlform/src/view.row.templates.coffee:82
+#: jsapp/xlform/src/view.surveyApp.coffee:757
 msgid "Settings"
 msgstr "设置"
 
 #: jsapp/js/account/addOns/addOnProductRow.component.tsx:94
+#: jsapp/js/account/plans/planButton.component.tsx:57
+#: jsapp/js/components/formLanding/formLanding.js:518
 msgid "Manage"
 msgstr "管理"
 
 #: jsapp/js/account/addOns/addOnProductRow.component.tsx:94
 msgid "Buy now"
 msgstr "现在购买"
+
+#: jsapp/js/account/addOns/addOns.component.tsx:92
+#: jsapp/js/account/addOns/addOns.component.tsx:116
+msgid "Added on ##date##"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:109
+msgid "##name##"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:142
+#: jsapp/js/account/plans/planContainer.component.tsx:136
+msgid "Your plan"
+msgstr "你的计划"
+
+#: jsapp/js/account/addOns/addOns.component.tsx:149
+msgid "available add-ons"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:152
+msgid ""
+"You can add add-ons to increase your usage caps as needed when you are close"
+" to or over your plan's limits."
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:165
+msgid "File Storage"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:166
+msgid "Get up to 50GB of media storage on a KoboToolbox public server."
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:176
+msgid "NLP Package"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:177
+msgid "Increase your transcription minutes and translations characters."
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:187
+#: jsapp/js/account/usage/usage.component.tsx:216
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:132
+msgid "Automatic analysis requests"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:188
+msgid "Buy requests to generate more responses for your analysis questions."
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:200
+msgid "your active add-ons"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:201
+#: jsapp/js/account/organization/MembersRoute.tsx:97
+msgid "Active"
+msgstr "启用"
+
+#: jsapp/js/account/addOns/addOns.component.tsx:213
+msgid "previous add-ons"
+msgstr ""
+
+#: jsapp/js/account/addOns/addOns.component.tsx:214
+msgid "Inactive"
+msgstr ""
 
 #: jsapp/js/account/organization/InviteModal.tsx:32
 msgid "This username does not exist. Please try again."
@@ -240,149 +299,124 @@ msgstr ""
 msgid "Enter username or email address"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteModal.tsx:98
-#: jsapp/js/account/organization/MemberRoleSelector.tsx:54
-#: jsapp/js/account/organization/MembersRoute.tsx:127
+#: jsapp/js/account/organization/InviteModal.tsx:99
+#: jsapp/js/account/organization/MemberRoleSelector.tsx:51
+#: jsapp/js/account/organization/MembersRoute.tsx:123
 msgid "Admin"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteModal.tsx:102
-#: jsapp/js/account/organization/MemberRoleSelector.tsx:58
-#: jsapp/js/account/organization/MembersRoute.tsx:129
+#: jsapp/js/account/organization/InviteModal.tsx:103
+#: jsapp/js/account/organization/MemberRoleSelector.tsx:55
+#: jsapp/js/account/organization/MembersRoute.tsx:125
 msgid "Member"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteModal.tsx:111
+#: jsapp/js/account/organization/InviteModal.tsx:112
 msgid "Send invite"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:34
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:31
 msgid "The invitation was resent"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:40
-#: jsapp/js/account/organization/MemberRoleSelector.tsx:28
-msgid "There was an error updating this invitation."
-msgstr ""
-
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:43
-msgid ""
-"Invitation resent too quickly, wait for ##MINUTES## minutes before retrying"
-msgstr ""
-
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:55
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:36
 msgid "Invitation removed"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:56
-msgid "An error occurred while removing the invitation"
-msgstr ""
-
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:83
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:63
 msgid "Remove invitation?"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:86
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:66
 msgid ""
 "Are you sure you want to remove this user's invitation to join the team?"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:92
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:106
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:72
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:86
 msgid "Remove invitation"
 msgstr ""
 
-#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:103
+#: jsapp/js/account/organization/InviteeActionsDropdown.tsx:83
 msgid "Resend invitation"
 msgstr ""
 
 #: jsapp/js/account/organization/MemberActionsDropdown.tsx:48
-#: jsapp/js/assetQuickActions.tsx:296
+#: jsapp/js/assetQuickActions.tsx:297
+#: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:117
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:155
-#: jsapp/js/components/permissions/userPermissionRow.component.tsx:64
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:163
 msgid "Remove"
 msgstr "移除"
 
 #: jsapp/js/account/organization/MemberActionsDropdown.tsx:51
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:60
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:58
 msgid "Leave ##TEAM_OR_ORGANIZATION##"
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:39
-msgid "Failed to remove member"
-msgstr ""
-
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:47
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:45
 msgid "Remove ##username## from this ##TEAM_OR_ORGANIZATION##"
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:48
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:46
 msgid ""
 "Are you sure you want to remove ##username## from this "
 "##TEAM_OR_ORGANIZATION##?"
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:50
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:48
 msgid ""
 "Removing them from this ##TEAM_OR_ORGANIZATION## also means they will "
 "immediately lose access to any projects owned by your "
 "##TEAM_OR_ORGANIZATION##. This action cannot be undone."
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:52
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:50
 msgid "Remove member"
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:55
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:53
 msgid "Leave this ##TEAM_OR_ORGANIZATION##"
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:56
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:54
 msgid "Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?"
 msgstr ""
 
-#: jsapp/js/account/organization/MemberRemoveModal.tsx:58
+#: jsapp/js/account/organization/MemberRemoveModal.tsx:56
 msgid ""
 "You will immediately lose access to any projects owned by this "
 "##TEAM_OR_ORGANIZATION##. This action cannot be undone."
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:53
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:52
-msgid "There was an error getting the list."
-msgstr "获取列表时出现错误。"
-
-#: jsapp/js/account/organization/MembersRoute.tsx:75
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:370
+#: jsapp/js/account/organization/MembersRoute.tsx:71
+#: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:83
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:239
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:59
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:266
 msgid "Name"
 msgstr "名称"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:94
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:274
+#: jsapp/js/account/organization/MembersRoute.tsx:90
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:194
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:90
 #: jsapp/js/projects/projectViews/constants.ts:166
 msgid "Status"
 msgstr "状态"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:99
+#: jsapp/js/account/organization/MembersRoute.tsx:95
 msgid "Invited"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:101
-msgid "Active"
-msgstr "启用"
-
-#: jsapp/js/account/organization/MembersRoute.tsx:107
+#: jsapp/js/account/organization/MembersRoute.tsx:103
 msgid "Date added"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:116
+#: jsapp/js/account/organization/MembersRoute.tsx:112
 msgid "Role"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:125
+#: jsapp/js/account/organization/MembersRoute.tsx:121
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:73
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:102
 #: jsapp/js/components/library/assetInfoBox.tsx:89
@@ -391,21 +425,21 @@ msgstr ""
 msgid "Owner"
 msgstr "所有者"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:131
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:159
+#: jsapp/js/account/organization/MembersRoute.tsx:127
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:169
 msgid "Unknown"
 msgstr "未知语言"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:155
+#: jsapp/js/account/organization/MembersRoute.tsx:151
 msgid "2FA"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:216
-#: jsapp/js/account/organization/MembersRoute.tsx:227
+#: jsapp/js/account/organization/MembersRoute.tsx:212
+#: jsapp/js/account/organization/MembersRoute.tsx:223
 msgid "Invite members"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:220
+#: jsapp/js/account/organization/MembersRoute.tsx:216
 msgid ""
 "Invite more people to join your ##TEAM_OR_ORGANIZATION## or change their "
 "role permissions below."
@@ -462,7 +496,8 @@ msgid "##TEAM_OR_ORGANIZATION## type"
 msgstr ""
 
 #: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:176
-#: jsapp/js/components/map/MapSettings.tsx:419
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:330
+#: jsapp/js/components/map/MapSettings.tsx:417
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:250
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:418
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:157
@@ -471,7 +506,7 @@ msgstr ""
 #: jsapp/js/components/reports/customReportEditor.component.tsx:142
 #: jsapp/js/components/reports/reportStyleSettings.component.tsx:240
 #: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx:198
-#: jsapp/js/components/submissions/tableSettings.js:122
+#: jsapp/js/components/submissions/TableSettings.tsx:176
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:219
 msgid "Save"
 msgstr "保存"
@@ -484,67 +519,62 @@ msgid ""
 "minutes to complete."
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:50
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:49
 msgid "Invitation successfully accepted"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:52
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:51
 msgid "Invitation successfully declined"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:58
-msgid "Unknown error while trying to update an invitation"
-msgstr ""
-
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:93
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:92
 msgid "Invitation not found"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:97
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:96
 msgid "Could not find invitation ##invite_id## from organization ##org_id##"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:105
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:132
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:184
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:104
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:178
 msgid "Unable to join ##TEAM_OR_ORGANIZATION_NAME##"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:109
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:108
 msgid "Failed to respond to invitation"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:124
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:123
 msgid "Sign out"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:141
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:135
 msgid "Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:149
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:143
 msgid ""
 "When you accept this invitation, all of the submissions, data storage, and "
 "transcription and translation usage for all projects will be transferred to "
 "the ##TEAM_OR_ORGANIZATION##."
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:155
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:149
 msgid "Note: Once you accept, transfer might take a few minutes to complete."
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:165
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:159
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:130
 msgid "Decline"
 msgstr "拒绝"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:176
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:170
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:239
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:138
 msgid "Accept"
 msgstr "接受"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:185
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:179
 msgid "This invitation is no longer available for a response"
 msgstr ""
 
@@ -638,9 +668,9 @@ msgstr "请联系我们"
 msgid "Upgrade"
 msgstr "升级"
 
-#: jsapp/js/account/plans/planContainer.component.tsx:136
-msgid "Your plan"
-msgstr "你的计划"
+#: jsapp/js/account/plans/planButton.component.tsx:67
+msgid "Change plan"
+msgstr ""
 
 #: jsapp/js/account/plans/useDisplayPrice.hook.tsx:8
 msgid "Free"
@@ -654,55 +684,50 @@ msgstr "$##price##"
 msgid "$##price## USD/month"
 msgstr "$##price## USD/月"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:50
-#: jsapp/js/components/activity/activityLogs.query.ts:88
-msgid "An error occurred while exporting the logs"
-msgstr ""
-
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:59
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:64
 msgid "Recent account activity"
 msgstr "最近的账户活动"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:65
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:70
 msgid "Log out of all devices"
 msgstr ""
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:69
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:74
 msgid "Export log data"
 msgstr ""
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:82
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:87
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:361
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:548
 msgid "Action"
 msgstr "操作"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:84
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:309
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:167
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:41
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:123
 msgid "Failed"
 msgstr "失败"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:84
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:295
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:165
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:29
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:121
 msgid "Success"
 msgstr "成功"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:94
 #: jsapp/js/components/Drawer.tsx:95
 msgid "Source"
 msgstr "来源"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:92
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:97
 msgid "Data Submissions (##count##)"
 msgstr "数据提交(##count##)"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:100
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:105
 msgid "Last activity"
 msgstr "最近的活动"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:103
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:108
 msgid "IP Address"
 msgstr "IP 地址"
 
@@ -776,6 +801,7 @@ msgid "Two-factor authentication"
 msgstr "双因素身份验证"
 
 #: jsapp/js/account/security/mfa/mfaSection.component.tsx:139
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:260
 msgid "Enabled"
 msgstr "启用"
 
@@ -816,12 +842,19 @@ msgid "MFA restriction explanation"
 msgstr ""
 
 #: jsapp/js/account/security/password/passwordSection.component.tsx:16
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:293
 msgid "Password"
 msgstr "密码"
 
 #: jsapp/js/account/security/password/passwordSection.component.tsx:25
 msgid "Forgot password"
 msgstr ""
+
+#: jsapp/js/account/security/password/passwordSection.component.tsx:30
+#: jsapp/js/components/AssetTagsModal/AssetTagsModal.tsx:86
+#: jsapp/js/project/FormLanguagesManager/LanguageForm.tsx:78
+msgid "Update"
+msgstr "更新"
 
 #: jsapp/js/account/security/password/updatePasswordForm.component.tsx:17
 msgid "This field is required."
@@ -832,18 +865,34 @@ msgid "Passwords don't match"
 msgstr "密码不匹配"
 
 #: jsapp/js/account/security/password/updatePasswordForm.component.tsx:84
-#: jsapp/js/actions.js:351
+#: jsapp/js/actions.js:349
 msgid "changed password successfully"
 msgstr "修改密码成功"
 
 #: jsapp/js/account/security/password/updatePasswordForm.component.tsx:107
-#: jsapp/js/actions.js:354
+#: jsapp/js/actions.js:352
 msgid "failed to change password"
 msgstr "修改密码失败"
 
 #: jsapp/js/account/security/password/updatePasswordForm.component.tsx:134
 msgid "Current Password"
 msgstr "当前密码"
+
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:142
+msgid "Forgot Password?"
+msgstr ""
+
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:148
+msgid "New Password"
+msgstr ""
+
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:162
+msgid "Verify Password"
+msgstr ""
+
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:171
+msgid "Save Password"
+msgstr ""
 
 #: jsapp/js/account/security/sso/ssoSection.component.tsx:46
 msgid "Single-Sign On"
@@ -938,8 +987,9 @@ msgid "Your usage"
 msgstr "你的使用情况"
 
 #: jsapp/js/account/usage/usage.component.tsx:175
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:111
-#: jsapp/js/projects/projectViews/constants.ts:270
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:107
+#: jsapp/js/components/formSummary/formSummary.js:194
+#: jsapp/js/projects/projectViews/constants.ts:271
 msgid "Submissions"
 msgstr "提交物"
 
@@ -949,7 +999,7 @@ msgid "Total"
 msgstr "全部"
 
 #: jsapp/js/account/usage/usage.component.tsx:186
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:117
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:113
 msgid "File storage"
 msgstr ""
 
@@ -962,14 +1012,9 @@ msgid "Transcription minutes"
 msgstr "转录分钟"
 
 #: jsapp/js/account/usage/usage.component.tsx:206
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:130
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:126
 msgid "Translation characters"
 msgstr "翻译字符"
-
-#: jsapp/js/account/usage/usage.component.tsx:216
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:136
-msgid "Automatic analysis requests"
-msgstr ""
 
 #: jsapp/js/account/usage/usageContainer.tsx:67
 msgid "Available"
@@ -987,45 +1032,41 @@ msgstr "今年使用"
 msgid "Balance"
 msgstr "余额"
 
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:62
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:58
 msgid "##count## Projects"
 msgstr "##count##项目"
 
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:63
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:59
 #: jsapp/js/components/Drawer.tsx:53
 #: jsapp/js/components/library/libraryConstants.ts:3
 msgid "Projects"
 msgstr "项目"
 
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:123
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:119
 msgid "Transcript minutes"
 msgstr "转录分钟"
 
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:165
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:161
 msgid ""
 "Submissions, transcription minutes, and translation characters reflect usage"
 " for the current ##INTERVAL## based on your plan settings."
 msgstr "根据你的计划设置，提交数、转录分钟数和翻译字符数反映了当前##INTERVAL##的使用情况。"
 
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:166
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:162
 msgid "year"
 msgstr ""
 
-#: jsapp/js/account/usage/usageProjectBreakdown.tsx:166
+#: jsapp/js/account/usage/usageProjectBreakdown.tsx:162
 msgid "month"
 msgstr ""
 
-#: jsapp/js/account/usage/usageTopTabs.tsx:26
+#: jsapp/js/account/usage/usageTopTabs.tsx:27
 msgid "Account Total"
 msgstr ""
 
 #: jsapp/js/account/usage/usageTopTabs.tsx:28
 msgid "Per Project Total"
 msgstr ""
-
-#: jsapp/js/account/usage/useOrganizationsServiceUsageSummary.ts:115
-msgid "There was an error fetching usage data."
-msgstr "获取使用数据时出错。"
 
 #: jsapp/js/account/usage/yourPlan.component.tsx:70
 msgid "##plan_name## Plan"
@@ -1051,12 +1092,6 @@ msgstr "切换至月度于##change_date##"
 msgid "See plans"
 msgstr ""
 
-#: jsapp/js/account/usage/yourPlan.component.tsx:114
-msgid ""
-"Your ##current_plan## plan has been canceled but will remain active until "
-"the end of the billing period."
-msgstr "你的##current_plan##计划已取消但在计费周期结束前将保持有效。"
-
 #: jsapp/js/account/usage/yourPlan.component.tsx:120
 msgid "Your ##current_plan## plan will change to the ##next_plan## plan on"
 msgstr "你的##current_plan##计划将更改为##next_plan##计划于"
@@ -1072,132 +1107,111 @@ msgid ""
 "Your ##current_plan## plan will change from annual to monthly starting from"
 msgstr "你的##current_plan##计划将从年度更改至月度，生效日期"
 
-#: jsapp/js/actions.js:67 jsapp/js/actions.js:73
+#: jsapp/js/actions.js:65 jsapp/js/actions.js:71
 msgid "Failed to update permissions"
 msgstr "更新权限失败"
 
-#: jsapp/js/actions.js:70
+#: jsapp/js/actions.js:68
 msgid "Failed to remove permissions"
 msgstr "移除权限失败"
 
-#: jsapp/js/actions.js:126
+#: jsapp/js/actions.js:124
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:148
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:148
 msgid "successfully updated"
 msgstr "更新成功"
 
-#: jsapp/js/actions.js:160 jsapp/js/actions.js:170
+#: jsapp/js/actions.js:158 jsapp/js/actions.js:168
 msgid "if this problem persists, contact help@kobotoolbox.org"
 msgstr "若此问题持续出现，请联系help@kobotoolbox.org"
 
-#: jsapp/js/actions.js:168
+#: jsapp/js/actions.js:166
 msgid "your form id was not valid:"
 msgstr "你的表单用户账号无效："
 
-#: jsapp/js/actions.js:174
+#: jsapp/js/actions.js:172
 msgid "your form cannot be deployed because it contains errors:"
 msgstr "你的表单含有错误，无法启用："
 
-#: jsapp/js/actions.js:178
+#: jsapp/js/actions.js:176
 msgid "unable to deploy"
 msgstr "无法启用"
 
-#: jsapp/js/actions.js:194
+#: jsapp/js/actions.js:192
 msgid "Project unarchived successfully"
 msgstr "项目取消归档成功"
 
-#: jsapp/js/actions.js:196
+#: jsapp/js/actions.js:194
 msgid "Project archived successfully"
 msgstr "项目归档成功"
 
-#: jsapp/js/actions.js:306
+#: jsapp/js/actions.js:304
 msgid "Unable to delete asset!"
 msgstr "无法删除资源！"
 
-#: jsapp/js/actions.js:306
+#: jsapp/js/actions.js:304
 msgid "Error details:"
 msgstr "错误详情："
 
-#: jsapp/js/actions.js:325
+#: jsapp/js/actions.js:323
 msgid "Could not create project!"
 msgstr "无法创建项目！"
 
-#: jsapp/js/actions.js:366
+#: jsapp/js/actions.js:364
 msgid "failed to load API token"
 msgstr "加载API令牌失败"
 
-#: jsapp/js/actions.js:426
+#: jsapp/js/actions.js:424
 msgid "submission deleted"
 msgstr "已删除提交物"
 
-#: jsapp/js/actions.js:431
+#: jsapp/js/actions.js:429
 msgid "failed to delete submission"
 msgstr "删除提交失败"
 
-#: jsapp/js/actions.js:440
+#: jsapp/js/actions.js:438
 msgid "Successfully duplicated submission"
 msgstr "复制提交成功"
 
-#: jsapp/js/actions.js:445
+#: jsapp/js/actions.js:443
 msgid "Failed to duplicate submission"
 msgstr "复制提交失败"
 
-#: jsapp/js/actions.js:485
+#: jsapp/js/actions.js:483
 msgid "REST Service added successfully"
 msgstr "REST服务添加成功"
 
-#: jsapp/js/actions.js:488
+#: jsapp/js/actions.js:486
 msgid "Failed adding REST Service"
 msgstr "REST服务添加失败"
 
-#: jsapp/js/actions.js:509
+#: jsapp/js/actions.js:507
 msgid "REST Service updated successfully"
 msgstr "REST服务更新成功"
 
-#: jsapp/js/actions.js:512
+#: jsapp/js/actions.js:510
 msgid "Failed saving REST Service"
 msgstr "REST服务储存失败"
 
-#: jsapp/js/actions.js:533
+#: jsapp/js/actions.js:531
 msgid "REST Service deleted permanently"
 msgstr "REST服务已永久删除"
 
-#: jsapp/js/actions.js:536
+#: jsapp/js/actions.js:534
 msgid "Could not delete REST Service"
 msgstr "无法删除REST服务"
 
-#: jsapp/js/actions.js:574
+#: jsapp/js/actions.js:572
 msgid "Submission retry requested successfully"
 msgstr "提交重试请求成功"
 
-#: jsapp/js/actions.js:577
+#: jsapp/js/actions.js:575
 msgid "Submission retry request failed"
 msgstr "提交重试请求失败"
 
-#: jsapp/js/actions.js:601
+#: jsapp/js/actions.js:599
 msgid "Retrying all submissions failed"
 msgstr "重试所有失败的提交"
-
-#: jsapp/js/actions/exportsActions.js:60
-#: jsapp/js/components/projectDownloads/AnonymousExports.tsx:121
-msgid "Failed to create export"
-msgstr "创建导出失败"
-
-#: jsapp/js/actions/exportsActions.js:79
-msgid "Failed to delete export"
-msgstr "删除导出失败"
-
-#: jsapp/js/actions/exportsActions.js:123
-msgid "Failed to update export setting"
-msgstr "更新导出设置失败"
-
-#: jsapp/js/actions/exportsActions.js:141
-msgid "Failed to create export setting"
-msgstr "创建导出设置失败"
-
-#: jsapp/js/actions/exportsActions.js:155
-msgid "Failed to delete export setting"
-msgstr "删除导出设置失败"
 
 #: jsapp/js/actions/library.js:175
 msgid "Successfully removed from collection"
@@ -1261,12 +1275,14 @@ msgstr "要删除吗？"
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:135
 #: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:107
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:112
-#: jsapp/js/components/map/MapSettings.tsx:260
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:147
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:147
+#: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:153
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:91
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:119
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:295
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:82
+#: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:19
+#: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:68
 #: jsapp/js/components/reports/customReportEditor.component.tsx:131
 #: jsapp/js/components/submissions/submissionModal.tsx:268
 #: jsapp/js/components/submissions/tableBulkOptions.tsx:269
@@ -1282,138 +1298,140 @@ msgstr "删除"
 msgid "This action is not reversible"
 msgstr "此操作不可逆"
 
-#: jsapp/js/api.ts:57 jsapp/js/components/reports/reports.tsx:512
+#: jsapp/js/api.ts:65 jsapp/js/api/onErrorDefaultHandler.ts:20
+#: jsapp/js/components/reports/reports.tsx:512
 msgid "An error occurred"
 msgstr "出现错误"
 
-#: jsapp/js/api.ts:62
+#: jsapp/js/api.ts:70
 msgid "Your connection is offline"
 msgstr "你已离线"
 
-#: jsapp/js/assetQuickActions.tsx:56
+#: jsapp/js/assetQuickActions.tsx:57
 msgid "##ASSET_TYPE## deleted permanently"
 msgstr "永久删除##ASSET_TYPE##"
 
-#: jsapp/js/assetQuickActions.tsx:76
+#: jsapp/js/assetQuickActions.tsx:77
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:234
 msgid "Archive Project"
 msgstr "将项目归档"
 
-#: jsapp/js/assetQuickActions.tsx:77
+#: jsapp/js/assetQuickActions.tsx:78
 msgid "Are you sure you want to archive this project?"
 msgstr "你确定要将这个项目存档吗？"
 
-#: jsapp/js/assetQuickActions.tsx:78
+#: jsapp/js/assetQuickActions.tsx:79
 msgid "Your form will not accept submissions while it is archived."
 msgstr "你的表单在归档期间将不接受任何提交。"
 
-#: jsapp/js/assetQuickActions.tsx:79
+#: jsapp/js/assetQuickActions.tsx:80
 msgid "Archive"
 msgstr "存档"
 
-#: jsapp/js/assetQuickActions.tsx:109
+#: jsapp/js/assetQuickActions.tsx:110
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:230
 msgid "Unarchive Project"
 msgstr "取消项目归档"
 
-#: jsapp/js/assetQuickActions.tsx:110
+#: jsapp/js/assetQuickActions.tsx:111
 msgid "Are you sure you want to unarchive this project?"
 msgstr "你确定要取消这个项目的归档吗？"
 
-#: jsapp/js/assetQuickActions.tsx:111
+#: jsapp/js/assetQuickActions.tsx:112
 msgid "Unarchive"
 msgstr "取消归档"
 
-#: jsapp/js/assetQuickActions.tsx:141 jsapp/js/mixins.tsx:109
+#: jsapp/js/assetQuickActions.tsx:142 jsapp/js/mixins.tsx:109
 msgid "Clone of"
 msgstr "克隆"
 
-#: jsapp/js/assetQuickActions.tsx:147
+#: jsapp/js/assetQuickActions.tsx:148
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:278
 #: jsapp/js/components/formLanding/FormHistory.tsx:154 jsapp/js/mixins.tsx:113
 msgid "Clone"
 msgstr "克隆"
 
-#: jsapp/js/assetQuickActions.tsx:148 jsapp/js/mixins.tsx:114
+#: jsapp/js/assetQuickActions.tsx:149 jsapp/js/mixins.tsx:114
 msgid ""
 "Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the "
 "original name."
 msgstr "输入克隆##ASSET_TYPE##的名称。留空以保留原始名称。"
 
-#: jsapp/js/assetQuickActions.tsx:153 jsapp/js/assetQuickActions.tsx:347
+#: jsapp/js/assetQuickActions.tsx:154 jsapp/js/assetQuickActions.tsx:348
 #: jsapp/js/mixins.tsx:119
 msgid "Ok"
 msgstr "确定"
 
-#: jsapp/js/assetQuickActions.tsx:156
+#: jsapp/js/assetQuickActions.tsx:157
 msgid "Cloning..."
 msgstr "克隆过程中…"
 
-#: jsapp/js/assetQuickActions.tsx:191
+#: jsapp/js/assetQuickActions.tsx:192
 msgid "cloned ##ASSET_TYPE## created"
 msgstr "克隆##ASSET_TYPE##创建"
 
-#: jsapp/js/assetQuickActions.tsx:222
+#: jsapp/js/assetQuickActions.tsx:223
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:330
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:252
 msgid "Create"
 msgstr "创建"
 
-#: jsapp/js/assetQuickActions.tsx:228
+#: jsapp/js/assetQuickActions.tsx:229
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:483
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:531
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:217
 msgid "Please wait…"
 msgstr "请稍候…"
 
-#: jsapp/js/assetQuickActions.tsx:254
+#: jsapp/js/assetQuickActions.tsx:255
 msgid "Failed to create new asset!"
 msgstr "创建新资源失败！"
 
-#: jsapp/js/assetQuickActions.tsx:275
+#: jsapp/js/assetQuickActions.tsx:276
 msgid "Create new template from this project"
 msgstr "从此项目创建新模板"
 
-#: jsapp/js/assetQuickActions.tsx:276
+#: jsapp/js/assetQuickActions.tsx:277
 msgid "Enter the name of the new template."
 msgstr "输入新模板的名称。"
 
-#: jsapp/js/assetQuickActions.tsx:294
+#: jsapp/js/assetQuickActions.tsx:295
 msgid "Remove shared form"
 msgstr "移除共享表单"
 
-#: jsapp/js/assetQuickActions.tsx:295
+#: jsapp/js/assetQuickActions.tsx:296
 msgid "Are you sure you want to remove this shared form?"
 msgstr "你确定要移除这个共享表单吗？"
 
-#: jsapp/js/assetQuickActions.tsx:314
+#: jsapp/js/assetQuickActions.tsx:315
 msgid "deploying to kobocat..."
 msgstr "启用于kobocat…"
 
-#: jsapp/js/assetQuickActions.tsx:319
+#: jsapp/js/assetQuickActions.tsx:320
 msgid "deployed form"
 msgstr "已启用表单"
 
-#: jsapp/js/assetQuickActions.tsx:336
+#: jsapp/js/assetQuickActions.tsx:337
 msgid "Overwrite existing deployment"
 msgstr "重写现有的启用设定"
 
-#: jsapp/js/assetQuickActions.tsx:341
+#: jsapp/js/assetQuickActions.tsx:342
 msgid ""
 "This form has already been deployed. Are you sure you want overwrite the "
 "existing deployment?"
 msgstr "该表单已经启用。你确定要覆盖现有设定吗？"
 
-#: jsapp/js/assetQuickActions.tsx:344
-#: jsapp/js/components/map/MapSettings.tsx:254
-#: jsapp/xlform/src/view.surveyApp.coffee:680
+#: jsapp/js/assetQuickActions.tsx:345
+#: jsapp/js/components/map/MapSettings.tsx:252
+#: jsapp/xlform/src/view.surveyApp.coffee:683
 msgid "This action cannot be undone."
 msgstr "此操作是不能撤销的。"
 
-#: jsapp/js/assetQuickActions.tsx:351
+#: jsapp/js/assetQuickActions.tsx:352
 msgid "Deploying..."
 msgstr "正在启用…"
 
-#: jsapp/js/assetQuickActions.tsx:354
+#: jsapp/js/assetQuickActions.tsx:355
 msgid "redeployed form"
 msgstr "重新启用表单"
 
@@ -1434,7 +1452,7 @@ msgid "Unlabelled"
 msgstr "未标记"
 
 #: jsapp/js/assetUtils.ts:431 jsapp/js/components/metadataEditor.js:146
-#: jsapp/js/components/submissions/tableUtils.ts:106
+#: jsapp/js/components/submissions/tableUtils.ts:118
 msgid "Background audio"
 msgstr "背景音频"
 
@@ -1476,7 +1494,9 @@ msgid "background audio recording"
 msgstr ""
 
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:88
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:187
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:108
+#: jsapp/js/components/formLanding/formLanding.js:451
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:200
 msgid "Download"
 msgstr "下载"
 
@@ -1529,11 +1549,6 @@ msgstr ""
 #: jsapp/js/components/AssetTagsModal/AssetTagsModal.tsx:47
 msgid "Failed to update tags"
 msgstr "更新标签失败"
-
-#: jsapp/js/components/AssetTagsModal/AssetTagsModal.tsx:80
-#: jsapp/js/project/FormLanguagesManager/LanguageForm.tsx:78
-msgid "Update"
-msgstr "更新"
 
 #: jsapp/js/components/AssetTagsModal/openAssetTagsModal.tsx:13
 msgid "Edit tags"
@@ -1596,11 +1611,11 @@ msgstr ""
 msgid "OK"
 msgstr "确定"
 
-#: jsapp/js/components/DeleteAssetModal/openDeleteAssetModal.tsx:21
+#: jsapp/js/components/DeleteAssetModal/openDeleteAssetModal.tsx:24
 msgid "Delete ##ASSET_TYPE## \"##NAME##\""
 msgstr ""
 
-#: jsapp/js/components/DeleteAssetModal/openDeleteAssetModal.tsx:39
+#: jsapp/js/components/DeleteAssetModal/openDeleteAssetModal.tsx:44
 #: jsapp/js/projects/projectsTable/bulkActions/openBulkDeleteModal.tsx:35
 msgid "This project can't be deleted"
 msgstr ""
@@ -1615,163 +1630,234 @@ msgstr "库"
 msgid "new"
 msgstr "新"
 
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:71
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:139
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:33
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:122
+msgid "Pending"
+msgstr "待处理"
+
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:36
+msgid "Pending (##count##×)"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:44
+#: jsapp/js/components/submissions/DataTableCell/index.tsx:63
+msgid "Processing"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:64
+msgid "Retry submission"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:74
+msgid "More info"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:70
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:147
 msgid "Could not load REST Service"
 msgstr "无法加载REST服务"
 
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:85
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:113
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:81
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:105
 msgid "Could not load REST Service logs"
 msgstr "无法加载REST服务日志"
 
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:178
-msgid "Submission Failure Detail (##id##)"
-msgstr "提交失败详情（##id##）"
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:179
+msgid "Submission"
+msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:224
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:202
+msgid "Retry all submissions"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:218
+#: jsapp/js/components/activity/FormActivity.tsx:97 jsapp/js/constants.ts:292
+msgid "Date"
+msgstr "日期"
+
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:233
 msgid "Back to REST Services"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:245
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:243
+msgid "There are no logs yet"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:253
 #: jsapp/js/components/formGallery/formGallery.component.tsx:207
 msgid "Load more"
 msgstr "载入更多"
 
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:257
-msgid "There are no logs yet"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:272
-msgid "Submission"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:280
-msgid "Retry all submissions"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:286
-#: jsapp/js/components/activity/FormActivity.tsx:97 jsapp/js/constants.ts:296
-msgid "Date"
-msgstr "日期"
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:301
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:166
-msgid "Pending"
-msgstr "待处理"
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:304
-msgid "Pending (##count##×)"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:313
-#: jsapp/js/components/submissions/DataTableCell/index.tsx:61
-msgid "Processing"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:329
-msgid "Retry submission"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:339
-msgid "More info"
-msgstr ""
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:28
-msgid "JSON"
-msgstr "JSON"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:32
-msgid "XML"
-msgstr "XML"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:44
-msgid "No Authorization"
-msgstr "未经授权"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:48
-msgid "Basic Authorization"
-msgstr "基本授权"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:275
-msgid "Name required"
-msgstr "名称必填"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:279
-msgid "URL required"
-msgstr "URL必填"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:289
-msgid "Please enter both name and url of your service."
-msgstr "请输入你的服务名称和url。"
-
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:364
+#: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:77
 msgid "Custom HTTP Headers"
 msgstr "自定义HTTP标题"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:48
+#: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:99
+#: jsapp/js/components/reports/reportTable.component.tsx:75
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:130
+msgid "Value"
+msgstr "值"
+
+#: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:125
+msgid "Add header"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:24
+msgid "JSON"
+msgstr "JSON"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:28
+msgid "XML"
+msgstr "XML"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:42
+msgid "No Authorization"
+msgstr "未经授权"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:46
+msgid "Basic Authorization"
+msgstr "基本授权"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:178
+msgid "Name required"
+msgstr "名称必填"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:182
+msgid "URL required"
+msgstr "URL必填"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:192
+msgid "Please enter both name and url of your service."
+msgstr "请输入你的服务名称和url。"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:240
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:108
+msgid "Service Name"
+msgstr "服务名称"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:250
+msgid "Endpoint URL"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:251
+msgid "https://"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:265
+msgid "Receive emails notifications"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:268
+#: jsapp/js/components/assetsTable/assetsTableConstants.ts:47
+#: jsapp/js/components/formLanding/FormHistory.tsx:136
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:357
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:253
+#: jsapp/js/components/submissions/submissionDataTable.tsx:75
+msgid "Type"
+msgstr "类型"
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:287
+msgid "Username"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:303
+msgid "Add field(s)"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:304
+msgid "Select fields subset"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:313
+msgid ""
+"Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by "
+"JSON)"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:317
+msgid "Add Custom Wrapper"
+msgstr ""
+
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:57
 msgid "Could not load REST Services"
 msgstr "无法加载REST服务"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:71
-msgid "Are you sure you want to delete ##target?"
-msgstr "你确定要删除##目标吗？"
-
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:72
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:75
 msgid "You are about to delete ##target. This action cannot be undone."
 msgstr "你即将删除##目标。此操作不能被撤销。"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:79
-#: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:394
-#: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:468
-msgid "Confirm"
-msgstr "确认"
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:78
+msgid "Are you sure you want to delete ##target?"
+msgstr "你确定要删除##目标吗？"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:112
-msgid "Register a New Service"
-msgstr "注册新服务"
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:134
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:316
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:82
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:110
+#: jsapp/js/components/submissions/submissionModal.tsx:654
+#: jsapp/js/components/submissions/table.tsx:704
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:256
+msgid "Edit"
+msgstr "编辑"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:125
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:164
 msgid "This project doesn't have any REST Services yet!"
 msgstr "该项目尚未添加任何REST服务！"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:128
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:168
 msgid ""
 "You can use REST Services to automatically post submissions to a third-party"
 " application."
 msgstr "你可以使用REST服务以自动将提交内容发布到第三方应用程序。"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:132
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:172
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:316
 #: jsapp/js/components/newFeatureDialog.component.tsx:90
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:226
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:307
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:209
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:231
 msgid "Learn more"
 msgstr "了解更多"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:149
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:183
 msgid "REST Services: ##number##"
 msgstr "REST服务：##number##"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:158
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:194
 msgid "Need help?"
 msgstr "需要帮助？"
 
-#: jsapp/js/components/RESTServices/RESTServicesList.tsx:164
-msgid "Service Name"
-msgstr "服务名称"
+#: jsapp/js/components/RESTServices/RESTServicesList.tsx:213
+msgid "Register a New Service"
+msgstr "注册新服务"
 
-#: jsapp/js/components/RESTServices/index.tsx:17
+#: jsapp/js/components/RESTServices/index.tsx:18
+#: jsapp/js/components/formLanding/formLanding.js:526
 #: jsapp/js/components/formSubScreens.js:94
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:102
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:111
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:142
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:150
-#: jsapp/js/components/projectDownloads/ProjectDownloads.tsx:49
+#: jsapp/js/components/formSubScreens.js:107
+#: jsapp/js/components/formSummary/formSummary.js:180
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:107
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:151
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:154
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:182
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:191
+#: jsapp/js/components/projectDownloads/ProjectDownloads.tsx:59
 #: jsapp/js/components/reports/reports.tsx:536
 #: jsapp/js/editorMixins/EditableForm.tsx:1220
 msgid "Untitled"
 msgstr "无标题"
+
+#: jsapp/js/components/RESTServices/openRESTServiceLogInfoModal.tsx:23
+msgid "Submission Failure Detail (##id##)"
+msgstr "提交失败详情（##id##）"
+
+#: jsapp/js/components/RESTServices/openRESTServicesModal.tsx:24
+msgid "Edit REST Service"
+msgstr "编辑REST服务"
+
+#: jsapp/js/components/RESTServices/openRESTServicesModal.tsx:24
+msgid "New REST Service"
+msgstr "新建REST服务"
 
 #: jsapp/js/components/activity/BulkProcessingActivityMessage.tsx:38
 msgid "bulk transcribed audio files"
@@ -1811,332 +1897,340 @@ msgstr "通过…来筛选"
 msgid "Export all data"
 msgstr "导出所有数据"
 
-#: jsapp/js/components/activity/activity.constants.ts:74
+#: jsapp/js/components/activity/activity.constants.ts:75
 msgid "change name"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:75
+#: jsapp/js/components/activity/activity.constants.ts:76
 msgid "##username## changed project name"
 msgstr "##username##已更改项目名称"
 
-#: jsapp/js/components/activity/activity.constants.ts:79
+#: jsapp/js/components/activity/activity.constants.ts:80
 msgid "update settings"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:80
+#: jsapp/js/components/activity/activity.constants.ts:81
 msgid "##username## updated project settings"
 msgstr "##username##已更新项目设置"
 
-#: jsapp/js/components/activity/activity.constants.ts:84
+#: jsapp/js/components/activity/activity.constants.ts:85
 msgid "deploy project"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:85
+#: jsapp/js/components/activity/activity.constants.ts:86
 msgid "##username## deployed project"
 msgstr "##username##已启用项目"
 
-#: jsapp/js/components/activity/activity.constants.ts:89
+#: jsapp/js/components/activity/activity.constants.ts:90
 msgid "redeploy project"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:90
+#: jsapp/js/components/activity/activity.constants.ts:91
 msgid "##username## redeployed project"
 msgstr "##username##重新启用项目"
 
-#: jsapp/js/components/activity/activity.constants.ts:94
+#: jsapp/js/components/activity/activity.constants.ts:95
 msgid "archive project"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:95
+#: jsapp/js/components/activity/activity.constants.ts:96
 msgid "##username## archived project"
 msgstr "##username##将项目归档"
 
-#: jsapp/js/components/activity/activity.constants.ts:99
+#: jsapp/js/components/activity/activity.constants.ts:100
 msgid "unarchive project"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:100
+#: jsapp/js/components/activity/activity.constants.ts:101
 msgid "##username## unarchived project"
 msgstr "##username##未归档的项目"
 
-#: jsapp/js/components/activity/activity.constants.ts:104
+#: jsapp/js/components/activity/activity.constants.ts:105
 msgid "upload new form"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:105
+#: jsapp/js/components/activity/activity.constants.ts:106
 msgid "##username## uploaded a new form"
 msgstr "##username##已上传新表单"
 
-#: jsapp/js/components/activity/activity.constants.ts:109
+#: jsapp/js/components/activity/activity.constants.ts:110
 msgid "edit form"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:110
+#: jsapp/js/components/activity/activity.constants.ts:111
 msgid "##username## edited the form in the form builder"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:114
+#: jsapp/js/components/activity/activity.constants.ts:115
 msgid "modify qualitative analysis questions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:115
+#: jsapp/js/components/activity/activity.constants.ts:116
 msgid "##username## modified qualitative analysis questions"
 msgstr "##username##已修改定性分析问题"
 
-#: jsapp/js/components/activity/activity.constants.ts:119
+#: jsapp/js/components/activity/activity.constants.ts:120
 msgid "edit qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:120
+#: jsapp/js/components/activity/activity.constants.ts:121
 msgid "##username## edited qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:124
+#: jsapp/js/components/activity/activity.constants.ts:125
 msgid "bulk processing"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:125
+#: jsapp/js/components/activity/activity.constants.ts:126
 msgid "##username## started a bulk processing job"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:129
+#: jsapp/js/components/activity/activity.constants.ts:130
 msgid "modify automatic qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:130
+#: jsapp/js/components/activity/activity.constants.ts:131
 msgid "##username## modified automatic qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:134
+#: jsapp/js/components/activity/activity.constants.ts:135
 msgid "verify automatic qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:135
+#: jsapp/js/components/activity/activity.constants.ts:136
 msgid "##username## verified automatic qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:139
+#: jsapp/js/components/activity/activity.constants.ts:140
 msgid "remove automatic qualitative analysis data verification"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:140
+#: jsapp/js/components/activity/activity.constants.ts:141
 msgid "##username## removed automatic qualitative analysis data verification"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:144
+#: jsapp/js/components/activity/activity.constants.ts:145
 msgid "verify manual qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:145
+#: jsapp/js/components/activity/activity.constants.ts:146
 msgid "##username## verified manual qualitative analysis data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:149
+#: jsapp/js/components/activity/activity.constants.ts:150
 msgid "remove manual qualitative analysis data verification"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:150
+#: jsapp/js/components/activity/activity.constants.ts:151
 msgid "##username## removed manual qualitative analysis data verification"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:154
+#: jsapp/js/components/activity/activity.constants.ts:155
 msgid "export data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:155
+#: jsapp/js/components/activity/activity.constants.ts:156
 msgid "##username## exported data"
 msgstr "##username##已导出数据"
 
-#: jsapp/js/components/activity/activity.constants.ts:159
+#: jsapp/js/components/activity/activity.constants.ts:160
 msgid "add media attachment"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:160
+#: jsapp/js/components/activity/activity.constants.ts:161
 msgid "##username## added a media attachment"
 msgstr "##username##已添加媒体附件"
 
-#: jsapp/js/components/activity/activity.constants.ts:164
+#: jsapp/js/components/activity/activity.constants.ts:165
 msgid "remove media attachment"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:165
+#: jsapp/js/components/activity/activity.constants.ts:166
 msgid "##username## removed a media attachment"
 msgstr "##username##已删除媒体附件"
 
-#: jsapp/js/components/activity/activity.constants.ts:169
+#: jsapp/js/components/activity/activity.constants.ts:170
 msgid "remove attachment"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:170
+#: jsapp/js/components/activity/activity.constants.ts:171
 msgid "##username## removed an attachment"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:174
+#: jsapp/js/components/activity/activity.constants.ts:175
 msgid "update permissions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:175
+#: jsapp/js/components/activity/activity.constants.ts:176
 msgid "##username## updated permissions of ##username2##"
 msgstr "##username##更新了##username2##的权限"
 
-#: jsapp/js/components/activity/activity.constants.ts:179
+#: jsapp/js/components/activity/activity.constants.ts:180
 msgid "clone permissions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:180
+#: jsapp/js/components/activity/activity.constants.ts:181
 msgid "##username## cloned permissions from another project"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:184
+#: jsapp/js/components/activity/activity.constants.ts:185
 msgid "make project public"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:185
+#: jsapp/js/components/activity/activity.constants.ts:186
 msgid "##username## made the project publicly accessible"
 msgstr "##username##向公众开放该项目"
 
-#: jsapp/js/components/activity/activity.constants.ts:189
+#: jsapp/js/components/activity/activity.constants.ts:190
 msgid "share data publicly"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:190
+#: jsapp/js/components/activity/activity.constants.ts:191
 msgid "##username## shared data publicly"
 msgstr "##username##公开共享数据"
 
-#: jsapp/js/components/activity/activity.constants.ts:194
+#: jsapp/js/components/activity/activity.constants.ts:195
 msgid "enable anonymous submissions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:195
+#: jsapp/js/components/activity/activity.constants.ts:196
 msgid "##username## enabled anonymous submissions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:199
+#: jsapp/js/components/activity/activity.constants.ts:200
 msgid "disable making project public"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:200
+#: jsapp/js/components/activity/activity.constants.ts:201
 msgid "##username## disabled making project publicly accessible"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:204
+#: jsapp/js/components/activity/activity.constants.ts:205
 msgid "disable sharing data publicly"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:205
+#: jsapp/js/components/activity/activity.constants.ts:206
 msgid "##username## disabled sharing data publicly"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:209
+#: jsapp/js/components/activity/activity.constants.ts:210
 msgid "disable anonymous submissions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:210
+#: jsapp/js/components/activity/activity.constants.ts:211
 msgid "##username## disallowed anonymous submissions"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:214
+#: jsapp/js/components/activity/activity.constants.ts:215
 msgid "transfer project ownership"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:215
+#: jsapp/js/components/activity/activity.constants.ts:216
 msgid "##username## transferred project ownership to ##username2##"
 msgstr "##username##将项目所有权转让给##username2##"
 
-#: jsapp/js/components/activity/activity.constants.ts:219
+#: jsapp/js/components/activity/activity.constants.ts:220
 msgid "enable data sharing"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:220
+#: jsapp/js/components/activity/activity.constants.ts:221
 msgid "##username## enabled data sharing"
 msgstr "##username##已启用数据共享"
 
-#: jsapp/js/components/activity/activity.constants.ts:224
+#: jsapp/js/components/activity/activity.constants.ts:225
 msgid "modify data sharing"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:225
+#: jsapp/js/components/activity/activity.constants.ts:226
 msgid "##username## modified data sharing"
 msgstr "##username##已修改数据共享"
 
-#: jsapp/js/components/activity/activity.constants.ts:229
+#: jsapp/js/components/activity/activity.constants.ts:230
 msgid "disable data sharing"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:230
+#: jsapp/js/components/activity/activity.constants.ts:231
 msgid "##username## disabled data sharing"
 msgstr "##username##已禁用数据共享"
 
-#: jsapp/js/components/activity/activity.constants.ts:234
+#: jsapp/js/components/activity/activity.constants.ts:235
 msgid "connect project data"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:235
+#: jsapp/js/components/activity/activity.constants.ts:236
 msgid "##username## connected project data with another project"
 msgstr "##username##已将项目数据与另一项目连接"
 
-#: jsapp/js/components/activity/activity.constants.ts:239
+#: jsapp/js/components/activity/activity.constants.ts:240
 msgid "change imported fields"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:240
+#: jsapp/js/components/activity/activity.constants.ts:241
 msgid "##username## changed imported fields from another project"
 msgstr "##username##已更改从另一个项目导入的字段"
 
-#: jsapp/js/components/activity/activity.constants.ts:244
+#: jsapp/js/components/activity/activity.constants.ts:245
 msgid "disconnect project"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:245
+#: jsapp/js/components/activity/activity.constants.ts:246
 msgid "##username## disconnected project from another project"
 msgstr "##username##已断开项目与另一项目的连接"
 
-#: jsapp/js/components/activity/activity.constants.ts:249
+#: jsapp/js/components/activity/activity.constants.ts:250
 msgid "register a new REST service"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:250
+#: jsapp/js/components/activity/activity.constants.ts:251
 msgid "##username## registered a new REST service"
 msgstr "##username##注册了一个新的REST服务"
 
-#: jsapp/js/components/activity/activity.constants.ts:254
+#: jsapp/js/components/activity/activity.constants.ts:255
 msgid "modify a REST service"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:255
+#: jsapp/js/components/activity/activity.constants.ts:256
 msgid "##username## modified a REST service"
 msgstr "##username##已修改REST服务"
 
-#: jsapp/js/components/activity/activity.constants.ts:259
+#: jsapp/js/components/activity/activity.constants.ts:260
 msgid "delete a REST service"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:260
+#: jsapp/js/components/activity/activity.constants.ts:261
 msgid "##username## deleted a REST service"
 msgstr "##username##已删除REST服务"
 
-#: jsapp/js/components/activity/activity.constants.ts:264
+#: jsapp/js/components/activity/activity.constants.ts:265
 msgid "add submission"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:265
+#: jsapp/js/components/activity/activity.constants.ts:266
 msgid "##username## added a submission"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:269
+#: jsapp/js/components/activity/activity.constants.ts:270
 msgid "edit submission"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:270
+#: jsapp/js/components/activity/activity.constants.ts:271
 msgid "##username## edited a submission"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:274
+#: jsapp/js/components/activity/activity.constants.ts:275
 msgid "delete a submission"
 msgstr ""
 
-#: jsapp/js/components/activity/activity.constants.ts:275
+#: jsapp/js/components/activity/activity.constants.ts:276
 msgid "##username## deleted a submission"
+msgstr ""
+
+#: jsapp/js/components/activity/activity.constants.ts:280
+msgid "view survey data"
+msgstr ""
+
+#: jsapp/js/components/activity/activity.constants.ts:281
+msgid "##username## accessed survey data"
 msgstr ""
 
 #: jsapp/js/components/activity/activityLogs.query.ts:43
@@ -2145,6 +2239,10 @@ msgstr ""
 
 #: jsapp/js/components/activity/activityLogs.query.ts:61
 msgid "There was an error getting the filter options."
+msgstr ""
+
+#: jsapp/js/components/activity/activityLogs.query.ts:88
+msgid "An error occurred while exporting the logs"
 msgstr ""
 
 #: jsapp/js/components/activity/activityMessage.component.tsx:40
@@ -2159,23 +2257,26 @@ msgstr ""
 msgid "See details"
 msgstr "查看详情"
 
-#: jsapp/js/components/anonymousSubmission.component.tsx:22
+#: jsapp/js/components/anonymousSubmission.component.tsx:16
 msgid "Allow submissions to this form without a username and password"
 msgstr "此表单允许在没有用户名和密码的情况下提交文件"
 
-#: jsapp/js/components/anonymousSubmission.component.tsx:29
-msgid ""
-"Allow anonymous submissions for this project. Previously, this was an "
-"account-wide setting. Click the icon to learn more."
-msgstr "此项目允许匿名提交。此前，匿名提交仅设置于帐户范围内。单击图标以了解更多信息。"
-
 #: jsapp/js/components/assetsTable/AssetMoreActions.tsx:89
+#: jsapp/js/components/formLanding/formLanding.js:441
 msgid "More actions"
 msgstr "更多操作"
 
 #: jsapp/js/components/assetsTable/AssetMoreActions.tsx:96
 msgid "Manage translations"
 msgstr "管理翻译"
+
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:115
+msgid "Remove from collection"
+msgstr ""
+
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:123
+msgid "Move to"
+msgstr ""
 
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:98
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:101
@@ -2191,6 +2292,7 @@ msgid "Unsubscribe"
 msgstr ""
 
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:236
+#: jsapp/js/components/formLanding/formLanding.js:405
 msgid "Edit in Form Builder"
 msgstr ""
 
@@ -2223,15 +2325,40 @@ msgstr ""
 msgid "Questions"
 msgstr "问题"
 
-#: jsapp/js/components/assetsTable/assetsTableConstants.ts:47
-#: jsapp/js/components/formLanding/FormHistory.tsx:136
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:357
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:233
-msgid "Type"
-msgstr "类型"
+#: jsapp/js/components/assetsTable/assetsTable.tsx:307
+#: jsapp/js/components/submissions/submissionModal.tsx:570
+msgid "Previous"
+msgstr "先前"
+
+#: jsapp/js/components/assetsTable/assetsTable.tsx:321
+#: jsapp/js/components/bigModal/mfaModals.tsx:276
+#: jsapp/js/components/bigModal/mfaModals.tsx:396
+#: jsapp/js/components/bigModal/mfaModals.tsx:451
+#: jsapp/js/components/bigModal/mfaModals.tsx:499
+#: jsapp/js/components/submissions/submissionModal.tsx:585
+#: jsapp/js/components/submissions/table.tsx:1515
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:74
+msgid "Next"
+msgstr "下一个"
+
+#: jsapp/js/components/assetsTable/assetsTable.tsx:336
+msgid "##count## items"
+msgstr ""
+
+#: jsapp/js/components/assetsTable/assetsTable.tsx:346
+#: jsapp/js/components/formGallery/formGallery.component.tsx:157
+#: jsapp/js/components/reports/reports.tsx:463
+#: jsapp/js/components/submissions/table.tsx:1477
+msgid "Toggle fullscreen"
+msgstr "切换全屏"
+
+#: jsapp/js/components/assetsTable/assetsTable.tsx:389
+msgid "There are no assets to display."
+msgstr ""
 
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:53
 #: jsapp/js/components/formLanding/FormHistory.tsx:146
+#: jsapp/js/components/formLanding/formLanding.js:109
 #: jsapp/js/components/library/assetInfoBox.tsx:82
 msgid "Last Modified"
 msgstr "最后更改"
@@ -2248,7 +2375,7 @@ msgstr "订阅者"
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:85
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:180
 #: jsapp/js/components/library/assetInfoBox.tsx:148
-#: jsapp/js/projects/projectViews/constants.ts:263
+#: jsapp/js/projects/projectViews/constants.ts:264
 msgid "Languages"
 msgstr "语言"
 
@@ -2257,53 +2384,39 @@ msgstr "语言"
 msgid "Primary Sector"
 msgstr "主要领域"
 
-#: jsapp/js/components/bigModal/bigModal.js:26
+#: jsapp/js/components/bigModal/bigModal.js:22
 msgid "Success!"
 msgstr "成功！"
 
-#: jsapp/js/components/bigModal/bigModal.js:31
+#: jsapp/js/components/bigModal/bigModal.js:27
+#: jsapp/js/components/bigModal/bigModal.js:30
 #: jsapp/js/components/bigModal/bigModal.js:34
-#: jsapp/js/components/bigModal/bigModal.js:38
-#: jsapp/js/components/bigModal/bigModal.js:40
+#: jsapp/js/components/bigModal/bigModal.js:36
 msgid "Submission Record"
 msgstr "提交记录"
 
-#: jsapp/js/components/bigModal/bigModal.js:34
-#: jsapp/js/components/bigModal/bigModal.js:40
+#: jsapp/js/components/bigModal/bigModal.js:30
+#: jsapp/js/components/bigModal/bigModal.js:36
+#: jsapp/js/components/submissions/table.tsx:1522
 msgid "of"
 msgstr "中的"
 
 #: jsapp/js/components/bigModal/bigModal.js:83
-msgid "Sharing Permissions"
-msgstr "共享权限"
-
-#: jsapp/js/components/bigModal/bigModal.js:91
 msgid "Create Library Item"
 msgstr "创建库项"
 
-#: jsapp/js/components/bigModal/bigModal.js:95
+#: jsapp/js/components/bigModal/bigModal.js:87
 msgid "Template details"
 msgstr "模板详情"
 
-#: jsapp/js/components/bigModal/bigModal.js:99
+#: jsapp/js/components/bigModal/bigModal.js:91
 msgid "Collection details"
 msgstr "集合详情"
 
-#: jsapp/js/components/bigModal/bigModal.js:109
+#: jsapp/js/components/bigModal/bigModal.js:101
+#: jsapp/js/editorMixins/EditableForm.tsx:1251
 msgid "Form Preview"
 msgstr "表单预览"
-
-#: jsapp/js/components/bigModal/bigModal.js:124
-msgid "Edit REST Service"
-msgstr "编辑REST服务"
-
-#: jsapp/js/components/bigModal/bigModal.js:126
-msgid "New REST Service"
-msgstr "新建REST服务"
-
-#: jsapp/js/components/bigModal/bigModal.js:135
-msgid "Table display options"
-msgstr "表格显示选项"
 
 #: jsapp/js/components/bigModal/mfaModals.tsx:128
 msgid "Incorrect token"
@@ -2330,15 +2443,6 @@ msgstr "没有二维码？"
 #: jsapp/js/components/bigModal/mfaModals.tsx:265
 msgid "Enter key manually"
 msgstr "手动输入密钥"
-
-#: jsapp/js/components/bigModal/mfaModals.tsx:276
-#: jsapp/js/components/bigModal/mfaModals.tsx:396
-#: jsapp/js/components/bigModal/mfaModals.tsx:451
-#: jsapp/js/components/bigModal/mfaModals.tsx:499
-#: jsapp/js/components/submissions/submissionModal.tsx:585
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:74
-msgid "Next"
-msgstr "下一个"
 
 #: jsapp/js/components/bigModal/mfaModals.tsx:294
 msgid ""
@@ -2419,6 +2523,7 @@ msgstr "令牌问题"
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:414
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:193
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:192
+#: jsapp/js/project/FormLanguagesManager/TranslationsEditor.tsx:133
 #: jsapp/js/project/ProjectSettings/components/BackButton.tsx:16
 msgid "Back"
 msgstr "后退"
@@ -2456,17 +2561,17 @@ msgid "draft"
 msgstr "草稿"
 
 #: jsapp/js/components/common/audioPlayer.tsx:189
-#: jsapp/js/components/common/miniAudioPlayer.tsx:197
+#: jsapp/js/components/common/miniAudioPlayer.tsx:214
 msgid "Could not load media file"
 msgstr "无法加载媒体文件"
 
-#: jsapp/js/components/common/koboSelect.tsx:120
+#: jsapp/js/components/common/koboSelect.tsx:122
 #: jsapp/js/components/common/wrappedSelect.tsx:37
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:529
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:525
 msgid "Select…"
 msgstr "选择…"
 
-#: jsapp/js/components/common/koboSelect.tsx:282
+#: jsapp/js/components/common/koboSelect.tsx:284
 msgid "No options found"
 msgstr "未发现任何选项"
 
@@ -2479,6 +2584,12 @@ msgstr "加载中…"
 #: jsapp/js/editorMixins/EditableForm.tsx:1213
 msgid "DONE"
 msgstr "完成"
+
+#: jsapp/js/components/common/openKoboConfirmModal.tsx:13
+#: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:394
+#: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:468
+msgid "Confirm"
+msgstr "确认"
 
 #: jsapp/js/components/dataAttachments/connectProjects.tsx:110
 msgid "Deleted project"
@@ -2551,23 +2662,23 @@ msgid ""
 "project. Learn more about dynamic data attachments"
 msgstr "与其他项目连接，以将他们的动态数据导入此项目。在此多加了解关于动态数据附件的信息"
 
-#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:30
+#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:32
 msgid "Data sharing enabled"
 msgstr "启用数据共享"
 
-#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:36
+#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:40
 msgid "Select specific questions to share"
 msgstr "选择要共享的具体问题"
 
-#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:43
+#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:47
 msgid "Select any questions you want to share in the right side table"
 msgstr "在右侧表格中选择你想共享的任何问题"
 
-#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:44
+#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:48
 msgid "Updating shared questions"
 msgstr "正在更新共享问题"
 
-#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:57
+#: jsapp/js/components/dataAttachments/connectProjectsExports.tsx:61
 msgid "Data sharing disabled"
 msgstr "禁用数据共享"
 
@@ -2642,7 +2753,7 @@ msgid "Select below the questions you want to import"
 msgstr "在下面选择你想导入的问题"
 
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:211
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:690
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:687
 msgid "Select all"
 msgstr "全选"
 
@@ -2651,7 +2762,7 @@ msgid "|"
 msgstr "|"
 
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:215
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:700
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:697
 msgid "Deselect all"
 msgstr "取消全选"
 
@@ -2675,30 +2786,33 @@ msgstr "所有问题"
 msgid "Image Gallery"
 msgstr "图库"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:157
-#: jsapp/js/components/reports/reports.tsx:463
-msgid "Toggle fullscreen"
-msgstr "切换全屏"
-
 #: jsapp/js/components/formGallery/formGallery.component.tsx:162
 msgid "From"
 msgstr "从"
 
 #: jsapp/js/components/formGallery/formGallery.component.tsx:172
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:649
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:646
 msgid "Between"
 msgstr "之间"
 
 #: jsapp/js/components/formGallery/formGallery.component.tsx:176
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:660
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:657
 #: jsapp/js/components/usageLimits/limitNotificationUtils.tsx:14
 msgid "and"
 msgstr "和"
 
 #: jsapp/js/components/formGallery/formGallery.component.tsx:199
-#: jsapp/js/components/submissions/columnsHideForm.tsx:169
+#: jsapp/js/components/submissions/columnsHideForm.tsx:193
 msgid "No results"
 msgstr "无结果"
+
+#: jsapp/js/components/formGallery/formGallery.component.tsx:249
+msgid "Loading next page"
+msgstr ""
+
+#: jsapp/js/components/formGallery/formGallery.component.tsx:249
+msgid "Next image"
+msgstr ""
 
 #: jsapp/js/components/formLanding/FormHistory.tsx:119
 msgid "Version"
@@ -2724,9 +2838,192 @@ msgstr "克隆此版本为新项目"
 msgid "undeployed"
 msgstr "未启用"
 
+#: jsapp/js/components/formLanding/formLanding.js:113
+msgid "questions"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:126
+msgid "redeploy"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:137
+msgid "deploy"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:146
+msgid "unarchive"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:187
+msgid "Form history"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:209
+msgid "Hide full history"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:209
+msgid "Show full history"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:236
+#: jsapp/js/components/formSummary/formSummary.js:68
+msgid "Collect data"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:261
+msgid "Install"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:270
+msgid "on your Android device."
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:272
+msgid "Select the option \"Manually enter project details\""
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:274
+msgid "Enter the server URL"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:276
+msgid "and your username and password"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:278
+msgid "Select \"Download form\" and select this project"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:279
+msgid "Select \"Start New Form\""
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:280
+msgid "Select this project from the list of downloaded projects"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:310
+msgid "Download KoboCollect"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:319
+msgid "Try reloading the page, if problem doesn't go away, contact support."
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:322
+msgid "Link missing"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:332
+#: jsapp/js/components/formLanding/formLanding.js:346
+msgid "Copied to clipboard"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:336
+#: jsapp/js/components/formLanding/formLanding.js:350
+msgid "Copy"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:359
+#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:57
+#: jsapp/js/components/submissions/submissionDataTable.tsx:253
+msgid "Open"
+msgstr "打开"
+
+#: jsapp/js/components/formLanding/formLanding.js:412
+msgid "Editing capabilities not granted, you can only view this form"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:422
+msgid "Preview"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:433
+#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:150
+msgid "Replace form"
+msgstr "替换表单"
+
+#: jsapp/js/components/formLanding/formLanding.js:458
+msgid "Share this project"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:467
+msgid "Remove shared project"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:473
+msgid "Clone this project"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:484
+msgid "Create template"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:498
+msgid "Languages:"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:500
+msgid "This project has no languages defined yet"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:504
+#: jsapp/js/components/reports/reportStyleSettings.component.tsx:185
+#: jsapp/js/components/submissions/submissionModal.tsx:96
+#: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:453
+msgid "Unnamed language"
+msgstr "未确认语言"
+
+#: jsapp/js/components/formLanding/formLanding.js:542
+msgid "Current version"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:544
+msgid "Archived version"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:545
+msgid "Draft version"
+msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:555
+msgid "If you want to make these changes public, you must deploy this form."
+msgstr ""
+
 #: jsapp/js/components/formNotFound.js:10
 msgid "path not found / recognized"
 msgstr "路径未找到 / 未识别"
+
+#: jsapp/js/components/formSummary/formSummary.js:76
+#: jsapp/js/projects/projectsTable/projectQuickActions.tsx:111
+#: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:31
+msgid "Share project"
+msgstr "共享项目"
+
+#: jsapp/js/components/formSummary/formSummary.js:89
+#: jsapp/js/components/permissions/permConstants.ts:228
+msgid "Edit form"
+msgstr "编辑表单"
+
+#: jsapp/js/components/formSummary/formSummary.js:96
+#: jsapp/js/editorMixins/EditableForm.tsx:828
+msgid "Preview form"
+msgstr "预览表单"
+
+#: jsapp/js/components/formSummary/formSummary.js:116
+#: jsapp/js/project/projectTopTabs.component.tsx:85
+#: jsapp/js/project/projectTopTabs.component.tsx:93
+msgid "Data"
+msgstr "数据"
+
+#: jsapp/js/components/formSummary/formSummary.js:164
+msgid "Team members"
+msgstr ""
+
+#: jsapp/js/components/formSummary/formSummary.js:204
+msgid "Quick Links"
+msgstr ""
 
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:74
 msgid "Project information"
@@ -2740,7 +3037,7 @@ msgid "Description"
 msgstr "说明"
 
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:112
-#: jsapp/js/projects/projectViews/constants.ts:228
+#: jsapp/js/projects/projectViews/constants.ts:229
 msgid "Last edited"
 msgstr ""
 
@@ -2759,20 +3056,30 @@ msgstr "最新提交"
 
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:149
 #: jsapp/js/components/library/assetInfoBox.tsx:134
-#: jsapp/js/projects/projectViews/constants.ts:249
+#: jsapp/js/projects/projectViews/constants.ts:250
 msgid "Sector"
 msgstr "领域"
 
 #: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:157
-#: jsapp/js/projects/projectViews/constants.ts:256
+#: jsapp/js/projects/projectViews/constants.ts:257
 msgid "Countries"
 msgstr "国家"
+
+#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:196
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:311
+msgid "Operational purpose of data"
+msgstr ""
+
+#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:204
+msgid "Collects personally identifiable information"
+msgstr ""
 
 #: jsapp/js/components/formViewSideTabs.js:18
 msgid "Table"
 msgstr "表格"
 
 #: jsapp/js/components/formViewSideTabs.js:23
+#: jsapp/js/components/reports/reports.tsx:574
 msgid "Reports"
 msgstr "报告"
 
@@ -2781,6 +3088,7 @@ msgid "Gallery"
 msgstr "图库"
 
 #: jsapp/js/components/formViewSideTabs.js:33
+#: jsapp/js/components/projectDownloads/ProjectDownloads.tsx:65
 msgid "Downloads"
 msgstr "下载"
 
@@ -2816,30 +3124,30 @@ msgstr "活动"
 msgid "XForm is loading"
 msgstr "XForm正在加载"
 
-#: jsapp/js/components/header/accountMenu.tsx:51
+#: jsapp/js/components/header/accountMenu.tsx:52
 msgid "Please refresh the page"
 msgstr "请刷新页面"
 
-#: jsapp/js/components/header/accountMenu.tsx:97
+#: jsapp/js/components/header/accountMenu.tsx:98
 msgid "Account Settings"
 msgstr "账户设置"
 
-#: jsapp/js/components/header/accountMenu.tsx:107
+#: jsapp/js/components/header/accountMenu.tsx:108
 msgid "Terms of Service"
 msgstr "服务条款"
 
-#: jsapp/js/components/header/accountMenu.tsx:112
+#: jsapp/js/components/header/accountMenu.tsx:113
 msgid "Privacy Policy"
 msgstr "隐私政策"
 
-#: jsapp/js/components/header/accountMenu.tsx:126
-#: jsapp/js/components/map/index.tsx:1279
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:235
+#: jsapp/js/components/header/accountMenu.tsx:127
+#: jsapp/js/components/map/index.tsx:1285
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:255
 #: jsapp/js/components/submissions/submissionModal.tsx:432
 msgid "Language"
 msgstr "语言"
 
-#: jsapp/js/components/header/accountMenu.tsx:151
+#: jsapp/js/components/header/accountMenu.tsx:152
 msgid "Logout"
 msgstr "登出"
 
@@ -2912,6 +3220,14 @@ msgstr ""
 msgid "No language regions available"
 msgstr ""
 
+#: jsapp/js/components/library/LibraryItemRoute.tsx:134
+msgid "Subscribed"
+msgstr ""
+
+#: jsapp/js/components/library/LibraryItemRoute.tsx:153
+msgid "Quick look"
+msgstr ""
+
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:39
 #: jsapp/js/components/library/LibraryUploadModal/openLibraryUploadModal.tsx:14
 msgid "Uploading XLS file"
@@ -2962,7 +3278,7 @@ msgstr "创建导入失败。"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:260
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:164
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:201
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:219
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:394
 #: jsapp/js/project/FormLanguagesManager/openFormLanguagesModal.tsx:20
 msgid "Close"
@@ -2995,7 +3311,7 @@ msgid "Note that this will be ignored when uploading a collection file."
 msgstr "请注意上传集合文件时这将被忽略。"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:338
-#: jsapp/js/components/map/MapSettings.tsx:366
+#: jsapp/js/components/map/MapSettings.tsx:364
 #: jsapp/js/components/modalForms/libraryNewItemForm.js:98
 msgid "Upload"
 msgstr "上传"
@@ -3084,6 +3400,11 @@ msgid ""
 "uploaded and converted to library items."
 msgstr "高级用户：你也可以将 XLSForms 拖放到此处，它们将被上传并转换为资料库项目。"
 
+#: jsapp/js/components/library/myLibraryRoute.tsx:132
+#: jsapp/js/projects/universalProjectsRoute.tsx:123
+msgid "Drop files to upload"
+msgstr "拖移文件至此上传"
+
 #: jsapp/js/components/locking/formLockedMessage.tsx:33
 msgid ""
 "This is a fully locked template. Go to question settings to see specific "
@@ -3118,7 +3439,7 @@ msgid "Locked functionalities"
 msgstr "锁定的功能"
 
 #: jsapp/js/components/locking/formLockedMessage.tsx:84
-#: jsapp/xlform/src/view.row.templates.coffee:35
+#: jsapp/xlform/src/view.row.templates.coffee:37
 msgid "Unlocked functionalities"
 msgstr "未锁定的功能"
 
@@ -3208,7 +3529,7 @@ msgid "Add group"
 msgstr "添加群组"
 
 #: jsapp/js/components/locking/lockingConstants.ts:84
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:62
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:64
 msgid "Add question"
 msgstr "添加问题"
 
@@ -3220,156 +3541,225 @@ msgstr "更改问题顺序"
 msgid "Change languages"
 msgstr "更改语言"
 
-#: jsapp/js/components/map/MapSettings.tsx:77
+#: jsapp/js/components/map/MapColorPicker.tsx:51
+msgid "Best for qualitative data"
+msgstr ""
+
+#: jsapp/js/components/map/MapColorPicker.tsx:54
+msgid "Best for sequential data"
+msgstr ""
+
+#: jsapp/js/components/map/MapColorPicker.tsx:57
+msgid "Best for diverging data"
+msgstr ""
+
+#: jsapp/js/components/map/MapSettings.tsx:75
 msgid "Marker Colors"
 msgstr "记号颜色"
 
-#: jsapp/js/components/map/MapSettings.tsx:78
+#: jsapp/js/components/map/MapSettings.tsx:76
 msgid "Query Limit"
 msgstr "查询限制"
 
-#: jsapp/js/components/map/MapSettings.tsx:79
+#: jsapp/js/components/map/MapSettings.tsx:77
 msgid "Geopoint question"
 msgstr "地理点（geopoint）问题"
 
-#: jsapp/js/components/map/MapSettings.tsx:80
+#: jsapp/js/components/map/MapSettings.tsx:78
 msgid "Overlays"
 msgstr "覆盖层"
 
-#: jsapp/js/components/map/MapSettings.tsx:215
+#: jsapp/js/components/map/MapSettings.tsx:213
 msgid "Please add a name for your layer file."
 msgstr "请为你的图层文件添加名称。"
 
-#: jsapp/js/components/map/MapSettings.tsx:237
+#: jsapp/js/components/map/MapSettings.tsx:235
 msgid "Upload error: ##error_message##."
 msgstr "上传错误：##error_message##。"
 
-#: jsapp/js/components/map/MapSettings.tsx:243
+#: jsapp/js/components/map/MapSettings.tsx:241
 msgid "Upload error: not a valid map overlay format."
 msgstr "上传错误：这不是有效的地图覆盖格式。"
 
-#: jsapp/js/components/map/MapSettings.tsx:252
+#: jsapp/js/components/map/MapSettings.tsx:250
 msgid "Are you sure you want to delete this file?"
 msgstr ""
 
-#: jsapp/js/components/map/MapSettings.tsx:258
+#: jsapp/js/components/map/MapSettings.tsx:256
 msgid "Delete File"
 msgstr "删除文件"
 
-#: jsapp/js/components/map/MapSettings.tsx:313
+#: jsapp/js/components/map/MapSettings.tsx:311
 msgid "Choose the Geopoint question you would like to display on the map:"
 msgstr "选择你想在地图上显示的地理点问题："
 
-#: jsapp/js/components/map/MapSettings.tsx:333
+#: jsapp/js/components/map/MapSettings.tsx:331
 msgid "Uploaded layers"
 msgstr "已上传的图层"
 
-#: jsapp/js/components/map/MapSettings.tsx:341
+#: jsapp/js/components/map/MapSettings.tsx:339
 msgid "Delete layer"
 msgstr "删除图层"
 
-#: jsapp/js/components/map/MapSettings.tsx:352
+#: jsapp/js/components/map/MapSettings.tsx:350
 msgid ""
 "Use the form below to upload files with map data in one of these formats: "
-"CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for"
-" display on the map."
-msgstr "请使用下方的表单上传包含地图数据的文件，支持的格式包括：CSV、KML、KMZ、WKT或GEOJSON。这些数据将作为图层显示在地图上。"
+"CSV, KML, KMZ or GEOJSON. The data will be made available as layers for "
+"display on the map."
+msgstr ""
 
-#: jsapp/js/components/map/MapSettings.tsx:358
+#: jsapp/js/components/map/MapSettings.tsx:356
 msgid "Layer name"
 msgstr "图层名称"
 
-#: jsapp/js/components/map/MapSettings.tsx:376
+#: jsapp/js/components/map/MapSettings.tsx:374
 msgid "Choose the color set for the disaggregated map markers."
 msgstr "选择分类地图标记的颜色集。"
 
-#: jsapp/js/components/map/MapSettings.tsx:385
+#: jsapp/js/components/map/MapSettings.tsx:383
 msgid ""
 "By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent "
 "submissions. You can temporarily increase this limit to a different value. "
 "Note that this is reset whenever you reopen the map."
 msgstr "默认情况下，地图仅显示##QUERY_LIMIT_DEFAULT##个最近的提交。你可以暂时把这个限制提高到一个不同的值。请注意，每当你重新打开地图时，这个限制会被重置。"
 
-#: jsapp/js/components/map/MapSettings.tsx:388
+#: jsapp/js/components/map/MapSettings.tsx:386
 msgid ""
 "Warning: Displaying a large number of points can take a long time to load"
 msgstr ""
 
-#: jsapp/js/components/map/MapSettings.tsx:416
+#: jsapp/js/components/map/MapSettings.tsx:414
+#: jsapp/js/components/map/index.tsx:1363
 #: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx:189
-#: jsapp/js/components/submissions/columnsHideForm.tsx:179
-#: jsapp/js/components/submissions/tableSettings.js:119
+#: jsapp/js/components/submissions/TableSettings.tsx:170
+#: jsapp/js/components/submissions/columnsHideForm.tsx:203
 #: jsapp/js/projects/projectViews/projectsFieldsSelector.tsx:98
 #: jsapp/js/projects/projectViews/projectsFilter.tsx:139
 msgid "Reset"
 msgstr "重置"
 
-#: jsapp/js/components/map/index.tsx:125
+#: jsapp/js/components/map/index.tsx:114
+msgid "Could not parse KML file"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:118
+msgid "KML contained no features"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:132
 msgid "Error loading overlay layer \"##name##\""
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:126
-msgid "Error loading overlay layer \"##name##\" (invalid GeoJSON)"
-msgstr ""
-
-#: jsapp/js/components/map/index.tsx:127
-msgid "Error loading overlay layer \"##name##\" (omnivore error)"
-msgstr ""
-
-#: jsapp/js/components/map/index.tsx:281
+#: jsapp/js/components/map/index.tsx:286
 msgid ""
 "By default map is limited to the ##number##  most recent submissions for "
 "performance reasons. Go to map settings to increase this limit."
 msgstr "默认情况下，出于性能原因，地图仅限于最近提交的##number##项内容。前往地图设置以提高此限制。"
 
-#: jsapp/js/components/map/index.tsx:759
+#: jsapp/js/components/map/index.tsx:384
+msgid "No latitude/longitude columns found"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:411
+msgid "Invalid GeoJSON"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:428
+msgid "No KML file found in KMZ archive"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:765
 #: jsapp/js/components/submissions/submissionModal.tsx:232
-#: jsapp/js/components/submissions/table.tsx:459
+#: jsapp/js/components/submissions/table.tsx:464
 msgid "Error: could not load data."
 msgstr "错误：无法加载数据。"
 
-#: jsapp/js/components/map/index.tsx:1064
+#: jsapp/js/components/map/index.tsx:1070
 msgid "Disaggregate by survey responses"
 msgstr "按调查回复分类"
 
-#: jsapp/js/components/map/index.tsx:1069
+#: jsapp/js/components/map/index.tsx:1075
 msgid "Disaggregated using:"
 msgstr "分类使用："
 
-#: jsapp/js/components/map/index.tsx:1073
+#: jsapp/js/components/map/index.tsx:1079
 msgid "No \"geopoint\" responses have been received"
 msgstr "没有收到“geopoint”回复"
 
-#: jsapp/js/components/map/index.tsx:1075
+#: jsapp/js/components/map/index.tsx:1081
 msgid ""
 "The map does not show data because this form does not have a \"geopoint\" "
 "field."
 msgstr "地图上没有显示数据，因为此表单没有没有 \"地理点（geopoint）\"字段。"
 
-#: jsapp/js/components/map/index.tsx:1180
 #: jsapp/js/components/map/index.tsx:1186
+#: jsapp/js/components/map/index.tsx:1192
 msgid "Map display settings"
 msgstr "地图显示设置"
 
-#: jsapp/js/components/map/index.tsx:1194
 #: jsapp/js/components/map/index.tsx:1200
+#: jsapp/js/components/map/index.tsx:1206
 msgid "Toggle layers"
 msgstr "切换图层"
 
-#: jsapp/js/components/map/index.tsx:1206
 #: jsapp/js/components/map/index.tsx:1212
+#: jsapp/js/components/map/index.tsx:1218
 msgid "Toggle Fullscreen"
 msgstr "切换全屏"
 
-#: jsapp/js/components/map/index.tsx:1218
 #: jsapp/js/components/map/index.tsx:1224
+#: jsapp/js/components/map/index.tsx:1230
 msgid "Show as points"
 msgstr "显示为点"
 
-#: jsapp/js/components/map/index.tsx:1231
 #: jsapp/js/components/map/index.tsx:1237
+#: jsapp/js/components/map/index.tsx:1243
 msgid "Show as heatmap"
 msgstr "显示为热图"
+
+#: jsapp/js/components/map/index.tsx:1292
+msgid "Default"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1303
+msgid "-- See all data --"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1311
+msgid "untranslated: "
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1314
+msgid "Question label not set"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1340
+msgid "Legend"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1375
+msgid "not set"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1413
+msgid "This project does not include geographical data."
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1414
+msgid "To visualize data in the map, create a \"geopoint\" question."
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1423
+msgid "No \"geopoint\" responses have been received for the selected question."
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1432
+msgid "Fetching points…"
+msgstr ""
+
+#: jsapp/js/components/map/index.tsx:1438
+msgid "Map Settings"
+msgstr ""
 
 #: jsapp/js/components/metadataEditor.js:26
 msgid "Low"
@@ -3386,6 +3776,18 @@ msgstr ""
 #: jsapp/js/components/metadataEditor.js:132
 msgid "Audit settings"
 msgstr "审计设置"
+
+#: jsapp/js/components/metadataEditor.js:235
+msgid "This survey will be recorded"
+msgstr ""
+
+#: jsapp/js/components/metadataEditor.js:236
+msgid "Enable audio recording in the background"
+msgstr ""
+
+#: jsapp/js/components/metadataEditor.js:246
+msgid "Audio quality"
+msgstr ""
 
 #: jsapp/js/components/modalForms/ExtraProjectMetadataFields.tsx:65
 #: jsapp/js/components/modalForms/ExtraProjectMetadataFields.tsx:77
@@ -3409,7 +3811,7 @@ msgid "Failed to update ##type##"
 msgstr "更新失败##type##"
 
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:250
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:103
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:101
 #: jsapp/js/project/FormLanguagesManager/utils.ts:12
 msgid "Saving…"
 msgstr "保存中…"
@@ -3427,28 +3829,24 @@ msgstr ""
 msgid "Enter short description here"
 msgstr "请在此输入简短说明"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:311
-msgid "Operational purpose of data"
-msgstr ""
-
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:323
 msgid "Does this project collect personally identifiable information?"
 msgstr ""
 
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:328
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:145
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:155
 #: jsapp/js/components/submissions/submissionUtils.tsx:645
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:183
-#: jsapp/xlform/src/view.row.templates.coffee:337
+#: jsapp/xlform/src/view.row.templates.coffee:364
 #: jsapp/xlform/src/view.rowDetail.coffee:120
 msgid "Yes"
 msgstr "是"
 
 #: jsapp/js/components/modalForms/LibraryAssetForm.tsx:329
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:147
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:157
 #: jsapp/js/components/submissions/submissionUtils.tsx:645
 #: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:184
-#: jsapp/xlform/src/view.row.templates.coffee:346
+#: jsapp/xlform/src/view.row.templates.coffee:373
 msgid "No"
 msgstr "否"
 
@@ -3486,15 +3884,6 @@ msgstr "必填"
 msgid "Editing responses from repeat group questions is not possible yet."
 msgstr "目前尚无法编辑来自重复小组问题的回复。"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:316
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:82
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:110
-#: jsapp/js/components/submissions/submissionModal.tsx:654
-#: jsapp/js/components/submissions/table.tsx:697
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:256
-msgid "Edit"
-msgstr "编辑"
-
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:341
 msgid ""
 "Bulk edit mode: Select questions to edit or delete responses across all "
@@ -3516,10 +3905,12 @@ msgid "Updated responses"
 msgstr "最新的回复"
 
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:358
+#: jsapp/js/components/submissions/submissionDataTable.tsx:77
 msgid "Question"
 msgstr "问题"
 
 #: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:359
+#: jsapp/js/components/submissions/submissionDataTable.tsx:79
 msgid "Response"
 msgstr "回复"
 
@@ -3689,66 +4080,66 @@ msgstr "使用“@”替换“a”这样可预测的方式并没有什么帮助"
 msgid "Password strength"
 msgstr "密码强度"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:46
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:50
 msgid "permissions were copied successfully"
 msgstr "权限复制成功"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:54
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:58
 msgid "Failed to copy permissions"
 msgstr ""
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:114
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:129
 msgid ""
 "You are about to copy permissions from ##source to ##target. This action "
 "cannot be undone."
 msgstr "你即将从##source to ##目标复制权限。此操作不能被撤销。"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:120
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:136
 msgid "Are you sure you want to copy permissions?"
 msgstr "你确定你要复制权限吗？"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:122
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:166
 msgid "Proceed"
 msgstr "继续操作"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:160
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:208
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:201
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:250
 msgid "Loading…"
 msgstr ""
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:185
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:226
 msgid "Copy team from another project"
 msgstr "从另一个项目复制团队"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:190
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:232
 msgid ""
 "This will overwrite any existing sharing settings defined in this project."
 msgstr "这将重写该项目中定义的任何现有共享设置。"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:203
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:245
 msgid "Select source project…"
 msgstr "选择源项目…"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:210
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:252
 msgid "Failed to load projects"
 msgstr ""
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:211
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:253
 #: jsapp/js/sidebar/SidebarFormsListCategory.tsx:160
 msgid "No projects found"
 msgstr ""
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:243
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:285
 msgid "copy"
 msgstr "复制"
+
+#: jsapp/js/components/permissions/openSharingModal.tsx:17
+msgid "Sharing Permissions: ##project name##"
+msgstr ""
 
 #: jsapp/js/components/permissions/permConstants.ts:227
 msgid "View form"
 msgstr "查看表单"
-
-#: jsapp/js/components/permissions/permConstants.ts:228
-msgid "Edit form"
-msgstr "编辑表单"
 
 #: jsapp/js/components/permissions/permConstants.ts:229
 msgid "Manage project"
@@ -3866,46 +4257,42 @@ msgstr "根据条件对提交的内容采取行动"
 msgid "Act on submissions based on multiple conditions"
 msgstr "根据多项条件对提交的内容采取行动"
 
-#: jsapp/js/components/permissions/publicShareSettings.component.tsx:58
-msgid ""
-"You can now control whether to allow anonymous submissions for each project."
-" Previously, this was an account-wide setting."
-msgstr "你现在可以控制是否允许每个项目的匿名提交。此前，匿名提交控制仅设置于帐户范围内。"
-
-#: jsapp/js/components/permissions/publicShareSettings.component.tsx:73
-msgid "Share publicly by link"
-msgstr "通过链接公开共享"
-
-#: jsapp/js/components/permissions/publicShareSettings.component.tsx:80
+#: jsapp/js/components/permissions/publicShareSettings.component.tsx:48
 msgid "Anyone can view this form"
 msgstr "任何人都可以查看此表单"
 
-#: jsapp/js/components/permissions/publicShareSettings.component.tsx:89
+#: jsapp/js/components/permissions/publicShareSettings.component.tsx:55
 msgid "Anyone can view submissions made to this form"
 msgstr "任何人都可以查看此表单的提交记录"
 
-#: jsapp/js/components/permissions/publicShareSettings.component.tsx:93
+#: jsapp/js/components/permissions/publicShareSettings.component.tsx:58
 msgid "Shareable link"
 msgstr "可共享的链接"
 
-#: jsapp/js/components/permissions/sharingForm.component.tsx:208
-msgid ""
-"Anyone can see this blank form and add submissions to it because you have "
-"not set [your account] to require authentication."
-msgstr "任何人都可以看到此空白表单并向其添加提交内容，因为你尚未将[你的帐户]设置为需要身份验证。"
+#: jsapp/js/components/permissions/sharingForm.component.tsx:204
+msgid "Who has access"
+msgstr ""
 
-#: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx:33
+#: jsapp/js/components/permissions/sharingForm.component.tsx:235
+msgid "Add user"
+msgstr ""
+
+#: jsapp/js/components/permissions/sharingForm.component.tsx:254
+msgid "Close add user editor"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx:32
 msgid ""
 "You have declined the request of transfer ownership for ##PROJECT_NAME##. "
 "##CURRENT_OWNER_NAME## will receive a notification that the transfer was "
 "incomplete."
 msgstr "你已拒绝转让##PROJECT_NAME##所有权的请求。##CURRENT_OWNER_NAME##将收到转让未完成通知。"
 
-#: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx:38
+#: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx:37
 msgid "##CURRENT_OWNER_NAME## will remain the project owner."
 msgstr "##CURRENT_OWNER_NAME##仍将是项目所有者。"
 
-#: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx:48
+#: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx:47
 msgid ""
 "You have accepted project ownership from ##CURRENT_OWNER_NAME## for "
 "##PROJECT_NAME##. This process can take up to a few minutes to complete."
@@ -3933,27 +4320,88 @@ msgstr "邀请已被取消或已失效"
 msgid "Invite is invaild."
 msgstr "邀请无效。"
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:79
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:78
 msgid "Cannot transfer a project to the same account."
 msgstr "无法将项目转移至同个帐户。"
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:105
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:104
 msgid "User not found. Please try again."
 msgstr "用户不存在。请再试一次。"
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:112
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:111
 msgid "Please enter a user name."
 msgstr "请输入用户名。"
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:135
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:134
 msgid "Transfer project ownership"
 msgstr "转让项目所有权"
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:141
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:140
 msgid ""
 "Your transfer request is pending until ##username## has accepted or declined"
 " it."
 msgstr "你的转让请求处于待处理状态，直到##username##接受或拒绝。"
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:150
+msgid ""
+"Transfer ownership of this project to another user. All submissions, data "
+"storage, and transcription and translation usage for this project will be "
+"transferred to the new project owner."
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:154
+msgid "Learn more →"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:175
+msgid "Transfer"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:181
+msgid "Transfer is not allowed when current owner is over their usage limit."
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:193
+msgid "Transfer ownership"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:200
+msgid "This action will transfer ownership of ##username## to another user"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:207
+msgid ""
+"When you transfer ownership of the project to another user, all of the "
+"submissions, data storage, and transcription and translation usage for the "
+"project will be transferred to the new project owner."
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:212
+msgid ""
+"The new project owner will receive an email request to accept the transfer. "
+"You will be notified when the transfer is accepted or declined."
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:221
+msgid "You will be the owner of the project until the transfer is accepted."
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:223
+msgid ""
+"Once the transfer is accepted, you will not be able to undo this action."
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:236
+msgid "To complete the transfer, enter the username of the new project owner"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:239
+msgid "Enter username here"
+msgstr ""
+
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:250
+msgid "Transfer project"
+msgstr ""
 
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:74
 msgid "Project transfer declined"
@@ -3986,49 +4434,65 @@ msgid ""
 "change user permissions in the project sharing settings."
 msgstr "备注: 前所有者有权限管理该项目。你可在项目设置里更改用户共享权限。"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:46
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:43
 msgid "Enter usernames separated by comma"
 msgstr "输入以逗号分隔的用户名"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:223
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:221
 msgid "User not found:"
 msgstr "未找到用户："
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:409
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:407
 msgid "equals"
 msgstr "等于"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:429
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:437
 msgid "Reset changes"
 msgstr "重置更改"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:464
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:461
+#: jsapp/js/components/submissions/submissionDataTable.tsx:329
 msgid "username"
 msgstr "用户名"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:505
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:499
 msgid "Grant permissions"
 msgstr "授予权限"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:505
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:499
 msgid "Update permissions"
 msgstr "更新权限"
 
-#: jsapp/js/components/permissions/userPermissionRow.component.tsx:59
-msgid "Remove permissions?"
-msgstr "删除权限？"
-
-#: jsapp/js/components/permissions/userPermissionRow.component.tsx:60
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:131
 msgid "This action will remove all permissions for user ##username##"
 msgstr "此操作将删除用户的所有权限##username##"
 
-#: jsapp/js/components/permissions/userPermissionRow.component.tsx:145
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:139
+msgid "Remove permissions?"
+msgstr "删除权限？"
+
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:193
 msgid "is owner"
 msgstr "所有者"
 
-#: jsapp/js/components/permissions/userPermissionRow.component.tsx:147
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:195
 msgid "Pending owner"
 msgstr "所有者待定"
+
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:205
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:206
+msgid "Close permission editor"
+msgstr ""
+
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:205
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:206
+msgid "Edit permissions"
+msgstr ""
+
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:215
+#: jsapp/js/components/permissions/userPermissionRow.component.tsx:216
+msgid "Remove all permissions"
+msgstr ""
 
 #: jsapp/js/components/permissions/utils.ts:554
 msgid "##permission_label## (##username_list##)"
@@ -4129,12 +4593,12 @@ msgid "Please verify if correct"
 msgstr ""
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:261
-#: jsapp/js/components/submissions/tableUtils.ts:92
-#: jsapp/js/components/submissions/tableUtils.ts:94
+#: jsapp/js/components/submissions/tableUtils.ts:104
+#: jsapp/js/components/submissions/tableUtils.ts:106
 msgid "Verified"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/TagsResponseForm.tsx:50
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/TagsResponseForm.tsx:52
 msgid "Failed to get tag suggestions"
 msgstr ""
 
@@ -4176,33 +4640,33 @@ msgstr "仅拥有完整编辑权限的人可以创建问题"
 msgid "Contact the project owner for more information"
 msgstr "有关详细信息，请联系项目所有者"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:68
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:71
 msgid "Automated analysis"
 msgstr "自动分析"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:97
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:92
 msgid "Show hints"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:108
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:106
 msgid "Saving (##count##)…"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:113
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:111
 msgid "Unsaved changes"
 msgstr "未保存的更改"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:118
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:116
 msgid "Saved"
 msgstr "已保存"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:125
-#: jsapp/js/constants.ts:356 jsapp/js/formbuild/containers/KoboMatrix.tsx:129
+#: jsapp/js/constants.ts:352 jsapp/js/formbuild/containers/KoboMatrix.tsx:129
 msgid "Text"
 msgstr "文本"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:137
-#: jsapp/js/constants.ts:323 jsapp/js/formbuild/containers/KoboMatrix.tsx:133
+#: jsapp/js/constants.ts:319 jsapp/js/formbuild/containers/KoboMatrix.tsx:133
 msgid "Number"
 msgstr "数字"
 
@@ -4215,16 +4679,16 @@ msgid "Multiple choice"
 msgstr "多项选择"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:177
-#: jsapp/js/constants.ts:332
+#: jsapp/js/constants.ts:328
 msgid "Note"
 msgstr "备注显示"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepBegin.tsx:20
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepBegin.tsx:22
 msgid "This ##type## does not have a transcript yet"
 msgstr "这个##type##还没有抄本"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepBegin.tsx:29
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepBegin.tsx:22
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepBegin.tsx:31
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepBegin.tsx:30
 msgid "begin"
 msgstr "开始"
 
@@ -4247,7 +4711,7 @@ msgid ""
 msgstr "自动转录服务由 Google Cloud Platform 提供。使用此服务即表示你同意将你的音频文件发送到谷歌的服务器以进行转录。但是，除了完成转录所需的短暂时间外，转录内容不会存储在谷歌服务器上，并且我们不允许谷歌使用该音频来改进其转录服务。"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:201
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:236
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:254
 msgid "cancel"
 msgstr "取消"
 
@@ -4259,7 +4723,7 @@ msgstr "创建抄本"
 msgid "Please select the original language of the ##type##"
 msgstr "请选择##type##的源语言"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:87
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:93
 msgid "transcribe"
 msgstr "转录"
 
@@ -4273,21 +4737,26 @@ msgstr "摒弃"
 msgid "Delete transcription?"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:77
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:72
 msgid "Automatic transcription in progress"
 msgstr "正在进行自动转录"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:79
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:181
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:74
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:199
 msgid "Estimated time for completion: ##estimate##"
 msgstr "预计完成时间：##estimate##"
+
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:78
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:79
+msgid "This submission is part of an ongoing bulk processing job."
+msgstr ""
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/common/utils.ts:28
 msgid "source file"
 msgstr "源文件"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/transcript.utils.ts:33
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:181
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:199
 msgid "less than a minute"
 msgstr "不到一分钟"
 
@@ -4303,27 +4772,28 @@ msgstr "约2分钟"
 msgid "about ##number## minutes"
 msgstr "约##number##分钟"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepBegin.tsx:17
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepBegin.tsx:25
 msgid "This transcript does not have any translations yet"
 msgstr "该抄本还没有任何翻译"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:76
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:77
 msgid "Failed to create automatic translation. Please try again later."
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:175
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:193
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:72
 msgid "Automatic translation in progress"
 msgstr "正在进行自动翻译"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:188
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:206
 msgid "Automatic translation of transcript to"
 msgstr "自动把抄本翻译成"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:212
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:230
 msgid "Translation provider"
 msgstr "翻译提供者"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:216
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:234
 msgid ""
 "Automated translation is provided by Google Cloud Platform. By using this "
 "service you agree that your transcript text will be sent to Google's servers"
@@ -4331,15 +4801,15 @@ msgid ""
 "servers beyond the very short period needed for completing the translation."
 msgstr "自动翻译由 Google Cloud Platform 提供。使用此服务即表示你同意将你的转录文本发送到谷歌的服务器以进行翻译。但是，除了完成翻译所需的短暂时间外，它不会存储在谷歌的服务器上。"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:241
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:259
 msgid "create translation"
 msgstr "创建翻译"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:107
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:113
 msgid "Please select the language you want to translate to"
 msgstr "请选择要翻译成哪一种语言"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:108
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:114
 msgid "translate"
 msgstr "翻译"
 
@@ -4350,6 +4820,14 @@ msgstr "要删除翻译本吗？"
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:97
 msgid "new translation"
 msgstr "新的翻译"
+
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:74
+msgid "Language: ##language##"
+msgstr ""
+
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:75
+msgid "This may take up to a couple of minutes."
+msgstr ""
 
 #: jsapp/js/components/processing/SingleProcessingContent/components/StepSelectLanguage.tsx:104
 msgid "back"
@@ -4425,57 +4903,57 @@ msgid ""
 "Use the button above to select the information to be displayed in this area"
 msgstr "点击上面的按钮进行操作，选中需要在此区域中显示的信息"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:46
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:36
-#: jsapp/js/components/submissions/tableSettings.js:82
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:45
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:44
+#: jsapp/js/components/submissions/TableSettings.tsx:72
 msgid "Labels"
 msgstr "标记"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:49
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:48
 msgid "XML values"
 msgstr "XML值"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:91
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:90
 msgid "Original transcript"
 msgstr "原始文本"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:102
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:101
 msgid "Submission data"
 msgstr "提交数据"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:108
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:107
 msgid "Original file (Audio)"
 msgstr "初始文件（音频）"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:153
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:152
 msgid "Display settings"
 msgstr "显示设置"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:160
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:159
 msgid "Customize display settings"
 msgstr "自定义显示设置"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:167
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:166
 msgid ""
 "Select the information you want to display in the side menu to support your "
 "analysis."
 msgstr "在侧栏菜单中选择你想要显示的信息以支持你的分析。"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:173
-#: jsapp/js/components/submissions/tableSettings.js:99
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:172
+#: jsapp/js/components/submissions/TableSettings.tsx:143
 msgid "Display labels or XML values?"
 msgstr "显示标记或XML值？"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:210
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:209
 msgid "Select the submission data to display."
 msgstr "选择提交数据来显示。"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:238
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:237
 #: jsapp/js/components/reports/reportsModalTabs.component.tsx:51
 msgid "Translation"
 msgstr "翻译"
 
-#: jsapp/js/components/processing/common/ConflictingOngoingJobAlert.tsx:14
+#: jsapp/js/components/processing/common/ConflictingOngoingJobAlert.tsx:17
 msgid "This submission is already being processed by another job."
 msgstr ""
 
@@ -4483,185 +4961,210 @@ msgstr ""
 msgid "There is no data for this question for the current submission"
 msgstr "没有跟本次提交的问题有关的数据"
 
-#: jsapp/js/components/projectDownloads/AnonymousExports.tsx:143
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:825
+#: jsapp/js/components/projectDownloads/AnonymousExports.tsx:128
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:257
+msgid "Failed to create export"
+msgstr "创建导出失败"
+
+#: jsapp/js/components/projectDownloads/AnonymousExports.tsx:153
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:858
 msgid "Export"
 msgstr "导出"
 
-#: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx:57
+#: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:12
+msgid ""
+"Are you sure you want to delete this export? This action is not reversible."
+msgstr "你确定你要删除此导出吗？此操作是不可逆的。"
+
+#: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:49
+msgid "Failed to delete export setting"
+msgstr "删除导出设置失败"
+
+#: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:57
+msgid ""
+"Are you sure you want to delete the export settings \"##NAME##\"? This "
+"action is not reversible."
+msgstr ""
+
+#: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx:44
 msgid "Select export type"
 msgstr "选择导出类型"
 
-#: jsapp/js/components/projectDownloads/LegacyExports.tsx:46
+#: jsapp/js/components/projectDownloads/LegacyExports.tsx:38
 msgid ""
 "This export format will not be supported in the future. Please consider "
 "using one of the other export types available."
 msgstr "以后将不支持这种导出格式。请考虑使用其他可用的导出类型之一。"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:36
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:42
 msgid "Latest unsaved settings"
 msgstr "最新未保存的设置"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:293
-msgid "Delete export settings?"
-msgstr "删除导出设置？"
-
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:294
-msgid ""
-"Are you sure you want to delete this settings? This action is not "
-"reversible."
-msgstr "你确定要删除这个设置吗？此操作是不可逆的。"
-
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:319
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:290
 #: jsapp/js/components/submissions/tableBulkCheckbox.tsx:56
 msgid "None"
 msgstr "无结果"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:492
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:400
+msgid "Failed to update export setting"
+msgstr "更新导出设置失败"
+
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:413
+msgid "Failed to create export setting"
+msgstr "创建导出设置失败"
+
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:488
 msgid "Include fields from all ##count## versions"
 msgstr "包括所有##count##版本的字段"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:504
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:500
 msgid "Export ##SELECT_MANY## questions as…"
 msgstr "将##SELECT_MANY##问题导出为…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:513
-#: jsapp/js/constants.ts:337 jsapp/js/formbuild/containers/KoboMatrix.tsx:125
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:509
+#: jsapp/js/constants.ts:333 jsapp/js/formbuild/containers/KoboMatrix.tsx:125
 msgid "Select Many"
 msgstr "多选"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:552
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:548
 msgid "Include groups in headers"
 msgstr "在标题中包括组"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:561
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:557
 msgid "Group separator"
 msgstr "组分隔符"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:583
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:579
 msgid "Flatten GeoJSON"
 msgstr "一体化GeoJSON"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:596
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:592
 msgid "Store date and number responses as text"
 msgstr "将日期和数字的回复存储为文本"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:610
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:607
 msgid "Include media URLs"
 msgstr "包括媒体URL"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:622
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:619
 msgid "Save selection as…"
 msgstr "将所选项保存为…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:632
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:629
 msgid "Name your export settings"
 msgstr "命名你的导出设置"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:644
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:641
 msgid "Date range"
 msgstr ""
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:682
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:679
 msgid "Select questions to be exported"
 msgstr "选择要导出的问题"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:750
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:782
 msgid "Value and header format"
 msgstr "数值与标题格式"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:773
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:805
 msgid "Advanced options"
 msgstr "高级选项"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:787
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:819
 msgid "Apply saved export settings"
 msgstr "应用保存的导出设置"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:797
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:829
 msgid "No export settings selected"
 msgstr "未选择导出设置"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:80
-msgid "Delete export?"
-msgstr "删除导出？"
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:103
+msgid "Failed to delete export"
+msgstr "删除导出失败"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:81
-msgid ""
-"Are you sure you want to delete this export? This action is not reversible."
-msgstr "你确定你要删除此导出吗？此操作是不可逆的。"
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:185
+msgid "Unknown format"
+msgstr ""
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:198
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:211
 msgid "Export Failed"
 msgstr "导出失败"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:203
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:216
 msgid "Processing…"
 msgstr "处理中…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:229
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:249
 msgid "Exports"
 msgstr "导出"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:234
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:254
 msgid "Created"
 msgstr "已创建"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:237
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:257
 msgid "Include Groups"
 msgstr "包括组"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:240
+#: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:260
 msgid "Multiple Versions"
 msgstr "多个版本"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:19
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:27
 msgid "CSV (legacy)"
 msgstr "CSV(旧版)"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:20
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:28
 msgid "CSV"
 msgstr "CSV"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:21
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:29
 msgid "GeoJSON"
 msgstr "GeoJSON"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:22
-msgid "GPS coordinates (KML)"
-msgstr "GPS坐标 (KML)"
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:30
+msgid "KML"
+msgstr ""
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:23
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:31
 msgid "SPSS Labels"
 msgstr "SPSS标记"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:24
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:32
 msgid "XLS (legacy)"
 msgstr "XLS (旧版)"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:25
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:33
 msgid "XLS"
 msgstr "XLS"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:26
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:34
 msgid "Media Attachments (ZIP)"
 msgstr "媒体附件(ZIP)"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:44
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:52
 msgid "XML values and headers"
 msgstr "XML数值与标题"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:59
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:67
 msgid "Separate columns"
 msgstr "分开的纵列"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:63
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:71
 msgid "Single column"
 msgstr "单列"
 
-#: jsapp/js/components/projectDownloads/exportsConstants.ts:67
+#: jsapp/js/components/projectDownloads/exportsConstants.ts:75
 msgid "Single and separate columns"
 msgstr "单列和分开的列"
+
+#: jsapp/js/components/projectDownloads/openDeleteExportModal.tsx:10
+msgid "Delete export?"
+msgstr "删除导出？"
+
+#: jsapp/js/components/projectDownloads/openDeleteExportSettingModal.tsx:15
+msgid "Delete export settings?"
+msgstr "删除导出设置？"
 
 #: jsapp/js/components/reports/customReportEditor.component.tsx:100
 msgid "Untitled Report"
@@ -4674,12 +5177,6 @@ msgstr "包括下列问题："
 #: jsapp/js/components/reports/reportStyleSettings.component.tsx:147
 msgid "No grouping"
 msgstr "未分组"
-
-#: jsapp/js/components/reports/reportStyleSettings.component.tsx:185
-#: jsapp/js/components/submissions/submissionModal.tsx:96
-#: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:453
-msgid "Unnamed language"
-msgstr "未确认语言"
 
 #: jsapp/js/components/reports/reportTable.component.tsx:27
 msgid "Mean"
@@ -4705,16 +5202,10 @@ msgstr "标准差"
 #: jsapp/js/components/reports/reportTable.component.tsx:59
 #: jsapp/js/components/reports/reportTable.component.tsx:60
 #: jsapp/js/components/reports/reportTable.component.tsx:61
-#: jsapp/js/components/submissions/DataTableCell/TextModalCell.tsx:34
 #: jsapp/js/components/submissions/SubmissionBackgroundAudio.tsx:63
 #: jsapp/js/components/submissions/submissionDataList.tsx:57
 msgid "N/A"
 msgstr "不适用"
-
-#: jsapp/js/components/reports/reportTable.component.tsx:75
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:130
-msgid "Value"
-msgstr "值"
 
 #: jsapp/js/components/reports/reportViewItem.component.tsx:311
 msgid "Type: "
@@ -4783,6 +5274,34 @@ msgstr "该报告没有数据。"
 msgid "Try changing Report Style to \"No grouping\"."
 msgstr "尝试将报告样式更改为“无分组”。"
 
+#: jsapp/js/components/reports/reports.tsx:599
+msgid ""
+"For performance reasons, this report only includes the first ## questions."
+msgstr ""
+
+#: jsapp/js/components/reports/reports.tsx:609
+msgid "Show all (##)"
+msgstr ""
+
+#: jsapp/js/components/reports/reports.tsx:620
+msgid ""
+"This is an automated report based on raw data submitted to this project. "
+"Please conduct proper data cleaning prior to using the graphs and figures "
+"used on this page."
+msgstr ""
+
+#: jsapp/js/components/reports/reports.tsx:634
+msgid "Edit Report Style"
+msgstr ""
+
+#: jsapp/js/components/reports/reports.tsx:640
+msgid "Custom Report"
+msgstr ""
+
+#: jsapp/js/components/reports/reports.tsx:652
+msgid "Question Style"
+msgstr ""
+
 #: jsapp/js/components/reports/reports.utils.ts:84
 msgid "Unlabeled"
 msgstr "未标记"
@@ -4796,7 +5315,7 @@ msgid "Horizontal"
 msgstr "水平"
 
 #: jsapp/js/components/reports/reportsConstants.ts:173
-#: jsapp/js/constants.ts:319
+#: jsapp/js/constants.ts:315
 msgid "Line"
 msgstr "线"
 
@@ -4809,7 +5328,7 @@ msgid "Donut"
 msgstr "圆环图"
 
 #: jsapp/js/components/reports/reportsConstants.ts:201
-#: jsapp/js/constants.ts:318
+#: jsapp/js/constants.ts:314
 msgid "Area"
 msgstr "区域"
 
@@ -4854,47 +5373,54 @@ msgstr ""
 msgid "[Click here] to monitor your progress or to cancel pending requests."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:44
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:54
 msgid "Successfully approved ##count## submission(s)"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:46
-msgid ""
-"No submissions were approved. They may already be approved or have no data."
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:58
+msgid "No submissions were approved. They have been approved already."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:73
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:85
 msgid "Failed to approve submissions. Please try again."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:126
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:137
 msgid ""
 "The selected translations were automatically generated and should be "
 "reviewed to ensure accuracy. Once approved, they will be saved and displayed"
 " in your data table."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:130
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:141
 msgid ""
 "The selected transcripts were automatically generated and should be reviewed"
 " to ensure accuracy. Once approved, they will be saved and displayed in your"
 " data table."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:137
-msgid "Do you want to approve the ##count## translations selected?"
-msgstr ""
-
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:142
-msgid "Do you want to approve the ##count## transcripts selected?"
-msgstr ""
-
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:153
+msgid "Do you want to approve 1 translation?"
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:154
+msgid "Do you want to approve ##count## translations?"
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:160
+msgid "Do you want to approve 1 transcript?"
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:161
+msgid "Do you want to approve ##count## transcripts?"
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:174
 msgid "Approve"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/openBulkApproveModal.tsx:9
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:182
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:186
 msgid "Approve all selected"
 msgstr ""
 
@@ -4912,13 +5438,13 @@ msgid ""
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:39
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:84
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:109
 msgid ""
 "1 audio file totaling ##duration## already transcribed and will be ignored"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:40
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:85
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:110
 msgid ""
 "##count## audio files totaling ##duration## already transcribed and will be "
 "ignored"
@@ -4934,12 +5460,12 @@ msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:272
 msgid ""
-"Your ##total_files## audio files is a total of ##total_length##. This may "
+"Your ##total_files## audio files are a total of ##total_length##. This may "
 "take longer to complete than the total duration of your files."
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:289
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:195
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:217
 msgid "I cannot find my language"
 msgstr ""
 
@@ -4952,11 +5478,11 @@ msgid "Automatic transcription is provided by Google Cloud Platform."
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:321
-msgid "Start Transcription"
+msgid "Start transcription"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:333
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:235
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:257
 msgid "Purchase add-on"
 msgstr ""
 
@@ -4973,17 +5499,17 @@ msgstr ""
 msgid "Failed to start translation. Please try again."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:181
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:203
 msgid ""
-"Your ##total_selected## transcripts is a total of ##total_characters## "
-"characters. This may take some time to complete."
+"Your ##total_selected## transcripts are a total of ##total_characters## "
+"characters."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:202
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:224
 msgid "Automatic translation is provided by Google Cloud Platform."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:223
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:245
 msgid "Create translations"
 msgstr ""
 
@@ -4991,121 +5517,225 @@ msgstr ""
 msgid "Translate selected transcripts"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:28
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:30
+msgid "1 submission is already approved and will be ignored"
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:31
+msgid "##count## submissions are already approved and will be ignored"
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:38
+msgid "There are no submissions to approve."
+msgstr ""
+
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:53
 msgid ""
 "You have reached your transcription limit. Please select fewer files, "
 "purchase an add-on, or upgrade your plan."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:31
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:56
 msgid ""
 "You have reached your translation limit. Please select fewer files, purchase"
 " an add-on, or upgrade your plan."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:44
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:69
 msgid ""
 "##remainingDuration## of automated transcription left, that is not enough to"
 " process all selected submissions. Please select fewer files, purchase an "
 "add-on, or upgrade your plan."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:47
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:72
 msgid ""
 "##remainingCharacters## characters of automated translation left, that is "
 "not enough to process all selected submissions. Please select fewer files, "
 "purchase an add-on, or upgrade your plan."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:57
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:82
 msgid ""
 "1 submission is already being processed by another job and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:58
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:83
 msgid ""
 "##count## submissions are already being processed by another job and will be"
 " ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:68
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:93
 msgid "1 submission is missing audio file and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:69
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:94
 msgid "##count## submissions are missing audio file and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:72
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:97
 msgid "1 submission is missing transcription and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:73
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:98
 msgid "##count## submissions are missing transcription and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:90
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:115
 msgid ""
 "1 transcript totaling ##characters## characters already translated and will "
 "be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:91
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:116
 msgid ""
 "##count## transcripts totaling ##characters## characters already translated "
 "and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:101
+#: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:126
 msgid "There are no eligible submissions to process."
 msgstr ""
-
-#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:53
-msgid "Open"
-msgstr "打开"
-
-#: jsapp/js/components/submissions/DataTableCell/MediaCell.tsx:107
-#: jsapp/js/components/submissions/DataTableCell/TextModalCell.tsx:62
-msgid "Submission ##submissionIndex## of ##submissionTotal##"
-msgstr "提交##submissionTotal##份中的第##submissionIndex##份"
 
 #: jsapp/js/components/submissions/DataTableCell/SupplementalDetailsCell.tsx:55
 msgid "Review"
 msgstr ""
 
+#: jsapp/js/components/submissions/DataTableCell/TableMediaPreview/TableMediaPreview.tsx:45
+msgid "Unsupported media type: ##QUESTION_TYPE##"
+msgstr "不支持的媒体类型：##QUESTION_TYPE##"
+
+#: jsapp/js/components/submissions/DataTableCell/TableMediaPreview/TableMediaPreview.tsx:71
+msgid "Attachment not found or unavailable."
+msgstr ""
+
+#: jsapp/js/components/submissions/DataTableCell/TableMediaPreview/tableMediaPreview.utils.ts:2
+msgid "Submission ##submissionIndex## of ##submissionTotal##"
+msgstr "提交##submissionTotal##份中的第##submissionIndex##份"
+
 #: jsapp/js/components/submissions/SubmissionBackgroundAudio.tsx:38
 msgid "Background audio recording"
 msgstr "背景音频录制"
 
-#: jsapp/js/components/submissions/TableDropdownFilter.tsx:32
+#: jsapp/js/components/submissions/TableDropdownFilter.tsx:42
 #: jsapp/js/components/submissions/validationStatus.constants.ts:35
-msgid "Show All"
-msgstr "显示所有"
+msgid "Show all"
+msgstr ""
+
+#: jsapp/js/components/submissions/TableSettings.tsx:66
+msgid "XML Values"
+msgstr "XML值"
+
+#: jsapp/js/components/submissions/TableSettings.tsx:93
+msgid "There was an error, table settings could not be saved."
+msgstr "出现错误，无法保存表格设置。"
+
+#: jsapp/js/components/submissions/TableSettings.tsx:157
+msgid "Show group names in table headers"
+msgstr "在表头显示组名称"
+
+#: jsapp/js/components/submissions/TableSettings.tsx:163
+msgid "Show HXL tags"
+msgstr "显示HXL标签"
 
 #: jsapp/js/components/submissions/TableTextFilter.tsx:21
 msgid "Search"
 msgstr ""
 
-#: jsapp/js/components/submissions/columnsHideDropdown.tsx:18
-msgid "hide fields"
-msgstr "隐藏字段"
+#: jsapp/js/components/submissions/columnsHideDropdown.tsx:26
+msgid "Hide fields"
+msgstr ""
 
-#: jsapp/js/components/submissions/columnsHideForm.tsx:142
-msgid "These settings affects the experience for all project users."
-msgstr "这些设置将影响所有项目用户的使用体验。"
+#: jsapp/js/components/submissions/columnsHideForm.tsx:162
+msgid "These settings affect the experience for all project users."
+msgstr ""
 
-#: jsapp/js/components/submissions/columnsHideForm.tsx:148
+#: jsapp/js/components/submissions/columnsHideForm.tsx:163
+msgid "These settings only apply to your current session."
+msgstr ""
+
+#: jsapp/js/components/submissions/columnsHideForm.tsx:169
 msgid "Find a field"
 msgstr "寻找字段"
 
-#: jsapp/js/components/submissions/columnsHideForm.tsx:188
+#: jsapp/js/components/submissions/columnsHideForm.tsx:213
 #: jsapp/js/projects/projectViews/projectsFieldsSelector.tsx:100
 #: jsapp/js/projects/projectViews/projectsFilter.tsx:141
 msgid "Apply"
 msgstr "应用"
 
+#: jsapp/js/components/submissions/openTableSettingsModal.tsx:25
+msgid "Table display options"
+msgstr "表格显示选项"
+
 #: jsapp/js/components/submissions/repeatGroupUtils.tsx:30
 msgid "Deleted attachment"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/constants.ts:310
+msgid "Point"
+msgstr "点"
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+msgid "latitude (x.y °):"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+msgid "longitude (x.y °):"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+msgid "altitude (m):"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+msgid "accuracy (m):"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:326
+msgid "start"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:327
+msgid "end"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:328
+msgid "today"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:330
+msgid "device ID"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:331
+msgid "phone number"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:332
+msgid "audit"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:333
+msgid "__version__"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:334
+msgid "_id"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:335
+msgid "instanceID"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:336
+msgid "Submitted by"
+msgstr ""
+
+#: jsapp/js/components/submissions/submissionDataTable.tsx:337
+msgid "rootUuid"
 msgstr ""
 
 #: jsapp/js/components/submissions/submissionMediaUtils.ts:13
@@ -5161,16 +5791,12 @@ msgstr "点击下方的按钮，以加载该提交物的最新数据。 "
 msgid "Refresh submission"
 msgstr "刷新提交"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:570
-msgid "Previous"
-msgstr "先前"
-
 #: jsapp/js/components/submissions/submissionModal.tsx:594
 msgid "Display XML names"
 msgstr "显示XML名称"
 
 #: jsapp/js/components/submissions/submissionModal.tsx:608
-#: jsapp/js/components/submissions/table.tsx:686
+#: jsapp/js/components/submissions/table.tsx:693
 msgid "View"
 msgstr "查看"
 
@@ -5214,28 +5840,62 @@ msgstr ""
 msgid "files"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:316
+#: jsapp/js/components/submissions/table.tsx:321
 msgid ""
 "Could not refresh some processing rows. Table data may be temporarily out of"
 " date."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:318
+#: jsapp/js/components/submissions/table.tsx:323
 msgid "Bulk processing row refresh failed."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:426
+#: jsapp/js/components/submissions/table.tsx:431
 msgid "This project has no submitted data. Please collect some and try again."
 msgstr "此项目没有任何提交数据。请收集一些数据并重新尝试。"
 
-#: jsapp/js/components/submissions/table.tsx:629
+#: jsapp/js/components/submissions/table.tsx:636
 msgid "results"
 msgstr "结果"
 
-#: jsapp/js/components/submissions/table.tsx:733
-#: jsapp/js/components/submissions/tableUtils.ts:113
+#: jsapp/js/components/submissions/table.tsx:739
+#: jsapp/js/components/submissions/tableUtils.ts:125
 msgid "Validation"
 msgstr "验证"
+
+#: jsapp/js/components/submissions/table.tsx:1403
+msgid ""
+"Please try again later, or [contact the support team](##SUPPORT_URL##) if "
+"this happens repeatedly."
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1410
+msgid "Oops! Something went wrong on our end."
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1416
+msgid "Response details:"
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1486
+msgid "Display options"
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1510
+msgid "Prev"
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1520
+msgid "Your filters returned no submissions."
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1521
+msgid "Page"
+msgstr ""
+
+#: jsapp/js/components/submissions/table.tsx:1523
+msgid "rows"
+msgstr ""
 
 #: jsapp/js/components/submissions/tableBulkCheckbox.tsx:49
 msgid "Select all results (##count##)"
@@ -5256,8 +5916,8 @@ msgid ""
 msgstr "你选择了##提交。你确定要更新他们的状态吗？此操作是不可逆的。"
 
 #: jsapp/js/components/submissions/tableBulkOptions.tsx:100
-msgid "Update Validation Status"
-msgstr "更新验证结果"
+msgid "Update validation status"
+msgstr ""
 
 #: jsapp/js/components/submissions/tableBulkOptions.tsx:133
 msgid ""
@@ -5285,69 +5945,59 @@ msgstr "更改状态"
 msgid "Set status: ##status##"
 msgstr "设置状态：##status##"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:116
-#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:84
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:114
+#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:105
 msgid "Sort A→Z"
 msgstr "按A→Z排序"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:117
-#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:98
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:115
+#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:117
 msgid "Sort Z→A"
 msgstr "按Z→A排序"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:126
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:124
 msgid "Clear sort"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:171
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:173
 msgid "Translate selected transcriptions"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:197
-#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:113
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:203
+#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:129
 msgid "Hide field"
 msgstr "隐藏字段"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:209
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:215
 msgid "Unfreeze field"
 msgstr "解除字段冻结"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:210
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:216
 msgid "Freeze field"
 msgstr "冻结字段"
 
-#: jsapp/js/components/submissions/tableMediaPreview.js:77
-msgid "Unsupported media type: ##QUESTION_TYPE##"
-msgstr "不支持的媒体类型：##QUESTION_TYPE##"
-
-#: jsapp/js/components/submissions/tableSettings.js:56
-msgid "There was an error, table settings could not be saved."
-msgstr "出现错误，无法保存表格设置。"
-
-#: jsapp/js/components/submissions/tableSettings.js:79
-msgid "XML Values"
-msgstr "XML值"
-
-#: jsapp/js/components/submissions/tableSettings.js:109
-msgid "Show group names in table headers"
-msgstr "在表头显示组名称"
-
-#: jsapp/js/components/submissions/tableSettings.js:114
-msgid "Show HXL tags"
-msgstr "显示HXL标签"
-
-#: jsapp/js/components/submissions/tableUtils.ts:74
+#: jsapp/js/components/submissions/tableUtils.ts:86
 msgid "transcript"
 msgstr "抄本"
 
-#: jsapp/js/components/submissions/tableUtils.ts:76
+#: jsapp/js/components/submissions/tableUtils.ts:88
 #: jsapp/js/project/FormLanguagesManager/TranslationsEditor.tsx:61
 msgid "translation"
 msgstr "翻译"
 
-#: jsapp/js/components/submissions/tableUtils.ts:110
+#: jsapp/js/components/submissions/tableUtils.ts:122
 msgid "Multi-select checkboxes column"
 msgstr "多选复选框列"
+
+#: jsapp/js/components/submissions/useCalculateAudioDuration.hook.ts:87
+msgid ""
+"Failed to calculate audio duration after multiple attempts. Please try "
+"again."
+msgstr ""
+
+#: jsapp/js/components/submissions/useCalculateAudioDuration.hook.ts:88
+msgid "Failed to calculate audio duration."
+msgstr ""
 
 #: jsapp/js/components/submissions/validationStatus.constants.ts:48
 msgid "Not approved"
@@ -5539,213 +6189,209 @@ msgstr "你已达到计划限额"
 msgid "remind me later"
 msgstr "稍后提醒我"
 
-#: jsapp/js/constants.ts:130
+#: jsapp/js/constants.ts:126
 msgid "Default - single page"
 msgstr "默认 - 单页"
 
-#: jsapp/js/constants.ts:131
+#: jsapp/js/constants.ts:127
 msgid "Grid theme"
 msgstr "网格主题"
 
-#: jsapp/js/constants.ts:132
+#: jsapp/js/constants.ts:128
 msgid "Grid theme with headings in ALL CAPS"
 msgstr "标题全部大写的网格主题"
 
-#: jsapp/js/constants.ts:133
+#: jsapp/js/constants.ts:129
 msgid "Multiple pages"
 msgstr "多页"
 
-#: jsapp/js/constants.ts:136
+#: jsapp/js/constants.ts:132
 msgid "Grid theme + Multiple pages"
 msgstr "网格主题 + 多页"
 
-#: jsapp/js/constants.ts:140
+#: jsapp/js/constants.ts:136
 msgid "Grid theme + Multiple pages + headings in ALL CAPS"
 msgstr "网格主题 + 多页 + 标题全部大写"
 
-#: jsapp/js/constants.ts:169
+#: jsapp/js/constants.ts:165
 msgid "question"
 msgstr "问题"
 
-#: jsapp/js/constants.ts:173
+#: jsapp/js/constants.ts:169
 msgid "block"
 msgstr "块"
 
-#: jsapp/js/constants.ts:177
+#: jsapp/js/constants.ts:173
 msgid "template"
 msgstr "模板"
 
-#: jsapp/js/constants.ts:181
+#: jsapp/js/constants.ts:177
 msgid "project"
 msgstr "项目"
 
-#: jsapp/js/constants.ts:185
+#: jsapp/js/constants.ts:181
 msgid "collection"
 msgstr "集合"
 
-#: jsapp/js/constants.ts:196
+#: jsapp/js/constants.ts:192
 msgid "map layer"
 msgstr "地图层"
 
-#: jsapp/js/constants.ts:200
+#: jsapp/js/constants.ts:196
 msgid "form media"
 msgstr "表单媒体"
 
-#: jsapp/js/constants.ts:271
+#: jsapp/js/constants.ts:267
 msgid "Acknowledge"
 msgstr "确认"
 
-#: jsapp/js/constants.ts:275
+#: jsapp/js/constants.ts:271
 msgid "Audio"
 msgstr "音频"
 
-#: jsapp/js/constants.ts:277
+#: jsapp/js/constants.ts:273
 msgid "Background Audio"
 msgstr "背景音频"
 
-#: jsapp/js/constants.ts:282
+#: jsapp/js/constants.ts:278
 msgid "Background Geopoint"
 msgstr ""
 
-#: jsapp/js/constants.ts:287
+#: jsapp/js/constants.ts:283
 msgid "Barcode / QR Code"
 msgstr "条形码/二维码"
 
-#: jsapp/js/constants.ts:292
+#: jsapp/js/constants.ts:288
 msgid "Calculate"
 msgstr "计算"
 
-#: jsapp/js/constants.ts:298
+#: jsapp/js/constants.ts:294
 msgid "Date & time"
 msgstr "日期&amp;时间"
 
-#: jsapp/js/constants.ts:303
+#: jsapp/js/constants.ts:299
 msgid "Decimal"
 msgstr "十进制"
 
-#: jsapp/js/constants.ts:308
+#: jsapp/js/constants.ts:304
 msgid "External XML"
 msgstr "外部XML"
 
-#: jsapp/js/constants.ts:312
+#: jsapp/js/constants.ts:308
 msgid "File"
 msgstr "文件"
 
-#: jsapp/js/constants.ts:314
-msgid "Point"
-msgstr "点"
-
-#: jsapp/js/constants.ts:320
+#: jsapp/js/constants.ts:316
 msgid "Hidden"
 msgstr "隐藏"
 
-#: jsapp/js/constants.ts:321
+#: jsapp/js/constants.ts:317
 msgid "Photo"
 msgstr "图片"
 
-#: jsapp/js/constants.ts:328
+#: jsapp/js/constants.ts:324
 msgid "Question Matrix"
 msgstr "问题矩阵"
 
-#: jsapp/js/constants.ts:333
+#: jsapp/js/constants.ts:329
 msgid "Range"
 msgstr "范围"
 
-#: jsapp/js/constants.ts:334
+#: jsapp/js/constants.ts:330
 msgid "Ranking"
 msgstr "排序"
 
-#: jsapp/js/constants.ts:335
+#: jsapp/js/constants.ts:331
 msgid "Rating"
 msgstr "评级"
 
-#: jsapp/js/constants.ts:342
+#: jsapp/js/constants.ts:338
 msgid "Select Many from File"
 msgstr "从文件中多选"
 
-#: jsapp/js/constants.ts:347 jsapp/js/formbuild/containers/KoboMatrix.tsx:121
+#: jsapp/js/constants.ts:343 jsapp/js/formbuild/containers/KoboMatrix.tsx:121
 msgid "Select One"
 msgstr "选择一项"
 
-#: jsapp/js/constants.ts:352
+#: jsapp/js/constants.ts:348
 msgid "Select One from File"
 msgstr "从文件中选择一项"
 
-#: jsapp/js/constants.ts:357
+#: jsapp/js/constants.ts:353
 msgid "Time"
 msgstr "时间"
 
-#: jsapp/js/constants.ts:358
+#: jsapp/js/constants.ts:354
 msgid "Video"
 msgstr "视频"
 
-#: jsapp/js/constants.ts:552
+#: jsapp/js/constants.ts:548
 msgid "Online-Offline (multiple submission)"
 msgstr "在线 - 离线(多次提交)"
 
-#: jsapp/js/constants.ts:553
+#: jsapp/js/constants.ts:549
 msgid ""
 "This allows online and offline submissions and is the best option for "
 "collecting data in the field."
 msgstr "这允许在线和离线提交，是在现场收集数据的最佳选择。"
 
-#: jsapp/js/constants.ts:557
+#: jsapp/js/constants.ts:553
 msgid "Online-Only (multiple submissions)"
 msgstr "仅在线(多次提交)"
 
-#: jsapp/js/constants.ts:559
+#: jsapp/js/constants.ts:555
 msgid ""
 "This is the best option when entering many records at once on a computer, "
 "e.g. for transcribing paper records."
 msgstr "这是需要在电脑上一次输入许多记录时的最佳选择，如转录纸质问卷。"
 
-#: jsapp/js/constants.ts:564
+#: jsapp/js/constants.ts:560
 msgid "Online-Only (single submission)"
 msgstr "仅在线(单次提交)"
 
-#: jsapp/js/constants.ts:566
+#: jsapp/js/constants.ts:562
 msgid ""
 "This allows a single submission, and can be paired with the \"return_url\" "
 "parameter to redirect the user to a URL of your choice after the form has "
 "been submitted."
 msgstr "这允许单次提交，并且可以与“return_url”参数配对，在表单提交后将用户重定向到你选择的URL。"
 
-#: jsapp/js/constants.ts:571
+#: jsapp/js/constants.ts:567
 msgid "Online-only (once per respondent)"
 msgstr "仅在线（每位受访者一次）"
 
-#: jsapp/js/constants.ts:573
+#: jsapp/js/constants.ts:569
 msgid ""
 "This allows your web form to only be submitted once per user, using basic "
 "protection to prevent the same user (on the same browser & device) from "
 "submitting more than once."
 msgstr "这允许你限制你的网络表单，让每个用户只提交一次，这通过使用基本的保护措施来防止同一用户（在同一浏览器和设备上）提交超过一次达到效果。"
 
-#: jsapp/js/constants.ts:578
+#: jsapp/js/constants.ts:574
 msgid "Embeddable web form code"
 msgstr "可嵌入的网络表单代码"
 
-#: jsapp/js/constants.ts:579
+#: jsapp/js/constants.ts:575
 msgid ""
 "Use this html5 code snippet to integrate your form on your own website using"
 " smaller margins."
 msgstr "使用此html5代码片段，以较小的边距将你的表单集成到你自己的网站上。"
 
-#: jsapp/js/constants.ts:583
+#: jsapp/js/constants.ts:579
 msgid "View only"
 msgstr "仅查看"
 
-#: jsapp/js/constants.ts:584
+#: jsapp/js/constants.ts:580
 msgid ""
 "Use this version for testing, getting feedback. Does not allow submitting "
 "data."
 msgstr "使用此版本进行测试，获取反馈。不允许提交数据。"
 
-#: jsapp/js/constants.ts:588
+#: jsapp/js/constants.ts:584
 msgid "Android application"
 msgstr "安卓应用程序"
 
-#: jsapp/js/constants.ts:589
+#: jsapp/js/constants.ts:585
 msgid "Use this option to collect data in the field with your Android device."
 msgstr "使用此选项，通过你的安卓设备在现场收集数据。"
 
@@ -5775,6 +6421,10 @@ msgstr "上传错误：无法识别Excel文件。"
 #: jsapp/js/dropzone.utils.tsx:372
 msgid "Uploaded file name: "
 msgstr "上传文件名称： "
+
+#: jsapp/js/dropzone.utils.tsx:376
+msgid "Could not recognize the dropped item(s)."
+msgstr ""
 
 #: jsapp/js/editorMixins/AssetNavigator.tsx:66
 msgid "Unnamed collection"
@@ -5824,10 +6474,6 @@ msgstr "重试"
 #: jsapp/js/editorMixins/EditableForm.tsx:778
 msgid "Return to list"
 msgstr "返回列表"
-
-#: jsapp/js/editorMixins/EditableForm.tsx:828
-msgid "Preview form"
-msgstr "预览表单"
 
 #: jsapp/js/editorMixins/EditableForm.tsx:838
 msgid "Expand / collapse questions"
@@ -5935,6 +6581,14 @@ msgstr "添加#个问题的级联"
 msgid "Learn more about importing cascading lists from Excel"
 msgstr "了解更多关于从Excel导入级联式列表的信息"
 
+#: jsapp/js/editorMixins/EditableForm.tsx:1263
+msgid "Error generating preview"
+msgstr ""
+
+#: jsapp/js/editorMixins/EditableForm.tsx:1269
+msgid "Import Cascading Select Questions"
+msgstr ""
+
 #: jsapp/js/enketoHandler.tsx:35
 msgid "Could not open window for \"##url##\""
 msgstr "无法打开“##url##”的窗口"
@@ -5968,6 +6622,7 @@ msgid "Option 2"
 msgstr "选项2"
 
 #: jsapp/js/formbuild/containers/KoboMatrix.tsx:504
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
 msgid "Row"
 msgstr "行"
 
@@ -6004,6 +6659,7 @@ msgstr "回复类型"
 
 #: jsapp/js/formbuild/containers/KoboMatrix.tsx:679
 #: jsapp/js/formbuild/containers/KoboMatrix.tsx:710
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:809
 msgid "Label"
 msgstr "标记"
 
@@ -6019,14 +6675,20 @@ msgstr "数据列名称"
 msgid "Delete column"
 msgstr "删除列"
 
-#: jsapp/js/hooks/useCalculateAudioDuration.hook.ts:64
-msgid ""
-"Failed to calculate audio duration after multiple attempts. Please try "
-"again."
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:819
+msgid "Data Column Prefix"
 msgstr ""
 
-#: jsapp/js/hooks/useCalculateAudioDuration.hook.ts:65
-msgid "Failed to calculate audio duration."
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:829
+msgid "Delete row"
+msgstr ""
+
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:839
+msgid "Add new row"
+msgstr ""
+
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:847
+msgid "Add new column"
 msgstr ""
 
 #: jsapp/js/mixins.tsx:105
@@ -6165,6 +6827,36 @@ msgid ""
 "default."
 msgstr ""
 
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:100
+msgid "default"
+msgstr ""
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:110
+msgid "Make default"
+msgstr ""
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:125
+#: jsapp/js/project/FormLanguagesManager/TranslationsEditor.tsx:70
+msgid "Edit language"
+msgstr ""
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:136
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:137
+msgid "Update translations"
+msgstr ""
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:149
+msgid "Delete language"
+msgstr ""
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:181
+msgid "Add language"
+msgstr ""
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:188
+msgid "Add a new language"
+msgstr ""
+
 #: jsapp/js/project/FormLanguagesManager/TranslationsEditor.tsx:51
 msgid "Original string"
 msgstr "原始字符串"
@@ -6241,14 +6933,14 @@ msgstr "正在加载媒体"
 msgid "No files uploaded yet"
 msgstr "尚未上传任何文件"
 
+#: jsapp/js/project/FormMedia/index.tsx:326
+msgid "Delete file"
+msgstr ""
+
 #: jsapp/js/project/ProjectSettings/ProjectSettings.stories.tsx:195
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:259
 msgid "Choose"
 msgstr "选择"
-
-#: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:150
-msgid "Replace form"
-msgstr "替换表单"
 
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:153
 msgid "Project settings"
@@ -6422,11 +7114,6 @@ msgstr "概要"
 msgid "Form"
 msgstr "表单"
 
-#: jsapp/js/project/projectTopTabs.component.tsx:85
-#: jsapp/js/project/projectTopTabs.component.tsx:93
-msgid "Data"
-msgstr "数据"
-
 #: jsapp/js/project/submissionsCountGraph.component.tsx:63
 msgid "Today"
 msgstr "今天"
@@ -6509,11 +7196,11 @@ msgstr "所有者电子邮箱"
 msgid "Owner organization"
 msgstr "所有者的组织"
 
-#: jsapp/js/projects/projectViews/constants.ts:235
+#: jsapp/js/projects/projectViews/constants.ts:236
 msgid "Date modified"
 msgstr "更改日期"
 
-#: jsapp/js/projects/projectViews/constants.ts:242
+#: jsapp/js/projects/projectViews/constants.ts:243
 msgid "Date deployed"
 msgstr "启用日期"
 
@@ -6614,20 +7301,15 @@ msgstr "取消项目归档"
 msgid "Draft project selected"
 msgstr "将选择的项目记为草稿"
 
-#: jsapp/js/projects/projectsTable/projectQuickActions.tsx:111
-#: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:31
-msgid "Share project"
-msgstr "共享项目"
-
 #: jsapp/js/projects/projectsTable/projectQuickActions.tsx:122
 msgid "Delete project"
 msgstr "删除项目"
 
-#: jsapp/js/projects/projectsTable/projectsTable.tsx:80
+#: jsapp/js/projects/projectsTable/projectsTable.tsx:86
 msgid "There are no projects to display."
 msgstr "没有项目可显示。"
 
-#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:73
+#: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:93
 msgid "Default sort"
 msgstr "默认排序"
 
@@ -6639,10 +7321,6 @@ msgstr "正在生成导出，完成后你将收到一封电子邮件"
 msgid ""
 "We couldn't create the export, please try again later or contact support"
 msgstr "不能生成导出，请稍后再试或联系技术支持"
-
-#: jsapp/js/projects/universalProjectsRoute.tsx:123
-msgid "Drop files to upload"
-msgstr "拖移文件至此上传"
 
 #: jsapp/js/protector/protectorConstants.ts:1
 msgid "Do you want to leave without saving?"
@@ -6741,45 +7419,65 @@ msgstr "我同意，我们走吧"
 msgid "I don't agree, log me out"
 msgstr "我不同意，请退出"
 
-#: jsapp/xlform/src/model.row.coffee:252
+#: jsapp/js/utils.ts:197
+msgid "##hours## hours"
+msgstr ""
+
+#: jsapp/js/utils.ts:199
+msgid "##hours## hours, ##minutes## minutes"
+msgstr ""
+
+#: jsapp/js/utils.ts:203
+msgid "##minutes## minutes"
+msgstr ""
+
+#: jsapp/js/utils.ts:205
+msgid "##seconds## seconds"
+msgstr ""
+
+#: jsapp/js/utils.ts:691
+msgid "please check your connection and try again."
+msgstr ""
+
+#: jsapp/xlform/src/model.row.coffee:260
 msgid "Items cannot be selected more than once"
 msgstr "项目只允许被选择一次"
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:436
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:441
 msgid "Add a condition"
 msgstr "新建条件"
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:437
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:442
 msgid "Manually enter your skip logic in XLSForm code"
 msgstr "手动输入相干逻辑（XLSForm代码）"
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:592
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:594
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:597
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:599
 msgid "Was Answered"
 msgstr ""
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:593
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:595
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:598
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:600
 msgid "Was not Answered"
 msgstr ""
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:607
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:612
 msgid "not"
 msgstr ""
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:621
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:626
 msgid "Greater Than"
 msgstr ""
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:622
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:627
 msgid "Less Than"
 msgstr ""
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:634
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:639
 msgid "Greater Than or Equal to"
 msgstr ""
 
-#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:635
+#: jsapp/xlform/src/mv.skipLogicHelpers.coffee:640
 msgid "Less Than or Equal to"
 msgstr ""
 
@@ -6787,7 +7485,7 @@ msgstr ""
 msgid "Manually enter your validation logic in XLSForm code"
 msgstr "手动输入验证逻辑（XLSForm代码）"
 
-#: jsapp/xlform/src/mv.validationLogicHelpers.coffee:92
+#: jsapp/xlform/src/mv.validationLogicHelpers.coffee:94
 msgid "Validation Code:"
 msgstr ""
 
@@ -6803,90 +7501,96 @@ msgstr ""
 msgid "click to add another response..."
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:248
+#: jsapp/xlform/src/view.row.coffee:261
 msgid "Delete group"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:249
+#: jsapp/xlform/src/view.row.coffee:262
 msgid ""
 "Do you want to split the group apart (and leave questions intact) or delete "
 "everything entirely?"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:252
+#: jsapp/xlform/src/view.row.coffee:265
 msgid "Ungroup questions"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:259
+#: jsapp/xlform/src/view.row.coffee:272
 msgid "Delete everything"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:346 jsapp/xlform/src/view.row.coffee:547
+#: jsapp/xlform/src/view.row.coffee:364 jsapp/xlform/src/view.row.coffee:570
 msgid "Locked"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:350
+#: jsapp/xlform/src/view.row.coffee:368
 msgid "fully locked group"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:352
+#: jsapp/xlform/src/view.row.coffee:370
 msgid "partially locked group"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:412
+#: jsapp/xlform/src/view.row.coffee:430
 msgid ""
 "You can't display nested groups on the same screen - the setting has been "
 "removed from the parent group"
 msgstr "你不能在同一个屏幕上显示嵌套组 - 该设置已从父组中移除"
 
-#: jsapp/xlform/src/view.row.coffee:551
+#: jsapp/xlform/src/view.row.coffee:574
 msgid "fully locked question"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:553
+#: jsapp/xlform/src/view.row.coffee:576
 msgid "partially locked question"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.coffee:671
+#: jsapp/xlform/src/view.row.coffee:694
 msgid "Enter your question"
 msgstr "请输入你的问题"
 
-#: jsapp/xlform/src/view.row.templates.coffee:58
+#: jsapp/xlform/src/view.row.templates.coffee:60
 msgid "All group settings"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.templates.coffee:64
-#: jsapp/xlform/src/view.row.templates.coffee:91
+#: jsapp/xlform/src/view.row.templates.coffee:66
+#: jsapp/xlform/src/view.row.templates.coffee:93
 msgid "Locked Features"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.templates.coffee:82
+#: jsapp/xlform/src/view.row.templates.coffee:84
 msgid "Question Options"
 msgstr "问题选项"
 
-#: jsapp/xlform/src/view.row.templates.coffee:88
+#: jsapp/xlform/src/view.row.templates.coffee:90
 msgid "Validation Criteria"
 msgstr "验证条件"
 
-#: jsapp/xlform/src/view.row.templates.coffee:185
+#: jsapp/xlform/src/view.row.templates.coffee:149
+msgid ""
+"This question is of type \"##type##\", which cannot be displayed or edited "
+"here. It will be left unchanged when you save this form."
+msgstr ""
+
+#: jsapp/xlform/src/view.row.templates.coffee:212
 msgid ""
 "Note: The Matrix question type only works in Enketo web forms using the "
 "'grid' style."
 msgstr ""
 
-#: jsapp/xlform/src/view.row.templates.coffee:355
+#: jsapp/xlform/src/view.row.templates.coffee:382
 msgid "Custom logic"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.templates.coffee:374
+#: jsapp/xlform/src/view.row.templates.coffee:401
 msgid "Parameters"
 msgstr ""
 
-#: jsapp/xlform/src/view.row.templates.coffee:409
+#: jsapp/xlform/src/view.row.templates.coffee:436
 msgid "Row could not be displayed:"
 msgstr "行无法显示："
 
-#: jsapp/xlform/src/view.row.templates.coffee:410
+#: jsapp/xlform/src/view.row.templates.coffee:437
 msgid ""
 "This question could not be imported. Please re-create it manually. Please "
 "contact us at help@kobotoolbox.org so we can fix this bug!"
@@ -6982,19 +7686,19 @@ msgstr "外观(高级)"
 msgid "Add Question"
 msgstr "添加问题"
 
-#: jsapp/xlform/src/view.surveyApp.coffee:679
+#: jsapp/xlform/src/view.surveyApp.coffee:682
 msgid "Are you sure you want to delete this question?"
 msgstr "你确定要删除这个问题吗？"
 
-#: jsapp/xlform/src/view.surveyApp.coffee:756
+#: jsapp/xlform/src/view.surveyApp.coffee:759
 msgid "Delete Question"
 msgstr "删除问题"
 
-#: jsapp/xlform/src/view.surveyApp.coffee:758
+#: jsapp/xlform/src/view.surveyApp.coffee:761
 msgid "Duplicate Question"
 msgstr "重复问题"
 
-#: jsapp/xlform/src/view.surveyApp.coffee:760
+#: jsapp/xlform/src/view.surveyApp.coffee:763
 msgid "Add Question to Library"
 msgstr "将问题添加到库"
 
@@ -7010,4 +7714,56 @@ msgstr "你可以通过点击下方的'+'号添加问题、注释、提示或其
 
 #: kpi/static/js/swagger/swagger-ui-bundle.js:2
 msgid "Can't set "
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-bundle.js:2
+msgid " is not an object"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-bundle.js:2
+msgid "streams"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-bundle.js:2
+msgid "div"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-bundle.js:2
+msgid " is not a function"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Container"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Col"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Topbar"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "BaseLayout"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "onlineValidatorBadge"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Button"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Link"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Logo"
+msgstr ""
+
+#: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
+msgid "Fallback"
 msgstr ""

@@ -11,6 +11,7 @@ from django.db.models.signals import pre_delete
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
+from django_redis import get_redis_connection
 from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import (
@@ -20,12 +21,18 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.constants import (
+    SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
+)
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
+from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.exceptions import MissingXFormException
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
+from ..exceptions import TrashTaskInProgressError
 from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
@@ -42,6 +49,7 @@ from ..utils import (
     process_deletion,
     put_back,
     trash_bin_task_failure,
+    trash_bin_task_retry,
 )
 
 
@@ -365,6 +373,11 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     fixtures = ['test_data']
 
+    def tearDown(self):
+        # Postgres is rolled back between tests, MongoDB is not: leftover
+        # documents make the next real deletion fail on unknown submission ids
+        settings.MONGO_DB.instances.delete_many({})
+
     def test_move_to_trash(self):
         asset = Asset.objects.get(pk=1)
         asset.save()  # create a version
@@ -488,6 +501,53 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             )
             == 0
         )
+
+    def test_owner_submissions_suspended_during_deletion(self):
+        project_trash = self.test_move_to_trash()
+        owner = project_trash.asset.owner
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
+        captured = {}
+
+        def capture_state(*args, **kwargs):
+            profile = UserProfile.objects.get(user=owner)
+            captured['suspended'] = profile.submissions_suspended
+            captured['holders'] = get_redis_connection().hlen(holders_key)
+
+        with patch(
+            'kobo.apps.trash_bin.utils.project._delete_submissions',
+            side_effect=capture_state,
+        ):
+            empty_project(project_trash.pk)
+
+        assert captured['suspended'] is True
+        assert captured['holders'] == 1
+
+    def test_owner_submissions_released_after_deletion(self):
+        project_trash = self.test_move_to_trash()
+        owner = project_trash.asset.owner
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
+
+        empty_project(project_trash.pk)
+
+        profile = UserProfile.objects.get(user=owner)
+        assert profile.submissions_suspended is False
+        assert not get_redis_connection().exists(holders_key)
+
+    def test_owner_submissions_released_when_deletion_fails(self):
+        project_trash = self.test_move_to_trash()
+        owner = project_trash.asset.owner
+        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
+
+        with patch(
+            'kobo.apps.trash_bin.utils.project._delete_submissions',
+            side_effect=RuntimeError('boom'),
+        ):
+            with self.assertRaises(RuntimeError):
+                empty_project(project_trash.pk)
+
+        profile = UserProfile.objects.get(user=owner)
+        assert profile.submissions_suspended is False
+        assert not get_redis_connection().exists(holders_key)
 
     def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
         """
@@ -1210,6 +1270,48 @@ class TaskRestarterTestCase(TestCase):
         self._fail(account_trash, 'deadlock detected')
 
         assert self._run_restarter() == 1
+
+    def test_failure_error_is_never_empty(self):
+        """
+        Argless exceptions stringify to '', which stranded FAILED objects with
+        no error and matched no transient pattern. `failure_error` must always
+        record something
+        """
+        account_trash = self._move_account_to_trash()
+
+        trash_bin_task_failure(
+            AccountTrash,
+            args=[account_trash.pk],
+            exception=TrashTaskInProgressError(),
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.FAILED
+        assert account_trash.metadata['failure_error'] == 'TrashTaskInProgressError()'
+
+        trash_bin_task_failure(
+            AccountTrash,
+            args=[account_trash.pk],
+            exception=MissingXFormException(),
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.metadata['failure_error']
+        assert account_trash.metadata['failure_error'] == str(MissingXFormException())
+
+    def test_retry_error_is_never_empty(self):
+        """
+        The retry path suffers the same argless-exception bug and must also
+        record a real error
+        """
+        account_trash = self._move_account_to_trash()
+
+        trash_bin_task_retry(
+            AccountTrash,
+            request={'args': [account_trash.pk]},
+            reason=TrashTaskInProgressError(),
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.RETRY
+        assert account_trash.metadata['failure_error'] == 'TrashTaskInProgressError()'
 
     def _fail(self, account_trash, error):
         """

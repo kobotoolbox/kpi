@@ -433,21 +433,31 @@ class SubmissionSupplementTestCase(TestCase):
         )
         assert output[self.xpath].get('transcript') is None
 
-    # skip until we actually fill out or delete this test
-    @pytest.mark.skip()
     def test_retrieve_data_with_stale_questions(self):
         SubmissionSupplement.objects.create(
             asset=self.asset,
             submission_uuid=self.submission_root_uuid,
-            content=self.EXPECTED_SUBMISSION_SUPPLEMENT,
+            content=deepcopy(self.EXPECTED_SUBMISSION_SUPPLEMENT),
         )
-        advanced_features = deepcopy(self.ADVANCED_FEATURES)
-        config = advanced_features['_actionConfigs'].pop(self.xpath)
-        advanced_features['_actionConfigs']['group_name/renamed_question_name'] = config
+        self.asset.advanced_features_set.all().delete()
         submission_supplement = SubmissionSupplement.retrieve_data(
             self.asset, self.submission_root_uuid
         )
-        assert submission_supplement == EMPTY_SUPPLEMENT
+        assert submission_supplement == {self.xpath: {}, '_version': '20250820'}
+
+    def test_retrieve_data_skips_unconfigured_action(self):
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_root_uuid,
+            content=deepcopy(self.EXPECTED_SUBMISSION_SUPPLEMENT),
+        )
+        self.asset.advanced_features_set.filter(action='manual_translation').delete()
+        submission_supplement = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid
+        )
+        assert self.xpath in submission_supplement
+        assert 'manual_transcription' in submission_supplement[self.xpath]
+        assert 'manual_translation' not in submission_supplement[self.xpath]
 
     # skip until we update how we migrate advanced_actions
     @pytest.mark.skip()

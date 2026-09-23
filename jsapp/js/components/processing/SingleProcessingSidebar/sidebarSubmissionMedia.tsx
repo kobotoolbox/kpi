@@ -6,6 +6,7 @@ import { findRowByXpathOrLeafName } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
+import { inferAttachmentQuestionType } from '#/components/submissions/submissionMediaUtils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getAttachmentForProcessing } from '../SingleProcessingContent/TabTranscript/transcript.utils'
@@ -35,7 +36,10 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
     )
   }
 
-  switch (findRowByXpathOrLeafName(asset.content, xpath)?.type) {
+  // Attachment mimetype as fallback for questions the form no longer has.
+  const questionType = findRowByXpathOrLeafName(asset.content, xpath)?.type ?? inferAttachmentQuestionType(attachment)
+
+  switch (questionType) {
     case QUESTION_TYPES.audio.id:
     case QUESTION_TYPES['background-audio'].id:
       return (

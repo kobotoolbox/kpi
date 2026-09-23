@@ -6,7 +6,7 @@ import bem from '#/bem'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Avatar from '#/components/common/avatar'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
-import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
 import profileStore from '#/stores/profile'
@@ -35,7 +35,9 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           setLatestSubmissionDate(response.results[0]['end'])
         }
       })
-      .fail(handleApiFail)
+      // Only the response, because jQuery's second argument is its own `textStatus` and `handleApiFail` reads that as
+      // a message to display.
+      .fail((response: FailResponse) => handleApiFail(response))
   }, [])
 
   const lastDeployedDate = props.asset.deployed_versions?.results?.[0]?.date_modified
@@ -180,7 +182,8 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
               <bem.FormView__label>{t('Languages')}</bem.FormView__label>
               {props.asset.summary.languages.map((language, index) => (
                 <bem.FormView__cell key={`lang-${index}`} data-index={index}>
-                  {language}
+                  {/* Unnamed languages arrive as null, and a blank row hides why the form won't open in Formbuilder */}
+                  {language || t('Unnamed language')}
                 </bem.FormView__cell>
               ))}
             </bem.FormView__cell>

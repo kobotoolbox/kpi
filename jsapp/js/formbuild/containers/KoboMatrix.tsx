@@ -688,7 +688,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 />
               </label>
               <label>
-                <span>{t('Data Column Suffix')}</span>
+                <span>{t('Question Name Suffix')}</span>
                 <input
                   type='text'
                   value={this.getCol(expandedCol, 'name')}
@@ -709,7 +709,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 <div className='matrix-cols__options'>
                   <div className='matrix-cols__options--row-head'>
                     <span>{t('Label')}</span>
-                    <span>{t('Data Column Name')}</span>
+                    <span>{t('Choice Name')}</span>
                   </div>
                   {orderedChoices.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
@@ -817,7 +817,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                       />
                     </label>
                     <label>
-                      <span>{t('Data Column Prefix')}</span>
+                      <span>{t('Question Name Prefix')}</span>
                       <input
                         type='text'
                         value={item.name}

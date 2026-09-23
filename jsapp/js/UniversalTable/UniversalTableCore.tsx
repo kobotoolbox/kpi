@@ -1,5 +1,4 @@
-import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
-
+import { Text } from '@mantine/core'
 import {
   type CellContext,
   type Column,
@@ -11,6 +10,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import cx from 'classnames'
+import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -65,6 +65,11 @@ interface UniversalTableProps<DataItem> {
   isSpinnerVisible?: boolean
   /** Maximum height of the table container. Setting this enables internal scrolling. */
   maxHeight?: number | string
+  /**
+   * To display contextual empty message when zero rows. Falls back to a generic message, so a table never renders as
+   * a bare header. Suppressed while the spinner is up, because "nothing here" would be a lie mid-fetch.
+   */
+  emptyMessage?: React.ReactNode
   /** Optional component to render inside a tfoot row at the bottom of the table. Useful for infinite scroll triggers. */
   bottomContent?: React.ReactNode
   // PAGINATION
@@ -360,6 +365,14 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
             ))}
           </thead>
           <tbody>
+            {!props.isSpinnerVisible && table.getRowModel().rows.length === 0 && (
+              <tr>
+                <td className={styles.emptyMessageCell} colSpan={columns.length}>
+                  <Text>{props.emptyMessage || t('There is no data to display.')}</Text>
+                </td>
+              </tr>
+            )}
+
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (

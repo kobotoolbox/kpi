@@ -1,13 +1,12 @@
-import React, { useState } from 'react'
-
-import { Box, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core'
+import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { IconSearch } from '@tabler/icons-react'
 import { keepPreviousData } from '@tanstack/react-query'
 import { observer } from 'mobx-react-lite'
+import React, { useState } from 'react'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
-import { isSsoAvailable } from '#/account/security/sso/sso.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
@@ -21,13 +20,17 @@ import {
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
+import DebouncedTextInput from '#/components/common/DebouncedTextInput'
+import KoboIcon from '#/components/common/KoboIcon'
+import Alert from '#/components/common/alert'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
+import { MIN_SEARCH_PHRASE_LENGTH, TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import envStore from '#/envStore'
 import SortableProjectColumnHeader, {
   type SortableColumnOrder,
 } from '#/projects/projectsTable/sortableProjectColumnHeader'
-import { formatDate } from '#/utils'
+import { formatDate, notify } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
@@ -66,22 +69,58 @@ function MembersRoute() {
     start: 0,
   })
   const [order, setOrder] = useState<SortableColumnOrder<MembersTableOrderableField>>({})
+  const [searchPhrase, setSearchPhrase] = useState('')
+
+  const trimmedSearchPhrase = searchPhrase.trim()
+  const isSearchPhraseTooShort = trimmedSearchPhrase.length > 0 && trimmedSearchPhrase.length < MIN_SEARCH_PHRASE_LENGTH
+  // An unusable phrase is treated as no search at all, so the user keeps seeing the full list while they type.
+  const appliedSearchPhrase = isSearchPhraseTooShort ? '' : trimmedSearchPhrase
 
   const queryParams: OrganizationsMembersListParams = { ...pagination }
   if (order.fieldName && order.direction) {
     const orderPrefix = order.direction === 'descending' ? '-' : ''
     queryParams.ordering = `${orderPrefix}${order.fieldName}`
   }
+  if (appliedSearchPhrase) {
+    queryParams.q = appliedSearchPhrase
+  }
 
   /**
-   * Sorting affects which rows land on which page, so we go back to the first page whenever it changes. Updating from
-   * the latest state, so we don't reset `limit` to a stale page size.
+   * Sorting and searching both change which rows land on which page, so either one sends us back to the first page.
    */
-  function updateOrder(newOrder: SortableColumnOrder<MembersTableOrderableField>) {
-    setOrder(newOrder)
+  function resetToFirstPage() {
     setPagination((currentPagination) => {
       return { ...currentPagination, start: 0 }
     })
+  }
+
+  function updateOrder(newOrder: SortableColumnOrder<MembersTableOrderableField>) {
+    setOrder(newOrder)
+    resetToFirstPage()
+  }
+
+  function updateSearchPhrase(newSearchPhrase: string) {
+    setSearchPhrase(newSearchPhrase)
+    resetToFirstPage()
+  }
+
+  /**
+   * A phrase below the minimum length never reaches the endpoint, which is invisible unless we say something. Nagging
+   * on every keystroke would punish anyone still typing, so we only speak up on Enter - the moment the user means
+   * "search this now".
+   *
+   * The phrase comes off the event rather than `searchPhrase`: `DebouncedTextInput` owns the live text and flushes it
+   * through `onChange`, so our state can still be a keystroke behind when this runs.
+   */
+  function onSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    const enteredPhrase = event.currentTarget.value.trim()
+    if (enteredPhrase.length > 0 && enteredPhrase.length < MIN_SEARCH_PHRASE_LENGTH) {
+      notify.warning(TOO_SHORT_SEARCH_WARNING)
+    }
   }
 
   const membersQuery = useOrganizationsMembersList(organization.id, queryParams, {
@@ -213,26 +252,18 @@ function MembersRoute() {
         return member ? renderStatusBadge(member.user__has_mfa_enabled) : undefined
       },
     },
-  ]
-
-  // The SSO column is always shown, but is inert until the organization has the SSO add-on.
-  const isSsoColumnDisabled = !isSsoAvailable(envStore.data)
-  columns.push({
-    key: 'user__has_sso_enabled',
-    label: (
-      <Tooltip label={isSsoColumnDisabled ? t('Activate SSO add-on to enable') : t('SSO status')}>
-        <span className={isSsoColumnDisabled ? styles.disabledColumnHeader : undefined}>{t('SSO')}</span>
-      </Tooltip>
-    ),
-    size: 90,
-    cellFormatter: (obj: MemberListResponse) => {
-      if (isSsoColumnDisabled) {
-        return undefined
-      }
-      const { member } = getMemberOrInviteDetails(obj)
-      return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+    {
+      // Every team gets this column, whether or not it has the SSO add-on. Without the add-on nobody can have an SSO
+      // account, so it simply reads as inactive for everyone.
+      key: 'user__has_sso_enabled',
+      label: t('SSO'),
+      size: 90,
+      cellFormatter: (obj: MemberListResponse) => {
+        const { member } = getMemberOrInviteDetails(obj)
+        return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+      },
     },
-  })
+  ]
 
   // Actions column is only for owner and admins.
   if (isUserAdminOrOwner) {
@@ -267,11 +298,30 @@ function MembersRoute() {
     })
   }
 
+  /**
+   * Shown in place of the rows when there are none. Only the searching case is realistically reachable - an
+   * organization always has at least its owner.
+   */
+  const emptyMessage = appliedSearchPhrase
+    ? t('No members match "##SEARCH_PHRASE##"').replace('##SEARCH_PHRASE##', appliedSearchPhrase)
+    : t('There are no members to display.')
+
   return (
     <div className={styles.membersRouteRoot}>
-      <header className={styles.header}>
+      <Group component='header' className={styles.header} justify='space-between' gap='md'>
         <h2 className={styles.headerText}>{t('Members')}</h2>
-      </header>
+
+        <DebouncedTextInput
+          value={searchPhrase}
+          onChange={updateSearchPhrase}
+          onKeyDown={onSearchKeyDown}
+          placeholder={t('Search members')}
+          leftSection={<KoboIcon icon={IconSearch} size='sm' />}
+          // The input has no visible label, and the placeholder alone isn't announced reliably.
+          aria-label={t('Search members')}
+          w={260}
+        />
+      </Group>
 
       {isUserAdminOrOwner && (
         <Box>
@@ -300,15 +350,29 @@ function MembersRoute() {
         </Box>
       )}
 
-      <UniversalTable<MemberListResponse, ErrorDetail>
-        columns={columns}
-        queryResult={membersQuery}
-        pagination={pagination}
-        setPagination={setPagination}
-      />
+      {membersQuery.isError ? (
+        /*
+         * `UniversalTable` renders nothing without a successful response, so the table would otherwise just disappear.
+         * A rejected search phrase is the likeliest cause here (the backend parses `q` as a boolean query, so
+         * characters like `:` or an unpaired quote are errors), and the specifics already arrive in a toast.
+         */
+        <Alert type='error'>
+          {appliedSearchPhrase
+            ? t('Could not search the members list. Try a different phrase.')
+            : t('Could not load the members list.')}
+        </Alert>
+      ) : (
+        <UniversalTable<MemberListResponse, ErrorDetail>
+          columns={columns}
+          queryResult={membersQuery}
+          pagination={pagination}
+          setPagination={setPagination}
+          emptyMessage={emptyMessage}
+        />
+      )}
     </div>
   )
 }
 
-// `observer` so the SSO column appears as soon as `envStore` is ready.
+// `observer` so the team/organization label picks up `envStore` and `subscriptionStore` as soon as they are ready.
 export default observer(MembersRoute)

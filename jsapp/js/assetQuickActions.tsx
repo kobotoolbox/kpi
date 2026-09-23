@@ -286,6 +286,7 @@ export function cloneAssetAsSurvey(sourceUid: string) {
   pageState.showModal({
     type: MODAL_TYPES.NEW_FORM,
     initialTemplateUid: sourceUid,
+    disableBackdropClose: true,
   })
 }
 
@@ -400,11 +401,6 @@ export function deployAsset(
 /** Opens a modal for sharing asset. */
 export function manageAssetSharing(asset: AssetResponse | ProjectViewAsset) {
   openSharingModal({ asset: asset })
-}
-
-/** Opens a modal for replacing an asset using a file. */
-export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
-  pageState.showModal({ type: MODAL_TYPES.REPLACE_PROJECT, asset: asset })
 }
 
 /**

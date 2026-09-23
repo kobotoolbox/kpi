@@ -1061,6 +1061,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if not self.instance or not data_sharing:
             return data_sharing
 
+        for key in data_sharing.keys():
+            if key not in ('enabled', 'fields'):
+                errors[key] = t('This property is invalid')
+
         if 'enabled' not in data_sharing:
             errors['enabled'] = t('The property is required')
 

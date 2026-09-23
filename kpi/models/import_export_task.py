@@ -7,7 +7,7 @@ import tempfile
 from collections import OrderedDict, defaultdict
 from io import BytesIO
 from os.path import split, splitext
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 import constance
@@ -30,9 +30,7 @@ from formpack.constants import (
 )
 from formpack.schema.fields import (
     IdCopyField,
-    NotesCopyField,
     SubmissionTimeCopyField,
-    TagsCopyField,
     ValidationStatusCopyField,
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
@@ -46,6 +44,7 @@ from werkzeug.http import parse_options_header
 
 from kobo.apps.audit_log.utils import get_lookback_date
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
+from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
 from kobo.apps.subsequences.exceptions import SupplementMigrationInProgress
@@ -270,6 +269,34 @@ class ImportTask(ImportExportTask):
             ),
         ]
 
+    def _create_assets_for_uploader(
+        self, kls: str, structure: dict[str, Any], grant_manage: bool
+    ) -> Asset:
+        """
+        Create imported assets and, when ownership was transferred to the
+        organization owner, grant the uploader manage rights atomically
+        (mirrors `AssetSerializer.create`).
+        """
+        with transaction.atomic():
+            obj = create_assets(kls, structure)
+            if grant_manage:
+                # `create_assets` may build a collection with children (library
+                # sheet), so grant on the whole tree.
+                self._grant_manage_to_uploader(obj)
+        return obj
+
+    def _grant_manage_to_uploader(self, obj: Asset) -> None:
+        """
+        Grant the uploader manage rights on an imported asset and, for a
+        collection, on each of its children. Collections only pass view/change
+        down (`HERITABLE_PERMISSIONS`), so manage must be granted per asset, as
+        the API does for each asset it creates.
+        """
+        obj.assign_perm(self.user, PERM_MANAGE_ASSET)
+        if obj.asset_type == ASSET_TYPE_COLLECTION:
+            for child in obj.children.all():
+                child.assign_perm(self.user, PERM_MANAGE_ASSET)
+
     def _run_task(self, messages):
         self.status = ImportExportStatusChoices.PROCESSING
         self.save(update_fields=['status'])
@@ -359,18 +386,33 @@ class ImportTask(ImportExportTask):
                 'user cannot load assets into this collection'
             )
 
+        # Uploads without a destination transfer ownership to the org owner
+        # (mirrors `AssetSerializer.create`); destination imports are untouched.
+        real_owner = get_real_owner(self.user)
+        transfer = real_owner != self.user and not destination
+
         collections_to_assign = []
         for item in fif._parsed:
             extra_args = {
-                'owner': self.user,
+                'owner': self.user if destination else real_owner,
                 'name': item._name_base,
+                'created_by': self.user.username,
+                'last_modified_by': self.user.username,
             }
+            if transfer:
+                extra_args['is_excluded_from_projects_list'] = True
+            # Collections only pass view/change down, so grant manage on every
+            # created asset (like the API does). Explicit grants survive the
+            # later parent assignment, which only recalculates inherited perms.
+            grant_manage = transfer
 
             if item.get_type() == 'collection':
                 # FIXME: seems to allow importing nested collections, even
                 # though uploading from a file does not (`_parse_b64_upload()`
                 # raises `NotImplementedError`)
-                item._orm = create_assets(item.get_type(), extra_args)
+                item._orm = self._create_assets_for_uploader(
+                    item.get_type(), extra_args, grant_manage=grant_manage
+                )
             elif item.get_type() == 'asset':
                 try:
                     kontent = xlsx_to_dict(item.readable)
@@ -381,7 +423,9 @@ class ImportTask(ImportExportTask):
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
-                    item._orm = create_assets(item.get_type(), extra_args)
+                    item._orm = self._create_assets_for_uploader(
+                        item.get_type(), extra_args, grant_manage=grant_manage
+                    )
                 else:
                     # The below is copied from `_parse_b64_upload` pretty much as is
                     # TODO: review and test carefully
@@ -513,16 +557,31 @@ class ImportTask(ImportExportTask):
                                  ' form list')
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
-            collection = _load_library_content({
+            real_owner = get_real_owner(self.user)
+            structure = {
                 'content': survey_dict,
-                'owner': self.user,
-                'name': filename
-            })
-            messages['created'].append({
-                'uid': collection.uid,
-                'kind': 'collection',
-                'owner__username': self.user.username,
-            })
+                'owner': real_owner,
+                'name': filename,
+                'created_by': self.user.username,
+                'last_modified_by': self.user.username,
+            }
+            if real_owner != self.user:
+                # Create the collection and grant the uploader manage rights on
+                # it and its children atomically (mirrors
+                # `AssetSerializer.create`).
+                structure['is_excluded_from_projects_list'] = True
+                with transaction.atomic():
+                    collection = _load_library_content(structure)
+                    self._grant_manage_to_uploader(collection)
+            else:
+                collection = _load_library_content(structure)
+            messages['created'].append(
+                {
+                    'uid': collection.uid,
+                    'kind': 'collection',
+                    'owner__username': collection.owner.username,
+                }
+            )
         elif 'survey' in survey_dict_keys:
 
             if not destination:
@@ -539,12 +598,24 @@ class ImportTask(ImportExportTask):
                     _append_kobo_locking_profiles(
                         base64_encoded_upload, survey_dict
                     )
-                asset = Asset.objects.create(
-                    owner=self.user,
-                    content=survey_dict,
-                    asset_type=asset_type,
-                    summary={'filename': filename},
-                )
+                real_owner = get_real_owner(self.user)
+                create_kwargs = {
+                    'owner': real_owner,
+                    'content': survey_dict,
+                    'asset_type': asset_type,
+                    'summary': {'filename': filename},
+                    'created_by': self.user.username,
+                    'last_modified_by': self.user.username,
+                }
+                if real_owner != self.user:
+                    # Create the asset and grant the uploader manage rights
+                    # atomically (mirrors `AssetSerializer.create`).
+                    create_kwargs['is_excluded_from_projects_list'] = True
+                    with transaction.atomic():
+                        asset = Asset.objects.create(**create_kwargs)
+                        asset.assign_perm(self.user, PERM_MANAGE_ASSET)
+                else:
+                    asset = Asset.objects.create(**create_kwargs)
                 msg_key = 'created'
             else:
                 asset = destination
@@ -577,12 +648,14 @@ class ImportTask(ImportExportTask):
                     }
                 )
 
-            messages[msg_key].append({
-                'uid': asset.uid,
-                'summary': asset.summary,
-                'kind': 'asset',
-                'owner__username': self.user.username,
-            })
+            messages[msg_key].append(
+                {
+                    'uid': asset.uid,
+                    'summary': asset.summary,
+                    'kind': 'asset',
+                    'owner__username': asset.owner.username,
+                }
+            )
         else:
             raise SyntaxError('xls upload must have one of these sheets: {}'
                               .format('survey, library'))
@@ -871,14 +944,12 @@ class SubmissionExportTaskBase(ImportExportTask):
         '_uuid',
         SubmissionTimeCopyField,
         ValidationStatusCopyField,
-        NotesCopyField,
         # '_status' is always 'submitted_via_web' unless the submission was
         # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
         # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submitted_by',
         '__version__',
-        TagsCopyField,
         META_ROOT_UUID,
     )
 

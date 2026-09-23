@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "7 6 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   get-commit-title:
     name: Get latest 'main' commit info

@@ -60,6 +60,8 @@ interface UniversalTableProps<Datum, TError = Error | ErrorDetail> {
    * Internally results in CSS property `max-height` being set on the container element, so you can pass any valid value.
    */
   maxHeight?: number | string
+  /** To display contextual empty message when zero rows. See `UniversalTableCore` for the fallback and timing. */
+  emptyMessage?: React.ReactNode
   /** Used to inject infinite scroll observers or footer info into the table. */
   bottomContent?: React.ReactNode
   /**
@@ -108,6 +110,7 @@ export default function UniversalTable<Datum, TError = Error>({
   queryResult,
   setPagination,
   maxHeight,
+  emptyMessage,
   bottomContent,
   spinnerVisibility = 'fetching',
 }: UniversalTableProps<Datum, TError>) {
@@ -128,6 +131,7 @@ export default function UniversalTable<Datum, TError = Error>({
       data={queryResult.data?.data.results ?? []}
       isSpinnerVisible={isSpinnerVisible}
       maxHeight={maxHeight}
+      emptyMessage={emptyMessage}
       bottomContent={bottomContent}
       pageIndex={currentPageIndex}
       pageCount={availablePages}

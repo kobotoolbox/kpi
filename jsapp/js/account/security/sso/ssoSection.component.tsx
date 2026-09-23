@@ -59,9 +59,8 @@ export default function SsoSection() {
       ) : (
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
           {t(
-            "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
-              'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
-              'address is different.',
+            'Connect your KoboToolbox account with an identity provider for single-sign on (SSO).' +
+              ' This will also update your email address in case your current address is different.',
           )}
         </div>
       )}
