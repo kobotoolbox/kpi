@@ -4,6 +4,7 @@ import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import {
   PASSWORD_RESET_URL,
   passwordResetDoneAndSignedInMock,
@@ -73,11 +74,6 @@ const meta: Meta<typeof AuthContainer> = {
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
-
 const submit = (canvas: Canvas) => userEvent.click(canvas.getByRole('button', { name: 'Change password' }))
 
 /** Waits for the key lookup to put the form on screen, then fills both fields with matching passwords */
@@ -98,7 +94,7 @@ export const PasswordChanged: Story = {
     await fillForm(canvas)
     await submit(canvas)
 
-    await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed.' })
+    await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed' })
     // The whole form is replaced, so a password that is already changed cannot be submitted twice.
     expect(canvas.queryByLabelText(/^New password/)).not.toBeInTheDocument()
     expect(canvas.getByRole('link', { name: 'Go back to Login' })).toHaveAttribute('href', AUTH_ROUTES.LOGIN)
@@ -117,7 +113,7 @@ export const PasswordChangedAndSignedIn: Story = {
     await fillForm(canvas)
     await submit(canvas)
 
-    await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed.' })
+    await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed' })
     // A plain `href`, so the click leaves `/auth` and loads the app with the session allauth just handed out.
     expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
   },

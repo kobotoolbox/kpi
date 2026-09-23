@@ -4,6 +4,7 @@ import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import { PASSWORD_REQUEST_URL, passwordRequestErrorsMock } from '#/endpoints/allauth.mocks'
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -57,11 +58,6 @@ const meta: Meta<typeof AuthContainer> = {
 
 export default meta
 type Story = StoryObj<typeof AuthContainer>
-
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
 const submit = (canvas: Canvas) => userEvent.click(canvas.getByRole('button', { name: 'Reset password' }))
 

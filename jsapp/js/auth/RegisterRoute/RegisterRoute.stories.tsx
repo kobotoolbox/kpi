@@ -1,4 +1,3 @@
-import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { RequestHandler } from 'msw'
 import { getWorker } from 'msw-storybook-addon'
@@ -10,6 +9,7 @@ import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { setLoginBackgroundMetaForStories } from '#/auth/AuthContainer/authContainer.mocks'
 // The same stand-in photo the container's own stories use, so the custom theme stays offline.
 import backgroundImageUrl from '#/auth/AuthContainer/salah-darwish-story-bg.webp'
+import { type Canvas, field, narrowViewportDecorator } from '#/auth/authStoryHelpers'
 import {
   signupAuthenticatedMock,
   signupErrorsMock,
@@ -17,7 +17,11 @@ import {
   signupPendingVerificationMock,
   signupServerErrorMock,
 } from '#/endpoints/allauth.mocks'
-import { environmentResponse, environmentServerErrorMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import {
+  environmentServerErrorMock,
+  makeAuthConfigurationMock,
+  makeEnvironmentMock,
+} from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
@@ -38,15 +42,13 @@ const environmentMock = makeEnvironmentMock({
 })
 
 /** Both supporting fields filled in: a `login_supporting_image` upload and a `welcome_message`, as HTML. */
-const supportingEnvironmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-  auth_configuration: {
-    ...environmentResponse.auth_configuration,
+const supportingEnvironmentMock = makeAuthConfigurationMock(
+  {
     supporting_image_url: backgroundImageUrl,
     supporting_text: '<h2>Welcome to the Example Organization server</h2>\n<p>Accounts here are for staff.</p>',
   },
-})
+  { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
+)
 
 /** An instance that asks for every profile field it can and requires most of them */
 const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
@@ -95,9 +97,6 @@ const registerRouting = reactRouterParameters({
   routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'register', element: <RegisterRoute /> }),
 })
 
-/** Narrows the card enough to trip its container query - `test-storybook` can't resize the viewport. */
-const narrowViewportDecorator: Decorator = (Story) => <div style={{ width: 400 }}>{Story()}</div>
-
 const meta: Meta<typeof AuthContainer> = {
   title: 'Features/RegisterRoute',
   component: AuthContainer,
@@ -116,8 +115,6 @@ const meta: Meta<typeof AuthContainer> = {
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-type Canvas = ReturnType<typeof within>
-
 const VALID_INPUT = {
   name: 'Caroline Herschel',
   email: 'caroline.herschel@kbtdev.org',
@@ -131,11 +128,6 @@ const VALID_INPUT = {
  */
 const waitForEnvironment = (canvas: Canvas) =>
   waitFor(() => expect(canvas.getAllByRole('link', { name: 'Terms of Service' })).toHaveLength(2))
-
-/**
- * Finds an input by its label
- */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
 /** Fills every field with something the client accepts. */
 async function fillForm(canvas: Canvas, overrides: Partial<typeof VALID_INPUT> = {}) {
@@ -181,15 +173,10 @@ export const CustomTheme: Story = {
   parameters: {
     msw: {
       handlers: storyHandlers({
-        environment: makeEnvironmentMock({
-          terms_of_service_url: TERMS_OF_SERVICE_URL,
-          privacy_policy_url: PRIVACY_POLICY_URL,
-          auth_configuration: {
-            ...environmentResponse.auth_configuration,
-            theme: AuthThemeEnum.custom,
-            background_image_url: backgroundImageUrl,
-          },
-        }),
+        environment: makeAuthConfigurationMock(
+          { theme: AuthThemeEnum.custom, background_image_url: backgroundImageUrl },
+          { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
+        ),
       }),
     },
   },
