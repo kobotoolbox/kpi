@@ -41,7 +41,9 @@ def ssrf_safe_get(url: str, **kwargs) -> requests.Response:
         if not response.is_redirect:
             return response
 
-        url = urljoin(response.url, response.headers['location'])
+        redirect_url = urljoin(response.url, response.headers['location'])
+        response.close()
+        url = redirect_url
 
     raise requests.TooManyRedirects(f'Exceeded {max_redirects} redirects')
 
