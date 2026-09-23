@@ -1,7 +1,7 @@
 import { Anchor, Box } from '@mantine/core'
 import { getFormBuilderAssetType } from '#/components/formBuilder/formBuilderUtils'
 import { hasAssetAnyLocking, isAssetAllLocked } from '#/components/locking/lockingUtils'
-import { AssetTypeName } from '#/constants'
+import type { AssetTypeName } from '#/constants'
 import envStore from '#/envStore'
 import type { AssetResponse } from '../dataInterface'
 

@@ -1,13 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-
-import { Text } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import debounce from 'lodash.debounce'
 import last from 'lodash.last'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker } from 'react-router-dom'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
@@ -15,7 +12,6 @@ import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import Select from '#/components/common/Select'
-import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
@@ -28,12 +24,7 @@ import {
 } from '#/components/formBuilder/formBuilderUtils'
 import FormLockedMessage from '#/components/locking/formLockedMessage'
 import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
-import {
-  hasAssetAnyLocking,
-  hasAssetRestriction,
-  isAssetAllLocked,
-  isAssetLockable,
-} from '#/components/locking/lockingUtils'
+import { hasAssetRestriction, isAssetLockable } from '#/components/locking/lockingUtils'
 import MetadataEditor from '#/components/metadataEditor'
 import {
   ASSET_TYPES,
@@ -66,6 +57,7 @@ import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
 import AssetNavigator from './AssetNavigator'
 import FormbuilderAssetLabel from './FormbuilderAssetLabel'
+import FormbuilderBackgroundAudioWarning from './FormbuilderBackgroundAudioWarning'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
@@ -78,8 +70,6 @@ const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
-const LOCKING_SUPPORT_URL = 'library_locking.html'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
 
 interface LaunchAppData {
   name: string
@@ -906,58 +896,6 @@ export default function EditableForm(props: EditableFormProps) {
     )
   }
 
-  function renderBackgroundAudioWarning() {
-    if (state.isBackgroundAudioBannerDismissed) return null
-    let bannerText = t(
-      'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding with a meaningful consent question to inform respondents or data collectors that they will be recorded while completing this survey.',
-    )
-
-    if (envStore.isReady && envStore.data.support_url) {
-      bannerText = bannerText.replace('##SUPPORT_LINK##', envStore.data.support_url + RECORDING_SUPPORT_URL)
-    } else {
-      // Replaces the link for the text only if link is not available
-      bannerText = bannerText.replace(/\[(.+)]\(##SUPPORT_LINK##\)/, '$1')
-    }
-
-    return (
-      <Alert
-        type='info'
-        iconName='information'
-        p='sm'
-        maw={1024}
-        mb='sm'
-        m='auto'
-        closeButtonLabel={t('Dismiss')}
-        onClose={() => {
-          setState((currentState) => ({
-            ...currentState,
-            isBackgroundAudioBannerDismissed: true,
-          }))
-        }}
-        withCloseButton
-      >
-        <Markdown
-          components={{
-            // Custom link component to open link on target _blank
-            a: (props) => (
-              <a href={props.href} target='_blank'>
-                {props.children}
-              </a>
-            ),
-            // Custom paragraph component to use mantine Text instead of <p>
-            p: (props) => (
-              <Text c='blue.4' mr='lg'>
-                {props.children}
-              </Text>
-            ),
-          }}
-        >
-          {bannerText}
-        </Markdown>
-      </Alert>
-    )
-  }
-
   function renderAside() {
     const { styleValue, hasSettings } = buttonStates()
 
@@ -1198,7 +1136,16 @@ export default function EditableForm(props: EditableFormProps) {
             <bem.FormBuilder__contents>
               {state.asset && <FormLockedMessage asset={state.asset} />}
 
-              {hasBackgroundAudio() && renderBackgroundAudioWarning()}
+              {hasBackgroundAudio() && !state.isBackgroundAudioBannerDismissed && (
+                <FormbuilderBackgroundAudioWarning
+                  onDismiss={() => {
+                    setState((currentState) => ({
+                      ...currentState,
+                      isBackgroundAudioBannerDismissed: true,
+                    }))
+                  }}
+                />
+              )}
 
               <div ref={formWrapRef} className='form-wrap'>
                 {!state.surveyAppRendered && renderNotLoadedMessage()}
