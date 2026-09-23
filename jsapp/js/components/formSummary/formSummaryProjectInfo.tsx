@@ -180,7 +180,8 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
               <bem.FormView__label>{t('Languages')}</bem.FormView__label>
               {props.asset.summary.languages.map((language, index) => (
                 <bem.FormView__cell key={`lang-${index}`} data-index={index}>
-                  {language}
+                  {/* Unnamed languages arrive as null, and a blank row hides why the form won't open in Formbuilder */}
+                  {language || t('Unnamed language')}
                 </bem.FormView__cell>
               ))}
             </bem.FormView__cell>
