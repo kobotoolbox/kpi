@@ -18,6 +18,7 @@ export function openLibraryAssetModal({ asset, assetType, onBack }: OpenLibraryA
   const modalId = modals.open({
     title: type === ASSET_TYPES.collection.id ? t('Collection details') : t('Template details'),
     size: 'lg',
+    closeOnClickOutside: false,
     children: (
       <LibraryAssetForm
         asset={asset}
