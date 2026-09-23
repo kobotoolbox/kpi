@@ -22473,7 +22473,19 @@
                         "readOnly": true
                     },
                     "data_sharing": {
-                        "type": "object"
+                        "type": "object",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean"
+                            },
+                            "fields": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "additionalProperties": false
                     },
                     "paired_data": {
                         "type": "string",
