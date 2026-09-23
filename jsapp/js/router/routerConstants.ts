@@ -55,14 +55,14 @@ export const ROUTES = Object.freeze({
  * logged in chrome (header, drawer, route blockers) applies to them - see `#/auth/routes`.
  */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
-  /** The redesigned sign-in screen. `PATHS.LOGIN` is the Django one it will eventually replace. */
   LOGIN: ROUTES.AUTH_ROOT + '/login',
   REGISTER: ROUTES.AUTH_ROOT + '/register',
-  /**
-   * Where the activation link in the sign up email lands. Has: :key
-   * Not reachable yet: `HEADLESS_FRONTEND_URLS` is unset, so allauth still links to the Django view.
-   */
+  /** Where the activation link in the sign up email lands */
   ACTIVATE_ACCOUNT: ROUTES.AUTH_ROOT + '/activate/:key',
+  /** Asks for an address to mail a password reset link to */
+  RESET_PASSWORD: ROUTES.AUTH_ROOT + '/reset-password',
+  /** Where the link in the password reset email lands, to pick the new password */
+  NEW_PASSWORD: ROUTES.AUTH_ROOT + '/reset-password/:key',
 }
 
 export const PROJECTS_ROUTES: { readonly [key: string]: string } = {

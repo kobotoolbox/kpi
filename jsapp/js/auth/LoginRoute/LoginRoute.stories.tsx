@@ -4,6 +4,7 @@ import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import {
   LOGIN_URL,
   loginAlreadyAuthenticatedMock,
@@ -11,9 +12,9 @@ import {
   loginErrorsMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
-import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { makeAuthConfigurationMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import { AUTH_ROUTES, PATHS, ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
 import LoginRoute from './LoginRoute'
 
@@ -27,9 +28,7 @@ const CREDENTIALS = {
 const environmentMock = makeEnvironmentMock()
 
 /** An instance whose `ACCOUNT_LOGIN_METHODS` leaves `username` out, so only an address is accepted. */
-const emailOnlyEnvironmentMock = makeEnvironmentMock({
-  auth_configuration: { ...environmentResponse.auth_configuration, allow_login_with_username: false },
-})
+const emailOnlyEnvironmentMock = makeAuthConfigurationMock({ allow_login_with_username: false })
 
 /** Where {@link loginRecordingMock} leaves the body it saw, for a story to check the keys of. */
 let postedCredentials: unknown = null
@@ -93,11 +92,6 @@ const meta: Meta<typeof AuthContainer> = {
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
-
 /**
  * Resolves once `/environment` has settled one way or the other: the button holds a spinner until it has,
  * so that nobody posts a credential under a key the server does not read.
@@ -124,9 +118,8 @@ export const Default: Story = {
     expect(field(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
     expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
 
-    // Still the Django screen: the redesign lands in DEV-1852.
-    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', PATHS.RESET)
-    // A router link, so signing up does not reload the page.
+    // Both router links, so neither recovery nor signing up reloads the page.
+    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
     expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.REGISTER)
   },
 }

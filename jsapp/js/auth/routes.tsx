@@ -12,6 +12,10 @@ const RegisterRoute = React.lazy(() => import(/* webpackPrefetch: true */ './Reg
 const ActivateAccountRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './ActivateAccountRoute/ActivateAccountRoute'),
 )
+const ResetPasswordRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './ResetPasswordRoute/ResetPasswordRoute'),
+)
+const NewPasswordRoute = React.lazy(() => import(/* webpackPrefetch: true */ './NewPasswordRoute/NewPasswordRoute'))
 
 /**
  * Sign-in, registration and password recovery screens.
@@ -35,6 +39,8 @@ export default function authRoutes() {
       <Route path={AUTH_ROUTES.LOGIN} element={<LoginRoute />} />
       <Route path={AUTH_ROUTES.REGISTER} element={<RegisterRoute />} />
       <Route path={AUTH_ROUTES.ACTIVATE_ACCOUNT} element={<ActivateAccountRoute />} />
+      <Route path={AUTH_ROUTES.RESET_PASSWORD} element={<ResetPasswordRoute />} />
+      <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
     </Route>
   )
 }

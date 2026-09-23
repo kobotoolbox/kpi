@@ -1,12 +1,11 @@
 import { Stack, Text, Title } from '@mantine/core'
-import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { within } from 'storybook/test'
-import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
+import { narrowViewportDecorator } from '#/auth/authStoryHelpers'
 import TextInput from '#/components/common/TextInput'
-import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { makeAuthConfigurationMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousSessionForStories } from '#/stores/session.mocks'
@@ -20,19 +19,10 @@ import backgroundImageUrl from './salah-darwish-story-bg.webp'
 const TERMS_OF_SERVICE_URL = 'https://example.org/terms'
 const PRIVACY_POLICY_URL = 'https://example.org/privacy'
 
-/** Both legal links configured, so the footer has something to show. */
-const environmentMockWithFooterLinks = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-})
+/** Both legal links configured, so the footer has something to show in every story. */
+const FOOTER_LINKS = { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL }
 
-/** `makeEnvironmentMock` merges shallowly, so a nested override has to restate the whole object. */
-const makeAuthConfigurationMock = (override: Partial<AuthConfiguration>) =>
-  makeEnvironmentMock({
-    terms_of_service_url: TERMS_OF_SERVICE_URL,
-    privacy_policy_url: PRIVACY_POLICY_URL,
-    auth_configuration: { ...environmentResponse.auth_configuration, ...override },
-  })
+const environmentMockWithFooterLinks = makeEnvironmentMock(FOOTER_LINKS)
 
 /**
  * Renders the story as the `/auth` route with the given element in its outlet, so what you see is
@@ -66,12 +56,6 @@ const stubAside = (
     </Text>
   </Stack>
 )
-
-/**
- * Narrows the card enough to trip both of its container queries - stacking and reduced padding -
- * without touching the preview viewport, which `test-storybook` can't resize.
- */
-const narrowViewportDecorator: Decorator = (Story) => <div style={{ width: 400 }}>{Story()}</div>
 
 const meta: Meta<typeof AuthContainer> = {
   title: 'Features/AuthContainer',
@@ -115,10 +99,10 @@ export const CustomTheme: Story = {
   parameters: {
     msw: {
       handlers: [
-        makeAuthConfigurationMock({
-          theme: AuthThemeEnum.custom,
-          background_image_url: backgroundImageUrl,
-        }),
+        makeAuthConfigurationMock(
+          { theme: AuthThemeEnum.custom, background_image_url: backgroundImageUrl },
+          FOOTER_LINKS,
+        ),
       ],
     },
   },
@@ -132,7 +116,7 @@ export const CustomTheme: Story = {
 
 /** Config for hiding Kobo logo. */
 export const NoKoboLogo: Story = {
-  parameters: { msw: { handlers: [makeAuthConfigurationMock({ show_kobotoolbox_logo: false })] } },
+  parameters: { msw: { handlers: [makeAuthConfigurationMock({ show_kobotoolbox_logo: false }, FOOTER_LINKS)] } },
   // The language selector needs `/environment` too, so its arrival means the missing logo is a real
   // absence rather than a slow request.
   play: async ({ canvasElement }) => {

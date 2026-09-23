@@ -12,7 +12,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
-import { AUTH_ROUTES, PATHS } from '#/router/routerConstants'
+import { AUTH_ROUTES } from '#/router/routerConstants'
 import styles from './LoginForm.module.scss'
 
 interface LoginFormValues {
@@ -164,8 +164,7 @@ export default function LoginForm({ isUsernameAccepted, isConfigurationPending, 
                 {...withAuthFieldError(form.getInputProps('password'))}
                 required
               />
-              {/* TODO: point at the redesigned recovery screen once DEV-1852 builds it. */}
-              <Anchor className={styles.forgotPasswordLink} href={PATHS.RESET} size='sm'>
+              <Anchor className={styles.forgotPasswordLink} component={Link} to={AUTH_ROUTES.RESET_PASSWORD} size='sm'>
                 {t('Forgot password?')}
               </Anchor>
             </div>

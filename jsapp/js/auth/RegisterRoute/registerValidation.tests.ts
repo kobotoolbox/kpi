@@ -1,12 +1,6 @@
 import chai from 'chai'
 import type { SocialApp } from '#/api/models/socialApp'
-import {
-  findManagedSsoProvider,
-  validateEmail,
-  validateFullName,
-  validatePasswordConfirm,
-  validateUsername,
-} from './registerValidation'
+import { findManagedSsoProvider, validateEmail, validateFullName, validateUsername } from './registerValidation'
 
 const USERNAME_MESSAGE =
   'Usernames must be between 2 and 30 characters in length, and may only consist of lowercase letters, numbers, and underscores, where the first character must be a letter.'
@@ -50,15 +44,10 @@ describe('validateEmail', () => {
     chai.expect(validateEmail('someone@example.com', [])).to.equal(null)
   })
 
-  it('rejects an empty value as a required field', () => {
+  // The pattern itself is covered in `authValidation.tests`; this only checks it is still consulted.
+  it('applies the shared format check before its own rules', () => {
     chai.expect(validateEmail('', [])).to.equal('Required field')
-  })
-
-  it('rejects an address with no @, no dotted domain or whitespace', () => {
-    const message = 'Please enter a valid email address'
-    chai.expect(validateEmail('someone', [])).to.equal(message)
-    chai.expect(validateEmail('someone@example', [])).to.equal(message)
-    chai.expect(validateEmail('some one@example.com', [])).to.equal(message)
+    chai.expect(validateEmail('someone@example', [])).to.equal('Please enter a valid email address')
   })
 
   it('rejects a domain owned by a managed SSO provider', () => {
@@ -90,19 +79,5 @@ describe('validateFullName', () => {
 
   it('rejects an empty value as a required field, whitespace included', () => {
     chai.expect(validateFullName('   ')).to.equal('Required field')
-  })
-})
-
-describe('validatePasswordConfirm', () => {
-  it('accepts a matching password', () => {
-    chai.expect(validatePasswordConfirm('secret', 'secret')).to.equal(null)
-  })
-
-  it('rejects an empty value as a required field', () => {
-    chai.expect(validatePasswordConfirm('', 'secret')).to.equal('Required field')
-  })
-
-  it('rejects a mismatch', () => {
-    chai.expect(validatePasswordConfirm('secret', 'other')).to.equal('You must type the same password each time.')
   })
 })

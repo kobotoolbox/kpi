@@ -1,13 +1,10 @@
 import type { SocialApp } from '#/api/models/socialApp'
-import { getRequiredFieldMessage, validateRequiredField } from '#/auth/authValidation'
+import { getRequiredFieldMessage, validateEmailFormat, validateRequiredField } from '#/auth/authValidation'
 
 /**
  * Client side validation for the registration form. The backend is authoritative, so this only saves a
- * round trip. The checks shared with the sign-in form live in `#/auth/authValidation`.
+ * round trip. The checks shared with the sign-in and password reset forms live in `#/auth/authValidation`.
  */
-
-/** Loose on purpose - rejecting a deliverable address is worse than letting the server say no. */
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 /** Same as in `kobo/apps/accounts/validators.py` */
 const USERNAME_PATTERN = /^[a-z][a-z0-9_]+$/
@@ -24,24 +21,6 @@ export function validateUsername(value: string): string | null {
     return t(
       'Usernames must be between 2 and 30 characters in length, and may only consist of lowercase letters, numbers, and underscores, where the first character must be a letter.',
     )
-  }
-  return null
-}
-
-export function validatePassword(value: string): string | null {
-  // No length or complexity rules: every validator in `AUTH_PASSWORD_VALIDATORS` is gated behind a
-  // constance setting that defaults to off, so the server decides.
-  // TODO: strength meter in DEV-1866.
-  // Untrimmed: a password of nothing but spaces is a valid one, however unwise.
-  return value ? null : getRequiredFieldMessage()
-}
-
-export function validatePasswordConfirm(value: string, password: string): string | null {
-  if (!value) {
-    return getRequiredFieldMessage()
-  }
-  if (value !== password) {
-    return t('You must type the same password each time.')
   }
   return null
 }
@@ -70,11 +49,9 @@ export function findManagedSsoProvider(email: string, socialApps: SocialApp[] | 
 }
 
 export function validateEmail(value: string, socialApps: SocialApp[] | undefined): string | null {
-  if (!value.trim()) {
-    return getRequiredFieldMessage()
-  }
-  if (!EMAIL_PATTERN.test(value.trim())) {
-    return t('Please enter a valid email address')
+  const formatError = validateEmailFormat(value)
+  if (formatError) {
+    return formatError
   }
   if (findManagedSsoProvider(value, socialApps)) {
     // Verbatim from `KoboSignupMixin.clean_email`, which the headless endpoint never runs.
