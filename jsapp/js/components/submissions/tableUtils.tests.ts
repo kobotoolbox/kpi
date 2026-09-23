@@ -1,7 +1,8 @@
-import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
+import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
+import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import {
+  buildColumnRowFinder,
   getAllDataColumns,
   getAllDataColumnsWithAliases,
   getColumnLabel,
@@ -761,6 +762,46 @@ describe('tableUtils', () => {
       const test = getMetadataColumns(assetWithNestedGroupsAndNLP, submissions)
 
       chai.expect(test).to.deep.equal(['_id', '_uuid', '_submission_time'])
+    })
+  })
+
+  describe('buildColumnRowFinder', () => {
+    /** Two questions named `name`, in a group each, plus a `transcript` one to trip up the lookup. */
+    const SURVEY = [
+      { $kuid: 'k1', type: GroupTypeBeginName.begin_group, name: 'owner', $xpath: 'owner' },
+      { $kuid: 'k2', type: QuestionTypeName.text, name: 'name', $xpath: 'owner/name' },
+      { $kuid: 'k3', type: GroupTypeEndName.end_group },
+      { $kuid: 'k4', type: GroupTypeBeginName.begin_group, name: 'pet', $xpath: 'pet' },
+      { $kuid: 'k5', type: QuestionTypeName.select_one, name: 'name', $xpath: 'pet/name' },
+      { $kuid: 'k6', type: QuestionTypeName.audio, name: 'recording', $xpath: 'recording' },
+      { $kuid: 'k7', type: QuestionTypeName.text, name: 'transcript', $xpath: 'transcript' },
+      { $kuid: 'k8', type: GroupTypeEndName.end_group },
+    ] as unknown as SurveyRow[]
+
+    it('should give each of two questions named alike its own row', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn('owner/name')?.type).to.equal(QuestionTypeName.text)
+      chai.expect(findRowForColumn('pet/name')?.type).to.equal(QuestionTypeName.select_one)
+    })
+
+    // Such a column is left from before the question moved, and only a row has its choice labels.
+    it('should find the one question of that name for a path the form no longer has', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn('old_group/recording')?.$kuid).to.equal('k6')
+    })
+
+    it('should find nothing for a path the form no longer has when several questions share the name', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn('old_group/name')).to.equal(undefined)
+    })
+
+    it('should find nothing for a supplemental column, whatever the form names its questions', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn(`${SUPPLEMENTAL_DETAILS_PROP}/recording/transcript`)).to.equal(undefined)
     })
   })
 })

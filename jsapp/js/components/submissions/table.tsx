@@ -10,7 +10,7 @@ import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import { getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
+import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -54,6 +54,7 @@ import {
 import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
+  buildColumnRowFinder,
   buildFilterQuery,
   getAllDataColumnsWithAliases,
   getColumnHXLTags,
@@ -814,19 +815,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // so it's quite the task :)
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
 
-    // Keyed by the whole path, as that is what a column key is. Leaf-name matching finds a
-    // namesake row in another group and labels the column from a question it never held.
-    const rowsByPath = new Map<string, SurveyRow>()
-    const flatPaths = getSurveyFlatPaths(survey ?? [], true, true)
-    survey?.forEach((row) => {
-      const rowPath = flatPaths[getRowName(row)]
-      if (rowPath) {
-        rowsByPath.set(rowPath, row)
-      }
-    })
+    const findRowForColumn = buildColumnRowFinder(survey ?? [])
 
     allColumns.forEach((key: string) => {
-      const q: SurveyRow | undefined = rowsByPath.get(key)
+      const q: SurveyRow | undefined = findRowForColumn(key)
       const rootParentGroup: string | undefined = key.includes('/') ? key.split('/')[0] : undefined
 
       if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {

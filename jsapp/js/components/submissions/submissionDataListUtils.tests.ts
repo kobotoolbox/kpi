@@ -1,6 +1,8 @@
 import { getSubmissionDataListItems } from './submissionDataListUtils'
 import {
   assetWithSupplementalDetails,
+  groupsSurveyAsset,
+  groupsSurveySubmission,
   repeatSurveyAsset,
   repeatSurveySubmission,
   simpleSurveyAsset,
@@ -111,6 +113,25 @@ describe('getSubmissionDataListItems', () => {
         data: answer,
       })
     })
+  })
+
+  // Every row of a matrix holds the same questions under the same xpath, so only the row name keeps
+  // their keys apart - and React reuses rows across submissions when keys repeat.
+  it('should give every row of a matrix its own keys', () => {
+    const items = getSubmissionDataListItems(groupsSurveyAsset, 0, groupsSurveySubmission)
+    const matrixItems = items.filter((item) => item.key.includes('group_crossbreeding'))
+
+    chai
+      .expect(matrixItems.map((item) => item.key))
+      .to.deep.equal([
+        'fire/group_crossbreeding/human',
+        'fire/group_crossbreeding/nonhuman',
+        'water/group_crossbreeding/human',
+        'water/group_crossbreeding/nonhuman',
+      ])
+    chai.expect(matrixItems.map((item) => item.data)).to.deep.equal(['fireman', 'firething', 'waterman', 'waterthing'])
+    // The row is named by its label in the path shown above the answer.
+    chai.expect(matrixItems[0].parents).to.deep.equal(['Crossbreeding', 'Fire'])
   })
 
   // One item per repetition, each with its own key. These used to arrive as one array, which

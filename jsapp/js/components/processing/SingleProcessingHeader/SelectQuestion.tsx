@@ -9,6 +9,7 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getProcessingQuestionType } from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
+import { getSubmissionDataListItems } from '#/components/submissions/submissionDataListUtils'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -85,9 +86,10 @@ export default function SelectQuestion({
       .map((question) => buildOption(question.$xpath, question))
       .filter((option) => option !== undefined)
 
-    // A question renamed, moved or deleted since has no row above, but the submission still
-    // holds its content. Files and NLP keys only: every string key would offer metadata too.
+    // A question renamed, moved or deleted since has no row above, but the submission still holds
+    // its answer, its file or its NLP work. The data list is what tells an answer from metadata.
     const submissionXpaths = new Set<string>([
+      ...getSubmissionDataListItems(asset, languageIndex, submission).map((item) => item.key),
       ...(submission._attachments ?? []).map((attachment) => attachment.question_xpath),
       ...Object.keys(submission._supplementalDetails ?? {}),
     ])

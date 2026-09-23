@@ -1,11 +1,11 @@
 import type { DataResponse } from '#/api/models/dataResponse'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SubmissionResponseValue } from '#/dataInterface'
-import { DisplayGroup, getSubmissionDisplayData, stripRepeatIndices } from './submissionUtils'
+import { DISPLAY_GROUP_TYPES, DisplayGroup, getSubmissionDisplayData, stripRepeatIndices } from './submissionUtils'
 
 /** One line of `SubmissionDataList`: a question of this submission and its response. */
 export interface SubmissionDataListItem {
-  /** Unique within one submission - the response's xpath, repeat indices included. */
+  /** Unique within one submission - the response's xpath, plus repeat indices and matrix row. */
   key: string
   /** The question's name, i.e. the last path segment. What `hideQuestions` is matched against. */
   name: string
@@ -37,11 +37,15 @@ export function getSubmissionDataListItems(
 }
 
 /** Appends one item per response found in the group, subgroups included. */
-function collectItems(group: DisplayGroup, parents: string[], items: SubmissionDataListItem[]) {
+function collectItems(group: DisplayGroup, parents: string[], items: SubmissionDataListItem[], keyPrefix = '') {
   for (const child of group.children) {
     if (child instanceof DisplayGroup) {
+      // A matrix repeats the same xpaths in every row, so only the row name tells its answers apart.
+      const childKeyPrefix =
+        child.type === DISPLAY_GROUP_TYPES.group_matrix_row && child.name ? `${keyPrefix}${child.name}/` : keyPrefix
+
       // A repeat group comes as one group per repetition, so its answers end up one item each.
-      collectItems(child, child.label ? [...parents, child.label] : parents, items)
+      collectItems(child, child.label ? [...parents, child.label] : parents, items, childKeyPrefix)
       continue
     }
 
@@ -51,7 +55,7 @@ function collectItems(group: DisplayGroup, parents: string[], items: SubmissionD
     }
 
     items.push({
-      key: child.xpath,
+      key: `${keyPrefix}${child.xpath}`,
       // `child.name` is the whole path for an unaccounted answer, but `hideQuestions` needs
       // the name.
       name: stripRepeatIndices(child.xpath).split('/').at(-1) ?? child.name,

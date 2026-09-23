@@ -50,7 +50,7 @@ const CONTENT: AssetContent = {
 const ASSET = { uid: 'asset-1', content: CONTENT, summary: { languages: [] } } as unknown as AssetResponse
 
 // Answers under xpaths the current form has no question at, so the only way to reach them is what the submission
-// carries: the `question_xpath` of its attachments and its `_supplementalDetails` keys.
+// carries: its answers, the `question_xpath` of its attachments and its `_supplementalDetails` keys.
 const SUBMISSION = {
   audio_q: 'recording.mp3',
   text_q: 'some answer',
@@ -66,12 +66,12 @@ const SUBMISSION = {
   _supplementalDetails: { 'renamed_group/text_q': {} },
 } as unknown as DataResponse
 
-function renderSelectQuestion(xpath: string) {
+function renderSelectQuestion(xpath: string, submission: DataResponse = SUBMISSION) {
   return render(
     <MantineProvider theme={themeKobo}>
       <SelectQuestion
         asset={ASSET}
-        submission={SUBMISSION}
+        submission={submission}
         currentSubmissionUid='sub-1'
         questionLabelLanguage=''
         xpath={xpath}
@@ -115,6 +115,16 @@ describe('SelectQuestion', () => {
     chai.expect(screen.queryAllByText('text_q')).to.have.lengthOf(1)
     chai.expect(screen.queryAllByText('Image question')).to.have.lengthOf(0)
     chai.expect(screen.queryAllByText('image_q')).to.have.lengthOf(0)
+  })
+
+  // Nothing has been transcribed under the old path yet, so the answer is all there is to go on.
+  it('lists an orphan text entry that has no NLP content yet', () => {
+    setNlpTextActionsEnabled(true)
+    renderSelectQuestion('audio_q', { ...SUBMISSION, _supplementalDetails: {} } as unknown as DataResponse)
+    openDropdown()
+
+    const optionLabels = screen.getAllByRole('option').map((option) => option.textContent)
+    chai.expect(optionLabels).to.deep.equal(['Audio question', 'Text question', 'audio_q', 'text_q'])
   })
 
   // Borrowing the label of `audio_q` for `renamed_group/audio_q` - what leaf-name matching used to do - would show two

@@ -40,6 +40,42 @@ const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
 ])
 
 /**
+ * Builds a lookup from a Data Table column key to the survey row its cells take the question type,
+ * the choice labels and the media rendering from. Whole paths first; a column left from before its
+ * question moved falls back to a single namesake question.
+ */
+export function buildColumnRowFinder(survey: SurveyRow[]) {
+  // A fallback for rows too old to carry `$xpath`: keyed by name, so namesakes collide here.
+  const flatPaths = getSurveyFlatPaths(survey, true, true)
+  const rowsByPath = new Map<string, SurveyRow>()
+  // `undefined` marks a name several questions share, i.e. one to give up on.
+  const rowsByUniqueName = new Map<string, SurveyRow | undefined>()
+
+  for (const row of survey) {
+    const rowName = getRowName(row)
+    const rowPath = row.$xpath ?? flatPaths[rowName]
+    if (rowPath) {
+      rowsByPath.set(rowPath, row)
+    }
+    rowsByUniqueName.set(rowName, rowsByUniqueName.has(rowName) ? undefined : row)
+  }
+
+  return (columnKey: string): SurveyRow | undefined => {
+    const exactMatch = rowsByPath.get(columnKey)
+    if (exactMatch) {
+      return exactMatch
+    }
+
+    // No question sits at a supplemental path, so its leaf must not match one by name.
+    if (getSupplementalPathParts(columnKey).type !== null) {
+      return undefined
+    }
+
+    return rowsByUniqueName.get(columnKey.split('/').at(-1) ?? columnKey)
+  }
+}
+
+/**
  * Builds a human-readable Data Table column label
  */
 export function getColumnLabel(
