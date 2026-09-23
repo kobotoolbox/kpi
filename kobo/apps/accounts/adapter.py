@@ -1,7 +1,9 @@
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
+from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
@@ -67,6 +69,50 @@ class AccountAdapter(DefaultAccountAdapter):
             )
             user.set_password(password)
             user.save()
+
+    def send_confirmation_mail(self, request, emailconfirmation, signup):
+        """
+        Send one of three confirmation emails, rather than allauth's two
+
+        allauth picks between "activate your account" and "verify your address"
+        with the `signup` flag alone, which leaves a resent activation link
+        arriving as an address verification. Splitting them needs a third
+        template and a rule to reach it; see `get_confirmation_email_template()`.
+
+        Overriding means rebuilding the context allauth would have built, since
+        its own version hardcodes the template prefix.
+        """
+        address = emailconfirmation.email_address
+        ctx = {'user': address.user}
+        if allauth_account_settings.EMAIL_VERIFICATION_BY_CODE_ENABLED:
+            ctx['code'] = emailconfirmation.key
+        else:
+            ctx['key'] = emailconfirmation.key
+            ctx['activate_url'] = self.get_email_confirmation_url(
+                request, emailconfirmation
+            )
+
+        template = self.get_confirmation_email_template(address, signup)
+        self.send_mail(template, address.email, ctx)
+
+    def get_confirmation_email_template(self, address, signup):
+        """
+        Which of the three confirmation emails this send is
+
+        Decided by what the account looks like rather than by which endpoint
+        asked: an account with nothing verified yet is being activated, one that
+        already has a verified address is changing it. The resend endpoint
+        (`/api/v2/email-confirmations/`) serves both kinds of user, so the
+        trigger cannot tell them apart on its own.
+        """
+        prefix = 'account/email/email_confirmation'
+        if signup:
+            return f'{prefix}_signup'
+
+        has_verified_address = EmailAddress.objects.filter(
+            user_id=address.user_id, verified=True
+        ).exists()
+        return prefix if has_verified_address else f'{prefix}_resend'
 
     def get_email_confirmation_url(self, request, emailconfirmation):
         url = super().get_email_confirmation_url(request, emailconfirmation)
