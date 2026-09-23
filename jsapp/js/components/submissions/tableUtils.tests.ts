@@ -396,8 +396,6 @@ describe('tableUtils', () => {
       chai.expect(shouldDrop).to.equal(false)
     })
 
-    // `get_valid_name()`, collision suffixes and Unicode normalization all change a stored
-    // file name, so a mismatch with the response says nothing about which question it is.
     it('should drop the legacy column even when the stored file name differs from the response', () => {
       const currentKey = 'Secret_password_as_an_audio_file'
       const legacyKey = 'old_group/Secret_password_as_an_audio_file'
@@ -422,8 +420,6 @@ describe('tableUtils', () => {
     })
   })
 
-  // Pre-move submissions keep their files under the dropped path, so the column that replaced
-  // it has to know which paths it now stands for.
   describe('getAllDataColumnsWithAliases', () => {
     const currentKey = 'Secret_password_as_an_audio_file'
     const legacyKey = 'old_group/Secret_password_as_an_audio_file'

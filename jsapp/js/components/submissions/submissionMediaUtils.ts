@@ -15,11 +15,6 @@ export function findAttachmentByQuestionXpath(
   return submission._attachments?.find((attachment) => attachment.question_xpath === questionXpath)
 }
 
-/**
- * The attachment stored under the first of the given paths that has one, for a Data Table
- * column standing for several paths at once. Order matters - pass the column's own path first,
- * so it wins over the legacy aliases it absorbed.
- */
 export function findAttachmentByQuestionXpaths(
   submission: DataResponse | SubmissionResponse,
   questionXpaths: string[],

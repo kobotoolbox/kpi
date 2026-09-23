@@ -1,7 +1,4 @@
-/**
- * Kept out of `./utils` because this needs `#/assetUtils`, and that file reaches back into
- * `./utils` through `bulkProcessingUtils` - importing it there closes the circle.
- */
+/** Kept out of `./utils` because of circular dependency problem */
 
 import type { DataResponse } from '#/api/models/dataResponse'
 import { findRowByXpath } from '#/assetUtils'
@@ -13,14 +10,7 @@ import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 
-/**
- * The type of the question a processing route was opened at.
- *
- * The form is asked first, so the type is there before the submission loads. With no row for
- * the path - renamed, moved or removed since - an attachment's mimetype says which kind of
- * media, and a plain string with no file says text. Paths are matched exactly; leaf names pick
- * the wrong question's type sooner or later.
- */
+/** The type of the question a processing route was opened at */
 export function getProcessingQuestionType(
   asset: AssetResponse,
   xpath: string,

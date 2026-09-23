@@ -170,12 +170,6 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   return sortedBySource
 }
 
-/**
- * Appends one row per supplemental (NLP) key recorded for a question's path - transcript,
- * translations, analysis questions - nested ones included. Matched by exact path: a question
- * configured on both sides of a move is listed under both, so leaf-name matching would hand one
- * row the other path's keys and render it as a blank NLP row.
- */
 function addSupplementalDetailRows(
   asset: AssetResponse,
   submissionData: DataResponse | SubmissionResponse,
@@ -490,11 +484,6 @@ function addUnaccountedAnswers(
   }
 }
 
-/**
- * The current form's row for an answer stored under a path the form no longer has, found by
- * leaf name - only a row can supply the choice list a `select_one`/`select_multiple` needs for
- * labels. A single match is required, as the wrong row's labels are worse than none.
- */
 function findRowForUnaccountedAnswer(assetContent: AssetContent, key: string): SurveyRow | undefined {
   const exactMatch = findRowByXpath(assetContent, key)
   if (exactMatch) {
@@ -663,9 +652,6 @@ function isAnswered(value: SubmissionResponseValue) {
  * Tells which submission key holds a given row's answer, or `undefined` when none
  * does. Not for groups, whose data is assembled from their children (see
  * `getRowData`). Split out so the traversal can record what got displayed.
- *
- * Only the row's own path is asked for. Reading a bare name too - which this used to do -
- * lets a question inside a group claim a root-level answer of the same name.
  */
 function findSubmissionKeyForRow(
   name: string,

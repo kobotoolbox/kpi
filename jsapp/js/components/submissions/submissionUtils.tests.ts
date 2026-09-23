@@ -303,10 +303,6 @@ const movedGroupName = 'audio_group'
 const movedAsset = withRowMovedIntoNewGroup(assetWithSupplementalDetails, movedRowName, movedGroupName)
 const movedAnswer = '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3'
 
-// Moving a question between groups changes its path, so submissions from either side of the
-// move carry their answer, file and NLP content under a different path - and both have to
-// render. Nothing but the paths the submission itself holds can tell them apart: leaf names
-// cannot, as two questions in different groups can share one.
 describe('getSubmissionDisplayData for a question that moved between groups', () => {
   it('should show the answer and the NLP content of a submission made before the move', () => {
     const responses = getGroupResponses(
@@ -331,8 +327,6 @@ describe('getSubmissionDisplayData for a question that moved between groups', ()
         'This is german translation text.',
       ])
 
-    // The row is only worth anything if the modal can reach the file from it, which it does
-    // by xpath - and the file is filed under the path this submission was made against.
     chai.expect(responses[0].xpath).to.equal(movedRowName)
     chai
       .expect(getMediaAttachment(submissionWithSupplementalDetails, movedAnswer, responses[0].xpath))
@@ -344,9 +338,6 @@ describe('getSubmissionDisplayData for a question that moved between groups', ()
     const movedPath = `${movedGroupName}/${movedRowName}`
     const responses = getGroupResponses(getSubmissionDisplayData(movedAsset, 0, movedSubmission), movedGroupName)
 
-    // One row per NLP key, and not one per key of either era: the question is configured
-    // under both paths, and an extra row for the path this submission has nothing under
-    // would be a blank transcript next to the real one.
     chai
       .expect(responses.map((response) => response.name))
       .to.deep.equal([
@@ -371,9 +362,6 @@ describe('getSubmissionDisplayData for a question that moved between groups', ()
   })
 })
 
-// `getRowData` answers for the question as the current form has it, i.e. under its new path.
-// A bare-name fallback would read the old path too, and an answer claimed by this row never
-// gets a row of its own, so its file and its NLP content are lost with it.
 describe('getRowData for a question that moved between groups', () => {
   const survey = movedAsset.content?.survey || []
   const movedPath = `${movedGroupName}/${movedRowName}`

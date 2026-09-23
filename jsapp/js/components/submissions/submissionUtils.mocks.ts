@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash.clonedeep'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { getRowName } from '#/assetUtils'
 import {
@@ -3714,13 +3715,9 @@ export const allQualSurveyDisplayData = {
   ],
 } as const satisfies DisplayGroup
 
-/**
- * Renames one row of a copy of the asset, as deploying a new form version would, leaving
- * earlier submissions with keys the form no longer accounts for.
- */
+/** Renames one row of a copy of the asset */
 export function withRenamedRow(asset: AssetResponse, oldName: string, newName: string): AssetResponse {
-  // Fixtures are plain JSON, and this test environment has no `structuredClone`.
-  const renamedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
+  const renamedAsset: AssetResponse = cloneDeep(asset)
   const row = renamedAsset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === oldName)
   if (!row) {
     throw new Error(`There is no row named "${oldName}" to rename`)
@@ -3738,14 +3735,9 @@ export function withRenamedRow(asset: AssetResponse, oldName: string, newName: s
   return renamedAsset
 }
 
-/**
- * Moves one row of a copy of the asset into a group of its own, leaving earlier submissions with
- * their answer, their file and their NLP content under the path they came in with. The NLP
- * sources end up listed under both paths, as `get_analysis_form_json()` emits one per configured
- * question and the pre-move configuration keeps its own path.
- */
+/** Moves one row of a copy of the asset into a group of its own */
 export function withRowMovedIntoNewGroup(asset: AssetResponse, rowName: string, groupName: string): AssetResponse {
-  const movedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
+  const movedAsset: AssetResponse = cloneDeep(asset)
   const survey = movedAsset.content?.survey
   const rowIndex = survey?.findIndex((surveyRow) => getRowName(surveyRow) === rowName) ?? -1
   if (!survey || rowIndex === -1) {
@@ -3772,12 +3764,14 @@ export function withRowMovedIntoNewGroup(asset: AssetResponse, rowName: string, 
   additionalFields?.push(
     ...additionalFields
       .filter((field) => field.source === rowName)
-      .map((field) => ({
-        ...field,
-        source: `${groupName}/${rowName}`,
-        name: `${groupName}/${field.name}`,
-        dtpath: `${groupName}/${field.dtpath}`,
-      })),
+      .map((field) => {
+        return {
+          ...field,
+          source: `${groupName}/${rowName}`,
+          name: `${groupName}/${field.name}`,
+          dtpath: `${groupName}/${field.dtpath}`,
+        }
+      }),
   )
 
   return movedAsset
@@ -3789,7 +3783,7 @@ export function withAnswerMovedIntoGroup(
   rowName: string,
   groupName: string,
 ): SubmissionResponse {
-  const movedSubmission: SubmissionResponse = JSON.parse(JSON.stringify(submission))
+  const movedSubmission: SubmissionResponse = cloneDeep(submission)
   const movedPath = `${groupName}/${rowName}`
 
   movedSubmission[movedPath] = movedSubmission[rowName]
