@@ -70,7 +70,7 @@ function FormSubScreens(props: FormSubScreensProps) {
         <Box className='form-view form-view--form-settings-sharing'>
           <LimitNotifications />
 
-            {uid && <SharingForm assetUid={uid} />}
+          {uid && <SharingForm assetUid={uid} />}
 
           <Box mt='xl'>
             <TransferProjects asset={loadedAsset} />
@@ -96,7 +96,8 @@ function FormSubScreens(props: FormSubScreensProps) {
   const renderUpload = (loadedAsset: AssetResponse) => (
     <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Media')} | KoboToolbox`}>
       <FormMedia asset={loadedAsset} />
-    </DocumentTitle>)
+    </DocumentTitle>
+  )
 
   // Nothing to render until the asset lands
   if (!asset) {
