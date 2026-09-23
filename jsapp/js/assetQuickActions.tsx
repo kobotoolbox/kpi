@@ -286,6 +286,7 @@ export function cloneAssetAsSurvey(sourceUid: string) {
   pageState.showModal({
     type: MODAL_TYPES.NEW_FORM,
     initialTemplateUid: sourceUid,
+    disableBackdropClose: true,
   })
 }
 
