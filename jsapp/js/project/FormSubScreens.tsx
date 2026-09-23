@@ -47,6 +47,7 @@ function FormSubScreens(props: FormSubScreensProps) {
 
   const renderSettingsEditor = (loadedAsset: AssetResponse) => {
     const docTitle = loadedAsset.name || t('Untitled')
+
     return (
       // TODO: `form-view` scss classes can be replaced with style props and the file can be removed once we update the
       // legacy components that use it to mantine style props. For now we can keep using the classes to avoid inconsistencies
@@ -63,6 +64,7 @@ function FormSubScreens(props: FormSubScreensProps) {
     // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
     // still hold the previous asset for a moment.
     const uid = params.assetid || params.uid
+    const docTitle = loadedAsset.name || t('Untitled')
 
     return (
       // TODO: `form-view` scss classes can be replaced with style props
@@ -80,24 +82,32 @@ function FormSubScreens(props: FormSubScreensProps) {
     )
   }
 
-  const renderRecords = (loadedAsset: AssetResponse) => (
-    // TODO: `form-view` scss classes can be replaced with style props
-    <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Connect Projects')} | KoboToolbox`}>
-      <Box className='form-view connect-projects'>
-        <Suspense fallback={null}>
-          <ConnectProjects asset={loadedAsset} />
-        </Suspense>
-      </Box>
-    </DocumentTitle>
-  )
+  const renderRecords = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      // TODO: `form-view` scss classes can be replaced with style props
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Connect Projects')} | KoboToolbox`}>
+        <Box className='form-view connect-projects'>
+          <Suspense fallback={null}>
+            <ConnectProjects asset={loadedAsset} />
+          </Suspense>
+        </Box>
+      </DocumentTitle>
+    )
+  }
 
   const renderReset = () => <LoadingSpinner />
 
-  const renderUpload = (loadedAsset: AssetResponse) => (
-    <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Media')} | KoboToolbox`}>
-      <FormMedia asset={loadedAsset} />
-    </DocumentTitle>
-  )
+  const renderUpload = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Media')} | KoboToolbox`}>
+        <FormMedia asset={loadedAsset} />
+      </DocumentTitle>
+    )
+  }
 
   // Nothing to render until the asset lands
   if (!asset) {
