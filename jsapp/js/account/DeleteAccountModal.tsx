@@ -27,8 +27,7 @@ export default function DeleteAccountModal(props: ModalProps) {
     fetchDelete(endpoints.ME, { confirm: profile.currentLoggedAccount.extra_details__uid })
       .then(() => {
         setIsDeleting(false)
-        // We can't use `profile.logOut` because it needs authentication to work, and after successful API call, account
-        // is no longer authenticated. We force reload to leave the UI:
+        // Force reload because after a successful delete the account is no longer authenticated:
         window.location.replace('')
       })
       .catch((errorResponse: any) => {

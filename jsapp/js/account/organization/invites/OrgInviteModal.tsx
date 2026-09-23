@@ -47,7 +47,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
         if (variables.data.status === InviteStatusChoicesEnum.accepted) {
           setAwaitingDataRefresh(true)
           await sleep(1000) // Give it a second to allow for initial backend data transfers
-          profile.refreshAccount() // refresh session to refresh org data and project list
+          profile.refreshAccount() // refresh org data and project list
           notify(t('Invitation successfully accepted'))
         } else {
           notify(t('Invitation successfully declined'))

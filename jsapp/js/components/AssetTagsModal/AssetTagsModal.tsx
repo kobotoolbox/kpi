@@ -22,7 +22,7 @@ export interface AssetTagsModalProps {
  * Lets a user edit an asset's comma-separated tags and save them through Orval/react-query.
  */
 export function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
-  const [isSessionLoaded, setIsSessionLoaded] = useState(!!profileStore.isLoggedIn)
+  const [isProfileLoaded, setIsProfileLoaded] = useState(!!profileStore.isLoggedIn)
   const [tags, setTags] = useState<string[]>(() => (asset.tag_string ? asset.tag_string.split(',') : []))
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
     // Waiting here keeps the form from rendering against incomplete auth state.
     const disposeSessionWhen = when(
       () => profileStore.isInitialLoadComplete,
-      () => setIsSessionLoaded(true),
+      () => setIsProfileLoaded(true),
     )
 
     return () => {
@@ -66,7 +66,7 @@ export function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
     })
   }
 
-  if (!isSessionLoaded) {
+  if (!isProfileLoaded) {
     return <LoadingSpinner />
   }
 
