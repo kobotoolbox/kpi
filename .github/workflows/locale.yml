@@ -12,10 +12,12 @@ on:
         default: false
         type: boolean
 
+permissions:
+  contents: read
 
 jobs:
   locale:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04 # See DEV-2798. Remove this comment once we bump all runners to 26.04
     steps:
 
     ## Setup

@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import warnings
 from datetime import timedelta
 from mimetypes import add_type
@@ -17,7 +16,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-from .utils import constance_env, dj_stripe_request_callback_method
+from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
 env = environ.Env()
 
@@ -62,7 +61,13 @@ if SESSION_COOKIE_DOMAIN:
     trusted_domains = [
         f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
     ]
-    CSRF_TRUSTED_ORIGINS = trusted_domains
+else:
+    trusted_domains = []
+CSRF_TRUSTED_ORIGINS = env.list(
+    # Separate multiple origins with commas, and do not use spaces
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    default=trusted_domains,
+)
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
@@ -221,7 +226,7 @@ CONSTANCE_CONFIG = {
         '',
         'List of email domains configured across all managed SocialApps. '
         'Note: these domains are managed per-app through the email_domains field in '
-        'Admin > SocialApp.',
+        'Account Extras > Social app custom datas.',
         'disabled_textarea',
     ),
     'SHOW_KOBOTOOLBOX_LOGO': (
@@ -365,6 +370,13 @@ CONSTANCE_CONFIG = {
     'SUPERUSER_AUTH_ENFORCEMENT': (
         False,
         'Require MFA for superusers with a usable password',
+    ),
+    'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR': (
+        5,
+        'Number of times per hour a new account confirmation email may be '
+        'requested for any one email address, through '
+        '/api/v2/email-confirmations/. Limits how much mail an inbox can be made '
+        'to receive by someone else. Set to 0 to disable the limit.',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
         constance_env(
@@ -821,6 +833,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
         'SUPERUSER_AUTH_ENFORCEMENT',
+        'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',
@@ -1705,7 +1718,8 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
-            'Unlock accounts locked by `sync_storage_counters` task'
+            'Unlock accounts left suspended by a storage recount or a trash bin'
+            ' deletion which died'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -1830,6 +1844,9 @@ CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 s
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+# Adds our extra fields to every signup form, including the headless API's;
+# must point to a module that does not import `allauth.account.forms`
+ACCOUNT_SIGNUP_FORM_CLASS = 'kobo.apps.accounts.signup_fields.SignupExtraFieldsForm'
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
@@ -2107,22 +2124,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-""" Try to identify the running codebase for informational purposes """
-# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
-GIT_REV = {}
-for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
-):
-    try:
-        GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
-        GIT_REV[git_rev_key] = False
-if GIT_REV['branch'] == 'HEAD':
-    GIT_REV['branch'] = False
+GIT_REV = get_git_rev(BASE_DIR)
 
 
 """
@@ -2451,6 +2453,8 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
+SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100

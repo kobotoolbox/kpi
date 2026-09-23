@@ -10,7 +10,12 @@ import {
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
 } from './tableUtils'
-import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
+import {
+  assetWithBgAudioAndNLP,
+  assetWithNestedGroupsAndNLP,
+  assetWithQuestionsNamedAfterMeta,
+  assetWithStartGeopoint,
+} from './tableUtils.mocks'
 
 describe('tableUtils', () => {
   describe('getColumnLabel', () => {
@@ -336,6 +341,28 @@ describe('tableUtils', () => {
       })
     })
 
+    // Renaming the question itself (rather than one of its groups) leaves its leaf name
+    // matching nothing, so the old key is the only place this answer lives.
+    it('should keep the column of a renamed question, as no current column holds its data', () => {
+      const legacyKey = 'Secret_password_as_an_audio_file_v1'
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include(legacyKey)
+    })
+
     it('should keep legacy when one of several matching current paths has no value in a submission', () => {
       const legacyKey = 'old_group/Secret_password_as_an_audio_file'
       const currentPaths = ['Secret_password_as_an_audio_file', 'another_group/Secret_password_as_an_audio_file']
@@ -467,8 +494,8 @@ describe('tableUtils', () => {
         'end',
         // …then all the form questions in the form definition order (note that
         // `today`, `username`, `deviceid` and `phonenumber` are defined before
-        // these questions in the form, but they are metadata, so they go last)…
-        'audit',
+        // these questions in the form, but they are metadata, so they go last,
+        // and that `audit` is defined too, yet is never a column)…
         'Your_name_here',
         'Your_selfie_goes_here',
         'A_video_WTF',
@@ -479,6 +506,29 @@ describe('tableUtils', () => {
         'phonenumber',
         'today',
       ])
+    })
+
+    it('should not return the `audit` column of a form that enables it', () => {
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP)
+
+      chai.expect(columns).to.not.include('audit')
+    })
+
+    it('should not return the audit file a submission carries in its `meta` block', () => {
+      const submissions = [{ 'meta/audit': 'audit-1.csv' }] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.not.include('meta/audit')
+    })
+
+    it('should keep ordinary questions named after meta questions, in form order', () => {
+      // A question named `audit` is data - dropping it would lose it from the
+      // table, the "hide fields" list and the modal at once - and one named
+      // `start` has no business being pulled to the front.
+      const columns = getAllDataColumns(assetWithQuestionsNamedAfterMeta)
+
+      chai.expect(columns).to.deep.equal(['audit', 'start-geopoint', 'What_did_you_see', 'end', 'start'])
     })
 
     it('should put metadata columns from submissions at the end in the canonical order', () => {
@@ -511,6 +561,15 @@ describe('tableUtils', () => {
           '_submitted_by',
           'meta/rootUuid',
         ])
+    })
+
+    it('should put `start-geopoint` with the other metadata columns', () => {
+      // The mock carries this row after the form questions, so a `start-geopoint`
+      // anywhere but the metadata tail is one that took its place from the form
+      // definition instead of from `LAST_COLUMNS_ORDER`.
+      const columns = getAllDataColumns(assetWithStartGeopoint)
+
+      chai.expect(columns.slice(-5)).to.deep.equal(['username', 'deviceid', 'phonenumber', 'today', 'start-geopoint'])
     })
 
     it('should keep the order of questions from a nested group', () => {
@@ -554,9 +613,44 @@ describe('tableUtils', () => {
     it('should return only the metadata columns the form defines', () => {
       const test = getMetadataColumns(assetWithBgAudioAndNLP)
 
-      // `audit` is included because this form defines it. Single Submission
-      // modal used to show it for every form, which was a bug.
-      chai.expect(test).to.deep.equal(['start', 'end', 'audit', 'username', 'deviceid', 'phonenumber', 'today'])
+      chai.expect(test).to.deep.equal(['start', 'end', 'username', 'deviceid', 'phonenumber', 'today'])
+    })
+
+    it('should not return `audit`, even for a form that enables it', () => {
+      // Guarding the premise of this test: drop `audit` from the mock and it
+      // would pass without proving anything.
+      chai.expect(assetWithBgAudioAndNLP.content?.survey?.map((row) => row.name)).to.include('audit')
+
+      const test = getMetadataColumns(assetWithBgAudioAndNLP)
+
+      chai.expect(test).to.not.include('audit')
+    })
+
+    it('should return `start-geopoint` last, as in Data Table', () => {
+      const test = getMetadataColumns(assetWithStartGeopoint)
+
+      chai
+        .expect(test)
+        .to.deep.equal(['start', 'end', 'username', 'deviceid', 'phonenumber', 'today', 'start-geopoint'])
+    })
+
+    it('should not take ordinary questions for metadata, whatever they are named', () => {
+      const test = getMetadataColumns(assetWithQuestionsNamedAfterMeta)
+
+      chai.expect(test).to.deep.equal([])
+    })
+
+    it('should take a meta question the form no longer defines for metadata', () => {
+      // Nothing says whether such a key was a meta question switched off after
+      // this submission, or an ordinary question since deleted - the asset only
+      // carries the latest survey. Metadata is the safer guess of the two, and
+      // this pins it, as inverting it would drop a switched-off meta question
+      // into the middle of the table.
+      const submissions = [{ today: '2026-09-15' }] as unknown as SubmissionResponse[]
+
+      const test = getMetadataColumns(assetWithQuestionsNamedAfterMeta, submissions)
+
+      chai.expect(test).to.deep.equal(['today'])
     })
 
     it('should not return meta questions that the form does not define', () => {

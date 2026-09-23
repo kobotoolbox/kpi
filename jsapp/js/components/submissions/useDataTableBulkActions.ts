@@ -6,8 +6,9 @@ import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
+import { BULK_ACTIONS_MAX_POLL_INTERVAL, BULK_ACTIONS_MIN_POLL_INTERVAL } from '#/constants'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { getEstimatedTranscriptionDurationSeconds } from '#/utils'
 
 interface UseDataTableBulkActionsResult {
@@ -16,8 +17,6 @@ interface UseDataTableBulkActionsResult {
   currentUsername: string | undefined
 }
 
-const MIN_POLL_INTERVAL_SECONDS = 5
-const MAX_POLL_INTERVAL_SECONDS = 30
 // We currently do not have backend duration estimates per bulk item, so we use
 // simple defaults to keep polling predictable and inexpensive.
 const DEFAULT_TRANSCRIPTION_SOURCE_SECONDS = 60
@@ -35,8 +34,8 @@ function getActiveBulkActions(bulkActions: BulkActionResponse[], isBulkProcessin
   )
 }
 
-function constrainPollSeconds(seconds: number) {
-  return Math.max(MIN_POLL_INTERVAL_SECONDS, Math.min(MAX_POLL_INTERVAL_SECONDS, seconds))
+function constrainPollMs(milliseconds: number) {
+  return Math.max(BULK_ACTIONS_MIN_POLL_INTERVAL, Math.min(BULK_ACTIONS_MAX_POLL_INTERVAL, milliseconds))
 }
 
 function getEstimatedSecondsPerSubmission(bulkAction: BulkActionResponse) {
@@ -50,7 +49,7 @@ function getEstimatedSecondsPerSubmission(bulkAction: BulkActionResponse) {
     return DEFAULT_TRANSLATION_PER_SUBMISSION_SECONDS
   }
 
-  return MAX_POLL_INTERVAL_SECONDS
+  return BULK_ACTIONS_MAX_POLL_INTERVAL / 1000
 }
 
 export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionResponse[]) {
@@ -64,7 +63,7 @@ export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionRes
   )
 
   if (totalSubmissions === 0) {
-    return MIN_POLL_INTERVAL_SECONDS * 1000
+    return BULK_ACTIONS_MIN_POLL_INTERVAL
   }
 
   const totalEstimatedSeconds = activeBulkActions.reduce(
@@ -74,7 +73,7 @@ export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionRes
 
   // A fixed interval derived from total estimate / total submissions
   const averageSecondsPerSubmission = totalEstimatedSeconds / totalSubmissions
-  return constrainPollSeconds(averageSecondsPerSubmission) * 1000
+  return constrainPollMs(averageSecondsPerSubmission * 1000)
 }
 
 /**
@@ -83,9 +82,9 @@ export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionRes
  */
 export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActionsResult {
   const isBulkProcessingEnabled = envStore.data.asr_mt_features_enabled
-  const session = useSession()
+  const profile = useProfile()
   // While session is loading we avoid making user-specific decisions.
-  const currentUsername = session.isPending ? undefined : session.currentLoggedAccount?.username
+  const currentUsername = profile.isPending ? undefined : profile.currentLoggedAccount?.username
   const effectiveAssetUid = isBulkProcessingEnabled ? assetUid : ''
 
   // Empty uid disables the query in Orval/react-query options.

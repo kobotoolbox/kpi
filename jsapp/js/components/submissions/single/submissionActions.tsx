@@ -98,7 +98,7 @@ export default function SubmissionActions({
         // Pushed to the end, so the row keeps its shape when there is no
         // validation status dropdown to sit opposite it.
         <Group gap='xs' ml='auto'>
-          <Checkbox checked={showXMLNames} onChange={onShowXMLNamesChange} label={t('Display XML names')} />
+          <Checkbox checked={showXMLNames} onChange={onShowXMLNamesChange} label={t('Display question names')} />
 
           <ActionIcon
             onClick={onEdit}

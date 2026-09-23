@@ -2,11 +2,9 @@ import $ from 'jquery'
 import throttle from 'lodash.throttle'
 import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
-import { ROOT_URL } from '#/constants'
+import { HELP_MESSAGES_POLL_INTERVAL, ROOT_URL } from '#/constants'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
-
-const FETCH_MESSAGES_LOOP_TIME = 1 * 60 * 1000 // 1 minute
+import profileStore from '#/stores/profile'
 
 export interface InAppMessage {
   url: string
@@ -34,12 +32,12 @@ class HelpBubbleStore {
   public isOutsideCloseEnabled = true
   public isLoading = false
   /** This public function is throttled to not hit the backend to often. */
-  public fetchMessages = throttle(this.fetchMessagesInternal.bind(this, true), FETCH_MESSAGES_LOOP_TIME)
+  public fetchMessages = throttle(this.fetchMessagesInternal.bind(this, true), HELP_MESSAGES_POLL_INTERVAL)
 
   constructor() {
     makeAutoObservable(this)
     when(
-      () => sessionStore.isLoggedIn,
+      () => profileStore.isLoggedIn,
       () => this.fetchMessages(),
     )
   }

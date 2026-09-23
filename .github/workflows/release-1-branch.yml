@@ -16,6 +16,10 @@ on:
     - cron: '17 5 * * 3'
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
 
@@ -90,7 +94,7 @@ jobs:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: update
         release_version: ${{ needs.version.outputs.current_minor }}
-        stage: "Pending QA"
+        stage: "Pending QA (preview on kf.beta)"
 
 
   qa-issue:

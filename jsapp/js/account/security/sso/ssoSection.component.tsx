@@ -4,14 +4,14 @@ import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import ManagedSsoConfirmModal from './ManagedSsoConfirmModal'
 import { deleteSocialAccount } from './sso.api'
 import { getConnectedApp, getSsoProviders, isSsoAvailable } from './sso.utils'
 import styles from './ssoSection.module.scss'
 
 export default function SsoSection() {
-  const { currentLoggedAccount, refreshAccount } = useSession()
+  const { currentLoggedAccount, refreshAccount } = useProfile()
   const socialApps = getSsoProviders(envStore.data)
   const connectedApp = getConnectedApp(envStore.data, currentLoggedAccount)
   const isManaged = connectedApp?.managed ?? false
@@ -59,9 +59,8 @@ export default function SsoSection() {
       ) : (
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
           {t(
-            "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
-              'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
-              'address is different.',
+            'Connect your KoboToolbox account with an identity provider for single-sign on (SSO).' +
+              ' This will also update your email address in case your current address is different.',
           )}
         </div>
       )}

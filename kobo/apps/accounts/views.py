@@ -13,6 +13,7 @@ from rest_framework import generics, mixins, status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
@@ -24,8 +25,14 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.versioning import APIV2Versioning
-from .extend_schemas.api.v2.email.examples import get_email_create_examples
+from .constants import EMAIL_CONFIRMATION_REQUESTED_DETAIL
+from .extend_schemas.api.v2.email.examples import (
+    get_email_confirmation_request_examples,
+    get_email_create_examples,
+)
 from .extend_schemas.api.v2.email.serializers import (
+    EmailConfirmationRequestPayload,
+    EmailConfirmationRequestResponse,
     EmailReauthenticationRequiredResponse,
     EmailRequestPayload,
 )
@@ -39,9 +46,11 @@ from .reauthentication import (
 )
 from .serializers import (
     EmailAddressSerializer,
+    EmailConfirmationRequestSerializer,
     SocialAccountSerializer,
     SocialAppDetailSerializer,
 )
+from .throttling import EmailConfirmationRequestEmailThrottle
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -176,6 +185,100 @@ class EmailAddressViewSet(
             primary=False, verified=False
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(tags=['User / team / organization / usage'])
+@extend_schema_view(
+    post=extend_schema(
+        description=read_md('accounts', 'email_confirmations/create.md'),
+        request={'application/json': EmailConfirmationRequestPayload},
+        responses=open_api_200_ok_response(
+            EmailConfirmationRequestResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            raise_throttled=True,
+            validations_errors={'email': ['Enter a valid email address.']},
+        ),
+        examples=get_email_confirmation_request_examples(),
+    ),
+)
+class EmailConfirmationView(APIView):
+    """
+    Send another account confirmation email, on request
+
+    Available actions:
+    - create         → POST     /api/v2/email-confirmations/
+
+    Documentation:
+    - docs/api/v2/email_confirmations/create.md
+
+    The response is identical whether the address is unverified, already verified,
+    or unknown, so the endpoint cannot be used to discover who holds an account.
+    Mail is only ever sent in the first of those cases.
+
+    Which email that is depends on the account: one with nothing verified yet is
+    being activated and gets the activation email, while one that already has a
+    verified address is partway through an email change and gets the address
+    verification email.
+    """
+
+    permission_classes = (AllowAny,)
+    versioning_class = APIV2Versioning
+    serializer_class = EmailConfirmationRequestSerializer
+    throttle_classes = (EmailConfirmationRequestEmailThrottle,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        for address in self._get_unverified_addresses(
+            serializer.validated_data['email']
+        ):
+            self._send_confirmation(request, address)
+
+        return Response(
+            {'detail': EMAIL_CONFIRMATION_REQUESTED_DETAIL},
+            status=status.HTTP_200_OK,
+        )
+
+    def _get_unverified_addresses(self, email):
+        """
+        Get every unverified row for this address whose owner is still active
+
+        One address can belong to several accounts, and each owner is entitled to
+        their own link.
+
+        Matched on the lowercased address, the way allauth looks this table up,
+        because `iexact` compiles to `UPPER(email) = UPPER(%s)`, which no index
+        covers and which turns into a sequential scan over a row per user.
+        """
+        return EmailAddress.objects.filter(
+            email=email.strip().lower(), verified=False, user__is_active=True
+        ).select_related('user')
+
+    def _send_confirmation(self, request, address):
+        """
+        Send one confirmation link
+
+        `signup=False` because no signup is happening here. Which of the three
+        emails that becomes is decided by `AccountAdapter`, from whether the
+        account already has a verified address.
+
+        Delivery failures are logged rather than raised: mail is only ever
+        attempted for a registered address, so a 5xx would confirm the address is
+        registered.
+        """
+        try:
+            # Not allauth's `send_verification_email_to_address()`: that also
+            # queues a Django message, which an anonymous caller receives as a
+            # cookie reading "Confirmation email sent to <address>."
+            address.send_confirmation(request, signup=False)
+        except Exception:
+            logging.exception(
+                'Failed to send a requested confirmation email for EmailAddress %s',
+                address.pk,
+            )
 
 
 @extend_schema(tags=['User / team / organization / usage'])

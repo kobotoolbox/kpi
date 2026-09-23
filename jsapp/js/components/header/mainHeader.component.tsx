@@ -23,7 +23,7 @@ import {
   isMyLibraryRoute,
   isPublicCollectionsRoute,
 } from '#/router/routerUtils'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import AccountMenu from './accountMenu'
 import GitRev from './gitRev.component'
 import styles from './mainHeader.module.scss'
@@ -88,7 +88,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   }
 
   render() {
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     let asset: AssetResponse | undefined
     if (this.props.assetUid) {

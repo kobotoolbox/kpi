@@ -13,7 +13,7 @@ import {
   isFormLandingRoute,
   isFormSummaryRoute,
 } from '#/router/routerUtils'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {
@@ -32,7 +32,7 @@ export default function ProjectTopTabs() {
   const isDataTabEnabled = userCan('view_submissions', asset) || userCanPartially('view_submissions', asset)
 
   const isSettingsTabEnabled =
-    sessionStore.isLoggedIn && (userCan('change_asset', asset) || userCan('change_metadata_asset', asset))
+    profileStore.isLoggedIn && (userCan('change_asset', asset) || userCan('change_metadata_asset', asset))
 
   const summaryRoute = ROUTES.FORM_SUMMARY.replace(':uid', assetUid)
   const formRoute = ROUTES.FORM_LANDING.replace(':uid', assetUid)
@@ -43,7 +43,7 @@ export default function ProjectTopTabs() {
     <nav className={styles.root}>
       <ul className={styles.tabs}>
         <li>
-          {sessionStore.isLoggedIn ? (
+          {profileStore.isLoggedIn ? (
             <Link
               to={summaryRoute}
               className={classnames(styles.tab, {

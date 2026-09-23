@@ -13,7 +13,7 @@ import {
 import ActionIcon from '#/components/common/ActionIcon'
 import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime } from '#/utils'
 
 const ITEMS_PER_PAGE = 10
@@ -63,7 +63,7 @@ function getVersionName(
  * Displays a table with a list of previous form versions, including both deployed and undeployed versions.
  */
 export default function FormHistory(props: FormHistoryProps) {
-  const isLoggedIn = sessionStore.isLoggedIn
+  const isLoggedIn = profileStore.isLoggedIn
 
   useEffect(() => {
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
@@ -178,7 +178,7 @@ export default function FormHistory(props: FormHistoryProps) {
 
   if (historyInfiniteQuery.isLoading) {
     return (
-      <Center p='xl'>
+      <Center p='xxl'>
         <Loader />
       </Center>
     )
@@ -189,6 +189,9 @@ export default function FormHistory(props: FormHistoryProps) {
       columns={columns}
       data={rowData}
       maxHeight={425}
+      // A failed request also leaves us with zero rows, and the table's default "no data" wording would read as "this
+      // form was never changed". Say what actually happened instead; the retry button is in `bottomContent` below.
+      emptyMessage={historyInfiniteQuery.isError ? t('Could not load the form history.') : undefined}
       bottomContent={
         <InfiniteScrollTrigger
           hasNextPage={historyInfiniteQuery.hasNextPage}

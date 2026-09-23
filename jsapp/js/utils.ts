@@ -14,6 +14,7 @@ import { Cookies } from 'react-cookie'
 import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isMapDisplayableGeopointType } from './constants'
 import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
@@ -60,18 +61,6 @@ const notify = (
 ): Toast['id'] => {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
-
-  // avoid displaying a (specific) JSON structure in the notification
-  if (typeof msg === 'string' && msg[0] === '{') {
-    try {
-      const parsed = JSON.parse(msg)
-      if (recordKeys(parsed).length === 1 && 'detail' in parsed) {
-        msg = `${parsed.detail}`
-      }
-    } catch (err) {
-      console.error('notification starts with { but is not parseable JSON.')
-    }
-  }
 
   // If a specific console message is provided, display that instead of the default msg
   switch (atype) {
@@ -719,14 +708,19 @@ export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) 
  * describing the error, suitable for embedding in an alertify message.
  */
 export function getErrorMessage(err: FailResponse): string {
-  if (err.responseJSON?.detail) {
-    return `<pre>${err.responseJSON.detail}</pre>`
+  const message = flattenErrorBody(err.responseJSON)
+
+  if (message) {
+    // Both callers paste this into an alertify dialog as HTML, so escape it - even a real message can carry an angle
+    // bracket.
+    return `<pre>${escapeHtml(message)}</pre>`
   }
-  if (err.responseJSON?.error) {
-    return `<pre>${err.responseJSON.error}</pre>`
-  }
-  if (err.responseText) {
-    return `<pre style='max-height: 200px;'>${err.responseText}</pre>`
-  }
+
+  // The dialog now says something generic, and these callers don't go through `handleApiFail`, so this is the only
+  // place the actual body gets recorded.
+  console.error(
+    '[getErrorMessage] ❌ ' + [`${err.status} ${err.statusText}`.trim(), err.responseText].filter(Boolean).join(' | '),
+  )
+
   return t('please check your connection and try again.')
 }

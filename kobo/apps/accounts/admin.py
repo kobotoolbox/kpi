@@ -12,6 +12,7 @@ from django.forms.formsets import all_valid
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from kobo.apps.accounts.models import (
@@ -20,8 +21,15 @@ from kobo.apps.accounts.models import (
     SocialAppCustomData,
     SocialAppManagedDomain,
 )
-from kobo.apps.accounts.tasks import DEFAULT_IN_APP_MESSAGE_BODY, update_users
-from kobo.apps.accounts.utils import user_is_managed_by_sso, users_needing_update
+from kobo.apps.accounts.tasks import update_users
+from kobo.apps.accounts.utils import (
+    DEFAULT_IN_APP_MESSAGE_BODY,
+    DEFAULT_IN_APP_MESSAGE_FIELDS,
+    SOCIAL_APP_IDENTIFIER,
+    user_is_managed_by_sso,
+    users_needing_update,
+)
+from kobo.apps.help.models import InAppMessage
 
 
 @admin.register(EmailContent)
@@ -83,6 +91,7 @@ class DomainInline(admin.TabularInline):
 @admin.register(SocialAppCustomData)
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
     inlines = [DomainInline]
+    exclude = ['send_in_app_message', 'in_app_message']
 
     def _get_affected_accounts_counts(self, social_app, submitted_domains, is_managed):
         """
@@ -108,16 +117,16 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         confirmed = request.method == 'POST' and request.POST.get('_confirmed') == '1'
+        message_error = None
         # The toggle field only exists once the confirmation page has been
         # rendered, so it defaults to True on the first (unconfirmed) POST.
-        send_in_app_message = (
-            'send_in_app_message' in request.POST if confirmed else True
-        )
-        in_app_message_body = request.POST.get('in_app_message_body', '').strip()
-        message_error = None
-        if confirmed and send_in_app_message and not in_app_message_body:
-            message_error = _('The in-app message cannot be empty.')
+        if confirmed:
+            send_in_app_message = 'send_in_app_message' in request.POST
+            in_app_message_body = request.POST.get('in_app_message_body', '').strip()
+            if send_in_app_message and not in_app_message_body:
+                message_error = _('The in-app message cannot be empty.')
 
+        # (re-)render the confirmation page
         if request.method == 'POST' and (not confirmed or message_error):
             add = object_id is None
             to_field = request.POST.get('_to_field', request.GET.get('_to_field'))
@@ -127,6 +136,9 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                 obj = None
                 initial_managed = False
                 initial_domains = set()
+                if not confirmed:
+                    send_in_app_message = True
+                    in_app_message_body = DEFAULT_IN_APP_MESSAGE_BODY
             else:
                 obj = self.get_object(request, unquote(object_id), to_field)
                 if not self.has_change_permission(request, obj):
@@ -137,6 +149,11 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     )
                 initial_managed = obj.managed
                 initial_domains = set(obj.domains.values_list('domain', flat=True))
+                if not confirmed:
+                    send_in_app_message = obj.send_in_app_message
+                    in_app_message_body = DEFAULT_IN_APP_MESSAGE_BODY
+                    if obj.in_app_message is not None:
+                        in_app_message_body = obj.in_app_message.body
 
             ModelForm = self.get_form(request, obj, change=not add)
             form = ModelForm(request.POST, request.FILES, instance=obj)
@@ -258,6 +275,28 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj._initially_managed_pre_save = obj._initially_managed
         obj._initial_domains_pre_save = obj._initial_domains
+        if request.POST.get('_confirmed') == '1' and obj.managed:
+            obj.send_in_app_message = 'send_in_app_message' in request.POST
+            body = request.POST.get('in_app_message_body', '').strip()
+            if obj.send_in_app_message:
+                if not obj.in_app_message:
+                    message = InAppMessage.objects.create(
+                        **DEFAULT_IN_APP_MESSAGE_FIELDS,
+                        body=body or DEFAULT_IN_APP_MESSAGE_BODY,
+                        valid_from=timezone.now(),
+                        # validity will be extended if/when there are users to notify
+                        # so it doesn't show to all users
+                        valid_until=timezone.now(),
+                        last_editor=request.user,
+                        generic_related_objects={
+                            SOCIAL_APP_IDENTIFIER: obj.social_app.pk
+                        },
+                    )
+                    obj.in_app_message = message
+                else:
+                    obj.in_app_message.body = body or DEFAULT_IN_APP_MESSAGE_BODY
+                    obj.in_app_message.last_editor = request.user
+                    obj.in_app_message.save()
         super().save_model(request, obj, form, change)
 
     def save_related(self, request: HttpRequest, form, formsets, change) -> None:
@@ -279,14 +318,10 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     domains_to_update.append(domain)
 
             def update_all_domains():
-                send_message = request.POST.get('send_in_app_message', 'off') == 'on'
                 for domain in domains_to_update:
                     update_users.delay(
                         social_app_custom_data_id=instance.pk,
                         domain=domain,
-                        requesting_user_id=request.user.pk,
-                        send_in_app_message=send_message,
-                        in_app_message_body=request.POST.get('in_app_message_body'),
                     )
 
             transaction.on_commit(update_all_domains)
