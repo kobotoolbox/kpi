@@ -39,7 +39,7 @@ import type {
 } from '#/dataInterface'
 import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
 import { ActionIdEnum } from './api/models/actionIdEnum'
@@ -74,7 +74,7 @@ export function cleanupAndUniqueTags(tags: string[]) {
  * Returns nicer "me" label for your own assets.
  */
 export function getAssetOwnerDisplayName(username: string) {
-  if (sessionStore.currentAccount?.username && sessionStore.currentAccount.username === username) {
+  if (profileStore.currentAccount?.username && profileStore.currentAccount.username === username) {
     return t('me')
   } else {
     return username
@@ -691,7 +691,7 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
 }
 
 export function isSelfOwned(asset: AssetResponse | ProjectViewAsset) {
-  return asset && sessionStore.currentAccount && asset.owner__username === sessionStore.currentAccount.username
+  return asset && profileStore.currentAccount && asset.owner__username === profileStore.currentAccount.username
 }
 
 export function buildAssetUrl(assetUid: string) {
@@ -766,7 +766,7 @@ export type AssetDeleteCheckResult =
  * or `canDelete: false` with the reason why that specific asset is blocked.
  */
 export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): AssetDeleteCheckResult[] {
-  const account = sessionStore.currentAccount
+  const account = profileStore.currentAccount
   const orgUid = 'organization' in account ? account.organization?.uid : undefined
   const orgResponse = orgUid
     ? queryClient.getQueryData<OrganizationsRetrieveQueryResult>(getOrganizationsRetrieveQueryKey(orgUid))

@@ -18,7 +18,7 @@ import { ASSET_TYPES, type AssetTypeName } from '#/constants'
 import type { AssetResponse, AssetSettings, LabelValuePair } from '#/dataInterface'
 import envStore from '#/envStore'
 import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { notify } from '#/utils'
 
 interface LibraryAssetFormProps {
@@ -61,7 +61,7 @@ export const LibraryAssetForm = ({ asset, assetType, onBack, onRequestClose }: L
 
   const formAssetType: AssetTypeName | undefined = asset ? asset.asset_type : assetType
 
-  const [isSessionLoaded, setIsSessionLoaded] = useState(!!sessionStore.isLoggedIn)
+  const [isSessionLoaded, setIsSessionLoaded] = useState(!!profileStore.isLoggedIn)
   const [isPending, setIsPending] = useState(false)
 
   const [fields, setFields] = useState<FormFields>(() => {
@@ -93,7 +93,7 @@ export const LibraryAssetForm = ({ asset, assetType, onBack, onRequestClose }: L
 
   useEffect(() => {
     const disposeSessionWhen = when(
-      () => sessionStore.isInitialLoadComplete,
+      () => profileStore.isInitialLoadComplete,
       () => setIsSessionLoaded(true),
     )
 

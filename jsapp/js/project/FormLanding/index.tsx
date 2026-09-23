@@ -29,7 +29,7 @@ import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplacePr
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
 import FormHistory from './FormHistory'
@@ -493,7 +493,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
   renderButtons(asset: AssetResponse, userCanEdit: boolean) {
     const downloads = asset.downloads || []
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     return (
       <React.Fragment>
@@ -640,7 +640,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
     const docTitle = asset.name || t('Untitled')
     const userCanEdit = userCan('change_asset', asset)
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
