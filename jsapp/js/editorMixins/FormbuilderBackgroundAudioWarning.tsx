@@ -1,4 +1,4 @@
-import { Text } from '@mantine/core'
+import { Anchor, Text } from '@mantine/core'
 import Markdown from 'react-markdown'
 import Alert from '#/components/common/alert'
 import envStore from '#/envStore'
@@ -36,15 +36,15 @@ export default function FormbuilderBackgroundAudioWarning(props: FormbuilderBack
       <Markdown
         components={{
           // Custom link component to open link on target _blank
-          a: (props) => (
-            <a href={props.href} target='_blank'>
-              {props.children}
-            </a>
+          a: (linkProps) => (
+            <Anchor href={linkProps.href} target='_blank'>
+              {linkProps.children}
+            </Anchor>
           ),
           // Custom paragraph component to use mantine Text instead of <p>
-          p: (props) => (
+          p: (paragraphProps) => (
             <Text c='blue.4' mr='lg'>
-              {props.children}
+              {paragraphProps.children}
             </Text>
           ),
         }}
