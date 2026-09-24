@@ -394,9 +394,7 @@ class SocialAccountLogoutTestCase(TestCase):
 
     @responses.activate
     def test_rp_initiated_with_discovery(self):
-        self.social_app.settings = {
-            'server_url': 'https://idp.com/auth/realms/kobo'
-        }
+        self.social_app.settings = {'server_url': 'https://idp.com/auth/realms/kobo'}
         self.social_app.save()
 
         SocialAccount.objects.create(
@@ -416,9 +414,7 @@ class SocialAccountLogoutTestCase(TestCase):
         responses.add(
             responses.GET,
             discovery_url,
-            json={
-                'end_session_endpoint': 'https://idp.com/auth/realms/kobo/logout'
-            },
+            json={'end_session_endpoint': 'https://idp.com/auth/realms/kobo/logout'},
             status=200,
         )
 
