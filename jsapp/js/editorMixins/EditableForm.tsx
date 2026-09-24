@@ -25,10 +25,8 @@ import {
 import FormLockedMessage from '#/components/locking/formLockedMessage'
 import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction, isAssetLockable } from '#/components/locking/lockingUtils'
-import MetadataEditor from '#/components/metadataEditor'
 import {
   ASSET_TYPES,
-  AVAILABLE_FORM_STYLES,
   AssetTypeName,
   type FormStyleName,
   NAME_MAX_LENGTH,
@@ -55,9 +53,9 @@ import {
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
-import AssetNavigator from './AssetNavigator'
 import FormbuilderAssetLabel from './FormbuilderAssetLabel'
 import FormbuilderBackgroundAudioWarning from './FormbuilderBackgroundAudioWarning'
+import FormbuilderSidebar from './FormbuilderSidebar'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
@@ -65,7 +63,6 @@ bem.CascadePopup = makeBem(null, 'cascade-popup')
 bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message')
 bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper')
 
-const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
@@ -297,12 +294,6 @@ export default function EditableForm(props: EditableFormProps) {
       settings__style: settingsStyle,
     }))
     onSurveyChangeDebounced()
-  }
-
-  function getStyleSelectVal(optionVal?: FormStyleName) {
-    // Styles we no longer offer leave the dropdown empty instead of adding an
-    // option that couldn't be picked again anyway.
-    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)?.value ?? null
   }
 
   function onSurveyChange() {
@@ -716,35 +707,11 @@ export default function EditableForm(props: EditableFormProps) {
     props.router.navigate(targetRoute)
   }
 
-  function isAddingQuestionsRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.question_add)
-    )
-  }
-
   function isAddingGroupsRestricted() {
     return (
       state.asset?.content &&
       isAssetLockable(state.asset.asset_type) &&
       hasAssetRestriction(state.asset.content, LockingRestrictionName.group_add)
-    )
-  }
-
-  function isChangingAppearanceRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.form_appearance)
-    )
-  }
-
-  function isChangingMetaQuestionsRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.form_meta_edit)
     )
   }
 
@@ -893,81 +860,6 @@ export default function EditableForm(props: EditableFormProps) {
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
       </bem.FormBuilderHeader>
-    )
-  }
-
-  function renderAside() {
-    const { styleValue, hasSettings } = buttonStates()
-
-    const isAsideVisible = state.asideLayoutSettingsVisible || state.asideLibrarySearchVisible
-
-    return (
-      <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
-        {state.asideLayoutSettingsVisible && (
-          <bem.FormBuilderAside__content>
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>
-                {t('Form style')}
-
-                {envStore.isReady && envStore.data.support_url && (
-                  <a
-                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
-                    target='_blank'
-                    data-tip={t('Read more about form styles')}
-                  >
-                    <i className='k-icon k-icon-help' />
-                  </a>
-                )}
-              </bem.FormBuilderAside__header>
-
-              <Select
-                id='webform-style'
-                name='webform-style'
-                label={
-                  hasSettings
-                    ? t('Select the form style that you would like to use. This will only affect web forms.')
-                    : t(
-                        'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.',
-                      )
-                }
-                value={getStyleSelectVal(styleValue)}
-                onChange={onStyleChange}
-                placeholder={AVAILABLE_FORM_STYLES[0].label}
-                data={AVAILABLE_FORM_STYLES}
-                disabled={isChangingAppearanceRestricted()}
-                clearable={false}
-              />
-            </bem.FormBuilderAside__row>
-
-            {hasMetadataAndDetails() && (
-              <bem.FormBuilderAside__row>
-                <bem.FormBuilderAside__header>{t('Metadata')}</bem.FormBuilderAside__header>
-
-                <MetadataEditor
-                  survey={app?.survey}
-                  onChange={onMetadataEditorChange}
-                  isDisabled={isChangingMetaQuestionsRestricted()}
-                  {...state}
-                />
-              </bem.FormBuilderAside__row>
-            )}
-          </bem.FormBuilderAside__content>
-        )}
-
-        {state.asideLibrarySearchVisible && (
-          <bem.FormBuilderAside__content
-            className={isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
-          >
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>{t('Search Library')}</bem.FormBuilderAside__header>
-            </bem.FormBuilderAside__row>
-
-            <bem.FormBuilderAside__row>
-              <AssetNavigator />
-            </bem.FormBuilderAside__row>
-          </bem.FormBuilderAside__content>
-        )}
-      </bem.FormBuilderAside>
     )
   }
 
@@ -1128,7 +1020,18 @@ export default function EditableForm(props: EditableFormProps) {
     <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <>
         <div className='form-builder-wrapper'>
-          {renderAside()}
+          <FormbuilderSidebar
+            asideLayoutSettingsVisible={state.asideLayoutSettingsVisible}
+            asideLibrarySearchVisible={state.asideLibrarySearchVisible}
+            settings__style={state.settings__style}
+            backRoute={state.backRoute}
+            onStyleChange={onStyleChange}
+            onMetadataEditorChange={onMetadataEditorChange}
+            survey={app?.survey}
+            asset={state.asset}
+            desiredAssetType={state.desiredAssetType}
+            hasMetadataAndDetails={!!hasMetadataAndDetails()}
+          />
 
           <bem.FormBuilder>
             {renderFormBuilderHeader()}
