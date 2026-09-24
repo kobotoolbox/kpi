@@ -15,6 +15,19 @@ export function findAttachmentByQuestionXpath(
   return submission._attachments?.find((attachment) => attachment.question_xpath === questionXpath)
 }
 
+export function findAttachmentByQuestionXpaths(
+  submission: DataResponse | SubmissionResponse,
+  questionXpaths: string[],
+): SubmissionAttachment | undefined {
+  for (const questionXpath of questionXpaths) {
+    const attachment = findAttachmentByQuestionXpath(submission, questionXpath)
+    if (attachment) {
+      return attachment
+    }
+  }
+  return undefined
+}
+
 /** `application/ogg` counts - a generic prefix, but we do play Ogg as audio. */
 function isAudioMimetype(mimetype: string) {
   return mimetype.startsWith('audio/') || mimetype === 'application/ogg'

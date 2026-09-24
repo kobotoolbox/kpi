@@ -7,9 +7,13 @@ import {
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
-import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
+import type { AssetResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { formatTimeDateShort, recordKeys } from '#/utils'
-import { findAttachmentByQuestionXpath, getMediaAttachment, inferAttachmentQuestionType } from '../submissionMediaUtils'
+import {
+  findAttachmentByQuestionXpaths,
+  getMediaAttachment,
+  inferAttachmentQuestionType,
+} from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
@@ -21,6 +25,11 @@ interface DataTableCellProps {
   asset: AssetResponse
   reactTableRow: CellInfo
   columnKey: string
+  /**
+   * The other paths this column stands for, dropped as duplicates of it when their question
+   * moved between groups. Pre-move submissions file their attachments under those.
+   */
+  legacyAttachmentPaths?: string[]
   question?: SurveyRow
   choices: SurveyChoice[]
   showGroupName: boolean
@@ -79,39 +88,32 @@ export default function DataTableCell(props: DataTableCellProps) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 
-  // A question renamed or removed after this submission came in has no row left, so
-  // its column gets no `props.question` - even though the response and its file are
-  // right here, under the path the attachment recorded back then.
-  const orphanedAttachment = props.question ? undefined : findAttachmentByQuestionXpath(submission, props.columnKey)
+  // `question_xpath` was recorded when the submission came in, so it finds the file even
+  // after a rename, a move or a removal.
+  const attachment = findAttachmentByQuestionXpaths(submission, [
+    props.columnKey,
+    ...(props.legacyAttachmentPaths ?? []),
+  ])
 
-  const questionType = props.question?.type ?? (orphanedAttachment && inferAttachmentQuestionType(orphanedAttachment))
-  const questionXpath = props.question?.$xpath ?? orphanedAttachment?.question_xpath
+  // The row goes first where there is one: it alone tells `background-audio` from `audio`,
+  // and a `file` question holding a photo from an `image` one.
+  const questionType = props.question?.type ?? (attachment && inferAttachmentQuestionType(attachment))
+  // The attachment's path is also the one the processing view has to open at.
+  const questionXpath = attachment?.question_xpath ?? props.question?.$xpath
 
   if (questionType && props.reactTableRow.value) {
     if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
-      // The cell value is only a basename, so the file has to be looked up by
-      // xpath - which for a renamed question no longer matches any column key.
-      const attachmentXpath =
-        orphanedAttachment?.question_xpath ??
-        submission._attachments.find(
-          (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
-        )?.question_xpath
-
       const mediaAttachment =
-        attachmentXpath === undefined
+        attachment === undefined
           ? null
-          : getMediaAttachment(submission, props.reactTableRow.value, attachmentXpath)
+          : getMediaAttachment(submission, props.reactTableRow.value, attachment.question_xpath)
 
       if (questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id) {
         if (mediaAttachment !== null && questionXpath !== undefined) {
-          const audioXpath =
-            typeof mediaAttachment === 'string' || !mediaAttachment.question_xpath
-              ? questionXpath
-              : mediaAttachment.question_xpath
           return (
             <AudioCell
               assetUid={props.asset.uid}
-              xpath={audioXpath}
+              xpath={questionXpath}
               submissionData={submission}
               mediaAttachment={mediaAttachment}
               questionLabel={columnName}
