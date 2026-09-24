@@ -6,7 +6,8 @@ from kobo.apps.support_tools.models import (
     AttachmentRestoreJob,
     AttachmentRestoreJobStatus,
 )
-from kobo.apps.support_tools.utils.helpers import get_project_xform, log_collector
+from kobo.apps.support_tools.utils.helpers import get_project_xform
+from kobo.apps.support_tools.utils.logger import RestoreLogger
 from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kobo.celery import celery_app
 
@@ -32,7 +33,9 @@ def run_attachment_restore_job(job_id: int):
     """
 
     job = AttachmentRestoreJob.objects.get(pk=job_id)
-    lines, log = log_collector()
+    # What a run does, without the detail `-v 2` and `-v 3` add in the shell:
+    # the row is read by support, and it grows with every run of the job
+    log = RestoreLogger()
     restorer = None
     requeue = False
     status = AttachmentRestoreJobStatus.COMPLETED
@@ -67,7 +70,7 @@ def run_attachment_restore_job(job_id: int):
         status = AttachmentRestoreJobStatus.FAILED
         raise
     finally:
-        _save_progress(job, status, lines, restorer)
+        _save_progress(job, status, log.lines, restorer)
 
     # Only once this run's log and counts are on the row. The continuation
     # reads that same row, and the restorer let go of the project before this

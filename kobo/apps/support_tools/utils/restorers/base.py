@@ -4,6 +4,7 @@ from redis.exceptions import LockError
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
+from kobo.apps.support_tools.utils.logger import NORMAL, VERBOSE
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 # Long enough for a run interrupted by a time limit to be picked up the same
@@ -33,6 +34,10 @@ class ProjectRestorer:
     with `item_label`, and implement `_fetch_batch()`, `_restore_batch()`,
     `_log_progress()` and `_log_summary()`. `_prepare()` lets them stop before
     the walk when the project has nothing to repair.
+
+    `log` is a `RestoreLogger`, or any callable taking a message and a level:
+    log what the run does at `NORMAL`, how it works through the project at
+    `VERBOSE`, and how it reaches each decision at `DEBUG`.
     """
 
     cache_key_prefix = None
@@ -48,7 +53,7 @@ class ProjectRestorer:
         self.xform = xform
         self.dry_run = dry_run
         self.resume = resume
-        self.log = log or (lambda message: None)
+        self.log = log or (lambda message, level=NORMAL: None)
 
         self.scanned = 0
         self.completed = False
@@ -212,6 +217,11 @@ class ProjectRestorer:
                 break
 
             self.scanned += len(batch)
+            self.log(
+                f'Batch of {len(batch)} {self.item_label}(s),'
+                f' #{batch[0].pk} down to #{batch[-1].pk}',
+                VERBOSE,
+            )
             self._restore_batch(batch)
 
             # Only ever moved once a batch is committed, so an interruption

@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
 from kobo.apps.support_tools.utils.helpers import get_project_xform
+from kobo.apps.support_tools.utils.logger import RestoreLogger
 from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kobo.apps.support_tools.utils.restorers.form_versions import (
     FormVersionsRestorer,
@@ -14,7 +15,8 @@ class Command(BaseCommand):
         ' through several form versions before the server started recording'
         ' them, i.e. submissions edited under a newer version or collected'
         ' offline with an older one. Reports without writing anything unless'
-        ' `--no-dry-run` is passed.'
+        ' `--no-dry-run` is passed. `-v 2` logs each batch, `-v 3` how each'
+        ' submission history is rebuilt.'
     )
 
     def add_arguments(self, parser):
@@ -55,7 +57,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options['dry_run']
-        log = self.stdout.write if options['verbosity'] > 0 else None
+        log = RestoreLogger(options['verbosity'], echo=self.stdout.write)
 
         try:
             xform = get_project_xform(options['asset_uid'])
@@ -70,7 +72,7 @@ class Command(BaseCommand):
 
             if options['restore_attachments'] and restorer.completed:
                 if dry_run:
-                    self.stdout.write(
+                    log(
                         'Nothing was written above, so the attachment count below'
                         ' may be low: files under a question only an intermediate'
                         ' version had are found once the versions are recorded.'
@@ -79,7 +81,7 @@ class Command(BaseCommand):
                     xform, dry_run=dry_run, resume=options['resume'], log=log
                 ).run()
             elif restorer.updated and not dry_run:
-                self.stdout.write(
+                log(
                     'Run `restore_soft_deleted_attachments` on this project to'
                     ' bring back files the recorded versions now account for.'
                 )
@@ -88,4 +90,4 @@ class Command(BaseCommand):
             raise CommandError(str(e))
 
         if dry_run:
-            self.stdout.write('Nothing was written. Pass `--no-dry-run` to update.')
+            log('Nothing was written. Pass `--no-dry-run` to update.')

@@ -7,6 +7,7 @@ from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_form_versions
 from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.support_tools.utils.helpers import rebuild_form_versions
+from kobo.apps.support_tools.utils.logger import DEBUG, VERBOSE
 from kobo.apps.support_tools.utils.restorers.base import CHUNK_SIZE, ProjectRestorer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.mongo_helper import MongoHelper
@@ -159,15 +160,29 @@ class FormVersionsRestorer(ProjectRestorer):
         """
 
         histories = self._get_histories([instance.pk for instance in instances])
+        candidates = self._get_candidates(instances, histories)
         to_update = []
 
-        for instance in self._get_candidates(instances, histories):
+        self.log(
+            f'  {len(candidates)} candidate(s), {len(histories)} edited at least once',
+            VERBOSE,
+        )
+
+        for instance in candidates:
+            self.log(
+                f'Instance #{instance.pk}, received'
+                f' {instance.date_created.isoformat()},'
+                f' {len(histories[instance.pk])} edit(s):',
+                DEBUG,
+            )
+
             try:
                 form_versions = rebuild_form_versions(
                     instance.xml,
                     instance.date_created,
                     histories[instance.pk],
                     self._deployed_versions,
+                    log=self.log,
                 )
             except (SoftTimeLimitExceeded, TimeLimitExceeded):
                 raise

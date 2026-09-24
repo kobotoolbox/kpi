@@ -2,7 +2,6 @@ import io
 import unicodedata
 from unittest.mock import patch
 
-from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -483,48 +482,6 @@ class AttachmentRestorerTestCase(TestCase):
         attachment.refresh_from_db()
         assert attachment.delete_status is None
 
-    def test_the_command_mails_its_log_when_asked_to(self):
-        _, attachment = self._submit_with_photo('first.jpg')
-        self._kill(attachment)
-
-        call_command(
-            'restore_soft_deleted_attachments',
-            asset_uid=self.asset.uid,
-            dry_run=False,
-            email=['support@example.com'],
-            verbosity=0,
-        )
-
-        assert len(mail.outbox) == 1
-        assert mail.outbox[0].to == ['support@example.com']
-        assert attachment.media_file_basename in mail.outbox[0].body
-
-    def test_the_command_mails_the_log_of_a_run_that_failed(self):
-        """
-        The log is the only trace of a run launched from the admin, so a failure
-        has to reach the person who asked for it rather than die in the worker.
-        """
-
-        _, attachment = self._submit_with_photo('first.jpg')
-        self._kill(attachment)
-
-        with patch.object(
-            attachment_restorer.ParsedInstance,
-            'bulk_update_attachments',
-            side_effect=OSError('mongo is down'),
-        ):
-            with self.assertRaises(OSError):
-                call_command(
-                    'restore_soft_deleted_attachments',
-                    asset_uid=self.asset.uid,
-                    dry_run=False,
-                    email=['support@example.com'],
-                    verbosity=0,
-                )
-
-        assert len(mail.outbox) == 1
-        assert 'FAILED. OSError: mongo is down' in mail.outbox[0].body
-
     def test_the_command_refuses_a_project_that_does_not_exist(self):
         with self.assertRaises(CommandError) as context:
             call_command(
@@ -534,20 +491,6 @@ class AttachmentRestorerTestCase(TestCase):
             )
 
         assert 'does not exist' in str(context.exception)
-
-    def test_the_command_mails_the_log_of_a_project_it_cannot_resolve(self):
-        with self.assertRaises(CommandError):
-            call_command(
-                'restore_soft_deleted_attachments',
-                asset_uid='aNoSuchAsset',
-                email=['support@example.com'],
-                verbosity=0,
-            )
-
-        assert len(mail.outbox) == 1
-        assert 'FAILED. CommandError: Asset `aNoSuchAsset` does not exist' in (
-            mail.outbox[0].body
-        )
 
     def _kill(self, attachment: Attachment):
         """

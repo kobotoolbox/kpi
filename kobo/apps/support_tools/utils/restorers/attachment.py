@@ -11,6 +11,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_xform_media_question_xpaths,
 )
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.support_tools.utils.logger import DEBUG, VERBOSE
 from kobo.apps.support_tools.utils.restorers.base import CHUNK_SIZE, ProjectRestorer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.files import normalize_nfc
@@ -210,6 +211,8 @@ class AttachmentRestorer(ProjectRestorer):
         basenames_in_use = self._get_basenames_in_use(attachments_per_instance.keys())
         to_restore, instance_ids = [], []
 
+        self.log(f'  {len(attachments_per_instance)} submission(s)', VERBOSE)
+
         instances = Instance.objects.only('pk', 'xml', 'xform_id').filter(
             pk__in=attachments_per_instance.keys()
         )
@@ -229,6 +232,18 @@ class AttachmentRestorer(ProjectRestorer):
                 # does not resolve, is never worth failing the whole run over
                 self.log(f'Instance #{instance.pk} skipped, {type(e).__name__}: {e}')
                 continue
+
+            soft_deleted = sorted(
+                attachment.media_file_basename or ''
+                for attachment in attachments_per_instance[instance.pk]
+            )
+            self.log(
+                f'Instance #{instance.pk}:'
+                f' referenced={sorted(submission_basenames or [])}'
+                f' soft_deleted={soft_deleted}'
+                f' in_use={sorted(basenames_in_use[instance.pk])}',
+                DEBUG,
+            )
 
             if not submission_basenames:
                 continue

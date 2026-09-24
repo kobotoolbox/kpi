@@ -4,8 +4,7 @@ from datetime import datetime
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.openrosa.libs.utils.logger_tools import _get_form_versions
-from kpi.utils.log import logging
-from kpi.utils.mailer import EmailMessage, Mailer
+from kobo.apps.support_tools.utils.logger import DEBUG
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 
@@ -28,27 +27,12 @@ def get_project_xform(asset_uid: str) -> XForm:
     return asset.deployment.xform
 
 
-def log_collector(echo: callable = None) -> tuple[list, callable]:
-    """
-    Return the list a run writes its log into and the callable that appends to
-    it, optionally echoing each line somewhere else as it goes.
-    """
-
-    lines = []
-
-    def log(message: str):
-        lines.append(message)
-        if echo:
-            echo(message)
-
-    return lines, log
-
-
 def rebuild_form_versions(
     xml: str,
     date_created: datetime,
     histories: list[tuple[str, datetime]],
     deployed_versions: list[dict],
+    log: callable = None,
 ) -> str | None:
     """
     Return the `meta/formVersions` a submission should carry, rebuilt from its
@@ -72,7 +56,11 @@ def rebuild_form_versions(
 
     `None` means there is nothing to write: fewer than two versions, or exactly
     what the submission already records.
+
+    `log`, a `RestoreLogger`, is told every step at the `DEBUG` level.
     """
+
+    log = log or (lambda message, level=None: None)
 
     snapshots = [history_xml for history_xml, _ in histories] + [xml]
     received_dates = [date_created] + [edited_at for _, edited_at in histories]
@@ -80,7 +68,7 @@ def rebuild_form_versions(
     form_versions = []
     xml_parsed = None
 
-    for snapshot, received_at in zip(snapshots, received_dates):
+    for step, (snapshot, received_at) in enumerate(zip(snapshots, received_dates)):
         xml_parsed = fromstring_preserve_root_xmlns(snapshot)
         recorded, submission_version = _get_form_versions(xml_parsed)
         deployed_version = _get_deployed_version_at(deployed_versions, received_at)
@@ -89,11 +77,21 @@ def rebuild_form_versions(
             if version_uid and version_uid not in form_versions:
                 form_versions.append(version_uid)
 
+        write = 'created' if step == 0 else f'edit #{step}'
+        source = 'current XML' if step == len(histories) else f'history #{step}'
+        log(
+            f'  {write} at {received_at.isoformat()} ({source}):'
+            f' recorded={recorded} __version__={submission_version}'
+            f' deployed={deployed_version} -> {form_versions}',
+            DEBUG,
+        )
+
     # The loop ends on the current XML
     recorded_element = xml_parsed.find(common_tags.META_FORM_VERSIONS)
     recorded_text = recorded_element.text if recorded_element is not None else None
 
     if len(form_versions) < 2:
+        log('  nothing to record, a single version', DEBUG)
         return None
 
     # `sort()` is stable, so unknown uids keep their relative order
@@ -104,30 +102,10 @@ def rebuild_form_versions(
     form_versions_text = ' '.join(form_versions)
 
     if form_versions_text == recorded_text:
+        log('  nothing to record, already up to date', DEBUG)
         return None
 
     return form_versions_text
-
-
-def send_restore_log(email_to: list, asset_uid: str, lines: list):
-    """
-    Mail a run's log, and never let a failed send become the run's own failure:
-    this is called from a `finally`, where raising would hide whatever the run
-    was already reporting.
-    """
-
-    try:
-        Mailer.send(
-            EmailMessage(
-                to=email_to,
-                subject=f'Attachment restore for project {asset_uid}',
-                plain_text_content_or_template='\n'.join(lines) + '\n',
-            )
-        )
-    except Exception as e:  # noqa
-        logging.error(
-            f'Could not email the restore log of {asset_uid}: {type(e).__name__}: {e}'
-        )
 
 
 def _get_deployed_version_at(
