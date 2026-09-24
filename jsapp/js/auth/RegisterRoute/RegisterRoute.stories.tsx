@@ -20,7 +20,7 @@ import {
 import { environmentResponse, environmentServerErrorMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import RegisterRoute from './RegisterRoute'
 
 /**
@@ -109,7 +109,7 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: registerRouting,
   },
   // Nobody is logged in on a registration screen.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 

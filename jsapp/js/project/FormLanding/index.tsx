@@ -14,22 +14,22 @@ import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { openEnketoPreviewModal } from '#/components/enketoPreview/openEnketoPreviewModal'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { COLLECTION_METHODS, CollectionMethodName, MODAL_TYPES } from '#/constants'
+import { COLLECTION_METHODS, CollectionMethodName } from '#/constants'
 import type { AssetResponse, PermissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
-import pageState from '#/pageState.store'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
 import FormHistory from './FormHistory'
@@ -164,10 +164,9 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
   handleEnketoPreviewClick(evt: React.MouseEvent<HTMLElement>) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetUrl: this.state.url,
-    })
+    if (this.state.url) {
+      openEnketoPreviewModal({ assetUrl: this.state.url })
+    }
   }
 
   callUnarchiveAsset(asset: AssetResponse) {
@@ -494,7 +493,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
   renderButtons(asset: AssetResponse, userCanEdit: boolean) {
     const downloads = asset.downloads || []
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     return (
       <React.Fragment>
@@ -641,7 +640,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
     const docTitle = asset.name || t('Untitled')
     const userCanEdit = userCan('change_asset', asset)
-    const isLoggedIn = sessionStore.isLoggedIn
+    const isLoggedIn = profileStore.isLoggedIn
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>

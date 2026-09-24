@@ -7,6 +7,7 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_KEY
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
+from allauth.core.internal.httpkit import is_headless_request
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.helpers import render_authentication_error
@@ -73,6 +74,21 @@ class AccountAdapter(DefaultAccountAdapter):
             )
             user.set_password(password)
             user.save()
+
+    def should_send_confirmation_mail(self, request, email_address, signup):
+        """
+        Don't resend a confirmation link when an unverified user logs in through
+        the headless API
+
+        allauth consults this only on its implicit send: a login, or a signup,
+        with an unverified address. The SPA asks for another link explicitly
+        through `/api/v2/email-confirmations/` instead. Signup still sends the
+        first activation email, and the templated pages keep the old behaviour
+        until they are retired.
+        """
+        if is_headless_request(request) and not signup:
+            return False
+        return super().should_send_confirmation_mail(request, email_address, signup)
 
     def send_confirmation_mail(self, request, emailconfirmation, signup):
         """

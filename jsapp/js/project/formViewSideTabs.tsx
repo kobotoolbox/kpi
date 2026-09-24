@@ -1,18 +1,33 @@
 import React from 'react'
 
 import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
 import { NavLink } from 'react-router-dom'
 import Reflux from 'reflux'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
-import { withRouter } from '#/router/legacy'
+import type { AssetResponse } from '#/dataInterface'
+import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import mixins from '../mixins'
+import { getCurrentPath, getRouteAssetUid } from '#/router/routerUtils'
 
-export function getFormDataTabs(assetUid) {
+export interface FormViewSideTab {
+  label: string
+  icon: string
+  path: string
+  isDisabled?: boolean
+}
+
+export interface FormViewSideTabsProps extends WithRouterProps {
+  show: boolean
+}
+
+interface FormViewSideTabsState {
+  asset?: AssetResponse
+}
+
+export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
   return [
     {
       label: t('Table'),
@@ -42,17 +57,21 @@ export function getFormDataTabs(assetUid) {
   ]
 }
 
-class FormViewSideTabs extends Reflux.Component {
-  constructor(props) {
+class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSideTabsProps, FormViewSideTabsState> {
+  private unlisteners: Function[] = []
+
+  constructor(props: FormViewSideTabsProps) {
     super(props)
     this.state = {}
-    this.unlisteners = []
     autoBind(this)
   }
 
   componentDidMount() {
     // On initial load use the possibly stored asset.
-    this.setState({ asset: assetStore.getAsset(this.currentAssetID()) })
+    const assetUid = getRouteAssetUid()
+    if (assetUid) {
+      this.setState({ asset: assetStore.getAsset(assetUid) })
+    }
     this.unlisteners.push(assetStore.listen(this.assetLoad, this))
   }
 
@@ -62,36 +81,45 @@ class FormViewSideTabs extends Reflux.Component {
     })
   }
 
-  assetLoad(data) {
-    var asset = data[this.currentAssetID()]
-    this.setState(Object.assign({ asset: asset }))
+  assetLoad(data: Record<string, AssetResponse>) {
+    const assetUid = getRouteAssetUid()
+    if (assetUid) {
+      this.setState({ asset: data[assetUid] })
+    }
   }
 
-  triggerRefresh(evt) {
-    if ($(evt.target).hasClass('active')) {
+  triggerRefresh(evt: React.MouseEvent<HTMLAnchorElement>) {
+    const target = evt.target
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    if (target.classList.contains('active') && this.state.asset) {
       this.props.router.navigate(ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid))
 
-      var path = evt.target.getAttribute('data-path')
-      window.setTimeout(() => {
-        this.props.router.navigate(path)
-      }, 50)
+      const path = target.getAttribute('data-path')
+      if (path) {
+        window.setTimeout(() => {
+          this.props.router.navigate(path)
+        }, 50)
+      }
 
       evt.preventDefault()
     }
   }
 
-  renderFormSideTabs() {
-    var sideTabs = []
+  renderFormSideTabs(): React.ReactNode {
+    let sideTabs: FormViewSideTab[] = []
 
     if (
       this.state.asset &&
       this.state.asset.has_deployment &&
-      this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.asset.uid))
+      getCurrentPath().startsWith(ROUTES.FORM_DATA.replace(':uid', this.state.asset.uid))
     ) {
       sideTabs = getFormDataTabs(this.state.asset.uid)
     }
 
-    if (this.state.asset && this.isActiveRoute(ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid))) {
+    if (this.state.asset && getCurrentPath().startsWith(ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid))) {
       sideTabs = []
 
       sideTabs.push({
@@ -176,15 +204,12 @@ class FormViewSideTabs extends Reflux.Component {
     return false
   }
 
-  render() {
+  render(): React.ReactNode {
     if (!this.props.show) {
       return false
     }
     return this.renderFormSideTabs()
   }
 }
-
-reactMixin(FormViewSideTabs.prototype, Reflux.ListenerMixin)
-reactMixin(FormViewSideTabs.prototype, mixins.contextRouter)
 
 export default withRouter(FormViewSideTabs)
