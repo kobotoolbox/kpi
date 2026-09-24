@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom'
 import AuthPageFrame from './AuthPageFrame'
 
 /**
- * The `/auth` layout route: {@link AuthPageFrame} around whichever authentication screen the URL points
+ * The `/accounts` layout route: {@link AuthPageFrame} around whichever authentication screen the URL points
  * at (sign-in, registration, password recovery, …).
  */
 export default function AuthContainer() {

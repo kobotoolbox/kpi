@@ -91,10 +91,10 @@ const storyHandlers = (options?: { environment?: RequestHandler; signup?: Reques
     Boolean(handler),
   )
 
-/** Renders the story as `/auth/register`, so what you see is the routed screen inside its frame. */
+/** Renders the story as `/accounts/signup`, so what you see is the routed screen inside its frame. */
 const registerRouting = reactRouterParameters({
-  location: { path: AUTH_ROUTES.REGISTER },
-  routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'register', element: <RegisterRoute /> }),
+  location: { path: AUTH_ROUTES.SIGNUP },
+  routing: reactRouterOutlet({ path: ROUTES.ACCOUNTS_ROOT }, { path: 'signup', element: <RegisterRoute /> }),
 })
 
 const meta: Meta<typeof AuthContainer> = {
@@ -307,7 +307,7 @@ export const SubmitSignedIn: Story = {
     await submit(canvas)
 
     await canvas.findByRole('heading', { level: 1, name: 'Your account is ready' })
-    // A plain `href`, so the click leaves `/auth` and loads the app with the new session.
+    // A plain `href`, so the click leaves `/accounts` and loads the app with the new session.
     expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
   },
 }

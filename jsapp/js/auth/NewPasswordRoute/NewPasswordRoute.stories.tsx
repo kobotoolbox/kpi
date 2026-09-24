@@ -46,13 +46,13 @@ const storyHandlers = (options?: { environment?: RequestHandler; keyCheck?: Requ
     (handler): handler is RequestHandler => Boolean(handler),
   )
 
-/** Renders the story as `/auth/reset-password/:key`, so the route really reads its key off the URL. */
+/** Renders the story as `/accounts/password/reset/key/:key`, so the route really reads its key off the URL. */
 const newPasswordRouting = (key: string) =>
   reactRouterParameters({
-    location: { path: `${ROUTES.AUTH_ROOT}/reset-password/${key}` },
+    location: { path: `${ROUTES.ACCOUNTS_ROOT}/password/reset/key/${key}` },
     routing: reactRouterOutlet(
-      { path: ROUTES.AUTH_ROOT },
-      { path: 'reset-password/:key', element: <NewPasswordRoute /> },
+      { path: ROUTES.ACCOUNTS_ROOT },
+      { path: 'password/reset/key/:key', element: <NewPasswordRoute /> },
     ),
   })
 
@@ -114,7 +114,7 @@ export const PasswordChangedAndSignedIn: Story = {
     await submit(canvas)
 
     await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed' })
-    // A plain `href`, so the click leaves `/auth` and loads the app with the session allauth just handed out.
+    // A plain `href`, so the click leaves `/accounts` and loads the app with the session allauth just handed out.
     expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
   },
 }
@@ -185,7 +185,7 @@ export const AlreadyLoggedIn: Story = {
     const canvas = within(canvasElement)
 
     await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
-    // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
+    // A plain `href`, so the click leaves `/accounts` and loads the app with the session that was there.
     expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
   },
 }

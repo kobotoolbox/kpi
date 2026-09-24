@@ -78,7 +78,7 @@ export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.j
 export const signupServerErrorMock = () =>
   http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
-/** A sign-in allauth was happy with: the session exists, and the form may leave `/auth`. */
+/** A sign-in allauth was happy with: the session exists, and the form may leave `/accounts`. */
 export const loginAuthenticatedMock = () =>
   http.post(LOGIN_URL, () =>
     HttpResponse.json({
