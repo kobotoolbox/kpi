@@ -16,6 +16,7 @@ class LogoutView(APIView):
     Log out the current user session and return the redirect URL.
     Returns HTTP 200 with JSON to avoid background browser redirect/CORS issues.
     """
+
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
@@ -26,7 +27,6 @@ class LogoutView(APIView):
             auth_logout(request)
 
         return Response({'redirect_url': redirect_url}, status=status.HTTP_200_OK)
-
 
 
 @api_view(['POST'])

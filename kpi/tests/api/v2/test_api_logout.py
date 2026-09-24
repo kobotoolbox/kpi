@@ -94,7 +94,9 @@ class TestLogoutView(BaseTestCase):
         params = parse_qs(parsed.query)
         self.assertEqual(params.get('id_token_hint'), ['test-id-token'])
         self.assertEqual(params.get('client_id'), ['kpi-client'])
-        self.assertEqual(params.get('post_logout_redirect_uri'), ['https://kpi.example.com/login/'])
+        self.assertEqual(
+            params.get('post_logout_redirect_uri'), ['https://kpi.example.com/login/']
+        )
 
         # Verify user is logged out locally
         response_me = self.client.get(reverse('currentuser-detail'))

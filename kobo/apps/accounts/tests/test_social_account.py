@@ -4,9 +4,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import responses
-from allauth.account.internal.flows.login import (
-    AUTHENTICATION_METHODS_SESSION_KEY,
-)
+from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_KEY
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
@@ -384,9 +382,7 @@ class SocialAccountLogoutTestCase(TestCase):
         parsed = urlparse(url)
         self.assertEqual(parsed.scheme, 'https')
         self.assertEqual(parsed.netloc, 'idp.example.com')
-        self.assertEqual(
-            parsed.path, '/protocol/openid-connect/logout'
-        )
+        self.assertEqual(parsed.path, '/protocol/openid-connect/logout')
 
         query = parse_qs(parsed.query)
         self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
@@ -414,7 +410,9 @@ class SocialAccountLogoutTestCase(TestCase):
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
         )
 
-        discovery_url = 'https://idp.example.com/auth/realms/kobo/.well-known/openid-configuration'
+        discovery_url = (
+            'https://idp.example.com/auth/realms/kobo/.well-known/openid-configuration'
+        )
         responses.add(
             responses.GET,
             discovery_url,
@@ -428,9 +426,7 @@ class SocialAccountLogoutTestCase(TestCase):
         url = self.adapter.get_logout_redirect_url(request)
 
         parsed = urlparse(url)
-        self.assertEqual(
-            parsed.path, '/auth/realms/kobo/logout'
-        )
+        self.assertEqual(parsed.path, '/auth/realms/kobo/logout')
         query = parse_qs(parsed.query)
         self.assertEqual(query.get('id_token_hint'), ['discovered-id-token'])
         self.assertEqual(query.get('client_id'), ['kpi-client-id'])
@@ -446,14 +442,10 @@ class SocialAccountLogoutTestCase(TestCase):
             'login',
         )
 
-        custom_data.logout_behavior = (
-            SocialAppCustomData.LogoutBehavior.LOCAL_ONLY
-        )
+        custom_data.logout_behavior = SocialAppCustomData.LogoutBehavior.LOCAL_ONLY
         custom_data.save()
         self.social_app.refresh_from_db()
-        self.assertNotIn(
-            'prompt', self.social_app.settings.get('auth_params', {})
-        )
+        self.assertNotIn('prompt', self.social_app.settings.get('auth_params', {}))
 
     def test_multiple_social_accounts_resolves_deterministically_via_session(self):
         SocialAccount.objects.create(
@@ -548,7 +540,9 @@ class SocialAccountLogoutTestCase(TestCase):
             url = self.adapter.get_logout_redirect_url(request)
         self.assertEqual(url, '/')
 
-    def test_password_authenticated_session_returns_default_url_even_with_social_account(self):
+    def test_password_authenticated_session_returns_default_url_even_with_social_account(
+        self,
+    ):
         SocialAccount.objects.create(
             user=self.user,
             provider='keycloak',
@@ -584,4 +578,3 @@ class SocialAccountLogoutTestCase(TestCase):
         self.assertEqual(request.session.get('oidc_id_token'), 'stashed-id-token')
         self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
         self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')
-
