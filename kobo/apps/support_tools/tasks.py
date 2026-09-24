@@ -1,16 +1,13 @@
 from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
 
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    AttachmentRestorer,
-    ProjectAlreadyBeingRestoredError,
-    get_project_xform,
-    log_collector,
-)
+from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
 from kobo.apps.support_tools.models import (
     AttachmentRestoreJob,
     AttachmentRestoreJobStatus,
 )
+from kobo.apps.support_tools.utils.helpers import get_project_xform, log_collector
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kobo.celery import celery_app
 
 

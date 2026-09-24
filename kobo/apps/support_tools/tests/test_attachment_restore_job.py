@@ -6,15 +6,13 @@ from django.test import TestCase
 from django.urls import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    ProjectAlreadyBeingRestoredError,
-    get_lock_cache_key,
-)
+from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
 from kobo.apps.support_tools.models import (
     AttachmentRestoreJob,
     AttachmentRestoreJobStatus,
 )
 from kobo.apps.support_tools.tasks import run_attachment_restore_job
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 
 ASSET_UID = 'aGAcvhamUDuDTtbkyeikbD'
 
@@ -24,7 +22,7 @@ class AttachmentRestoreJobTestCase(TestCase):
     What launching the attachment restore from the admin records and queues.
 
     The rule deciding which files come back is covered where it lives, in
-    `kobo.apps.openrosa.apps.logger.tests.test_attachment_restore`. What is
+    `kobo.apps.support_tools.tests.test_attachment_restorer`. What is
     checked here is the row: what it asks for, and what the run writes back.
     """
 
@@ -33,7 +31,7 @@ class AttachmentRestoreJobTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='adminuser')
         self.client.force_login(self.user)
-        self.addCleanup(cache.delete, get_lock_cache_key(ASSET_UID))
+        self.addCleanup(cache.delete, AttachmentRestorer.get_lock_cache_key(ASSET_UID))
 
     def test_a_launch_records_what_was_asked_and_queues_it(self):
         with patch(
@@ -83,7 +81,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         delay.assert_not_called()
 
     def test_a_project_a_run_already_has_is_refused(self):
-        cache.set(get_lock_cache_key(ASSET_UID), 'held', timeout=60)
+        cache.set(AttachmentRestorer.get_lock_cache_key(ASSET_UID), 'held', timeout=60)
 
         with patch(
             'kobo.apps.support_tools.admin.run_attachment_restore_job.delay'
@@ -116,7 +114,7 @@ class AttachmentRestoreJobTestCase(TestCase):
 
     def test_a_row_whose_project_is_still_held_is_not_run_again(self):
         job = self._job(status=AttachmentRestoreJobStatus.IN_PROGRESS)
-        cache.set(get_lock_cache_key(ASSET_UID), 'held', timeout=60)
+        cache.set(AttachmentRestorer.get_lock_cache_key(ASSET_UID), 'held', timeout=60)
 
         with patch(
             'kobo.apps.support_tools.admin.run_attachment_restore_job.delay'
@@ -246,10 +244,10 @@ class AttachmentRestoreJobTestCase(TestCase):
         job = self._job(status=AttachmentRestoreJobStatus.IN_PROGRESS)
         state = AttachmentRestoreJobAdmin.state
 
-        cache.set(get_lock_cache_key(ASSET_UID), 'held', timeout=60)
+        cache.set(AttachmentRestorer.get_lock_cache_key(ASSET_UID), 'held', timeout=60)
         assert state(None, job) == 'in progress'
 
-        cache.delete(get_lock_cache_key(ASSET_UID))
+        cache.delete(AttachmentRestorer.get_lock_cache_key(ASSET_UID))
         assert state(None, job) == 'interrupted'
 
     def _add(

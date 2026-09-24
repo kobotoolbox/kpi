@@ -2,9 +2,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import models
 
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    get_lock_cache_key,
-)
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
@@ -76,4 +74,4 @@ class AttachmentRestoreJob(AbstractTimeStampedModel):
         itself, which no column does.
         """
 
-        return cache.has_key(get_lock_cache_key(self.asset_uid))
+        return cache.has_key(AttachmentRestorer.get_lock_cache_key(self.asset_uid))

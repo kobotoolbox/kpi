@@ -24,10 +24,13 @@ from kobo.apps.openrosa.apps.logger.tests.test_form_versions import (
     xform_json,
     xform_xml,
 )
-from kobo.apps.openrosa.apps.logger.utils import attachment_restore
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import AttachmentRestorer
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
+from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
+from kobo.apps.support_tools.utils.restorers import (
+    attachment as attachment_restorer,
+)
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kpi.models.asset import Asset
 
 
@@ -242,7 +245,7 @@ class AttachmentRestorerTestCase(TestCase):
         holder = AttachmentRestorer(self.xform, dry_run=False)
         assert holder._acquire_lock()
 
-        with self.assertRaises(attachment_restore.ProjectAlreadyBeingRestoredError):
+        with self.assertRaises(ProjectAlreadyBeingRestoredError):
             AttachmentRestorer(self.xform, dry_run=False).run()
 
         attachment.refresh_from_db()
@@ -323,7 +326,7 @@ class AttachmentRestorerTestCase(TestCase):
         )
 
         with patch.object(
-            attachment_restore.ParsedInstance, 'bulk_update_attachments'
+            attachment_restorer.ParsedInstance, 'bulk_update_attachments'
         ) as rewrite:
             self._restore()
 
@@ -340,7 +343,7 @@ class AttachmentRestorerTestCase(TestCase):
         self._kill(attachment)
 
         with patch.object(
-            attachment_restore.ParsedInstance,
+            attachment_restorer.ParsedInstance,
             'bulk_update_attachments',
             side_effect=OSError('mongo is down'),
         ):
@@ -365,7 +368,7 @@ class AttachmentRestorerTestCase(TestCase):
         older, newer = self._two_rows_under_one_name()
 
         # One row per batch, so the two are never judged together
-        with patch.object(attachment_restore, 'CHUNK_SIZE', 1):
+        with patch.object(attachment_restorer, 'CHUNK_SIZE', 1):
             restorer = self._restore()
 
         older.refresh_from_db()
@@ -383,7 +386,7 @@ class AttachmentRestorerTestCase(TestCase):
 
         self._two_rows_under_one_name()
 
-        with patch.object(attachment_restore, 'CHUNK_SIZE', 1):
+        with patch.object(attachment_restorer, 'CHUNK_SIZE', 1):
             restorer = self._restore(dry_run=True)
 
         assert restorer.restored == 1
@@ -412,7 +415,7 @@ class AttachmentRestorerTestCase(TestCase):
             assert other._acquire_lock()
             return restore_batch(*args)
 
-        with patch.object(attachment_restore, 'CHUNK_SIZE', 1):
+        with patch.object(attachment_restorer, 'CHUNK_SIZE', 1):
             with patch.object(
                 restorer, '_restore_batch', side_effect=take_over_then_restore
             ):
@@ -506,7 +509,7 @@ class AttachmentRestorerTestCase(TestCase):
         self._kill(attachment)
 
         with patch.object(
-            attachment_restore.ParsedInstance,
+            attachment_restorer.ParsedInstance,
             'bulk_update_attachments',
             side_effect=OSError('mongo is down'),
         ):

@@ -1,12 +1,12 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    AttachmentRestorer,
-    ProjectAlreadyBeingRestoredError,
+from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
+from kobo.apps.support_tools.utils.helpers import (
     get_project_xform,
     log_collector,
     send_restore_log,
 )
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 
 
 class Command(BaseCommand):

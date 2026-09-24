@@ -6,15 +6,13 @@ from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    get_lock_cache_key,
-    get_project_xform,
-)
 from kobo.apps.support_tools.models import (
     AttachmentRestoreJob,
     AttachmentRestoreJobStatus,
 )
 from kobo.apps.support_tools.tasks import run_attachment_restore_job
+from kobo.apps.support_tools.utils.helpers import get_project_xform
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 
 
 class AttachmentRestoreJobForm(forms.ModelForm):
@@ -34,7 +32,7 @@ class AttachmentRestoreJobForm(forms.ModelForm):
         except ValueError as e:
             raise forms.ValidationError(str(e))
 
-        if cache.has_key(get_lock_cache_key(asset_uid)):
+        if cache.has_key(AttachmentRestorer.get_lock_cache_key(asset_uid)):
             raise forms.ValidationError(
                 'A run already has this project. Wait for it to report, then'
                 ' launch another one to pick up where it stopped.'

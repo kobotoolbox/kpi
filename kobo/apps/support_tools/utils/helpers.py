@@ -1,16 +1,54 @@
 import bisect
 from datetime import datetime
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.openrosa.libs.utils.logger_tools import _get_form_versions
+from kpi.utils.log import logging
+from kpi.utils.mailer import EmailMessage, Mailer
 from kpi.utils.xml import fromstring_preserve_root_xmlns
+
+
+def get_project_xform(asset_uid: str) -> XForm:
+    """
+    Return the form a project is deployed as, or explain why it has none.
+    """
+
+    # Imported here because `kpi.models` reaches back into this app
+    from kpi.models import Asset
+
+    try:
+        asset = Asset.objects.defer('content').get(uid=asset_uid)
+    except Asset.DoesNotExist:
+        raise ValueError(f'Asset `{asset_uid}` does not exist')
+
+    if not asset.has_deployment:
+        raise ValueError(f'Asset `{asset_uid}` is not deployed')
+
+    return asset.deployment.xform
+
+
+def log_collector(echo: callable = None) -> tuple[list, callable]:
+    """
+    Return the list a run writes its log into and the callable that appends to
+    it, optionally echoing each line somewhere else as it goes.
+    """
+
+    lines = []
+
+    def log(message: str):
+        lines.append(message)
+        if echo:
+            echo(message)
+
+    return lines, log
 
 
 def rebuild_form_versions(
     xml: str,
     date_created: datetime,
     histories: list[tuple[str, datetime]],
-    deployed_versions: list[tuple[datetime, str]],
+    deployed_versions: list[dict],
 ) -> str | None:
     """
     Return the `meta/formVersions` a submission should carry, rebuilt from its
@@ -25,8 +63,8 @@ def rebuild_form_versions(
     XML for the last one.
 
     `histories` is the list of `(xml, date_created)` of those rows, oldest
-    first. `deployed_versions` is the list of `(date, uid)` of the asset's
-    deployed versions, oldest first.
+    first. `deployed_versions` holds the `uid` and `date_modified` of the
+    asset's deployed versions, oldest first.
 
     Whatever the submission already records is kept: the result can only add
     versions, never drop one. Versions are ordered oldest first by deployment
@@ -59,7 +97,9 @@ def rebuild_form_versions(
         return None
 
     # `sort()` is stable, so unknown uids keep their relative order
-    deployment_rank = {uid: rank for rank, (_, uid) in enumerate(deployed_versions)}
+    deployment_rank = {
+        version['uid']: rank for rank, version in enumerate(deployed_versions)
+    }
     form_versions.sort(key=lambda uid: deployment_rank.get(uid, -1))
     form_versions_text = ' '.join(form_versions)
 
@@ -69,18 +109,42 @@ def rebuild_form_versions(
     return form_versions_text
 
 
+def send_restore_log(email_to: list, asset_uid: str, lines: list):
+    """
+    Mail a run's log, and never let a failed send become the run's own failure:
+    this is called from a `finally`, where raising would hide whatever the run
+    was already reporting.
+    """
+
+    try:
+        Mailer.send(
+            EmailMessage(
+                to=email_to,
+                subject=f'Attachment restore for project {asset_uid}',
+                plain_text_content_or_template='\n'.join(lines) + '\n',
+            )
+        )
+    except Exception as e:  # noqa
+        logging.error(
+            f'Could not email the restore log of {asset_uid}: {type(e).__name__}: {e}'
+        )
+
+
 def _get_deployed_version_at(
-    deployed_versions: list[tuple[datetime, str]], when: datetime
+    deployed_versions: list[dict], when: datetime
 ) -> str | None:
     """
     Return the uid of the version that was deployed at `when`, i.e. the most
     recent one deployed at or before it, or `None` before the first deployment.
 
-    `deployed_versions` is the list of `(date, uid)`, oldest first.
+    `deployed_versions` holds the `uid` and `date_modified` of each deployed
+    version, oldest first.
     """
 
-    index = bisect.bisect_right(deployed_versions, when, key=lambda item: item[0])
+    index = bisect.bisect_right(
+        deployed_versions, when, key=lambda version: version['date_modified']
+    )
     if not index:
         return None
 
-    return deployed_versions[index - 1][1]
+    return deployed_versions[index - 1]['uid']
