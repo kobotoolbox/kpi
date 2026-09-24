@@ -26,6 +26,7 @@ export function useAuthConfiguration() {
           socialApps: response.data.social_apps,
           /** The `SUPPORT_EMAIL` constance setting, so private servers point people at their own team. */
           supportEmail: response.data.support_email,
+          mfaCodeLength: response.data.mfa_code_length,
         }
       },
     },

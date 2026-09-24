@@ -11,6 +11,8 @@ const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
 const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
 /** Exported so a story can put its own handler here and inspect the credentials the form posted */
 export const LOGIN_URL = '*/api/v2/allauth/browser/v1/auth/login'
+/** Where the one-time code goes once a password has been accepted */
+export const MFA_AUTHENTICATE_URL = '*/api/v2/allauth/browser/v1/auth/2fa/authenticate'
 /** Asking for a reset link */
 export const PASSWORD_REQUEST_URL = '*/api/v2/allauth/browser/v1/auth/password/request'
 /** `GET` checks the key from the link, `POST` sets the new password */
@@ -138,6 +140,54 @@ export const loginAlreadyAuthenticatedMock = () =>
 /** The server itself broke */
 export const loginServerErrorMock = () =>
   http.post(LOGIN_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
+/** The one-time code checked out: allauth finishes the sign-in it had paused and hands out the session. */
+export const mfaAuthenticatedMock = () =>
+  http.post(MFA_AUTHENTICATE_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        user: {
+          id: 1,
+          display: 'sallyride',
+          username: 'sallyride',
+          email: 'sallyride@nasa.com',
+          has_usable_password: true,
+        },
+        methods: [
+          { method: 'password', at: 1700000000, username: 'sallyride' },
+          { method: 'mfa', at: 1700000001, type: 'totp' },
+        ],
+      },
+      meta: { is_authenticated: true },
+    }),
+  )
+
+/** A code allauth refused. `param: 'code'` puts the message under the input; omit it for the banner. */
+export const mfaErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
+  http.post(MFA_AUTHENTICATE_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))
+
+/** A code check that never answers, so the submit button stays in its loading state. */
+export const mfaNeverAnswersMock = () =>
+  http.post(MFA_AUTHENTICATE_URL, async () => {
+    await delay('infinite')
+  })
+
+/**
+ * allauth is not waiting on a code any more: `mfa_authenticate` has dropped off the pending flows, so the
+ * half-finished sign-in this code was for is gone.
+ */
+export const mfaFlowExpiredMock = () =>
+  http.post(MFA_AUTHENTICATE_URL, () =>
+    HttpResponse.json(
+      { status: 401, data: { flows: [{ id: 'login' }] }, meta: { is_authenticated: false } },
+      { status: 401 },
+    ),
+  )
+
+/** The server itself broke, which is the only way into the code form's `onError`. */
+export const mfaServerErrorMock = () =>
+  http.post(MFA_AUTHENTICATE_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
 /** A logout that never answers, so the button it was clicked on stays in its loading state. */
 export const logoutNeverAnswersMock = () =>

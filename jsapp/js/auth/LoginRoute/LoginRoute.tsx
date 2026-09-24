@@ -4,6 +4,7 @@ import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import ButtonNew from '#/components/common/ButtonNew'
 import { PATHS } from '#/router/routerConstants'
@@ -65,9 +66,24 @@ function EmailVerificationRequiredPanel({ email }: { email?: string }) {
 }
 
 /**
- * allauth accepted the password and then asked for a step that is not built yet.
- * TODO: ask for the code here instead, once DEV-1857 builds that screen.
+ * The code was asked for and then the sign-in it belonged to went away - the session holding it expired, or
+ * another tab finished or abandoned the attempt. The password has to go in again.
  */
+function MfaExpiredPanel({ onRestart }: { onRestart: () => void }) {
+  return (
+    <Stack gap='md' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Your login attempt has expired')}
+      </Title>
+      <Text>{t('This login attempt is no longer valid. Please log in again.')}</Text>
+      <ButtonNew size='lg' fullWidth onClick={onRestart}>
+        {t('Back to login')}
+      </ButtonNew>
+    </Stack>
+  )
+}
+
+/** allauth accepted the password and then asked for a step that is not built yet - verifying a phone, say. */
 function AnotherStepRequiredPanel() {
   return (
     <Stack gap='md' ta='center'>
@@ -90,10 +106,10 @@ export interface LoginRouteProps {
 /** Sign-in screen: on success the card swaps the form for whichever ending the server gave us without route change */
 export default function LoginRoute({ onAuthenticated = () => window.location.assign('/') }: LoginRouteProps) {
   const { data, isPending } = useAuthConfiguration()
-  const [outcome, setOutcome] = useState<LoginOutcome | null>(null)
+  const [outcome, setOutcome] = useState<LoginOutcome | MfaOutcome | null>(null)
   const isUsernameAccepted = data?.allowLoginWithUsername ?? true
 
-  function handleOutcome(next: LoginOutcome) {
+  function handleOutcome(next: LoginOutcome | MfaOutcome) {
     setOutcome(next)
     if (next.kind === 'authenticated') {
       onAuthenticated()
@@ -101,27 +117,36 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
   }
 
   function renderCard() {
+    // The supporting column belongs to the states that still have a form ahead of them, so it does not
+    // vanish halfway through signing in and then come back.
+    const aside = shouldRenderAuthAside(data?.authConfiguration) && (
+      <AuthAside
+        imageUrl={data?.authConfiguration.supporting_image_url}
+        text={data?.authConfiguration.supporting_text}
+      />
+    )
+
+    // Not an ending: the password was accepted and there is a second factor still to fill in.
+    if (outcome?.kind === 'mfaRequired') {
+      return (
+        <AuthCard aside={aside}>
+          <MfaForm onOutcome={handleOutcome} />
+        </AuthCard>
+      )
+    }
     if (outcome !== null) {
       return (
         <AuthCard>
           {outcome.kind === 'authenticated' && <SigningInPanel />}
           {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel />}
           {outcome.kind === 'emailVerificationRequired' && <EmailVerificationRequiredPanel email={outcome.email} />}
+          {outcome.kind === 'mfaExpired' && <MfaExpiredPanel onRestart={() => setOutcome(null)} />}
           {outcome.kind === 'unsupportedStep' && <AnotherStepRequiredPanel />}
         </AuthCard>
       )
     }
     return (
-      <AuthCard
-        aside={
-          shouldRenderAuthAside(data?.authConfiguration) && (
-            <AuthAside
-              imageUrl={data?.authConfiguration.supporting_image_url}
-              text={data?.authConfiguration.supporting_text}
-            />
-          )
-        }
-      >
+      <AuthCard aside={aside}>
         <LoginForm
           isUsernameAccepted={isUsernameAccepted}
           isConfigurationPending={isPending}
