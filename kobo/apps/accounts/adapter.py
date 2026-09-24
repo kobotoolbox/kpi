@@ -4,15 +4,11 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 import requests
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.account.internal.flows.login import (
-    AUTHENTICATION_METHODS_SESSION_KEY,
-)
+from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_KEY
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
-from allauth.socialaccount.adapter import (
-    DefaultSocialAccountAdapter,
-    get_adapter as get_socialaccount_adapter,
-)
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.providers.base.constants import AuthProcess
@@ -20,7 +16,7 @@ from constance import config
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned
-from django.db import models, transaction
+from django.db import transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -131,7 +127,11 @@ class AccountAdapter(DefaultAccountAdapter):
 
     def get_logout_redirect_url(self, request):
         default_url = super().get_logout_redirect_url(request)
-        if not request or not getattr(request, 'user', None) or not request.user.is_authenticated:
+        if (
+            not request
+            or not getattr(request, 'user', None)
+            or not request.user.is_authenticated
+        ):
             return default_url
 
         try:
@@ -175,7 +175,9 @@ class AccountAdapter(DefaultAccountAdapter):
                 active_provider = social_account.provider
 
             try:
-                social_app = get_socialaccount_adapter().get_app(request, active_provider)
+                social_app = get_socialaccount_adapter().get_app(
+                    request, active_provider
+                )
             except SocialApp.DoesNotExist:
                 return default_url
             except MultipleObjectsReturned:
@@ -187,13 +189,17 @@ class AccountAdapter(DefaultAccountAdapter):
             custom_data = getattr(social_app, 'custom_data', None)
             if (
                 not custom_data
-                or custom_data.logout_behavior != SocialAppCustomData.LogoutBehavior.RP_INITIATED
+                or custom_data.logout_behavior
+                != SocialAppCustomData.LogoutBehavior.RP_INITIATED
             ):
                 return default_url
 
             end_session_endpoint = (
                 custom_data.end_session_endpoint
-                or (social_app.settings and social_app.settings.get('end_session_endpoint'))
+                or (
+                    social_app.settings
+                    and social_app.settings.get('end_session_endpoint')
+                )
                 or self._discover_end_session_endpoint(social_app, social_account)
             )
             if not end_session_endpoint:
@@ -212,7 +218,10 @@ class AccountAdapter(DefaultAccountAdapter):
 
             post_logout_redirect_uri = (
                 custom_data.post_logout_redirect_uri
-                or (social_app.settings and social_app.settings.get('post_logout_redirect_uri'))
+                or (
+                    social_app.settings
+                    and social_app.settings.get('post_logout_redirect_uri')
+                )
                 or request.build_absolute_uri(resolve_url(settings.LOGIN_URL or '/'))
             )
             if post_logout_redirect_uri:

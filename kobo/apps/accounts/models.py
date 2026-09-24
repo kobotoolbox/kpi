@@ -109,6 +109,7 @@ class SocialAppCustomData(models.Model):
         null=True,
         blank=True,
     )
+
     class LogoutBehavior(models.TextChoices):
         LOCAL_ONLY = 'local_only', _('Local logout only')
         RP_INITIATED = 'rp_initiated', _('RP-initiated logout (IdP end session)')
