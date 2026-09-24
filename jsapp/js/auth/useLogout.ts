@@ -12,10 +12,7 @@ export const useLogout = () =>
     mutationFn: () => fetchPost<LogoutResponse>(endpoints.LOGOUT, {}),
     onSuccess: (data) => {
       const targetUrl = data?.redirect_url || data?.location
-      if (
-        targetUrl &&
-        (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))
-      ) {
+      if (targetUrl && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
         window.location.href = targetUrl
         return
       }
