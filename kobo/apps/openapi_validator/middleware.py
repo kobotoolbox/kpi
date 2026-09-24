@@ -245,6 +245,28 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
         return response
 
+    def _get_content_schema(
+        self, content: dict[str, Any], content_type: str
+    ) -> Optional[dict[str, Any]]:
+        """
+        Pick the schema documented for `content_type` in an OpenAPI `content`
+        map, falling back to `application/json`, with its `$ref` resolved.
+        """
+        media_type_spec = content.get(content_type) or content.get('application/json')
+        if not media_type_spec:
+            return None
+
+        schema = media_type_spec.get('schema')
+        if not schema:
+            return None
+
+        if '$ref' in schema:
+            if ref_schema := self._resolve_schema_ref(schema['$ref']):
+                return ref_schema
+            raise OpenAPIComponentRefNotFoundError
+
+        return schema
+
     def _get_operation_spec(self, path: str, method: str) -> Optional[dict[str, Any]]:
         """
         Handles OpenAPI-style path params like {id} by converting them to a
@@ -277,24 +299,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not request_body:
             return None
 
-        content = request_body.get('content', {})
-        media_type_spec = content.get(content_type) or content.get('application/json')
-
-        if not media_type_spec:
-            return None
-
-        schema = media_type_spec.get('schema')
-
-        if not schema:
-            return None
-
-        # Resolve $ref references
-        if '$ref' in schema:
-            if ref_schema := self._resolve_schema_ref(schema['$ref']):
-                return ref_schema
-            raise OpenAPIComponentRefNotFoundError
-
-        return schema
+        return self._get_content_schema(request_body.get('content', {}), content_type)
 
     def _get_response_schema(
         self,
@@ -312,24 +317,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not response_spec:
             return None
 
-        content = response_spec.get('content', {})
-        media_type_spec = content.get(content_type) or content.get('application/json')
-
-        if not media_type_spec:
-            return None
-
-        schema = media_type_spec.get('schema')
-        if not schema:
-            return None
-
-        # Resolve $ref references
-
-        if '$ref' in schema:
-            if ref_schema := self._resolve_schema_ref(schema['$ref']):
-                return ref_schema
-            raise OpenAPIComponentRefNotFoundError
-
-        return schema
+        return self._get_content_schema(response_spec.get('content', {}), content_type)
 
     def _handle_validation_error(
         self,
