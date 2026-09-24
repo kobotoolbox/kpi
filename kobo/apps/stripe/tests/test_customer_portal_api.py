@@ -7,20 +7,63 @@ from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-@patch('djstripe.models.Customer.objects.get')
 @patch('stripe.billing_portal.Session.create')
 @patch('stripe.billing_portal.Configuration.list')
-@patch('stripe.billing_portal.Configuration.create')
 class TestCustomerPortalAPITestCase(BaseTestCase):
 
     fixtures = ['test_data']
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.some_user = User.objects.get(username='someuser')
+        cls.organization = cls.some_user.organization
+        cls.organization.mmo_override = True
+        cls.organization.save(update_fields=['mmo_override'])
+        cls.customer = baker.make(Customer, subscriber=cls.organization, livemode=False)
+        cls.plan_product_1 = baker.make(Product, metadata={'product_type': 'plan'})
+        cls.plan_product_1_monthly_price = baker.make(
+            Price,
+            product=cls.plan_product_1,
+            recurring={'interval': 'month', 'interval_count': 1},
+            unit_amount=100,
+        )
+        cls.plan_product_1_annual_price = baker.make(
+            Price,
+            product=cls.plan_product_1,
+            recurring={'interval': 'year', 'interval_count': 1},
+            unit_amount=1200,
+        )
+        cls.plan_product_2 = baker.make(Product, metadata={'product_type': 'plan'})
+        cls.plan_product_2_monthly_price = baker.make(
+            Price,
+            product=cls.plan_product_1,
+            recurring={'interval': 'month', 'interval_count': 1},
+            unit_amount=200,
+        )
+        cls.plan_product_2_annual_price = baker.make(
+            Price,
+            product=cls.plan_product_1,
+            recurring={'interval': 'year', 'interval_count': 1},
+            unit_amount=2400,
+        )
+        cls.addon_product = baker.make(Product, metadata={'product_type': 'addon'})
+        cls.addon_product_monthly_price = baker.make(
+            Price,
+            product=cls.addon_product,
+            recurring={'interval': 'month', 'interval_count': 1},
+            unit_amount=50,
+        )
+        cls.addon_product_annual_price = baker.make(
+            Price,
+            product=cls.addon_product,
+            recurring={'interval': 'year', 'interval_count': 1},
+            unit_amount=600,
+        )
+
     def setUp(self):
-        self.some_user = User.objects.get(username='someuser')
         self.client.force_login(self.some_user)
 
     @staticmethod
@@ -28,140 +71,183 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         url = reverse('portallinks')
         return f'{url}?{urlencode(query_params)}'
 
-    def _create_stripe_data(self, create_subscription=True, product_type='plan'):
-        self.organization = baker.make(
-            Organization, id='orgSALFMLFMSDGmgdlsgmsd', mmo_override=True
+    def test_generates_url(self, list_config, session_create):
+        expected_url = 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        session_create.return_value = {'url': expected_url}
+        baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.plan_product_1_monthly_price,
         )
-        self.customer = baker.make(
-            Customer, subscriber=self.organization, livemode=False
-        )
-        self.product = baker.make(Product, metadata={'product_type': product_type})
-        self.price = baker.make(
-            Price,
-            product=self.product,
-        )
-        if create_subscription:
-            self.subscription = baker.make(
-                Subscription,
-                status='active',
-                customer=self.customer,
-                items__price=self.price
-            )
-
-    def _get_url_for_expected_request(self, create_subscription=True, product_type='plan'):
-        self._create_stripe_data(create_subscription, product_type)
-        self.organization.add_user(self.some_user, is_admin=True)
-        return self._get_url({'organization_id': self.organization.id, 'price_id': self.price.id})
-
-    def test_generates_url(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
-        url = self._get_url_for_expected_request()
         list_config.return_value = [
             {
-                'id': 'test config',
-                'is_default': True,
-                'active': True,
-                'livemode': False,
+                'metadata': {'slug': 'manage-standard'},
             },
         ]
+        url = self._get_url({'organization_id': self.organization.id})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['url'].startswith('https://billing.stripe.com/')
+        assert response.data['url'] is expected_url
 
-    def test_needs_organization_id(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
+    def test_needs_organization_id(self, list_config, session_create):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
         url = self._get_url({'organization_id': ''})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_user_must_be_owner(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
-        self._create_stripe_data()
-        get_customer.return_value = self.customer
+    def test_user_must_be_owner(self, list_config, session_create):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.plan_product_1_monthly_price,
+        )
+        another_user = User.objects.get(username='anotheruser')
+        self.organization.add_user(another_user, is_admin=True)
+        self.client.force_login(another_user)
         url = self._get_url({'organization_id': self.organization.id})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_gets_portal_configuration_for_price(self, create_config, list_config, session_create, get_customer):
-        """
-        If the billing portal isn't configured to switch to the price provided,
-        it first tries to get a matching portal from Stripe. Test that this works
-        correctly with a dummy billing configuration.
-        """
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
-        url = self._get_url_for_expected_request(product_type='addon')
-        list_config.return_value = [
-            {
-                'id': 'test',
-                'active': True,
-                'is_default': True,
-                'livemode': False,
-                'features': {
-                    'subscription_update': {
-                        'default_allowed_updates': [],
-                        'products': [],
-                        'prices': [],
-                    },
-                },
-                'business_profile': None,
-                'metadata': {
-                    'portal_price': self.price.id,
-                },
-            },
-        ]
-        create_config.return_value = {'id': 'test'}
-        response = self.client.post(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['url'].startswith('https://billing.stripe.com/')
-
-    def test_generates_portal_configuration(self, create_config, list_config, session_create, get_customer):
-        """
-        If there isn't a matching portal configuration for the price in Stripe,
-        the endpoint attempts to create a new one. Test that nothing breaks, using a dummy config.
-        """
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
-        url = self._get_url_for_expected_request(product_type='addon')
-        list_config.return_value = [
-            {
-                'id': 'test',
-                'metadata': {
-                    'portal_price': 'nope',
-                },
-                'features': {
-                    'subscription_update': {
-                        'products': []
-                    }
-                },
-                'business_profile': None,
-                'is_default': True,
-                'active': True,
-                'livemode': False,
-            },
-        ]
-        create_config.return_value = {'id': 'test'}
-        response = self.client.post(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['url'].startswith('https://billing.stripe.com/')
-
-    def test_generates_link_without_price(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
-        self._create_stripe_data()
-        self.organization.add_user(self.some_user, is_admin=True)
+    def test_anonymous_user(
+        self,
+        list_config,
+        session_create,
+    ):
         url = self._get_url({'organization_id': self.organization.id})
-        list_config.return_value = [
-            {
-                'metadata': {
-                    'portal_price': self.price.id,
-                },
-            },
-        ]
-        response = self.client.post(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['url'].startswith('https://billing.stripe.com/')
-
-    def test_anonymous_user(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
-        url = self._get_url_for_expected_request()
         self.client.logout()
         response = self.client.post(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_normal_downgrade_config_selection(self, list_config, session_create):
+        """
+        We generally want downgrades to take place at the end
+        of the billing cycle
+        """
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        list_config.return_value = [
+            {
+                'metadata': {'slug': 'switch-plans-delayed-downgrade'},
+            },
+        ]
+        baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.plan_product_2_monthly_price,
+        )
+        url = self._get_url(
+            {
+                'organization_id': self.organization.id,
+                'price_id': self.plan_product_1_monthly_price.id,
+            }
+        )
+        response = self.client.post(url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_normal_upgrade_config_selection(self, list_config, session_create):
+        """
+        Downgrade rules don't actually matter here, since this is an upgrade, but
+        we stick with delayed downgrade as a default config.
+        """
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        list_config.return_value = [
+            {
+                'metadata': {'slug': 'switch-plans-delayed-downgrade'},
+            },
+        ]
+        baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.plan_product_2_monthly_price,
+        )
+        url = self._get_url(
+            {
+                'organization_id': self.organization.id,
+                'price_id': self.plan_product_2_annual_price.id,
+            }
+        )
+        response = self.client.post(url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_higher_tier_downgrade_config_selection(self, list_config, session_create):
+        """
+        If a user is switching from a lower tier of service to a higher tier,
+        we want them to be able to upgrade immediately even if they are switching from
+        an annual plan to a monthly plan.
+        """
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        list_config.return_value = [
+            {
+                'metadata': {'slug': 'switch-plans-immediate-downgrade'},
+            },
+        ]
+        baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.addon_product_annual_price,
+        )
+        url = self._get_url(
+            {
+                'organization_id': self.organization.id,
+                'price_id': self.plan_product_1_monthly_price.id,
+            }
+        )
+        response = self.client.post(url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_manage_standard_config_selection(self, list_config, session_create):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        list_config.return_value = [
+            {
+                'metadata': {'slug': 'manage-standard'},
+            },
+        ]
+        self.subscription = baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.plan_product_1_monthly_price,
+        )
+        url = self._get_url({'organization_id': self.organization.id})
+        response = self.client.post(url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_manage_addon_config_selection(
+        self,
+        list_config,
+        session_create,
+    ):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        list_config.return_value = [
+            {
+                'metadata': {'slug': 'manage-addon'},
+            },
+        ]
+        self.subscription = baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=self.addon_product_monthly_price,
+        )
+        url = self._get_url({'organization_id': self.organization.id})
+        response = self.client.post(url)
+        assert response.status_code == status.HTTP_200_OK
