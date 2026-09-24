@@ -12,6 +12,7 @@ from ddt import data, ddt
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.shortcuts import resolve_url
 from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -339,12 +340,12 @@ class SocialAccountLogoutTestCase(TestCase):
 
         request.user = AnonymousUser()
         url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, '/')
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_local_user_without_social_account_returns_default_logout_url(self):
         request = self._get_authenticated_request()
         url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, '/')
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_social_account_with_local_only_behavior_returns_default_logout_url(
         self,
@@ -361,7 +362,7 @@ class SocialAccountLogoutTestCase(TestCase):
         )
         request = self._get_authenticated_request()
         url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, '/')
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_rp_initiated_with_explicit_endpoints(self):
         SocialAccount.objects.create(
@@ -506,7 +507,7 @@ class SocialAccountLogoutTestCase(TestCase):
 
         request = self._get_authenticated_request()
         url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, '/')
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_ambiguous_social_app_returns_default_url(self):
         SocialApp.objects.create(
@@ -534,7 +535,7 @@ class SocialAccountLogoutTestCase(TestCase):
 
         with self.assertLogs('console_logger', level='ERROR'):
             url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, '/')
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_password_session_returns_default_url_even_with_social_account(
         self,
@@ -557,7 +558,7 @@ class SocialAccountLogoutTestCase(TestCase):
         ]
 
         url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, '/')
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_pre_social_login_stashes_login_metadata_in_session(self):
         adapter = SocialAccountAdapter()
