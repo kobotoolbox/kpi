@@ -1,3 +1,4 @@
+import { Box, Group, Text } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
@@ -10,7 +11,7 @@ import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
-import bem, { makeBem } from '#/bem'
+import { makeBem } from '#/bem'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -59,9 +60,6 @@ import FormbuilderSidebar from './FormbuilderSidebar'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
-bem.CascadePopup = makeBem(null, 'cascade-popup')
-bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message')
-bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper')
 
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
@@ -727,20 +725,19 @@ export default function EditableForm(props: EditableFormProps) {
     const { previewDisabled, groupable, showAllAvailable, saveButtonText } = buttonStates()
 
     return (
-      <bem.FormBuilderHeader>
-        <bem.FormBuilderHeader__row m='primary'>
-          <bem.FormBuilderHeader__cell
-            m={'logo'}
+      <Box className='form-builder-header'>
+        <Group className='form-builder-header__row form-builder-header__row--primary' wrap='nowrap' gap={20}>
+          <Box
+            className='form-builder-header__cell form-builder-header__cell--logo left-tooltip'
             data-tip={t('Return to list')}
-            className='left-tooltip'
-            tabIndex='0'
+            tabIndex={0}
             onClick={safeNavigateToList}
           >
             <i className='k-icon k-icon-kobo' />
-          </bem.FormBuilderHeader__cell>
+          </Box>
 
-          <bem.FormBuilderHeader__cell m='name'>
-            <bem.FormModal__item>
+          <Box className='form-builder-header__cell form-builder-header__cell--name'>
+            <Box className='form-modal__item'>
               <FormbuilderAssetLabel asset={state.asset} desiredAssetType={state.desiredAssetType} />
               <input
                 type='text'
@@ -751,10 +748,10 @@ export default function EditableForm(props: EditableFormProps) {
                 id='nameField'
                 dir='auto'
               />
-            </bem.FormModal__item>
-          </bem.FormBuilderHeader__cell>
+            </Box>
+          </Box>
 
-          <bem.FormBuilderHeader__cell m={'buttonsTopRight'}>
+          <Group className='form-builder-header__cell form-builder-header__cell--buttonsTopRight'>
             <Button
               type='primary'
               size='l'
@@ -771,11 +768,11 @@ export default function EditableForm(props: EditableFormProps) {
             />
 
             <Button type='text' size='l' onClick={safeNavigateToAsset} startIcon='close' />
-          </bem.FormBuilderHeader__cell>
-        </bem.FormBuilderHeader__row>
+          </Group>
+        </Group>
 
-        <bem.FormBuilderHeader__row m={'secondary'}>
-          <bem.FormBuilderHeader__cell m={'toolsButtons'}>
+        <Group className='form-builder-header__row form-builder-header__row--secondary' wrap='nowrap'>
+          <Group className='form-builder-header__cell form-builder-header__cell--toolsButtons'>
             <Button
               type='text'
               size='m'
@@ -825,15 +822,15 @@ export default function EditableForm(props: EditableFormProps) {
                 [LOCKING_UI_CLASSNAMES.DISABLED]: isAddingGroupsRestricted(),
               })}
             />
-          </bem.FormBuilderHeader__cell>
+          </Group>
 
-          <bem.FormBuilderHeader__cell m='verticalRule' />
+          <Box className='form-builder-header__cell form-builder-header__cell--verticalRule' />
 
-          <bem.FormBuilderHeader__cell m='spacer' />
+          <Box className='form-builder-header__cell form-builder-header__cell--spacer' />
 
-          <bem.FormBuilderHeader__cell m='verticalRule' />
+          <Box className='form-builder-header__cell form-builder-header__cell--verticalRule' />
 
-          <bem.FormBuilderHeader__cell>
+          <Box className='form-builder-header__cell'>
             <Button
               type='text'
               size='m'
@@ -843,11 +840,11 @@ export default function EditableForm(props: EditableFormProps) {
               startIcon={state.asideLibrarySearchVisible ? 'close' : 'library'}
               label={t('Add from Library')}
             />
-          </bem.FormBuilderHeader__cell>
+          </Box>
 
-          <bem.FormBuilderHeader__cell m={'verticalRule'} />
+          <Box className='form-builder-header__cell form-builder-header__cell--verticalRule' />
 
-          <bem.FormBuilderHeader__cell>
+          <Box className='form-builder-header__cell'>
             <Button
               type='text'
               size='m'
@@ -857,9 +854,9 @@ export default function EditableForm(props: EditableFormProps) {
               startIcon={state.asideLayoutSettingsVisible ? 'close' : 'settings'}
               label={hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
             />
-          </bem.FormBuilderHeader__cell>
-        </bem.FormBuilderHeader__row>
-      </bem.FormBuilderHeader>
+          </Box>
+        </Group>
+      </Box>
     )
   }
 
@@ -961,23 +958,21 @@ export default function EditableForm(props: EditableFormProps) {
 
   function renderCascadePopup() {
     return (
-      <bem.CascadePopup>
+      <Box>
         {state.cascadeMessage ? (
-          <bem.CascadePopup__message m={state.cascadeMessage.msgType}>
+          <Text c={state.cascadeMessage.msgType === 'warning' ? 'red' : 'teal'}>
             {state.cascadeMessage.message}
-          </bem.CascadePopup__message>
+          </Text>
         ) : (
-          <bem.CascadePopup__message m='instructions'>
-            {t('Paste your formatted table from excel in the box below.')}
-          </bem.CascadePopup__message>
+          <Text>{t('Paste your formatted table from excel in the box below.')}</Text>
         )}
 
-        {state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
+        {state.cascadeReady ? <Text c='teal'>{t('OK')}</Text> : null}
 
-        <textarea ref={cascadeRef} onChange={cascadePopupChange} value={state.cascadeTextareaValue} />
+        <textarea ref={cascadeRef} onChange={cascadePopupChange} value={state.cascadeTextareaValue} style={{ margin: '15px 0', width: '100%', height: 220 }} />
 
         {envStore.isReady && envStore.data.support_url && (
-          <div className='cascade-help right-tooltip'>
+          <Group justify='flex-end' className='cascade-help right-tooltip'>
             <a
               href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
               target='_blank'
@@ -985,10 +980,10 @@ export default function EditableForm(props: EditableFormProps) {
             >
               <i className='k-icon k-icon-help' />
             </a>
-          </div>
+          </Group>
         )}
 
-        <bem.CascadePopup__buttonWrapper>
+        <Group justify='flex-end'>
           <Button
             type='primary'
             size='l'
@@ -1001,8 +996,8 @@ export default function EditableForm(props: EditableFormProps) {
             }}
             label={t('DONE')}
           />
-        </bem.CascadePopup__buttonWrapper>
-      </bem.CascadePopup>
+        </Group>
+      </Box>
     )
   }
 
@@ -1033,10 +1028,10 @@ export default function EditableForm(props: EditableFormProps) {
             hasMetadataAndDetails={!!hasMetadataAndDetails()}
           />
 
-          <bem.FormBuilder>
+          <Box className='form-builder'>
             {renderFormBuilderHeader()}
 
-            <bem.FormBuilder__contents>
+            <Box className='form-builder__contents'>
               {state.asset && <FormLockedMessage asset={state.asset} />}
 
               {hasBackgroundAudio() && !state.isBackgroundAudioBannerDismissed && (
@@ -1053,8 +1048,8 @@ export default function EditableForm(props: EditableFormProps) {
               <div ref={formWrapRef} className='form-wrap'>
                 {!state.surveyAppRendered && renderNotLoadedMessage()}
               </div>
-            </bem.FormBuilder__contents>
-          </bem.FormBuilder>
+            </Box>
+          </Box>
 
           {state.enketopreviewOverlay && (
             <Modal open large onClose={hidePreview} title={t('Form Preview')}>
