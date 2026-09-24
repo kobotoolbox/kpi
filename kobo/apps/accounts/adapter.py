@@ -1,17 +1,25 @@
+import logging
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account.internal.flows.login import (
+    AUTHENTICATION_METHODS_SESSION_KEY,
+)
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.adapter import (
+    DefaultSocialAccountAdapter,
+    get_adapter as get_socialaccount_adapter,
+)
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import MultipleObjectsReturned
 from django.db import models, transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
@@ -127,15 +135,53 @@ class AccountAdapter(DefaultAccountAdapter):
             return default_url
 
         try:
-            social_account = SocialAccount.objects.filter(user=request.user).first()
-            if not social_account:
-                return default_url
+            active_provider = None
+            active_uid = None
 
-            social_app = SocialApp.objects.filter(
-                models.Q(provider_id=social_account.provider)
-                | models.Q(provider=social_account.provider)
-            ).first()
-            if not social_app:
+            if hasattr(request, 'session'):
+                active_provider = request.session.get('socialaccount_provider')
+                active_uid = request.session.get('socialaccount_uid')
+                if not active_provider:
+                    auth_methods = request.session.get(
+                        AUTHENTICATION_METHODS_SESSION_KEY, []
+                    )
+                    if auth_methods:
+                        latest_auth = auth_methods[-1]
+                        if latest_auth.get('method') == 'socialaccount':
+                            active_provider = latest_auth.get('provider')
+                            active_uid = latest_auth.get('uid')
+                        else:
+                            # User authenticated via password or non-social method;
+                            # do not trigger RP-initiated logout.
+                            return default_url
+
+            if active_provider:
+                accounts = SocialAccount.objects.filter(
+                    user=request.user, provider=active_provider
+                )
+                if active_uid:
+                    accounts = accounts.filter(uid=active_uid)
+                if accounts.count() != 1:
+                    return default_url
+                social_account = accounts.first()
+            else:
+                # When session has no provider metadata (e.g. legacy sessions or direct calls),
+                # resolve only if the user has exactly one linked social account.
+                # Multiple accounts without session context are ambiguous and unresolvable.
+                accounts = SocialAccount.objects.filter(user=request.user)
+                if accounts.count() != 1:
+                    return default_url
+                social_account = accounts.first()
+                active_provider = social_account.provider
+
+            try:
+                social_app = get_socialaccount_adapter().get_app(request, active_provider)
+            except SocialApp.DoesNotExist:
+                return default_url
+            except MultipleObjectsReturned:
+                logging.error(
+                    'Multiple social applications match provider "%s"', active_provider
+                )
                 return default_url
 
             custom_data = getattr(social_app, 'custom_data', None)
@@ -234,12 +280,16 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
-        # Stash id_token in session if present on incoming social account
+        # Stash login metadata and id_token in session for deterministic logout handling
         account = getattr(sociallogin, 'account', None)
         extra_data = getattr(account, 'extra_data', None)
         id_token = extra_data.get('id_token') if isinstance(extra_data, dict) else None
-        if id_token and hasattr(request, 'session'):
-            request.session['oidc_id_token'] = id_token
+        if hasattr(request, 'session'):
+            if id_token:
+                request.session['oidc_id_token'] = id_token
+            if account:
+                request.session['socialaccount_provider'] = account.provider
+                request.session['socialaccount_uid'] = account.uid
 
         """Allow only one linked SSO account per user."""
         # Only the connect flow links a new provider; login/signup are exempt.
