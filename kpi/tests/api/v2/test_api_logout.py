@@ -3,7 +3,9 @@ from urllib.parse import parse_qs, urlparse
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.usersessions.models import UserSession
+from django.conf import settings
 from django.db import connection
+from django.shortcuts import resolve_url
 from django.test import Client, TransactionTestCase, modify_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -24,13 +26,19 @@ class TestLogoutView(BaseTestCase):
     def test_anonymous_logout_returns_200_and_default_url(self):
         response = self.client.post(reverse('logout'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('redirect_url'), '/')
+        self.assertEqual(
+            response.data.get('redirect_url'),
+            resolve_url(settings.LOGOUT_REDIRECT_URL),
+        )
 
     def test_authenticated_local_user_logout_clears_session(self):
         self.client.force_login(self.user)
         response = self.client.post(reverse('logout'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('redirect_url'), '/')
+        self.assertEqual(
+            response.data.get('redirect_url'),
+            resolve_url(settings.LOGOUT_REDIRECT_URL),
+        )
 
         # Verify user is logged out
         response_me = self.client.get(reverse('currentuser-detail'))
@@ -57,7 +65,10 @@ class TestLogoutView(BaseTestCase):
         self.client.force_login(self.user)
         response = self.client.post(reverse('logout'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('redirect_url'), '/')
+        self.assertEqual(
+            response.data.get('redirect_url'),
+            resolve_url(settings.LOGOUT_REDIRECT_URL),
+        )
 
     def test_oidc_user_rp_initiated_returns_idp_logout_url(self):
         social_app = SocialApp.objects.create(
