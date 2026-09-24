@@ -373,7 +373,7 @@ class SocialAccountLogoutTestCase(TestCase):
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
-            end_session_endpoint='https://idp.example.com/protocol/openid-connect/logout',
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
             post_logout_redirect_uri='https://kpi.example.com/login/',
         )
         request = self._get_authenticated_request()
@@ -381,7 +381,7 @@ class SocialAccountLogoutTestCase(TestCase):
 
         parsed = urlparse(url)
         self.assertEqual(parsed.scheme, 'https')
-        self.assertEqual(parsed.netloc, 'idp.example.com')
+        self.assertEqual(parsed.netloc, 'idp.com')
         self.assertEqual(parsed.path, '/protocol/openid-connect/logout')
 
         query = parse_qs(parsed.query)
@@ -395,7 +395,7 @@ class SocialAccountLogoutTestCase(TestCase):
     @responses.activate
     def test_rp_initiated_with_discovery(self):
         self.social_app.settings = {
-            'server_url': 'https://idp.example.com/auth/realms/kobo'
+            'server_url': 'https://idp.com/auth/realms/kobo'
         }
         self.social_app.save()
 
@@ -411,13 +411,13 @@ class SocialAccountLogoutTestCase(TestCase):
         )
 
         discovery_url = (
-            'https://idp.example.com/auth/realms/kobo/.well-known/openid-configuration'
+            'https://idp.com/auth/realms/kobo/.well-known/openid-configuration'
         )
         responses.add(
             responses.GET,
             discovery_url,
             json={
-                'end_session_endpoint': 'https://idp.example.com/auth/realms/kobo/logout'
+                'end_session_endpoint': 'https://idp.com/auth/realms/kobo/logout'
             },
             status=200,
         )
@@ -529,7 +529,7 @@ class SocialAccountLogoutTestCase(TestCase):
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
-            end_session_endpoint='https://idp.example.com/protocol/openid-connect/logout',
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
         )
 
         request = self._get_authenticated_request()
@@ -540,7 +540,7 @@ class SocialAccountLogoutTestCase(TestCase):
             url = self.adapter.get_logout_redirect_url(request)
         self.assertEqual(url, '/')
 
-    def test_password_authenticated_session_returns_default_url_even_with_social_account(
+    def test_password_session_returns_default_url_even_with_social_account(
         self,
     ):
         SocialAccount.objects.create(
@@ -552,7 +552,7 @@ class SocialAccountLogoutTestCase(TestCase):
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
-            end_session_endpoint='https://idp.example.com/protocol/openid-connect/logout',
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
         )
 
         request = self._get_authenticated_request()

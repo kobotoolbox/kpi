@@ -29,7 +29,10 @@ class Migration(migrations.Migration):
             name='end_session_endpoint',
             field=models.URLField(
                 blank=True,
-                help_text='Custom OIDC end session endpoint (optional; auto-discovered if left blank)',
+                help_text=(
+                    'Custom OIDC end session endpoint (optional; auto-discovered'
+                    'if left blank)'
+                ),
                 null=True,
             ),
         ),
@@ -38,7 +41,10 @@ class Migration(migrations.Migration):
             name='post_logout_redirect_uri',
             field=models.URLField(
                 blank=True,
-                help_text='URL to redirect to after IdP logout (optional; defaults to Kobo login page)',
+                help_text=(
+                    'URL to redirect to after IdP logout (optional; '
+                    'defaults to Kobo login page)'
+                ),
                 null=True,
             ),
         ),

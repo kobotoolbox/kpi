@@ -132,7 +132,7 @@ class SocialAppCustomData(models.Model):
         blank=True,
         null=True,
         help_text=_(
-            'URL to redirect to after IdP logout (optional; defaults to Kobo login page)'
+            'URL to redirect to after IdP logout (optional; defaults to Kobo login)'
         ),
     )
 

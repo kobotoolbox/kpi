@@ -181,9 +181,10 @@ class AccountAdapter(DefaultAccountAdapter):
                     return default_url
                 social_account = accounts.first()
             else:
-                # When session has no provider metadata (e.g. legacy sessions or direct calls),
-                # resolve only if the user has exactly one linked social account.
-                # Multiple accounts without session context are ambiguous and unresolvable.
+                # When session has no provider metadata (e.g. legacy sessions or
+                # direct calls), resolve only if the user has exactly one linked
+                # social account. Multiple accounts without session context are
+                # ambiguous and unresolvable.
                 accounts = SocialAccount.objects.filter(user=request.user)
                 if accounts.count() != 1:
                     return default_url
