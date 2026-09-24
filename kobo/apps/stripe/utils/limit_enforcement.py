@@ -7,8 +7,9 @@ from django.utils import timezone
 from django_request_cache import cache_for_request
 
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.types import UsageBalances
 from kobo.apps.stripe.utils.import_management import requires_stripe
-from kpi.utils.usage_calculator import ServiceUsageCalculator, UsageBalances
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 if TYPE_CHECKING:
     from kobo.apps.stripe.models import ExceededLimitCounter
@@ -30,7 +31,7 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
 def check_exceeded_limits(
     user,
     usage_types: list[UsageType],
-    balances: 'UsageBalances | None' = None,
+    balances: UsageBalances | None = None,
     **kwargs,
 ) -> 'dict[UsageType, ExceededLimitCounter]':
     """

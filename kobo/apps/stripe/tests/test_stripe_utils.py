@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
 from django.conf import settings
-from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product
@@ -870,7 +869,6 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
             assert ExceededLimitCounter.objects.count() == 0
 
     def test_check_exceeded_limits_reuses_provided_balances(self):
-        cache.clear()
         mock_balances = {
             UsageType.ASR_SECONDS: None,
             UsageType.MT_CHARACTERS: None,
@@ -896,7 +894,6 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
             )
 
     def test_check_exceeded_limits_computes_balances_once(self):
-        cache.clear()
         mock_balances = {
             UsageType.ASR_SECONDS: None,
             UsageType.MT_CHARACTERS: None,
