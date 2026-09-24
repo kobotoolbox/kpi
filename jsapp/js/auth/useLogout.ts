@@ -3,6 +3,7 @@ import { fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 
 export interface LogoutResponse {
+  redirect_url?: string
   location?: string
 }
 
@@ -10,11 +11,12 @@ export const useLogout = () =>
   useMutation({
     mutationFn: () => fetchPost<LogoutResponse>(endpoints.LOGOUT, {}),
     onSuccess: (data) => {
+      const targetUrl = data?.redirect_url || data?.location
       if (
-        data?.location &&
-        (data.location.startsWith('http://') || data.location.startsWith('https://'))
+        targetUrl &&
+        (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))
       ) {
-        window.location.href = data.location
+        window.location.href = targetUrl
         return
       }
       window.location.replace('')

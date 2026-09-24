@@ -26,7 +26,7 @@ export const endpoints = {
   /** Expected parameter: organization_id  **/
   PORTAL_URL: '/api/v2/stripe/customer-portal',
   PROJECT_HISTORY_LOGS: '/api/v2/project-history-logs/',
-  LOGOUT: '/accounts/logout/',
+  LOGOUT: '/logout/',
   LOGOUT_ALL: '/logout-all/',
   LANGUAGES_LIST_URL: '/api/v2/languages/',
   LANGUAGE_DETAIL_URL: '/api/v2/languages/:language_id/',
