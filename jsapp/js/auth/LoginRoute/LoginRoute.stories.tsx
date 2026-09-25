@@ -65,11 +65,11 @@ const storyHandlers = (options?: { environment?: RequestHandler; login?: Request
  */
 const onAuthenticated = fn()
 
-/** Renders the story as `/auth/login`, so what you see is the routed screen inside its frame. */
+/** Renders the story as `/accounts/login`, so what you see is the routed screen inside its frame. */
 const loginRouting = reactRouterParameters({
   location: { path: AUTH_ROUTES.LOGIN },
   routing: reactRouterOutlet(
-    { path: ROUTES.AUTH_ROOT },
+    { path: ROUTES.ACCOUNTS_ROOT },
     { path: 'login', element: <LoginRoute onAuthenticated={onAuthenticated} /> },
   ),
 })
@@ -120,7 +120,7 @@ export const Default: Story = {
 
     // Both router links, so neither recovery nor signing up reloads the page.
     expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
-    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.REGISTER)
+    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.SIGNUP)
   },
 }
 
@@ -238,7 +238,7 @@ export const AlreadyLoggedIn: Story = {
     await submit(canvas)
 
     await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
-    // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
+    // A plain `href`, so the click leaves `/accounts` and loads the app with the session that was there.
     expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
   },
 }

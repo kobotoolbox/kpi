@@ -28,7 +28,7 @@ function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
       {isSignedIn ? (
         <>
           <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
-          {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
+          {/* A plain link, not a router one: leaving `/accounts` means loading the logged in app. */}
           <ButtonNew component='a' href='/' size='lg' fullWidth>
             {t('Continue to KoboToolbox')}
           </ButtonNew>

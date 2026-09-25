@@ -25,13 +25,13 @@ const FOOTER_LINKS = { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_polic
 const environmentMockWithFooterLinks = makeEnvironmentMock(FOOTER_LINKS)
 
 /**
- * Renders the story as the `/auth` route with the given element in its outlet, so what you see is
+ * Renders the story as the `/accounts` route with the given element in its outlet, so what you see is
  * really the routed container rather than the component in isolation.
  */
 const authRouting = (outlet: React.ReactNode) =>
   reactRouterParameters({
-    location: { path: AUTH_ROUTES.REGISTER },
-    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'register', element: outlet }),
+    location: { path: AUTH_ROUTES.SIGNUP },
+    routing: reactRouterOutlet({ path: ROUTES.ACCOUNTS_ROOT }, { path: 'signup', element: outlet }),
   })
 
 /** Placeholder card content. The input gives the tab-order assertions something to land on. */
