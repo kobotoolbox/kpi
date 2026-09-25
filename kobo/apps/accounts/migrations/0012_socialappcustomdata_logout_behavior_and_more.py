@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
             model_name='socialappcustomdata',
             name='logout_behavior',
             field=models.CharField(
+                blank=True,
                 choices=[
                     ('local_only', 'Local logout only'),
                     ('rp_initiated', 'RP-initiated logout (IdP end session)'),

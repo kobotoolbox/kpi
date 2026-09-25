@@ -1,15 +1,18 @@
-import logging
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_KEY
+from allauth.account.internal.flows.login import (
+    AUTHENTICATION_METHODS_SESSION_KEY,
+)
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.core.internal.httpkit import is_headless_request
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
+from allauth.socialaccount.adapter import (
+    DefaultSocialAccountAdapter,
+    get_adapter as get_socialaccount_adapter,
+)
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.providers.base.constants import AuthProcess
@@ -21,6 +24,8 @@ from django.db import transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+
+from kpi.utils.log import logging
 
 from .models import SocialAppCustomData, SocialAppManagedDomain
 from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
