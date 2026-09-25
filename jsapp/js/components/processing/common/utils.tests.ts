@@ -2,7 +2,14 @@ import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureRespon
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
-import { getBlockedTargetLanguages, getSuggestedLanguages, getTranslationSourceLanguages } from './utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AssetContent } from '#/dataInterface'
+import {
+  getBlockedTargetLanguages,
+  getSuggestedLanguages,
+  getTranslationSourceLanguages,
+  hasAnalysisSource,
+} from './utils'
 
 // Mock AdvancedFeatureResponse objects for tests
 const BASE: AdvancedFeatureResponse = {
@@ -238,5 +245,38 @@ describe('getTranslationSourceLanguages', () => {
       }),
     ])
     chai.expect(getTranslationSourceLanguages(supplement, XPATH)).to.deep.equal(['fr-CA', 'fr'])
+  })
+})
+
+describe('hasAnalysisSource', () => {
+  const TRANSCRIPT = buildTranscriptVersion({
+    uuid: 'v1',
+    language: 'en',
+    dateCreated: '2026-01-01T10:00:00Z',
+    dateAccepted: '2026-01-01T11:00:00Z',
+  })
+
+  /** Builds asset content holding a single question of the given type at `XPATH`. */
+  function buildContent(type: string): AssetContent {
+    return { survey: [{ $kuid: 'k1', $xpath: XPATH, name: XPATH, type }] } as AssetContent
+  }
+
+  it('is true for a text question, even without a transcript', () => {
+    chai.expect(hasAnalysisSource(buildContent(QUESTION_TYPES.text.id), buildSupplement([]), XPATH)).to.equal(true)
+  })
+
+  it('is false for an audio question without a transcript', () => {
+    chai.expect(hasAnalysisSource(buildContent(QUESTION_TYPES.audio.id), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  it('is true for an audio question with a transcript', () => {
+    chai
+      .expect(hasAnalysisSource(buildContent(QUESTION_TYPES.audio.id), buildSupplement([TRANSCRIPT]), XPATH))
+      .to.equal(true)
+  })
+
+  it('falls back to the transcript check when the question is not in the asset content', () => {
+    chai.expect(hasAnalysisSource(undefined, buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(undefined, buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
   })
 })

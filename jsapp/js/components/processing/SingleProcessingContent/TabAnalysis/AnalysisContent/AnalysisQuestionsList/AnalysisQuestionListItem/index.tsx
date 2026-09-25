@@ -21,7 +21,7 @@ import { userCan } from '#/components/permissions/utils'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import type { ManualQualValue } from '#/components/processing/common/types'
-import { getLatestQualVersionItem, getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
+import { getLatestQualVersionItem, hasAnalysisSource } from '#/components/processing/common/utils'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
@@ -80,7 +80,7 @@ export default function AnalysisQuestionListItem({
 }: Props) {
   const rootUuid = getSubmissionRootUuid(submission)
 
-  const hasTranscript = getLatestTranscriptVersionItem(supplement, questionXpath) !== undefined
+  const isAnalysisSourceAvailable = hasAnalysisSource(asset.content, supplement, questionXpath)
 
   const queryAnswer = useAssetsDataSupplementRetrieve(asset.uid, rootUuid, {
     query: {
@@ -322,7 +322,7 @@ export default function AnalysisQuestionListItem({
             disabledQuestion={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
-            hasTranscript={hasTranscript}
+            hasAnalysisSource={isAnalysisSourceAvailable}
             // This question type doesn't have any response, so we display just
             // the header, and thus no `answer` or `children`. We run setQaQuestion
             // immediately without a modal, since the modal is irrelevant here
@@ -344,7 +344,7 @@ export default function AnalysisQuestionListItem({
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
-            hasTranscript={hasTranscript}
+            hasAnalysisSource={isAnalysisSourceAvailable}
           >
             <SelectMultipleResponseForm
               qaQuestion={qaQuestion}
@@ -385,7 +385,7 @@ export default function AnalysisQuestionListItem({
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
-            hasTranscript={hasTranscript}
+            hasAnalysisSource={isAnalysisSourceAvailable}
           >
             <SelectOneResponseForm
               qaQuestion={qaQuestion}
@@ -410,7 +410,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             answer={queryAnswer.data}
-            hasTranscript={hasTranscript}
+            hasAnalysisSource={isAnalysisSourceAvailable}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
           >
             <TagsResponseForm
@@ -438,7 +438,7 @@ export default function AnalysisQuestionListItem({
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
-            hasTranscript={hasTranscript}
+            hasAnalysisSource={isAnalysisSourceAvailable}
           >
             <IntegerResponseForm
               qaAnswer={queryAnswer.data}
@@ -464,7 +464,7 @@ export default function AnalysisQuestionListItem({
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
-            hasTranscript={hasTranscript}
+            hasAnalysisSource={isAnalysisSourceAvailable}
           >
             <TextResponseForm
               qaAnswer={queryAnswer.data}
