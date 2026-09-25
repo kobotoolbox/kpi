@@ -152,6 +152,7 @@ INSTALLED_APPS = (
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
     'kobo.apps.user_reports.apps.UserReportsConfig',
+    'kobo.apps.support_tools.apps.SupportToolsConfig',
     'drf_spectacular',
     'csp',
 )
@@ -175,6 +176,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
+    'kobo.apps.openapi_validator.middleware.OpenAPIValidationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -2496,3 +2498,13 @@ ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
 LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
     'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
 )
+
+# OpenAPI schema validation runs under the test settings only: the middleware
+# refuses to load anywhere else, whatever these say. See
+# kobo/apps/openapi_validator/README.md
+OPENAPI_VALIDATION = False
+OPENAPI_SCHEMA_PATH = 'static/openapi/schema_v2.json'
+
+# Do not change these variables here. Override them in `testing.py`
+OPENAPI_VALIDATION_STRICT = False
+OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
