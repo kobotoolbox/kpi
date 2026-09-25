@@ -106,6 +106,39 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
   )
 }
 
+/**
+ * The route blockers, and the app itself when none of them applies. An active blocker takes the place of the whole
+ * page (see `isAnyRouteBlockerActive`), and the order below is the order they get their turn.
+ *
+ * Only the app branch gets `RootContextProvider`: its billing requests are for the account routes, and one of them
+ * (`/stripe/addons/`) answers 403 to exactly the user `InvalidatedPassword` is up for.
+ */
+function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+  if (isInvalidatedPasswordRouteBlockerActive()) {
+    return <InvalidatedPassword />
+  }
+
+  if (isTOSAgreementRouteBlockerActive()) {
+    return <TOSAgreement />
+  }
+
+  // TODO: We have multiple routes that shouldn't display `MainHeader`,
+  // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
+  // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
+  // opt for a more sane, and singular(!) solution.
+  return (
+    <RootContextProvider>
+      <AppPageWrapper
+        shouldDisplayMain={shouldDisplayMain}
+        inFormBuilder={inFormBuilder}
+        isFormSingle={isFormSingle}
+        isLibrarySingle={isLibrarySingle}
+        assetUid={getRouteAssetUid()}
+      />
+    </RootContextProvider>
+  )
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props)
@@ -138,38 +171,23 @@ class App extends React.Component {
   }
 
   render() {
-    if (isInvalidatedPasswordRouteBlockerActive()) {
-      return <InvalidatedPassword />
-    }
-
-    if (isTOSAgreementRouteBlockerActive()) {
-      return <TOSAgreement />
-    }
-
-    const assetUid = getRouteAssetUid()
-
-    // TODO: We have multiple routes that shouldn't display `MainHeader`,
-    // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
-    // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
-    // opt for a more sane, and singluar(!) solution.
+    // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
+    // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
             <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
-              <RootContextProvider>
-                <Tracking />
-                <ToasterConfig />
+              <Tracking />
+              <ToasterConfig />
 
-                <AppPageWrapper
-                  shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
-                  inFormBuilder={this.isFormBuilder()}
-                  isFormSingle={this.isFormSingle()}
-                  isLibrarySingle={this.isLibrarySingle()}
-                  assetUid={assetUid}
-                />
-              </RootContextProvider>
+              <AppGuard
+                shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
+                inFormBuilder={this.isFormBuilder()}
+                isFormSingle={this.isFormSingle()}
+                isLibrarySingle={this.isLibrarySingle()}
+              />
             </ModalsProvider>
           </MantineProvider>
 
