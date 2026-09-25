@@ -1,6 +1,6 @@
 import type { AccountResponse } from '#/dataInterface'
 import type { EnvStoreData, SocialApp } from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 
 /** The SSO providers configured on this server. */
 export function getSsoProviders(envStoreData: EnvStoreData) {
@@ -18,7 +18,7 @@ export function isSsoAvailable(envStoreData: EnvStoreData) {
  * SSO accounts connected to the current user. It's at most one, but the endpoint gives us a list.
  */
 export function getConnectedSsoAccounts() {
-  return 'social_accounts' in sessionStore.currentAccount ? sessionStore.currentAccount.social_accounts : []
+  return 'social_accounts' in profileStore.currentAccount ? profileStore.currentAccount.social_accounts : []
 }
 
 /**

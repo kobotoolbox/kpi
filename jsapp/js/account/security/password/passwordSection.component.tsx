@@ -8,14 +8,14 @@ import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore from '#/envStore'
 import { PATHS } from '#/router/routerConstants'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { getConnectedApp } from '../sso/sso.utils'
 import styles from './passwordSection.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10)
 
 export default function PasswordSection() {
-  const { currentLoggedAccount } = useSession()
+  const { currentLoggedAccount } = useProfile()
   const connectedApp = getConnectedApp(envStore.data, currentLoggedAccount)
 
   return (
