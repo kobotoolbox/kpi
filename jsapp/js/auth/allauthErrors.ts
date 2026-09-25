@@ -78,15 +78,28 @@ export function splitAllauthErrors(response: AllauthResponse, formFields: readon
 }
 
 /**
+ * The steps allauth says are still standing between the credentials it just accepted and a session - confirming
+ * an address, typing in a one-time code, etc.
+ *
+ * allauth uses 401 to mean an unfinished authentication, and 400 to mean a failed one.
+ */
+export function getPendingFlowIds(response: AllauthResponse): FlowId[] {
+  if (response.status !== 401) {
+    return []
+  }
+  const flows = (response.data as AuthenticationResponse | undefined)?.data?.flows
+  if (!Array.isArray(flows)) {
+    return []
+  }
+  return flows.filter((flow) => flow?.is_pending === true).map((flow) => flow.id)
+}
+
+/**
  * Whether a signup answer is in fact the happy path.
  *
  * Under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'` (the KPI default) a successful signup answers 401 with a pending
  * `verify_email` flow, since the new account is not logged in until the address is confirmed.
  */
 export function isPendingEmailVerification(response: AllauthResponse): boolean {
-  if (response.status !== 401) {
-    return false
-  }
-  const flows = (response.data as AuthenticationResponse | undefined)?.data?.flows
-  return Array.isArray(flows) && flows.some((flow) => flow.id === FlowId.verify_email && flow.is_pending === true)
+  return getPendingFlowIds(response).includes(FlowId.verify_email)
 }

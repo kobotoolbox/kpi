@@ -1,6 +1,7 @@
 import { Anchor, Checkbox, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
@@ -10,7 +11,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
-import { PATHS } from '#/router/routerConstants'
+import { AUTH_ROUTES } from '#/router/routerConstants'
 import {
   validateEmail,
   validateFullName,
@@ -260,7 +261,7 @@ export default function RegisterForm({
 
       <Text size='sm' ta='center'>
         {t('Already have an account?')}&nbsp;
-        <Anchor href={PATHS.LOGIN} inherit>
+        <Anchor component={Link} to={AUTH_ROUTES.LOGIN} inherit>
           {t('Log in')}
         </Anchor>
       </Text>
