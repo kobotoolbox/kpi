@@ -15,6 +15,7 @@ export function openReplaceProjectModal(options: OpenReplaceProjectModalOptions)
   const modalId = modals.open({
     title: <ClampedTitle>{t('Replace form: Choose a source')}</ClampedTitle>,
     size: 'xl',
+    closeOnClickOutside: false,
     children: (
       <ProjectSettings
         context={PROJECT_SETTINGS_CONTEXTS.REPLACE}

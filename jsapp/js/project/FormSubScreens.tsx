@@ -1,9 +1,7 @@
 import { Box } from '@mantine/core'
 import React, { Suspense } from 'react'
 import DocumentTitle from 'react-document-title'
-import reactMixin from 'react-mixin'
-import { actions } from '#/actions'
-import bem from '#/bem'
+import { useLocation, useParams } from 'react-router-dom'
 import RESTServices from '#/components/RESTServices'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import FormMapWrapper from '#/components/map/formMapWrapper'
@@ -12,10 +10,8 @@ import TransferProjects from '#/components/permissions/transferProjects/transfer
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import mixins from '#/mixins'
 import FormMedia from '#/project/FormMedia'
 import { ProjectSettings } from '#/project/ProjectSettings'
-import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 
 const ConnectProjects = React.lazy(
@@ -31,165 +27,158 @@ const FormGallery = React.lazy(
 
 const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/activity/FormActivity'))
 
-interface FormSubScreensProps extends WithRouterProps {
-  /** Asset uid for the cases where it doesn't come from the route (also used by `mixins.dmix`). */
+interface FormSubScreensProps {
+  /** Asset uid for the cases where it doesn't come from the route. */
   uid?: string
+  /** Asset loaded and authorized by PermProtectedRoute. */
+  asset?: AssetResponse
 }
-
-/**
- * `mixins.dmix` assigns the whole loaded asset onto this component's state, but the state starts out as an empty
- * object - hence all the asset properties being optional here.
- */
-type FormSubScreensState = Partial<AssetResponse>
 
 /**
  * Renders one of the project sub-screens - the Data ones (Table, Gallery, Map, Downloads) and the Settings ones (form
  * media, sharing, REST Services, activity, etc.). All of those routes point at this single component, which then picks
  * the screen by matching the current pathname against `ROUTES`.
  */
-class FormSubScreens extends React.Component<FormSubScreensProps, FormSubScreensState> {
-  constructor(props: FormSubScreensProps) {
-    super(props)
-    this.state = {}
+function FormSubScreens(props: FormSubScreensProps) {
+  const params = useParams()
+  const location = useLocation()
+  // TODO: Move asset loading and authorization to React Query so this prop can be replaced with a shared query cache.
+  const asset = props.asset
+
+  const renderSettingsEditor = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      // TODO: `form-view` scss classes can be replaced with style props and the file can be removed once we update the
+      // legacy components that use it to mantine style props. For now we can keep using the classes to avoid inconsistencies
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('General')} | KoboToolbox`}>
+        <Box className='form-view form-view--form-settings'>
+          <LimitNotifications />
+          <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={loadedAsset} />
+        </Box>
+      </DocumentTitle>
+    )
   }
 
-  // TODO: `mixins.dmix` loads the asset in its own `componentDidMount` too, and `react-mixin` runs both. Left as it
-  // was, to be untangled in DEV-2748.
-  componentDidMount() {
-    const uid = this.props.params.assetid || this.props.uid || this.props.params.uid
-    if (uid) {
-      actions.resources.loadAsset({ id: uid })
-    }
+  const renderSharing = (loadedAsset: AssetResponse) => {
+    // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
+    // still hold the previous asset for a moment.
+    const uid = params.assetid || params.uid
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      // TODO: `form-view` scss classes can be replaced with style props
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Sharing')} | KoboToolbox`}>
+        <Box className='form-view form-view--form-settings-sharing'>
+          <LimitNotifications />
+
+          {uid && <SharingForm assetUid={uid} />}
+
+          <Box mt='xl'>
+            <TransferProjects asset={loadedAsset} />
+          </Box>
+        </Box>
+      </DocumentTitle>
+    )
   }
 
-  /**
-   * The asset that `mixins.dmix` put into the state, or `undefined` while it's still being loaded. As `dmix` only ever
-   * assigns the asset as a whole, `uid` being there means the rest of it is there too.
-   */
-  private getAsset(): AssetResponse | undefined {
-    return this.state.uid ? (this.state as AssetResponse) : undefined
+  const renderRecords = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      // TODO: `form-view` scss classes can be replaced with style props
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Connect Projects')} | KoboToolbox`}>
+        <Box className='form-view connect-projects'>
+          <Suspense fallback={null}>
+            <ConnectProjects asset={loadedAsset} />
+          </Suspense>
+        </Box>
+      </DocumentTitle>
+    )
   }
 
-  render() {
-    const asset = this.getAsset()
+  const renderReset = () => <LoadingSpinner />
 
-    // Nothing to render until the asset lands
-    if (!asset) {
-      return false
-    }
+  const renderUpload = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
 
-    // Each of these is only in the path of one of the routes below. The `''` fallbacks are safe, as they make the
-    // `case`s using them build a path that no other route's pathname can match.
-    const viewby = this.props.params.viewby ?? ''
-    const hookUid = this.props.params.hookUid ?? ''
+    return (
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Media')} | KoboToolbox`}>
+        <FormMedia asset={loadedAsset} />
+      </DocumentTitle>
+    )
+  }
 
-    switch (this.props.router.location.pathname) {
-      case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
-        return (
+  // Nothing to render until the asset lands
+  if (!asset) {
+    return false
+  }
+
+  // Each of these is only in the path of one of the routes below. The `''` fallbacks are safe, as they make the
+  // `case`s using them build a path that no other route's pathname can match.
+  const viewby = params.viewby ?? ''
+  const hookUid = params.hookUid ?? ''
+  const docTitle = asset.name || t('Untitled')
+
+  switch (location.pathname) {
+    case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Table')} | KoboToolbox`}>
           <Suspense fallback={null}>
             <DataTable asset={asset} />
           </Suspense>
-        )
-      case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
-        return (
+        </DocumentTitle>
+      )
+    case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Gallery')} | KoboToolbox`}>
           <Suspense fallback={<div>{t('Image Gallery')}</div>}>
             <FormGallery asset={asset} />
           </Suspense>
-        )
-      case ROUTES.FORM_MAP.replace(':uid', asset.uid):
-        return <FormMapWrapper asset={asset} />
-      case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
-        return <FormMapWrapper asset={asset} viewby={viewby} />
-      case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
-        return (
-          <Suspense fallback={null}>
-            <ProjectDownloads asset={asset} />
-          </Suspense>
-        )
-      case ROUTES.FORM_SETTINGS.replace(':uid', asset.uid):
-        return this.renderSettingsEditor(asset)
-      case ROUTES.FORM_MEDIA.replace(':uid', asset.uid):
-        return this.renderUpload(asset)
-      case ROUTES.FORM_SHARING.replace(':uid', asset.uid):
-        return this.renderSharing(asset)
-      case ROUTES.FORM_RECORDS.replace(':uid', asset.uid):
-        return this.renderRecords(asset)
-      case ROUTES.FORM_REST.replace(':uid', asset.uid):
-        return <RESTServices asset={asset} />
-      case ROUTES.FORM_REST_HOOK.replace(':uid', asset.uid).replace(':hookUid', hookUid):
-        return <RESTServices asset={asset} hookUid={hookUid} />
-      case ROUTES.FORM_RESET.replace(':uid', asset.uid):
-        return this.renderReset()
-      case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
-        return <FormActivity />
-    }
-
-    const docTitle = asset.name || t('Untitled')
-
-    // TODO: this fallback screen is a leftover - nothing ever fills the url in, so the iframe is always empty. To be
-    // removed in DEV-2748.
-    const iframeUrl = ''
-
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView>
-          <bem.FormView__cell m='iframe'>
-            <iframe src={iframeUrl} />
-          </bem.FormView__cell>
-        </bem.FormView>
-      </DocumentTitle>
-    )
-  }
-
-  renderSettingsEditor(asset: AssetResponse) {
-    const docTitle = asset.name || t('Untitled')
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView m='form-settings'>
-          <LimitNotifications />
-          <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={asset} />
-        </bem.FormView>
-      </DocumentTitle>
-    )
-  }
-
-  renderSharing(asset: AssetResponse) {
-    // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
-    // still hold the previous asset for a moment.
-    const uid = this.props.params.assetid || this.props.params.uid
-
-    return (
-      <bem.FormView m='form-settings-sharing'>
-        <LimitNotifications />
-
-        {uid && <SharingForm assetUid={uid} />}
-
-        <Box mt='xl'>
-          <TransferProjects asset={asset} />
-        </Box>
-      </bem.FormView>
-    )
-  }
-
-  renderRecords(asset: AssetResponse) {
-    return (
-      <bem.FormView className='connect-projects'>
+        </DocumentTitle>
+      )
+    case ROUTES.FORM_MAP.replace(':uid', asset.uid):
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
+          <FormMapWrapper asset={asset} />
+        </DocumentTitle>
+      )
+    case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
+          <FormMapWrapper asset={asset} viewby={viewby} />
+        </DocumentTitle>
+      )
+    case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
+      return (
         <Suspense fallback={null}>
-          <ConnectProjects asset={asset} />
+          <ProjectDownloads asset={asset} />
         </Suspense>
-      </bem.FormView>
-    )
+      )
+    case ROUTES.FORM_SETTINGS.replace(':uid', asset.uid):
+      return renderSettingsEditor(asset)
+    case ROUTES.FORM_MEDIA.replace(':uid', asset.uid):
+      return renderUpload(asset)
+    case ROUTES.FORM_SHARING.replace(':uid', asset.uid):
+      return renderSharing(asset)
+    case ROUTES.FORM_RECORDS.replace(':uid', asset.uid):
+      return renderRecords(asset)
+    case ROUTES.FORM_REST.replace(':uid', asset.uid):
+      return <RESTServices asset={asset} />
+    case ROUTES.FORM_REST_HOOK.replace(':uid', asset.uid).replace(':hookUid', hookUid):
+      return <RESTServices asset={asset} hookUid={hookUid} />
+    case ROUTES.FORM_RESET.replace(':uid', asset.uid):
+      return renderReset()
+    case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Activity')} | KoboToolbox`}>
+          <FormActivity />
+        </DocumentTitle>
+      )
   }
 
-  renderReset() {
-    return <LoadingSpinner />
-  }
-
-  renderUpload(asset: AssetResponse) {
-    return <FormMedia asset={asset} />
-  }
+  // For TS, should never happen
+  return null
 }
 
-reactMixin(FormSubScreens.prototype, mixins.dmix)
-
-export default withRouter(FormSubScreens)
+export default FormSubScreens
