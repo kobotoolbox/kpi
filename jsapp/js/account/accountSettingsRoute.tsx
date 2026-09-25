@@ -44,13 +44,13 @@ const AccountSettings = () => {
   useEffect(() => {
     if (!currentLoggedAccount) return
 
-    const fields = getProfileFieldsValues(currentLoggedAccount.extra_details)
+    const fieldsValues = getProfileFieldsValues(currentLoggedAccount.extra_details)
 
-    setFormFields(fields)
+    setFormFields(fieldsValues)
 
     setDisplayedFields(
       getEditableProfileFieldNames({
-        configuredFieldNames: recordKeys(fields),
+        configuredFieldNames: recordKeys(fieldsValues),
         isMmoMember: Boolean(organization?.is_mmo),
       }),
     )

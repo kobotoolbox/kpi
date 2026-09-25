@@ -1,10 +1,10 @@
 import chai from 'chai'
 import type { AccountFieldsValues, UserFieldName } from './account.constants'
 import {
-  areOrganizationFieldsSkipped,
   getEditableProfileFieldNames,
   getInitialAccountFieldsValues,
   getProfileFieldsValues,
+  hasNoOrganizationAffiliation,
 } from './account.utils'
 
 /** The set an instance gets when an administrator asks for the organization block. */
@@ -57,22 +57,22 @@ describe('getEditableProfileFieldNames', () => {
   })
 })
 
-describe('areOrganizationFieldsSkipped', () => {
+describe('hasNoOrganizationAffiliation', () => {
   it('skips them once the type says there is no organization', () => {
-    chai.expect(areOrganizationFieldsSkipped({ organization_type: 'none' }, ORG_FIELDS)).to.equal(true)
+    chai.expect(hasNoOrganizationAffiliation({ organization_type: 'none' }, ORG_FIELDS)).to.equal(true)
   })
 
   it('keeps them for any other type', () => {
-    chai.expect(areOrganizationFieldsSkipped({ organization_type: 'non-profit' }, ORG_FIELDS)).to.equal(false)
+    chai.expect(hasNoOrganizationAffiliation({ organization_type: 'non-profit' }, ORG_FIELDS)).to.equal(false)
   })
 
   it('keeps them while the type is still blank', () => {
-    chai.expect(areOrganizationFieldsSkipped({ organization_type: '' }, ORG_FIELDS)).to.equal(false)
+    chai.expect(hasNoOrganizationAffiliation({ organization_type: '' }, ORG_FIELDS)).to.equal(false)
   })
 
   it('ignores a stale value on an instance that does not ask for the type', () => {
     const configuredFieldNames: UserFieldName[] = ['organization', 'organization_website']
 
-    chai.expect(areOrganizationFieldsSkipped({ organization_type: 'none' }, configuredFieldNames)).to.equal(false)
+    chai.expect(hasNoOrganizationAffiliation({ organization_type: 'none' }, configuredFieldNames)).to.equal(false)
   })
 })
