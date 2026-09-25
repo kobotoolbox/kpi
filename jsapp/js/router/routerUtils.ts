@@ -17,10 +17,7 @@ import {
 } from '#/auth/ProfileDetailsBlocker/profileDetails.utils'
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
-// import session from '../stores/session';
-// import {when} from 'mobx';
-// import {redirectDocument} from 'react-router';
+import profileStore from '#/stores/profile'
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -48,26 +45,6 @@ export function getCurrentPath(): string {
   const route = location.hash.split('#')
   return route.length > 1 ? route[1] : ''
 }
-
-/**
- * Redirects to `getLoginUrl()` if a page that requires authentication
- * is navigated to.
- *
- * NOTE: This was previously commented out because `redirectDocument` required
- * react-router ≥ 6.19.1 and upgrading at that time caused build errors.
- * We are now on react-router v7 where `redirectDocument` is available.
- * The function body is kept commented because migrating auth to a route loader
- * requires attaching a `loader` to every protected route — a larger refactor.
- * When that migration is done, uncomment the imports at the top of this file
- * (session, when, redirectDocument) and restore this function.
- */
-// export const authLoader = async () => {
-//   await when(() => session.isAuthStateKnown);
-//   if (!session.isLoggedIn) {
-//     return redirectDocument(getLoginUrl());
-//   }
-//   return null;
-// };
 
 /*
  * A list of functions that match routes defined in constants
@@ -259,9 +236,9 @@ export function getRouteAssetUid() {
  */
 export function isInvalidatedPasswordRouteBlockerActive() {
   return (
-    sessionStore.isLoggedIn &&
-    'validated_password' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.validated_password === false
+    profileStore.isLoggedIn &&
+    'validated_password' in profileStore.currentAccount &&
+    profileStore.currentAccount.validated_password === false
   )
 }
 
@@ -269,10 +246,10 @@ export function isInvalidatedPasswordRouteBlockerActive() {
 export function isTOSAgreementRouteBlockerActive() {
   return (
     envStore.data.terms_of_service__sitewidemessage__exists &&
-    sessionStore.isLoggedIn &&
+    profileStore.isLoggedIn &&
     // We check for email, because `currentAccount` can be two different things
-    'email' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.accepted_tos !== true
+    'email' in profileStore.currentAccount &&
+    profileStore.currentAccount.accepted_tos !== true
   )
 }
 

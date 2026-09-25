@@ -4,14 +4,14 @@ import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import ManagedSsoConfirmModal from './ManagedSsoConfirmModal'
 import { deleteSocialAccount } from './sso.api'
 import { getConnectedApp, getSsoProviders, isSsoAvailable } from './sso.utils'
 import styles from './ssoSection.module.scss'
 
 export default function SsoSection() {
-  const { currentLoggedAccount, refreshAccount } = useSession()
+  const { currentLoggedAccount, refreshAccount } = useProfile()
   const socialApps = getSsoProviders(envStore.data)
   const connectedApp = getConnectedApp(envStore.data, currentLoggedAccount)
   const isManaged = connectedApp?.managed ?? false

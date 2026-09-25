@@ -9,7 +9,7 @@ import TextInput from '#/components/common/TextInput'
 import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import AuthCard from './AuthCard'
 import AuthContainer from './AuthContainer'
 import { setLoginBackgroundMetaForStories } from './authContainer.mocks'
@@ -85,7 +85,7 @@ const meta: Meta<typeof AuthContainer> = {
   },
   // Nobody is logged in on a sign-in screen. Storybook runs the returned teardown, which matters:
   // `preview.tsx` forces the logged-in state before every story.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 
