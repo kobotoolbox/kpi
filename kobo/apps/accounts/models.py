@@ -118,6 +118,7 @@ class SocialAppCustomData(models.Model):
         max_length=20,
         choices=LogoutBehavior.choices,
         default=LogoutBehavior.LOCAL_ONLY,
+        blank=True,
         help_text=_('Logout behavior for this SSO provider'),
     )
     end_session_endpoint = models.URLField(
@@ -147,6 +148,8 @@ class SocialAppCustomData(models.Model):
             self._initial_domains = []
 
     def save(self, *args, **kwargs):
+        if not self.logout_behavior:
+            self.logout_behavior = self.LogoutBehavior.LOCAL_ONLY
         super().save(*args, **kwargs)
         self._initially_managed = self.managed
         self._initial_domains = list(self.domains.values_list('domain', flat=True))
