@@ -228,7 +228,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             UsageType.STORAGE_BYTES: {'exceeded': False},
             UsageType.SUBMISSION: None,
         }
-        cache.clear()
+        for usage_type in (UsageType.SUBMISSION, UsageType.STORAGE_BYTES):
+            cache.delete(f'{self.user.id}_checked_exceeded_{usage_type}_limit')
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             '..',
