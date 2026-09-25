@@ -9,7 +9,7 @@ import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
 import type { AssetResponse, FailResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { currentLang, formatTime } from '#/utils'
 
 interface FormSummaryProjectInfoProps {
@@ -102,7 +102,7 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           {/* owner */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Owner')}</bem.FormView__label>
-            {props.asset.owner_label === sessionStore.currentAccount.username ? (
+            {props.asset.owner_label === profileStore.currentAccount.username ? (
               t('me')
             ) : (
               <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
@@ -112,9 +112,9 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           {/* last edited */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Last edited')}</bem.FormView__label>
-            {props.asset.last_modified_by === sessionStore.currentAccount.username && t('me')}
+            {props.asset.last_modified_by === profileStore.currentAccount.username && t('me')}
             {props.asset.last_modified_by !== null &&
-              props.asset.last_modified_by !== sessionStore.currentAccount.username && (
+              props.asset.last_modified_by !== profileStore.currentAccount.username && (
                 <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
               )}
           </bem.FormView__cell>
@@ -182,7 +182,8 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
               <bem.FormView__label>{t('Languages')}</bem.FormView__label>
               {props.asset.summary.languages.map((language, index) => (
                 <bem.FormView__cell key={`lang-${index}`} data-index={index}>
-                  {language}
+                  {/* Unnamed languages arrive as null, and a blank row hides why the form won't open in Formbuilder */}
+                  {language || t('Unnamed language')}
                 </bem.FormView__cell>
               ))}
             </bem.FormView__cell>

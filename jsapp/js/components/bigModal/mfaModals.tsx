@@ -10,7 +10,7 @@ import bem, { makeBem } from '#/bem'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 
 bem.MFAModal = makeBem(null, 'mfa-modal')
 
@@ -182,7 +182,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
 
   downloadCodes() {
     if (this.state.backupCodes) {
-      const USERNAME = sessionStore.currentAccount.username
+      const USERNAME = profileStore.currentAccount.username
       // gets date in yyyymmdd
       const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '')
 

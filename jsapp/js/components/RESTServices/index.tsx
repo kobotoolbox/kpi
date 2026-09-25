@@ -18,7 +18,7 @@ interface RESTServicesProps {
 export default function RESTServices({ asset, hookUid }: RESTServicesProps) {
   const docTitle = asset.name || t('Untitled')
   return (
-    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+    <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('REST Services')} | KoboToolbox`}>
       <div className='rest-services form-view form-view--rest-services'>
         {hookUid && <RESTServiceLogs assetUid={asset.uid} hookUid={hookUid} />}
         {!hookUid && <RESTServicesList assetUid={asset.uid} />}
