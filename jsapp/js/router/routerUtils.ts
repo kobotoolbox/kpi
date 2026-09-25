@@ -8,6 +8,13 @@
  * of defined ROUTES.
  */
 
+import type { UserFieldName } from '#/account/account.constants'
+import { getProfileFieldsValues } from '#/account/account.utils'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
+import {
+  doBlankFieldsDependOnMmoStatus,
+  getBlankRequiredProfileFieldNames,
+} from '#/auth/ProfileDetailsBlocker/profileDetails.utils'
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
@@ -246,11 +253,44 @@ export function isTOSAgreementRouteBlockerActive() {
   )
 }
 
+/** The required profile fields the current account has left blank */
+function getBlankRequiredFieldNamesForCurrentAccount(organization?: OrganizationResponse): UserFieldName[] {
+  const account = profileStore.currentAccount
+
+  // We check for email, because `currentAccount` can be two different things. `/environment` is what says
+  // which fields are required at all, so there is no answer before it lands.
+  if (!envStore.isReady || !profileStore.isLoggedIn || !('email' in account)) {
+    return []
+  }
+
+  return getBlankRequiredProfileFieldNames(getProfileFieldsValues(account.extra_details), {
+    configuredFieldNames: envStore.data.getUserMetadataFieldNames(),
+    requiredFieldNames: envStore.data.getUserMetadataRequiredFieldNames(),
+    isMmoMember: Boolean(organization?.is_mmo),
+  })
+}
+
+/**
+ * ProfileDetails is displayed when the instance requires profile fields that the account has left blank.Called without
+ * an organization this answers the widest reading. A `false` from that is final; a `true` may have to be asked again
+ * once the organization is known (see {@link doesProfileDetailsRouteBlockerNeedOrganization})
+ */
+export function isProfileDetailsRouteBlockerActive(organization?: OrganizationResponse): boolean {
+  return getBlankRequiredFieldNamesForCurrentAccount(organization).length > 0
+}
+
+export function doesProfileDetailsRouteBlockerNeedOrganization(): boolean {
+  return doBlankFieldsDependOnMmoStatus(getBlankRequiredFieldNamesForCurrentAccount())
+}
+
 /**
  * Whether we currently display a route blocker type component. It's one that
  * displays some UI requiring user to take action and blocks any navigation,
  * thus blocking user from using any part of the app. E.g. `TOSAgreement` when
  * user have not accepted the new TOS yet.
+ *
+ * `ProfileDetails` is deliberately absent: its screen has no account menu to ask this, and the reading
+ * available here is the widest one, which would hide navigation from MMO members who are not blocked at all.
  */
 export function isAnyRouteBlockerActive() {
   return isInvalidatedPasswordRouteBlockerActive() || isTOSAgreementRouteBlockerActive()
