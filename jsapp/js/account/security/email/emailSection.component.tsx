@@ -8,7 +8,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
 import Icon from '#/components/common/icon'
 import type { FailResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime, notify } from '#/utils'
 import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
 import type { EmailResponse } from './emailSection.api'
@@ -23,13 +23,13 @@ interface EmailState {
 }
 
 export default function EmailSection() {
-  const [session] = useState(() => sessionStore)
+  const [profile] = useState(() => profileStore)
 
   const [organization] = useOrganizationAssumed()
 
   let initialEmail = ''
-  if ('email' in session.currentAccount) {
-    initialEmail = session.currentAccount.email
+  if ('email' in profile.currentAccount) {
+    initialEmail = profile.currentAccount.email
   }
 
   const [email, setEmail] = useState<EmailState>({
@@ -136,11 +136,11 @@ export default function EmailSection() {
     }
   }
 
-  const currentAccount = session.currentAccount
+  const currentAccount = profile.currentAccount
   const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary)
-  const isReady = session.isInitialLoadComplete && 'email' in currentAccount
+  const isReady = profile.isInitialLoadComplete && 'email' in currentAccount
   const isSSO =
-    session.isInitialLoadComplete && 'social_accounts' in currentAccount && currentAccount.social_accounts.length >= 1
+    profile.isInitialLoadComplete && 'social_accounts' in currentAccount && currentAccount.social_accounts.length >= 1
   const userCanChangeEmail = organization.is_mmo ? organization.request_user_role !== MemberRoleEnum.member : true
 
   return (

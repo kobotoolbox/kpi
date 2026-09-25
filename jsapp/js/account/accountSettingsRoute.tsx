@@ -11,7 +11,7 @@ import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
-import { useSession } from '../stores/useSession'
+import { useProfile } from '../stores/useProfile'
 import DeleteAccountBanner from './DeleteAccountBanner'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import {
@@ -35,7 +35,7 @@ const AccountSettings = () => {
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
   const isSelfDeleteFeatureEnabled = envStore.data.allow_self_account_deletion
 
-  const { currentLoggedAccount, refreshAccount } = useSession()
+  const { currentLoggedAccount, refreshAccount } = useProfile()
 
   const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
 
@@ -44,13 +44,13 @@ const AccountSettings = () => {
   useEffect(() => {
     if (!currentLoggedAccount) return
 
-    const fields = getProfileFieldsValues(currentLoggedAccount.extra_details)
+    const fieldsValues = getProfileFieldsValues(currentLoggedAccount.extra_details)
 
-    setFormFields(fields)
+    setFormFields(fieldsValues)
 
     setDisplayedFields(
       getEditableProfileFieldNames({
-        configuredFieldNames: recordKeys(fields),
+        configuredFieldNames: recordKeys(fieldsValues),
         isMmoMember: Boolean(organization?.is_mmo),
       }),
     )

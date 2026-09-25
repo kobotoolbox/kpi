@@ -78,10 +78,10 @@ export default function TOSForm() {
 
     try {
       await fetchPost(TOS_ACCEPT_ENDPOINT, {})
-      // TODO ideally we could make the sessionStore fetch new account data
+      // TODO ideally we could make the profileStore fetch new account data
       // or even override the `accepted_tos` flag without fetching. But this
       // requires the `app.js` file to be reworked in a bit different fashion,
-      // so that it could react to `sessionStore.accepted_tos` change. For now
+      // so that it could react to `profileStore.accepted_tos` change. For now
       // we do ugly and simple forced reload :)
       window.location.replace('')
     } catch (err) {

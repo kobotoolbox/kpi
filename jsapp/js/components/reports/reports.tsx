@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import clonedeep from 'lodash.clonedeep'
 import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import bem from '#/bem'
 import Select from '#/components/common/Select'
@@ -505,23 +506,29 @@ export default function Reports(props: ReportsProps) {
   }
 
   function renderLoadingOrError() {
+    const docTitle = assetQuery.data?.data.name || t('Untitled')
     if (state.error) {
+      // The body used to be printed as it came, which meant a whole error page on the report screen.
+      const details = [state.error.statusText, flattenErrorBody(state.error.responseJSON)].filter(Boolean).join(': ')
       return (
-        <CenteredMessage
-          message={
-            <>
-              {t('This report cannot be loaded.')}
-              <br />
-              <code>
-                {state.error.statusText}
-                {': ' + state.error.responseText || t('An error occurred')}
-              </code>
-            </>
-          }
-        />
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
+          <CenteredMessage
+            message={
+              <>
+                {t('This report cannot be loaded.')}
+                <br />
+                <code>{details || t('An error occurred')}</code>
+              </>
+            }
+          />
+        </DocumentTitle>
       )
     } else {
-      return <LoadingSpinner />
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
+          <LoadingSpinner />
+        </DocumentTitle>
+      )
     }
   }
 
@@ -535,11 +542,7 @@ export default function Reports(props: ReportsProps) {
 
   const asset = state.asset
   const currentCustomReport = state.currentCustomReport
-  let docTitle
-
-  if (asset?.content) {
-    docTitle = asset.name || t('Untitled')
-  }
+  const docTitle = asset.name || t('Untitled')
 
   const fullReportData = state.reportData || []
   /**
@@ -573,7 +576,7 @@ export default function Reports(props: ReportsProps) {
   }
 
   return (
-    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+    <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Reports')} | KoboToolbox`}>
       <bem.FormView m={formViewModifiers}>
         <bem.ReportView>
           <h1>{t('Reports')}</h1>

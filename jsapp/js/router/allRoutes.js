@@ -7,7 +7,8 @@ import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import permConfig from '#/components/permissions/permConfig'
 import { isRootRoute, redirectToLogin } from '#/router/routerUtils'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
+import AuthCheckFailed from './AuthCheckFailed'
 import router from './router'
 
 const AllRoutes = class AllRoutes extends React.Component {
@@ -51,22 +52,27 @@ const AllRoutes = class AllRoutes extends React.Component {
       newStateObj.isSessionReady = data.isSessionReady
     }
 
-    if (!(newStateObj.isPermsConfigReady && newStateObj.isSessionReady && !sessionStore.isLoggedIn && isRootRoute())) {
+    if (!(newStateObj.isPermsConfigReady && newStateObj.isSessionReady && !profileStore.isLoggedIn && isRootRoute())) {
       this.setState(newStateObj)
     }
   }
 
   render() {
+    // The check failed, so there is no telling who this is, and neither of the two branches below can cope with that
+    if (profileStore.isAuthStateCheckFailed) {
+      return <AuthCheckFailed />
+    }
+
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
-    if (!this.state.isPermsConfigReady || !sessionStore.isAuthStateKnown) {
+    if (!this.state.isPermsConfigReady || !profileStore.isAuthStateKnown) {
       return <LoadingSpinner />
     }
 
     // If all necessary data is obtained, and user is not logged in, and on
     // the root route, redirect immediately to the login page outside
     // the React app, and skip setting the state (so no content blink).
-    if (!sessionStore.isLoggedIn && isRootRoute()) {
+    if (!profileStore.isLoggedIn && isRootRoute()) {
       redirectToLogin()
       // redirect is async, continue showing loading
       return <LoadingSpinner />

@@ -4,7 +4,7 @@ import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
 import { ROOT_URL } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 
 export interface ProjectView {
   uid: string
@@ -27,7 +27,7 @@ class ProjectViewsStore {
   constructor() {
     makeAutoObservable(this)
     when(
-      () => sessionStore.isLoggedIn,
+      () => profileStore.isLoggedIn,
       () => this.fetchData(),
     )
   }
@@ -43,7 +43,9 @@ class ProjectViewsStore {
       url: `${ROOT_URL}/api/v2/project-views/`,
     })
       .done(this.onFetchDataDone.bind(this))
-      .fail(handleApiFail)
+      // Only the response, because jQuery's second argument is its own `textStatus` and `handleApiFail` reads that as
+      // a message to display.
+      .fail((response) => handleApiFail(response))
   }
 
   private onFetchDataDone(response: PaginatedResponse<ProjectView>) {

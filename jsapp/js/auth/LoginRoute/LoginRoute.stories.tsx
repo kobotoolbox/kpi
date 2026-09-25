@@ -14,7 +14,7 @@ import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mo
 import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, PATHS, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import LoginRoute from './LoginRoute'
 
 const CREDENTIALS = {
@@ -86,7 +86,7 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: loginRouting,
   },
   // Nobody is logged in on a sign-in screen.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 
