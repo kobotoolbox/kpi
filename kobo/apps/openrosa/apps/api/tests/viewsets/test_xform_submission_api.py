@@ -10,6 +10,7 @@ import simplejson as json
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -175,9 +176,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 patched.assert_called_once_with(
-                    self.user,
-                    [UsageType.SUBMISSION, UsageType.STORAGE_BYTES],
-                    balances=mock_balances,
+                    self.user, [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]
                 )
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
@@ -200,11 +199,56 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 patched.assert_called_once_with(
-                    self.user,
-                    [UsageType.SUBMISSION, UsageType.STORAGE_BYTES],
-                    balances=mock_balances,
+                    self.user, [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]
                 )
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    @patch('kobo.apps.stripe.utils.limit_enforcement._get_usage_balances')
+    def test_over_limit_rejection_counts_on_fresh_usage(
+        self, mock_fresh_usage, mock_cached_usage
+    ):
+        """
+        Ensure a rejected submission records exceeded-limit counters from fresh
+        usage, not from the cached balances that triggered the rejection
+        """
+        from kobo.apps.stripe.models import ExceededLimitCounter
+
+        mock_cached_usage.return_value = {
+            UsageType.STORAGE_BYTES: {'exceeded': True},
+            UsageType.SUBMISSION: None,
+        }
+        # e.g. the owner deleted attachments after the balances were cached
+        mock_fresh_usage.return_value = {
+            UsageType.STORAGE_BYTES: {'exceeded': False},
+            UsageType.SUBMISSION: None,
+        }
+        cache.clear()
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+
+        request = self.factory.post('/submission', data, format='json')
+        response = self.view(request)
+        self.assertEqual(response.status_code, 401)
+        request = self.factory.post('/submission', data, format='json')
+        auth = DigestAuth('bob', 'bobbob')
+        request.META.update(auth(request.META, response))
+        response = self.view(request, username=self.user.username)
+
+        self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+        mock_fresh_usage.assert_called_once()
+        assert not ExceededLimitCounter.objects.exists()
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'

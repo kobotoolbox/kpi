@@ -7,7 +7,6 @@ from django.utils import timezone
 from django_request_cache import cache_for_request
 
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.organizations.types import UsageBalances
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
@@ -31,7 +30,6 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
 def check_exceeded_limits(
     user,
     usage_types: list[UsageType],
-    balances: UsageBalances | None = None,
     **kwargs,
 ) -> 'dict[UsageType, ExceededLimitCounter]':
     """
@@ -39,15 +37,15 @@ def check_exceeded_limits(
     and update ExceededLimitCounters accordingly.
 
     Uses a cached key per usage type to avoid running checks more than once
-    within the ENDPOINT_CACHE_DURATION. Usage balances are computed lazily and
-    only when a usage type passes its gate; a caller may pass already-computed
-    `balances` to avoid a redundant recalculation.
+    within the ENDPOINT_CACHE_DURATION. Fresh usage balances are computed at most
+    once per call, and only when a usage type passes its gate.
     """
     org = user.organization
     if org.is_mmo:
         user = org.owner_user_object
 
     ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
+    balances = None
     counters = {}
 
     for usage_type in usage_types:

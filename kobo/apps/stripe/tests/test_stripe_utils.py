@@ -868,31 +868,6 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
             update_or_remove_limit_counter(counter)
             assert ExceededLimitCounter.objects.count() == 0
 
-    def test_check_exceeded_limits_reuses_provided_balances(self):
-        mock_balances = {
-            UsageType.ASR_SECONDS: None,
-            UsageType.MT_CHARACTERS: None,
-            UsageType.STORAGE_BYTES: {'exceeded': True},
-            UsageType.SUBMISSION: {'exceeded': True},
-        }
-        with patch(
-            'kpi.utils.usage_calculator.ServiceUsageCalculator.get_usage_balances',
-        ) as patched:
-            check_exceeded_limits(
-                self.someuser,
-                [UsageType.SUBMISSION, UsageType.STORAGE_BYTES],
-                balances=mock_balances,
-            )
-            patched.assert_not_called()
-
-        for usage_type in [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]:
-            assert (
-                ExceededLimitCounter.objects.filter(
-                    user_id=self.anotheruser.id, limit_type=usage_type
-                ).count()
-                == 1
-            )
-
     def test_check_exceeded_limits_computes_balances_once(self):
         mock_balances = {
             UsageType.ASR_SECONDS: None,

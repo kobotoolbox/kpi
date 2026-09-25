@@ -327,9 +327,7 @@ def create_instance(
         ]
         if exceeded_types:
             check_exceeded_limits(
-                xform.user,
-                [UsageType.SUBMISSION, UsageType.STORAGE_BYTES],
-                balances=balances,
+                xform.user, [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]
             )
 
             raise ExceededUsageLimitError({'type': exceeded_types[0]})
