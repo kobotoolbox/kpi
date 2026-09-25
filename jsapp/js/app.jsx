@@ -113,7 +113,7 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
  * Only the app branch gets `RootContextProvider`: its billing requests are for the account routes, and one of them
  * (`/stripe/addons/`) answers 403 to exactly the user `InvalidatedPassword` is up for.
  */
-function RouteBlockerOrApp({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
   if (isInvalidatedPasswordRouteBlockerActive()) {
     return <InvalidatedPassword />
   }
@@ -172,7 +172,7 @@ class App extends React.Component {
 
   render() {
     // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
-    // query client as the app. `RootContextProvider` is the exception - see `RouteBlockerOrApp`.
+    // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
@@ -182,7 +182,7 @@ class App extends React.Component {
               <Tracking />
               <ToasterConfig />
 
-              <RouteBlockerOrApp
+              <AppGuard
                 shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
                 inFormBuilder={this.isFormBuilder()}
                 isFormSingle={this.isFormSingle()}
