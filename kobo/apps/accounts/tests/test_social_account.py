@@ -1,8 +1,10 @@
 import json
 from datetime import timedelta
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import responses
+from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_KEY
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
@@ -10,6 +12,7 @@ from ddt import data, ddt
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.shortcuts import resolve_url
 from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -18,7 +21,7 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from kobo.apps.accounts.adapter import SocialAccountAdapter
+from kobo.apps.accounts.adapter import AccountAdapter, SocialAccountAdapter
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.utils.fuzzy_int import FuzzyInt
 from ...help.models import InAppMessage, InAppMessageUsers, MessageType
@@ -306,3 +309,269 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
         else:
             # if there was only one user still getting the message, it should be expired
             assert i.valid_until < now
+
+
+class SocialAccountLogoutTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='sso_user', email='sso@example.com'
+        )
+        self.factory = RequestFactory()
+        self.adapter = AccountAdapter()
+        self.social_app = SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id='keycloak',
+            name='Keycloak SSO',
+            client_id='kpi-client-id',
+            secret='kpi-secret',
+        )
+
+    def _get_authenticated_request(self, user=None):
+        request = self.factory.post('/accounts/logout/')
+        request.user = user or self.user
+        middleware = SessionMiddleware(lambda req: None)
+        middleware.process_request(request)
+        request.session.save()
+        return request
+
+    def test_anonymous_user_returns_default_logout_url(self):
+        request = self.factory.post('/accounts/logout/')
+        from django.contrib.auth.models import AnonymousUser
+
+        request.user = AnonymousUser()
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
+    def test_local_user_without_social_account_returns_default_logout_url(self):
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
+    def test_social_account_with_local_only_behavior_returns_default_logout_url(
+        self,
+    ):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.LOCAL_ONLY,
+        )
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
+    def test_rp_initiated_with_explicit_endpoints(self):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+            post_logout_redirect_uri='https://kpi.example.com/login/',
+        )
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+
+        parsed = urlparse(url)
+        self.assertEqual(parsed.scheme, 'https')
+        self.assertEqual(parsed.netloc, 'idp.com')
+        self.assertEqual(parsed.path, '/protocol/openid-connect/logout')
+
+        query = parse_qs(parsed.query)
+        self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
+        self.assertEqual(
+            query.get('post_logout_redirect_uri'),
+            ['https://kpi.example.com/login/'],
+        )
+        self.assertEqual(query.get('client_id'), ['kpi-client-id'])
+
+    @responses.activate
+    def test_rp_initiated_with_discovery(self):
+        self.social_app.settings = {'server_url': 'https://idp.com/auth/realms/kobo'}
+        self.social_app.save()
+
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'discovered-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+        )
+
+        discovery_url = (
+            'https://idp.com/auth/realms/kobo/.well-known/openid-configuration'
+        )
+        responses.add(
+            responses.GET,
+            discovery_url,
+            json={'end_session_endpoint': 'https://idp.com/auth/realms/kobo/logout'},
+            status=200,
+        )
+
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+
+        parsed = urlparse(url)
+        self.assertEqual(parsed.path, '/auth/realms/kobo/logout')
+        query = parse_qs(parsed.query)
+        self.assertEqual(query.get('id_token_hint'), ['discovered-id-token'])
+        self.assertEqual(query.get('client_id'), ['kpi-client-id'])
+
+    def test_prompt_login_syncs_auth_params_in_settings(self):
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.PROMPT_LOGIN,
+        )
+        self.social_app.refresh_from_db()
+        self.assertEqual(
+            self.social_app.settings.get('auth_params', {}).get('prompt'),
+            'login',
+        )
+
+        custom_data.logout_behavior = SocialAppCustomData.LogoutBehavior.LOCAL_ONLY
+        custom_data.save()
+        self.social_app.refresh_from_db()
+        self.assertNotIn('prompt', self.social_app.settings.get('auth_params', {}))
+
+    def test_multiple_social_accounts_resolves_deterministically_via_session(self):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='kc-uid-1',
+            extra_data={'id_token': 'kc-token'},
+        )
+        azure_app = SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id='azure',
+            name='Azure SSO',
+            client_id='azure-client-id',
+            secret='azure-secret',
+        )
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='azure',
+            uid='azure-uid-2',
+            extra_data={'id_token': 'azure-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://keycloak.example.com/logout',
+        )
+        SocialAppCustomData.objects.create(
+            social_app=azure_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://azure.example.com/logout',
+        )
+
+        request = self._get_authenticated_request()
+        request.session['socialaccount_provider'] = 'keycloak'
+        request.session['socialaccount_uid'] = 'kc-uid-1'
+
+        url = self.adapter.get_logout_redirect_url(request)
+        parsed = urlparse(url)
+        self.assertEqual(parsed.netloc, 'keycloak.example.com')
+        query = parse_qs(parsed.query)
+        self.assertEqual(query.get('id_token_hint'), ['kc-token'])
+        self.assertEqual(query.get('client_id'), ['kpi-client-id'])
+
+    def test_multiple_social_accounts_without_session_context_returns_default_url(self):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='kc-uid-1',
+            extra_data={'id_token': 'kc-token'},
+        )
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='azure',
+            uid='azure-uid-2',
+            extra_data={'id_token': 'azure-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://keycloak.example.com/logout',
+        )
+
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
+    def test_ambiguous_social_app_returns_default_url(self):
+        SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id='keycloak',
+            name='Duplicate Keycloak',
+            client_id='kpi-client-id-2',
+            secret='kpi-secret-2',
+        )
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+
+        request = self._get_authenticated_request()
+        request.session['socialaccount_provider'] = 'keycloak'
+        request.session['socialaccount_uid'] = '12345'
+
+        with self.assertLogs('console_logger', level='ERROR'):
+            url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
+    def test_password_session_returns_default_url_even_with_social_account(
+        self,
+    ):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+
+        request = self._get_authenticated_request()
+        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
+            {'method': 'password', 'at': 1700000000}
+        ]
+
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
+    def test_pre_social_login_stashes_login_metadata_in_session(self):
+        adapter = SocialAccountAdapter()
+        account = SocialAccount(
+            provider='keycloak',
+            uid='kc-uid-1',
+            extra_data={'id_token': 'stashed-id-token'},
+        )
+        sociallogin = SocialLogin(user=self.user, account=account)
+        request = self._get_authenticated_request()
+
+        adapter.pre_social_login(request, sociallogin)
+
+        self.assertEqual(request.session.get('oidc_id_token'), 'stashed-id-token')
+        self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
+        self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')

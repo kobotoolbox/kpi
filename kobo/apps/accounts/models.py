@@ -6,6 +6,7 @@ from allauth.account.signals import email_confirmed
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 
 EMAIL_DOMAIN_REGEX = re.compile(r'^[a-zA-Z0-9.-]+\.[a-zA-Z0-9_-]{2,}$')
 
@@ -109,6 +110,33 @@ class SocialAppCustomData(models.Model):
         blank=True,
     )
 
+    class LogoutBehavior(models.TextChoices):
+        LOCAL_ONLY = 'local_only', _('Local logout only')
+        RP_INITIATED = 'rp_initiated', _('RP-initiated logout (IdP end session)')
+        PROMPT_LOGIN = 'prompt_login', _('Prompt login on next sign-in')
+
+    logout_behavior = models.CharField(
+        max_length=20,
+        choices=LogoutBehavior.choices,
+        default=LogoutBehavior.LOCAL_ONLY,
+        blank=True,
+        help_text=_('Logout behavior for this SSO provider'),
+    )
+    end_session_endpoint = models.URLField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'Custom OIDC end session endpoint (optional; auto-discovered if left blank)'
+        ),
+    )
+    post_logout_redirect_uri = models.URLField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'URL to redirect to after IdP logout (optional; defaults to Kobo login)'
+        ),
+    )
+
     def __str__(self):
         return f'{self.social_app.name} Custom Data'
 
@@ -121,9 +149,32 @@ class SocialAppCustomData(models.Model):
             self._initial_domains = []
 
     def save(self, *args, **kwargs):
+        if not self.logout_behavior:
+            self.logout_behavior = self.LogoutBehavior.LOCAL_ONLY
         super().save(*args, **kwargs)
         self._initially_managed = self.managed
         self._initial_domains = list(self.domains.values_list('domain', flat=True))
+        if self.social_app_id:
+            social_app = self.social_app
+            settings_changed = False
+            current_settings = dict(social_app.settings or {})
+            auth_params = dict(current_settings.get('auth_params', {}))
+            if self.logout_behavior == self.LogoutBehavior.PROMPT_LOGIN:
+                if auth_params.get('prompt') != 'login':
+                    auth_params['prompt'] = 'login'
+                    current_settings['auth_params'] = auth_params
+                    social_app.settings = current_settings
+                    settings_changed = True
+            elif auth_params.get('prompt') == 'login':
+                del auth_params['prompt']
+                if auth_params:
+                    current_settings['auth_params'] = auth_params
+                else:
+                    current_settings.pop('auth_params', None)
+                social_app.settings = current_settings
+                settings_changed = True
+            if settings_changed:
+                social_app.save(update_fields=['settings'])
 
 
 def validate_domain(value):

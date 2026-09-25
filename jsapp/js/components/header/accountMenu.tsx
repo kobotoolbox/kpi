@@ -33,7 +33,6 @@ export default function AccountMenu() {
 
   async function handleLogout() {
     await logout.mutateAsync()
-    window.location.replace('')
   }
 
   const toggleLanguageSelector = () => {

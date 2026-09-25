@@ -1,9 +1,32 @@
+from allauth.account.adapter import get_adapter as get_account_adapter
 from allauth.usersessions.adapter import get_adapter
 from allauth.usersessions.models import UserSession
+from django.contrib.auth import logout as auth_logout
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
+
+
+class LogoutView(APIView):
+    """
+    Log out the current user session and return the redirect URL.
+    Returns HTTP 200 with JSON to avoid background browser redirect/CORS issues.
+    """
+
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        adapter = get_account_adapter()
+        redirect_url = adapter.get_logout_redirect_url(request)
+
+        if request.user.is_authenticated:
+            auth_logout(request)
+
+        return Response({'redirect_url': redirect_url}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

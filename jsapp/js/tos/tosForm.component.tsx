@@ -191,7 +191,6 @@ export default function TOSForm() {
     setIsFormPending(true)
     try {
       await logout.mutateAsync()
-      window.location.replace('')
     } catch {
       setIsFormPending(false)
     }

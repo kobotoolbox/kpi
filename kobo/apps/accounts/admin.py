@@ -90,6 +90,8 @@ class DomainInline(admin.TabularInline):
 
 @admin.register(SocialAppCustomData)
 class SocialAppCustomDataAdmin(admin.ModelAdmin):
+    list_display = ('social_app', 'is_public', 'managed', 'logout_behavior')
+    list_filter = ('is_public', 'managed', 'logout_behavior')
     inlines = [DomainInline]
     exclude = ['send_in_app_message', 'in_app_message']
 
