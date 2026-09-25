@@ -13,7 +13,7 @@ import Reflux from 'reflux'
 import { getAssetOwnerDisplayName } from '#/assetUtils'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime } from '#/utils'
 import { dataInterface } from '../dataInterface'
 
@@ -25,7 +25,7 @@ class TemplatesList extends React.Component {
       templates: [],
       templatesCount: 0,
       selectedTemplateUid: null,
-      currentAccountUsername: sessionStore.currentAccount ? sessionStore.currentAccount.username : null,
+      currentAccountUsername: profileStore.currentAccount ? profileStore.currentAccount.username : null,
     }
     autoBind(this)
   }
