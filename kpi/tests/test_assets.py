@@ -164,6 +164,23 @@ class CreateAssetVersions(AssetsTestCase):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
 
+    def test_asset_not_saved_when_version_fails(self):
+        """
+        `Asset.save()` writes the asset row and then creates an `AssetVersion`.
+        If the version cannot be saved, the asset changes must be rolled back
+        too, otherwise the asset drifts away from its latest version.
+        See #2740.
+        """
+        asset = Asset.objects.create(name='Asset', content=self.asset.content)
+        assert asset.asset_versions.count() == 1
+        asset.name = 'New name'
+        with patch.object(Asset, 'create_version', side_effect=RuntimeError('boom')):
+            with self.assertRaises(RuntimeError):
+                asset.save()
+        asset.refresh_from_db()
+        assert asset.name == 'Asset'
+        assert asset.asset_versions.count() == 1
+
     def test_asset_versions_only_created_when_necessary(self):
         asset = Asset.objects.create(name='Asset', content=self.asset.content)
         assert asset.asset_versions.count() == 1
