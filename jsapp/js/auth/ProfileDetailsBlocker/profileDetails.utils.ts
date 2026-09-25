@@ -4,7 +4,7 @@ import {
   ORGANIZATION_DEPENDENT_FIELD_NAMES,
   USER_FIELD_NAMES,
 } from '#/account/account.constants'
-import { areOrganizationFieldsSkipped } from '#/account/account.utils'
+import { hasNoOrganizationAffiliation } from '#/account/account.utils'
 
 /**
  * Fields `AccountFieldsEditor` renders without a slot for an error message. A message about one of these
@@ -33,7 +33,7 @@ export function getBlankRequiredProfileFieldNames(
   values: AccountFieldsValues,
   { configuredFieldNames, requiredFieldNames, isMmoMember }: ProfileFieldsContext,
 ): UserFieldName[] {
-  const organizationFieldsSkipped = areOrganizationFieldsSkipped(values, configuredFieldNames)
+  const organizationFieldsSkipped = hasNoOrganizationAffiliation(values, configuredFieldNames)
 
   return requiredFieldNames.filter((name) => {
     // Not this user's to write, so a blank one is not theirs to fix either and must not hold them back.
