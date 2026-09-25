@@ -3,7 +3,7 @@ import {
   useOrganizationsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import Badge, { type BadgeColor } from '#/components/common/badge'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import styles from './organizationBadge.module.scss'
 
 interface OrganizationBadgeProps {
@@ -15,8 +15,8 @@ export default function OrganizationBadge(props: OrganizationBadgeProps) {
   // TODO: move this logic to the parent component when we refactor it
   // into a functional component. OrganizationBadge should just be a
   // purely presentational component.
-  const session = useSession()
-  const account = session.isPending ? undefined : session.currentLoggedAccount
+  const profile = useProfile()
+  const account = profile.isPending ? undefined : profile.currentLoggedAccount
   // An invalidated password gets a 403 from everything, so don't even ask: that account sees this menu only to reach
   // the logout button.
   const organizationId = account?.validated_password === false ? undefined : account?.organization?.uid
