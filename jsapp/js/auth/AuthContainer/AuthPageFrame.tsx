@@ -6,7 +6,7 @@ import StandaloneUILanguageSelector from '#/auth/StandaloneUILanguageSelector'
 import defaultThemeLogoUrl from '../../../img/kobo-logo-gray.svg'
 import customThemeLogoUrl from '../../../img/kobologo.svg'
 import styles from './AuthPageFrame.module.scss'
-import { useAuthConfiguration } from './useAuthConfiguration'
+import { useAuthEnvironment } from './useAuthEnvironment'
 
 /** Returns `undefined` if no custom image is set - meta tag is set by `index.html` */
 function getInitialBackgroundImageUrl() {
@@ -25,7 +25,7 @@ export interface AuthPageFrameProps {
  */
 export default function AuthPageFrame({ children }: AuthPageFrameProps) {
   // The frame renders right away and picks up the logo and footer links once `/environment` lands
-  const { data } = useAuthConfiguration()
+  const { data } = useAuthEnvironment()
   const { authConfiguration, termsOfServiceUrl, privacyPolicyUrl } = data ?? {}
   // The background is the exception: we don't show the default one - to not blink it for split second before
   // swapping it with the custom one.

@@ -6,12 +6,14 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import {
   LOGIN_URL,
+  allauthConfigurationMock,
+  allauthConfigurationServerErrorMock,
   loginAlreadyAuthenticatedMock,
   loginEmailVerificationRequiredMock,
   loginErrorsMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
-import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, PATHS, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
@@ -23,13 +25,7 @@ const CREDENTIALS = {
   password: 'correct horse battery staple',
 }
 
-/** The stock server: `ACCOUNT_LOGIN_METHODS` unset, so allauth's default `username` applies. */
 const environmentMock = makeEnvironmentMock()
-
-/** An instance whose `ACCOUNT_LOGIN_METHODS` leaves `username` out, so only an address is accepted. */
-const emailOnlyEnvironmentMock = makeEnvironmentMock({
-  auth_configuration: { ...environmentResponse.auth_configuration, allow_login_with_username: false },
-})
 
 /** Where {@link loginRecordingMock} leaves the body it saw, for a story to check the keys of. */
 let postedCredentials: unknown = null
@@ -52,13 +48,19 @@ const loginRecordingMock = () =>
   })
 
 /**
- * Storybook replaces the handler array rather than merging it, so a story overriding the login handler
- * still has to restate `/environment`.
+ * Storybook replaces the handler array rather than merging it, so overriding one handler means restating
+ * the rest. `configuration` is allauth's, and decides which credential the form asks for.
  */
-const storyHandlers = (options?: { environment?: RequestHandler; login?: RequestHandler }): RequestHandler[] =>
-  [options?.environment ?? environmentMock, options?.login].filter((handler): handler is RequestHandler =>
-    Boolean(handler),
-  )
+const storyHandlers = (options?: {
+  environment?: RequestHandler
+  configuration?: RequestHandler
+  login?: RequestHandler
+}): RequestHandler[] =>
+  [
+    options?.environment ?? environmentMock,
+    options?.configuration ?? allauthConfigurationMock(['username']),
+    options?.login,
+  ].filter((handler): handler is RequestHandler => Boolean(handler))
 
 /**
  * Stands in for the page load that a real success ends with. A navigation would take the test runner with
@@ -98,10 +100,7 @@ type Canvas = ReturnType<typeof within>
 /** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
 const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
-/**
- * Resolves once `/environment` has settled one way or the other: the button holds a spinner until it has,
- * so that nobody posts a credential under a key the server does not read.
- */
+/** Resolves once allauth's settings have settled one way or the other: the button spins until they have. */
 const waitForConfiguration = (canvas: Canvas) =>
   waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
 
@@ -132,13 +131,14 @@ export const Default: Story = {
 }
 
 /**
- * `allow_login_with_username` off: the field asks for an address, and - the part nothing on screen shows -
- * the credential is posted as `email`. allauth's `LoginInput` has no `username` field on such a server, so
- * the wrong key would only ever earn a 400.
+ * `ACCOUNT_LOGIN_METHODS = {'email'}`: the field asks for an address and - invisible on screen - posts it
+ * as `email`. allauth's `LoginInput` has no `username` field on such a server, so the other key earns a 400.
  */
 export const EmailOnlyServer: Story = {
   parameters: {
-    msw: { handlers: storyHandlers({ environment: emailOnlyEnvironmentMock, login: loginRecordingMock() }) },
+    msw: {
+      handlers: storyHandlers({ configuration: allauthConfigurationMock(['email']), login: loginRecordingMock() }),
+    },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -154,6 +154,53 @@ export const EmailOnlyServer: Story = {
 
     await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
     expect(postedCredentials).toEqual({ email: CREDENTIALS.email, password: CREDENTIALS.password })
+  },
+}
+
+/**
+ * `ACCOUNT_LOGIN_METHODS = {'username', 'email'}`: both are a way in, and the label has to say so. The
+ * address still posts as `username`, which allauth resolves by address first on such a server.
+ */
+export const UsernameOrEmailServer: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        configuration: allauthConfigurationMock(['username', 'email']),
+        login: loginRecordingMock(),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+    postedCredentials = null
+
+    await canvas.findByLabelText(/^Username or email address/)
+    // Not `type='email'`: the browser would refuse the username half.
+    expect(field(canvas, 'Username or email address')).toHaveAttribute('type', 'text')
+
+    await fillForm(canvas, { label: 'Username or email address', identifier: CREDENTIALS.email })
+    await submit(canvas)
+
+    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
+    expect(postedCredentials).toEqual({ username: CREDENTIALS.email, password: CREDENTIALS.password })
+  },
+}
+
+/**
+ * allauth's settings never arrived, so there is no telling which credential this server takes. The form
+ * stays away rather than guessing at the field name.
+ */
+export const ConfigurationUnavailable: Story = {
+  parameters: { msw: { handlers: storyHandlers({ configuration: allauthConfigurationServerErrorMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Logging in is temporarily unavailable' })
+    expect(canvas.getByRole('button', { name: 'Retry' })).toBeEnabled()
+
+    // No form at all, rather than one that cannot work.
+    expect(canvas.queryByLabelText(/^Password/)).not.toBeInTheDocument()
   },
 }
 
@@ -213,7 +260,10 @@ export const ServerErrors: Story = {
 export const EmailVerificationRequired: Story = {
   parameters: {
     msw: {
-      handlers: [emailOnlyEnvironmentMock, loginEmailVerificationRequiredMock(), emailConfirmationRequestedMock()],
+      handlers: storyHandlers({
+        configuration: allauthConfigurationMock(['email']),
+        login: loginEmailVerificationRequiredMock(),
+      }).concat(emailConfirmationRequestedMock()),
     },
   },
   play: async ({ canvasElement }) => {
@@ -232,6 +282,38 @@ export const EmailVerificationRequired: Story = {
     // And that offer works, for a link that went astray or expired while it sat in an inbox.
     await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
     await canvas.findByText(/a new confirmation email has been sent/)
+  },
+}
+
+/**
+ * The same unconfirmed account reached with a username. allauth mails the link either way but says nothing
+ * about where, so asking for another one starts by asking for the address.
+ */
+export const EmailVerificationRequiredWithoutAddress: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({ login: loginEmailVerificationRequiredMock() }).concat(emailConfirmationRequestedMock()),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
+    await canvas.findByText(/We sent a verification link to the address on your account/)
+    // Nothing here knows the address, and nothing pretends to.
+    expect(canvas.queryByText(CREDENTIALS.email)).not.toBeInTheDocument()
+
+    // So the resend asks for one.
+    await userEvent.type(canvas.getByLabelText('Email'), CREDENTIALS.email)
+    await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
+
+    // Once it is sent the field goes, rather than sitting under an instruction to fill it in.
+    await canvas.findByText(/another verification link is on its way/)
+    expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
   },
 }
 
