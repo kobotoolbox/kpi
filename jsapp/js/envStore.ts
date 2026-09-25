@@ -165,6 +165,10 @@ export class EnvStoreData {
     return dict
   }
 
+  public getUserMetadataFieldLabel(fieldName: UserFieldName): string {
+    return this.getUserMetadataFieldsAsSimpleDict()[fieldName]?.label || fieldName
+  }
+
   public getUserMetadataRequiredFieldNames(): UserFieldName[] {
     return this.user_metadata_fields.filter((item) => item.required).map((item) => item.name)
   }

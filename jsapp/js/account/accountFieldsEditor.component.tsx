@@ -2,6 +2,7 @@ import React from 'react'
 
 import { Checkbox } from '@mantine/core'
 import { IconBrandInstagramFilled, IconBrandLinkedinFilled, IconBrandTwitterFilled } from '@tabler/icons-react'
+import cx from 'classnames'
 import KoboIcon from '#/components/common/KoboIcon'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
@@ -9,6 +10,7 @@ import Textarea from '#/components/common/Textarea'
 import { addRequiredToLabel } from '#/textUtils'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
+import { hasNoOrganizationAffiliation } from './account.utils'
 import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
 
@@ -44,10 +46,14 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
-    return metadata[fieldName]?.label || (console.error(`No label for fieldname "${fieldName}"`), fieldName)
+    if (!metadata[fieldName]?.label) {
+      // Here it means a field is on screen that the Backend never configured, which is worth knowing about
+      console.error(`No label for fieldname "${fieldName}"`)
+    }
+    return envStore.data.getUserMetadataFieldLabel(fieldName)
   }
 
-  /** Is this label required? */
+  /** Is this field required by Backend configuration? */
   function isRequired(fieldName: UserFieldName): boolean {
     return metadata[fieldName]?.required || false
   }
@@ -55,10 +61,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   /** Get label and (required) for a given user metadata fieldname */
   function getLabelWithRequired(fieldName: UserFieldName): string {
     return addRequiredToLabel(getLabel(fieldName), isRequired(fieldName))
-  }
-
-  function isFieldRequired(fieldName: UserFieldName): boolean {
-    return metadata[fieldName]?.required || false
   }
 
   function onAnyFieldChange(fieldName: UserFieldName, newValue: UserFieldValue) {
@@ -104,7 +106,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    *
    * NOTE: Organization-related fields are treated differently. See:
    *       - isOrganizationTypeFieldToBeDisplayed()
-   *       - areOrganizationFieldsToBeSkipped()
+   *       - areOrganizationFieldsToBeSkipped
    */
   function isFieldToBeDisplayed(name: UserFieldName) {
     return (
@@ -138,9 +140,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    * 'Skip logic' for 'organization' and 'organization_website', controlled
    * by the value of 'organization_type' dropdown.
    */
-  function areOrganizationFieldsToBeSkipped() {
-    return isOrganizationTypeFieldToBeDisplayed() && props.values.organization_type === 'none'
-  }
+  const areOrganizationFieldsToBeSkipped = hasNoOrganizationAffiliation(
+    props.values,
+    envStore.data.getUserMetadataFieldNames(),
+  )
 
   /**
    * There's a subtle aspect of this layout that is hard to achieve with CSS
@@ -176,7 +179,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   let fieldCount = 0 // field counter to adjust wrapping with spacers
 
   return (
-    <div>
+    <div className={styles.root}>
       <div className={styles.flexFields}>
         {/* Full name */}
         {/* Comma operator evaluates left-to-right, returns rightmost operand.
@@ -209,7 +212,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 required={isRequired('gender')}
                 name='gender'
                 searchable={false} // too little options
-                clearable={!isFieldRequired('gender')}
+                clearable={!isRequired('gender')}
                 value={props.values.gender}
                 onChange={(value) => onAnyFieldChange('gender', value || '')}
                 onClear={() => onAnyFieldChange('gender', '')}
@@ -224,7 +227,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           Insert a spacer if the preceding number of rows is odd.
         */}
         {!!(fieldCount % 2) && isFieldToBeDisplayed('country') && isFieldToBeDisplayed('city') && fieldCount++ && (
-          <div className={styles.field} />
+          <div className={cx(styles.field, styles.spacer)} />
         )}
 
         {/* Country */}
@@ -237,7 +240,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('country')}
                 required={isRequired('country')}
                 name='country'
-                clearable={!isFieldRequired('country')}
+                clearable={!isRequired('country')}
                 value={props.values.country}
                 onChange={(value) => onAnyFieldChange('country', value || '')}
                 onClear={() => onAnyFieldChange('country', '')}
@@ -272,7 +275,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('sector')}
                 required={isRequired('sector')}
                 name='sector'
-                clearable={!isFieldRequired('sector')}
+                clearable={!isRequired('sector')}
                 value={props.values.sector}
                 onChange={(value) => onAnyFieldChange('sector', value || '')}
                 onClear={() => onAnyFieldChange('sector', '')}
@@ -292,7 +295,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('organization_type')}
                 required={isRequired('organization_type')}
                 name='organization_type'
-                clearable={!isFieldRequired('organization_type')}
+                clearable={!isRequired('organization_type')}
                 value={props.values.organization_type}
                 onChange={(value) => onAnyFieldChange('organization_type', value || '')}
                 onClear={() => onAnyFieldChange('organization_type', '')}
@@ -307,7 +310,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           Insert a spacer if the preceding number of rows is odd.
         */}
         {!!(fieldCount % 2) && isFieldToBeDisplayed('organization') && isFieldToBeDisplayed('organization_website') && (
-          <div className={styles.field} />
+          <div className={cx(styles.field, styles.spacer)} />
         )}
         {/*
           At this point we can stop counting fields because we don't need to
@@ -315,7 +318,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         */}
 
         {/* Organization */}
-        {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped() && (
+        {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped && (
           <div className={styles.field}>
             <TextInput
               size='sm'
@@ -329,7 +332,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
 
         {/* Organization Website */}
-        {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped() && (
+        {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped && (
           <div className={styles.field}>
             <TextInput
               label={getLabel('organization_website')}
@@ -364,7 +367,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
       </div>
 
-      <div className={styles.row}>
+      <div className={cx(styles.row, styles.rowSocial)}>
         {/* Social */}
         {(isFieldToBeDisplayed('twitter') || isFieldToBeDisplayed('linkedin') || isFieldToBeDisplayed('instagram')) && (
           <>
