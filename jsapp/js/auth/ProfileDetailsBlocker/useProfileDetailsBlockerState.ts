@@ -6,7 +6,7 @@ import {
   doesProfileDetailsRouteBlockerNeedOrganization,
   isProfileDetailsRouteBlockerActive,
 } from '#/router/routerUtils'
-import profileStore from '#/stores/profile'
+import { useProfile } from '#/stores/useProfile'
 
 export type ProfileDetailsBlockerState =
   | { status: 'inactive' }
@@ -27,7 +27,8 @@ export type ProfileDetailsBlockerState =
  * Reads the session store directly, so it has to be called from an `observer`.
  */
 export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
-  const account = profileStore.currentAccount
+  const profile = useProfile()
+  const account = profile.currentLoggedAccount
   const organizationId = 'email' in account ? account.organization?.uid : undefined
 
   // The widest reading, and the common answer by far: most people have their details filled in already.
