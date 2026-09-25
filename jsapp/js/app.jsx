@@ -121,12 +121,7 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
  *
  * Observes the stores it asks, because the answers change as the session and `/environment` land.
  */
-const RouteBlockerOrApp = observer(function RouteBlockerOrApp({
-  shouldDisplayMain,
-  inFormBuilder,
-  isFormSingle,
-  isLibrarySingle,
-}) {
+const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
   // Before the early returns, so the hook order stays the same on every render.
   const profileDetails = useProfileDetailsBlockerState()
 
@@ -208,7 +203,7 @@ class App extends React.Component {
 
   render() {
     // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
-    // query client as the app. `RootContextProvider` is the exception - see `RouteBlockerOrApp`.
+    // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
@@ -218,7 +213,7 @@ class App extends React.Component {
               <Tracking />
               <ToasterConfig />
 
-              <RouteBlockerOrApp
+              <AppGuard
                 shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
                 inFormBuilder={this.isFormBuilder()}
                 isFormSingle={this.isFormSingle()}
