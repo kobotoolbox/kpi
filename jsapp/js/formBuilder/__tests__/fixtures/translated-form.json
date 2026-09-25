@@ -1,0 +1,472 @@
+{
+  "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/",
+  "owner": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+  "owner__username": "jamestest1",
+  "parent": null,
+  "settings": {
+    "sector": {},
+    "country": [],
+    "description": "",
+    "organization": "",
+    "country_codes": []
+  },
+  "asset_type": "survey",
+  "files": [],
+  "summary": {
+    "geo": false,
+    "labels": [
+      "Pick a color",
+      "Type a word",
+      "Pick a food",
+      "Group",
+      "Pick a protein"
+    ],
+    "columns": [
+      "type",
+      "name",
+      "required",
+      "select_from_list_name",
+      "label",
+      "hint"
+    ],
+    "lock_all": false,
+    "lock_any": false,
+    "languages": [
+      "English (en)",
+      "French (fr)",
+      "Turkish (tr)"
+    ],
+    "row_count": 6,
+    "name_quality": {
+      "ok": 0,
+      "bad": 0,
+      "good": 6,
+      "total": 6,
+      "firsts": {}
+    },
+    "default_translation": "English (en)"
+  },
+  "date_created": "2026-06-11T11:53:23.337177Z",
+  "date_modified": "2026-06-11T11:53:23.342214Z",
+  "date_deployed": null,
+  "version_id": "vFETfyyqhhCrvAVYw3Jk2f",
+  "version__content_hash": "48d353f4d7cb92d8304c03a8708415fd04f9a405",
+  "version_count": 1,
+  "has_deployment": false,
+  "deployed_version_id": null,
+  "deployed_versions": {
+    "count": 0,
+    "next": null,
+    "previous": null,
+    "results": []
+  },
+  "deployment__links": {},
+  "deployment__active": false,
+  "deployment__data_download_links": {},
+  "deployment__submission_count": 0,
+  "deployment__last_submission_time": null,
+  "deployment__encrypted": false,
+  "deployment__uuid": null,
+  "deployment_status": "draft",
+  "report_styles": {
+    "default": {},
+    "specified": {
+      "end": {},
+      "start": {},
+      "O0bbP5Gjy": {},
+      "QqD1Wml98": {},
+      "Pick_a_food": {},
+      "Type_a_word": {},
+      "Pick_a_color": {},
+      "group_oc7df70": {},
+      "group_zu0ia40": {},
+      "Pick_a_protein": {},
+      "How_many_servings_of_protein_do_you_want": {}
+    },
+    "kuid_names": {
+      "end": "Qbpn3PF67",
+      "start": "3CM5r4uUa",
+      "O0bbP5Gjy": "O0bbP5Gjy",
+      "QqD1Wml98": "QqD1Wml98",
+      "Pick_a_food": "CCdnAIBTx",
+      "Type_a_word": "Um5E32vs7",
+      "Pick_a_color": "tU9QYUxcD",
+      "group_oc7df70": "bMrJkuYJH",
+      "group_zu0ia40": "6UTxJ5AKa",
+      "Pick_a_protein": "6CIbKpY47",
+      "How_many_servings_of_protein_do_you_want": "rRvmVN93j"
+    }
+  },
+  "report_custom": {},
+  "advanced_features": {
+    "_version": "20250820"
+  },
+  "map_styles": {},
+  "map_custom": {},
+  "content": {
+    "schema": "1",
+    "survey": [
+      {
+        "name": "start",
+        "type": "start",
+        "$kuid": "3CM5r4uUa",
+        "$xpath": "start",
+        "$autoname": "start"
+      },
+      {
+        "name": "end",
+        "type": "end",
+        "$kuid": "Qbpn3PF67",
+        "$xpath": "end",
+        "$autoname": "end"
+      },
+      {
+        "hint": [
+          "Choose your favourite",
+          "Choisissez votre préféré",
+          "Favorinizi seçin"
+        ],
+        "name": "Pick_a_color",
+        "type": "select_one",
+        "$kuid": "tU9QYUxcD",
+        "label": [
+          "Pick a color",
+          "Choisissez une couleur",
+          "Bir renk seçin"
+        ],
+        "$xpath": "Pick_a_color",
+        "required": false,
+        "$autoname": "Pick_a_color",
+        "select_from_list_name": "os1nu74"
+      },
+      {
+        "name": "group_oc7df70",
+        "type": "begin_group",
+        "$kuid": "bMrJkuYJH",
+        "label": ["Group", null, null],
+        "$xpath": "group_oc7df70",
+        "$autoname": "group_oc7df70"
+      },
+      {
+        "hint": [
+          "Any word will do",
+          "N'importe quel mot",
+          "Herhangi bir kelime"
+        ],
+        "name": "Type_a_word",
+        "type": "text",
+        "$kuid": "Um5E32vs7",
+        "label": [
+          "Type a word",
+          "Tapez un mot",
+          "Bir kelime yazın"
+        ],
+        "$xpath": "group_oc7df70/Type_a_word",
+        "required": false,
+        "$autoname": "Type_a_word"
+      },
+      {
+        "hint": [
+          "What are you craving?",
+          "Qu'est-ce qui vous fait envie ?",
+          "Ne yemek istiyorsunuz?"
+        ],
+        "name": "Pick_a_food",
+        "type": "select_one",
+        "$kuid": "CCdnAIBTx",
+        "label": [
+          "Pick a food",
+          "Choisissez un aliment",
+          "Bir yiyecek seçin"
+        ],
+        "$xpath": "group_oc7df70/Pick_a_food",
+        "required": false,
+        "$autoname": "Pick_a_food",
+        "select_from_list_name": "ua0ju01"
+      },
+      {
+        "type": "end_group",
+        "$kuid": "QqD1Wml98"
+      },
+      {
+        "name": "group_zu0ia40",
+        "type": "begin_repeat",
+        "$kuid": "6UTxJ5AKa",
+        "label": ["Repeat", null, null],
+        "$xpath": "group_zu0ia40",
+        "$autoname": "group_zu0ia40"
+      },
+      {
+        "hint": [
+          "Select one per entry",
+          "Un seul par entrée",
+          "Her giriş için bir tane seçin"
+        ],
+        "name": "Pick_a_protein",
+        "type": "select_one",
+        "$kuid": "6CIbKpY47",
+        "label": [
+          "Pick a protein",
+          "Choisissez une protéine",
+          "Bir protein seçin"
+        ],
+        "$xpath": "group_zu0ia40/Pick_a_protein",
+        "required": false,
+        "$autoname": "Pick_a_protein",
+        "select_from_list_name": "dm0oq04"
+      },
+      {
+        "hint": [
+          "Enter a whole number",
+          "Entrez un nombre entier",
+          "Tam sayı girin"
+        ],
+        "name": "How_many_servings_of_protein_do_you_want",
+        "type": "integer",
+        "$kuid": "rRvmVN93j",
+        "label": [
+          "How many servings of this protein do you want?",
+          "Combien de portions de cette protéine voulez-vous?",
+          "Bu proteinden kaç porsiyon istiyorsunuz?"
+        ],
+        "$xpath": "group_zu0ia40/How_many_servings_of_protein_do_you_want",
+        "required": false,
+        "$autoname": "How_many_servings_of_protein_do_you_want"
+      },
+      {
+        "type": "end_repeat",
+        "$kuid": "O0bbP5Gjy"
+      }
+    ],
+    "choices": [
+      {
+        "Name": "1",
+        "$kuid": "b0GmYNZVj",
+        "label": ["blue", "Bleu", "Mavi"],
+        "list_name": "os1nu74",
+        "$autovalue": "blue"
+      },
+      {
+        "Name": "2",
+        "$kuid": "MGUd2cAMS",
+        "label": ["green", "Vert", "Yeşil"],
+        "list_name": "os1nu74",
+        "$autovalue": "green"
+      },
+      {
+        "Name": "3",
+        "$kuid": "s8Neb111Z",
+        "label": ["red", "Rouge", "Kırmızı"],
+        "list_name": "os1nu74",
+        "$autovalue": "red"
+      },
+      {
+        "Name": "1",
+        "$kuid": "SbkOYPwHH",
+        "label": ["pizza", "Pizza", "Pizza"],
+        "list_name": "ua0ju01",
+        "$autovalue": "pizza"
+      },
+      {
+        "Name": "2",
+        "$kuid": "Ljt63LGtu",
+        "label": ["pasta", "Pâtes", "Makarna"],
+        "list_name": "ua0ju01",
+        "$autovalue": "pasta"
+      },
+      {
+        "Name": "3",
+        "$kuid": "mMwqJCC58",
+        "label": ["sushi", "Sushi", "Sushi"],
+        "list_name": "ua0ju01",
+        "$autovalue": "sushi"
+      },
+      {
+        "Name": "1",
+        "$kuid": "JJGorAhYY",
+        "label": ["fish", "Poisson", "Balık"],
+        "list_name": "dm0oq04",
+        "$autovalue": "fish"
+      },
+      {
+        "Name": "2",
+        "$kuid": "hP6QufsdU",
+        "label": ["beef", "Bœuf", "Dana eti"],
+        "list_name": "dm0oq04",
+        "$autovalue": "beef"
+      },
+      {
+        "Name": "3",
+        "$kuid": "VV7Xmvan0",
+        "label": ["tofu", "Tofu", "Tofu"],
+        "list_name": "dm0oq04",
+        "$autovalue": "tofu"
+      },
+      {
+        "Name": "4",
+        "$kuid": "VzSqKeyQB",
+        "label": ["chicken", "Poulet", "Tavuk"],
+        "list_name": "dm0oq04",
+        "$autovalue": "chicken"
+      }
+    ],
+    "settings": {
+      "id_string": "translated_nested_form"
+    },
+    "translated": ["hint", "label"],
+    "translations": [
+      "English (en)",
+      "French (fr)",
+      "Turkish (tr)"
+    ]
+  },
+  "downloads": [
+    {
+      "format": "xls",
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H.xls"
+    },
+    {
+      "format": "xml",
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H.xml"
+    }
+  ],
+  "embeds": [
+    {
+      "format": "xls",
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/xls/"
+    },
+    {
+      "format": "xform",
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/xform/"
+    }
+  ],
+  "analysis_form_json": {
+    "additional_fields": []
+  },
+  "xform_link": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/xform/",
+  "hooks_link": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/hooks/",
+  "tag_string": "",
+  "uid": "auVJUrYuiyd8Xb4N7jhh6H",
+  "kind": "asset",
+  "xls_link": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/xls/",
+  "name": "translated-form",
+  "assignable_permissions": [
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/view_asset/",
+      "label": "View form"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/",
+      "label": "Edit form"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/manage_asset/",
+      "label": "Manage project"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/add_submissions/",
+      "label": "Add submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/view_submissions/",
+      "label": "View submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/partial_submissions/",
+      "label": {
+        "default": "Act on submissions only from specific users",
+        "view_submissions": "View submissions only from specific users",
+        "change_submissions": "Edit submissions only from specific users",
+        "delete_submissions": "Delete submissions only from specific users",
+        "validate_submissions": "Validate submissions only from specific users"
+      }
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/",
+      "label": "Edit submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/delete_submissions/",
+      "label": "Delete submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/permissions/validate_submissions/",
+      "label": "Validate submissions"
+    }
+  ],
+  "permissions": [
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/p7XMiaLpdzRjKubUaDP7ka/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/add_submissions/",
+      "label": "Add submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/pa3Meqjh2znMNMqCNsT35k/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/",
+      "label": "Edit form"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/psWri7Giye3xpMDKtP9tCu/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/",
+      "label": "Edit submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/p6WtqoGAiMLKAMeZRZCBPn/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/delete_submissions/",
+      "label": "Delete submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/pYH34Wr5creza2LXWRb8Md/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/manage_asset/",
+      "label": "Manage project"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/p9QUgnsLnUU6kRyiga7wyx/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/validate_submissions/",
+      "label": "Validate submissions"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/pkPjm5beGYxssC3J4Qcusm/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/view_asset/",
+      "label": "View form"
+    },
+    {
+      "url": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/permission-assignments/pdnX5MrVkTYgAnW2gavLkh/",
+      "user": "https://kf.kobotoolbox.org/api/v2/users/jamestest1/",
+      "permission": "https://kf.kobotoolbox.org/api/v2/permissions/view_submissions/",
+      "label": "View submissions"
+    }
+  ],
+  "effective_permissions": [
+    {"codename": "change_submissions"},
+    {"codename": "view_submissions"},
+    {"codename": "change_asset"},
+    {"codename": "delete_asset"},
+    {"codename": "delete_submissions"},
+    {"codename": "manage_asset"},
+    {"codename": "add_submissions"},
+    {"codename": "view_asset"},
+    {"codename": "validate_submissions"}
+  ],
+  "exports": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/exports/",
+  "export_settings": [],
+  "data": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/data/",
+  "children": {
+    "count": 0
+  },
+  "subscribers_count": 0,
+  "status": "private",
+  "access_types": null,
+  "data_sharing": {},
+  "paired_data": "https://kf.kobotoolbox.org/api/v2/assets/auVJUrYuiyd8Xb4N7jhh6H/paired-data/",
+  "project_ownership": null,
+  "owner_label": "jamestest1",
+  "last_modified_by": null
+}
