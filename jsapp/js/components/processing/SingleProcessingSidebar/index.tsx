@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import { findRowByXpathOrLeafName } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
+import { getProcessingQuestionType } from '../common/questionType'
 import type { DisplaysList } from '../common/types'
 import {
   StaticDisplays,
@@ -49,8 +49,8 @@ export default function ProcessingSidebar({
   const [hiddenQuestions, setHiddenQuestions] = useState<string[]>([])
 
   const questionType = useMemo(
-    () => asset.content && findRowByXpathOrLeafName(asset.content, questionXpath)?.type,
-    [asset.content, questionXpath],
+    () => getProcessingQuestionType(asset, questionXpath, submission),
+    [asset, questionXpath, submission],
   )
 
   const transcript = useMemo(() => {
@@ -113,7 +113,7 @@ export default function ProcessingSidebar({
         )}
 
         {selectedDisplays.includes(StaticDisplays.Text) && (
-          <SidebarSubmissionText asset={asset} xpath={questionXpath} submission={submission} />
+          <SidebarSubmissionText xpath={questionXpath} submission={submission} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Data) && (

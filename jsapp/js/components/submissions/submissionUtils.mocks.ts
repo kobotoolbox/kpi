@@ -1,4 +1,6 @@
+import cloneDeep from 'lodash.clonedeep'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getRowName } from '#/assetUtils'
 import {
   AssetTypeName,
   GroupTypeBeginName,
@@ -3712,3 +3714,92 @@ export const allQualSurveyDisplayData = {
     },
   ],
 } as const satisfies DisplayGroup
+
+/** Renames one row of a copy of the asset */
+export function withRenamedRow(asset: AssetResponse, oldName: string, newName: string): AssetResponse {
+  const renamedAsset: AssetResponse = cloneDeep(asset)
+  const row = renamedAsset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === oldName)
+  if (!row) {
+    throw new Error(`There is no row named "${oldName}" to rename`)
+  }
+
+  if (row.name !== undefined) {
+    row.name = newName
+  }
+  if (row.$autoname !== undefined) {
+    row.$autoname = newName
+  }
+  if (row.$xpath !== undefined) {
+    row.$xpath = [...row.$xpath.split('/').slice(0, -1), newName].join('/')
+  }
+  return renamedAsset
+}
+
+/** Moves one row of a copy of the asset into a group of its own */
+export function withRowMovedIntoNewGroup(asset: AssetResponse, rowName: string, groupName: string): AssetResponse {
+  const movedAsset: AssetResponse = cloneDeep(asset)
+  const survey = movedAsset.content?.survey
+  const rowIndex = survey?.findIndex((surveyRow) => getRowName(surveyRow) === rowName) ?? -1
+  if (!survey || rowIndex === -1) {
+    throw new Error(`There is no row named "${rowName}" to move`)
+  }
+
+  const [row] = survey.splice(rowIndex, 1)
+  if (row.$xpath !== undefined) {
+    row.$xpath = `${groupName}/${rowName}`
+  }
+  survey.push(
+    {
+      name: groupName,
+      type: GroupTypeBeginName.begin_group,
+      $kuid: `${groupName}-kuid`,
+      label: [groupName],
+      $autoname: groupName,
+    },
+    row,
+    { type: GroupTypeEndName.end_group, $kuid: `/${groupName}-kuid` },
+  )
+
+  const additionalFields = movedAsset.analysis_form_json?.additional_fields
+  additionalFields?.push(
+    ...additionalFields
+      .filter((field) => field.source === rowName)
+      .map((field) => {
+        return {
+          ...field,
+          source: `${groupName}/${rowName}`,
+          name: `${groupName}/${field.name}`,
+          dtpath: `${groupName}/${field.dtpath}`,
+        }
+      }),
+  )
+
+  return movedAsset
+}
+
+/** The same submission as made against a form version that already had the question moved. */
+export function withAnswerMovedIntoGroup(
+  submission: SubmissionResponse,
+  rowName: string,
+  groupName: string,
+): SubmissionResponse {
+  const movedSubmission: SubmissionResponse = cloneDeep(submission)
+  const movedPath = `${groupName}/${rowName}`
+
+  movedSubmission[movedPath] = movedSubmission[rowName]
+  delete movedSubmission[rowName]
+
+  const supplementalDetails = movedSubmission._supplementalDetails
+  if (supplementalDetails?.[rowName]) {
+    supplementalDetails[movedPath] = supplementalDetails[rowName]
+    delete supplementalDetails[rowName]
+  }
+
+  movedSubmission._attachments?.forEach((attachment) => {
+    if (attachment.question_xpath === rowName) {
+      attachment.question_xpath = movedPath
+    }
+  })
+
+  return movedSubmission
+}

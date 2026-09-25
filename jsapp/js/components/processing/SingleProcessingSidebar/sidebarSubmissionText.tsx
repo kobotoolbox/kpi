@@ -1,24 +1,23 @@
 import { Group, ScrollArea, Stack, Text } from '@mantine/core'
 import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { findRowByXpathOrLeafName } from '#/assetUtils'
 import Icon from '#/components/common/icon'
-import type { AssetResponse } from '#/dataInterface'
-import { isTextQuestionType } from '../common/utils'
+import { findAttachmentByQuestionXpath } from '#/components/submissions/submissionMediaUtils'
 
 interface SidebarSubmissionTextProps {
   xpath: string
-  asset: AssetResponse | undefined
   submission?: DataResponse
 }
 
 /** Analogous to `SidebarSubmissionMedia`, but for `text` question responses. */
-export default function SidebarSubmissionText({ asset, xpath, submission }: SidebarSubmissionTextProps) {
-  if (!asset?.content || !submission) {
+export default function SidebarSubmissionText({ xpath, submission }: SidebarSubmissionTextProps) {
+  if (!submission) {
     return null
   }
 
-  if (!isTextQuestionType(findRowByXpathOrLeafName(asset.content, xpath)?.type)) {
+  // A text answer has no file to name its type, so it is identified the other way round: a
+  // path with an attachment holds media, one without holds a typed-in response.
+  if (findAttachmentByQuestionXpath(submission, xpath)) {
     return null
   }
 
