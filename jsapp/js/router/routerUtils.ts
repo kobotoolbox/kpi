@@ -255,11 +255,11 @@ export function isTOSAgreementRouteBlockerActive() {
 
 /** The required profile fields the current account has left blank */
 function getBlankRequiredFieldNamesForCurrentAccount(organization?: OrganizationResponse): UserFieldName[] {
-  const account = sessionStore.currentAccount
+  const account = profileStore.currentAccount
 
   // We check for email, because `currentAccount` can be two different things. `/environment` is what says
   // which fields are required at all, so there is no answer before it lands.
-  if (!envStore.isReady || !sessionStore.isLoggedIn || !('email' in account)) {
+  if (!envStore.isReady || !profileStore.isLoggedIn || !('email' in account)) {
     return []
   }
 

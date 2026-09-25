@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import { getProfileFieldsValues } from '#/account/account.utils'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import ProfileDetailsScreen from './ProfileDetailsScreen'
 
 export interface ProfileDetailsBlockerProps {
@@ -13,7 +13,7 @@ export interface ProfileDetailsBlockerProps {
  * {@link useProfileDetailsBlockerState}, which decides who gets it.
  */
 function ProfileDetailsBlocker({ isMmoMember }: ProfileDetailsBlockerProps) {
-  const account = sessionStore.currentAccount
+  const account = profileStore.currentAccount
 
   // Cannot happen - being blocked means being logged in - but it is what narrows `currentAccount` from its
   // anonymous placeholder to an account.
@@ -29,7 +29,7 @@ function ProfileDetailsBlocker({ isMmoMember }: ProfileDetailsBlockerProps) {
         requiredFieldNames: envStore.data.getUserMetadataRequiredFieldNames(),
         isMmoMember,
       }}
-      // The same forced reload the other two route blockers do. `sessionStore.refreshAccount()` would
+      // The same forced reload the other two route blockers do. `profileStore.refreshAccount()` would
       // flip this screen without one, but it reports neither success nor failure, so a refresh that
       // quietly failed would leave this screen up with nothing to explain it.
       onSaved={() => window.location.reload()}

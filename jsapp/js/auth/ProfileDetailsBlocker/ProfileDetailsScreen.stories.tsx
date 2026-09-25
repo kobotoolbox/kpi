@@ -12,7 +12,7 @@ import type { ProfileFieldsContext } from './profileDetails.utils'
 /**
  * The blocker's screen on its own, driven by props: the store reading that decides whether it appears at
  * all belongs to `ProfileDetailsBlocker`, and mounting that instead would mean these stories were about
- * `sessionStore` rather than about the form.
+ * `profileStore` rather than about the form.
  *
  * The frame around the card - the server theme, the logo, the footer - belongs to `AuthPageFrame`, and is
  * covered by its stories rather than repeated here.
