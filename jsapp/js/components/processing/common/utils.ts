@@ -8,10 +8,12 @@ import type { SupplementalDataManualTranslation } from '#/api/models/supplementa
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 
+import { findRowByXpath } from '#/assetUtils'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
+import type { AssetContent } from '#/dataInterface'
 import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
@@ -371,6 +373,20 @@ export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): bo
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
   isAudioQuestionType(questionType) ||
   (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+
+/**
+ * Whether there is a source the automatic qualitative analysis can run on. Text
+ * questions are analyzed straight from the submission answer (mirroring the back
+ * end's `RequiresTranscriptionMixin.attach_action_dependency`); every other type
+ * needs a transcript first.
+ */
+export const hasAnalysisSource = (
+  assetContent: AssetContent | undefined,
+  supplementData: DataSupplementResponse,
+  xpath: string,
+): boolean =>
+  isTextQuestionType(findRowByXpath(assetContent ?? {}, xpath)?.type) ||
+  getLatestTranscriptVersionItem(supplementData, xpath) !== undefined
 
 // Displays
 
