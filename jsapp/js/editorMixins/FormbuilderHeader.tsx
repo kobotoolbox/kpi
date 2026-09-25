@@ -1,12 +1,22 @@
-import { NAME_MAX_LENGTH, update_states, type AssetTypeName, type FormStyleName, type UpdateStatesValue } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
-import {Box,Group} from '@mantine/core'
-import type { Survey } from '../../xlform/src/model.survey'
-import Button from '#/components/common/button'
-import FormbuilderAssetLabel from './FormbuilderAssetLabel'
-import {LOCKING_UI_CLASSNAMES, LockingRestrictionName} from '#/components/locking/lockingConstants'
+import { Anchor, Box, Group, Text, Textarea } from '@mantine/core'
 import cx from 'classnames'
-import {hasAssetRestriction, isAssetLockable} from '#/components/locking/lockingUtils'
+import { useRef, useState } from 'react'
+import ModalNew from '#/components/common/ModalNew'
+import Button from '#/components/common/button'
+import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
+import { hasAssetRestriction, isAssetLockable } from '#/components/locking/lockingUtils'
+import { type AssetTypeName, NAME_MAX_LENGTH, type UpdateStatesValue, update_states } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import envStore from '#/envStore'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
+import type { Survey } from '../../xlform/src/model.survey'
+import FormbuilderAssetLabel from './FormbuilderAssetLabel'
+
+interface CascadeMessage {
+  msgType: 'ready' | 'warning'
+  addCascadeMessage?: string
+  message?: string
+}
 
 interface FormbuilderHeaderProps {
   name: string
@@ -17,9 +27,7 @@ interface FormbuilderHeaderProps {
   surveyLoadError: string | undefined
   surveySaveFail: boolean
   isNewAsset: boolean | undefined
-  settings__style: FormStyleName | undefined
-  backRoute: string | undefined
-  groupButtonIsActive: boolean
+  groupButtonIsActive: boolean | undefined
   asideLibrarySearchVisible: boolean
   asideLayoutSettingsVisible: boolean
   hasMetadataAndDetails: boolean
@@ -39,6 +47,8 @@ interface FormbuilderHeaderProps {
   onInsertCascade: (survey: Survey, rowIndex: number | undefined) => void
 }
 
+const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
+
 export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
   // If survey has no questions preview is disabled
   const previewDisabled = !props.surveyHasRows
@@ -52,13 +62,58 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
 
   const needsSave = props.asset_updated === update_states.UNSAVED_CHANGES
 
-  const isAddingGroupsRestricted = (
-      props.asset?.content &&
-      isAssetLockable(props.asset.asset_type) &&
-      hasAssetRestriction(props.asset.content, LockingRestrictionName.group_add)
-    )
+  const isAddingGroupsRestricted =
+    props.asset?.content &&
+    isAssetLockable(props.asset.asset_type) &&
+    hasAssetRestriction(props.asset.content, LockingRestrictionName.group_add)
+
+  const [showCascadePopup, setShowCascadePopup] = useState(false)
+  const [cascadeMessage, setCascadeMessage] = useState<CascadeMessage | undefined>(undefined)
+  const [cascadeReady, setCascadeReady] = useState(false)
+  const [cascadeReadySurvey, setCascadeReadySurvey] = useState<Survey | undefined>(undefined)
+  const [cascadeTextareaValue, setCascadeTextareaValue] = useState('')
+  const [cascadeLastSelectedRowIndex, setCascadeLastSelectedRowIndex] = useState<number | undefined>(undefined)
+  const cascadeRef = useRef<HTMLTextAreaElement>(null)
+
+  const toggleCascade = () => {
+    setShowCascadePopup((prev) => !prev)
+    setCascadeTextareaValue('')
+    setCascadeLastSelectedRowIndex(props.onGetCascadeInsertIndex())
+  }
+
+  const cancelCascade = () => {
+    setCascadeReady(false)
+    setCascadeReadySurvey(undefined)
+    setCascadeTextareaValue('')
+    setShowCascadePopup(false)
+  }
+
+  const cascadePopupChange = () => {
+    const el = cascadeRef.current
+    if (!el) return
+    const value = (el as HTMLTextAreaElement).value
+    setCascadeTextareaValue(value)
+    try {
+      const inp = dkobo_xlform.model.utils.split_paste(value)
+      const tmpSurvey = new dkobo_xlform.model.Survey({ survey: [], choices: inp })
+      if (tmpSurvey.choices.length === 0) throw new Error(t('Paste your formatted table from excel in the box below.'))
+      tmpSurvey.choices.at(0).create_corresponding_rows()
+      const rowCount = tmpSurvey.rows.length
+      if (rowCount === 0) throw new Error(t('Paste your formatted table from excel in the box below.'))
+      setCascadeReady(true)
+      setCascadeReadySurvey(tmpSurvey)
+      setCascadeMessage({
+        msgType: 'ready',
+        addCascadeMessage: t('add cascade with # questions').replace('#', rowCount.toString()),
+      })
+    } catch (err) {
+      setCascadeReady(false)
+      setCascadeMessage({ msgType: 'warning', message: (err as { message?: string }).message })
+    }
+  }
 
   return (
+    <>
       <Box className='form-builder-header'>
         <Group className='form-builder-header__row form-builder-header__row--primary' wrap='nowrap' gap={20}>
           <Box
@@ -147,7 +202,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
             <Button
               type='text'
               size='m'
-              isDisabled={toggleCascade === undefined}
+              isDisabled={!props.surveyAppRendered}
               onClick={toggleCascade}
               tooltip={t('Insert cascading select')}
               tooltipPosition='left'
@@ -191,5 +246,50 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
           </Box>
         </Group>
       </Box>
-    )
+
+      <ModalNew opened={showCascadePopup} onClose={cancelCascade} title={t('Import Cascading Select Questions')}>
+        <Box>
+          {cascadeMessage ? (
+            <Text c={cascadeMessage.msgType === 'warning' ? 'red' : 'teal'}>{cascadeMessage.message}</Text>
+          ) : (
+            <Text>{t('Paste your formatted table from excel in the box below.')}</Text>
+          )}
+          {cascadeReady && <Text c='teal'>{t('OK')}</Text>}
+          <Textarea
+            ref={cascadeRef}
+            onChange={cascadePopupChange}
+            value={cascadeTextareaValue}
+            mt='md'
+            mb='md'
+            rows={8}
+          />
+          {envStore.isReady && envStore.data.support_url && (
+            <Group justify='flex-end' className='cascade-help right-tooltip'>
+              <Anchor
+                href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
+                target='_blank'
+                data-tip={t('Learn more about importing cascading lists from Excel')}
+              >
+                <i className='k-icon k-icon-help' />
+              </Anchor>
+            </Group>
+          )}
+          <Group justify='flex-end' mt='sm'>
+            <Button
+              type='primary'
+              size='l'
+              isDisabled={!cascadeReady}
+              onClick={() => {
+                if (cascadeReadySurvey) {
+                  props.onInsertCascade(cascadeReadySurvey, cascadeLastSelectedRowIndex)
+                  cancelCascade()
+                }
+              }}
+              label={t('DONE')}
+            />
+          </Group>
+        </Box>
+      </ModalNew>
+    </>
+  )
 }
