@@ -661,21 +661,6 @@ export default function EditableForm(props: EditableFormProps) {
     )[0].attributes.value
   }
 
-  // rendering methods
-
-  function renderNotLoadedMessage() {
-    if (state.surveyLoadError) {
-      return (
-        <ErrorMessage>
-          <ErrorMessage__strong>{t('Error loading survey:')}</ErrorMessage__strong>
-          <p>{state.surveyLoadError}</p>
-        </ErrorMessage>
-      )
-    }
-
-    return <LoadingSpinner />
-  }
-
   var docTitle = state.name || t('Untitled')
 
   if (!state.isNewAsset && !state.asset) {
@@ -749,7 +734,16 @@ export default function EditableForm(props: EditableFormProps) {
               )}
 
               <div ref={formWrapRef} className='form-wrap'>
-                {!state.surveyAppRendered && renderNotLoadedMessage()}
+                {!state.surveyAppRendered && (
+                  state.surveyLoadError
+                    ? (
+                      <ErrorMessage>
+                        <ErrorMessage__strong>{t('Error loading survey:')}</ErrorMessage__strong>
+                        <p>{state.surveyLoadError}</p>
+                      </ErrorMessage>
+                    )
+                    : <LoadingSpinner />
+                )}
               </div>
             </Box>
           </Box>

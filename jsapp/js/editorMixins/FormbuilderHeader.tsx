@@ -254,7 +254,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
           ) : (
             <Text>{t('Paste your formatted table from excel in the box below.')}</Text>
           )}
-          {cascadeReady && <Text c='teal'>{t('OK')}</Text>}
+          {cascadeReady && <Text c='teal.3'>{t('OK')}</Text>}
           <Textarea
             ref={cascadeRef}
             onChange={cascadePopupChange}
