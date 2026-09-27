@@ -79,7 +79,7 @@
     "@babel/preset-env": "^7.22.5",
     "@biomejs/biome": "^1.9.4",
     "@eslint/js": "^9.17.0",
-    "@faker-js/faker": "^9.9.0",
+    "@faker-js/faker": "^10.5.0",
     "@jest/create-cache-key-function": "^30.3.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^10.5.5",
