@@ -1,11 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse } from 'msw'
 import type { RequestHandler } from 'msw'
-import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import {
+  reactRouterOutlet,
+  reactRouterOutlets,
+  reactRouterParameters,
+  withRouter,
+} from 'storybook-addon-remix-react-router'
 import { expect, userEvent, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import NewPasswordRoute from '#/auth/NewPasswordRoute/NewPasswordRoute'
 import { type Canvas, field } from '#/auth/authStoryHelpers'
-import { PASSWORD_REQUEST_URL, passwordRequestErrorsMock } from '#/endpoints/allauth.mocks'
+import {
+  PASSWORD_REQUEST_URL,
+  PASSWORD_RESET_URL,
+  passwordRequestCodeSentMock,
+  passwordRequestErrorsMock,
+} from '#/endpoints/allauth.mocks'
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
@@ -13,6 +24,8 @@ import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ResetPasswordRoute from './ResetPasswordRoute'
 
 const EMAIL = 'caroline.herschel@kbtdev.org'
+/** Six characters, like the ones allauth generates */
+const CODE = 'MK4T9Z'
 
 const environmentMock = makeEnvironmentMock()
 
@@ -81,6 +94,50 @@ export const EmailSent: Story = {
     // The whole form is replaced, so nothing invites a second attempt.
     expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
     expect(postedBody).toEqual({ email: EMAIL })
+  },
+}
+
+/** Where {@link keyCheckRecordingMock} leaves the key it was asked about, to show the code arrived as one. */
+let checkedKey: string | null = null
+
+/** A good key, keeping the header first: that the typed code became the reset key is the point of the story. */
+const keyCheckRecordingMock = () =>
+  http.get(PASSWORD_RESET_URL, ({ request }) => {
+    checkedKey = request.headers.get('X-Password-Reset-Key')
+    return HttpResponse.json({
+      status: 200,
+      data: { user: { id: 1, display: 'caroline', username: 'caroline', has_usable_password: true } },
+    })
+  })
+
+/** A server that mails a code. The code is a reset key, so typing it reaches the screen a link would have. */
+export const ResetByCode: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ request: passwordRequestCodeSentMock() }).concat(keyCheckRecordingMock()) },
+    // The code is handed on as a route param, so this story needs the screen it is handed to.
+    reactRouter: reactRouterParameters({
+      location: { path: AUTH_ROUTES.RESET_PASSWORD },
+      routing: reactRouterOutlets({ path: ROUTES.AUTH_ROOT }, [
+        { path: 'reset-password', element: <ResetPasswordRoute /> },
+        { path: 'reset-password/:key', element: <NewPasswordRoute /> },
+      ]),
+    }),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    checkedKey = null
+
+    await userEvent.type(field(canvas, 'Email'), EMAIL)
+    await submit(canvas)
+
+    // A code field rather than "check your inbox": there is nowhere else to finish this.
+    await canvas.findByRole('heading', { level: 1, name: 'Enter your reset code' })
+    await userEvent.type(field(canvas, 'Password reset code'), CODE)
+    await userEvent.click(canvas.getByRole('button', { name: 'Continue' }))
+
+    // The second half of recovery, same as arriving from a link.
+    await canvas.findByLabelText(/^New password/)
+    expect(checkedKey).toBe(CODE)
   },
 }
 
