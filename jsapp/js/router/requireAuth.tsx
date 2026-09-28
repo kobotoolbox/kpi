@@ -1,6 +1,6 @@
 import type React from 'react'
 import { Suspense, useEffect, useState } from 'react'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import { RequireOrg } from './RequireOrg'
 import { redirectToLogin } from './routerUtils'
@@ -10,15 +10,15 @@ interface Props {
 }
 
 export default function RequireAuth({ children }: Props) {
-  const [session] = useState(() => sessionStore)
+  const [profile] = useState(() => profileStore)
 
   useEffect(() => {
-    if (!session.isLoggedIn) {
+    if (!profile.isLoggedIn) {
       redirectToLogin()
     }
-  }, [session.isLoggedIn])
+  }, [profile.isLoggedIn])
 
-  return session.isLoggedIn ? (
+  return profile.isLoggedIn ? (
     <Suspense fallback={null}>
       <RequireOrg>{children}</RequireOrg>
     </Suspense>

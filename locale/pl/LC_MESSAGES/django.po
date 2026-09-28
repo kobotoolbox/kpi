@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 15:50+0000\n"
+"POT-Creation-Date: 2026-09-16 10:33+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Patrycja Drozd, 2022\n"
 "Language-Team: Polish (http://app.transifex.com/kobotoolbox/kobotoolbox/language/pl/)\n"
@@ -676,7 +676,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1265
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1273
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -783,9 +783,9 @@ msgstr "Brak pliku XLS dla twojego formularza %(id)s"
 msgid "Not shared."
 msgstr "Nie udostępniono."
 
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:131
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:173
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:201
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:132
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:174
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:202
 #: kobo/apps/openrosa/libs/utils/logger_tools.py:701
 msgid "XML string must have a survey element."
 msgstr "Ciąg XML musi zawierać element ankiety."
@@ -2022,7 +2022,7 @@ msgstr "Wyjątek w żądaniach: %(class)s: %(error)s"
 msgid "The requested file could not be found."
 msgstr "Nie odnaleziono żądanego pliku."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1262
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1270
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
@@ -3002,15 +3002,15 @@ msgstr "Usuń zgłoszenia"
 msgid "Validate submissions"
 msgstr "Zatwierdź zgłoszenia"
 
-#: kpi/models/asset.py:691
+#: kpi/models/asset.py:734
 msgid "Only partial permissions for submissions are supported"
 msgstr "Obsługiwane są tylko częściowe uprawnienia do zgłoszeń"
 
-#: kpi/models/asset.py:1415
+#: kpi/models/asset.py:1463
 msgid "Can not assign '{}' permission to owner"
 msgstr "Nie można przypisać uprawnienia '{}' do właściciela"
 
-#: kpi/models/asset.py:1419
+#: kpi/models/asset.py:1467
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Nie można przypisać uprawnienia '{}'. Brak uprawnień częściowych."
 
@@ -3062,11 +3062,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:166
+#: kpi/models/import_export_task.py:164
 msgid "Cannot access data"
 msgstr "Nie można uzyskać dostępu do danych"
 
-#: kpi/models/import_export_task.py:831
+#: kpi/models/import_export_task.py:827
 msgid "This data does not exist or you do not have access to it"
 msgstr "Dane te nie istnieją lub nie masz do nich dostępu"
 

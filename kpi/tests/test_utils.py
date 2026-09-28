@@ -28,7 +28,11 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.ssrf import ssrf_safe_get, validate_url_against_ssrf
+from kpi.utils.ssrf import (
+    SSRFProtectedSession,
+    ssrf_safe_get,
+    validate_url_against_ssrf,
+)
 from kpi.utils.strings import split_lines_to_list, strtobool
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.urls import versioned_reverse
@@ -912,3 +916,45 @@ class SsrfUtilsTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.content, b'final content')
         self.assertEqual(len(responses.calls), 2)
+
+    @responses.activate
+    def test_ssrf_protected_session_blocks_redirect_to_private_ip(self):
+        public_url = 'http://8.8.8.8/hook'
+        responses.add(
+            responses.POST,
+            public_url,
+            status=status.HTTP_302_FOUND,
+            headers={'Location': 'http://127.0.0.1/secret'},
+        )
+        with SSRFProtectedSession() as session, pytest.raises(SSRFProtectException):
+            session.post(public_url)
+        self.assertEqual([call.request.url for call in responses.calls], [public_url])
+
+    @responses.activate
+    def test_ssrf_protected_session_follows_public_redirect_preserving_post(self):
+        first_url = 'http://8.8.8.8/hook'
+        final_url = 'http://1.1.1.1/hook'
+        responses.add(
+            responses.POST,
+            first_url,
+            status=status.HTTP_307_TEMPORARY_REDIRECT,
+            headers={'Location': final_url},
+        )
+        responses.add(
+            responses.POST,
+            final_url,
+            status=status.HTTP_200_OK,
+            body=b'ok',
+        )
+        with SSRFProtectedSession() as session:
+            response = session.post(first_url, data=b'payload')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(responses.calls), 2)
+        self.assertEqual(responses.calls[1].request.method, 'POST')
+        self.assertEqual(responses.calls[1].request.body, b'payload')
+
+    @responses.activate
+    def test_ssrf_protected_session_blocks_direct_private_url(self):
+        with SSRFProtectedSession() as session, pytest.raises(SSRFProtectException):
+            session.post('http://127.0.0.1/hook')
+        self.assertEqual(len(responses.calls), 0)

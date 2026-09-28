@@ -246,7 +246,13 @@ class DataSharingFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.DataSharingField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_OBJECT_SCHEMA
+        return build_object_type(
+            properties={
+                'enabled': build_basic_type(OpenApiTypes.BOOL),
+                'fields': GENERIC_ARRAY_SCHEMA,
+            },
+            additionalProperties=False,
+        )
 
 
 class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension):

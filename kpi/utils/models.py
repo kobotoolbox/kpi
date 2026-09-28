@@ -63,9 +63,19 @@ def _load_library_content(structure):
     if not collection_name:
         collection_name = 'Collection'
 
+    # When provided, propagate these optional keys to the collection and its
+    # children so imports mirror `AssetSerializer.create`. Existing callers that
+    # pass none of them are unaffected.
+    extra_create_kwargs = {
+        key: structure[key]
+        for key in ('created_by', 'is_excluded_from_projects_list', 'last_modified_by')
+        if key in structure
+    }
+
     collection = Asset.objects.create(
         asset_type=ASSET_TYPE_COLLECTION, owner=structure['owner'],
-        name=collection_name
+        name=collection_name,
+        **extra_create_kwargs,
     )
 
     for block_name, rows in grouped.items():
@@ -79,6 +89,7 @@ def _load_library_content(structure):
                     owner=structure['owner'],
                     parent=collection,
                     update_parent_languages=False,
+                    **extra_create_kwargs,
                 )
                 created_asset_pks.append(sa.pk)
                 for tag_name in row_tags:
@@ -102,6 +113,7 @@ def _load_library_content(structure):
                 parent=collection,
                 owner=structure['owner'],
                 update_parent_languages=False,
+                **extra_create_kwargs,
             )
             created_asset_pks.append(sa.pk)
             for tag_name in block_tags:

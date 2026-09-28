@@ -16,7 +16,7 @@ import {
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import NewPasswordRoute from './NewPasswordRoute'
 
 const RESET_KEY = 'a-good-key'
@@ -67,7 +67,7 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: newPasswordRouting(RESET_KEY),
   },
   // Nobody is logged in when they are recovering a password.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 

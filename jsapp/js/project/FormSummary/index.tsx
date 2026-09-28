@@ -7,14 +7,13 @@ import { actions } from '#/actions'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Icon from '#/components/common/icon'
-import { getFormDataTabs } from '#/components/formViewSideTabs'
+import { openEnketoPreviewModal } from '#/components/enketoPreview/openEnketoPreviewModal'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
 import { userCan } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, PermissionResponse } from '#/dataInterface'
 import mixins from '#/mixins'
-import pageState from '#/pageState.store'
+import { getFormDataTabs } from '#/project/formViewSideTabs'
 import SubmissionsCountGraph from '#/project/submissionsCountGraph.component'
 import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
 import FormSummaryProjectInfo from './FormSummaryProjectInfo'
@@ -143,10 +142,9 @@ class FormSummary extends React.Component<{}, FormSummaryState> {
 
   enketoPreviewModal(evt: React.MouseEvent<HTMLElement>) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetUrl: this.state.url,
-    })
+    if (this.state.url) {
+      openEnketoPreviewModal({ assetUrl: this.state.url })
+    }
   }
 
   renderTeam() {
@@ -189,7 +187,7 @@ class FormSummary extends React.Component<{}, FormSummaryState> {
     const docTitle = asset?.name || t('Untitled')
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | ${t('Summary')} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <LimitNotifications />
           <bem.FormView__row m='panels'>

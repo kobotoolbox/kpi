@@ -3,7 +3,7 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import ResetPasswordForm from './ResetPasswordForm'
 
@@ -34,7 +34,7 @@ function EmailSentPanel() {
 
 /** First half of password recovery: the address to mail a link to. Picking new password happens on `NewPasswordRoute`. */
 export default function ResetPasswordRoute() {
-  const { data } = useAuthConfiguration()
+  const { data } = useAuthEnvironment()
   const [isRequested, setIsRequested] = useState(false)
 
   function renderCard() {

@@ -8,7 +8,7 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import { ASSET_TYPES } from '#/constants'
 import type { AccountResponse, AssetResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime, notify } from '#/utils'
 
 interface AssetInfoBoxProps {
@@ -36,7 +36,7 @@ export default class AssetInfoBox extends React.Component<AssetInfoBoxProps, Ass
 
   componentDidMount() {
     if (assetUtils.isSelfOwned(this.props.asset)) {
-      this.setState({ ownerData: sessionStore.currentAccount })
+      this.setState({ ownerData: profileStore.currentAccount })
     } else {
       this.unlisteners.push(
         actions.misc.getUser.completed.listen(this.onGetUserCompleted.bind(this)),

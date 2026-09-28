@@ -10,7 +10,7 @@ import Textarea from '#/components/common/Textarea'
 import { addRequiredToLabel } from '#/textUtils'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
-import { areOrganizationFieldsSkipped } from './account.utils'
+import { hasNoOrganizationAffiliation } from './account.utils'
 import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
 
@@ -106,7 +106,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    *
    * NOTE: Organization-related fields are treated differently. See:
    *       - isOrganizationTypeFieldToBeDisplayed()
-   *       - areOrganizationFieldsToBeSkipped()
+   *       - areOrganizationFieldsToBeSkipped
    */
   function isFieldToBeDisplayed(name: UserFieldName) {
     return (
@@ -140,9 +140,10 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    * 'Skip logic' for 'organization' and 'organization_website', controlled
    * by the value of 'organization_type' dropdown.
    */
-  function areOrganizationFieldsToBeSkipped() {
-    return areOrganizationFieldsSkipped(props.values, envStore.data.getUserMetadataFieldNames())
-  }
+  const areOrganizationFieldsToBeSkipped = hasNoOrganizationAffiliation(
+    props.values,
+    envStore.data.getUserMetadataFieldNames(),
+  )
 
   /**
    * There's a subtle aspect of this layout that is hard to achieve with CSS
@@ -317,7 +318,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         */}
 
         {/* Organization */}
-        {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped() && (
+        {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped && (
           <div className={styles.field}>
             <TextInput
               size='sm'
@@ -331,7 +332,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
 
         {/* Organization Website */}
-        {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped() && (
+        {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped && (
           <div className={styles.field}>
             <TextInput
               label={getLabel('organization_website')}

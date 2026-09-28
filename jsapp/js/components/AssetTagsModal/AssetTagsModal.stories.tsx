@@ -103,8 +103,8 @@ export const UpdateTagsFlow: Story = {
         await expect(canvas.getByRole('dialog', { name: 'Edit tags' })).toBeInTheDocument()
       })
 
-      // Wait for the session store to load and the form to become interactive.
-      // The modal shows a loading spinner until sessionStore.isInitialLoadComplete is true.
+      // Wait for the profile store to load and the form to become interactive.
+      // The modal shows a loading spinner until profileStore.isInitialLoadComplete is true.
       await waitFor(async () => {
         await expect(canvas.getByRole('textbox')).toBeInTheDocument()
       })

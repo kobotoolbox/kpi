@@ -2118,6 +2118,15 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             )
         )
 
+        # 4. Extra keys
+        payload = {'data_sharing': {'enabled': True, 'something': 'crazy'}}
+        response = self.client.patch(self.asset_url, data=payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(list(response.data['data_sharing'])), 1)
+        self.assertEqual(
+            response.data['data_sharing']['something'], 'This property is invalid'
+        )
+
     def test_can_update_data_sharing(self):
 
         if not self.URL_NAMESPACE:
