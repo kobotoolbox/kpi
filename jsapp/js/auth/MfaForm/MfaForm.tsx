@@ -26,11 +26,21 @@ export type MfaOutcome =
 /** What `MFA_CODE_LENGTH` defaults to, and what the copy says until `/environment` lands */
 const DEFAULT_CODE_LENGTH = 6
 
+interface VerificationIssuesPanelProps {
+  /**
+   * Where to send someone with no backup codes left. Passed in rather than read off `envStore`, which fetches
+   * its own copy of `/environment` and reads as an empty address until that lands - on a private server that
+   * would name the KoboToolbox team instead of theirs.
+   */
+  supportEmail?: string | null
+  onGoBack: () => void
+}
+
 /**
  * What to do when the authenticator app is out of reach. Replaces the form rather than opening beside it, and the way
  * back is the only thing on it.
  */
-function VerificationIssuesPanel({ onGoBack }: { onGoBack: () => void }) {
+function VerificationIssuesPanel({ supportEmail, onGoBack }: VerificationIssuesPanelProps) {
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
@@ -43,6 +53,7 @@ function VerificationIssuesPanel({ onGoBack }: { onGoBack: () => void }) {
             t(
               "If you cannot access your authenticator app, please enter one of your backup codes instead. If you don't have those either, contact help@kobotoolbox.org for help.",
             ),
+            supportEmail,
           )}
         </Text>
       </Stack>
@@ -108,7 +119,9 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
   }
 
   if (isShowingIssues) {
-    return <VerificationIssuesPanel onGoBack={() => setIsShowingIssues(false)} />
+    return (
+      <VerificationIssuesPanel supportEmail={environment?.supportEmail} onGoBack={() => setIsShowingIssues(false)} />
+    )
   }
 
   return (

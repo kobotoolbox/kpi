@@ -115,7 +115,16 @@ async function openVerificationIssues(canvas: Canvas) {
   await canvas.findByRole('heading', { level: 1, name: 'Verification issues' })
 }
 
-export const Default: Story = {}
+/** The code prompt as a stock instance shows it, signed in as far as the second factor. */
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await reachCodeForm(canvas)
+
+    await canvas.findByText(/Use the 6-character token displayed by your authenticator app/)
+    expect(canvas.getByPlaceholderText('Enter token or backup code')).toHaveFocus()
+  },
+}
 
 /** An instance with longer tokens configured */
 export const LongerCode: Story = {
@@ -179,7 +188,8 @@ export const VerificationIssues: Story = {
 
     await openVerificationIssues(canvas)
 
-    await canvas.findByText(/If you cannot access your authenticator app, please enter one of your backup codes/)
+    // The instance's own address, from `/environment` - not the KoboToolbox one the source string carries.
+    await canvas.findByText(/contact support@kobo.local for help/)
     expect(canvas.queryByLabelText(/^Code/)).not.toBeInTheDocument()
   },
 }
