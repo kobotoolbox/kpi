@@ -84,6 +84,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
   const cancelCascade = () => {
     setCascadeReady(false)
     setCascadeReadySurvey(undefined)
+    setCascadeMessage(undefined)
     setCascadeTextareaValue('')
     setShowCascadePopup(false)
   }
