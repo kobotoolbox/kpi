@@ -237,6 +237,35 @@ describe('tableUtils', () => {
       return assetWithBgAudioAndNLP
     }
 
+    // Two questions named `photo`, a group each. `getSurveyFlatPaths` keeps one path per name,
+    // so the dedupe has to read `$xpath` to see that both of these paths are current.
+    const assetWithNamesakeImages = (() => {
+      const clonedAsset = JSON.parse(JSON.stringify(assetWithBgAudioAndNLP))
+      clonedAsset.content.survey.push(
+        { name: 'owner', type: 'begin_group', $kuid: 'owner-kuid', label: ['Owner'], $xpath: 'owner' },
+        {
+          name: 'photo',
+          type: 'image',
+          $kuid: 'owner-photo-kuid',
+          label: ['Photo'],
+          $xpath: 'owner/photo',
+          required: false,
+        },
+        { type: 'end_group', $kuid: '/owner-kuid' },
+        { name: 'pet', type: 'begin_group', $kuid: 'pet-kuid', label: ['Pet'], $xpath: 'pet' },
+        {
+          name: 'photo',
+          type: 'image',
+          $kuid: 'pet-photo-kuid',
+          label: ['Photo'],
+          $xpath: 'pet/photo',
+          required: false,
+        },
+        { type: 'end_group', $kuid: '/pet-kuid' },
+      )
+      return clonedAsset
+    })()
+
     attachmentCases.forEach(({ title, currentKey, legacyKey, mirroredValue, currentOnlyValue, legacyOnlyValue }) => {
       it(`should keep current ${title} key and drop legacy path duplicate`, () => {
         const submissions = [
@@ -418,6 +447,52 @@ describe('tableUtils', () => {
 
       chai.expect(columns).to.include(currentKey)
       chai.expect(columns).to.not.include(legacyKey)
+    })
+
+    // The file on the current path is that question's own. Nothing says the legacy response
+    // names it too, and two questions can hold files of the same name.
+    it('should keep the legacy column when only the current path has an attachment', () => {
+      const currentKey = 'Secret_password_as_an_audio_file'
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: currentKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [currentKey]: 'secret-password.mp3',
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include(currentKey)
+      chai.expect(columns).to.include(legacyKey)
+    })
+
+    it('should keep both columns of two current questions sharing a leaf name', () => {
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: 'owner/photo',
+              media_file_basename: 'photo.jpg',
+              is_deleted: false,
+            },
+          ],
+          'owner/photo': 'photo.jpg',
+          'pet/photo': 'photo.jpg',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithNamesakeImages, submissions)
+
+      chai.expect(columns).to.include('owner/photo')
+      chai.expect(columns).to.include('pet/photo')
     })
   })
 

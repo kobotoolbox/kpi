@@ -284,7 +284,7 @@ function getAttachmentPathEvidence(
   submission: SubmissionResponse,
   legacyKey: string,
   currentPath: string,
-): 'none' | 'single' | 'both' {
+): 'none' | 'legacy-only' | 'both' {
   const matchingAttachments = (submission._attachments || []).filter(
     (attachment) =>
       !attachment.is_deleted && (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
@@ -293,12 +293,15 @@ function getAttachmentPathEvidence(
   const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
   const hasCurrentPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === currentPath)
 
+  // A file on each path means two files, however alike the responses naming them look.
   if (hasLegacyPathAttachment && hasCurrentPathAttachment) {
     return 'both'
   }
 
-  if (hasLegacyPathAttachment || hasCurrentPathAttachment) {
-    return 'single'
+  // A file on the current path alone belongs to the current question and says nothing
+  // about the legacy response, which may well name a different file of the same name.
+  if (hasLegacyPathAttachment) {
+    return 'legacy-only'
   }
 
   return 'none'
@@ -310,6 +313,10 @@ function getAttachmentPathEvidence(
  * We only collapse stale/current columns when metadata strongly suggests they
  * are the same field. Any conflict (different values or evidence on both
  * paths) keeps the legacy column.
+ *
+ * The one file has to be filed under the legacy path, as that is the file the surviving
+ * column then renders in its place. Anything weaker risks dropping a column whose
+ * response names a file of its own.
  */
 export function shouldDropLegacyAttachmentColumn(
   submissions: SubmissionResponse[],
@@ -350,7 +357,7 @@ export function shouldDropLegacyAttachmentColumn(
         return false
       }
 
-      if (evidence === 'single') {
+      if (evidence === 'legacy-only') {
         hasMirroredAttachmentEvidence = true
       }
     }
@@ -377,7 +384,10 @@ function buildCurrentAttachmentPathsByLeaf(
     }
 
     const rowName = getRowName(row)
-    const currentPath = flatPaths[rowName]
+    // `flatPaths` is keyed by name, so namesake questions leave only one path there. Reading
+    // `$xpath` keeps them apart - without it, the dedupe below takes one namesake for the
+    // other's legacy leftover and drops its column.
+    const currentPath = row.$xpath ?? flatPaths[rowName]
     if (!currentPath) {
       return
     }

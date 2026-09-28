@@ -34,7 +34,8 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
   }
 
   renderQuestion(item: SubmissionDataListItem) {
-    // check if the question should be hidden
+    // Hiding is matched by name, and an answer saved under a question's old name keeps that
+    // old name, so display settings offers it separately (see `getHideableQuestions`).
     if (Array.isArray(this.props.hideQuestions) && this.props.hideQuestions.includes(item.name)) {
       return null
     }

@@ -1,4 +1,5 @@
 import type { DataResponse } from '#/api/models/dataResponse'
+import { getFlatQuestionsList } from '#/assetUtils'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SubmissionResponseValue } from '#/dataInterface'
 import { DISPLAY_GROUP_TYPES, DisplayGroup, getSubmissionDisplayData, stripRepeatIndices } from './submissionUtils'
@@ -34,6 +35,47 @@ export function getSubmissionDataListItems(
   const items: SubmissionDataListItem[] = []
   collectItems(getSubmissionDisplayData(asset, translationIndex, submission), [], items)
   return items
+}
+
+/** One question the processing sidebar's display settings can hide. */
+export interface HideableQuestion {
+  /** What `SubmissionDataList`'s `hideQuestions` is matched against. */
+  name: string
+  label: string
+}
+
+/**
+ * The questions whose responses `SubmissionDataList` can be told to hide.
+ *
+ * The current form's questions, plus one per answer this submission saved under a name the
+ * form has since dropped. Those answers show up in the list too, and no name the form carries
+ * now can hide them.
+ */
+export function getHideableQuestions(
+  asset: AssetResponse,
+  /** For choosing the label language, see `getLanguageIndex`. */
+  translationIndex: number,
+  submission?: DataResponse | SubmissionResponse,
+): HideableQuestion[] {
+  const survey = asset.content?.survey
+  if (!survey) {
+    return []
+  }
+
+  const questions = getFlatQuestionsList(survey, translationIndex).map(({ name, label }) => ({ name, label }))
+  const takenNames = new Set(questions.map((question) => question.name))
+  const renamedQuestions: HideableQuestion[] = []
+
+  for (const item of submission ? getSubmissionDataListItems(asset, translationIndex, submission) : []) {
+    // One entry per name, however many repeat items or matrix rows carry it.
+    if (takenNames.has(item.name)) {
+      continue
+    }
+    takenNames.add(item.name)
+    renamedQuestions.push({ name: item.name, label: item.label ?? item.name })
+  }
+
+  return [...questions, ...renamedQuestions]
 }
 
 /** Appends one item per response found in the group, subgroups included. */

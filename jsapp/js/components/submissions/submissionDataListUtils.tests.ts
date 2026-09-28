@@ -1,4 +1,4 @@
-import { getSubmissionDataListItems } from './submissionDataListUtils'
+import { getHideableQuestions, getSubmissionDataListItems } from './submissionDataListUtils'
 import {
   assetWithSupplementalDetails,
   groupsSurveyAsset,
@@ -155,5 +155,37 @@ describe('getSubmissionDataListItems', () => {
       .expect(items.map((item) => item.name))
       .to.deep.equal(['First_name', 'Middle_name', 'Last_name', 'First_name', 'Middle_name', 'Last_name'])
     chai.expect(items[0].parents).to.deep.equal(['Members'])
+  })
+})
+
+describe('getHideableQuestions', () => {
+  it('should offer the form questions when the submission has nothing else', () => {
+    chai.expect(getHideableQuestions(simpleSurveyAsset, 0, simpleSurveySubmission)).to.deep.equal([
+      { name: 'First_name', label: 'First name' },
+      { name: 'Favourite_color', label: 'Favourite color' },
+      { name: 'Favourite_number', label: 'Favourite number' },
+    ])
+  })
+
+  // Hiding the renamed question goes by the name the form carries now, which never reaches the
+  // answer given under the old one. That answer has to be offered on its own.
+  it('should offer an answer saved under the name a renamed question used to have', () => {
+    const questions = getHideableQuestions(
+      withRenamedRow(simpleSurveyAsset, 'First_name', 'First_name_v2'),
+      0,
+      simpleSurveySubmission,
+    )
+
+    chai
+      .expect(questions.map((question) => question.name))
+      .to.deep.equal(['First_name_v2', 'Favourite_color', 'Favourite_number', 'First_name'])
+    // Nothing in the form names this answer, so its raw path is the whole label.
+    chai.expect(questions.at(-1)).to.deep.equal({ name: 'First_name', label: 'First_name' })
+  })
+
+  it('should offer a repeated question once', () => {
+    const questions = getHideableQuestions(repeatSurveyAsset, 0, repeatSurveySubmission)
+
+    chai.expect(questions.map((question) => question.name)).to.deep.equal(['First_name', 'Middle_name', 'Last_name'])
   })
 })

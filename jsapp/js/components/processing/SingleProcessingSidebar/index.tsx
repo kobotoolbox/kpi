@@ -87,6 +87,7 @@ export default function ProcessingSidebar({
         setQuestionLabelLanguage={setQuestionLabelLanguage}
         transcript={transcript}
         translations={translations}
+        submission={submission}
       />
       <div className={styles.displays}>
         {translations.map((translation) => {
