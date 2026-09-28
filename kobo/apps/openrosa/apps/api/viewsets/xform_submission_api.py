@@ -355,7 +355,7 @@ class XFormSubmissionApi(
                 # submission URL
                 raise NotAuthenticated
             else:
-                _ = get_object_or_404(User, username=username.lower())
+                _ = get_object_or_404(User, username__iexact=username)
         elif not username:
             # get the username from the user if not set
             user = get_database_user(request.user)
