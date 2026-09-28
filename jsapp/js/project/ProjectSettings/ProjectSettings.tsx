@@ -19,7 +19,7 @@ import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { escapeHtml, isAValidUrl, join, notify } from '#/utils'
 import styles from './ProjectSettings.module.scss'
 import { STEPS, type StepName, getStepTitle } from './constants'
@@ -55,7 +55,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
     super(props)
 
     this.state = {
-      isSessionLoaded: !!sessionStore.isLoggedIn,
+      isSessionLoaded: !!profileStore.isLoggedIn,
       isSubmitPending: false,
       formAsset: this.props.formAsset,
       // project details
@@ -95,7 +95,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
       this.cloneTemplateAsSurvey(this.props.initialTemplateUid)
     }
     when(
-      () => sessionStore.isInitialLoadComplete,
+      () => profileStore.isInitialLoadComplete,
       () => {
         this.setState({ isSessionLoaded: true })
       },

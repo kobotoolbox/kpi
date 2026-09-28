@@ -1,15 +1,20 @@
-import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
+import { FocusTrap, Group, Stack } from '@mantine/core'
 import { useState } from 'react'
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { useAssetsAttachmentsDestroy } from '#/api/react-query/survey-data'
-import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
+import Menu from '#/components/common/Menu'
+import MenuItemProcessing from '#/components/common/MenuItemProcessing'
+import ModalNew from '#/components/common/ModalNew'
+import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
+import { isNlpSupported } from '#/components/processing/common/utils'
+import { stripRepeatIndices } from '#/components/submissions/submissionUtils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { getSubmissionRootUuid, notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 
 interface AttachmentActionsDropdownProps {
@@ -22,6 +27,12 @@ interface AttachmentActionsDropdownProps {
    * possibly in other places in UI.
    */
   onDeleted?: () => void
+  /**
+   * Also offer a "Translate & analyze" entry that opens Processing for this
+   * response's question, when NLP processing supports its type.
+   * Off by default.
+   */
+  showProcessingAction?: boolean
 }
 
 /**
@@ -58,8 +69,9 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     }
   }
 
-  // We find the question that the attachment belongs to, to determine the text to display in the modal.
-  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
+  // Strip any repeat-instance index so this matches the survey row's static xpath.
+  const questionXpath = stripRepeatIndices(attachment.question_xpath)
+  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === questionXpath)?.type
   let attachmentTypeName = t('attachment')
   if (questionType === QuestionTypeName.audio) {
     attachmentTypeName = t('audio recording')
@@ -72,37 +84,36 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   }
 
   const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submission)
+  const isProcessingActionShown = props.showProcessingAction && isNlpSupported(questionType)
 
   return (
     <span className={styles.attachmentActionsDropdown}>
       {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
-      <Menu withinPortal={false} closeOnClickOutside closeOnItemClick position='bottom-end'>
-        <Menu.Target>
-          <span style={{ position: 'relative' }}>
-            <ActionIcon size='md' variant='transparent' iconName='more' />
-          </span>
-        </Menu.Target>
+      <MoreActionsMenu>
+        {isProcessingActionShown && (
+          <>
+            <MenuItemProcessing
+              assetUid={props.asset.uid}
+              xpath={questionXpath}
+              submissionEditId={getSubmissionRootUuid(props.submission)}
+            />
+            <Menu.Divider />
+          </>
+        )}
+        <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
+          {t('Download')}
+        </Menu.Item>
+        {userCanChangeSubmission && (
+          <>
+            <Menu.Divider />
+            <Menu.Item variant='danger' onClick={() => setIsDeleteModalOpen(true)} leftSection={<Icon name='trash' />}>
+              {t('Delete')}
+            </Menu.Item>
+          </>
+        )}
+      </MoreActionsMenu>
 
-        <Menu.Dropdown>
-          <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
-            {t('Download')}
-          </Menu.Item>
-          {userCanChangeSubmission && (
-            <>
-              <Menu.Divider />
-              <Menu.Item
-                variant='danger'
-                onClick={() => setIsDeleteModalOpen(true)}
-                leftSection={<Icon name='trash' />}
-              >
-                {t('Delete')}
-              </Menu.Item>
-            </>
-          )}
-        </Menu.Dropdown>
-      </Menu>
-
-      <Modal
+      <ModalNew
         opened={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false)
@@ -136,7 +147,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
             </Button>
           </Group>
         </Stack>
-      </Modal>
+      </ModalNew>
     </span>
   )
 }

@@ -3,14 +3,12 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
-import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
-import { stores } from '#/stores'
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals'
 
@@ -61,8 +59,6 @@ class BigModal extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      enketopreviewlink: false,
-      error: false,
       modalClass: false,
     }
     autoBind(this)
@@ -73,18 +69,6 @@ class BigModal extends React.Component {
     switch (type) {
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
-        break
-
-      case MODAL_TYPES.ENKETO_PREVIEW:
-        this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
-        actions.resources.createSnapshot({
-          asset: this.props.params.assetUrl,
-        })
-
-        this.setState({
-          title: t('Form Preview'),
-          modalClass: 'modal--large',
-        })
         break
 
       case MODAL_TYPES.SUBMISSION:
@@ -114,25 +98,6 @@ class BigModal extends React.Component {
    */
   setModalTitle(title) {
     this.setState({ title: title })
-  }
-
-  /**
-   * @param {object} data
-   * @param {boolean} data.success
-   * @param {string} data.error
-   * @param {string} data.enketopreviewlink
-   */
-  enketoSnapshotCreation(data) {
-    if (data.success) {
-      this.setState({
-        enketopreviewlink: data.enketopreviewlink,
-      })
-    } else {
-      this.setState({
-        message: data.error,
-        error: true,
-      })
-    }
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -177,13 +142,6 @@ class BigModal extends React.Component {
             />
           )}
 
-          {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink && (
-            <div className='enketo-holder'>
-              <iframe src={this.state.enketopreviewlink} allow='camera *; microphone *; geolocation *' />
-            </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink && <LoadingSpinner />}
-          {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.error && <div>{this.state.message}</div>}
           {this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid && (
             <SubmissionModal
               sid={this.state.sid}

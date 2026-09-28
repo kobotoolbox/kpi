@@ -3,7 +3,7 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
 import CheckInboxPanel from './CheckInboxPanel'
 import RegisterForm from './RegisterForm'
@@ -71,7 +71,7 @@ type SignupOutcome = { kind: 'verificationPending'; email: string } | { kind: 's
  * so `index.html` has already loaded and rendered `{% csrf_token %}`, which is what sets it.
  */
 export default function RegisterRoute() {
-  const { data, isPending, isError, isFetching, refetch } = useAuthConfiguration()
+  const { data, isPending, isError, isFetching, refetch } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<SignupOutcome | null>(null)
 
   // Assume registration is open until `/environment` says otherwise, so a slow response does not leave

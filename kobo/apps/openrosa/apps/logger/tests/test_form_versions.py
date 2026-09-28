@@ -27,6 +27,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     add_form_versions,
     create_instance,
     get_soft_deleted_attachments,
+    get_submission_media_basenames,
 )
 from kpi.models.asset import Asset
 from kpi.utils.xml import (
@@ -983,6 +984,49 @@ class TestAttachmentsAcrossFormVersions(TestCase):
             'first.jpg': None,
             'second.jpg': None,
         }
+
+    def test_media_basenames_are_read_across_every_version(self):
+        """
+        What `get_soft_deleted_attachments()` compares against, on its own. The
+        restoration of DEV-2804 reads the rule through this, so that the two
+        cannot answer the same question differently.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+        self._redeploy_renaming_the_media_question()
+
+        assert get_submission_media_basenames(instance) == {'first.jpg'}
+
+    def test_media_basenames_of_an_edit_across_a_rename_hold_both_files(self):
+        """
+        The record carries both shapes, so both files are named and neither can
+        be told apart from the other. Pinned deliberately: it is what makes a
+        restoration bring back a file that had in fact been replaced, and the
+        alternative would be to lose one nobody had touched.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+        self._redeploy_renaming_the_media_question()
+
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        renamed = ET.SubElement(xml_parsed, RENAMED_MEDIA_QUESTION)
+        renamed.text = 'second.jpg'
+        edited = self._edit(instance, xml_parsed, 'second.jpg')
+
+        assert get_submission_media_basenames(edited) == {'first.jpg', 'second.jpg'}
+
+    def test_media_basenames_is_none_when_the_form_holds_no_media_question(self):
+        """
+        `None` and an empty set are not the same answer: an empty set tells
+        `get_soft_deleted_attachments()` to retire every attachment of the
+        submission, `None` to leave them alone.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+        XForm.objects.filter(pk=self.xform.pk).update(xml=xform_xml())
+        instance.xform.refresh_from_db()
+
+        assert get_submission_media_basenames(instance) is None
 
     def test_form_without_media_question_never_parses_the_submission(self):
         """

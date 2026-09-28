@@ -7,7 +7,7 @@ import { observer } from 'mobx-react'
 import React from 'react'
 import bem from '#/bem'
 import Button from '#/components/common/button'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import ReportTable from './reportTable.component'
 import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
 import type { ReportsResponse, ReportsResponseData } from './reportsConstants'
@@ -316,7 +316,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
             </span>
             <span>{t('(# were without data.)').replace('#', String(this.props.data.not_provided))}</span>
           </bem.ReportView__headingMeta>
-          {this.props.data.show_graph && sessionStore.isLoggedIn && (
+          {this.props.data.show_graph && profileStore.isLoggedIn && (
             <span className='report-button__question-settings'>
               <Button
                 type='text'

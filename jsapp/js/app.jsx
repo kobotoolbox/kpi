@@ -16,17 +16,18 @@ import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
 import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
-import { useIsProfileDetailsBlockerActive } from '#/auth/ProfileDetailsBlocker/useIsProfileDetailsBlockerActive'
+import ProfileDetailsErrorScreen from '#/auth/ProfileDetailsBlocker/ProfileDetailsErrorScreen'
+import { useProfileDetailsBlockerState } from '#/auth/ProfileDetailsBlocker/useProfileDetailsBlockerState'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import FormViewSideTabs from '#/components/formViewSideTabs'
 import MainHeader from '#/components/header/mainHeader.component'
 import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
+import FormViewSideTabs from '#/project/formViewSideTabs'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
@@ -120,14 +121,9 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
  *
  * Observes the stores it asks, because the answers change as the session and `/environment` land.
  */
-const RouteBlockerOrApp = observer(function RouteBlockerOrApp({
-  shouldDisplayMain,
-  inFormBuilder,
-  isFormSingle,
-  isLibrarySingle,
-}) {
+const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
   // Before the early returns, so the hook order stays the same on every render.
-  const isProfileDetailsBlockerActive = useIsProfileDetailsBlockerActive()
+  const profileDetails = useProfileDetailsBlockerState()
 
   // Two of the three answers below come from `/environment`, and nothing in the app works without it anyway
   // - so hold everything back rather than show the app and take it away a moment later.
@@ -143,13 +139,18 @@ const RouteBlockerOrApp = observer(function RouteBlockerOrApp({
     return <TOSAgreement />
   }
 
-  // Undefined until the organization request that settles this one has come back.
-  if (isProfileDetailsBlockerActive === undefined) {
+  // Three branches because the organization request can leave this undecided: pending waits, failed gets a
+  // screen with a way out rather than an endless spinner.
+  if (profileDetails.status === 'pending') {
     return <LoadingSpinner />
   }
 
-  if (isProfileDetailsBlockerActive) {
-    return <ProfileDetailsBlocker />
+  if (profileDetails.status === 'error') {
+    return <ProfileDetailsErrorScreen onRetry={() => window.location.reload()} />
+  }
+
+  if (profileDetails.status === 'active') {
+    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} />
   }
 
   // TODO: We have multiple routes that shouldn't display `MainHeader`,
@@ -202,7 +203,7 @@ class App extends React.Component {
 
   render() {
     // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
-    // query client as the app. `RootContextProvider` is the exception - see `RouteBlockerOrApp`.
+    // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
@@ -212,7 +213,7 @@ class App extends React.Component {
               <Tracking />
               <ToasterConfig />
 
-              <RouteBlockerOrApp
+              <AppGuard
                 shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
                 inFormBuilder={this.isFormBuilder()}
                 isFormSingle={this.isFormSingle()}

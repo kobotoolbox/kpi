@@ -545,9 +545,11 @@ interface AssetSummary {
   columns?: string[]
   lock_all?: boolean
   lock_any?: boolean
-  // Backend returns languages as string[] (never null elements)
-  // Note: OpenAPI schema correctly specifies string[], this legacy type matches it now
-  languages?: LangString[]
+  /**
+   * TODO: update this after DEV-2864 is done.
+   * The returned array can include `null`.
+   */
+  languages?: Array<LangString>
   row_count?: number
   default_translation?: string | null
   /** To be used in a warning about missing or poorly written question names. */

@@ -73,7 +73,6 @@ export const MODAL_TYPES = {
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
   LIBRARY_UPLOAD: 'library-upload',
-  ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',

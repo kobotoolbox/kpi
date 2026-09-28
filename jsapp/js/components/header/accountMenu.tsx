@@ -11,7 +11,7 @@ import type { LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { currentLang } from '#/utils'
 import ButtonNew from '../common/ButtonNew'
@@ -64,12 +64,12 @@ export default function AccountMenu() {
     }
   }
 
-  if (!sessionStore.isLoggedIn) {
+  if (!profileStore.isLoggedIn) {
     return null
   }
 
-  const accountName = sessionStore.currentAccount.username
-  const accountEmail = 'email' in sessionStore.currentAccount ? sessionStore.currentAccount.email : ''
+  const accountName = profileStore.currentAccount.username
+  const accountEmail = 'email' in profileStore.currentAccount ? profileStore.currentAccount.email : ''
 
   const currentLanguage = currentLang()
 
