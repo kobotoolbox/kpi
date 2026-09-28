@@ -1,1 +1,56 @@
-<svg enable-background="new 0 0 75.6 75.6" viewBox="0 0 75.6 75.6" xmlns="http://www.w3.org/2000/svg"><g><path d="m48 46.6v4.9c0 2.7-2.2 4.9-4.9 4.9h-10.7c-2.7 0-4.9-2.2-4.9-4.9v-27.4c0-2.7 2.2-4.9 4.9-4.9h10.7c2.7 0 4.9 2.2 4.9 4.9v.7c.9-.3 1.9-.5 3-.5 1.2 0 2.4.2 3.5.7v-.8c0-6.3-5.1-11.4-11.4-11.4h-10.7c-6.3 0-11.4 5.1-11.4 11.4v27.3c0 6.3 5.1 11.4 11.4 11.4h10.7c6.3 0 11.4-5.1 11.4-11.4v-12.4z"/><path d="m42.8 45 11.5-13.2c.4-.4.3-1-.1-1.4-2-1.8-5.1-1.5-6.9.5l-7.1 8.2c-.2.2-.4.2-.6 0l-2.6-3.2c-.5-.6-1.5-.7-2-.1-1.7 1.8-1.8 4.5-.3 6.4l2.2 2.7c1.5 1.9 4.3 2 5.9.1z"/></g></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="fin_horizontal" data-name="fin horizontal" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 959 959">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #07b0f2;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#Degradado_sin_nombre_71);
+      }
+
+      .cls-3 {
+        fill: url(#Degradado_sin_nombre_59);
+      }
+
+      .cls-4 {
+        fill: #068bbf;
+      }
+    </style>
+    <linearGradient id="Degradado_sin_nombre_59" data-name="Degradado sin nombre 59" x1="0" y1="479.5" x2="860.1" y2="479.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#79d0f2"/>
+      <stop offset=".4" stop-color="#068bbf"/>
+      <stop offset="1" stop-color="#04668c"/>
+    </linearGradient>
+    <linearGradient id="Degradado_sin_nombre_71" data-name="Degradado sin nombre 71" x1="539.44" y1="959" x2="539.44" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#79d0f2"/>
+      <stop offset=".05" stop-color="#6ecdf2"/>
+      <stop offset=".24" stop-color="#49c2f2"/>
+      <stop offset=".44" stop-color="#2cbaf2"/>
+      <stop offset=".63" stop-color="#17b4f2"/>
+      <stop offset=".82" stop-color="#0bb1f2"/>
+      <stop offset="1" stop-color="#07b0f2"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path class="cls-3" d="m380.6,0h-116.88v293.69h115.38c101.79,0,184.31,82.52,184.31,184.31h0c0,101.79-82.52,184.31-184.31,184.31H0v296.69h380.6c264.82,0,479.5-214.68,479.5-479.5h0C860.1,214.68,645.42,0,380.6,0Z"/>
+    <path class="cls-2" d="m860.1,479.5h0C860.1,214.68,645.42,0,380.6,0h-116.88v293.69h115.38c101.79,0,184.31,82.52,184.31,184.31h0c0,7.93-.56,15.73-1.53,23.39.02,0,.05.03.05.03,0,0-1.52,166.88-85.43,295.74-83.91,128.87-257.73,161.83-257.73,161.83h161.83c264.82,0,479.5-214.68,479.5-479.5Z"/>
+    <rect class="cls-1" x="137.86" width="95.9" height="50.95"/>
+    <rect class="cls-1" width="29.97" height="50.95"/>
+    <rect class="cls-1" x="56.94" width="50.95" height="50.95"/>
+    <rect class="cls-1" x="137.86" y="80.92" width="95.9" height="50.95"/>
+    <rect class="cls-1" y="80.92" width="29.97" height="50.95"/>
+    <rect class="cls-1" x="56.94" y="80.92" width="50.95" height="50.95"/>
+    <rect class="cls-1" x="137.86" y="161.83" width="95.9" height="50.95"/>
+    <rect class="cls-1" y="161.83" width="29.97" height="50.95"/>
+    <rect class="cls-1" x="56.94" y="161.83" width="50.95" height="50.95"/>
+    <rect class="cls-1" x="137.86" y="242.75" width="95.9" height="50.95"/>
+    <rect class="cls-1" y="242.75" width="29.97" height="50.95"/>
+    <rect class="cls-1" x="56.94" y="242.75" width="50.95" height="50.95"/>
+  </g>
+</svg>

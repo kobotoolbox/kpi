@@ -32,7 +32,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
     const accountName = sessionStore.currentAccount.username
 
     return (
-      <DocumentTitle title={`${accountName} | DATAUMSA`}>
+      <DocumentTitle title={`${accountName} | DataUMSA`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <Button type='text' size='l' startIcon='close' onClick={this.close.bind(this)} />

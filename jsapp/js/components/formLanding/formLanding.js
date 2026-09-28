@@ -5,10 +5,13 @@ import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
-import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
+import {
+  cloneAssetAsTemplate,
+  deployAsset,
+  unarchiveAsset,
+} from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ToggleSwitch from '#/components/common/toggleSwitch'
@@ -20,8 +23,15 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
+import {
+  userCan,
+  userCanRemoveSharedProject,
+} from '#/components/permissions/utils'
+import {
+  COLLECTION_METHODS,
+  HELP_ARTICLE_ANON_SUBMISSIONS_URL,
+  MODAL_TYPES,
+} from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
@@ -35,7 +45,9 @@ import { formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import FormHistory from './FormHistory'
 
-const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
+const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(
+  PERMISSIONS_CODENAMES.add_submissions,
+).url
 
 class FormLanding extends React.Component {
   constructor(props) {
@@ -48,8 +60,14 @@ class FormLanding extends React.Component {
     autoBind(this)
   }
   componentDidMount() {
-    this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated)
-    this.listenTo(actions.resources.loadAsset.completed, this.onAssetPermissionsUpdated)
+    this.listenTo(
+      actions.permissions.getAssetPermissions.completed,
+      this.onAssetPermissionsUpdated,
+    )
+    this.listenTo(
+      actions.resources.loadAsset.completed,
+      this.onAssetPermissionsUpdated,
+    )
 
     actions.resources.loadAsset({ id: this.props.params.uid })
   }
@@ -59,8 +77,12 @@ class FormLanding extends React.Component {
     if (response.permissions) {
       response = res.permissions
     }
-    const publicPerms = response.filter((assignment) => assignment.user === buildUserUrl(ANON_USERNAME))
-    const anonCanAdd = publicPerms.filter((perm) => perm.permission === ANON_CAN_ADD_PERM_URL)[0]
+    const publicPerms = response.filter(
+      (assignment) => assignment.user === buildUserUrl(ANON_USERNAME),
+    )
+    const anonCanAdd = publicPerms.filter(
+      (perm) => perm.permission === ANON_CAN_ADD_PERM_URL,
+    )[0]
     this.setState({
       anonymousPermissions: publicPerms,
       anonymousSubmissions: Boolean(anonCanAdd),
@@ -68,10 +90,20 @@ class FormLanding extends React.Component {
   }
   updateAssetAnonymousSubmissions() {
     const permission = this.state.anonymousPermissions.find(
-      (perm) => perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url,
+      (perm) =>
+        perm.permission ===
+        permConfig.getPermissionByCodename(
+          PERMISSIONS_CODENAMES.add_submissions,
+        ).url,
     )
     if (this.state.anonymousSubmissions) {
-      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url, undefined, undefined, undefined)
+      actions.permissions.removeAssetPermission(
+        this.props.params.uid,
+        permission.url,
+        undefined,
+        undefined,
+        undefined,
+      )
     } else {
       actions.permissions.assignAssetPermission(this.props.params.uid, {
         user: buildUserUrl(ANON_USERNAME),
@@ -150,9 +182,13 @@ class FormLanding extends React.Component {
     return (
       <bem.FormView__cell m={['columns', 'padding']}>
         <bem.FormView__cell>
-          <bem.FormView__cell m='version'>{dvcount > 0 ? `v${dvcount}` : ''}</bem.FormView__cell>
+          <bem.FormView__cell m='version'>
+            {dvcount > 0 ? `v${dvcount}` : ''}
+          </bem.FormView__cell>
           {undeployedVersion && userCanEdit && (
-            <bem.FormView__cell m='undeployed'>&nbsp;{undeployedVersion}</bem.FormView__cell>
+            <bem.FormView__cell m='undeployed'>
+              &nbsp;{undeployedVersion}
+            </bem.FormView__cell>
           )}
           <bem.FormView__cell m='date'>
             {t('Last Modified')}&nbsp;:&nbsp;
@@ -214,7 +250,11 @@ class FormLanding extends React.Component {
     })
   }
   isCurrentVersionDeployed() {
-    if (this.state.deployment__active && this.state.deployed_versions.count > 0 && this.state.deployed_version_id) {
+    if (
+      this.state.deployment__active &&
+      this.state.deployed_versions.count > 0 &&
+      this.state.deployed_version_id
+    ) {
       const deployed_version = this.state.deployed_versions.results.find(
         (version) => version.uid === this.state.deployed_version_id,
       )
@@ -223,10 +263,14 @@ class FormLanding extends React.Component {
     return false
   }
   isFormRedeploymentNeeded() {
-    return !this.isCurrentVersionDeployed() && userCan('change_asset', this.state)
+    return (
+      !this.isCurrentVersionDeployed() && userCan('change_asset', this.state)
+    )
   }
   hasLanguagesDefined(translations) {
-    return translations && (translations.length > 1 || translations[0] !== null)
+    return (
+      translations && (translations.length > 1 || translations[0] !== null)
+    )
   }
   showLanguagesModal(evt) {
     evt.preventDefault()
@@ -234,7 +278,11 @@ class FormLanding extends React.Component {
   }
   renderHistory() {
     return (
-      <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
+      <bem.FormView__row
+        className={
+          this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'
+        }
+      >
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
           <bem.FormView__cell m='label'>{t('Form history')}</bem.FormView__cell>
         </bem.FormView__cell>
@@ -251,14 +299,20 @@ class FormLanding extends React.Component {
           />
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 && (
-          <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
+          <Group
+            justify='center'
+            gap='md'
+            pt={this.state.historyExpanded ? 'md' : 0}
+          >
             <ButtonNew
               size='md'
               onClick={this.toggleDeploymentHistory.bind(this)}
               leftIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
               variant='transparent'
             >
-              {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+              {this.state.historyExpanded
+                ? t('Hide full history')
+                : t('Show full history')}
             </ButtonNew>
           </Group>
         )}
@@ -281,7 +335,9 @@ class FormLanding extends React.Component {
 
     return (
       <bem.FormView__row>
-        <bem.FormView__cell m={['label', 'first']}>{t('Collect data')}</bem.FormView__cell>
+        <bem.FormView__cell m={['label', 'first']}>
+          {t('Collect data')}
+        </bem.FormView__cell>
         <bem.FormView__cell m='box' style={{ overflow: 'visible' }}>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
@@ -293,11 +349,14 @@ class FormLanding extends React.Component {
               />
             </bem.FormView__cell>
 
-            <bem.FormView__cell className='collect-header-actions'>{this.renderCollectLink()}</bem.FormView__cell>
+            <bem.FormView__cell className='collect-header-actions'>
+              {this.renderCollectLink()}
+            </bem.FormView__cell>
           </bem.FormView__cell>
 
           <Stack pb='lg' pl='lg' pr='lg' className='collect-meta-description'>
-            {chosenMethod !== COLLECTION_METHODS.android.id && COLLECTION_METHODS[chosenMethod].desc}
+            {chosenMethod !== COLLECTION_METHODS.android.id &&
+              COLLECTION_METHODS[chosenMethod].desc}
 
             {chosenMethod === COLLECTION_METHODS.iframe_url.id && (
               <pre>{`<iframe src="${chosenMethodLink}" width="800" height="600"></iframe>`}</pre>
@@ -311,27 +370,38 @@ class FormLanding extends React.Component {
                   <a
                     href={COLLECTION_METHODS.android.url}
                     target='_blank'
+                    rel='noreferrer'
                   >
                     https://dataumsa.sociest.org/app-movil/descargas/
                   </a>
                 </li>
                 <li>
-                  {t('Enter your project credentials to connect, as the URL is automatically configured within the DataUMSA Collect app.')}
+                  {t(
+                    'Enter your project credentials to connect, as the URL is automatically configured within the DataUMSA Collect app.',
+                  )}
                 </li>
                 <li>{t('Select "Download form" and select this project')}</li>
                 <li>{t('Select "Start New Form"')}</li>
-                <li>{t('Select this project from the list of downloaded projects')}</li>
+                <li>
+                  {t(
+                    'Select this project from the list of downloaded projects',
+                  )}
+                </li>
               </ol>
             )}
           </Stack>
 
           {userCan('change_asset', this.state) && (
-            <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
+            <bem.FormView__cell
+              m={['padding', 'anonymous-submissions', 'bordertop']}
+            >
               <NewFeatureDialog
                 content={t(
                   'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.',
                 )}
-                supportArticle={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+                supportArticle={
+                  envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                }
                 featureKey='anonymousSubmissions'
                 disabled={pageState.state?.modal}
                 pointerClass='anonymousSubmissionPointer'
@@ -346,7 +416,10 @@ class FormLanding extends React.Component {
           )}
 
           {userCan('change_asset', this.state) && (
-            <bem.FormView__cell m={['padding', 'bordertop']} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <bem.FormView__cell
+              m={['padding', 'bordertop']}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
               <div>
                 <ToggleSwitch
                   checked={!this.state.settings?.hide_print}
@@ -390,7 +463,9 @@ class FormLanding extends React.Component {
       return (
         <span
           className='collect-link-missing right-tooltip'
-          data-tip={t("Try reloading the page, if problem doesn't go away, contact support.")}
+          data-tip={t(
+            "Try reloading the page, if problem doesn't go away, contact support.",
+          )}
         >
           <i className='k-icon k-icon-alert' />
           {t('Link missing')}
@@ -463,10 +538,12 @@ class FormLanding extends React.Component {
   handleEditClick(evt) {
     evt.preventDefault()
     const warningMessage = t(
-      'Warning: If this form was originally created using advanced XLSForm features, editing it in the Form Builder could result in the loss of some special configurations or data.\n\nDo you want to continue to the Form Builder?'
+      'Warning: If this form was originally created using advanced XLSForm features, editing it in the Form Builder could result in the loss of some special configurations or data.\n\nDo you want to continue to the Form Builder?',
     )
     if (window.confirm(warningMessage)) {
-      this.props.router.navigate(ROUTES.FORM_EDIT.replace(':uid', this.state.uid))
+      this.props.router.navigate(
+        ROUTES.FORM_EDIT.replace(':uid', this.state.uid),
+      )
     }
   }
   renderButtons(userCanEdit) {
@@ -493,7 +570,9 @@ class FormLanding extends React.Component {
             type='text'
             size='m'
             startIcon='edit'
-            tooltip={t('Editing capabilities not granted, you can only view this form')}
+            tooltip={t(
+              'Editing capabilities not granted, you can only view this form',
+            )}
             tooltipPosition='right'
             isDisabled
           />
@@ -522,7 +601,12 @@ class FormLanding extends React.Component {
 
         <Menu>
           <Menu.Target>
-            <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
+            <ButtonNew
+              variant='transparent'
+              size='md'
+              leftIcon='more'
+              tooltip={t('More actions')}
+            />
           </Menu.Target>
           <Menu.Dropdown>
             {downloads.map((dl) => (
@@ -530,7 +614,9 @@ class FormLanding extends React.Component {
                 component='a'
                 href={dl.url}
                 key={`dl-${dl.format}`}
-                leftSection={<i className={`k-icon k-icon-file-${dl.format}`} />}
+                leftSection={
+                  <i className={`k-icon k-icon-file-${dl.format}`} />
+                }
               >
                 {t('Download')}&nbsp;
                 {dl.format.toString().toUpperCase()}
@@ -538,19 +624,28 @@ class FormLanding extends React.Component {
             ))}
 
             {userCanEdit && (
-              <Menu.Item onClick={this.showSharingModal} leftSection={<i className='k-icon k-icon-user-share' />}>
+              <Menu.Item
+                onClick={this.showSharingModal}
+                leftSection={<i className='k-icon k-icon-user-share' />}
+              >
                 {t('Share this project')}
               </Menu.Item>
             )}
 
             {isLoggedIn && userCanRemoveSharedProject(this.state) && (
-              <Menu.Item onClick={this.nonOwnerSelfRemoval} leftSection={<i className='k-icon k-icon-trash' />}>
+              <Menu.Item
+                onClick={this.nonOwnerSelfRemoval}
+                leftSection={<i className='k-icon k-icon-trash' />}
+              >
                 {t('Remove shared project')}
               </Menu.Item>
             )}
 
             {isLoggedIn && (
-              <Menu.Item onClick={() => this.saveCloneAs()} leftSection={<i className='k-icon k-icon-duplicate' />}>
+              <Menu.Item
+                onClick={() => this.saveCloneAs()}
+                leftSection={<i className='k-icon k-icon-duplicate' />}
+              >
                 {t('Clone this project')}
               </Menu.Item>
             )}
@@ -578,7 +673,8 @@ class FormLanding extends React.Component {
         <bem.FormView__cell m='translation-list'>
           <strong>{t('Languages:')}</strong>
           &nbsp;
-          {!this.hasLanguagesDefined(translations) && t('This project has no languages defined yet')}
+          {!this.hasLanguagesDefined(translations) &&
+            t('This project has no languages defined yet')}
           {this.hasLanguagesDefined(translations) && (
             <ul>
               {translations.map((langString, n) => (
@@ -613,7 +709,7 @@ class FormLanding extends React.Component {
     }
 
     return (
-      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
+      <DocumentTitle title={`${docTitle} | DataUMSA`}>
         <bem.FormView m='form'>
           <LimitNotifications />
           <bem.FormView__row>
@@ -625,7 +721,9 @@ class FormLanding extends React.Component {
                     ? t('Archived version')
                     : t('Draft version')}
               </bem.FormView__cell>
-              <bem.FormView__cell m='action-buttons'>{this.renderButtons(userCanEdit)}</bem.FormView__cell>
+              <bem.FormView__cell m='action-buttons'>
+                {this.renderButtons(userCanEdit)}
+              </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() && (
@@ -633,7 +731,9 @@ class FormLanding extends React.Component {
                   <InlineMessage
                     icon='alert'
                     type='warning'
-                    message={t('If you want to make these changes public, you must deploy this form.')}
+                    message={t(
+                      'If you want to make these changes public, you must deploy this form.',
+                    )}
                   />
                 </Stack>
               )}

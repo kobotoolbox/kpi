@@ -58,11 +58,10 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
 
   /** Whether current submission has a response for current question. */
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
-  const pageTitle = 'Data | DATAUMSA'
+  const pageTitle = 'Data | DataUMSA'
 
   // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
-  // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.
-  // We do need it for some parts of processing UI, but we already safeguard ourselves in each place we do use it.
+  // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.\n  // We do need it for some parts of processing UI, but we already safeguard ourselves in each place we do use it.
   if (!asset || !advancedFeatures || !supplement || !submission) {
     return (
       <DocumentTitle title={pageTitle}>

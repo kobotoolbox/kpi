@@ -19,15 +19,31 @@ import SharingForm from './permissions/sharingForm.component'
 import LimitNotifications from './usageLimits/limitNotifications.component'
 
 const ConnectProjects = React.lazy(
-  () => import(/* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'),
+  () =>
+    import(
+      /* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'
+    ),
 )
-const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/submissions/DataTableWrapper'))
+const DataTable = React.lazy(
+  () =>
+    import(
+      /* webpackPrefetch: true */ '#/components/submissions/DataTableWrapper'
+    ),
+)
 const ProjectDownloads = React.lazy(
-  () => import(/* webpackPrefetch: true */ '#/components/projectDownloads/ProjectDownloads'),
+  () =>
+    import(
+      /* webpackPrefetch: true */ '#/components/projectDownloads/ProjectDownloads'
+    ),
 )
-const FormGallery = React.lazy(() => import(/* webpackPrefetch: true */ './formGallery/formGallery.component'))
+const FormGallery = React.lazy(
+  () =>
+    import(/* webpackPrefetch: true */ './formGallery/formGallery.component'),
+)
 
-const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/FormActivity'))
+const FormActivity = React.lazy(
+  () => import(/* webpackPrefetch: true */ './activity/FormActivity'),
+)
 
 export class FormSubScreens extends React.Component {
   constructor(props) {
@@ -36,7 +52,8 @@ export class FormSubScreens extends React.Component {
     autoBind(this)
   }
   componentDidMount() {
-    const uid = this.props.params.assetid || this.props.uid || this.props.params.uid
+    const uid =
+      this.props.params.assetid || this.props.uid || this.props.params.uid
     if (uid) {
       actions.resources.loadAsset({ id: uid })
     }
@@ -64,8 +81,16 @@ export class FormSubScreens extends React.Component {
           )
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMapWrapper asset={this.state} />
-        case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(':viewby', this.props.params.viewby):
-          return <FormMapWrapper asset={this.state} viewby={this.props.params.viewby} />
+        case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(
+          ':viewby',
+          this.props.params.viewby,
+        ):
+          return (
+            <FormMapWrapper
+              asset={this.state}
+              viewby={this.props.params.viewby}
+            />
+          )
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={null}>
@@ -82,8 +107,16 @@ export class FormSubScreens extends React.Component {
           return this.renderRecords()
         case ROUTES.FORM_REST.replace(':uid', this.state.uid):
           return <RESTServices asset={this.state} />
-        case ROUTES.FORM_REST_HOOK.replace(':uid', this.state.uid).replace(':hookUid', this.props.params.hookUid):
-          return <RESTServices asset={this.state} hookUid={this.props.params.hookUid} />
+        case ROUTES.FORM_REST_HOOK.replace(':uid', this.state.uid).replace(
+          ':hookUid',
+          this.props.params.hookUid,
+        ):
+          return (
+            <RESTServices
+              asset={this.state}
+              hookUid={this.props.params.hookUid}
+            />
+          )
         case ROUTES.FORM_RESET.replace(':uid', this.state.uid):
           return this.renderReset()
         case ROUTES.FORM_ACTIVITY.replace(':uid', this.state.uid):
@@ -94,7 +127,7 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled')
 
     return (
-      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
+      <DocumentTitle title={`${docTitle} | DataUMSA`}>
         <bem.FormView>
           <bem.FormView__cell m='iframe'>
             <iframe src={iframeUrl} />
@@ -106,10 +139,13 @@ export class FormSubScreens extends React.Component {
   renderSettingsEditor() {
     var docTitle = this.state.name || t('Untitled')
     return (
-      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
+      <DocumentTitle title={`${docTitle} | DataUMSA`}>
         <bem.FormView m='form-settings'>
           <LimitNotifications />
-          <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={this.state} />
+          <ProjectSettings
+            context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
+            formAsset={this.state}
+          />
         </bem.FormView>
       </DocumentTitle>
     )

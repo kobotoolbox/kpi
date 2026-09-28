@@ -59,8 +59,7 @@ export default class AssetRoute extends React.Component<AssetRouteProps, AssetRo
   componentWillReceiveProps(nextProps: AssetRouteProps) {
     // trigger loading when switching assets
     if (nextProps.params.uid !== this.props.params.uid) {
-      this.setState({ asset: undefined })
-      this.loadCurrentAsset()
+      this.setState({ asset: undefined })\n      this.loadCurrentAsset()
     }
   }
 
@@ -124,12 +123,11 @@ export default class AssetRoute extends React.Component<AssetRouteProps, AssetRo
       this.state.asset.access_types && this.state.asset.access_types.includes(ACCESS_TYPES.subscribed)
 
     return (
-      <DocumentTitle title={`${assetName.final} | DATAUMSA`}>
+      <DocumentTitle title={`${assetName.final} | DataUMSA`}>
         <bem.FormView m='library-asset'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'columns-right', 'first']}>
-              {isUserSubscribed && (
-                <bem.FormView__cell m='subscribed-badge'>
+              {isUserSubscribed && (\n                <bem.FormView__cell m='subscribed-badge'>
                   <i className='k-icon k-icon-folder-subscribed' />
                   {t('Subscribed')}
                 </bem.FormView__cell>

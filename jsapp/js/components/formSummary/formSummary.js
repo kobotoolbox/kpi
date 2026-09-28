@@ -33,9 +33,13 @@ class FormSummary extends React.Component {
   // Copying how sharingForm.component.tsx does their listeners
   componentDidMount() {
     this.unlisteners.push(
-      actions.permissions.bulkSetAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
+      actions.permissions.bulkSetAssetPermissions.completed.listen(
+        this.onAssetPermissionsUpdated.bind(this),
+      ),
       // This is the call to listen to for the permissions list as a response after removing a user's permissions
-      actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
+      actions.permissions.getAssetPermissions.completed.listen(
+        this.onAssetPermissionsUpdated.bind(this),
+      ),
     )
   }
 
@@ -112,11 +116,18 @@ class FormSummary extends React.Component {
 
     return (
       <bem.FormView__row m='data-links'>
-        <bem.FormView__cell m={['label', 'first']}>{t('Data')}</bem.FormView__cell>
+        <bem.FormView__cell m={['label', 'first']}>
+          {t('Data')}
+        </bem.FormView__cell>
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m='data-tabs'>
             {sideTabs.map((item, ind) => (
-              <NavLink to={item.path} key={ind} data-path={item.path} onClick={this.triggerRefresh}>
+              <NavLink
+                to={item.path}
+                key={ind}
+                data-path={item.path}
+                onClick={this.triggerRefresh}
+              >
                 <i className={`k-icon ${item.icon}`} />
                 {item.label}
                 <Icon name='angle-right' size='s' />
@@ -163,7 +174,9 @@ class FormSummary extends React.Component {
 
     return (
       <bem.FormView__row m='team'>
-        <bem.FormView__cell m={['label', 'first']}>{t('Team members')}</bem.FormView__cell>
+        <bem.FormView__cell m={['label', 'first']}>
+          {t('Team members')}
+        </bem.FormView__cell>
         {userCan('change_asset', this.state) && (
           <a onClick={this.sharingModal} className='team-sharing-button'>
             <i className='k-icon k-icon-user-share' />
@@ -172,9 +185,9 @@ class FormSummary extends React.Component {
         <bem.FormView__cell m={['box', 'padding']}>
           {team.map((username, ind) => (
             <Avatar key={ind} username={username} size='s' isUsernameVisible />
-          ))}
-        </bem.FormView__cell>
-      </bem.FormView__row>
+          ))
+        )}
+      </bem.FormView__cell>
     )
   }
 
@@ -182,7 +195,7 @@ class FormSummary extends React.Component {
     const docTitle = this.state.name || t('Untitled')
 
     return (
-      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
+      <DocumentTitle title={`${docTitle} | DataUMSA`}>
         <bem.FormView m='summary'>
           <LimitNotifications />
           <bem.FormView__row m='panels'>
@@ -193,7 +206,9 @@ class FormSummary extends React.Component {
 
               {this.state.uid && (
                 <bem.FormView__row>
-                  <bem.FormView__cell m={['label', 'first']}>{t('Submissions')}</bem.FormView__cell>
+                  <bem.FormView__cell m={['label', 'first']}>
+                    {t('Submissions')}
+                  </bem.FormView__cell>
 
                   <bem.FormView__cell m='box'>
                     <SubmissionsCountGraph assetUid={this.state.uid} />
@@ -203,8 +218,12 @@ class FormSummary extends React.Component {
             </bem.FormView__column>
             <bem.FormView__column m='right'>
               <bem.FormView__row m='quick-links'>
-                <bem.FormView__cell m={['label', 'first']}>{t('Quick Links')}</bem.FormView__cell>
-                <bem.FormView__cell m='box'>{this.renderQuickLinks()}</bem.FormView__cell>
+                <bem.FormView__cell m={['label', 'first']}>
+                  {t('Quick Links')}
+                </bem.FormView__cell>
+                <bem.FormView__cell m='box'>
+                  {this.renderQuickLinks()}
+                </bem.FormView__cell>
               </bem.FormView__row>
 
               {this.renderDataTabs()}

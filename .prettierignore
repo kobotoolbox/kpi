@@ -1,0 +1,5 @@
+# Ignore Django HTML templates as Prettier breaks template tags ({% %})
+*.html
+**/*.html
+kobo/**/templates/**/*.html
+kpi/templates/**/*.html

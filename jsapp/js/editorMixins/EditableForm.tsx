@@ -703,7 +703,7 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function safeNavigateToAsset() {
-    // Previously this was checking for asset, but when you create a "block", asset will be created only after saving,
+    // Previously this was checking for asset, but when you create a \"block\", asset will be created only after saving,
     // so we need to allow users going back without saving.
     if (!state.backRoute) {
       return
@@ -914,7 +914,7 @@ export default function EditableForm(props: EditableFormProps) {
       bannerText = bannerText.replace('##SUPPORT_LINK##', getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS))
     } else {
       // Replaces the link for the text only if link is not available
-      bannerText = bannerText.replace(/\[(.+)]\(##SUPPORT_LINK##\)/, '$1')
+      bannerText = bannerText.replace(/\\[(.+)\\]\\(##SUPPORT_LINK##\\)/, '$1')
     }
 
     return (
@@ -1218,14 +1218,14 @@ export default function EditableForm(props: EditableFormProps) {
 
   if (!state.isNewAsset && !state.asset) {
     return (
-      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
+      <DocumentTitle title={`${docTitle} | DataUMSA`}>
         <LoadingSpinner />
       </DocumentTitle>
     )
   }
 
   return (
-    <DocumentTitle title={`${docTitle} | DATAUMSA`}>
+    <DocumentTitle title={`${docTitle} | DataUMSA`}>
       <>
         <div className='form-builder-wrapper'>
           {renderAside()}

@@ -95,7 +95,7 @@ export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreDa
     }
 
     return (
-      <DocumentTitle title={`${t('My Library')} | DATAUMSA`}>
+      <DocumentTitle title={`${t('My Library')} | DataUMSA`}>
         <Dropzone onDrop={this.onFileDrop.bind(this)} noClick multiple accept={validFileTypes()}>
           {({ getRootProps, getInputProps, isDragActive }) => (
             <div

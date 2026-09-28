@@ -20,6 +20,7 @@ from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
+SITE_NAME = env.str('SITE_NAME', 'dataumsa')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -211,9 +212,9 @@ CONSTANCE_CONFIG = {
         'or blank to allow all email domains'
     ),
     'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
-        'Account creation restricted for this server. Your organization uses a '
-        'separate private KoboToolbox server. Please contact your organization '
-        'support team for assistance.',
+        f'Account creation restricted for this server. Your organization uses a '
+        f'separate private {SITE_NAME} server. Please contact your organization '
+        f'support team for assistance.',
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
@@ -231,7 +232,7 @@ CONSTANCE_CONFIG = {
     ),
     'SUPPORT_URL': (
         env.str('KOBO_SUPPORT_URL', 'https://data.umsa.bo/docs/'),
-        'URL for "DataUMSA Help Center"',
+        f'URL for "{SITE_NAME} Help Center"',
     ),
     'TURNSTILE_ENABLED': (
         env.bool('TURNSTILE_ENABLED', False),
@@ -247,13 +248,13 @@ CONSTANCE_CONFIG = {
     ),
     'ACADEMY_URL': (
         env.str('KOBO_ACADEMY_URL', 'https://data.umsa.bo/docs/guides/inicio-rapido/'),
-        'URL for "DataUMSA Learning Center"',
+        f'URL for "{SITE_NAME} Learning Center"',
     ),
     'COMMUNITY_URL': (
         env.str(
             'KOBO_COMMUNITY_URL', 'https://data.umsa.bo/docs/'
         ),
-        'URL for "DataUMSA Community / Help"',
+        f'URL for "{SITE_NAME} Community / Help"',
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
@@ -298,7 +299,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'MFA_ISSUER_NAME': (
-        'KoboToolbox',
+        SITE_NAME,
         'Issuer name displayed in multi-factor applications'
     ),
     'MFA_ENABLED': (
@@ -644,7 +645,7 @@ CONSTANCE_CONFIG = {
         ),
     ),
     'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT': (
-        'KoboToolbox Notifications: Project ownership transfer failure',
+        f'{SITE_NAME} Notifications: Project ownership transfer failure',
         'Email subject to sent to admins on failure.',
     ),
     'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY': (
@@ -995,9 +996,9 @@ REST_FRAMEWORK = {
 
 # Settings for the API documentation using drf-spectacular
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'KoboToolbox Primary API',
+    'TITLE': f'{SITE_NAME} Primary API',
     'DESCRIPTION': (
-        'This page documents all KoboToolbox API endpoints, except for those '
+        f'This page documents all {SITE_NAME} API endpoints, except for those '
         'implementing the OpenRosa protocol, which are [documented separately](/api/openrosa/docs/).'  # noqa
         '\n\n'
         'The endpoints are grouped by area of intended use. Each category contains '
@@ -1117,13 +1118,13 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
-SPECTACULAR_OPENROSA_TITLE = 'KoboToolbox OpenRosa API'
+SPECTACULAR_OPENROSA_TITLE = f'{SITE_NAME} OpenRosa API'
 
 SPECTACULAR_OPENROSA_DESCRIPTION = (
-    'Welcome to the documentation for the KoboToolbox OpenRosa API. Data collection '
+    f'Welcome to the documentation for the {SITE_NAME} OpenRosa API. Data collection '
     'clients, including KoboCollect and web forms, use the API endpoints described '
     'here to retrieve surveys and upload submissions.\n\n'
-    'Our separate documentation of the primary KoboToolbox API endpoints, used to '
+    f'Our separate documentation of the primary {SITE_NAME} API endpoints, used to '
     'manage projects and data, can be found [here](/api/v2/docs/).'
 )
 
