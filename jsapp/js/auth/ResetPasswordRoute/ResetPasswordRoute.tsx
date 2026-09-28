@@ -1,12 +1,18 @@
 import { Image, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useNavigate } from 'react-router-dom'
+import {
+  getAllauthBrowserV1AuthPasswordResetGetQueryKey,
+  getAllauthBrowserV1AuthPasswordResetGetQueryOptions,
+} from '#/api/react-query/authentication-allauth-headless'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import { getGenericAllauthErrorMessage } from '#/auth/allauthErrors'
 import { validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
@@ -45,14 +51,43 @@ function EmailSentPanel() {
  */
 function CodeEntryPanel() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [isChecking, setIsChecking] = useState(false)
   const form = useForm<{ code: string }>({
     mode: 'uncontrolled',
     initialValues: { code: '' },
     validate: { code: validateRequiredField },
   })
 
-  const handleSubmit = ({ code }: { code: string }) =>
-    navigate(AUTH_ROUTES.NEW_PASSWORD.replace(':key', encodeURIComponent(code.trim())))
+  /**
+   * Checks the code before moving on, so a mistyped one comes back to this field instead of ending up on the
+   * dead-end panel meant for spent links. allauth only allows a few attempts, so restarting is expensive.
+   */
+  const handleSubmit = async ({ code }: { code: string }) => {
+    const resetKey = code.trim()
+    setIsChecking(true)
+    try {
+      const response = await queryClient.fetchQuery(
+        getAllauthBrowserV1AuthPasswordResetGetQueryOptions({
+          // allauth takes the key - the code, on this server - in a header rather than the URL
+          request: { headers: { 'X-Password-Reset-Key': resetKey } },
+          // The key `NewPasswordRoute` reads, so it carries on from this lookup rather than spending a second attempt
+          query: { queryKey: [...getAllauthBrowserV1AuthPasswordResetGetQueryKey(), resetKey], retry: false },
+        }),
+      )
+      // 409 is about the session rather than the code, and the next screen has the panel that explains it.
+      if (response.status === 200 || response.status === 409) {
+        navigate(AUTH_ROUTES.NEW_PASSWORD.replace(':key', encodeURIComponent(resetKey)))
+        return
+      }
+      form.setFieldError('code', t('That code is not valid or has expired. Check your email and try again.'))
+    } catch {
+      // Only a 5xx or a dead connection gets here, neither of which says anything about the code.
+      form.setFieldError('code', getGenericAllauthErrorMessage())
+    } finally {
+      setIsChecking(false)
+    }
+  }
 
   return (
     <Stack gap='xl'>
@@ -78,7 +113,7 @@ function CodeEntryPanel() {
             required
           />
 
-          <ButtonNew type='submit' size='lg' fullWidth>
+          <ButtonNew type='submit' size='lg' fullWidth loading={isChecking}>
             {t('Continue')}
           </ButtonNew>
         </Stack>

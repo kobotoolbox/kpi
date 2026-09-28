@@ -100,10 +100,16 @@ export const EmailSent: Story = {
 /** Where {@link keyCheckRecordingMock} leaves the key it was asked about, to show the code arrived as one. */
 let checkedKey: string | null = null
 
-/** A good key, keeping the header first: that the typed code became the reset key is the point of the story. */
+/** Accepts one code and rejects the rest, the way a server with attempts left does. */
 const keyCheckRecordingMock = () =>
   http.get(PASSWORD_RESET_URL, ({ request }) => {
     checkedKey = request.headers.get('X-Password-Reset-Key')
+    if (checkedKey !== CODE) {
+      return HttpResponse.json(
+        { status: 400, errors: [{ code: 'invalid', param: 'key', message: 'Invalid or expired key.' }] },
+        { status: 400 },
+      )
+    }
     return HttpResponse.json({
       status: 200,
       data: { user: { id: 1, display: 'caroline', username: 'caroline', has_usable_password: true } },
@@ -132,6 +138,18 @@ export const ResetByCode: Story = {
 
     // A code field rather than "check your inbox": there is nowhere else to finish this.
     await canvas.findByRole('heading', { level: 1, name: 'Enter your reset code' })
+
+    // A typo first, which is the case that must not leave this screen: the reset is spendable, so being sent
+    // off to the "request another email" panel would cost an attempt for nothing.
+    await userEvent.type(field(canvas, 'Password reset code'), 'MK4T92')
+    await userEvent.click(canvas.getByRole('button', { name: 'Continue' }))
+
+    await canvas.findByText(/That code is not valid or has expired/)
+    expect(field(canvas, 'Password reset code')).toHaveValue('MK4T92')
+    expect(canvas.queryByRole('button', { name: 'Go back to Login' })).not.toBeInTheDocument()
+
+    // Corrected in place, no new email needed.
+    await userEvent.clear(field(canvas, 'Password reset code'))
     await userEvent.type(field(canvas, 'Password reset code'), CODE)
     await userEvent.click(canvas.getByRole('button', { name: 'Continue' }))
 
