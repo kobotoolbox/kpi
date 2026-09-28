@@ -136,6 +136,37 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             self.assertTrue(response.has_header('Date'))
             self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
+    def test_get_xform_list_for_mixed_case_username(self):
+        self.user.username = 'RW003765'
+        self.user.save(update_fields=['username'])
+
+        response = self.client.get(
+            reverse('form-list', kwargs={'username': self.user.username})
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data[0]['formID'],
+            self.xform_without_auth.id_string,
+        )
+
+    def test_get_manifest_for_mixed_case_username(self):
+        self.user.username = 'RW003765'
+        self.user.save(update_fields=['username'])
+        self._load_metadata(self.xform_without_auth)
+
+        response = self.client.get(
+            reverse(
+                'manifest-url',
+                kwargs={
+                    'username': self.user.username,
+                    'pk': self.xform_without_auth.pk,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_get_xform_list_as_owner(self):
 
         """
