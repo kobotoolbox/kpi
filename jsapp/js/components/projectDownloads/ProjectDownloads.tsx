@@ -7,7 +7,7 @@ import ProjectExportsCreator from '#/components/projectDownloads/ProjectExportsC
 import ProjectExportsList from '#/components/projectDownloads/ProjectExportsList'
 import { DEFAULT_EXPORT_SETTINGS } from '#/components/projectDownloads/exportsConstants'
 import type { AssetResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import type { ExportTypeDefinition } from './exportsConstants'
 
 interface ProjectDownloadsProps {
@@ -59,14 +59,14 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
   const docTitle = props.asset.name || t('Untitled')
 
   return (
-    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+    <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Downloads')} | KoboToolbox`}>
       <bem.FormView className='project-downloads'>
         <bem.FormView__row>
           <bem.FormView__cell m={['page-title']}>{t('Downloads')}</bem.FormView__cell>
 
-          {sessionStore.isLoggedIn && renderLoggedInExports()}
+          {profileStore.isLoggedIn && renderLoggedInExports()}
 
-          {!sessionStore.isLoggedIn && (
+          {!profileStore.isLoggedIn && (
             <AnonymousExports
               asset={props.asset}
               selectedExportType={selectedExportType}

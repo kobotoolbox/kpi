@@ -190,6 +190,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
         <Suspense fallback={<LoadingSpinner />}>
           <this.props.protectedComponent
             {...filteredProps}
+            asset={this.state.asset}
             initialAssetLoadNotNeeded={this.state.initialAssetLoadNotNeeded}
           />
         </Suspense>

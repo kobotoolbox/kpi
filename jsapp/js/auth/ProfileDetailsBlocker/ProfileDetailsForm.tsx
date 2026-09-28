@@ -174,8 +174,8 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
           />
 
           <Stack gap='xs'>
-            {/* Saving is off the table while logging out, but not the other way round: the way out stays
-                available even mid-save, since being stuck here is the worse outcome. */}
+            {/* Each one waits for the other: a save landing mid-logout would reload the page and abandon the
+                logout request, leaving the user signed in despite asking not to be. */}
             <ButtonNew
               type='submit'
               size='lg'
@@ -193,6 +193,7 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
               fullWidth
               onClick={handleLogout}
               loading={logout.isPending}
+              disabled={save.isPending}
             >
               {t('Logout')}
             </ButtonNew>

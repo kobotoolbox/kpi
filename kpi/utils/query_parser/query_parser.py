@@ -48,12 +48,29 @@ class QueryParseActions:
     (see the file grammar.peg)
     """
 
-    RESERVED_KEYWORDS = [
-        'contains',
-        'icontains',
-        'exact',
-        'iexact',
-    ]
+    # Django's built-in field lookups (`django.db.models.Field.class_lookups`).
+    # After `field[]__`, a segment matching one of these is a lookup, not a JSON
+    # dict key. `in` and `range` are left out because `q=` cannot carry the list
+    # values they expect.
+    DJANGO_FIELD_LOOKUPS = frozenset(
+        {
+            'contains',
+            'endswith',
+            'exact',
+            'gt',
+            'gte',
+            'icontains',
+            'iendswith',
+            'iexact',
+            'iregex',
+            'isnull',
+            'istartswith',
+            'lt',
+            'lte',
+            'regex',
+            'startswith',
+        }
+    )
 
     def __init__(
         self,
@@ -208,7 +225,7 @@ class QueryParseActions:
 
             dict_key, *field_lookup = parts.strip('__').split('__')
 
-            if dict_key in self.RESERVED_KEYWORDS:
+            if dict_key in self.DJANGO_FIELD_LOOKUPS:
                 if field_lookup:
                     raise QueryParserBadSyntax
 
@@ -221,7 +238,14 @@ class QueryParseActions:
             )
 
     def get_q_for_list(self, field, field_lookup, value, dict_key=''):
+        """
+        Build the `Q` for a `field[]__...` term.
 
+        With `dict_key` (a list of dicts) it supports `exact` and
+        `contains`/no lookup; without one (a list of scalars) it supports
+        `iexact`, `icontains` and `contains`. Any other lookup raises
+        `QueryParserNotSupportedFieldLookup`.
+        """
         if dict_key:
 
             field_lookup = field_lookup[0] if field_lookup else None

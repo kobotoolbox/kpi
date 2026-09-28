@@ -2,11 +2,8 @@ import { type FloatingPosition, VisuallyHidden } from '@mantine/core'
 import { IconCheck, IconLoader2, IconWorld } from '@tabler/icons-react'
 import cx from 'classnames'
 import { useState } from 'react'
-import {
-  type environmentRetrieveResponse,
-  getEnvironmentRetrieveQueryKey,
-  useEnvironmentRetrieve,
-} from '#/api/react-query/configuration'
+import type { environmentRetrieveResponse } from '#/api/react-query/configuration'
+import { useEnvironmentQuery } from '#/api/useEnvironmentQuery'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
@@ -67,14 +64,11 @@ export default function StandaloneUILanguageSelector(props: StandaloneUILanguage
   const [isOpen, setIsOpen] = useState(false)
   const setLanguageMutation = useSetUILanguage()
 
-  const languagesQuery = useEnvironmentRetrieve({
-    query: {
-      queryKey: getEnvironmentRetrieveQueryKey(),
-      select: (response: environmentRetrieveResponse) =>
-        (response.data.interface_languages ?? []).map(([code, label]) => {
-          return { code, label }
-        }),
-    },
+  const languagesQuery = useEnvironmentQuery({
+    select: (response: environmentRetrieveResponse) =>
+      (response.data.interface_languages ?? []).map(([code, label]) => {
+        return { code, label }
+      }),
   })
 
   const languages = languagesQuery.data ?? []

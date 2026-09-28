@@ -9,7 +9,7 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import CheckInboxPanel from '#/auth/RegisterRoute/CheckInboxPanel'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
@@ -112,7 +112,7 @@ export default function ProviderSignupRoute({
   onAuthenticated = () => window.location.assign('/'),
 }: ProviderSignupRouteProps) {
   const { search } = useLocation()
-  const { data: configuration } = useAuthConfiguration()
+  const { data: environment } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<ProviderSignupOutcome | null>(null)
 
   const errorCode = readProviderRedirectError(window.location.search, search)
@@ -140,10 +140,10 @@ export default function ProviderSignupRoute({
 
   function renderCard() {
     // Only the form gets the supporting column, so it does not flash away and back between panels.
-    const aside = shouldRenderAuthAside(configuration?.authConfiguration) && (
+    const aside = shouldRenderAuthAside(environment?.authConfiguration) && (
       <AuthAside
-        imageUrl={configuration?.authConfiguration.supporting_image_url}
-        text={configuration?.authConfiguration.supporting_text}
+        imageUrl={environment?.authConfiguration.supporting_image_url}
+        text={environment?.authConfiguration.supporting_text}
       />
     )
 

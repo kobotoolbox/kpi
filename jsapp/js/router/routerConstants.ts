@@ -55,8 +55,11 @@ export const ROUTES = Object.freeze({
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
   LOGIN: ROUTES.ACCOUNTS_ROOT + '/login',
   SIGNUP: ROUTES.ACCOUNTS_ROOT + '/signup',
-  /** Where the activation link in the sign up email lands */
-  VERIFY_EMAIL: ROUTES.ACCOUNTS_ROOT + '/verify-email/:key',
+  /**
+   * Matches allauth's `account_confirm_email`, which is where the sign up email's link points - except that
+   * link has no `#`, so it still lands on the server rendered page. Aiming the email here is DEV-1860.
+   */
+  CONFIRM_EMAIL: ROUTES.ACCOUNTS_ROOT + '/confirm-email/:key',
   /** Asks for an address to mail a password reset link to */
   RESET_PASSWORD: ROUTES.ACCOUNTS_ROOT + '/password/reset',
   /** Where the link in the password reset email lands, to pick the new password */

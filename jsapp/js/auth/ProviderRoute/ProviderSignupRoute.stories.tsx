@@ -24,7 +24,7 @@ import {
 import { makeAuthConfigurationMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ProviderSignupRoute from './ProviderSignupRoute'
 
 /**
@@ -97,10 +97,10 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: providerSignupRouting(),
   },
   // Nobody is logged in while their account is still being created. Returning the teardown is not optional -
-  // see `setAnonymousSessionForStories`.
+  // see `setAnonymousProfileForStories`.
   beforeEach: () => {
     onAuthenticated.mockClear()
-    return setAnonymousSessionForStories()
+    return setAnonymousProfileForStories()
   },
   decorators: [withRouter, queryClientDecorator],
 }

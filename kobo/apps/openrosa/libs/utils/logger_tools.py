@@ -1043,46 +1043,13 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     Soft delete replaced attachments when editing a submission
     """
 
-    # Retrieve all media questions of the XForm. This runs for every single
-    # submission, so leave before parsing anything when the form has no media
-    # field: an empty list soft deletes nothing, which is also the right answer
-    # for a form that dropped its only media question in a later version
-    xform_media_question_xpaths = get_xform_media_question_xpaths(instance.xform)
+    basenames = get_submission_media_basenames(instance)
 
-    if not xform_media_question_xpaths:
+    if basenames is None:
+        # There is nothing to compare the attachments against. An empty set
+        # would let the loop below soft delete every one of them, `None` leaves
+        # them alone
         return []
-
-    # Parse instance XML to get the basename of each file of the updated
-    # submission, and the form versions it has been through
-    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
-
-    # Add the media questions of the other form versions the submission has
-    # been through
-    media_question_xpaths = _get_submission_media_question_xpaths(
-        instance, xml_parsed, xform_media_question_xpaths
-    )
-
-    if not media_question_xpaths:
-        # Stripping the root node off the XForm's `ref` attributes left nothing
-        # usable. Leaving now matters: an empty list would let the loop below
-        # soft delete every attachment of the submission
-        return []
-
-    basenames = []
-
-    for media_question_xpath in media_question_xpaths:
-        # With repeat groups, several nodes can have the same XPath. We
-        # need to retrieve all of them
-        questions = xml_parsed.findall(media_question_xpath)
-        for question in questions:
-            try:
-                basename = question.text
-            except AttributeError:
-                raise XPathNotFoundException
-
-            # Only keep non-empty fields
-            if basename:
-                basenames.append(normalize_nfc(basename))
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
@@ -1133,6 +1100,52 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     )
 
     return soft_deleted_attachments
+
+
+def get_submission_media_basenames(
+    instance: Instance, xform_media_question_xpaths: list[str] = None
+) -> Union[set[str], None]:
+    """
+    Return the file names a submission references at its media questions,
+    across every form version it has been through, normalized to NFC.
+
+    `None` means the question cannot be asked of this submission: the form holds
+    no media question, or the XForm's `ref` attributes gave nothing usable. An
+    empty set means it was asked and the submission references no file. The
+    difference is what `get_soft_deleted_attachments()` reads it by, an empty
+    set being an order to soft delete every attachment of the submission.
+
+    `xform_media_question_xpaths` lets a caller walking many submissions of the
+    same project memoize `get_xform_media_question_xpaths()`, which parses the
+    whole form on every call.
+    """
+
+    if xform_media_question_xpaths is None:
+        # This runs for every single submission, so leave before parsing
+        # anything when the form has no media field. That is also the right
+        # answer for a form that dropped its only media question in a later
+        # version
+        xform_media_question_xpaths = get_xform_media_question_xpaths(instance.xform)
+
+    if not xform_media_question_xpaths:
+        return None
+
+    # Parse instance XML to get the basename of each file of the submission,
+    # and the form versions it has been through
+    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+
+    # Add the media questions of the other form versions the submission has
+    # been through
+    media_question_xpaths = _get_submission_media_question_xpaths(
+        instance, xml_parsed, xform_media_question_xpaths
+    )
+
+    if not media_question_xpaths:
+        # Stripping the root node off the XForm's `ref` attributes left nothing
+        # usable
+        return None
+
+    return set(_get_basenames_from_xml(xml_parsed, media_question_xpaths))
 
 
 # Metadata nodes that carry no distinguishing power when routing a submission to
@@ -1190,6 +1203,33 @@ def _exclude_common_paths(paths: set) -> set:
     return {
         path for path in paths if path.split('/', 1)[0] not in _COMMON_INSTANCE_FIELDS
     }
+
+
+def _get_basenames_from_xml(
+    xml_parsed: ET.Element, media_question_xpaths: list[str]
+) -> list[str]:
+    """
+    Return the non-empty values a submission holds at the given media question
+    XPaths, normalized to NFC.
+    """
+
+    basenames = []
+
+    for media_question_xpath in media_question_xpaths:
+        # With repeat groups, several nodes can have the same XPath. We
+        # need to retrieve all of them
+        questions = xml_parsed.findall(media_question_xpath)
+        for question in questions:
+            try:
+                basename = question.text
+            except AttributeError:
+                raise XPathNotFoundException
+
+            # Only keep non-empty fields
+            if basename:
+                basenames.append(normalize_nfc(basename))
+
+    return basenames
 
 
 def _get_instance(

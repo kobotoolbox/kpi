@@ -18,7 +18,7 @@ import {
 } from '#/endpoints/socialApp.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ProviderLoginRoute from './ProviderLoginRoute'
 
 /**
@@ -65,7 +65,7 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: providerLoginRouting(PROVIDER_ID),
   },
   // Nobody is logged in when they are about to log in.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 

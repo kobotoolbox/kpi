@@ -1,15 +1,17 @@
 import { Image, Stack, Text, Title } from '@mantine/core'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
+import { useAllauthConfiguration } from '#/auth/useAllauthConfiguration'
 import ButtonNew from '#/components/common/ButtonNew'
 import { PATHS } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import LoginForm, { type LoginOutcome } from './LoginForm'
+import { getLoginCredential } from './loginCredential'
 
 /** Fills the card while the browser loads the app, so the form does not sit there looking unsubmitted. */
 function SigningInPanel() {
@@ -39,11 +41,8 @@ function AlreadyLoggedInPanel() {
   )
 }
 
-/**
- * The credentials were right, but the address on the account was never confirmed. allauth mailed a fresh
- * link while handling the attempt.
- */
-function EmailVerificationRequiredPanel({ email }: { email?: string }) {
+/** Shared framing for the two verification endings - same illustration and heading, different copy. */
+function EmailVerificationFrame({ children }: { children: ReactNode }) {
   return (
     <Stack gap='md' ta='center'>
       <Image src={emailEnvelopeIllustration} alt='' maw={190} mx='auto' />
@@ -52,16 +51,51 @@ function EmailVerificationRequiredPanel({ email }: { email?: string }) {
         {t('Confirm your email address')}
       </Title>
 
+      {children}
+    </Stack>
+  )
+}
+
+/**
+ * Right credentials, unconfirmed address - allauth mailed a fresh link while handling the attempt. The
+ * version where we know the address, because it was the credential.
+ */
+function EmailVerificationRequiredPanel({ email }: { email: string }) {
+  return (
+    <EmailVerificationFrame>
       <Stack gap='xxs'>
         <Text>{t('Your account is not active yet. We sent a verification link to the address on record:')}</Text>
-        {/* Only on a server that signs in by address. With a username we never learn which one it is. */}
-        {email && <Text fw={500}>{email}</Text>}
+        <Text fw={500}>{email}</Text>
       </Stack>
 
       <Text>{t("Be sure to check your spam folder if you don't see it within a few minutes.")}</Text>
 
       <ResendVerificationLink label={t('Request new link')} email={email} />
-    </Stack>
+    </EmailVerificationFrame>
+  )
+}
+
+/** The same ending after a username login: allauth never says which address it mailed, so a resend has to ask. */
+function EmailVerificationRequiredWithoutAddressPanel() {
+  const [linkRequested, setLinkRequested] = useState(false)
+
+  return (
+    <EmailVerificationFrame>
+      <Text>{t('Your account is not active yet. We sent a verification link to the address on your account.')}</Text>
+
+      <Text>{t("Be sure to check your spam folder if you don't see it within a few minutes.")}</Text>
+
+      {linkRequested ? (
+        // Vague on purpose: the address typed in was never checked against an account.
+        <Text>{t('If an account exists for that email address, another verification link is on its way to it.')}</Text>
+      ) : (
+        <>
+          <Text>{t('To have another link sent, enter the email address your account uses:')}</Text>
+          {/* No address to hand it, so it asks for one. */}
+          <ResendVerificationLink label={t('Request new link')} onSent={() => setLinkRequested(true)} />
+        </>
+      )}
+    </EmailVerificationFrame>
   )
 }
 
@@ -98,6 +132,31 @@ function AnotherStepRequiredPanel() {
   )
 }
 
+interface ConfigurationErrorPanelProps {
+  onRetry: () => void
+  isRetrying: boolean
+}
+
+/**
+ * Shown when allauth's settings never arrived, or named no credential this form can ask for. Username and
+ * address post under different names and the endpoint reads only one, so a guess would lock out every
+ * account on half the deployments.
+ */
+function ConfigurationErrorPanel({ onRetry, isRetrying }: ConfigurationErrorPanelProps) {
+  return (
+    <Stack gap='md' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Logging in is temporarily unavailable')}
+      </Title>
+      {/* Generic on purpose: the failed request already toasted the server's own message. */}
+      <Text>{t('We could not load the login form. Please check your connection and try again.')}</Text>
+      <ButtonNew size='lg' fullWidth loading={isRetrying} onClick={onRetry}>
+        {t('Retry')}
+      </ButtonNew>
+    </Stack>
+  )
+}
+
 export interface LoginRouteProps {
   /** What to do once the session exists */
   onAuthenticated?: () => void
@@ -105,9 +164,12 @@ export interface LoginRouteProps {
 
 /** Sign-in screen: on success the card swaps the form for whichever ending the server gave us without route change */
 export default function LoginRoute({ onAuthenticated = () => window.location.assign('/') }: LoginRouteProps) {
-  const { data, isPending } = useAuthConfiguration()
+  // Page frame only - logo, aside, legal links. Failing it costs decoration, nothing more.
+  const { data: environment } = useAuthEnvironment()
+  // allauth's settings, which decide the credential.
+  const allauth = useAllauthConfiguration()
   const [outcome, setOutcome] = useState<LoginOutcome | MfaOutcome | null>(null)
-  const isUsernameAccepted = data?.allowLoginWithUsername ?? true
+  const credential = getLoginCredential(allauth.data?.login_methods)
 
   function handleOutcome(next: LoginOutcome | MfaOutcome) {
     setOutcome(next)
@@ -119,10 +181,10 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
   function renderCard() {
     // The supporting column belongs to the states that still have a form ahead of them, so it does not
     // vanish halfway through signing in and then come back.
-    const aside = shouldRenderAuthAside(data?.authConfiguration) && (
+    const aside = shouldRenderAuthAside(environment?.authConfiguration) && (
       <AuthAside
-        imageUrl={data?.authConfiguration.supporting_image_url}
-        text={data?.authConfiguration.supporting_text}
+        imageUrl={environment?.authConfiguration.supporting_image_url}
+        text={environment?.authConfiguration.supporting_text}
       />
     )
 
@@ -139,18 +201,34 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
         <AuthCard>
           {outcome.kind === 'authenticated' && <SigningInPanel />}
           {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel />}
-          {outcome.kind === 'emailVerificationRequired' && <EmailVerificationRequiredPanel email={outcome.email} />}
+          {/* allauth names the address only when it was the credential. */}
+          {outcome.kind === 'emailVerificationRequired' &&
+            (outcome.email ? (
+              <EmailVerificationRequiredPanel email={outcome.email} />
+            ) : (
+              <EmailVerificationRequiredWithoutAddressPanel />
+            ))}
           {outcome.kind === 'mfaExpired' && <MfaExpiredPanel onRestart={() => setOutcome(null)} />}
           {outcome.kind === 'unsupportedStep' && <AnotherStepRequiredPanel />}
         </AuthCard>
       )
     }
+    // Pending is not unusable, and neither is a failed refetch with good cached data - swapping a half
+    // filled form for this panel over a blip would throw the typing away.
+    if (credential === null && !allauth.isPending) {
+      return (
+        <AuthCard>
+          <ConfigurationErrorPanel onRetry={() => allauth.refetch()} isRetrying={allauth.isFetching} />
+        </AuthCard>
+      )
+    }
     return (
       <AuthCard aside={aside}>
+        {/* The credential may still be on its way; the form keeps submitting blocked until it lands. */}
         <LoginForm
-          isUsernameAccepted={isUsernameAccepted}
-          socialApps={data?.socialApps}
-          isConfigurationPending={isPending}
+          credential={credential ?? 'username'}
+          socialApps={environment?.socialApps}
+          isConfigurationPending={allauth.isPending}
           onOutcome={handleOutcome}
         />
       </AuthCard>

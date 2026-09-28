@@ -68,7 +68,7 @@ export function getEditableProfileFieldNames({
   return configuredFieldNames.filter((name) => !MMO_MANAGED_FIELD_NAMES.includes(name))
 }
 
-export function areOrganizationFieldsSkipped(
+export function hasNoOrganizationAffiliation(
   values: Pick<AccountFieldsValues, 'organization_type'>,
   configuredFieldNames: readonly UserFieldName[],
 ): boolean {

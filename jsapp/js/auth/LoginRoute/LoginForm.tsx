@@ -16,11 +16,24 @@ import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import styles from './LoginForm.module.scss'
+import { type LoginCredential, getLoginCredentialParam } from './loginCredential'
 
 interface LoginFormValues {
   /** Username or email address, depending on what the server accepts */
   identifier: string
   password: string
+}
+
+/** What to call the credential field, and what to let the browser fill it with. */
+function getCredentialFieldProps(credential: LoginCredential) {
+  switch (credential) {
+    case 'email':
+      return { label: t('Email'), type: 'email', autoComplete: 'email' } as const
+    case 'username':
+      return { label: t('Username'), type: 'text', autoComplete: 'username' } as const
+    default:
+      return { label: t('Username or email address'), type: 'text', autoComplete: 'username' } as const
+  }
 }
 
 /** How far the sign-in got, for the route to turn into a panel. */
@@ -46,23 +59,17 @@ function withIdentifierError(fieldErrors: Record<string, string>, credentialPara
 }
 
 export interface LoginFormProps {
-  isUsernameAccepted: boolean
+  credential: LoginCredential
   /** From `/api/v2/environment/`. The single sign-on providers this server advertises, if any. */
   socialApps: SocialApp[] | undefined
-  /** Blocks submitting until `/environment` loads */
+  /** Blocks submitting until allauth's settings land, since the field name comes from them */
   isConfigurationPending: boolean
   onOutcome: (outcome: LoginOutcome) => void
 }
 
 /** Credentials, and the single sign-on providers next to them. Password recovery etc. live elsewhere */
-export default function LoginForm({
-  isUsernameAccepted,
-  socialApps,
-  isConfigurationPending,
-  onOutcome,
-}: LoginFormProps) {
-  // The name allauth reads the credential from, and the one it reports errors about.
-  const credentialParam = isUsernameAccepted ? 'username' : 'email'
+export default function LoginForm({ credential, socialApps, isConfigurationPending, onOutcome }: LoginFormProps) {
+  const credentialParam = getLoginCredentialParam(credential)
 
   const form = useForm<LoginFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
@@ -131,9 +138,9 @@ export default function LoginForm({
 
     const identifier = values.identifier.trim()
     const body = (
-      isUsernameAccepted
-        ? { username: identifier, password: values.password }
-        : { email: identifier, password: values.password }
+      credentialParam === 'email'
+        ? { email: identifier, password: values.password }
+        : { username: identifier, password: values.password }
     ) satisfies LoginBody
 
     login.mutate({ data: body })
@@ -162,9 +169,7 @@ export default function LoginForm({
         <Stack gap='xl'>
           <Stack gap='sm'>
             <TextInput
-              label={isUsernameAccepted ? t('Username') : t('Email')}
-              type={isUsernameAccepted ? 'text' : 'email'}
-              autoComplete={isUsernameAccepted ? 'username' : 'email'}
+              {...getCredentialFieldProps(credential)}
               key={form.key('identifier')}
               {...withAuthFieldError(form.getInputProps('identifier'))}
               required

@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useAllauthBrowserV1AuthPasswordRequestPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import { getGenericAllauthErrorMessage, splitAllauthErrors } from '#/auth/allauthErrors'
+import { getGenericAllauthErrorMessage, isPendingPasswordResetByCode, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateEmailFormat } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
@@ -13,8 +13,11 @@ interface ResetPasswordFormValues {
   email: string
 }
 
+/** What the server put in the email, which decides where the next step happens */
+export type PasswordResetDelivery = 'link' | 'code'
+
 export interface ResetPasswordFormProps {
-  onRequested: () => void
+  onRequested: (delivery: PasswordResetDelivery) => void
 }
 
 /** Asks for the address to mail a reset link to */
@@ -33,10 +36,15 @@ export default function ResetPasswordForm({ onRequested }: ResetPasswordFormProp
     mutation: {
       // Rejections land here too, not in `onError`: `fetchAllauth` hands back everything below 500 as data.
       onSuccess: (response) => {
-        // 200 is the stateless link flow KPI runs. 401 is the same request taken where
-        // `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED` is on - still mail sent, so the same panel.
+        // A code rather than a link, which the panel has to speak to: the code has nowhere to be typed here.
+        if (isPendingPasswordResetByCode(response)) {
+          onRequested('code')
+          return
+        }
+        // 200 is the stateless link flow KPI runs. A 401 without that flow is a server we don't model, and
+        // "check your inbox" reads it more safely than an error would.
         if (response.status === 200 || response.status === 401) {
-          onRequested()
+          onRequested('link')
           return
         }
         const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, ['email'])

@@ -12,7 +12,7 @@ import {
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ActivateAccountRoute from './ActivateAccountRoute'
 
 /**
@@ -24,13 +24,13 @@ import ActivateAccountRoute from './ActivateAccountRoute'
 const EMAIL = 'caroline.herschel@kbtdev.org'
 const USERNAME = 'caroline_herschel'
 
-/** Renders the story as `/accounts/verify-email/:key`, so the route really reads its key off the URL. */
+/** Renders the story as `/accounts/confirm-email/:key`, so the route really reads its key off the URL. */
 const activationRouting = (key: string) =>
   reactRouterParameters({
-    location: { path: `${ROUTES.ACCOUNTS_ROOT}/verify-email/${key}` },
+    location: { path: `${ROUTES.ACCOUNTS_ROOT}/confirm-email/${key}` },
     routing: reactRouterOutlet(
       { path: ROUTES.ACCOUNTS_ROOT },
-      { path: 'verify-email/:key', element: <ActivateAccountRoute /> },
+      { path: 'confirm-email/:key', element: <ActivateAccountRoute /> },
     ),
   })
 
@@ -44,7 +44,7 @@ const meta: Meta<typeof AuthContainer> = {
     msw: { handlers: [emailVerificationInfoMock(EMAIL, USERNAME)] },
     reactRouter: activationRouting('a-good-key'),
   },
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 

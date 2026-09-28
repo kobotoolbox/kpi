@@ -13,6 +13,7 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kpi.utils.log import logging
 
 
 def _get_default_usage_limits():
@@ -389,19 +390,52 @@ def determine_limit(
     # 1. do we have a regular subscription plan?
     limit = plan_limit or default_limit or inf
     # "unlimited" -> inf
+    parseable_subscription_limit = True
     if limit == 'unlimited':
-        limit = inf
-    # convert string to int
+        subscription_limit = inf
+    # convert string to float, or inf if unparseable
     else:
-        limit = float(limit)
+        try:
+            subscription_limit = float(limit)
+        except ValueError:
+            subscription_limit = inf
+            parseable_subscription_limit = False
 
     # for storage, factor in addons if specified
     if usage_type == UsageType.STORAGE_BYTES and include_storage_addons:
         if addon_limit == 'unlimited':
             addon_limit = inf
+        elif not addon_limit:
+            addon_limit = subscription_limit
         else:
-            addon_limit = int(addon_limit or 0)
-        # take the max of the addon limit and the previously-calculated limit
-        if addon_limit > limit:
-            limit = addon_limit
-    return limit
+            try:
+                addon_limit = int(addon_limit)
+            except (ValueError, TypeError):
+                if parseable_subscription_limit:
+                    logging.warning(
+                        f'Cannot convert addon limit {addon_limit}'
+                        ' to float. Defaulting to subscription limit.'
+                    )
+                    return subscription_limit
+                else:
+                    logging.warning(
+                        f'Cannot convert subscription limit {limit} or '
+                        f'addon limit {addon_limit}'
+                        ' to float. Defaulting to inf.'
+                    )
+                    return inf
+
+        # if we've reached this point, we were able to parse the addon limit
+        if not parseable_subscription_limit:
+            logging.warning(
+                f'Cannot convert subscription limit {subscription_limit} to float. '
+                'Defaulting to addon limit.'
+            )
+            return addon_limit
+        if addon_limit > subscription_limit:
+            return addon_limit
+    if not parseable_subscription_limit:
+        logging.warning(
+            f'Cannot convert subscription limit {limit} to float. Defaulting to inf.'
+        )
+    return subscription_limit

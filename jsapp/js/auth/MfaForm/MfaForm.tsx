@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { FlowId } from '#/api/models/flowId'
 import { useAllauthBrowserV1Auth2faAuthenticatePost } from '#/api/react-query/authentication-allauth-headless'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateRequiredField } from '#/auth/authValidation'
@@ -26,11 +26,21 @@ export type MfaOutcome =
 /** What `MFA_CODE_LENGTH` defaults to, and what the copy says until `/environment` lands */
 const DEFAULT_CODE_LENGTH = 6
 
+interface VerificationIssuesPanelProps {
+  /**
+   * Where to send someone with no backup codes left. Passed in rather than read off `envStore`, which fetches
+   * its own copy of `/environment` and reads as an empty address until that lands - on a private server that
+   * would name the KoboToolbox team instead of theirs.
+   */
+  supportEmail?: string | null
+  onGoBack: () => void
+}
+
 /**
  * What to do when the authenticator app is out of reach. Replaces the form rather than opening beside it, and the way
  * back is the only thing on it.
  */
-function VerificationIssuesPanel({ onGoBack }: { onGoBack: () => void }) {
+function VerificationIssuesPanel({ supportEmail, onGoBack }: VerificationIssuesPanelProps) {
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
@@ -43,6 +53,7 @@ function VerificationIssuesPanel({ onGoBack }: { onGoBack: () => void }) {
             t(
               "If you cannot access your authenticator app, please enter one of your backup codes instead. If you don't have those either, contact help@kobotoolbox.org for help.",
             ),
+            supportEmail,
           )}
         </Text>
       </Stack>
@@ -66,7 +77,7 @@ export interface MfaFormProps {
  * is in the allauth session and not in the URL - there is no address that could be opened to get here.
  */
 export default function MfaForm({ onOutcome }: MfaFormProps) {
-  const { data } = useAuthConfiguration()
+  const { data: environment } = useAuthEnvironment()
   const [isShowingIssues, setIsShowingIssues] = useState(false)
 
   const form = useForm<MfaFormValues>({
@@ -108,7 +119,9 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
   }
 
   if (isShowingIssues) {
-    return <VerificationIssuesPanel onGoBack={() => setIsShowingIssues(false)} />
+    return (
+      <VerificationIssuesPanel supportEmail={environment?.supportEmail} onGoBack={() => setIsShowingIssues(false)} />
+    )
   }
 
   return (
@@ -121,7 +134,7 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
         <Text>
           {t(
             'Use the ##number##-character token displayed by your authenticator app or one of your backup codes.',
-          ).replace('##number##', String(data?.mfaCodeLength ?? DEFAULT_CODE_LENGTH))}
+          ).replace('##number##', String(environment?.mfaCodeLength ?? DEFAULT_CODE_LENGTH))}
         </Text>
       </Stack>
 

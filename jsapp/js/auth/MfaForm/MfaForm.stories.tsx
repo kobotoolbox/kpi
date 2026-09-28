@@ -8,6 +8,7 @@ import LoginRoute from '#/auth/LoginRoute/LoginRoute'
 import { type Canvas, field } from '#/auth/authStoryHelpers'
 import {
   MFA_AUTHENTICATE_URL,
+  allauthConfigurationMock,
   loginMfaRequiredMock,
   mfaErrorsMock,
   mfaFlowExpiredMock,
@@ -15,7 +16,7 @@ import {
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 
 const CREDENTIALS = { username: 'hildegard_of_bingen', password: 'correct horse battery staple' }
 /** A token of the length `MFA_CODE_LENGTH` defaults to */
@@ -42,13 +43,17 @@ const mfaRecordingMock = () =>
   })
 
 /**
- * Storybook replaces the handler array rather than merging it, so every story restates `/environment` and
- * the sign-in that asks for a code - that first step is what puts this form on screen.
+ * Storybook replaces the handler array rather than merging it, so every story restates `/environment`,
+ * allauth's configuration, and the sign-in that asks for a code - that first step is what puts this form on
+ * screen. The configuration only matters to the step before this one, which needs a credential to ask for.
  */
 const storyHandlers = (options?: { environment?: RequestHandler; mfa?: RequestHandler }): RequestHandler[] =>
-  [options?.environment ?? environmentMock, loginMfaRequiredMock(), options?.mfa].filter(
-    (handler): handler is RequestHandler => Boolean(handler),
-  )
+  [
+    options?.environment ?? environmentMock,
+    allauthConfigurationMock(['username']),
+    loginMfaRequiredMock(),
+    options?.mfa,
+  ].filter((handler): handler is RequestHandler => Boolean(handler))
 
 const onAuthenticated = fn()
 
@@ -72,7 +77,7 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: loginRouting,
   },
   // Nobody is logged in until the second factor is in: that is the whole point of it.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 
@@ -110,7 +115,16 @@ async function openVerificationIssues(canvas: Canvas) {
   await canvas.findByRole('heading', { level: 1, name: 'Verification issues' })
 }
 
-export const Default: Story = {}
+/** The code prompt as a stock instance shows it, signed in as far as the second factor. */
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await reachCodeForm(canvas)
+
+    await canvas.findByText(/Use the 6-character token displayed by your authenticator app/)
+    expect(canvas.getByPlaceholderText('Enter token or backup code')).toHaveFocus()
+  },
+}
 
 /** An instance with longer tokens configured */
 export const LongerCode: Story = {
@@ -174,7 +188,8 @@ export const VerificationIssues: Story = {
 
     await openVerificationIssues(canvas)
 
-    await canvas.findByText(/If you cannot access your authenticator app, please enter one of your backup codes/)
+    // The instance's own address, from `/environment` - not the KoboToolbox one the source string carries.
+    await canvas.findByText(/contact support@kobo.local for help/)
     expect(canvas.queryByLabelText(/^Code/)).not.toBeInTheDocument()
   },
 }

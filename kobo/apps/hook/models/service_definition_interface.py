@@ -10,7 +10,7 @@ from rest_framework import status
 from ssrf_protect.exceptions import SSRFProtectException
 
 from kpi.utils.log import logging
-from kpi.utils.ssrf import validate_url_against_ssrf
+from kpi.utils.ssrf import SSRFProtectedSession
 from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE, RETRIABLE_STATUS_CODES
 from ..exceptions import HookRemoteServerDownError
 from .hook import Hook
@@ -118,7 +118,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             )
             return False
 
-        # Need to declare response before requests.post assignment in case of
+        # Need to declare response before session.post assignment in case of
         # RequestException
         response = None
 
@@ -170,8 +170,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         log_status = HookLogStatus.FAILED
 
         try:
-            validate_url_against_ssrf(self._hook.endpoint)
-            response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
+            with SSRFProtectedSession() as session:
+                response = session.post(
+                    self._hook.endpoint, timeout=30, **request_kwargs
+                )
             response.raise_for_status()
             status_code = response.status_code
             message = response.text

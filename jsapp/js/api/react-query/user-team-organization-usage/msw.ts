@@ -733,7 +733,18 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     subscribers_count: faker.number.int({ min: undefined, max: undefined }),
     status: faker.string.alpha({ length: { min: 10, max: 20 } }),
     access_types: faker.helpers.arrayElement([[], null, null]),
-    data_sharing: faker.helpers.arrayElement([{}, undefined]),
+    data_sharing: faker.helpers.arrayElement([
+      {
+        enabled: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+        fields: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
     paired_data: faker.internet.url(),
     project_ownership: faker.helpers.arrayElement([null]),
     owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
