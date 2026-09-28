@@ -97,8 +97,8 @@ export default meta
 type Story = StoryObj<typeof AuthContainer>
 
 /**
- * Resolves once allauth's settings have settled one way or the other: the button holds a spinner until they
- * have, so that nobody posts a credential under a key the server does not read.
+ * Resolves once allauth's settings have settled one way or the other: the button spins until they have, so
+ * nobody posts a credential under a key the server does not read.
  */
 const waitForConfiguration = (canvas: Canvas) =>
   waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
