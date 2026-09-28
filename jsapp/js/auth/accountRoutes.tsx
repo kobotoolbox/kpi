@@ -1,8 +1,9 @@
-import React, { Suspense } from 'react'
+import React from 'react'
 
 import { Outlet, Route } from 'react-router-dom'
 import { FeatureFlag } from '#/featureFlags'
 import RequireFeatureFlag from '#/router/RequireFeatureFlag'
+import RequireAuth from '#/router/requireAuth'
 import { ACCOUNT_AUTH_ROUTES } from '#/router/routerConstants'
 
 const AuthPlaceholderRoute = React.lazy(
@@ -12,13 +13,15 @@ const AuthPlaceholderRoute = React.lazy(
 /** The authentication screens that need a session */
 export default function authAccountRoutes() {
   return (
-    // Pathless layout route: adds nothing to the URL, only the flag check and lazy loading boundary.
+    // Pathless layout route: adds nothing to the URL, only the guards for everything underneath.
     <Route
       element={
+        // Flag outermost: with it off these routes shouldn't exist, so nobody gets sent to sign in over them.
+        // `RequireAuth` brings its own `Suspense` and `RequireOrg`, same as the rest of `/account`.
         <RequireFeatureFlag flag={FeatureFlag.authRedesignEnabled}>
-          <Suspense fallback={null}>
+          <RequireAuth>
             <Outlet />
-          </Suspense>
+          </RequireAuth>
         </RequireFeatureFlag>
       }
     >

@@ -120,9 +120,9 @@ export const ResetByCode: Story = {
     // The code is handed on as a route param, so this story needs the screen it is handed to.
     reactRouter: reactRouterParameters({
       location: { path: AUTH_ROUTES.RESET_PASSWORD },
-      routing: reactRouterOutlets({ path: ROUTES.AUTH_ROOT }, [
-        { path: 'reset-password', element: <ResetPasswordRoute /> },
-        { path: 'reset-password/:key', element: <NewPasswordRoute /> },
+      routing: reactRouterOutlets({ path: ROUTES.ACCOUNTS_ROOT }, [
+        { path: 'password/reset', element: <ResetPasswordRoute /> },
+        { path: 'password/reset/key/:key', element: <NewPasswordRoute /> },
       ]),
     }),
   },
