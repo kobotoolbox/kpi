@@ -246,16 +246,16 @@ msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
 msgid "Activate your KoboToolbox Account"
-msgstr "Activar tu cuenta de KoboToolbox"
+msgstr "Activar tu cuenta de DataUMSA"
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_subject.txt:3
 msgid "KoboToolbox account email address verification"
-msgstr "Verificación de la dirección de correo electrónico de la cuenta de KoboToolbox"
+msgstr "Verificación de la dirección de correo electrónico de la cuenta de DataUMSA"
 
 #: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:4
 #: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:5
 msgid "Hello from KoboToolbox,"
-msgstr "Saludos de parte de KoboToolbox:"
+msgstr "Saludos de parte de DataUMSA:"
 
 #: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:6
 msgid "We’ve received a password reset request for your user account."
@@ -278,13 +278,13 @@ msgstr "Si no solicitaste restablecer tu contraseña, ignora este correo electr�
 
 #: kobo/apps/accounts/templates/account/email/password_reset_key_subject.txt:3
 msgid "KoboToolbox Password Reset"
-msgstr "Restablecer contraseña de KoboToolbox"
+msgstr "Restablecer contraseña de DataUMSA"
 
 #: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:6
 msgid ""
 "You are receiving this email because you or someone else has requested a "
 "password for their KoboToolbox account."
-msgstr "Recibes este correo electrónico porque tú u otra persona solicitó una contraseña para la cuenta de KoboToolbox."
+msgstr "Recibes este correo electrónico porque tú u otra persona solicitó una contraseña para la cuenta de DataUMSA."
 
 #: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:7
 #, python-format
@@ -298,11 +298,11 @@ msgid ""
 "If it was you, please try another email address you might have used to "
 "create your account, or double check that your account was not registered on"
 " a different KoboToolbox server."
-msgstr "Si fuiste tú, prueba con otra dirección de correo electrónico que hayas utilizado para crear tu cuenta o verifica que tu cuenta no esté registrada en otro servidor de KoboToolbox."
+msgstr "Si fuiste tú, prueba con otra dirección de correo electrónico que hayas utilizado para crear tu cuenta o verifica que tu cuenta no esté registrada en otro servidor de DataUMSA."
 
 #: kobo/apps/accounts/templates/account/email/unknown_account_subject.txt:3
 msgid "KoboToolbox Password Reset Unsuccessful"
-msgstr "Restablecimiento de la contraseña de KoboToolbox fallido"
+msgstr "Restablecimiento de la contraseña de DataUMSA fallido"
 
 #: kobo/apps/accounts/templates/account/email_confirm.html:18
 msgid "Confirm E-mail Address"
@@ -460,7 +460,7 @@ msgstr "Gestionar tu cuenta SSO"
 msgid ""
 "You can sign in to your KoboToolbox account using any of the following SSO "
 "providers:"
-msgstr "Puedes iniciar sesión en tu cuenta de KoboToolbox utilizando cualquiera de los siguientes proveedores de SSO:"
+msgstr "Puedes iniciar sesión en tu cuenta de DataUMSA utilizando cualquiera de los siguientes proveedores de SSO:"
 
 #: kobo/apps/accounts/templates/socialaccount/connections.html:39
 msgid "Remove"
@@ -483,7 +483,7 @@ msgstr "Configurar el inicio de sesión único"
 msgid ""
 "Click the button below to connect your KoboToolbox account with your "
 "%(appname)s account."
-msgstr "Haz clic en el siguiente botón para conectar tu cuenta de KoboToolbox con tu cuenta de %(appname)s."
+msgstr "Haz clic en el siguiente botón para conectar tu cuenta de DataUMSA con tu cuenta de %(appname)s."
 
 #: kobo/apps/accounts/templates/socialaccount/login.html:18
 msgid "This will allow you to use single sign-on (SSO) in the future."
@@ -501,7 +501,7 @@ msgstr "Iniciar sesión con "
 #: kobo/apps/accounts/templates/socialaccount/login.html:29
 #, python-format
 msgid "Log in to KoboToolbox with your %(appname)s account."
-msgstr "Inicia sesión en KoboToolbox con tu cuenta de %(appname)s."
+msgstr "Inicia sesión en DataUMSA con tu cuenta de %(appname)s."
 
 #: kobo/apps/accounts/templates/socialaccount/login.html:39
 msgid "go back"
@@ -510,16 +510,16 @@ msgstr "volver"
 #: kobo/apps/accounts/templates/socialaccount/signup.html:11
 #, python-format
 msgid "Welcome to KoboToolbox, %(username)s!"
-msgstr "¡Te damos la bienvenida a KoboToolbox, %(username)s!"
+msgstr "¡Te damos la bienvenida a DataUMSA, %(username)s!"
 
 #: kobo/apps/accounts/templates/socialaccount/signup.html:13
 msgid "Welcome to KoboToolbox!"
-msgstr "¡Te damos la bienvenida a KoboToolbox!"
+msgstr "¡Te damos la bienvenida a DataUMSA!"
 
 #: kobo/apps/accounts/templates/socialaccount/signup.html:18
 #, python-format
 msgid "You are about to use your %(appname)s account to login to KoboToolbox."
-msgstr "Vas a utilizar tu cuenta de %(appname)s para iniciar sesión en KoboToolbox."
+msgstr "Vas a utilizar tu cuenta de %(appname)s para iniciar sesión en DataUMSA."
 
 #: kobo/apps/accounts/templates/socialaccount/signup.html:18
 msgid "As a final step, please complete the following form"
@@ -2236,7 +2236,7 @@ msgid ""
 "you can create one <a href=\"%(base_url)s/accounts/signup/\" "
 "target=\"_blank\">here</a>. After creating your account, click on the link "
 "below to accept the invite."
-msgstr "Si ya tienes una cuenta (o tienes varias cuentas), inicia sesión con la cuenta correcta. Si aún no tienes una cuenta en KoboToolbox, puedes crear una <a href=\"%(base_url)s/accounts/signup/\" target=\"_blank\">aquí</a>. Después de crear tu cuenta, haz clic en el enlace de abajo para aceptar la invitación."
+msgstr "Si ya tienes una cuenta (o tienes varias cuentas), inicia sesión con la cuenta correcta. Si aún no tienes una cuenta en DataUMSA, puedes crear una <a href=\"%(base_url)s/accounts/signup/\" target=\"_blank\">aquí</a>. Después de crear tu cuenta, haz clic en el enlace de abajo para aceptar la invitación."
 
 #: kobo/apps/organizations/templates/emails/registered_user_invite.html:13
 #: kobo/apps/organizations/templates/emails/registered_user_invite.txt:13
@@ -2301,7 +2301,7 @@ msgid ""
 "We’d like to give you a warm welcome to KoboToolbox. You’re invited to join "
 "%(organization_name)s organization as %(recipient_role)s with "
 "%(recipient_username)s."
-msgstr "Nos gustaría darte una cordial bienvenida a KoboToolbox. Te invitamos a unirte a la organización %(organization_name)s como %(recipient_role)s con %(recipient_username)s."
+msgstr "Nos gustaría darte una cordial bienvenida a DataUMSA. Te invitamos a unirte a la organización %(organization_name)s como %(recipient_role)s con %(recipient_username)s."
 
 #: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:13
 #: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:11
@@ -2327,15 +2327,15 @@ msgstr "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&amp;orga
 
 #: kobo/apps/project_ownership/models/invite.py:98
 msgid "KoboToolbox project ownership transfer accepted"
-msgstr "Se acepta la transferencia de propiedad del proyecto KoboToolbox"
+msgstr "Se acepta la transferencia de propiedad del proyecto DataUMSA"
 
 #: kobo/apps/project_ownership/models/invite.py:133
 msgid "Action required: KoboToolbox project ownership transfer request"
-msgstr "Acción obligatoria: Solicitud de transferencia de propiedad del proyecto KoboToolbox"
+msgstr "Acción obligatoria: Solicitud de transferencia de propiedad del proyecto DataUMSA"
 
 #: kobo/apps/project_ownership/models/invite.py:160
 msgid "KoboToolbox project ownership transfer incomplete"
-msgstr "Transferencia de la propiedad del proyecto KoboToolbox incompleta"
+msgstr "Transferencia de la propiedad del proyecto DataUMSA incompleta"
 
 #: kobo/apps/project_ownership/models/transfer.py:251
 msgid "Project ownership transferred"
@@ -2801,7 +2801,7 @@ msgstr "Instagram"
 
 #: kobo/static_lists.py:370
 msgid "I want to receive occasional updates about KoboToolbox"
-msgstr "Quiero recibir actualizaciones ocasionales sobre KoboToolbox"
+msgstr "Quiero recibir actualizaciones ocasionales sobre DataUMSA"
 
 #: kpi/admin.py:46
 msgid "Options Configuration"

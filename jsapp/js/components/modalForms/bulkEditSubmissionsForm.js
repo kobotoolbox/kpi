@@ -11,6 +11,7 @@ import SimpleTable from '#/components/common/SimpleTable'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { FUSE_OPTIONS, QuestionTypeName } from '#/constants'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
 
@@ -20,7 +21,7 @@ const EMPTY_VALUE_LABEL = t('n/d')
 // different than "no override answer" (de facto `undefined`)
 const EMPTY_VALUE = null
 const MULTIPLE_VALUES_LABEL = t('Multiple responses')
-const HELP_ARTICLE_URL = 'editing_deleting_data.html'
+
 
 /** These types are not compatible with bulk editing. */
 const EXCLUDED_TYPES = [
@@ -197,9 +198,9 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   renderSupportUrlLink() {
-    if (envStore.isReady && envStore.data.support_url) {
+    if (envStore.isReady) {
       return (
-        <a href={envStore.data.support_url + HELP_ARTICLE_URL} target='_blank'>
+        <a href={getDocUrl(DOCS_PATHS.GESTION_PROYECTOS)} target='_blank'>
           {t('help article')}
         </a>
       )

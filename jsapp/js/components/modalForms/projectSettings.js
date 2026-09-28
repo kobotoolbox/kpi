@@ -32,12 +32,12 @@ import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { router, withRouter } from '#/router/legacy'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
 import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
-const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
 
 /**
  * This is used for multiple different purposes:
@@ -902,8 +902,8 @@ class ProjectSettings extends React.Component {
           {t('Enter a valid XLSForm URL in the field below.')}
           <br />
 
-          {envStore.isReady && envStore.data.support_url && (
-            <a href={envStore.data.support_url + VIA_URL_SUPPORT_URL} target='_blank'>
+          {envStore.isReady && (
+            <a href={getDocUrl(DOCS_PATHS.FORMULARIOS_XLSFORM)} target='_blank'>
               {t('Having issues? See this help article.')}
             </a>
           )}

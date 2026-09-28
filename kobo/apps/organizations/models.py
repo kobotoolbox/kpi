@@ -355,7 +355,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
 
         email_message = EmailMessage(
             to=self.invited_by.email,
-            subject='KoboToolbox organization invitation accepted',
+            subject='DataUMSA organization invitation accepted',
             plain_text_content_or_template='emails/accepted_org_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/accepted_org_invite.html',
@@ -447,7 +447,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
 
         email_message = EmailMessage(
             to=self.invited_by.email,
-            subject='KoboToolbox organization invitation declined',
+            subject='DataUMSA organization invitation declined',
             plain_text_content_or_template='emails/declined_org_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/declined_org_invite.html',

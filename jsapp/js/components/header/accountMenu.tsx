@@ -116,12 +116,12 @@ export default function AccountMenu() {
               <bem.AccountBox__menuLI key='2' className='environment-links'>
                 {envStore.data.terms_of_service_url && (
                   <a href={envStore.data.terms_of_service_url} target='_blank'>
-                    {t('Terms of Service')}
+                    {currentLang() === 'es' ? 'Términos de servicio' : t('Terms of Service')}
                   </a>
                 )}
                 {envStore.data.privacy_policy_url && (
                   <a href={envStore.data.privacy_policy_url} target='_blank'>
-                    {t('Privacy Policy')}
+                    {currentLang() === 'es' ? 'Sobre las políticas de privacidad' : t('Privacy Policy')}
                   </a>
                 )}
               </bem.AccountBox__menuLI>

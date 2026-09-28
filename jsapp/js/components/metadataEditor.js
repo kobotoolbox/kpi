@@ -10,6 +10,7 @@ import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import { FUNCTION_TYPE, META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { recordKeys } from '#/utils'
 
@@ -18,9 +19,6 @@ bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns')
 bem.FormBuilderMeta__column = makeBem(bem.FormBuilderMeta, 'column')
 bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row')
 bem.FormBuilderMeta__labelLink = makeBem(bem.FormBuilderMeta, 'label-link', 'a')
-
-const AUDIT_SUPPORT_URL = 'form_meta.html#audit-metadata-question'
-const SUPPORT_ENABLE_BG_AUDIO_URL = 'form_meta.html#enabling-background-audio-recording'
 
 const AUDIO_QUALITY_OPTIONS = [
   { value: 'quality=low', label: t('Low') },
@@ -131,8 +129,8 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Audit settings')}
 
-        {envStore.isReady && envStore.data.support_url && (
-          <bem.FormBuilderMeta__labelLink href={envStore.data.support_url + AUDIT_SUPPORT_URL} target='_blank'>
+        {envStore.isReady && (
+          <bem.FormBuilderMeta__labelLink href={getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS)} target='_blank'>
             <Icon name='help' size='xs' color='blue' />
           </bem.FormBuilderMeta__labelLink>
         )}
@@ -145,9 +143,9 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Background audio')}
 
-        {envStore.isReady && envStore.data.support_url && (
+        {envStore.isReady && (
           <bem.FormBuilderMeta__labelLink
-            href={envStore.data.support_url + SUPPORT_ENABLE_BG_AUDIO_URL}
+            href={getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS)}
             target='_blank'
           >
             <Icon name='help' size='s' color='blue' />

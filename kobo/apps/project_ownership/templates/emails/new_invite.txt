@@ -22,4 +22,4 @@
 
 {% blocktrans trimmed %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}
 
-- KoboToolbox
+- DataUMSA

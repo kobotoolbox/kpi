@@ -19,4 +19,4 @@
 {% trans "Note: You will continue to have permissions to manage these projects until the user permissions are changed." %}
 {% endif %}
 
-- KoboToolbox
+- DataUMSA

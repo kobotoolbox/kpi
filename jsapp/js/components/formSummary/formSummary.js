@@ -182,7 +182,7 @@ class FormSummary extends React.Component {
     const docTitle = this.state.name || t('Untitled')
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
         <bem.FormView m='summary'>
           <LimitNotifications />
           <bem.FormView__row m='panels'>

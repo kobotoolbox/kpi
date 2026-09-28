@@ -1,6 +1,6 @@
 {% load i18n %}
 {% load url_creation %}
-{% blocktrans trimmed %}To confirm the email address associated with your KoboToolbox account, please follow the link below.{% endblocktrans %}
+{% blocktrans trimmed %}To confirm the email address associated with your DataUMSA account, please follow the link below.{% endblocktrans %}
 
 {{ activate_url }}
 
@@ -13,4 +13,4 @@ To verify an email address change, you can request a new activation link directl
 {% endblocktrans %}
 
 {% blocktrans trimmed %}Best,{% endblocktrans %}
-KoboToolbox
+DataUMSA

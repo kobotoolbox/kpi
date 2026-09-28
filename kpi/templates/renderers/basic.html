@@ -1,10 +1,10 @@
 {% extends "base_no_static.html" %}
 
-{% block title %}KoboToolbox API{% endblock %}
+{% block title %}DataUMSA API{% endblock %}
 
 {% block body %}
-    <h1>KoboToolbox API</h1>
-    <p>For a general introduction to the KoboToolbox API, please visit <a href="https://support.kobotoolbox.org/api.html">the KoboToolbox help center</a>.</p>
+    <h1>DataUMSA API</h1>
+    <p>Para una introducción a la API de DataUMSA e integración en vivo, visita <a href="https://data.umsa.bo/docs/guides/integracion-powerbi-excel/">la documentación de DataUMSA</a>.</p>
     <p>You can also <a href="{% url 'swagger-ui' %}?q={{ q_param }}">check the official API documentation</a> for a detailed documentation of all available endpoints.</p>
     <hr>
     {% if root %}

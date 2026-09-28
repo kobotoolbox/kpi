@@ -77,6 +77,8 @@ export default class ExportTypeSelector extends React.Component<ExportTypeSelect
           className='kobo-select'
           classNamePrefix='kobo-select'
           menuPlacement='auto'
+          menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+          styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
           isSearchable={false}
           isDisabled={this.props.disabled}
         />

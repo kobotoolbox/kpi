@@ -32,7 +32,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
     const accountName = sessionStore.currentAccount.username
 
     return (
-      <DocumentTitle title={`${accountName} | KoboToolbox`}>
+      <DocumentTitle title={`${accountName} | DATAUMSA`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <Button type='text' size='l' startIcon='close' onClick={this.close.bind(this)} />

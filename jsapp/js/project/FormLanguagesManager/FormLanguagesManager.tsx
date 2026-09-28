@@ -54,6 +54,24 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   )
 
   useEffect(() => {
+    if (translations.length === 1 && translations[0] === null && asset.content) {
+      const initializeDefaultLanguages = async () => {
+        let content = cloneDeep(asset.content)
+        if (!content) return
+
+        content.translations = ['Spanish (es)', 'English (en)']
+        content = prepareTranslations(content)
+        if (!content.settings) {
+          content.settings = {}
+        }
+        content.settings.default_language = 'Spanish (es)'
+        await patchAsset(content)
+      }
+      initializeDefaultLanguages()
+    }
+  }, [translations, asset.content])
+
+  useEffect(() => {
     if (activeView === 'translations') {
       setTableRows(buildTranslationRows(asset, selectedLangIndex))
       setSaveButtonText(SAVE_BUTTON_LABEL.idle)

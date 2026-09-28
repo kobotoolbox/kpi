@@ -163,7 +163,7 @@ export default function addOns() {
                   organization={organization}
                   isRecurring
                   displayName={t('File Storage')}
-                  description={t('Get up to 50GB of media storage on a KoboToolbox public server.')}
+                  description={t('Get up to 50GB of media storage on a DataUMSA server.')}
                 />
               )}
               {!!transXProducts.length && (

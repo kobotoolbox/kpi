@@ -32,8 +32,8 @@ class V1APIGoneView(APIView):
     @staticmethod
     def _get_410_response():
         message = _(
-            'The V1 API has been removed. Please read the migration '
-            'article at https://support.kobotoolbox.org/migrating_api.html'
+            'The V1 API has been removed. Please read the documentation '
+            'at https://data.umsa.bo/docs/guides/integracion-powerbi-excel/'
         )
         return Response({'detail': message}, status=status.HTTP_410_GONE)
 

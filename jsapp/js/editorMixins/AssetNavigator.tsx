@@ -146,16 +146,15 @@ export default function AssetNavigator() {
         value={searchQuery}
         onChange={(event) => setSearchQuery(event.currentTarget.value)}
       />
-
       {/* Tags filtering */}
       <MultiSelect
         data={tagsOptions}
         value={selectedTags}
         onChange={setSelectedTags}
-        placeholder='Filter by tags'
+        placeholder={t('Filter by tags')}
         searchable
         clearable
-        nothingFoundMessage='No tags found'
+        nothingFoundMessage={t('No tags found')}
         hidePickedOptions
         size='md'
         selectFirstOptionOnChange
@@ -166,7 +165,7 @@ export default function AssetNavigator() {
         data={collectionOptions}
         value={selectedCollection}
         onChange={setSelectedCollection}
-        placeholder='Select collection'
+        placeholder={t('Select collection')}
         searchable
         clearable
         size='md'
@@ -176,11 +175,11 @@ export default function AssetNavigator() {
       {/* Total count & toggle expanded info */}
       <Group justify='space-between' align='center'>
         <Text size='sm' fw={500}>
-          {assetsResponse?.data.results?.length || 0} assets found
+          {t('##count## assets found').replace('##count##', (assetsResponse?.data.results?.length || 0).toString())}
         </Text>
 
         <Checkbox
-          label='Expand details'
+          label={t('Expand details')}
           checked={isExpanded}
           onChange={(event) => setIsExpanded(event.currentTarget.checked)}
           size='sm'
@@ -195,12 +194,12 @@ export default function AssetNavigator() {
       ) : isError ? (
         <Center py='xl'>
           <Text c='red' size='sm'>
-            Error loading assets
+            {t('Error loading assets')}
           </Text>
         </Center>
       ) : assetsResponse?.data.results?.length === 0 ? (
         <Center py='xl'>
-          <Text size='sm'>No assets found</Text>
+          <Text size='sm'>{t('No assets found')}</Text>
         </Center>
       ) : (
         <Stack gap='xs' ref={assetsListRef}>

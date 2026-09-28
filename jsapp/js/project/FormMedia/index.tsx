@@ -13,6 +13,7 @@ import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
 
@@ -24,7 +25,6 @@ import { notify, truncateString, truncateUrl } from '#/utils'
 const FILE_UPLOAD_MUTATION_KEY = ['assetsFilesCreate', 'form-media-file'] as const
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'
-const MEDIA_SUPPORT_URL = 'upload_media.html'
 
 interface FormMediaAsset {
   uid: string
@@ -218,11 +218,11 @@ export default function FormMedia(props: FormMediaProps) {
         <Group className='form-media__title' wrap='nowrap' gap='xs'>
           <Text className='form-media__label'>{t('Attach files')}</Text>
 
-          {envStore.isReady && envStore.data.support_url && (
+          {envStore.isReady && (
             <Anchor
               className='title-help'
               target='_blank'
-              href={envStore.data.support_url + MEDIA_SUPPORT_URL}
+              href={getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS)}
               rel='noreferrer'
               data-tip={t('Learn more about form media')}
             >

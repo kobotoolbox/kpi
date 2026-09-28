@@ -11,6 +11,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import myLibraryStore from '#/components/library/myLibraryStore'
 import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
 import type { CreateImportRequest, ImportResponse } from '#/dataInterface'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { escapeHtml, join, notify, validFileTypes } from '#/utils'
 
@@ -312,7 +313,7 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
 
             <Text size='sm'>
               {t('Note that this will be ignored when uploading a collection file.')}{' '}
-              <a href={envStore.data.support_url + 'import_collection.html'} target='_blank' rel='noreferrer'>
+              <a href={getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS)} target='_blank' rel='noreferrer'>
                 {t('Learn more')}
               </a>
             </Text>

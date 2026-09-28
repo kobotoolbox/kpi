@@ -1,4 +1,4 @@
 {% load i18n %}
 {% autoescape off %}
-{% blocktrans trimmed %}KoboToolbox account email address verification{% endblocktrans %}
+{% blocktrans trimmed %}DataUMSA account email address verification{% endblocktrans %}
 {% endautoescape %}

@@ -7,13 +7,13 @@ import TextBox from '#/components/common/textBox'
 import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import { ROOT_URL } from '#/constants'
 import type { PermissionResponse } from '#/dataInterface'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import AnonymousSubmission from '../anonymousSubmission.component'
 import permConfig from './permConfig'
 import type { PermissionCodename } from './permConstants'
 
-const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html'
 
 interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[]
@@ -58,7 +58,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
             content={t(
               'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.',
             )}
-            supportArticle={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+            supportArticle={getDocUrl(DOCS_PATHS.RECOLECCION_DATOS)}
             featureKey='anonymousSubmissions'
             pointerClass='anonymousSubmissionPointer'
             dialogClass='anonymousSubmissionDialog'

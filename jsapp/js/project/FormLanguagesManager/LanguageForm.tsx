@@ -82,9 +82,13 @@ export default function LanguageForm(props: LanguageFormProps) {
       component='form'
       onSubmit={onSubmit}
       p='md'
-      bg='var(--mantine-color-gray-7)'
+      bg='#f8fafc'
       gap='sm'
-      style={{ alignItems: 'flex-end' }}
+      style={{
+        alignItems: 'flex-end',
+        border: '1px dashed #cbd5e1',
+        borderRadius: '12px',
+      }}
     >
       <TextInput
         flex={1}
@@ -108,12 +112,32 @@ export default function LanguageForm(props: LanguageFormProps) {
         error={codeError}
       />
 
-      <ButtonNew variant='filled' size='lg' type='submit' loading={props.isPending} disabled={!name || !code}>
+      <ButtonNew
+        variant='filled'
+        size='md'
+        type='submit'
+        loading={props.isPending}
+        disabled={!name || !code}
+        style={{
+          backgroundColor: '#29b9f2',
+          borderRadius: '12px',
+          fontWeight: 600,
+        }}
+      >
         {buttonLabel}
       </ButtonNew>
 
       {props.onCancel && (
-        <ButtonNew variant='light' size='lg' type='button' onClick={props.onCancel}>
+        <ButtonNew
+          variant='light'
+          size='md'
+          type='button'
+          onClick={props.onCancel}
+          style={{
+            borderRadius: '12px',
+            fontWeight: 600,
+          }}
+        >
           {t('Cancel')}
         </ButtonNew>
       )}

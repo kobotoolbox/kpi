@@ -2,6 +2,11 @@
 {% load static %}
 {% load i18n %}
 
+{% block head_stylesheets %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/login_redesign.css' %}">
+{% endblock %}
+
 {% block head_end %}
   <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
 {% endblock %}

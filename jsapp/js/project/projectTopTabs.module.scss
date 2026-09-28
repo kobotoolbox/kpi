@@ -31,7 +31,7 @@
   line-height: 48px;
   cursor: pointer;
   position: relative;
-  color: var(--color-text-muted, colors.$kobo-gray-700);
+  color: var(--color-text-muted, #64748b);
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.5px;
@@ -39,13 +39,13 @@
   user-select: none;
 
   &:hover {
-    color: var(--color-primary, colors.$kobo-blue);
+    color: var(--color-primary, #29b9f2);
   }
 
   &.active {
     font-weight: 700;
-    color: var(--color-primary-dark, colors.$kobo-dark-blue);
-    border-bottom-color: var(--color-primary, colors.$kobo-blue);
+    color: var(--color-primary-dark, #0688ba);
+    border-bottom-color: var(--color-primary, #29b9f2);
   }
 
   &.disabled {

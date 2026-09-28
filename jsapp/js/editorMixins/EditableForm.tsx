@@ -62,6 +62,7 @@ import {
   type FailResponse,
   dataInterface,
 } from '../dataInterface'
+import { DOCS_PATHS, getDocUrl } from '../docsUrls'
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
@@ -73,13 +74,9 @@ bem.CascadePopup = makeBem(null, 'cascade-popup')
 bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message')
 bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper')
 
-const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
-const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
-
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
-const LOCKING_SUPPORT_URL = 'library_locking.html'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
+
 
 interface LaunchAppData {
   name: string
@@ -913,8 +910,8 @@ export default function EditableForm(props: EditableFormProps) {
       'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding with a meaningful consent question to inform respondents or data collectors that they will be recorded while completing this survey.',
     )
 
-    if (envStore.isReady && envStore.data.support_url) {
-      bannerText = bannerText.replace('##SUPPORT_LINK##', envStore.data.support_url + RECORDING_SUPPORT_URL)
+    if (envStore.isReady) {
+      bannerText = bannerText.replace('##SUPPORT_LINK##', getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS))
     } else {
       // Replaces the link for the text only if link is not available
       bannerText = bannerText.replace(/\[(.+)]\(##SUPPORT_LINK##\)/, '$1')
@@ -972,9 +969,9 @@ export default function EditableForm(props: EditableFormProps) {
               <bem.FormBuilderAside__header>
                 {t('Form style')}
 
-                {envStore.isReady && envStore.data.support_url && (
+                {envStore.isReady && (
                   <a
-                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    href={getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS)}
                     target='_blank'
                     data-tip={t('Read more about form styles')}
                   >
@@ -1073,9 +1070,9 @@ export default function EditableForm(props: EditableFormProps) {
 
           {lockedLabel}
 
-          {envStore.isReady && envStore.data.support_url && (
+          {envStore.isReady && (
             <a
-              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
+              href={getDocUrl(DOCS_PATHS.SEGURIDAD_PROTECCION)}
               target='_blank'
               data-tip={t('Read more about Locking')}
             >
@@ -1187,10 +1184,10 @@ export default function EditableForm(props: EditableFormProps) {
 
         <textarea ref={cascadeRef} onChange={cascadePopupChange} value={state.cascadeTextareaValue} />
 
-        {envStore.isReady && envStore.data.support_url && (
+        {envStore.isReady && (
           <div className='cascade-help right-tooltip'>
             <a
-              href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
+              href={getDocUrl(DOCS_PATHS.CONSTRUCTOR_FORMULARIOS)}
               target='_blank'
               data-tip={t('Learn more about importing cascading lists from Excel')}
             >
@@ -1221,14 +1218,14 @@ export default function EditableForm(props: EditableFormProps) {
 
   if (!state.isNewAsset && !state.asset) {
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
         <LoadingSpinner />
       </DocumentTitle>
     )
   }
 
   return (
-    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+    <DocumentTitle title={`${docTitle} | DATAUMSA`}>
       <>
         <div className='form-builder-wrapper'>
           {renderAside()}

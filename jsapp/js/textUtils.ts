@@ -1,17 +1,22 @@
 import envStore from '#/envStore'
 
-const ORIGINAL_SUPPORT_EMAIL = 'help@kobotoolbox.org'
+const ORIGINAL_SUPPORT_EMAILS = ['help@kobotoolbox.org', 'support@kobotoolbox.org', 'soporte@data.umsa.bo']
 
 /**
- * Replaces the hardcoded email string (coming from transifex translation) with
- * the one from the `/environment` endpoint.
+ * Replaces the hardcoded email string with
+ * the one from the `/environment` endpoint or default DataUMSA support email.
  */
 export function replaceSupportEmail(str: string): string {
-  if (typeof envStore.data.support_email === 'string' && envStore.data.support_email.length !== 0) {
-    return str.replace(ORIGINAL_SUPPORT_EMAIL, envStore.data.support_email)
-  } else {
-    return str
+  const targetEmail =
+    typeof envStore.data.support_email === 'string' && envStore.data.support_email.length !== 0
+      ? envStore.data.support_email
+      : 'soporte@data.umsa.bo'
+
+  let result = str
+  for (const email of ORIGINAL_SUPPORT_EMAILS) {
+    result = result.replace(email, targetEmail)
   }
+  return result
 }
 
 /**

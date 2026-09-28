@@ -27,7 +27,7 @@ interface BasicLayoutProps {
  */
 export default function BasicLayout(props: BasicLayoutProps) {
   return (
-    <DocumentTitle title='KoboToolbox'>
+    <DocumentTitle title='DATAUMSA'>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
           <Notifications />

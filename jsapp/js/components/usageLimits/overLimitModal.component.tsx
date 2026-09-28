@@ -39,7 +39,7 @@ function getLimitReachedMessage(isMmo: boolean, isTeamLabelActive: boolean, limi
     'Please [upgrade your plan](##PLAN_LINK##) or purchase an add-on as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.',
   )
     .replace('##PLAN_LINK##', planRoute)
-    .replace('##CONTACT_LINK##', 'https://www.kobotoolbox.org/contact')
+    .replace('##CONTACT_LINK##', 'https://data.umsa.bo/')
 
   const thirdSentence = t('You can [review your usage in account settings](##USAGE_LINK##).').replace(
     '##USAGE_LINK##',
@@ -48,11 +48,11 @@ function getLimitReachedMessage(isMmo: boolean, isTeamLabelActive: boolean, limi
   return `${firstSentence} ${secondSentence} ${thirdSentence}`
 }
 
-// We need to use a custom component here to open kobotoolbox.org links using target="_blank"
+// We need to use a custom component here to open external links using target="_blank"
 const LinkRendererTargetBlank = (props: AnchorHTMLAttributes<HTMLAnchorElement>) => {
-  if (props.href?.includes('kobotoolbox.org')) {
+  if (props.href?.startsWith('http://') || props.href?.startsWith('https://')) {
     return (
-      <a href={props.href} target='_blank'>
+      <a href={props.href} target='_blank' rel='noreferrer'>
         {props.children}
       </a>
     )

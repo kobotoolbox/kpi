@@ -2,8 +2,7 @@ import React from 'react'
 
 import Icon from '#/components/common/icon'
 import ToggleSwitch from '#/components/common/toggleSwitch'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
-import envStore from '#/envStore'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import styles from './anonymousSubmission.module.scss'
 
 interface AnonymousSubmissionProps {
@@ -22,7 +21,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         label={t('Allow submissions to this form without a username and password')}
       />
       <a
-        href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+        href={getDocUrl(DOCS_PATHS.RECOLECCION_DATOS)}
         className='right-tooltip wrapped-tooltip'
         target='_blank'
         data-tip={t(

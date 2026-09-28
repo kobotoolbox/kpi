@@ -49,7 +49,7 @@ const SsoSection = observer(() => {
       {socialAccounts.length === 0 ? (
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
           {t(
-            "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
+            "Connect your DataUMSA account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
               'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
               'address is different.',
           )}

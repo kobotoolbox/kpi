@@ -14,8 +14,20 @@
     {% block head_meta %}{% endblock %}
 
     <!-- Title and description -->
-    <title>KoboToolbox {% block title %}{% endblock %}</title>
-    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+    <title>DATAUMSA {% block title %}{% endblock %}</title>
+    <meta name="description" content="DATAUMSA es la plataforma oficial de la UMSA para el diseño de encuestas, recolección de datos y gestión de proyectos de investigación científica de forma segura y soberana.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DATAUMSA">
+    <meta property="og:description" content="Plataforma oficial de la UMSA para el diseño de encuestas, recolección de datos y gestión de proyectos de investigación científica de forma segura y soberana.">
+    <meta property="og:image" content="{% static 'favicon.png' %}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="DATAUMSA">
+    <meta property="twitter:description" content="Plataforma oficial de la UMSA para el diseño de encuestas, recolección de datos y gestión de proyectos de investigación científica de forma segura y soberana.">
+    <meta property="twitter:image" content="{% static 'favicon.png' %}">
 
     <!-- Icons -->
     <link rel="icon" href="{% static 'favicon.png' %}" />

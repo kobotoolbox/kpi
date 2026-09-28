@@ -601,6 +601,8 @@ export default class ProjectExportsCreator extends React.Component<
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+              styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
               placeholder={t('Select…')}
               isSearchable={false}
             />
@@ -823,6 +825,8 @@ export default class ProjectExportsCreator extends React.Component<
                 className='kobo-select'
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 isSearchable={false}
               />
             </label>
@@ -856,6 +860,8 @@ export default class ProjectExportsCreator extends React.Component<
                       className='kobo-select'
                       classNamePrefix='kobo-select'
                       menuPlacement='auto'
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                       placeholder={t('No export settings selected')}
                     />
                   </label>

@@ -58,7 +58,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
 
   /** Whether current submission has a response for current question. */
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
-  const pageTitle = 'Data | KoboToolbox'
+  const pageTitle = 'Data | DATAUMSA'
 
   // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
   // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.

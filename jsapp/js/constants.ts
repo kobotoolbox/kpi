@@ -585,7 +585,7 @@ export const COLLECTION_METHODS: CollectionMethods = Object.freeze({
     id: CollectionMethodName.android,
     label: t('Android application'),
     desc: t('Use this option to collect data in the field with your Android device.'),
-    url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
+    url: 'https://dataumsa.sociest.org/app-movil/descargas/',
   },
 })
 
@@ -657,8 +657,7 @@ const constants = {
   USAGE_WARNING_RATIO,
 }
 
-export const HELP_ARTICLE_ANON_SUBMISSIONS_URL =
-  'project_sharing_settings.html#allowing-submissions-without-authentication'
+export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'guides/recoleccion-datos-campo-web/'
 
 export const XML_VALUES_OPTION_VALUE = 'xml_values'
 

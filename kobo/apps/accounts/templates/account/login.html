@@ -90,9 +90,9 @@
       {{ form.login }}
       <label for="{{ form.login.id_for_label }}">
         {% if LANGUAGE_CODE == 'es' %}
-          Usuario o correo electrónico
+          Ingrese su username
         {% else %}
-          Username or e-mail
+          Enter your username
         {% endif %}
       </label>
       {% if form.login.errors %}
@@ -120,6 +120,12 @@
     </div>
 
     {# Botón de Ingreso #}
+    {% if config.TURNSTILE_ENABLED and config.TURNSTILE_SITE_KEY %}
+      <div class="cf-turnstile-container" style="margin-bottom: 1.5rem; display: flex; justify-content: center;">
+        <div class="cf-turnstile" data-sitekey="{{ config.TURNSTILE_SITE_KEY }}" data-theme="light"></div>
+      </div>
+    {% endif %}
+
     <button type="submit" name="Login" class="login-button">
       {% if LANGUAGE_CODE == 'es' %}
         Iniciar sesión
@@ -190,4 +196,11 @@
     {# Términos y condiciones legales #}
     {% include "../legal/registration_legal.html" with config=config %}
   </form>
+{% endblock %}
+
+{% block extra_javascript %}
+  {{ block.super }}
+  {% if config.TURNSTILE_ENABLED and config.TURNSTILE_SITE_KEY %}
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  {% endif %}
 {% endblock %}

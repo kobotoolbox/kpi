@@ -4,6 +4,7 @@ import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import KoboIcon from '../common/KoboIcon'
@@ -25,7 +26,7 @@ interface LanguageSelectorProps {
 const MINIMUM_SEARCH_LENGTH = 2
 // Timeout chosen based on same debounce time in old languageSelector.tsx
 const SEARCH_DEBOUNCE_MS = 300
-const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-list'
+
 
 const LanguageSelector = (props: LanguageSelectorProps) => {
   const [searchValue, setSearchValue] = useState('')
@@ -109,7 +110,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   }
 
   const openSupportPage = () => {
-    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank')
+    window.open(getDocUrl(DOCS_PATHS.CONFIGURACION_IDIOMAS), '_blank')
   }
 
   return (

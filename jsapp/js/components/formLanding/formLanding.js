@@ -11,6 +11,7 @@ import { actions } from '#/actions'
 import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
+import ToggleSwitch from '#/components/common/toggleSwitch'
 import ButtonNew from '#/components/common/ButtonNew'
 import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
@@ -76,6 +77,54 @@ class FormLanding extends React.Component {
         user: buildUserUrl(ANON_USERNAME),
         permission: ANON_CAN_ADD_PERM_URL,
       })
+    }
+  }
+  togglePrintSetting() {
+    const settings = { ...this.state.settings }
+    const currentHide = settings.hide_print === true
+    if (currentHide) {
+      settings.hide_print = false
+    } else {
+      settings.hide_print = true
+    }
+    this.setState({ settings: settings })
+    actions.resources.updateAsset(this.state.uid, { settings: settings })
+  }
+  toggleMenuSetting() {
+    const settings = { ...this.state.settings }
+    const currentHide = settings.hide_menu === true
+    if (currentHide) {
+      settings.hide_menu = false
+    } else {
+      settings.hide_menu = true
+    }
+    this.setState({ settings: settings })
+    actions.resources.updateAsset(this.state.uid, { settings: settings })
+  }
+  getFormattedCollectLink(originalLink) {
+    if (!originalLink) {
+      return originalLink
+    }
+    const settings = this.state.settings || {}
+    let url
+    try {
+      url = new URL(originalLink)
+      if (settings.hide_print === true) {
+        url.searchParams.set('hide_print', 'true')
+      }
+      if (settings.hide_menu === true) {
+        url.searchParams.set('hide_menu', 'true')
+      }
+      return url.toString()
+    } catch (e) {
+      let link = originalLink
+      if (settings.hide_print === true) {
+        link += (link.includes('?') ? '&' : '?') + 'hide_print=true'
+      }
+      if (settings.hide_menu === true) {
+        link += (link.includes('?') ? '&' : '?') + 'hide_menu=true'
+      }
+      return link
     }
   }
   enketoPreviewModal(evt) {
@@ -230,14 +279,10 @@ class FormLanding extends React.Component {
     const chosenMethod = this.state.selectedCollectMethod
     const chosenMethodLink = this.state.deployment__links[chosenMethod] || null
 
-    var kc_server = document.createElement('a')
-    kc_server.href = envStore.data.open_rosa_server
-    var kobocollect_url = kc_server.origin
-
     return (
       <bem.FormView__row>
         <bem.FormView__cell m={['label', 'first']}>{t('Collect data')}</bem.FormView__cell>
-        <bem.FormView__cell m='box'>
+        <bem.FormView__cell m='box' style={{ overflow: 'visible' }}>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
               <CollectMethodSelector
@@ -261,22 +306,17 @@ class FormLanding extends React.Component {
             {chosenMethod === COLLECTION_METHODS.android.id && (
               <ol>
                 <li>
-                  {t('Install')}
+                  {t('Install DataUMSA Collect on your Android device from:')}
                   &nbsp;
                   <a
-                    href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en'
+                    href={COLLECTION_METHODS.android.url}
                     target='_blank'
                   >
-                    KoboCollect
+                    https://dataumsa.sociest.org/app-movil/descargas/
                   </a>
-                  &nbsp;
-                  {t('on your Android device.')}
                 </li>
-                <li>{t('Select the option "Manually enter project details"')}</li>
                 <li>
-                  {t('Enter the server URL')}&nbsp;
-                  <code>{kobocollect_url}</code>&nbsp;
-                  {t('and your username and password')}
+                  {t('Enter your project credentials to connect, as the URL is automatically configured within the DataUMSA Collect app.')}
                 </li>
                 <li>{t('Select "Download form" and select this project')}</li>
                 <li>{t('Select "Start New Form"')}</li>
@@ -304,6 +344,25 @@ class FormLanding extends React.Component {
               </NewFeatureDialog>
             </bem.FormView__cell>
           )}
+
+          {userCan('change_asset', this.state) && (
+            <bem.FormView__cell m={['padding', 'bordertop']} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <ToggleSwitch
+                  checked={!this.state.settings?.hide_print}
+                  onChange={this.togglePrintSetting}
+                  label={t('Enable print button in the digital form')}
+                />
+              </div>
+              <div>
+                <ToggleSwitch
+                  checked={!this.state.settings?.hide_menu}
+                  onChange={this.toggleMenuSetting}
+                  label={t('Enable navigation menu in the digital form')}
+                />
+              </div>
+            </bem.FormView__cell>
+          )}
         </bem.FormView__cell>
       </bem.FormView__row>
     )
@@ -311,7 +370,8 @@ class FormLanding extends React.Component {
 
   renderCollectLink() {
     const chosenMethod = this.state.selectedCollectMethod
-    const chosenMethodLink = this.state.deployment__links[chosenMethod] || null
+    const rawLink = this.state.deployment__links[chosenMethod] || null
+    const chosenMethodLink = this.getFormattedCollectLink(rawLink)
 
     if (chosenMethod === COLLECTION_METHODS.android.id) {
       return (
@@ -321,7 +381,7 @@ class FormLanding extends React.Component {
           onClick={() => {
             window.open(COLLECTION_METHODS.android.url, '_blank')
           }}
-          label={t('Download KoboCollect')}
+          label={t('Download DataUMSA Collect')}
         />
       )
     }
@@ -400,6 +460,15 @@ class FormLanding extends React.Component {
     }
     this.goToProjectsList()
   }
+  handleEditClick(evt) {
+    evt.preventDefault()
+    const warningMessage = t(
+      'Warning: If this form was originally created using advanced XLSForm features, editing it in the Form Builder could result in the loss of some special configurations or data.\n\nDo you want to continue to the Form Builder?'
+    )
+    if (window.confirm(warningMessage)) {
+      this.props.router.navigate(ROUTES.FORM_EDIT.replace(':uid', this.state.uid))
+    }
+  }
   renderButtons(userCanEdit) {
     var downloads = []
     if (this.state.downloads) {
@@ -411,13 +480,14 @@ class FormLanding extends React.Component {
     return (
       <React.Fragment>
         {userCanEdit ? (
-          <Link to={`/forms/${this.state.uid}/edit`}>
-            {/*
-              We put non clickable button inside Link, so that it's possible
-              to open it in new tab.
-            */}
-            <Button type='text' size='m' startIcon='edit' tooltip={t('Edit in Form Builder')} tooltipPosition='right' />
-          </Link>
+          <Button
+            type='text'
+            size='m'
+            startIcon='edit'
+            tooltip={t('Edit in Form Builder')}
+            tooltipPosition='right'
+            onClick={this.handleEditClick.bind(this)}
+          />
         ) : (
           <Button
             type='text'
@@ -543,7 +613,7 @@ class FormLanding extends React.Component {
     }
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | DATAUMSA`}>
         <bem.FormView m='form'>
           <LimitNotifications />
           <bem.FormView__row>

@@ -147,10 +147,16 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
         onClick={projectsListHandlers.toggle}
         className={`${styles.categoryButton} ${isProjectsListVisible ? styles.activeCategory : ''}`}
       >
-        <Group gap='sm' style={{ width: '100%' }}>
-          <IconComponent size={18} className={styles.categoryIcon} />
-          <Box flex={1} style={{ textAlign: 'left' }}>{categoryLabel}</Box>
-          <Badge label={props.totalCount} color='light-storm' size='xs' />
+        <Group wrap='nowrap' justify='space-between' gap='xs' style={{ width: '100%' }}>
+          <Group wrap='nowrap' gap='xs' style={{ minWidth: 0, flex: 1 }}>
+            <IconComponent size={18} className={styles.categoryIcon} />
+            <Box component='span' className={styles.categoryText} title={categoryLabel}>
+              {categoryLabel}
+            </Box>
+          </Group>
+          <Box className={styles.categoryBadge}>
+            <Badge label={props.totalCount} color='light-storm' size='xs' />
+          </Box>
         </Group>
       </UnstyledButton>
 

@@ -587,7 +587,7 @@ msgstr "organización"
 msgid ""
 "Thanks for your upgrade! We appreciate your continued support. Reach out to "
 "billing@kobotoolbox.org if you have any questions about your plan."
-msgstr "¡Gracias por actualizar tu plan! Agradecemos tu continuo apoyo. Te puedes comunicar con billing@kobotoolbox.org si tienes alguna pregunta sobre tu plan."
+msgstr "¡Gracias por actualizar tu plan! Agradecemos tu continuo apoyo. Te puedes comunicar con soporte@data.umsa.bo si tienes alguna pregunta sobre tu plan."
 
 #: jsapp/js/account/plans/plan.component.tsx:203
 msgid ""
@@ -811,7 +811,7 @@ msgid ""
 "for single-sign on (SSO). Afterwards, you will only be able to sign in via "
 "SSO unless you disable this setting here. This will also update your email "
 "address in case your current address is different."
-msgstr "Conecte su cuenta de KoboToolbox con el proveedor de identidad de su organización para un inicio de sesión único (SSO). Después, solo podrá iniciar sesión a través de SSO, a menos que desactive esta configuración desde aquí. Esto también actualizará su dirección de correo electrónico, en caso de que su dirección actual sea diferente."
+msgstr "Conecte su cuenta de DataUMSA con el proveedor de identidad de su organización para un inicio de sesión único (SSO). Después, solo podrá iniciar sesión a través de SSO, a menos que desactive esta configuración desde aquí. Esto también actualizará su dirección de correo electrónico, en caso de que su dirección actual sea diferente."
 
 #: jsapp/js/account/security/sso/ssoSection.component.tsx:58
 msgid "Already connected"
@@ -1048,7 +1048,7 @@ msgstr "verifica tu conexión e intenta nuevamente."
 
 #: jsapp/js/actions.js:172 jsapp/js/actions.js:182
 msgid "if this problem persists, contact help@kobotoolbox.org"
-msgstr "si el problema persiste, comunícate con help@kobotoolbox.org"
+msgstr "si el problema persiste, comunícate con soporte@data.umsa.bo"
 
 #: jsapp/js/actions.js:180
 msgid "your form id was not valid:"
@@ -1395,8 +1395,8 @@ msgid "Are you sure you want to remove this shared form?"
 msgstr "¿Estás seguro de que deseas eliminar este formulario compartido?"
 
 #: jsapp/js/assetQuickActions.tsx:363
-msgid "deploying to kobocat..."
-msgstr "implementando en kobocat..."
+msgid "deploying to DATAUMSA..."
+msgstr "implementando en DATAUMSA..."
 
 #: jsapp/js/assetQuickActions.tsx:368
 msgid "deployed form"
@@ -2212,7 +2212,7 @@ msgid ""
 "authenticator app fails. These codes are unique and will not be stored in "
 "your Kobo account. This is your only opportunity to save them. Please "
 "download the file and keep it somewhere safe."
-msgstr "Los siguientes códigos de recuperación le ayudarán a acceder a su cuenta, en caso de que su aplicación de autenticación falle. Estos códigos son únicos y no se guardarán en su cuenta de Kobo. Esta es su única oportunidad de guardarlos. Descargue el archivo y guárdelo en un lugar seguro."
+msgstr "Los siguientes códigos de recuperación le ayudarán a acceder a su cuenta, en caso de que su aplicación de autenticación falle. Estos códigos son únicos y no se guardarán en su cuenta de DataUMSA. Esta es su única oportunidad de guardarlos. Descargue el archivo y guárdelo en un lugar seguro."
 
 #: jsapp/js/components/bigModal/mfaModals.tsx:322
 msgid "Download codes"
@@ -2579,15 +2579,16 @@ msgstr "Versión"
 
 #: jsapp/js/components/formLanding/FormHistory.tsx:132
 msgid "currently deployed"
-msgstr ""
+msgstr "desplegado actualmente"
 
 #: jsapp/js/components/formLanding/FormHistory.tsx:145
 msgid "Form change"
-msgstr ""
+msgstr "Cambio en el formulario"
 
 #: jsapp/js/components/formLanding/FormHistory.tsx:147
 msgid "Deployment"
-msgstr ""
+msgstr "Despliegue"
+
 
 #: jsapp/js/components/formLanding/FormHistory.tsx:165
 msgid "Clone this version as a new project"
@@ -4203,7 +4204,7 @@ msgstr "##permission_label## (##username_list## y ##hidden_username_count## otro
 msgid ""
 "The stored permissions are invalid. Please assign them again. If this "
 "problem persists, contact help@kobotoolbox.org"
-msgstr "Los permisos almacenados son inválidos. Por favor vuelve a asignarlos. Si el problema persiste, comunícate con help@kobotoolbox.org"
+msgstr "Los permisos almacenados son inválidos. Por favor vuelve a asignarlos. Si el problema persiste, comunícate con soporte@data.umsa.bo"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:76
 msgid "Type option name"
@@ -5262,7 +5263,7 @@ msgstr "En espera"
 
 #: jsapp/js/components/support/helpBubble.tsx:121
 msgid "KoboToolbox user"
-msgstr ""
+msgstr "usuario de DataUMSA"
 
 #: jsapp/js/components/support/helpBubble.tsx:151
 msgid "Help Resources"
@@ -5285,15 +5286,15 @@ msgstr "Foro de la comunidad"
 #: jsapp/js/components/support/helpBubble.tsx:175
 msgid ""
 "Connect with thousands of KoboToolbox users, ask questions, and share ideas."
-msgstr "Conéctate con miles de usuarios de KoboToolbox, haz preguntas y comparte ideas."
+msgstr "Conéctate con la comunidad de usuarios de DataUMSA, haz preguntas y comparte ideas."
 
 #: jsapp/js/components/support/helpBubble.tsx:187
 msgid "KoboToolbox Academy"
-msgstr "KoboToolbox Academy"
+msgstr "Documentación DataUMSA"
 
 #: jsapp/js/components/support/helpBubble.tsx:188
 msgid "Enroll in an online self-paced course designed by Kobo staff experts."
-msgstr "Inscríbete en un curso en línea a tu propio ritmo diseñado por expertos del personal de Kobo."
+msgstr "Aprende con las guías paso a paso diseñadas para la comunidad universitaria de DataUMSA."
 
 #: jsapp/js/components/support/helpBubble.tsx:192
 msgid "Notifications"
@@ -6408,7 +6409,7 @@ msgstr "No se pudo mostrar la fila:"
 msgid ""
 "This question could not be imported. Please re-create it manually. Please "
 "contact us at help@kobotoolbox.org so we can fix this bug!"
-msgstr "No se pudo importar esta pregunta. Puedes volver a crearla manualmente. Por favor comunícate con nosotros en help@kobotoolbox.org para que podamos corregir este error."
+msgstr "No se pudo importar esta pregunta. Puedes volver a crearla manualmente. Por favor comunícate con nosotros en soporte@data.umsa.bo para que podamos corregir este error."
 
 #: jsapp/xlform/src/view.rowDetail.SkipLogic.coffee:25
 msgid "This question will only be displayed if the following conditions apply"
@@ -6525,3 +6526,200 @@ msgstr "Puedes agregar preguntas, notas, avisos u otros campos haciendo clic en 
 #: kpi/static/js/swagger/swagger-ui-bundle.js:2
 msgid "Can't set "
 msgstr ""
+
+#: jsapp/js/components/formLanding/formLanding.js:361
+msgid "Enable print button in the digital form"
+msgstr "Habilitar botón de impresión en la boleta digital"
+
+#: jsapp/js/components/formLanding/formLanding.js:368
+msgid "Enable navigation menu in the digital form"
+msgstr "Habilitar menú de navegación en la boleta digital"
+
+#: jsapp/js/components/modals/welcomeModal.tsx:18
+msgid "Welcome to DATAUMSA!"
+msgstr "¡Te damos la bienvenida a DATAUMSA!"
+
+#: jsapp/js/components/modals/welcomeModal.tsx:23
+msgid "Discover all the tools and features we have prepared to help you manage your forms and collect data efficiently."
+msgstr "Descubre todas las herramientas y características que tenemos preparadas para ayudarte a gestionar tus formularios y recopilación de datos de manera eficiente."
+
+#: jsapp/js/components/modals/welcomeModal.tsx:27
+msgid "To learn more about how the platform works and see step-by-step user guides, we recommend checking our official documentation:"
+msgstr "Para aprender más sobre el funcionamiento de la plataforma y ver guías de uso paso a paso, te recomendamos revisar nuestra documentación oficial:"
+
+#: jsapp/js/components/modals/welcomeModal.tsx:31
+msgid "View Official Documentation"
+msgstr "Ver Documentación Oficial"
+
+#: jsapp/js/components/modals/welcomeModal.tsx:37
+msgid "Don't show this message again"
+msgstr "No volver a mostrar este mensaje"
+
+#: jsapp/js/components/modals/welcomeModal.tsx:42
+msgid "Start"
+msgstr "Empezar"
+
+#: jsapp/js/components/formLanding/formLanding.js:312
+msgid "Install DataUMSA Collect on your Android device from:"
+msgstr "Instala la de DataUMSA Collect en tu dispositivo android con redirccionamiento aca:"
+
+#: jsapp/js/components/formLanding/formLanding.js:321
+msgid "Enter your project credentials to connect, as the URL is automatically configured within the DataUMSA Collect app."
+msgstr "Coloca las credenciales del proyecto para conectarte, ya que la URL se configurará automáticamente dentro de la aplicación DataUMSA Collect."
+
+#: jsapp/js/components/formLanding/formLanding.js:391
+msgid "Download DataUMSA Collect"
+msgstr "Descargar DataUMSA Collect"
+
+#: jsapp/js/components/formLanding/formLanding.js:613
+msgid "Current version"
+msgstr "Versión actual"
+
+#: jsapp/js/components/formLanding/formLanding.js:615
+msgid "Archived version"
+msgstr "Versión archivada"
+
+#: jsapp/js/components/formLanding/formLanding.js:616
+msgid "Draft version"
+msgstr "Versión en borrador"
+
+#: jsapp/js/components/formLanding/formLanding.js:569
+msgid "Languages:"
+msgstr "Idiomas:"
+
+#: jsapp/js/components/formLanding/formLanding.js:162
+msgid "questions"
+msgstr "preguntas"
+
+#: jsapp/js/components/formLanding/formLanding.js:284
+msgid "Collect data"
+msgstr "Recopilar datos"
+
+#: jsapp/js/components/formLanding/formLanding.js:410
+msgid "Copy"
+msgstr "Copiar"
+
+#: jsapp/js/components/formLanding/formLanding.js:261
+msgid "Show full history"
+msgstr "Mostrar historial completo"
+
+#: jsapp/js/components/formLanding/formLanding.js:261
+msgid "Hide full history"
+msgstr "Ocultar historial completo"
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:59
+msgid "Language Configuration Guide"
+msgstr "Guía de configuración de idiomas"
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:62
+msgid "Learn how to configure languages and translations for your forms in our documentation."
+msgstr "Aprende cómo configurar idiomas y traducciones para tus formularios en nuestra documentación."
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:124
+msgid "Learn how to manage multiple languages and translate your form content in our documentation."
+msgstr "Aprende cómo gestionar múltiples idiomas y traducir el contenido de tu formulario en nuestra documentación."
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:81
+msgid "View Guide"
+msgstr "Ver guía"
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:267
+msgid "Add language"
+msgstr "Agregar idioma"
+
+#: jsapp/js/project/FormLanguagesManager/LanguagesEditor.tsx:274
+msgid "Add a new language"
+msgstr "Agregar un nuevo idioma"
+
+#: jsapp/js/components/formBuilder/formBuilderUtils.ts:142
+msgid "There is an unnamed translation in your form definition.\nPlease give a name to all translations in your form.\nUse \"Manage Translations\" option from form landing page."
+msgstr "Hay una traducción sin nombre en la definición de su formulario.\nPor favor, asigne un nombre a todas las traducciones de su formulario.\nUse la opción \"Gestionar idiomas\" en la página de inicio del formulario."
+
+#: jsapp/xlform/src/model.configs.coffee:20
+msgid "start time"
+msgstr "hora de inicio"
+
+#: jsapp/xlform/src/model.configs.coffee:25
+msgid "end time"
+msgstr "hora de finalización"
+
+#: jsapp/xlform/src/model.configs.coffee:30
+msgid "start geopoint early"
+msgstr "iniciar punto geográfico anticipadamente"
+
+#: jsapp/xlform/src/model.configs.coffee:35
+msgid "today"
+msgstr "hoy"
+
+
+#: jsapp/xlform/src/model.configs.coffee:57
+msgid "device id"
+msgstr "identificación del dispositivo"
+
+#: jsapp/xlform/src/model.configs.coffee:63
+msgid "phone number"
+msgstr "número de teléfono"
+
+#: jsapp/xlform/src/model.configs.coffee:68
+msgid "audit"
+msgstr "auditoría"
+
+#: jsapp/js/components/metadataEditor.js:236
+msgid "Enable audio recording in the background"
+msgstr "Habilitar la grabación de audio en segundo plano"
+
+#: jsapp/js/components/metadataEditor.js:235
+msgid "This survey will be recorded"
+msgstr "Esta encuesta será grabada"
+
+#: jsapp/js/components/metadataEditor.js:246
+msgid "Audio quality"
+msgstr "Calidad de audio"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:155
+msgid "Filter by tags"
+msgstr "Filtrar por etiquetas"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:158
+msgid "No tags found"
+msgstr "No se encontraron etiquetas"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:169
+msgid "Select collection"
+msgstr "Seleccionar colección"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:179
+msgid "##count## assets found"
+msgstr "##count## recursos encontrados"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:183
+msgid "Expand details"
+msgstr "Expandir detalles"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:198
+msgid "Error loading assets"
+msgstr "Error al cargar recursos"
+
+#: jsapp/js/editorMixins/AssetNavigator.tsx:203
+msgid "No assets found"
+msgstr "No se encontraron recursos"
+
+#: jsapp/js/editorMixins/AssetNavigatorCard.tsx:44
+msgid "Block of ##count## questions"
+msgstr "Bloque de ##count## preguntas"
+
+#: jsapp/js/editorMixins/EditableForm.tsx:1269
+msgid "Import Cascading Select Questions"
+msgstr "Importar preguntas de selección en cascada"
+
+#: jsapp/js/components/formLanding/formLanding.js:239
+msgid "Form history"
+msgstr "Historial del formulario"
+
+#: jsapp/js/components/formLanding/formLanding.js:462
+msgid "Warning: If this form was originally created using advanced XLSForm features, editing it in the Form Builder could result in the loss of some special configurations or data.\n\nDo you want to continue to the Form Builder?"
+msgstr "Advertencia: Si este formulario fue creado originalmente usando características avanzadas de XLSForm, realizar ediciones en el Form Builder podría provocar la pérdida de algunas configuraciones especiales o datos.\n\n¿Desea continuar al Form Builder?"
+
+
+
+

@@ -22,6 +22,7 @@ import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -29,7 +30,6 @@ import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProce
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
-const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 export interface BulkTranscriptionModalProps {
   fieldXpath: string
@@ -200,7 +200,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           <Text size='xs'>
             {t('Automatic transcription is provided by Google Cloud Platform.')}
             &nbsp;
-            <Anchor href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL} underline='always'>
+            <Anchor href={getDocUrl(DOCS_PATHS.CONFIGURACION_IDIOMAS)} underline='always' target='_blank'>
               {t('Learn more')}
             </Anchor>
           </Text>

@@ -5,13 +5,13 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { ExternalServiceHookResponse, PaginatedResponse } from '#/dataInterface'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { escapeHtml, notify } from '#/utils'
 import { actions } from '../../actions'
 import { MODAL_TYPES } from '../../constants'
 
-const REST_SERVICES_SUPPORT_URL = 'rest_services.html'
 
 interface RESTServicesListProps {
   assetUid: string
@@ -97,8 +97,8 @@ export default class RESTServicesList extends React.Component<RESTServicesListPr
   }
 
   getSupportUrl() {
-    if (envStore.isReady && envStore.data.support_url) {
-      return envStore.data.support_url + REST_SERVICES_SUPPORT_URL
+    if (envStore.isReady) {
+      return getDocUrl(DOCS_PATHS.INTEGRACION_POWERBI_EXCEL)
     }
     return undefined
   }

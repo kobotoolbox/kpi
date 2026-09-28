@@ -1,18 +1,18 @@
 import React from 'react'
 
 import { Anchor, Badge, Box, Group, Paper, Stack, Text } from '@mantine/core'
-import { IconPencilFilled, IconTrashFilled, IconWorldCog, IconWorldStar } from '@tabler/icons-react'
+import { IconPencilFilled, IconTrashFilled, IconWorldCog, IconWorldStar, IconExternalLink, IconInfoCircle, IconLanguage } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import InlineMessage from '#/components/common/inlineMessage'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import type { AssetResponse } from '#/dataInterface'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import type { LangObject } from '#/utils'
 import LanguageForm from './LanguageForm'
 
-const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
 interface LanguagesEditorProps {
   asset: AssetResponse
@@ -38,32 +38,58 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
 
   return (
     <Stack gap='md'>
-      {!props.translations.length && <Text>{t('There is nothing to translate in this form.')}</Text>}
+      {!props.translations.length && <Text style={{ color: '#64748b' }}>{t('There is nothing to translate in this form.')}</Text>}
 
       {props.translations.length === 1 && props.translations[0] === null && (
-        <Stack gap='sm'>
-          <Box>
-            <Text>
-              {t('Here you can add more languages to your project, and translate the strings in each of them.')}
-            </Text>
-            <Text>
-              {t('For the language code field, we suggest using the')}
-              <Anchor
+        <Stack gap='md'>
+          <Paper
+            withBorder
+            p='md'
+            radius='md'
+            style={{
+              background: 'var(--color-primary-subtle, rgba(41, 185, 242, 0.06))',
+              borderColor: 'rgba(41, 185, 242, 0.2)',
+              borderRadius: 'var(--radius-lg, 12px)',
+            }}
+          >
+            <Group wrap='nowrap' align='center' gap='sm'>
+              <IconInfoCircle size={20} style={{ color: '#0688ba', flexShrink: 0 }} />
+              <Box style={{ flexGrow: 1 }}>
+                <Text size='sm' fw={600} style={{ color: '#0f172a' }}>
+                  {t('Language Configuration Guide')}
+                </Text>
+                <Text size='xs' style={{ color: 'var(--color-text-muted, #64748b)', lineHeight: 1.4 }}>
+                  {t('Learn how to configure languages and translations for your forms in our documentation.')}
+                </Text>
+              </Box>
+              <ButtonNew
+                component='a'
+                href={getDocUrl(DOCS_PATHS.CONFIGURACION_IDIOMAS)}
                 target='_blank'
-                href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'
+                variant='light'
+                size='xs'
+                rightIcon={IconExternalLink}
+                style={{
+                  backgroundColor: 'rgba(41, 185, 242, 0.15)',
+                  color: '#0688ba',
+                  borderRadius: '20px',
+                  fontWeight: 600,
+                  fontSize: '11px',
+                  border: '1px solid rgba(41, 185, 242, 0.2)',
+                }}
               >
-                {' ' + t('official language code') + ' '}
-              </Anchor>
-              {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
-              {envStore.isReady && envStore.data.support_url && (
-                <Anchor target='_blank' href={envStore.data.support_url + LANGUAGE_SUPPORT_URL}>
-                  {' ' + t('Read more.')}
-                </Anchor>
-              )}
+                {t('View Guide')}
+              </ButtonNew>
+            </Group>
+          </Paper>
+
+          <Box>
+            <Text size='sm' style={{ color: '#64748b' }}>
+              {t('Here you can add more languages to your project, and translate the strings in each of them.')}
             </Text>
           </Box>
 
-          <Text fw={700}>{t('Please name your default language before adding languages and translations.')}</Text>
+          <Text fw={700} size='sm' style={{ color: '#0f172a' }}>{t('Please name your default language before adding languages and translations.')}</Text>
 
           <Box>
             <LanguageForm
@@ -78,7 +104,48 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
 
       {props.translations.length > 0 && !(props.translations.length === 1 && props.translations[0] === null) && (
         <Stack gap='md'>
-          <Text fw={600}>{t('Current languages')}</Text>
+          <Paper
+            withBorder
+            p='md'
+            radius='md'
+            style={{
+              background: 'var(--color-primary-subtle, rgba(41, 185, 242, 0.06))',
+              borderColor: 'rgba(41, 185, 242, 0.2)',
+              borderRadius: 'var(--radius-lg, 12px)',
+            }}
+          >
+            <Group wrap='nowrap' align='center' gap='sm'>
+              <IconInfoCircle size={20} style={{ color: '#0688ba', flexShrink: 0 }} />
+              <Box style={{ flexGrow: 1 }}>
+                <Text size='sm' fw={600} style={{ color: '#0f172a' }}>
+                  {t('Language Configuration Guide')}
+                </Text>
+                <Text size='xs' style={{ color: 'var(--color-text-muted, #64748b)', lineHeight: 1.4 }}>
+                  {t('Learn how to manage multiple languages and translate your form content in our documentation.')}
+                </Text>
+              </Box>
+              <ButtonNew
+                component='a'
+                href={getDocUrl(DOCS_PATHS.CONFIGURACION_IDIOMAS)}
+                target='_blank'
+                variant='light'
+                size='xs'
+                rightIcon={IconExternalLink}
+                style={{
+                  backgroundColor: 'rgba(41, 185, 242, 0.15)',
+                  color: '#0688ba',
+                  borderRadius: '20px',
+                  fontWeight: 600,
+                  fontSize: '11px',
+                  border: '1px solid rgba(41, 185, 242, 0.2)',
+                }}
+              >
+                {t('View Guide')}
+              </ButtonNew>
+            </Group>
+          </Paper>
+
+          <Text fw={600} size='sm' style={{ color: '#0f172a' }}>{t('Current languages')}</Text>
 
           {props.translations[0] === null && (
             <InlineMessage
@@ -92,12 +159,25 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
 
           {props.translations.map((lang, index) => (
             <Stack key={`lang-${index}`} gap='xs'>
-              <Paper withBorder p='sm'>
+              <Paper
+                withBorder
+                p='md'
+                radius='md'
+                style={{
+                  borderLeft: index === 0 ? '4px solid #29b9f2' : '1px solid #cbd5e1',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                  borderRadius: '12px',
+                  backgroundColor: '#ffffff',
+                }}
+              >
                 <Group justify='space-between' wrap='nowrap' align='center'>
-                  <Group gap='xs'>
-                    <Text>{lang}</Text>
+                  <Group gap='sm'>
+                    <IconLanguage size={18} style={{ color: index === 0 ? '#0688ba' : '#64748b' }} />
+                    <Text fw={index === 0 ? 600 : 500} size='sm' style={{ color: '#0f172a' }}>
+                      {lang || t('Unnamed language')}
+                    </Text>
 
-                    {index === 0 && <Badge variant='light'>{t('default')}</Badge>}
+                    {index === 0 && <Badge variant='light' color='blue'>{t('default')}</Badge>}
 
                     {index !== 0 && (
                       <ActionIcon
@@ -172,11 +252,17 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
             <Box>
               <ButtonNew
                 variant='filled'
-                size='lg'
+                size='md'
                 onClick={() => {
                   props.onToggleAddLanguageForm(true)
                 }}
                 disabled={!canAddLanguages || !canEditLanguages}
+                style={{
+                  backgroundColor: 'var(--color-primary-dark, #0688ba)',
+                  color: '#ffffff',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  fontWeight: 600,
+                }}
               >
                 {t('Add language')}
               </ButtonNew>
@@ -185,7 +271,7 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
 
           {props.showAddLanguageForm && (
             <Stack gap='sm'>
-              <Text fw={600}>{t('Add a new language')}</Text>
+              <Text fw={600} size='sm' style={{ color: '#0f172a' }}>{t('Add a new language')}</Text>
 
               <LanguageForm
                 isPending={props.isUpdatingAsset}

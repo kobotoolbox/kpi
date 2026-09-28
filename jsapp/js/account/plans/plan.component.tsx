@@ -191,7 +191,7 @@ export default function Plan() {
       if (isSubscriptionUpdated) {
         notify.success(
           t(
-            'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.',
+            'Thanks for your upgrade! We appreciate your continued support. Reach out to soporte@data.umsa.bo if you have any questions about your plan.',
           ),
           {
             duration: subscriptionUpgradeMessageDuration,
@@ -410,7 +410,7 @@ export default function Plan() {
                   </p>
                 </div>
                 <div className={styles.enterpriseBannerButtonContainer}>
-                  <Button size='lg' component='a' href='https://www.kobotoolbox.org/contact/' target='_blank'>
+                  <Button size='lg' component='a' href='https://data.umsa.bo/' target='_blank'>
                     {t('Contact us')}
                   </Button>
                 </div>

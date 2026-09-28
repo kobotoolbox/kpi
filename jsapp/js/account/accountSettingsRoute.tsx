@@ -8,9 +8,10 @@ import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
+
 import { dataInterface } from '../dataInterface'
 import { useSession } from '../stores/useSession'
 import DeleteAccountBanner from './DeleteAccountBanner'
@@ -123,10 +124,7 @@ const AccountSettings = () => {
 
   const accountName = currentLoggedAccount?.username || ''
 
-  const helpArticleUrl =
-    envStore.data.support_url && envStore.data.support_url.includes('support.kobotoolbox.org')
-      ? envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-      : envStore.data.support_url
+  const helpArticleUrl = getDocUrl(DOCS_PATHS.RECOLECCION_DATOS)
 
   return (
     <bem.AccountSettings onSubmit={updateProfile}>

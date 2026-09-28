@@ -57,7 +57,7 @@ export default class PublicCollectionsRoute extends React.Component<{}, PublicCo
 
   render() {
     return (
-      <DocumentTitle title={`${t('Public Collections')} | KoboToolbox`}>
+      <DocumentTitle title={`${t('Public Collections')} | DATAUMSA`}>
         <div className='public-collections-wrapper'>
           <bem.Breadcrumbs m='gray-wrapper'>
             <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.PUBLIC_COLLECTIONS.label}</bem.Breadcrumbs__crumb>

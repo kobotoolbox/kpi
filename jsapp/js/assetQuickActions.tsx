@@ -311,7 +311,7 @@ function _deployAssetFirstTime(
   asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
 ) {
-  const deploymentToast = notify.warning(t('deploying to kobocat...'), {
+  const deploymentToast = notify.warning(t('deploying to DATAUMSA...'), {
     duration: 60 * 1000,
   })
   actions.resources.deployAsset(asset, false, {

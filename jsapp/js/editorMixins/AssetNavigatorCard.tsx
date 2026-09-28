@@ -41,7 +41,7 @@ export default function AssetNavigatorCard(props: AssetNavigatorCardProps) {
           </Text>
 
           {/* Block summary */}
-          {isBlock && rowCount !== undefined && <Text size='xs'>Block of {rowCount} questions</Text>}
+          {isBlock && rowCount !== undefined && <Text size='xs'>{t('Block of ##count## questions').replace('##count##', rowCount.toString())}</Text>}
 
           {/* Expanded details: labels */}
           {props.isExpanded && isBlock && labels.length > 0 && (

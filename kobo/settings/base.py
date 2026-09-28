@@ -217,31 +217,43 @@ CONSTANCE_CONFIG = {
         'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
-    'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
-    'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
+    'TERMS_OF_SERVICE_URL': ('https://data.umsa.bo/terminos', 'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('https://data.umsa.bo/privacidad', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
         'https://github.com/kobotoolbox/',
         'URL of source code repository. When empty, a link will not be shown '
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
+        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'soporte@data.umsa.bo')),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
-        'URL for "KoboToolbox Help Center"',
+        env.str('KOBO_SUPPORT_URL', 'https://data.umsa.bo/docs/'),
+        'URL for "DataUMSA Help Center"',
+    ),
+    'TURNSTILE_ENABLED': (
+        env.bool('TURNSTILE_ENABLED', False),
+        'Enable Cloudflare Turnstile to prevent bot spam on login and registration',
+    ),
+    'TURNSTILE_SITE_KEY': (
+        env.str('TURNSTILE_SITE_KEY', ''),
+        'Cloudflare Turnstile site key',
+    ),
+    'TURNSTILE_SECRET_KEY': (
+        env.str('TURNSTILE_SECRET_KEY', ''),
+        'Cloudflare Turnstile secret key',
     ),
     'ACADEMY_URL': (
-        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
-        'URL for "KoboToolbox Community Forum"',
+        env.str('KOBO_ACADEMY_URL', 'https://data.umsa.bo/docs/guides/inicio-rapido/'),
+        'URL for "DataUMSA Learning Center"',
     ),
     'COMMUNITY_URL': (
         env.str(
-            'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+            'KOBO_COMMUNITY_URL', 'https://data.umsa.bo/docs/'
         ),
-        'URL for "KoboToolbox Community Forum"',
+        'URL for "DataUMSA Community / Help"',
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
@@ -750,6 +762,9 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
         'SUPERUSER_AUTH_ENFORCEMENT',
+        'TURNSTILE_ENABLED',
+        'TURNSTILE_SITE_KEY',
+        'TURNSTILE_SECRET_KEY',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',

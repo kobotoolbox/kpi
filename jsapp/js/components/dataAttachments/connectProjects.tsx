@@ -11,6 +11,7 @@ import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
@@ -19,7 +20,6 @@ import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
 
-const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
 const SHARING_ENABLED_PROJECTS_QUERY = 'data_sharing__enabled:true'
 
@@ -351,7 +351,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
             )}
             &nbsp;
             <a
-              href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL}
+              href={getDocUrl(DOCS_PATHS.GESTION_PROYECTOS)}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -383,7 +383,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
               'Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments',
             )}
             &nbsp;
-            <a href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL} target='_blank'>
+            <a href={getDocUrl(DOCS_PATHS.GESTION_PROYECTOS)} target='_blank'>
               {t('here')}
             </a>
           </span>

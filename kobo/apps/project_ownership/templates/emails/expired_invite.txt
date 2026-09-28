@@ -11,4 +11,4 @@
 * {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing]
 {% endfor %}
 
-- KoboToolbox
+- DataUMSA

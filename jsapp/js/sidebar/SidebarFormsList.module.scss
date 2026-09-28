@@ -2,13 +2,13 @@
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 10px 14px;
+  padding: 8px 10px;
   background-color: transparent;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-md, 8px);
   color: var(--color-text-main);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
   font-family: inherit;
   transition: all var(--transition-fast);
   cursor: pointer;
@@ -23,6 +23,7 @@
   color: var(--color-primary-dark);
   background-color: var(--color-primary-light);
 
+  .categoryBadge div,
   div > div:last-child {
     background-color: var(--color-primary) !important;
     color: var(--color-surface) !important;
@@ -37,6 +38,23 @@
   color: inherit;
   flex-shrink: 0;
   transition: transform var(--transition-fast);
+}
+
+.categoryText {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13.5px;
+  letter-spacing: -0.1px;
+}
+
+.categoryBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
 .categoryButton:hover .categoryIcon {

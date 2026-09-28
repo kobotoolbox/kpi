@@ -317,7 +317,7 @@
 .main-container .brand-content p {
   font-size: 1.15rem;
   line-height: 1.7;
-  color: #94a3b8;
+  color: #cbd5e1;
   margin-bottom: 2.5rem;
 }
 .main-container {
@@ -432,7 +432,7 @@
   padding: 0.8rem 1.5rem;
   background: rgba(41, 185, 242, 0.1);
   border: 1px solid rgba(41, 185, 242, 0.3);
-  border-radius: 30px;
+  border-radius: var(--radius-pill, 20px);
   font-size: 0.95rem;
   color: var(--color-primary-light);
   backdrop-filter: blur(5px);
@@ -737,7 +737,7 @@
     height: 150px;
     background: #1e293b;
     border: 3px solid #475569;
-    border-radius: 16px;
+    border-radius: var(--radius-lg, 12px);
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -750,7 +750,7 @@
   .profile-card .ui-line {
     height: 6px;
     background: #cbd5e1;
-    border-radius: 3px;
+    border-radius: var(--radius-sm, 4px);
     width: 100%;
     margin-bottom: 8px;
   }
@@ -834,7 +834,7 @@
     width: 100%;
     height: 6px;
     background-color: var(--color-border);
-    border-radius: 3px;
+    border-radius: var(--radius-sm, 4px);
     overflow: hidden;
     position: relative;
     box-shadow: none;
@@ -842,7 +842,7 @@
   }
   #registration-password-app div[class*=bar] div[class*=indicator] {
     height: 100%;
-    border-radius: 3px;
+    border-radius: var(--radius-sm, 4px);
     transition: width 0.3s ease, background-color 0.3s ease;
   }
   #registration-password-app div[class*=bar][data-password-score="0"] div[class*=indicator] {
@@ -888,5 +888,21 @@
   }
   #registration-password-app ul[class*=messages] li[class*=message][class*=messageWarning]::before {
     color: #ef4444;
+  }
+}
+
+/* Accessibility: Support prefers-reduced-motion (WCAG 2.1 AA 2.2.2 & AAA 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  .main-container .login-wrapper {
+    animation: none;
+  }
+  .main-container .brand-panel::before,
+  .main-container .brand-panel::after,
+  .main-container .phone,
+  .main-container .padlock,
+  .main-container .profile-card,
+  .main-container .success-badge,
+  .main-container .brand-content {
+    animation: none !important;
   }
 }

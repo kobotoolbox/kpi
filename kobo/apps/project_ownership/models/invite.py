@@ -95,7 +95,7 @@ class Invite(AbstractTimeStampedModel):
 
         email_message = EmailMessage(
             to=self.sender.email,
-            subject=t('KoboToolbox project ownership transfer accepted'),
+            subject=t('DataUMSA project ownership transfer accepted'),
             plain_text_content_or_template='emails/accepted_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/accepted_invite.html',
@@ -130,7 +130,7 @@ class Invite(AbstractTimeStampedModel):
         email_message = EmailMessage(
             to=self.recipient.email,
             subject=t(
-                'Action required: KoboToolbox project ownership transfer request'
+                'Action required: DataUMSA project ownership transfer request'
             ),
             plain_text_content_or_template=f'emails/new_invite{template_suffix}.txt',
             template_variables=template_variables,
@@ -157,7 +157,7 @@ class Invite(AbstractTimeStampedModel):
 
         email_message = EmailMessage(
             to=self.sender.email,
-            subject=t('KoboToolbox project ownership transfer incomplete'),
+            subject=t('DataUMSA project ownership transfer incomplete'),
             plain_text_content_or_template='emails/declined_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/declined_invite.html',

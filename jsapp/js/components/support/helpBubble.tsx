@@ -118,7 +118,7 @@ class HelpBubble extends React.Component<HelpBubbleProps, HelpBubbleState> {
     return htmlString
       .replace('##username##', this.props.username)
       .replace('##user_uid##', this.props.userUid)
-      .replace('##user_full_name##', this.props.userFullName || t('KoboToolbox user'))
+      .replace('##user_full_name##', this.props.userFullName || t('DataUMSA user'))
   }
 
   renderSnippetRow(msg: InAppMessage, clickCallback: (messageUid: string) => void) {
@@ -150,29 +150,16 @@ class HelpBubble extends React.Component<HelpBubbleProps, HelpBubbleState> {
         <bem.HelpBubble__popupContent>
           <bem.HelpBubble__row m='header'>{t('Help Resources')}</bem.HelpBubble__row>
 
-          {envStore.isReady && envStore.data.support_url && (
+          {envStore.isReady && (envStore.data.support_url || true) && (
             <bem.HelpBubble__rowAnchor
               m='link'
               target='_blank'
-              href={envStore.data.support_url}
+              href={envStore.data.support_url || 'https://data.umsa.bo/docs/'}
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-help-articles' />
-              <header>{t('Help Center')}</header>
+              <header>{t('Documentation & Guides')}</header>
               <p>{t('Find answers in our extensive library of user support articles and tutorials.')}</p>
-            </bem.HelpBubble__rowAnchor>
-          )}
-
-          {envStore.isReady && envStore.data.community_url && (
-            <bem.HelpBubble__rowAnchor
-              m='link'
-              target='_blank'
-              href={envStore.data.community_url}
-              onClick={this.close.bind(this)}
-            >
-              <i className='k-icon k-icon-help-forum' />
-              <header>{t('Community Forum')}</header>
-              <p>{t('Connect with thousands of KoboToolbox users, ask questions, and share ideas.')}</p>
             </bem.HelpBubble__rowAnchor>
           )}
 
@@ -184,8 +171,21 @@ class HelpBubble extends React.Component<HelpBubbleProps, HelpBubbleState> {
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-help-academy' />
-              <header>{t('KoboToolbox Academy')}</header>
-              <p>{t('Enroll in an online self-paced course designed by Kobo staff experts.')}</p>
+              <header>{t('Quick Start Guide')}</header>
+              <p>{t('Learn how to design forms and collect data with DataUMSA.')}</p>
+            </bem.HelpBubble__rowAnchor>
+          )}
+
+          {envStore.isReady && envStore.data.community_url && envStore.data.community_url !== envStore.data.support_url && (
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={envStore.data.community_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-help-forum' />
+              <header>{t('Community & Support')}</header>
+              <p>{t('Connect with the DataUMSA team, ask questions, and share ideas.')}</p>
             </bem.HelpBubble__rowAnchor>
           )}
 

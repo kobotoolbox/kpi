@@ -18,6 +18,7 @@ import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
+import { DOCS_PATHS, getDocUrl } from '#/docsUrls'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -27,7 +28,6 @@ import { getSupplementalDetailsContent } from '../../submissionUtils'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
-const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 export interface BulkTranslationModalProps {
   fieldXpath: string
@@ -183,7 +183,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
             &nbsp;
             <Anchor
               target='_blank'
-              href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL}
+              href={getDocUrl(DOCS_PATHS.CONFIGURACION_IDIOMAS)}
               underline='always'
             >
               {t('Learn more')}
