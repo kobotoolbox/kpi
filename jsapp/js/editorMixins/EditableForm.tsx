@@ -50,7 +50,6 @@ import FormbuilderBackgroundAudioWarning from './FormbuilderBackgroundAudioWarni
 import FormbuilderHeader from './FormbuilderHeader'
 import FormbuilderSidebar from './FormbuilderSidebar'
 
-
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 
@@ -730,16 +729,17 @@ export default function EditableForm(props: EditableFormProps) {
               )}
 
               <div ref={formWrapRef} className='form-wrap'>
-                {!state.surveyAppRendered && (
-                  state.surveyLoadError
-                    ? (
-                      <Box className='error-message'>
-                        <Box component='strong' className='error-message__header'>{t('Error loading survey:')}</Box>
-                        <p>{state.surveyLoadError}</p>
+                {!state.surveyAppRendered &&
+                  (state.surveyLoadError ? (
+                    <Box className='error-message'>
+                      <Box component='strong' className='error-message__header'>
+                        {t('Error loading survey:')}
                       </Box>
-                    )
-                    : <LoadingSpinner />
-                )}
+                      <p>{state.surveyLoadError}</p>
+                    </Box>
+                  ) : (
+                    <LoadingSpinner />
+                  ))}
               </div>
             </Box>
           </Box>
@@ -761,7 +761,6 @@ export default function EditableForm(props: EditableFormProps) {
               <Modal.Body>{state.enketopreviewError}</Modal.Body>
             </Modal>
           )}
-
         </div>
       </>
     </DocumentTitle>

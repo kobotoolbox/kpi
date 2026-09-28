@@ -247,10 +247,17 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
         </Group>
       </Box>
 
-      <ModalNew centered={false} opened={showCascadePopup} onClose={cancelCascade} title={t('Import Cascading Select Questions')}>
+      <ModalNew
+        centered={false}
+        opened={showCascadePopup}
+        onClose={cancelCascade}
+        title={t('Import Cascading Select Questions')}
+      >
         <Box>
           {cascadeMessage ? (
-            <Text c={cascadeMessage.msgType === 'warning' ? 'red' : 'teal.3'}>{cascadeMessage.addCascadeMessage ?? cascadeMessage.message}</Text>
+            <Text c={cascadeMessage.msgType === 'warning' ? 'red' : 'teal.3'}>
+              {cascadeMessage.addCascadeMessage ?? cascadeMessage.message}
+            </Text>
           ) : (
             <Text>{t('Paste your formatted table from excel in the box below.')}</Text>
           )}
