@@ -149,6 +149,7 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
       <AuthCard aside={aside}>
         <LoginForm
           isUsernameAccepted={isUsernameAccepted}
+          socialApps={data?.socialApps}
           isConfigurationPending={isPending}
           onOutcome={handleOutcome}
         />

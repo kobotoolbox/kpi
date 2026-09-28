@@ -65,6 +65,11 @@ export const AUTH_ROUTES: { readonly [key: string]: string } = {
   MFA_AUTHENTICATE: ROUTES.ACCOUNTS_ROOT + '/authenticate/totp',
   /** The same prompt, answered with a recovery code */
   MFA_RECOVERY_CODES: ROUTES.ACCOUNTS_ROOT + '/authenticate/recovery-codes',
+  /**
+   * Where a single sign-on link lands, to confirm the provider before the handshake starts. This is the only
+   * way in for a provider kept off the login page.
+   */
+  PROVIDER_LOGIN: ROUTES.ACCOUNTS_ROOT + '/provider/:providerId/login',
   /** Where an SSO sign-in lands when allauth still needs a username or an address */
   PROVIDER_SIGNUP: ROUTES.ACCOUNTS_ROOT + '/provider/signup',
 }

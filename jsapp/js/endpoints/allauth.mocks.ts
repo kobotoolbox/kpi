@@ -17,6 +17,8 @@ export const MFA_AUTHENTICATE_URL = '*/api/v2/allauth/browser/v1/auth/2fa/authen
 export const PASSWORD_REQUEST_URL = '*/api/v2/allauth/browser/v1/auth/password/request'
 /** `GET` checks the key from the link, `POST` sets the new password */
 export const PASSWORD_RESET_URL = '*/api/v2/allauth/browser/v1/auth/password/reset'
+/** `GET` asks what the provider gave us, `POST` fills in the rest */
+export const PROVIDER_SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/provider/signup'
 
 /**
  * A successful signup under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since the  new account
@@ -298,3 +300,115 @@ export const passwordResetDoneAndSignedInMock = () =>
 /** A rejected reset. `param: 'password'` lands under the input; `param: 'key'` ends the whole attempt. */
 export const passwordResetErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
   http.post(PASSWORD_RESET_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))
+
+interface PendingProviderSignupOptions {
+  /** allauth's `display`: "a name derived from the third-party provider account data". */
+  display?: string
+  email?: string
+  username?: string
+  providerName?: string
+}
+
+/**
+ * A provider signup allauth is holding, because the handshake came back with too little to make an account
+ * from. Whatever the provider did give us is here, and is what the form starts filled in with.
+ *
+ * Pass a blank string for anything the provider said nothing about - GitLab hands over a username and an
+ * address, plenty of OIDC deployments hand over less.
+ */
+export const providerSignupPendingMock = ({
+  display = 'Sally Ride',
+  email = 'sallyride@nasa.com',
+  username = 'sallyride',
+  providerName = 'Example Organization',
+}: PendingProviderSignupOptions = {}) =>
+  http.get(PROVIDER_SIGNUP_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        email: [{ email, primary: true, verified: false }],
+        account: {
+          uid: 'provider-account-uid',
+          display,
+          provider: { id: 'example-org', name: providerName, flows: ['provider_redirect'] },
+        },
+        user: { display, username, has_usable_password: false },
+      },
+    }),
+  )
+
+/**
+ * No provider signup is pending. Covers the handshake having failed, the signup already being finished, and
+ * the session that held it having expired - allauth answers 409 to all three.
+ */
+export const providerSignupNothingPendingMock = () =>
+  http.get(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
+
+/** A lookup that never answers, so the screen stays on its loading panel. */
+export const providerSignupLookupNeverAnswersMock = () =>
+  http.get(PROVIDER_SIGNUP_URL, async () => {
+    await delay('infinite')
+  })
+
+/**
+ * The lookup itself breaking, which says nothing about the pending signup. `once` leaves the handler behind
+ * it to answer the retry.
+ */
+export const providerSignupLookupServerErrorMock = ({ once }: { once?: boolean } = {}) =>
+  http.get(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), {
+    once,
+  })
+
+/** A finished provider signup where verification is `none` or `optional`: the account is created and logged in. */
+export const providerSignupAuthenticatedMock = () =>
+  http.post(PROVIDER_SIGNUP_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        user: {
+          id: 1,
+          display: 'sallyride',
+          username: 'sallyride',
+          email: 'sallyride@nasa.com',
+          // No password: the provider is the credential.
+          has_usable_password: false,
+        },
+        methods: [],
+      },
+      meta: { is_authenticated: true },
+    }),
+  )
+
+/**
+ * The happy path under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since an address
+ * that came from a provider is still not a confirmed address.
+ */
+export const providerSignupPendingVerificationMock = () =>
+  http.post(PROVIDER_SIGNUP_URL, () =>
+    HttpResponse.json(
+      {
+        status: 401,
+        data: { flows: [{ id: 'login' }, { id: 'verify_email', is_pending: true }] },
+        meta: { is_authenticated: false },
+      },
+      { status: 401 },
+    ),
+  )
+
+/** A rejected provider signup. `param` is the allauth field name; omit it for an error with no field. */
+export const providerSignupErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
+  http.post(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))
+
+/** A submit that never answers, so the button stays in its loading state. */
+export const providerSignupNeverAnswersMock = () =>
+  http.post(PROVIDER_SIGNUP_URL, async () => {
+    await delay('infinite')
+  })
+
+/** The flow went away between loading the form and submitting it. */
+export const providerSignupFlowExpiredMock = () =>
+  http.post(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
+
+/** The server itself broke, which is the only way into the form's `onError`. */
+export const providerSignupServerErrorMock = () =>
+  http.post(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
