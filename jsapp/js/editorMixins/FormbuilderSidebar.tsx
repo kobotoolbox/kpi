@@ -1,10 +1,10 @@
-import { Box, Text } from '@mantine/core'
+import { Anchor, Box, Text } from '@mantine/core'
 import cx from 'classnames'
 import Select from '#/components/common/Select'
 import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction, isAssetLockable } from '#/components/locking/lockingUtils'
 import MetadataEditor from '#/components/metadataEditor'
-import { AVAILABLE_FORM_STYLES, type AssetTypeName, type FormStyleName } from '#/constants'
+import { AVAILABLE_FORM_STYLES, type FormStyleName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { ROUTES } from '#/router/routerConstants'
@@ -20,7 +20,6 @@ interface FormbuilderSidebarProps {
   onMetadataEditorChange: () => void
   survey: Survey | undefined
   asset: AssetResponse | undefined
-  desiredAssetType: AssetTypeName | undefined
   hasMetadataAndDetails: boolean
 }
 
@@ -57,13 +56,13 @@ export default function FormbuilderSidebar(props: FormbuilderSidebarProps) {
               {t('Form style')}
 
               {envStore.isReady && envStore.data.support_url && (
-                <a
+                <Anchor
                   href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
                   target='_blank'
                   data-tip={t('Read more about form styles')}
                 >
                   <i className='k-icon k-icon-help' />
-                </a>
+                </Anchor>
               )}
             </Text>
 

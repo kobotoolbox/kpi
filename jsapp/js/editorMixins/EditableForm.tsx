@@ -10,7 +10,6 @@ import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
-import { makeBem } from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import {
@@ -51,8 +50,6 @@ import FormbuilderBackgroundAudioWarning from './FormbuilderBackgroundAudioWarni
 import FormbuilderHeader from './FormbuilderHeader'
 import FormbuilderSidebar from './FormbuilderSidebar'
 
-const ErrorMessage = makeBem(null, 'error-message')
-const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
@@ -684,7 +681,6 @@ export default function EditableForm(props: EditableFormProps) {
             onMetadataEditorChange={onMetadataEditorChange}
             survey={app?.survey}
             asset={state.asset}
-            desiredAssetType={state.desiredAssetType}
             hasMetadataAndDetails={!!hasMetadataAndDetails()}
           />
 
@@ -737,10 +733,10 @@ export default function EditableForm(props: EditableFormProps) {
                 {!state.surveyAppRendered && (
                   state.surveyLoadError
                     ? (
-                      <ErrorMessage>
-                        <ErrorMessage__strong>{t('Error loading survey:')}</ErrorMessage__strong>
+                      <Box className='error-message'>
+                        <Box component='strong' className='error-message__header'>{t('Error loading survey:')}</Box>
                         <p>{state.surveyLoadError}</p>
-                      </ErrorMessage>
+                      </Box>
                     )
                     : <LoadingSpinner />
                 )}

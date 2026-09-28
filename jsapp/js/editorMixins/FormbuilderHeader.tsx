@@ -247,10 +247,10 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
         </Group>
       </Box>
 
-      <ModalNew opened={showCascadePopup} onClose={cancelCascade} title={t('Import Cascading Select Questions')}>
+      <ModalNew centered={false} opened={showCascadePopup} onClose={cancelCascade} title={t('Import Cascading Select Questions')}>
         <Box>
           {cascadeMessage ? (
-            <Text c={cascadeMessage.msgType === 'warning' ? 'red' : 'teal'}>{cascadeMessage.message}</Text>
+            <Text c={cascadeMessage.msgType === 'warning' ? 'red' : 'teal.3'}>{cascadeMessage.addCascadeMessage ?? cascadeMessage.message}</Text>
           ) : (
             <Text>{t('Paste your formatted table from excel in the box below.')}</Text>
           )}
@@ -264,7 +264,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
             rows={8}
           />
           {envStore.isReady && envStore.data.support_url && (
-            <Group justify='flex-end' className='cascade-help right-tooltip'>
+            <Group justify='flex-end'>
               <Anchor
                 href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
                 target='_blank'
