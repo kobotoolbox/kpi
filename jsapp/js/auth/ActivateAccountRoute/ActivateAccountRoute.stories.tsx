@@ -12,7 +12,7 @@ import {
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ActivateAccountRoute from './ActivateAccountRoute'
 
 /**
@@ -44,7 +44,7 @@ const meta: Meta<typeof AuthContainer> = {
     msw: { handlers: [emailVerificationInfoMock(EMAIL, USERNAME)] },
     reactRouter: activationRouting('a-good-key'),
   },
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 

@@ -9,7 +9,7 @@ import { PASSWORD_REQUEST_URL, passwordRequestErrorsMock } from '#/endpoints/all
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ResetPasswordRoute from './ResetPasswordRoute'
 
 const EMAIL = 'caroline.herschel@kbtdev.org'
@@ -52,7 +52,7 @@ const meta: Meta<typeof AuthContainer> = {
     reactRouter: resetPasswordRouting,
   },
   // Nobody is logged in when they have forgotten their password.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 

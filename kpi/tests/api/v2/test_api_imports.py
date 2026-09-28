@@ -11,8 +11,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
-from kpi.models import Asset, ImportTask
+from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION, PERM_MANAGE_ASSET
+from kpi.models import Asset, ImportTask, ObjectPermission
 from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.utils.mock import patch_ssrf_dns
@@ -1536,3 +1536,266 @@ class AssetImportTaskTest(BaseTestCase):
         assert result.status == ImportExportStatusChoices.ERROR
         error_message = result.messages['error']
         assert 'note_1' in error_message
+
+
+class LibraryImportOwnershipTest(BaseTestCase):
+    """
+    Uploaded library assets must be transferred to the organization owner in a
+    multi-member organization, mirroring `AssetSerializer.create` (DEV-2873).
+    """
+
+    fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        self.user = User.objects.get(username='someuser')
+
+    @staticmethod
+    def _to_xls_encoded_stream(workbook, name):
+        stream = BytesIO()
+        workbook.save(stream)
+        stream.seek(0)
+        encoded_xlsx = base64.b64encode(stream.read())
+        return {
+            'base64Encoded': f'base64:{to_str(encoded_xlsx)}',
+            'name': name,
+        }
+
+    def _construct_xlsx_for_import(self, content, name):
+        workbook_to_import = openpyxl.workbook.Workbook()
+        for sheet_name, sheet_content in content:
+            worksheet = workbook_to_import.create_sheet(sheet_name)
+            for row_num, row_list in enumerate(sheet_content):
+                for col_num, cell_value in enumerate(row_list):
+                    if cell_value and cell_value is not None:
+                        worksheet.cell(row_num + 1, col_num + 1).value = cell_value
+        return self._to_xls_encoded_stream(workbook_to_import, name)
+
+    @staticmethod
+    def _block_content():
+        return (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['text', 'q1', 'Question one'],
+                    ['text', 'q2', 'Question two'],
+                ],
+            ),
+        )
+
+    @staticmethod
+    def _library_content():
+        return (
+            (
+                'library',
+                [
+                    ['block', 'name', 'type', 'label'],
+                    ['flowers', 'rose', 'text', 'Describe the rose'],
+                    ['flowers', 'tulip', 'text', 'Describe the tulip'],
+                    [None, 'loner', 'text', 'A lone question'],
+                ],
+            ),
+        )
+
+    def _enable_mmo(self, owner, admin=None, member=None):
+        organization = owner.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        if admin is not None:
+            organization.add_user(admin, is_admin=True)
+        if member is not None:
+            organization.add_user(member, is_admin=False)
+        return organization
+
+    def _post_upload(self, content, name, login_user=None):
+        if login_user is not None:
+            self.client.force_login(login_user)
+        task_data = self._construct_xlsx_for_import(content, name=name)
+        # No `destination` and no `library` flag: the view defaults `library`
+        # to True, matching a Library "Upload".
+        response = self.client.post(
+            reverse(self._get_endpoint('importtask-list')), task_data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.data['status'], 'complete')
+        return detail_response.data['messages']
+
+    def test_org_admin_upload_transfers_block_to_org_owner(self):
+        """
+        Catches the bug where a Library XLSForm upload kept the uploading org
+        admin as owner instead of the organization owner.
+        """
+        owner = self.user
+        admin = User.objects.get(username='anotheruser')
+        self._enable_mmo(owner, admin)
+
+        messages = self._post_upload(
+            self._block_content(), 'Org block', login_user=admin
+        )
+        created = messages['created'][0]
+        self.assertEqual(created['kind'], 'asset')
+        asset = Asset.objects.get(uid=created['uid'])
+        self.assertEqual(asset.asset_type, ASSET_TYPE_BLOCK)
+        self.assertEqual(asset.owner, owner)
+        self.assertEqual(created['owner__username'], owner.username)
+        self.assertEqual(asset.created_by, admin.username)
+        self.assertTrue(asset.is_excluded_from_projects_list)
+        self.assertTrue(
+            ObjectPermission.objects.filter(
+                asset=asset,
+                user=admin,
+                permission__codename=PERM_MANAGE_ASSET,
+                deny=False,
+                inherited=False,
+            ).exists()
+        )
+
+    def test_org_admin_upload_transfers_library_collection_to_org_owner(self):
+        """
+        Catches the bug where a bulk library-sheet import created a collection
+        (and its children) owned by the uploading admin instead of the org
+        owner.
+        """
+        owner = self.user
+        admin = User.objects.get(username='anotheruser')
+        self._enable_mmo(owner, admin)
+
+        messages = self._post_upload(
+            self._library_content(), 'Org collection', login_user=admin
+        )
+        created = messages['created'][0]
+        self.assertEqual(created['kind'], 'collection')
+        collection = Asset.objects.get(uid=created['uid'])
+        self.assertEqual(collection.owner, owner)
+        self.assertEqual(created['owner__username'], owner.username)
+        self.assertEqual(collection.created_by, admin.username)
+        self.assertTrue(collection.is_excluded_from_projects_list)
+        self.assertTrue(
+            ObjectPermission.objects.filter(
+                asset=collection,
+                user=admin,
+                permission__codename=PERM_MANAGE_ASSET,
+                deny=False,
+                inherited=False,
+            ).exists()
+        )
+        children = collection.children.all()
+        self.assertTrue(children.exists())
+        for child in children:
+            self.assertEqual(child.owner, owner)
+            self.assertEqual(child.created_by, admin.username)
+            self.assertTrue(child.is_excluded_from_projects_list)
+            self.assertTrue(
+                ObjectPermission.objects.filter(
+                    asset=child,
+                    user=admin,
+                    permission__codename=PERM_MANAGE_ASSET,
+                    deny=False,
+                    inherited=False,
+                ).exists()
+            )
+
+    def test_org_owner_upload_keeps_ownership_and_grants_no_extra_perm(self):
+        """
+        Catches a regression where the org owner's own upload would be flagged
+        as transferred or granted a spurious extra ObjectPermission.
+        """
+        owner = self.user
+        self._enable_mmo(owner)
+
+        messages = self._post_upload(self._block_content(), 'Owner block')
+        created = messages['created'][0]
+        asset = Asset.objects.get(uid=created['uid'])
+        self.assertEqual(asset.owner, owner)
+        self.assertEqual(asset.created_by, owner.username)
+        self.assertFalse(asset.is_excluded_from_projects_list)
+        # No permissions assigned to anyone other than the owner.
+        self.assertFalse(
+            ObjectPermission.objects.filter(asset=asset).exclude(user=owner).exists()
+        )
+
+    def test_non_mmo_upload_keeps_uploader_as_owner(self):
+        """
+        Regression guard for the untouched path: a solo (non-MMO) user's upload
+        stays owned by them, since `get_real_owner` returns the uploader.
+        """
+        owner = self.user
+        self.assertFalse(owner.organization.is_mmo)
+
+        messages = self._post_upload(self._block_content(), 'Solo block')
+        created = messages['created'][0]
+        asset = Asset.objects.get(uid=created['uid'])
+        self.assertEqual(asset.owner, owner)
+        self.assertEqual(asset.created_by, owner.username)
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+    def test_org_member_can_delete_own_transferred_upload(self):
+        """
+        Catches the regression where transferring ownership without recording
+        `created_by` strips a plain org member of the right to delete their own
+        upload (the backend's non-owner delete rule requires
+        `created_by == user.username`).
+        """
+        owner = self.user
+        member = User.objects.get(username='anotheruser')
+        self._enable_mmo(owner, member=member)
+
+        messages = self._post_upload(
+            self._block_content(), 'Member block', login_user=member
+        )
+        uid = messages['created'][0]['uid']
+        asset = Asset.objects.get(uid=uid)
+        self.assertEqual(asset.owner, owner)
+        self.assertEqual(asset.created_by, member.username)
+
+        # The member (still logged in from the upload) deletes their upload.
+        response = self.client.delete(
+            reverse(self._get_endpoint('asset-detail'), kwargs={'uid_asset': uid})
+        )
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT, msg=response.data
+        )
+        remaining = Asset.objects.filter(uid=uid)
+        self.assertTrue(not remaining.exists() or remaining.first().pending_delete)
+
+    def test_org_member_can_delete_child_of_own_transferred_collection(self):
+        """
+        Catches the regression where children of a transferred collection only
+        inherit view/change (`HERITABLE_PERMISSIONS`), so without a per-child
+        manage grant the uploading member cannot delete a single item they
+        uploaded.
+        """
+        owner = self.user
+        member = User.objects.get(username='anotheruser')
+        self._enable_mmo(owner, member=member)
+
+        messages = self._post_upload(
+            self._library_content(), 'Member collection', login_user=member
+        )
+        collection = Asset.objects.get(uid=messages['created'][0]['uid'])
+        children = list(collection.children.all())
+        self.assertGreater(len(children), 1)
+        child = children[0]
+
+        # The member (still logged in from the upload) deletes a single child.
+        response = self.client.delete(
+            reverse(
+                self._get_endpoint('asset-detail'),
+                kwargs={'uid_asset': child.uid},
+            )
+        )
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT, msg=response.data
+        )
+        remaining_child = Asset.objects.filter(uid=child.uid)
+        self.assertTrue(
+            not remaining_child.exists() or remaining_child.first().pending_delete
+        )
+        # The collection and the other children are untouched.
+        self.assertTrue(Asset.objects.filter(uid=collection.uid).exists())
+        for other in children[1:]:
+            self.assertTrue(Asset.objects.filter(uid=other.uid).exists())

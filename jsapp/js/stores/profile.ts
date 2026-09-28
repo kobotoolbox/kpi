@@ -4,14 +4,17 @@ import { dataInterface } from '#/dataInterface'
 import type { AccountResponse, FailResponse } from '#/dataInterface'
 import type { ProjectViewsSettings } from '#/projects/customViewStore'
 import { ANON_USERNAME } from '#/users/utils'
-import { currentLang, log, notify } from '#/utils'
+import { currentLang, log } from '#/utils'
 
-class SessionStore {
+class ProfileStore {
   currentAccount: AccountResponse | { username: string; date_joined: string } = {
     username: ANON_USERNAME,
     date_joined: '',
   }
   isAuthStateKnown = false
+  /** Set when `/me/` could not be read at all, which is a different thing from reading it and finding nobody. */
+  isAuthStateCheckFailed = false
+  /** @deprecated Auth status will be provided by the allauth /session endpoint. Use that instead. */
   isLoggedIn = false
   isValidatedPassword = false
   isInitialLoadComplete = false
@@ -51,12 +54,11 @@ class SessionStore {
       }),
       action('verifyLoginFailure', (xhr: FailResponse) => {
         this.isPending = false
-        // Nothing more is coming, so let the app render: `AllRoutes` holds a spinner until this is set, and
-        // leaving it unset on a failure means spinning for good. Whoever this is stays anonymous, because
-        // `currentAccount` never got filled in.
-        this.isAuthStateKnown = true
+        // `isAuthStateKnown` deliberately stays false: a failed check is not the anonymous answer it would
+        // otherwise look like, and treating it as one would send a signed-in account to the login page. This
+        // is what `AllRoutes` shows a way to retry on, instead of spinning for good.
+        this.isAuthStateCheckFailed = true
         log('login not verified', xhr.status, xhr.statusText)
-        notify.error(t('Could not check whether you are signed in. Please reload the page.'))
       }),
     )
   }
@@ -96,4 +98,4 @@ class SessionStore {
   }
 }
 
-export default new SessionStore()
+export default new ProfileStore()

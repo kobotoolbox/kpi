@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { FlowId } from '#/api/models/flowId'
 import { useAllauthBrowserV1Auth2faAuthenticatePost } from '#/api/react-query/authentication-allauth-headless'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateRequiredField } from '#/auth/authValidation'
@@ -66,7 +66,7 @@ export interface MfaFormProps {
  * is in the allauth session and not in the URL - there is no address that could be opened to get here.
  */
 export default function MfaForm({ onOutcome }: MfaFormProps) {
-  const { data } = useAuthConfiguration()
+  const { data: environment } = useAuthEnvironment()
   const [isShowingIssues, setIsShowingIssues] = useState(false)
 
   const form = useForm<MfaFormValues>({
@@ -121,7 +121,7 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
         <Text>
           {t(
             'Use the ##number##-character token displayed by your authenticator app or one of your backup codes.',
-          ).replace('##number##', String(data?.mfaCodeLength ?? DEFAULT_CODE_LENGTH))}
+          ).replace('##number##', String(environment?.mfaCodeLength ?? DEFAULT_CODE_LENGTH))}
         </Text>
       </Stack>
 

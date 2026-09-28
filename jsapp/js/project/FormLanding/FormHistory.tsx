@@ -13,7 +13,7 @@ import {
 import ActionIcon from '#/components/common/ActionIcon'
 import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime } from '#/utils'
 
 const ITEMS_PER_PAGE = 10
@@ -63,7 +63,7 @@ function getVersionName(
  * Displays a table with a list of previous form versions, including both deployed and undeployed versions.
  */
 export default function FormHistory(props: FormHistoryProps) {
-  const isLoggedIn = sessionStore.isLoggedIn
+  const isLoggedIn = profileStore.isLoggedIn
 
   useEffect(() => {
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in

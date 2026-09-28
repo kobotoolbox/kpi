@@ -2,7 +2,7 @@
 var mockedCurrentAccount
 var mockedGetQueryData
 
-jest.mock('#/stores/session', () => {
+jest.mock('#/stores/profile', () => {
   mockedCurrentAccount = { username: 'alice' }
   return {
     __esModule: true,

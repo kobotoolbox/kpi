@@ -7,7 +7,7 @@ import {
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
 import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
 
 jest.mock('#/api/react-query/survey-data', () => {
@@ -22,9 +22,9 @@ jest.mock('#/api/react-query/survey-data', () => {
   }
 })
 
-jest.mock('#/stores/useSession', () => {
+jest.mock('#/stores/useProfile', () => {
   return {
-    useSession: jest.fn(),
+    useProfile: jest.fn(),
   }
 })
 
@@ -65,7 +65,7 @@ function buildBulkAction(
 }
 
 describe('useDataTableBulkActions', () => {
-  const useSessionMock = useSession as jest.MockedFunction<typeof useSession>
+  const useProfileMock = useProfile as jest.MockedFunction<typeof useProfile>
   const useBulkActionsListMock = useAssetsAdvancedFeaturesBulkActionsList as jest.MockedFunction<
     typeof useAssetsAdvancedFeaturesBulkActionsList
   >
@@ -76,9 +76,8 @@ describe('useDataTableBulkActions', () => {
 
   function mockSession(username: string | undefined, isPending = false) {
     // Hook only needs username and pending state; the remaining methods are stubbed.
-    useSessionMock.mockReturnValue({
-      currentLoggedAccount: { username } as ReturnType<typeof useSession>['currentLoggedAccount'],
-      isAnonymous: false,
+    useProfileMock.mockReturnValue({
+      currentLoggedAccount: { username } as ReturnType<typeof useProfile>['currentLoggedAccount'],
       isPending,
       refreshAccount: jest.fn(),
     })

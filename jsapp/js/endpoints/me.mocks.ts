@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, delay } from 'msw'
 import type { AccountFieldsErrors } from '#/account/account.constants'
 import type { MeListResponse } from '#/api/models/meListResponse'
 import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
@@ -55,8 +55,17 @@ export default meMock
  */
 const ME_URL = '*/me{/}?'
 
-/** Profile details saved. The body is not read - the screen reloads the page on success. */
-export const meUpdateSuccessMock = () => http.patch(ME_URL, () => HttpResponse.json(meMockResponse))
+/**
+ * Profile details saved. The body is not read - the screen reloads the page on success. `delayMs` holds the
+ * answer back, so a story can click something else while the save is still in flight.
+ */
+export const meUpdateSuccessMock = ({ delayMs }: { delayMs?: number } = {}) =>
+  http.patch(ME_URL, async () => {
+    if (delayMs) {
+      await delay(delayMs)
+    }
+    return HttpResponse.json(meMockResponse)
+  })
 
 /**
  * A rejected save, in either of the two shapes the endpoint answers in.

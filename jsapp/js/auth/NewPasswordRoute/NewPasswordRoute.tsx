@@ -8,7 +8,7 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
@@ -123,7 +123,7 @@ export default function NewPasswordRoute() {
 }
 
 function NewPasswordPanels({ resetKey }: { resetKey: string }) {
-  const { data } = useAuthConfiguration()
+  const { data } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<NewPasswordOutcome | null>(null)
 
   const keyCheck = useAllauthBrowserV1AuthPasswordResetGet({
