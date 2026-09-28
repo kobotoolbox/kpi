@@ -59,6 +59,27 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         response = self.view(request)
         self.validate_openrosa_head_response(response)
 
+    def test_anonymous_submission_for_mixed_case_username(self):
+        self.user.username = 'RW003765'
+        self.user.save(update_fields=['username'])
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+
+        request = self.factory.post('/submission', data, format='json')
+        request.user = AnonymousUser()
+        response = self.view(request, username=self.user.username)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_query_counts(self):
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
