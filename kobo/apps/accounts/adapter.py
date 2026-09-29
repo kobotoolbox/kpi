@@ -205,35 +205,44 @@ class HeadlessAdapter(DefaultHeadlessAdapter):
     session endpoint, so the frontend can read it there instead of `/me`
     """
 
+    # allauth asks for the dataclass on every serialization, so build it once
+    # rather than on each authentication response
+    _user_dataclass = None
+
     def get_user_dataclass(self):
         # Override `get_user_dataclass()` and `user_as_dataclass()` rather than
         # `serialize_user()`: allauth only reflects the extra field in the
         # published OpenAPI schema when it is declared on the dataclass
-        user_dataclass = super().get_user_dataclass()
-        return dataclasses.make_dataclass(
-            'User',
-            [
-                (
-                    'has_validated_password',
-                    bool,
-                    dataclasses.field(
-                        # A default is required: allauth's `user_as_dataclass()`
-                        # instantiates this class without knowing about the
-                        # field. `user_as_dataclass()` below fills in the real
-                        # value
-                        default=True,
-                        metadata={
-                            'description': (
-                                'Whether the account is restricted because an '
-                                'administrator invalidated its password.'
-                            ),
-                            'example': True,
-                        },
-                    ),
-                )
-            ],
-            bases=(user_dataclass,),
-        )
+        if HeadlessAdapter._user_dataclass is None:
+            HeadlessAdapter._user_dataclass = dataclasses.make_dataclass(
+                'User',
+                [
+                    (
+                        'has_validated_password',
+                        bool,
+                        dataclasses.field(
+                            # A default is required: allauth's
+                            # `user_as_dataclass()` instantiates this class
+                            # without knowing about the field.
+                            # `user_as_dataclass()` below fills in the real value
+                            default=True,
+                            metadata={
+                                'description': (
+                                    'Whether the account password is valid. '
+                                    'False once an administrator has '
+                                    'invalidated it, which restricts the '
+                                    'account until the user resets their '
+                                    'password.'
+                                ),
+                                'example': True,
+                            },
+                        ),
+                    )
+                ],
+                bases=(super().get_user_dataclass(),),
+            )
+
+        return HeadlessAdapter._user_dataclass
 
     def user_as_dataclass(self, user):
         user_dataclass = super().user_as_dataclass(user)

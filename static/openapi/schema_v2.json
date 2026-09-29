@@ -35675,7 +35675,7 @@
                         "type": "string"
                     },
                     "has_validated_password": {
-                        "description": "Whether the account is restricted because an administrator invalidated its password.",
+                        "description": "Whether the account password is valid. False once an administrator has invalidated it, which restricts the account until the user resets their password.",
                         "example": true,
                         "type": "boolean"
                     }
