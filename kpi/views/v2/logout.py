@@ -2,6 +2,7 @@ from allauth.account.adapter import get_adapter as get_account_adapter
 from allauth.usersessions.adapter import get_adapter
 from allauth.usersessions.models import UserSession
 from django.contrib.auth import logout as auth_logout
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -9,6 +10,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
+from kpi.schema_extensions.v2.logout.serializers import LogoutResponse
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 class LogoutView(APIView):
@@ -19,6 +23,17 @@ class LogoutView(APIView):
 
     permission_classes = (AllowAny,)
 
+    @extend_schema(
+        tags=['User / team / organization / usage'],
+        description=read_md('kpi', 'logout/post.md'),
+        responses=open_api_200_ok_response(
+            LogoutResponse,
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+    )
     def post(self, request, *args, **kwargs):
         adapter = get_account_adapter()
         redirect_url = adapter.get_logout_redirect_url(request)
