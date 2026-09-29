@@ -21,6 +21,6 @@ export interface User {
   has_usable_password: boolean
   /** The username. */
   username: string
-  /** Whether the account password is valid. False once an administrator has invalidated it, which restricts the account until the user resets their password. */
+  /** Whether the account password is valid. An administrator can invalidate it, setting this to false and restricting the account. */
   has_validated_password: boolean
 }

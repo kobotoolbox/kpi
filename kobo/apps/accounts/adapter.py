@@ -229,10 +229,9 @@ class HeadlessAdapter(DefaultHeadlessAdapter):
                             metadata={
                                 'description': (
                                     'Whether the account password is valid. '
-                                    'False once an administrator has '
-                                    'invalidated it, which restricts the '
-                                    'account until the user resets their '
-                                    'password.'
+                                    'An administrator can invalidate it, '
+                                    'setting this to false and restricting '
+                                    'the account.'
                                 ),
                                 'example': True,
                             },
