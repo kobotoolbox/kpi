@@ -13,6 +13,7 @@ from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.logout.serializers import LogoutResponse
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.versioning import APIV2Versioning
 
 
 class LogoutView(APIView):
@@ -22,6 +23,7 @@ class LogoutView(APIView):
     """
 
     permission_classes = (AllowAny,)
+    versioning_class = APIV2Versioning
 
     @extend_schema(
         tags=['User / team / organization / usage'],

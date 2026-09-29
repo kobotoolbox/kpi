@@ -17296,6 +17296,36 @@
                 }
             }
         },
+        "/logout/": {
+            "post": {
+                "operationId": "logout_create",
+                "description": "## Log out current user session\n\nLog out the current user session and return a redirect URL if any was configured for the IdP used to log in.\n",
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LogoutResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    }
+                }
+            }
+        },
         "/me/": {
             "get": {
                 "operationId": "me_retrieve",
@@ -27171,6 +27201,18 @@
                 "required": [
                     "code",
                     "name"
+                ]
+            },
+            "LogoutResponse": {
+                "type": "object",
+                "properties": {
+                    "redirect_url": {
+                        "type": "string",
+                        "description": "URL to redirect to after logout"
+                    }
+                },
+                "required": [
+                    "redirect_url"
                 ]
             },
             "LogsRetryResponse": {
