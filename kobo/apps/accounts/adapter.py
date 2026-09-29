@@ -1,14 +1,18 @@
+import dataclasses
+
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.core.internal.httpkit import is_headless_request
+from allauth.headless.adapter import DefaultHeadlessAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
@@ -193,3 +197,64 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 },
             )
         )
+
+
+class HeadlessAdapter(DefaultHeadlessAdapter):
+    """
+    Adds `has_validated_password` to the user payload returned by the allauth
+    session endpoint, so the frontend can read it there instead of `/me`
+    """
+
+    def get_user_dataclass(self):
+        # Override `get_user_dataclass()` and `user_as_dataclass()` rather than
+        # `serialize_user()`: allauth only reflects the extra field in the
+        # published OpenAPI schema when it is declared on the dataclass
+        user_dataclass = super().get_user_dataclass()
+        return dataclasses.make_dataclass(
+            'User',
+            [
+                (
+                    'has_validated_password',
+                    bool,
+                    dataclasses.field(
+                        # A default is required: allauth's `user_as_dataclass()`
+                        # instantiates this class without knowing about the
+                        # field. `user_as_dataclass()` below fills in the real
+                        # value
+                        default=True,
+                        metadata={
+                            'description': (
+                                'Whether the account is restricted because an '
+                                'administrator invalidated its password.'
+                            ),
+                            'example': True,
+                        },
+                    ),
+                )
+            ],
+            bases=(user_dataclass,),
+        )
+
+    def user_as_dataclass(self, user):
+        user_dataclass = super().user_as_dataclass(user)
+        return dataclasses.replace(
+            user_dataclass,
+            has_validated_password=self._has_validated_password(user),
+        )
+
+    def _has_validated_password(self, user) -> bool:
+        """
+        `ExtraUserDetail.validated_password` is the source of truth; the KoboCAT
+        copy on `UserProfile` is synced from it. It defaults to True and only an
+        administrator sets it to False, so an account without `extra_details`
+        was never invalidated
+        """
+        if not user.pk:
+            return True
+
+        try:
+            extra_details = user.extra_details
+        except get_user_model().extra_details.RelatedObjectDoesNotExist:
+            return True
+
+        return extra_details.validated_password
