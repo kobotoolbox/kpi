@@ -643,7 +643,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     const isLoggedIn = profileStore.isLoggedIn
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | ${t('Form')} | KoboToolbox`}>
         <bem.FormView m='form'>
           <LimitNotifications />
           <bem.FormView__row>

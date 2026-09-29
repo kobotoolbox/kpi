@@ -47,10 +47,11 @@ function FormSubScreens(props: FormSubScreensProps) {
 
   const renderSettingsEditor = (loadedAsset: AssetResponse) => {
     const docTitle = loadedAsset.name || t('Untitled')
+
     return (
       // TODO: `form-view` scss classes can be replaced with style props and the file can be removed once we update the
       // legacy components that use it to mantine style props. For now we can keep using the classes to avoid inconsistencies
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('General')} | KoboToolbox`}>
         <Box className='form-view form-view--form-settings'>
           <LimitNotifications />
           <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={loadedAsset} />
@@ -63,33 +64,50 @@ function FormSubScreens(props: FormSubScreensProps) {
     // The route uid rather than `asset.uid`, because right after navigating to a different project the state can
     // still hold the previous asset for a moment.
     const uid = params.assetid || params.uid
+    const docTitle = loadedAsset.name || t('Untitled')
 
     return (
       // TODO: `form-view` scss classes can be replaced with style props
-      <Box className='form-view form-view--form-settings-sharing'>
-        <LimitNotifications />
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Sharing')} | KoboToolbox`}>
+        <Box className='form-view form-view--form-settings-sharing'>
+          <LimitNotifications />
 
-        {uid && <SharingForm assetUid={uid} />}
+          {uid && <SharingForm assetUid={uid} />}
 
-        <Box mt='xl'>
-          <TransferProjects asset={loadedAsset} />
+          <Box mt='xl'>
+            <TransferProjects asset={loadedAsset} />
+          </Box>
         </Box>
-      </Box>
+      </DocumentTitle>
     )
   }
 
-  const renderRecords = (loadedAsset: AssetResponse) => (
-    // TODO: `form-view` scss classes can be replaced with style props
-    <Box className='form-view connect-projects'>
-      <Suspense fallback={null}>
-        <ConnectProjects asset={loadedAsset} />
-      </Suspense>
-    </Box>
-  )
+  const renderRecords = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      // TODO: `form-view` scss classes can be replaced with style props
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Connect Projects')} | KoboToolbox`}>
+        <Box className='form-view connect-projects'>
+          <Suspense fallback={null}>
+            <ConnectProjects asset={loadedAsset} />
+          </Suspense>
+        </Box>
+      </DocumentTitle>
+    )
+  }
 
   const renderReset = () => <LoadingSpinner />
 
-  const renderUpload = (loadedAsset: AssetResponse) => <FormMedia asset={loadedAsset} />
+  const renderUpload = (loadedAsset: AssetResponse) => {
+    const docTitle = loadedAsset.name || t('Untitled')
+
+    return (
+      <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Media')} | KoboToolbox`}>
+        <FormMedia asset={loadedAsset} />
+      </DocumentTitle>
+    )
+  }
 
   // Nothing to render until the asset lands
   if (!asset) {
@@ -100,24 +118,37 @@ function FormSubScreens(props: FormSubScreensProps) {
   // `case`s using them build a path that no other route's pathname can match.
   const viewby = params.viewby ?? ''
   const hookUid = params.hookUid ?? ''
+  const docTitle = asset.name || t('Untitled')
 
   switch (location.pathname) {
     case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
       return (
-        <Suspense fallback={null}>
-          <DataTable asset={asset} />
-        </Suspense>
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Table')} | KoboToolbox`}>
+          <Suspense fallback={null}>
+            <DataTable asset={asset} />
+          </Suspense>
+        </DocumentTitle>
       )
     case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
       return (
-        <Suspense fallback={<div>{t('Image Gallery')}</div>}>
-          <FormGallery asset={asset} />
-        </Suspense>
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Gallery')} | KoboToolbox`}>
+          <Suspense fallback={<div>{t('Image Gallery')}</div>}>
+            <FormGallery asset={asset} />
+          </Suspense>
+        </DocumentTitle>
       )
     case ROUTES.FORM_MAP.replace(':uid', asset.uid):
-      return <FormMapWrapper asset={asset} />
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
+          <FormMapWrapper asset={asset} />
+        </DocumentTitle>
+      )
     case ROUTES.FORM_MAP_BY.replace(':uid', asset.uid).replace(':viewby', viewby):
-      return <FormMapWrapper asset={asset} viewby={viewby} />
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Map')} | KoboToolbox`}>
+          <FormMapWrapper asset={asset} viewby={viewby} />
+        </DocumentTitle>
+      )
     case ROUTES.FORM_DOWNLOADS.replace(':uid', asset.uid):
       return (
         <Suspense fallback={null}>
@@ -139,7 +170,11 @@ function FormSubScreens(props: FormSubScreensProps) {
     case ROUTES.FORM_RESET.replace(':uid', asset.uid):
       return renderReset()
     case ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid):
-      return <FormActivity />
+      return (
+        <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('Activity')} | KoboToolbox`}>
+          <FormActivity />
+        </DocumentTitle>
+      )
   }
 
   // For TS, should never happen
