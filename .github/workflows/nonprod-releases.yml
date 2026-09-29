@@ -69,12 +69,16 @@ jobs:
           docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
           docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED
 
-      - name: Deploy to beta/feature branch
-        if: github.ref_name == 'public-beta' || startsWith(github.ref_name, 'feature/')
+      - name: Deploy to beta
+        if: github.ref_name == 'public-beta'
         run: |
-          RELEASE=${GITHUB_REF_NAME#feature/}
-          [ "$RELEASE" = "public-beta" ] && RELEASE=beta
-          helm -n kobo-dev upgrade $RELEASE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
+          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --version 7.0.0-dev-env --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
+
+      - name: Deploy to feature branch
+        if: startsWith(github.ref_name, 'feature/')
+        run: |
+          BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
+          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --version 7.0.0-dev-env --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
 
   trigger-main-deploy:
     needs: deploy
