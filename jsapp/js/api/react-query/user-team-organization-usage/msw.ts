@@ -34,6 +34,8 @@ import { InviteStatusChoicesEnum } from '../../models/inviteStatusChoicesEnum'
 
 import { InviteeRoleEnum } from '../../models/inviteeRoleEnum'
 
+import type { LogoutResponse } from '../../models/logoutResponse'
+
 import type { MeListResponse } from '../../models/meListResponse'
 
 import type { MemberListResponse } from '../../models/memberListResponse'
@@ -1322,6 +1324,11 @@ export const getApiV2UsersRetrieveResponseMock = (
   ...overrideResponse,
 })
 
+export const getLogoutCreateResponseMock = (overrideResponse: Partial<LogoutResponse> = {}): LogoutResponse => ({
+  redirect_url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
 export const getMeRetrieveResponseMock = (overrideResponse: Partial<MeListResponse> = {}): MeListResponse => ({
   username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   first_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -2250,6 +2257,30 @@ export const getApiV2UsersRetrieveMockHandler = (
   )
 }
 
+export const getLogoutCreateMockHandler = (
+  overrideResponse?:
+    | LogoutResponse
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<LogoutResponse> | LogoutResponse),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/logout{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getLogoutCreateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
 export const getMeRetrieveMockHandler = (
   overrideResponse?:
     | MeListResponse
@@ -2460,6 +2491,7 @@ export const getUserTeamOrganizationUsageMock = () => [
   getApiV2ServiceUsageListMockHandler(),
   getApiV2UsersListMockHandler(),
   getApiV2UsersRetrieveMockHandler(),
+  getLogoutCreateMockHandler(),
   getMeRetrieveMockHandler(),
   getMePartialUpdateMockHandler(),
   getMeDestroyMockHandler(),

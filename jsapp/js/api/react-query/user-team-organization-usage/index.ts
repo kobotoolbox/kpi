@@ -43,6 +43,8 @@ import type { InviteCreateResponse } from '../../models/inviteCreateResponse'
 
 import type { InviteResponse } from '../../models/inviteResponse'
 
+import type { LogoutResponse } from '../../models/logoutResponse'
+
 import type { MeEmailsListParams } from '../../models/meEmailsListParams'
 
 import type { MeListResponse } from '../../models/meListResponse'
@@ -3346,6 +3348,64 @@ export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve
   return query
 }
 
+/**
+ * ## Log out current user session
+
+Log out the current user session and return a redirect URL if any was configured for the IdP used to log in.
+
+ */
+export type logoutCreateResponse200 = {
+  data: LogoutResponse
+  status: 200
+}
+
+export type logoutCreateResponseSuccess = logoutCreateResponse200 & {
+  headers: Headers
+}
+
+export type logoutCreateResponse = logoutCreateResponseSuccess
+
+export const getLogoutCreateUrl = () => {
+  return `/logout/`
+}
+
+export const logoutCreate = async (options?: RequestInit): Promise<logoutCreateResponse> => {
+  return fetchWithAuth<logoutCreateResponse>(getLogoutCreateUrl(), {
+    ...options,
+    method: 'POST',
+  })
+}
+
+export const getLogoutCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof logoutCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<Awaited<ReturnType<typeof logoutCreate>>, TError, void, TContext> => {
+  const mutationKey = ['logoutCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof logoutCreate>>, void> = () => {
+    return logoutCreate(requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type LogoutCreateMutationResult = NonNullable<Awaited<ReturnType<typeof logoutCreate>>>
+
+export type LogoutCreateMutationError = unknown
+
+export const useLogoutCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof logoutCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getLogoutCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
 /**
  * ## Retrieve current user profile
 
