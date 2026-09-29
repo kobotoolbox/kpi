@@ -428,21 +428,22 @@ class SocialAccountLogoutTestCase(TestCase):
         self.assertEqual(query.get('id_token_hint'), ['discovered-id-token'])
         self.assertEqual(query.get('client_id'), ['kpi-client-id'])
 
-    def test_prompt_login_syncs_auth_params_in_settings(self):
+    def test_prompt_login_applies_auth_params_at_runtime(self):
         custom_data = SocialAppCustomData.objects.create(
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.PROMPT_LOGIN,
         )
-        self.social_app.refresh_from_db()
+        adapter = SocialAccountAdapter()
+        app = adapter.get_app(None, self.social_app.provider_id)
         self.assertEqual(
-            self.social_app.settings.get('auth_params', {}).get('prompt'),
+            app.settings.get('auth_params', {}).get('prompt'),
             'login',
         )
 
         custom_data.logout_behavior = SocialAppCustomData.LogoutBehavior.LOCAL_ONLY
         custom_data.save()
-        self.social_app.refresh_from_db()
-        self.assertNotIn('prompt', self.social_app.settings.get('auth_params', {}))
+        app = adapter.get_app(None, self.social_app.provider_id)
+        self.assertNotIn('prompt', app.settings.get('auth_params', {}))
 
     def test_multiple_social_accounts_resolves_deterministically_via_session(self):
         SocialAccount.objects.create(
