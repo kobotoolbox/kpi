@@ -291,6 +291,26 @@ class AccountAdapter(DefaultAccountAdapter):
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
+    def get_app(self, request, provider, client_id=None):
+        app = super().get_app(request, provider, client_id=client_id)
+        if app:
+            try:
+                custom_data = app.custom_data
+            except SocialAppCustomData.DoesNotExist:
+                custom_data = None
+
+            if (
+                custom_data
+                and custom_data.logout_behavior
+                == SocialAppCustomData.LogoutBehavior.PROMPT_LOGIN
+            ):
+                settings = dict(app.settings or {})
+                auth_params = dict(settings.get('auth_params', {}))
+                auth_params['prompt'] = 'login'
+                settings['auth_params'] = auth_params
+                app.settings = settings
+        return app
+
     def is_open_for_signup(self, request, sociallogin):
         email = sociallogin.user.email
         domain = email.split('@')[1].lower()
