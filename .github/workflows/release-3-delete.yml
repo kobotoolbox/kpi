@@ -33,12 +33,15 @@ jobs:
     needs:
       - version
     runs-on: ubuntu-24.04
+    outputs:
+      branch_tip: ${{ steps.validate.outputs.branch_tip }}
     steps:
     - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
     - name: Validate branch is unreleased and has no tags
+      id: validate
       env:
         BRANCH: ${{ inputs.release_branch }}
         CURRENT_RELEASED: ${{ needs.version.outputs.current_released }}
@@ -52,6 +55,8 @@ jobs:
           echo "::error::Branch '$BRANCH' does not exist."
           exit 1
         fi
+        BRANCH_TIP=$(git rev-parse "origin/$BRANCH")
+        echo "branch_tip=$BRANCH_TIP" >> "$GITHUB_OUTPUT"
 
 
   retarget-prs:
@@ -82,14 +87,29 @@ jobs:
   delete-branch:
     needs:
       - version
+      - validate
       - retarget-prs
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v7
+      with:
+        fetch-depth: 1
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    - name: Verify branch tip has not moved
+      env:
+        BRANCH: ${{ inputs.release_branch }}
+        EXPECTED_TIP: ${{ needs.validate.outputs.branch_tip }}
+      run: |
+        set -xe
+        git fetch origin "$BRANCH"
+        CURRENT_TIP=$(git rev-parse "origin/$BRANCH")
+        if [[ "$CURRENT_TIP" != "$EXPECTED_TIP" ]]; then
+          echo "::error::Branch tip moved ($EXPECTED_TIP → $CURRENT_TIP). A stabilize run may be queued — aborting deletion."
+          exit 1
+        fi
     - name: Delete release branch
       env:
         BRANCH: ${{ inputs.release_branch }}
