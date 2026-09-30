@@ -80,7 +80,7 @@ export default function AnalysisQuestionListItem({
 }: Props) {
   const rootUuid = getSubmissionRootUuid(submission)
 
-  const isAnalysisSourceAvailable = hasAnalysisSource(asset.content, supplement, questionXpath)
+  const isAnalysisSourceAvailable = hasAnalysisSource(asset.content, submission, supplement, questionXpath)
 
   const queryAnswer = useAssetsDataSupplementRetrieve(asset.uid, rootUuid, {
     query: {

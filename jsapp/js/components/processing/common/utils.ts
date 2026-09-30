@@ -1,5 +1,6 @@
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
 import type { SupplementalDataAutomaticTranslation } from '#/api/models/supplementalDataAutomaticTranslation'
@@ -377,16 +378,21 @@ export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolea
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
  * questions are analyzed straight from the submission answer (mirroring the back
- * end's `RequiresTranscriptionMixin.attach_action_dependency`); every other type
- * needs a transcript first.
+ * end's `RequiresTranscriptionMixin.attach_action_dependency`), so they need a
+ * non-empty answer; every other type needs a transcript first.
  */
 export const hasAnalysisSource = (
   assetContent: AssetContent | undefined,
+  submission: DataResponse,
   supplementData: DataSupplementResponse,
   xpath: string,
-): boolean =>
-  isTextQuestionType(findRowByXpath(assetContent ?? {}, xpath)?.type) ||
-  getLatestTranscriptVersionItem(supplementData, xpath) !== undefined
+): boolean => {
+  if (isTextQuestionType(findRowByXpath(assetContent ?? {}, xpath)?.type)) {
+    const answer = submission[xpath]
+    return typeof answer === 'string' && answer.trim() !== ''
+  }
+  return getLatestTranscriptVersionItem(supplementData, xpath) !== undefined
+}
 
 // Displays
 
