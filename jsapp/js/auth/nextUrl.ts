@@ -63,7 +63,7 @@ export function getRouteWithNext(routePath: string, currentRoute: string | null)
   if (currentPath === routePath || isAuthenticationScreen(currentPath)) {
     return routePath
   }
-  const params = new URLSearchParams({ next: `/#${routePath}` })
+  const params = new URLSearchParams({ next: `/#${currentRoute}` })
   return `${routePath}?${params}`
 }
 
