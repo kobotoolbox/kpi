@@ -55,8 +55,9 @@ import {
 import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
+  buildColumnRowFinder,
   buildFilterQuery,
-  getAllDataColumns,
+  getAllDataColumnsWithAliases,
   getColumnHXLTags,
   getColumnLabel,
   getVisibleAudioXpaths,
@@ -793,7 +794,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Builds and gathers all necessary react-table data and stores in state.
    */
   _prepColumns(data: SubmissionResponse[]) {
-    const allColumns = getAllDataColumns(this.props.asset, data, this.props.activeBulkActions)
+    const { columns: allColumns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+      this.props.asset,
+      data,
+      this.props.activeBulkActions,
+    )
 
     let showLabels = this.state.showLabels
     let showGroupName = this.state.showGroupName
@@ -838,18 +843,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // so it's quite the task :)
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
 
+    const findRowForColumn = buildColumnRowFinder(survey ?? [])
+
     allColumns.forEach((key: string) => {
-      let q: SurveyRow | undefined
-      let rootParentGroup: string | undefined
-      if (key.includes('/')) {
-        const qParentG = key.split('/')
-        rootParentGroup = qParentG[0]
-        q = survey?.find(
-          (o) => o.name === qParentG[qParentG.length - 1] || o.$autoname === qParentG[qParentG.length - 1],
-        )
-      } else {
-        q = survey?.find((o) => o.name === key || o.$autoname === key)
-      }
+      const q: SurveyRow | undefined = findRowForColumn(key)
+      const rootParentGroup: string | undefined = key.includes('/') ? key.split('/')[0] : undefined
 
       if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {
         return false
@@ -934,6 +932,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             asset={this.props.asset}
             reactTableRow={row}
             columnKey={key}
+            legacyAttachmentPaths={legacyAttachmentPathsByColumn.get(key)}
             question={q}
             choices={choices}
             showGroupName={this.state.showGroupName}
