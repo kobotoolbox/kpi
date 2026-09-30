@@ -19637,6 +19637,8 @@ components:
               type: string
             name:
               type: string
+            gender:
+              type: string
             sector:
               type: string
             country:
@@ -19660,7 +19662,7 @@ components:
             require_auth:
               type: boolean
             newsletter_subscription:
-              type: string
+              type: boolean
         git_rev:
           oneOf:
           - type: boolean
@@ -21412,6 +21414,8 @@ components:
               type: string
             name:
               type: string
+            gender:
+              type: string
             sector:
               type: string
             country:
@@ -21435,7 +21439,7 @@ components:
             require_auth:
               type: boolean
             newsletter_subscription:
-              type: string
+              type: boolean
         current_password:
           type: string
           writeOnly: true
