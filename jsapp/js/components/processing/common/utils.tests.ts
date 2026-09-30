@@ -4,7 +4,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import { QUESTION_TYPES } from '#/constants'
-import type { AssetContent } from '#/dataInterface'
+import { FeatureFlag } from '#/featureFlags'
 import {
   getBlockedTargetLanguages,
   getSuggestedLanguages,
@@ -256,52 +256,49 @@ describe('hasAnalysisSource', () => {
     dateCreated: '2026-01-01T10:00:00Z',
     dateAccepted: '2026-01-01T11:00:00Z',
   })
-
-  /** Builds asset content holding a single question of the given type at `XPATH`. */
-  function buildContent(type: string): AssetContent {
-    return { survey: [{ $kuid: 'k1', $xpath: XPATH, name: XPATH, type }] } as AssetContent
-  }
+  const TEXT = QUESTION_TYPES.text.id
+  const AUDIO = QUESTION_TYPES.audio.id
 
   /** Builds a submission whose answer at `XPATH` is the given value (omitted when `undefined`). */
   function buildSubmission(answer?: string): DataResponse {
     return (answer === undefined ? {} : { [XPATH]: answer }) as unknown as DataResponse
   }
 
+  /** Feature flags are read from session storage, see `checkFeatureFlag`. */
+  function setTextActionsFlag(enabled: boolean) {
+    sessionStorage.setItem(
+      'feature_flags',
+      JSON.stringify(enabled ? { [FeatureFlag.nlpTextActionsEnabled]: true } : {}),
+    )
+  }
+
+  beforeEach(() => setTextActionsFlag(true))
+  afterEach(() => sessionStorage.removeItem('feature_flags'))
+
   it('is true for a text question with an answer, even without a transcript', () => {
-    chai
-      .expect(
-        hasAnalysisSource(buildContent(QUESTION_TYPES.text.id), buildSubmission('hello'), buildSupplement([]), XPATH),
-      )
-      .to.equal(true)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission('hello'), buildSupplement([]), XPATH)).to.equal(true)
   })
 
   it('is false for a text question without an answer', () => {
-    const content = buildContent(QUESTION_TYPES.text.id)
-    chai.expect(hasAnalysisSource(content, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
-    chai.expect(hasAnalysisSource(content, buildSubmission(''), buildSupplement([]), XPATH)).to.equal(false)
-    chai.expect(hasAnalysisSource(content, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission(''), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  it('is false for a text question when the text actions feature flag is off', () => {
+    setTextActionsFlag(false)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission('hello'), buildSupplement([]), XPATH)).to.equal(false)
   })
 
   it('is false for an audio question without a transcript', () => {
-    chai
-      .expect(hasAnalysisSource(buildContent(QUESTION_TYPES.audio.id), buildSubmission(), buildSupplement([]), XPATH))
-      .to.equal(false)
+    chai.expect(hasAnalysisSource(AUDIO, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
   })
 
   it('is true for an audio question with a transcript', () => {
-    chai
-      .expect(
-        hasAnalysisSource(
-          buildContent(QUESTION_TYPES.audio.id),
-          buildSubmission(),
-          buildSupplement([TRANSCRIPT]),
-          XPATH,
-        ),
-      )
-      .to.equal(true)
+    chai.expect(hasAnalysisSource(AUDIO, buildSubmission(), buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
   })
 
-  it('falls back to the transcript check when the question is not in the asset content', () => {
+  it('falls back to the transcript check when the question type is unknown', () => {
     chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
   })

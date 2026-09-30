@@ -15,6 +15,7 @@ import {
   useAssetsDataSupplementPartialUpdate,
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
+import { findRowByXpath } from '#/assetUtils'
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
@@ -80,7 +81,12 @@ export default function AnalysisQuestionListItem({
 }: Props) {
   const rootUuid = getSubmissionRootUuid(submission)
 
-  const isAnalysisSourceAvailable = hasAnalysisSource(asset.content, submission, supplement, questionXpath)
+  const isAnalysisSourceAvailable = hasAnalysisSource(
+    findRowByXpath(asset.content ?? {}, questionXpath)?.type,
+    submission,
+    supplement,
+    questionXpath,
+  )
 
   const queryAnswer = useAssetsDataSupplementRetrieve(asset.uid, rootUuid, {
     query: {
