@@ -14,6 +14,7 @@ class ProfileStore {
   isAuthStateKnown = false
   /** @deprecated Auth status will be provided by the allauth /session endpoint. Use that instead. */
   isLoggedIn = false
+  isValidatedPassword = false
   isInitialLoadComplete = false
   isPending = false
   isInitialRoute = true
@@ -41,6 +42,7 @@ class ProfileStore {
         if ('email' in account) {
           this.currentAccount = account
           this.isLoggedIn = true
+          this.isValidatedPassword = account.validated_password
           // Save UI language to Back-end for language usage statistics.
           // Logging in causes the whole page to be reloaded, so we don't need
           // to do it more than once.
