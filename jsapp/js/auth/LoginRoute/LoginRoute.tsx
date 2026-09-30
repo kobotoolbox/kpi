@@ -57,40 +57,51 @@ function EmailVerificationFrame({ children }: { children: ReactNode }) {
 }
 
 /**
- * Right credentials, unconfirmed address - allauth mailed a fresh link while handling the attempt. The
- * version where we know the address, because it was the credential.
+ * Right credentials, unconfirmed address. Nothing was mailed just now, so the copy points at the link from
+ * signup and treats a new one as the way out. The version where we know the address, because it was the
+ * credential.
  */
 function EmailVerificationRequiredPanel({ email }: { email: string }) {
+  const [linkRequested, setLinkRequested] = useState(false)
+
   return (
     <EmailVerificationFrame>
       <Stack gap='xxs'>
-        <Text>{t('Your account is not active yet. We sent a verification link to the address on record:')}</Text>
+        <Text>{t('Your account is not active yet. Activate it with the verification link we sent to:')}</Text>
         <Text fw={500}>{email}</Text>
       </Stack>
 
-      <Text>{t("Be sure to check your spam folder if you don't see it within a few minutes.")}</Text>
-
-      <ResendVerificationLink label={t('Request new link')} email={email} />
+      {linkRequested ? (
+        // Definite, unlike the other panel: the password was right, so this address is on a real account.
+        <Text>{t('A new verification link is on its way to that address.')}</Text>
+      ) : (
+        <>
+          <Text>{t('Check your spam folder too. Links expire, so request a new one if yours no longer works.')}</Text>
+          <ResendVerificationLink label={t('Request new link')} email={email} onSent={() => setLinkRequested(true)} />
+        </>
+      )}
     </EmailVerificationFrame>
   )
 }
 
-/** The same ending after a username login: allauth never says which address it mailed, so a resend has to ask. */
+/** The same ending after a username login: allauth never says which address it used, so a resend has to ask. */
 function EmailVerificationRequiredWithoutAddressPanel() {
   const [linkRequested, setLinkRequested] = useState(false)
 
   return (
     <EmailVerificationFrame>
-      <Text>{t('Your account is not active yet. We sent a verification link to the address on your account.')}</Text>
-
-      <Text>{t("Be sure to check your spam folder if you don't see it within a few minutes.")}</Text>
+      <Text>
+        {t(
+          'Your account is not active yet. Activate it with the verification link we sent to the email address on your account - check your spam folder too.',
+        )}
+      </Text>
 
       {linkRequested ? (
         // Vague on purpose: the address typed in was never checked against an account.
-        <Text>{t('If an account exists for that email address, another verification link is on its way to it.')}</Text>
+        <Text>{t('If an account exists for that email address, a new verification link is on its way to it.')}</Text>
       ) : (
         <>
-          <Text>{t('To have another link sent, enter the email address your account uses:')}</Text>
+          <Text>{t('Links expire. To get a new one, enter the email address your account uses:')}</Text>
           {/* No address to hand it, so it asks for one. */}
           <ResendVerificationLink label={t('Request new link')} onSent={() => setLinkRequested(true)} />
         </>

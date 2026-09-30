@@ -1,15 +1,10 @@
 import { Image, Stack, Text, Title } from '@mantine/core'
-import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useNavigate } from 'react-router-dom'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
-import { withAuthFieldError } from '#/auth/AuthFieldError'
-import { validateRequiredField } from '#/auth/authValidation'
-import ButtonNew from '#/components/common/ButtonNew'
-import TextInput from '#/components/common/TextInput'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import ResetPasswordForm, { type PasswordResetDelivery } from './ResetPasswordForm'
@@ -39,78 +34,36 @@ function EmailSentPanel() {
   )
 }
 
-/**
- * `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED` mails a code where the default mails a link. The code *is* the reset key,
- * so collecting it and going to `NewPasswordRoute` reaches the same screen the link would have.
- */
-function CodeEntryPanel() {
-  const navigate = useNavigate()
-  const form = useForm<{ code: string }>({
-    mode: 'uncontrolled',
-    initialValues: { code: '' },
-    validate: { code: validateRequiredField },
-  })
-
-  const handleSubmit = ({ code }: { code: string }) =>
-    navigate(AUTH_ROUTES.NEW_PASSWORD.replace(':key', encodeURIComponent(code.trim())))
-
-  return (
-    <Stack gap='xl'>
-      <Stack gap='md'>
-        <Title order={1} size='h3'>
-          {t('Enter your reset code')}
-        </Title>
-        {/* Still conditional, so this does not become a way of finding who has an account */}
-        <Text>
-          {t(
-            'If the email address you entered corresponds to an account on this service, a message has been sent with a password reset code.',
-          )}
-        </Text>
-      </Stack>
-
-      <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
-        <Stack gap='xl'>
-          <TextInput
-            label={t('Password reset code')}
-            autoComplete='one-time-code'
-            key={form.key('code')}
-            {...withAuthFieldError(form.getInputProps('code'))}
-            required
-          />
-
-          <ButtonNew type='submit' size='lg' fullWidth>
-            {t('Continue')}
-          </ButtonNew>
-        </Stack>
-      </form>
-    </Stack>
-  )
-}
-
 /** First half of password recovery: the address to mail a link to. Picking new password happens on `NewPasswordRoute`. */
 export default function ResetPasswordRoute() {
   const { data } = useAuthEnvironment()
-  const [delivery, setDelivery] = useState<PasswordResetDelivery | null>(null)
+  const navigate = useNavigate()
+  const [isEmailSent, setIsEmailSent] = useState(false)
+
+  // A code has to be typed somewhere, and the screen that sets the new password is where it is worth anything.
+  const handleRequested = (delivery: PasswordResetDelivery) =>
+    delivery === 'code' ? navigate(AUTH_ROUTES.RESET_PASSWORD_CODE) : setIsEmailSent(true)
 
   function renderCard() {
-    if (delivery === 'link') {
+    if (isEmailSent) {
       return (
         <AuthCard>
           <EmailSentPanel />
         </AuthCard>
       )
     }
-    // The supporting column stays on the states that still have a form in them, so it does not disappear
-    // mid-recovery and then come back on the next screen.
-    const aside = shouldRenderAuthAside(data?.authConfiguration) && (
-      <AuthAside
-        imageUrl={data?.authConfiguration.supporting_image_url}
-        text={data?.authConfiguration.supporting_text}
-      />
-    )
     return (
-      <AuthCard aside={aside}>
-        {delivery === 'code' ? <CodeEntryPanel /> : <ResetPasswordForm onRequested={setDelivery} />}
+      <AuthCard
+        aside={
+          shouldRenderAuthAside(data?.authConfiguration) && (
+            <AuthAside
+              imageUrl={data?.authConfiguration.supporting_image_url}
+              text={data?.authConfiguration.supporting_text}
+            />
+          )
+        }
+      >
+        <ResetPasswordForm onRequested={handleRequested} />
       </AuthCard>
     )
   }
