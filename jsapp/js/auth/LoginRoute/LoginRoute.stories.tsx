@@ -4,6 +4,7 @@ import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import {
   LOGIN_URL,
   allauthConfigurationMock,
@@ -15,7 +16,7 @@ import {
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import { AUTH_ROUTES, PATHS, ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import LoginRoute from './LoginRoute'
 
@@ -95,12 +96,10 @@ const meta: Meta<typeof AuthContainer> = {
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
-
-/** Resolves once allauth's settings have settled one way or the other: the button spins until they have. */
+/**
+ * Resolves once allauth's settings have settled one way or the other: the button spins until they have, so
+ * nobody posts a credential under a key the server does not read.
+ */
 const waitForConfiguration = (canvas: Canvas) =>
   waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
 
@@ -123,9 +122,8 @@ export const Default: Story = {
     expect(field(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
     expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
 
-    // Still the Django screen: the redesign lands in DEV-1852.
-    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', PATHS.RESET)
-    // A router link, so signing up does not reload the page.
+    // Both router links, so neither recovery nor signing up reloads the page.
+    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
     expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.REGISTER)
   },
 }

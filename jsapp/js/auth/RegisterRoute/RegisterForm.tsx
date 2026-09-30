@@ -7,19 +7,13 @@ import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
+import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { AUTH_ROUTES } from '#/router/routerConstants'
-import {
-  validateEmail,
-  validateFullName,
-  validatePassword,
-  validatePasswordConfirm,
-  validateTermsOfService,
-  validateUsername,
-} from './registerValidation'
+import { validateEmail, validateFullName, validateTermsOfService, validateUsername } from './registerValidation'
 
 interface RegisterFormValues {
   name: string

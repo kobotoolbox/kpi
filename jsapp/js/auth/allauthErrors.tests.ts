@@ -1,5 +1,10 @@
 import chai from 'chai'
-import { getPendingFlowIds, isPendingEmailVerification, splitAllauthErrors } from './allauthErrors'
+import {
+  getPendingFlowIds,
+  isPendingEmailVerification,
+  isPendingPasswordResetByCode,
+  splitAllauthErrors,
+} from './allauthErrors'
 
 /** Mirrors what `fetchAllauth` hands to react-query: the parsed body, plus the status it came with. */
 function allauthResponse(status: number, data: unknown) {
@@ -148,5 +153,27 @@ describe('isPendingEmailVerification', () => {
 
   it('rejects a 401 with nothing readable in it', () => {
     chai.expect(isPendingEmailVerification(allauthResponse(401, {}))).to.equal(false)
+  })
+})
+
+describe('isPendingPasswordResetByCode', () => {
+  it('recognises the 401 a code-based reset request answers with', () => {
+    const response = allauthResponse(401, {
+      status: 401,
+      data: { flows: [{ id: 'login' }, { id: 'password_reset_by_code', is_pending: true }] },
+      meta: { is_authenticated: false },
+    })
+
+    chai.expect(isPendingPasswordResetByCode(response)).to.equal(true)
+  })
+
+  it('rejects the 401 of a signup waiting on email verification', () => {
+    const response = allauthResponse(401, { status: 401, data: { flows: [{ id: 'verify_email', is_pending: true }] } })
+
+    chai.expect(isPendingPasswordResetByCode(response)).to.equal(false)
+  })
+
+  it('rejects the 200 the link flow answers with', () => {
+    chai.expect(isPendingPasswordResetByCode(allauthResponse(200, { status: 200 }))).to.equal(false)
   })
 })

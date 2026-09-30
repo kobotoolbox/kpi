@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
@@ -456,6 +457,15 @@ export const environmentResponse = {
  */
 export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
   getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
+
+export const makeAuthConfigurationMock = (
+  authConfiguration: Partial<AuthConfiguration>,
+  override?: Partial<EnvironmentResponse>,
+) =>
+  makeEnvironmentMock({
+    ...override,
+    auth_configuration: { ...environmentResponse.auth_configuration, ...authConfiguration },
+  })
 
 /**
  * A `/environment` that fails every time, for screens that have to cope without it. The URL pattern is the
