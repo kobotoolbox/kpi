@@ -1,7 +1,11 @@
 import { QuestionTypeName } from '#/constants'
 import type { SubmissionAttachment } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import { findAttachmentByQuestionXpath, inferAttachmentQuestionType } from './submissionMediaUtils'
+import {
+  findAttachmentByQuestionXpath,
+  findAttachmentByQuestionXpaths,
+  inferAttachmentQuestionType,
+} from './submissionMediaUtils'
 
 function buildAttachment(overrides: Partial<SubmissionAttachment> = {}): SubmissionAttachment {
   return {
@@ -48,6 +52,50 @@ describe('findAttachmentByQuestionXpath', () => {
 
   it('should return undefined for a submission with no attachments', () => {
     chai.expect(findAttachmentByQuestionXpath(assetDataFactory(1), 'Photo_question')).to.equal(undefined)
+  })
+})
+
+// One column stands for every path a moved question had, and each submission files its file
+// under its own version's path, so the column has to look under all of them.
+describe('findAttachmentByQuestionXpaths', () => {
+  const currentPath = 'a_group/Photo_question'
+  const legacyPath = 'Photo_question'
+
+  it('should find the attachment of a submission made against the current form version', () => {
+    const attachment = buildAttachment({ question_xpath: currentPath })
+    const submission = assetDataFactory(1, { [currentPath]: 'photo.jpg', _attachments: [attachment] })
+    chai.expect(findAttachmentByQuestionXpaths(submission, [currentPath, legacyPath])).to.deep.equal(attachment)
+  })
+
+  it('should find the attachment of a submission made before the question moved', () => {
+    const attachment = buildAttachment({ question_xpath: legacyPath })
+    const submission = assetDataFactory(1, { [legacyPath]: 'photo.jpg', _attachments: [attachment] })
+    chai.expect(findAttachmentByQuestionXpaths(submission, [currentPath, legacyPath])).to.deep.equal(attachment)
+  })
+
+  // Both files stay on a record edited across the move, and the current path is the one
+  // the form asks for now, so it is passed first and has to win.
+  it('should prefer the earlier path in the list when the submission has files under both', () => {
+    const currentAttachment = buildAttachment({ question_xpath: currentPath, uid: 'current' })
+    const legacyAttachment = buildAttachment({ question_xpath: legacyPath, uid: 'legacy' })
+    const submission = assetDataFactory(1, {
+      [currentPath]: 'photo.jpg',
+      [legacyPath]: 'photo.jpg',
+      _attachments: [legacyAttachment, currentAttachment],
+    })
+    chai.expect(findAttachmentByQuestionXpaths(submission, [currentPath, legacyPath])).to.deep.equal(currentAttachment)
+  })
+
+  it('should return undefined when none of the paths has an attachment', () => {
+    const submission = assetDataFactory(1, { Other_question: 'photo.jpg', _attachments: [buildAttachment()] })
+    chai
+      .expect(findAttachmentByQuestionXpaths(submission, ['Other_question', 'a_group/Other_question']))
+      .to.equal(undefined)
+  })
+
+  it('should return undefined when given no paths at all', () => {
+    const submission = assetDataFactory(1, { Photo_question: 'photo.jpg', _attachments: [buildAttachment()] })
+    chai.expect(findAttachmentByQuestionXpaths(submission, [])).to.equal(undefined)
   })
 })
 

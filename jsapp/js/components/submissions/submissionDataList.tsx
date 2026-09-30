@@ -3,11 +3,11 @@ import './submissionDataList.scss'
 import React from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
-import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
-import type { FlatQuestion } from '#/assetUtils'
+import { getLanguageIndex } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { getRowData } from '#/components/submissions/submissionUtils'
+import type { SubmissionDataListItem } from '#/components/submissions/submissionDataListUtils'
+import { getSubmissionDataListItems } from '#/components/submissions/submissionDataListUtils'
 import type { AssetResponse } from '#/dataInterface'
 
 bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')
@@ -33,29 +33,27 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
     this.state = {}
   }
 
-  renderQuestion(question: FlatQuestion) {
-    if (!this.props.asset || !this.props.asset.content) {
+  renderQuestion(item: SubmissionDataListItem) {
+    // Hiding is matched by name, and an answer saved under a question's old name keeps that
+    // old name, so display settings offers it separately (see `getHideableQuestions`).
+    if (Array.isArray(this.props.hideQuestions) && this.props.hideQuestions.includes(item.name)) {
       return null
     }
 
-    // check if the question should be hidden
-    if (Array.isArray(this.props.hideQuestions) && this.props.hideQuestions.includes(question.name)) {
-      return null
-    }
-
-    const response = getRowData(question.name, this.props.asset.content.survey || [], this.props.submission)
+    // A question that became a group in a later form version leaves an object behind, which
+    // would render as `[object Object]`.
+    const response = typeof item.data === 'string' || typeof item.data === 'number' ? item.data : null
 
     return (
-      <bem.SubmissionDataListQuestion key={question.name}>
-        {!this.props.hideGroups && question.parents.length >= 1 && (
-          <bem.SubmissionDataListQuestion__path>{question.parents.join(' / ')}</bem.SubmissionDataListQuestion__path>
+      <bem.SubmissionDataListQuestion key={item.key}>
+        {!this.props.hideGroups && item.parents.length >= 1 && (
+          <bem.SubmissionDataListQuestion__path>{item.parents.join(' / ')}</bem.SubmissionDataListQuestion__path>
         )}
 
-        <bem.SubmissionDataListQuestion__label>{question.label}</bem.SubmissionDataListQuestion__label>
+        <bem.SubmissionDataListQuestion__label>{item.label}</bem.SubmissionDataListQuestion__label>
 
-        <bem.SubmissionDataListQuestion__response>
-          {response ? response : t('N/A')}
-        </bem.SubmissionDataListQuestion__response>
+        {/* `??`, not `||`: a response of `0` is a response. */}
+        <bem.SubmissionDataListQuestion__response>{response ?? t('N/A')}</bem.SubmissionDataListQuestion__response>
       </bem.SubmissionDataListQuestion>
     )
   }
@@ -68,7 +66,7 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
     const displayLanguage = this.props.questionLabelLanguage || ''
     const languageIndex = getLanguageIndex(this.props.asset, displayLanguage)
 
-    const items = getFlatQuestionsList(this.props.asset.content.survey, languageIndex)
+    const items = getSubmissionDataListItems(this.props.asset, languageIndex, this.props.submission)
 
     return <bem.SubmissionDataList dir='auto'>{items.map(this.renderQuestion.bind(this))}</bem.SubmissionDataList>
   }
