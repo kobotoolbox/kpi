@@ -12,6 +12,8 @@ class ProfileStore {
     date_joined: '',
   }
   isAuthStateKnown = false
+  /** Set when `/me/` could not be read at all, which is a different thing from reading it and finding nobody. */
+  isAuthStateCheckFailed = false
   /** @deprecated Auth status will be provided by the allauth /session endpoint. Use that instead. */
   isLoggedIn = false
   isValidatedPassword = false
@@ -52,6 +54,10 @@ class ProfileStore {
       }),
       action('verifyLoginFailure', (xhr: FailResponse) => {
         this.isPending = false
+        // `isAuthStateKnown` deliberately stays false: a failed check is not the anonymous answer it would
+        // otherwise look like, and treating it as one would send a signed-in account to the login page. This
+        // is what `AllRoutes` shows a way to retry on, instead of spinning for good.
+        this.isAuthStateCheckFailed = true
         log('login not verified', xhr.status, xhr.statusText)
       }),
     )
