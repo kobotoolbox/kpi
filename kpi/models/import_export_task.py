@@ -1,5 +1,6 @@
 import base64
 import datetime
+import json
 import os
 import posixpath
 import re
@@ -55,6 +56,7 @@ from kpi.constants import (
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    DEFAULT_MAX_CHOICES_SIZE_BYTES,
     GEO_QUESTION_TYPES,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
@@ -62,6 +64,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
+    ChoicesSizeLimitError,
     ConcurrentExportException,
     DuplicateNameException,
     XlsFormatException,
@@ -420,6 +423,7 @@ class ImportTask(ImportExportTask):
                     kontent = xls_to_dict(item.readable)
                 self._ensure_valid_node_names(kontent)
                 self._ensure_translated_columns(kontent)
+                self._ensure_choices_size(kontent)
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -526,6 +530,30 @@ class ImportTask(ImportExportTask):
                 raise DuplicateNameException(f'Duplicate node name: {name}')
             names.add(name)
 
+    @staticmethod
+    def _ensure_choices_size(survey_dict):
+        """
+        Block importing an XLSForm whose `choices` sheet exceeds the maximum
+        allowed size limit.
+        """
+        choices = survey_dict.get('choices')
+        if not choices:
+            return
+
+        choices_size = len(json.dumps(choices).encode('utf-8'))
+        max_size = getattr(
+            settings, 'MAX_CHOICES_SIZE_BYTES', DEFAULT_MAX_CHOICES_SIZE_BYTES
+        )
+        if choices_size > max_size:
+            max_size_mb = max_size / (1024 * 1024)
+            choices_size_mb = choices_size / (1024 * 1024)
+            raise ChoicesSizeLimitError(
+                f'The choices sheet is too large ({choices_size_mb:.2f} MB). '
+                f'The maximum allowed size is {max_size_mb:.2f} MB. '
+                'Please use external choice lists instead: '
+                'https://support.kobotoolbox.org/external_file.html'
+            )
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -538,6 +566,7 @@ class ImportTask(ImportExportTask):
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         self._ensure_valid_node_names(survey_dict)
         self._ensure_translated_columns(survey_dict)
+        self._ensure_choices_size(survey_dict)
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
