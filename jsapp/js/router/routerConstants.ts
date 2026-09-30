@@ -61,6 +61,11 @@ export const AUTH_ROUTES: { readonly [key: string]: string } = {
   ACTIVATE_ACCOUNT: ROUTES.AUTH_ROOT + '/activate/:key',
   /** Asks for an address to mail a password reset link to */
   RESET_PASSWORD: ROUTES.AUTH_ROOT + '/reset-password',
+  /**
+   * The same as `NEW_PASSWORD` for a server that mails a code rather than a link: the code is typed into the
+   * form instead of arriving in the URL. Static, so it wins over `NEW_PASSWORD` when both could match.
+   */
+  RESET_PASSWORD_CODE: ROUTES.AUTH_ROOT + '/reset-password/code',
   /** Where the link in the password reset email lands, to pick the new password */
   NEW_PASSWORD: ROUTES.AUTH_ROOT + '/reset-password/:key',
 }
