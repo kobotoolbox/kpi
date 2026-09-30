@@ -3,7 +3,7 @@ name: 'CD: skip release'
 
 concurrency:
   group: release-shared-refs/heads/${{ inputs.release_branch }}
-  cancel-in-progress: true
+  queue: max
 
 
 on:
