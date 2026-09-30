@@ -253,9 +253,9 @@ export const ServerErrors: Story = {
 }
 
 /**
- * The right password on an account whose address was never confirmed. allauth answers 401 with a pending
- * `verify_email` flow and mails a fresh link on its way out, so this is a waiting room rather than a
- * failure - and the address is known here because this server signs in by address.
+ * The right password on an account whose address was never confirmed: a 401 with a pending `verify_email`
+ * flow, and no new email - KPI's `AccountAdapter` declines that on headless logins, so the panel has to
+ * offer a link rather than announce one. The address is known because this server signs in by address.
  */
 export const EmailVerificationRequired: Story = {
   parameters: {
@@ -281,13 +281,15 @@ export const EmailVerificationRequired: Story = {
 
     // And that offer works, for a link that went astray or expired while it sat in an inbox.
     await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
-    await canvas.findByText(/a new confirmation email has been sent/)
+    await canvas.findByText(/A new verification link is on its way/)
+    // The offer goes with it, rather than still asking to request one.
+    expect(canvas.queryByRole('button', { name: 'Request new link' })).not.toBeInTheDocument()
   },
 }
 
 /**
- * The same unconfirmed account reached with a username. allauth mails the link either way but says nothing
- * about where, so asking for another one starts by asking for the address.
+ * The same unconfirmed account reached with a username, where allauth never says which address the account
+ * uses - so asking for a new link starts by asking for the address.
  */
 export const EmailVerificationRequiredWithoutAddress: Story = {
   parameters: {
@@ -303,7 +305,7 @@ export const EmailVerificationRequiredWithoutAddress: Story = {
     await submit(canvas)
 
     await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
-    await canvas.findByText(/We sent a verification link to the address on your account/)
+    await canvas.findByText(/the verification link we sent to the email address on your account/)
     // Nothing here knows the address, and nothing pretends to.
     expect(canvas.queryByText(CREDENTIALS.email)).not.toBeInTheDocument()
 
@@ -312,7 +314,7 @@ export const EmailVerificationRequiredWithoutAddress: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
 
     // Once it is sent the field goes, rather than sitting under an instruction to fill it in.
-    await canvas.findByText(/another verification link is on its way/)
+    await canvas.findByText(/a new verification link is on its way/)
     expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
   },
 }
