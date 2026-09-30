@@ -102,8 +102,8 @@ export default function LoginForm({ credential, socialApps, isConfigurationPendi
         // The credentials were right, and allauth is asking for one more thing before it hands out a session
         const pendingFlowIds = getPendingFlowIds(response)
         if (pendingFlowIds.includes(FlowId.verify_email)) {
-          // `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: allauth's `EmailVerificationStage` has already
-          // mailed a fresh link by the time we get here.
+          // `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default. Nothing was mailed - our
+          // `AccountAdapter` declines allauth's resend on a headless login - so the panel has to offer one.
           onOutcome({
             kind: 'emailVerificationRequired',
             email: 'email' in variables.data ? variables.data.email : undefined,

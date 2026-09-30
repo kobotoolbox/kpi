@@ -51,7 +51,7 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 })
 
-/** The screens you reach without a session. Paths follow allauth paths (the differenec is the `#` prefix). */
+/** The screens you reach without a session. Paths follow allauth paths (the difference is the `#` prefix). */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
   LOGIN: ROUTES.ACCOUNTS_ROOT + '/login',
   SIGNUP: ROUTES.ACCOUNTS_ROOT + '/signup',
@@ -62,6 +62,11 @@ export const AUTH_ROUTES: { readonly [key: string]: string } = {
   CONFIRM_EMAIL: ROUTES.ACCOUNTS_ROOT + '/confirm-email/:key',
   /** Asks for an address to mail a password reset link to */
   RESET_PASSWORD: ROUTES.ACCOUNTS_ROOT + '/password/reset',
+  /**
+   * The same as `NEW_PASSWORD` for a server that mails a code rather than a link: the code is typed into the
+   * form instead of arriving in the URL.
+   */
+  RESET_PASSWORD_CODE: ROUTES.ACCOUNTS_ROOT + '/password/reset/code',
   /** Where the link in the password reset email lands, to pick the new password */
   NEW_PASSWORD: ROUTES.ACCOUNTS_ROOT + '/password/reset/key/:key',
   /** One-time code prompt, for a sign-in allauth paused after the password */
