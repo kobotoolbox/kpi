@@ -32,6 +32,9 @@ LOCK_TTL = 60 * 10
 PROGRESS_EVERY = 50
 # How long the position of an interrupted run is kept (see `_get_saved_position()`)
 POSITION_TTL = 60 * 60 * 24 * 7
+# Submissions of the orphan chunk being restored, until Mongo is updated
+# (see `_restore_orphan_chunk()`)
+PENDING_MONGO_KEY = f'{LOCK_KEY}:pending_mongo_instance_ids'
 
 
 class Command(BaseCommand):
@@ -587,22 +590,41 @@ class Command(BaseCommand):
         created. `toggle_statuses()` only changes the attachments still
         `pending-delete` and adds their storage back, in the same kobocat
         transaction, so the storage counters stay right if the run stops.
+
+        Once `toggle_statuses()` has committed, the attachments are no longer
+        `pending-delete` and a new run would not find them. If the run dies
+        before Mongo is updated, their submissions would keep showing them as
+        deleted. Their IDs are therefore saved first, and only cleared once
+        Mongo is updated. The next run updates Mongo for them before anything
+        else (see `_replay_pending_mongo_update()`).
         """
+        instance_ids = sorted({att['instance_id'] for att in attachments})
+        cache.set(PENDING_MONGO_KEY, instance_ids, POSITION_TTL)
         _, restored = AttachmentTrash.toggle_statuses(
             [att['uid'] for att in attachments], active=True
         )
-        instance_ids = sorted({att['instance_id'] for att in attachments})
-        try:
-            ParsedInstance.bulk_update_attachments(instance_ids)
-        except Exception:
-            # The attachments are active again, a new run would not find them.
-            # Give what is needed to update Mongo by hand
-            self.stderr.write(
-                f'Mongo update failed, run it again from a shell:\n'
-                f'ParsedInstance.bulk_update_attachments({instance_ids})'
-            )
-            raise
+        ParsedInstance.bulk_update_attachments(instance_ids)
+        cache.delete(PENDING_MONGO_KEY)
         return restored
+
+    def _replay_pending_mongo_update(self):
+        """
+        Update Mongo for the submissions of an orphan chunk left half-done by
+        an interrupted run (see `_restore_orphan_chunk()`)
+
+        `bulk_update_attachments()` rebuilds the attachments of each submission
+        from the database, so running it again is always safe, whether the
+        chunk was restored on kobocat or not.
+        """
+        if not (instance_ids := cache.get(PENDING_MONGO_KEY)):
+            return
+
+        self.stdout.write(
+            f'Updating Mongo for {len(instance_ids)} submission(s) left by an '
+            f'interrupted run'
+        )
+        ParsedInstance.bulk_update_attachments(instance_ids)
+        cache.delete(PENDING_MONGO_KEY)
 
     def _restore_orphans(
         self, options: dict, since: datetime, until: datetime
@@ -621,6 +643,7 @@ class Command(BaseCommand):
         total_restored = 0
         total_kept = 0
         total_with_trash = 0
+        self._replay_pending_mongo_update()
         position_key = self._get_position_key('orphans', options)
         start_position = self._get_saved_position(position_key, options)
         for idx, (orphans, with_trash, last_position) in enumerate(

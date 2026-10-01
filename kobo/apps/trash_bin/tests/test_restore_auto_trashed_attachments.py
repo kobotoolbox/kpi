@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.core.management import CommandError, call_command
+from django.test import override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 
@@ -19,6 +20,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteSta
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trash_bin.management.commands.restore_auto_trashed_attachments import (  # noqa: E501
     LOCK_KEY,
+    PENDING_MONGO_KEY,
     Command,
 )
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
@@ -27,6 +29,11 @@ from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 
 
+# The lock and the saved positions live in the cache. A local cache keeps
+# parallel test workers from sharing them through Redis
+@override_settings(
+    CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+)
 class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMixin):
 
     def setUp(self):
@@ -40,6 +47,7 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         self.owner_profile.refresh_from_db()
         self.original_storage_bytes = self.owner_profile.attachment_storage_bytes
         cache.delete(LOCK_KEY)
+        cache.delete(PENDING_MONGO_KEY)
 
     def test_dry_run_does_not_restore(self):
         self._move_to_trash(self.owner)
@@ -360,6 +368,33 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         assert self.attachment.delete_status is None
         self.owner_profile.refresh_from_db()
         assert self.owner_profile.attachment_storage_bytes > 0
+
+    def test_rerun_updates_mongo_left_by_interrupted_orphan_chunk(self):
+        """
+        A run that dies after the kobocat commit of an orphan chunk but before
+        Mongo is updated leaves the submission showing the attachment as
+        deleted. The next run must update Mongo for it first
+        """
+        self._make_orphans(self.attachment)
+        mongo_path = (
+            'kobo.apps.trash_bin.management.commands.'
+            'restore_auto_trashed_attachments.ParsedInstance.bulk_update_attachments'
+        )
+
+        with patch(mongo_path, side_effect=KeyboardInterrupt):
+            with pytest.raises(KeyboardInterrupt):
+                self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status is None
+        assert cache.get(PENDING_MONGO_KEY) == [self.instance.pk]
+
+        with patch(mongo_path) as bulk_update_attachments:
+            output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        assert 'Updating Mongo for 1 submission(s) left by an interrupted run' in output
+        bulk_update_attachments.assert_any_call([self.instance.pk])
+        assert cache.get(PENDING_MONGO_KEY) is None
 
     def test_real_run_requires_superuser_author(self):
         with self.assertRaises(CommandError):
