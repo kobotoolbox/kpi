@@ -31,7 +31,7 @@ const ProviderSignupRoute = React.lazy(() => import(/* webpackPrefetch: true */ 
 export default function authRoutes() {
   return (
     <Route
-      path={ROUTES.ACCOUNTS_ROOT}
+      path={ROUTES.AUTH_ROOT}
       element={
         <RequireFeatureFlag flag={FeatureFlag.authRedesignEnabled}>
           <AuthAppProviders>
@@ -61,11 +61,13 @@ export default function authRoutes() {
 
       <Route path={AUTH_ROUTES.CONFIRM_EMAIL} element={<ActivateAccountRoute />} />
       <Route path={AUTH_ROUTES.RESET_PASSWORD} element={<ResetPasswordRoute />} />
+      <Route path={AUTH_ROUTES.RESET_PASSWORD_CODE} element={<NewPasswordRoute collectCode />} />
       <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
 
       {/*
-        Addresses that are being handled by different routes and thus are not needed. Redirecting to login rather than
-        showing SectionNotFound.
+        `LoginRoute` swaps `MfaForm` into its own card, so the URL stays on `/auth/login` for the whole sign-in and
+        nothing reaches these two on its own. A code means nothing without a sign-in underway, so a stale link starts
+        over rather than showing SectionNotFound.
       */}
       <Route path={AUTH_ROUTES.MFA_AUTHENTICATE} element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
       <Route path={AUTH_ROUTES.MFA_RECOVERY_CODES} element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />

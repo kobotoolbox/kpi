@@ -25,10 +25,3 @@ export const socialAppNeverAnswersMock = () =>
   http.get(SOCIAL_APP_URL, async () => {
     await delay('infinite')
   })
-
-/**
- * The lookup itself breaking, which says nothing about the provider. `once` leaves the handler behind it to
- * answer the retry.
- */
-export const socialAppServerErrorMock = ({ once }: { once?: boolean } = {}) =>
-  http.get(SOCIAL_APP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })

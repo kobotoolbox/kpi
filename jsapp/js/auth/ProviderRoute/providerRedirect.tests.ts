@@ -1,10 +1,39 @@
 import chai from 'chai'
-import { getProviderRedirectErrorMessage, readProviderRedirectError } from './providerRedirect'
+import { getProviderCallbackUrl, getProviderRedirectErrorMessage, readProviderRedirectError } from './providerRedirect'
+
+/** What `ROOT_URL` looks like on an instance behind `KPI_PREFIX`, which is the case worth pinning down. */
+const PREFIXED_ROOT = 'https://kf.example.org/kpi'
+const NEXT_ENCODED = '%2F%23%2Fprojects%2Fhome'
+
+describe('getProviderCallbackUrl', () => {
+  it('keeps the deployment prefix, which the bare origin would drop', () => {
+    chai
+      .expect(getProviderCallbackUrl('', '', PREFIXED_ROOT))
+      .to.equal('https://kf.example.org/kpi/#/auth/provider/signup')
+  })
+
+  it('carries the destination Django asked for, which lands outside the fragment', () => {
+    chai
+      .expect(getProviderCallbackUrl(`?next=${NEXT_ENCODED}`, '', PREFIXED_ROOT))
+      .to.equal(`https://kf.example.org/kpi/#/auth/provider/signup?next=${NEXT_ENCODED}`)
+  })
+
+  it('carries the destination from the hash route as well', () => {
+    chai
+      .expect(getProviderCallbackUrl('', `?next=${NEXT_ENCODED}`, PREFIXED_ROOT))
+      .to.equal(`https://kf.example.org/kpi/#/auth/provider/signup?next=${NEXT_ENCODED}`)
+  })
+
+  it('ignores anything else in the URL, `?error=` from an earlier attempt included', () => {
+    chai
+      .expect(getProviderCallbackUrl('?error=denied', '?process=login', PREFIXED_ROOT))
+      .to.equal('https://kf.example.org/kpi/#/auth/provider/signup')
+  })
+})
 
 describe('readProviderRedirectError', () => {
   it('reads the parameter allauth writes, which lands outside the fragment', () => {
-    // `…/?error=denied#/accounts/provider/signup` - allauth parses the callback URL as a URL, so the
-    // parameter goes in the real query string and the hash route sees no search at all.
+    // `…/?error=denied#/auth/provider/signup`, so the hash route sees no search at all.
     chai.expect(readProviderRedirectError('?error=denied', '')).to.equal('denied')
   })
 

@@ -50,7 +50,7 @@ export function resolveNextRoute(rawNext: string | null, origin: Origin): string
 
 /** Screens that exist only to send you onward, which is why `next` must never point at one */
 function isAuthenticationScreen(routePath: string): boolean {
-  return routePath.startsWith(ROUTES.ACCOUNTS_ROOT) || isReauthenticationRoutePath(routePath)
+  return routePath.startsWith(ROUTES.AUTH_ROOT) || isReauthenticationRoutePath(routePath)
 }
 
 /** An authentication screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */

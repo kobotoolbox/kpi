@@ -43,7 +43,7 @@ function PasswordChangedAndSignedInPanel() {
 
       <Text>{t('You are signed in and ready to go')}</Text>
 
-      {/* A plain link, not a router one: leaving `/accounts` means loading the logged in app. */}
+      {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
       <ButtonNew component='a' href='/' size='lg' fullWidth>
         {t('Continue to KoboToolbox')}
       </ButtonNew>
@@ -115,20 +115,31 @@ function CheckingLinkPanel() {
   )
 }
 
-/** Second half of password recovery: where the link in the reset email lands, to pick the new password */
-export default function NewPasswordRoute() {
-  const { key = '' } = useParams<{ key: string }>()
-  // Remounting on the key keeps a second link from inheriting the first one's panel
-  return <NewPasswordPanels key={key} resetKey={key} />
+export interface NewPasswordRouteProps {
+  /**
+   * Ask for the code rather than read a key from the URL, for a server running
+   * `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED`. Keeping the code in the form is also what keeps it out of the
+   * address bar and browser history, where it would sit around still usable.
+   */
+  collectCode?: boolean
 }
 
-function NewPasswordPanels({ resetKey }: { resetKey: string }) {
+/** Second half of password recovery: where the link in the reset email lands, to pick the new password */
+export default function NewPasswordRoute({ collectCode }: NewPasswordRouteProps) {
+  const { key = '' } = useParams<{ key: string }>()
+  // Remounting on the key keeps a second link from inheriting the first one's panel
+  return <NewPasswordPanels key={key} resetKey={collectCode ? undefined : key} />
+}
+
+function NewPasswordPanels({ resetKey }: { resetKey?: string }) {
   const { data } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<NewPasswordOutcome | null>(null)
+  // Nothing to look up until there is a key, and a code is only ever checked by the reset itself
+  const collectsCode = resetKey === undefined
 
   const keyCheck = useAllauthBrowserV1AuthPasswordResetGet({
     // allauth takes the reset key in this header, not in the URL
-    request: { headers: { 'X-Password-Reset-Key': resetKey } },
+    request: { headers: { 'X-Password-Reset-Key': resetKey ?? '' } },
     query: {
       // The generated query key ignores the header, so without the key two links would share an entry
       queryKey: [...getAllauthBrowserV1AuthPasswordResetGetQueryKey(), resetKey],
@@ -163,7 +174,8 @@ function NewPasswordPanels({ resetKey }: { resetKey: string }) {
       )
     }
     // A key that was refused up front, one that expired while the form sat open, or no key in the URL at all.
-    if (!resetKey || keyCheck.data === 'invalid' || outcome?.kind === 'keyRejected') {
+    // None of it applies to a code: the form keeps a bad one, so it can be retyped.
+    if (!collectsCode && (!resetKey || keyCheck.data === 'invalid' || outcome?.kind === 'keyRejected')) {
       return (
         <AuthCard>
           <ResetFailedPanel />
@@ -186,7 +198,7 @@ function NewPasswordPanels({ resetKey }: { resetKey: string }) {
         text={data?.authConfiguration.supporting_text}
       />
     )
-    if (!keyCheck.data) {
+    if (!collectsCode && !keyCheck.data) {
       return (
         <AuthCard aside={aside}>
           <CheckingLinkPanel />

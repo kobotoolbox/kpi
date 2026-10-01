@@ -115,7 +115,9 @@ describe('getRouteWithNext', () => {
       .to.equal(AUTH_ROUTES.LOGIN)
   })
 
-  it('does not mistake `/account` settings for the `/accounts` screens', () => {
+  // Only the reauthentication screens under `/account` count as authentication screens; the settings pages around them
+  // are ordinary destinations.
+  it('carries an account settings page, which is not an authentication screen', () => {
     chai
       .expect(getRouteWithNext(ACCOUNT_AUTH_ROUTES.REAUTHENTICATE, ACCOUNT_AUTH_ROUTES.MFA))
       .to.equal(`${ACCOUNT_AUTH_ROUTES.REAUTHENTICATE}?next=%2F%23%2Faccount%2F2fa`)

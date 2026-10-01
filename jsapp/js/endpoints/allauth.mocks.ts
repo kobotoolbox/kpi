@@ -9,8 +9,9 @@ import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsIt
 
 const SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/signup'
 const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
-const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
 const CONFIG_URL = '*/api/v2/allauth/browser/v1/config'
+/** `GET` asks who is signed in, `DELETE` logs them out */
+export const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
 /** Exported so a story can put its own handler here and inspect the credentials the form posted. */
 export const LOGIN_URL = '*/api/v2/allauth/browser/v1/auth/login'
 /** Where the one-time code goes once a password has been accepted */
@@ -103,7 +104,7 @@ export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.j
 export const signupServerErrorMock = () =>
   http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
-/** A sign-in allauth was happy with: the session exists, and the form may leave `/accounts`. */
+/** A sign-in allauth was happy with: the session exists, and the form may leave `/auth`. */
 export const loginAuthenticatedMock = () =>
   http.post(LOGIN_URL, () =>
     HttpResponse.json({
@@ -219,6 +220,35 @@ export const logoutNeverAnswersMock = () =>
   http.delete(SESSION_URL, async () => {
     await delay('infinite')
   })
+
+/** Nobody is signed in. allauth reports that as a 401 carrying the flows that could get you there. */
+export const sessionAnonymousMock = () =>
+  http.get(SESSION_URL, () =>
+    HttpResponse.json(
+      { status: 401, data: { flows: [{ id: 'login' }, { id: 'signup' }] }, meta: { is_authenticated: false } },
+      { status: 401 },
+    ),
+  )
+
+/** Somebody is signed in, which is how a sign-on *login* that worked looks from the callback screen. */
+export const sessionAuthenticatedMock = () =>
+  http.get(SESSION_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        user: { id: 1, display: 'sallyride', username: 'sallyride', email: 'sallyride@nasa.com' },
+        methods: [],
+      },
+      meta: { is_authenticated: true },
+    }),
+  )
+
+/**
+ * The session lookup itself breaking, leaving "is anybody signed in?" unanswered rather than answered with a
+ * no. `once` leaves the handler behind it to answer the retry.
+ */
+export const sessionServerErrorMock = ({ once }: { once?: boolean } = {}) =>
+  http.get(SESSION_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })
 
 /** Looking up an activation key that is still good. */
 export const emailVerificationInfoMock = (email: string, display: string) =>
@@ -377,28 +407,16 @@ export const providerSignupPendingMock = ({
   )
 
 /**
- * No provider signup is pending. Covers the handshake having failed, the signup already being finished, and
- * the session that held it having expired - allauth answers 409 to all three.
+ * allauth is holding no provider signup: the handshake never finished, or it was finished already. Also how a
+ * sign-on *login* that worked looks, which is why the callback screen asks about the session next.
  */
 export const providerSignupNothingPendingMock = () =>
   http.get(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
 
-/** A lookup that never answers, so the screen stays on its loading panel. */
-export const providerSignupLookupNeverAnswersMock = () =>
-  http.get(PROVIDER_SIGNUP_URL, async () => {
-    await delay('infinite')
-  })
-
 /**
- * The lookup itself breaking, which says nothing about the pending signup. `once` leaves the handler behind
- * it to answer the retry.
+ * A finished provider signup on the KPI default: `SOCIALACCOUNT_EMAIL_VERIFICATION` is `none`, so the provider
+ * having vouched for the address is enough and the new account comes back logged in.
  */
-export const providerSignupLookupServerErrorMock = ({ once }: { once?: boolean } = {}) =>
-  http.get(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), {
-    once,
-  })
-
-/** A finished provider signup where verification is `none` or `optional`: the account is created and logged in. */
 export const providerSignupAuthenticatedMock = () =>
   http.post(PROVIDER_SIGNUP_URL, () =>
     HttpResponse.json({
@@ -419,8 +437,8 @@ export const providerSignupAuthenticatedMock = () =>
   )
 
 /**
- * The happy path under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since an address
- * that came from a provider is still not a confirmed address.
+ * A finished provider signup on a deployment that sets `SOCIALACCOUNT_EMAIL_VERIFICATION` to `mandatory`: 401,
+ * because there an address is not confirmed just because a provider handed it over.
  */
 export const providerSignupPendingVerificationMock = () =>
   http.post(PROVIDER_SIGNUP_URL, () =>
@@ -447,7 +465,3 @@ export const providerSignupNeverAnswersMock = () =>
 /** The flow went away between loading the form and submitting it. */
 export const providerSignupFlowExpiredMock = () =>
   http.post(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
-
-/** The server itself broke, which is the only way into the form's `onError`. */
-export const providerSignupServerErrorMock = () =>
-  http.post(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))

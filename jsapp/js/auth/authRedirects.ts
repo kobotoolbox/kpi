@@ -38,7 +38,7 @@ export function redirectForAuthChange(event: AuthChangeEvent, status: AuthStatus
     case AuthChangeEvent.loggedIn:
       // The one move that cannot be a soft navigation - see `getUrlForNextRoute`. With nowhere named and not on an
       // authentication screen, this is a sign-in from another tab: already the right page, it just needs the session.
-      if (nextRoute || routePath.startsWith(ROUTES.ACCOUNTS_ROOT)) {
+      if (nextRoute || routePath.startsWith(ROUTES.AUTH_ROOT)) {
         goToPage(getUrlForNextRoute(nextRoute))
       } else {
         goToPage(null)

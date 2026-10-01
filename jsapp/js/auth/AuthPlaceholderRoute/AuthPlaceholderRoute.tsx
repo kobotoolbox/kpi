@@ -5,7 +5,7 @@ import AuthCard from '#/auth/AuthContainer/AuthCard'
 
 export interface AuthPlaceholderRouteProps {
   title: string
-  /** The anonymous `/accounts/…` screens need one; the `/account/…` ones already have it */
+  /** The anonymous `/auth/…` screens need one; the `/account/…` ones already have it */
   hasAuthCard?: boolean
 }
 
