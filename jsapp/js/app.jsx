@@ -15,6 +15,7 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
+import AuthChangeRedirector from '#/auth/AuthChangeRedirector'
 import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
 import ProfileDetailsErrorScreen from '#/auth/ProfileDetailsBlocker/ProfileDetailsErrorScreen'
 import { useProfileDetailsBlockerState } from '#/auth/ProfileDetailsBlocker/useProfileDetailsBlockerState'
@@ -207,6 +208,9 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
+          {/* Outside the guards below on purpose */}
+          <AuthChangeRedirector />
+
           <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
             <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
