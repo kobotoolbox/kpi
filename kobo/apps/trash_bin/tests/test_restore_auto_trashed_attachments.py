@@ -13,6 +13,7 @@ from django_celery_beat.models import PeriodicTask
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trash_bin.management.commands.restore_auto_trashed_attachments import (  # noqa: E501
@@ -56,7 +57,9 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
 
         output = self._call_command('--no-dry-run', '--author', 'superadmin')
 
-        self.assertIn('Restored 1 attachment(s) for 1 user(s), skipped 0', output)
+        self.assertIn(
+            'Restored 1 attachment(s) for 1 user(s), kept 0, skipped 0', output
+        )
         self.attachment.refresh_from_db()
         self.assertIsNone(self.attachment.delete_status)
         self.assertFalse(
@@ -82,7 +85,7 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
 
         output = self._call_command('--no-dry-run', '--author', 'superadmin')
 
-        self.assertIn('0 restored, 1 skipped', output)
+        self.assertIn('0 restored, 0 kept (trashed by the owner), 1 skipped', output)
         self._assert_still_in_trash()
 
     def test_skips_attachment_trashed_outside_window(self):
@@ -129,7 +132,7 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
 
         output = self._call_command('--no-dry-run', '--author', 'superadmin')
 
-        self.assertIn('1 restored, 0 skipped', output)
+        self.assertIn('1 restored, 0 kept (trashed by the owner), 0 skipped', output)
         self.assertFalse(
             AttachmentTrash.objects.filter(attachment_id=self.attachment.pk).exists()
         )
@@ -137,6 +140,54 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         self.assertEqual(
             self.owner_profile.attachment_storage_bytes, self.original_storage_bytes
         )
+
+    def test_keeps_newer_attachment_trashed_by_the_owner(self):
+        """
+        The owner trashed a recent attachment while an older one is still
+        active: auto-deletion would have taken the older one first
+        """
+        older = self._create_attachment(days_ago=10)
+        self._age(self.attachment, days_ago=1)
+        self._move_to_trash(self.owner)
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        self.assertIn('0 restored, 1 kept (trashed by the owner), 0 skipped', output)
+        self._assert_still_in_trash()
+        older.refresh_from_db()
+        self.assertIsNone(older.delete_status)
+
+    def test_restores_oldest_attachment_when_newer_ones_are_active(self):
+        self._create_attachment(days_ago=1)
+        self._age(self.attachment, days_ago=10)
+        self._move_to_trash(self.owner)
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        self.assertIn('1 restored, 0 kept (trashed by the owner), 0 skipped', output)
+        self.attachment.refresh_from_db()
+        self.assertIsNone(self.attachment.delete_status)
+
+    def test_rerun_restores_the_rest_of_a_user(self):
+        """
+        Attachments restored by an earlier, interrupted run are active again
+        and older than the ones left in trash. They must not make the command
+        keep the rest in trash.
+        """
+        restored_earlier = self._create_attachment(days_ago=20)
+        self._create_attachment(days_ago=1)
+        self._age(self.attachment, days_ago=10)
+        self._move_to_trash(self.owner)
+        self._move_to_trash(self.owner, attachment=restored_earlier)
+        # What the earlier run did for its first chunk
+        AttachmentTrash.toggle_statuses([restored_earlier.uid], active=True)
+        AttachmentTrash.objects.filter(attachment_id=restored_earlier.pk).delete()
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        self.assertIn('1 restored, 0 kept (trashed by the owner), 0 skipped', output)
+        self.attachment.refresh_from_db()
+        self.assertIsNone(self.attachment.delete_status)
 
     def test_real_run_requires_superuser_author(self):
         with self.assertRaises(CommandError):
@@ -259,16 +310,36 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         )
         return out.getvalue()
 
-    def _move_to_trash(self, request_author: User):
+    def _age(self, attachment, days_ago: int):
+        """
+        Make `attachment` created and last modified `days_ago` days ago,
+        i.e. before the outage window
+        """
+        date = timezone.now() - timedelta(days=days_ago)
+        Attachment.all_objects.filter(pk=attachment.pk).update(
+            date_created=date, date_modified=date
+        )
+
+    def _create_attachment(self, days_ago: int):
+        """
+        Create another attachment for the owner, created `days_ago` days ago
+        """
+        *_, attachment = self._create_test_asset_and_submission(user=self.owner)
+        self._age(attachment, days_ago)
+        attachment.refresh_from_db()
+        return attachment
+
+    def _move_to_trash(self, request_author: User, attachment=None):
+        attachment = attachment or self.attachment
         move_to_trash(
             request_author=request_author,
             objects_list=[
                 {
-                    'pk': self.attachment.pk,
-                    'asset_id': self.asset.pk,
-                    'asset_uid': self.asset.uid,
-                    'attachment_uid': self.attachment.uid,
-                    'attachment_basename': self.attachment.media_file_basename,
+                    'pk': attachment.pk,
+                    'asset_id': attachment.xform.asset.pk,
+                    'asset_uid': attachment.xform.asset.uid,
+                    'attachment_uid': attachment.uid,
+                    'attachment_basename': attachment.media_file_basename,
                 }
             ],
             grace_period=30,

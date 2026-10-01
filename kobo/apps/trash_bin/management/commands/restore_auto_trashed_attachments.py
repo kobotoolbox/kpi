@@ -1,4 +1,4 @@
-from datetime import timezone as dt_timezone
+from datetime import datetime, timezone as dt_timezone
 
 from constance import config
 from django.apps import apps
@@ -34,9 +34,11 @@ class Command(BaseCommand):
         'within a time window, e.g. when `AUTO_DELETE_ATTACHMENTS` was enabled '
         'by mistake, and reset the storage `ExceededLimitCounter` to 0 days. '
         'Users are processed one at a time, in chunks. Only pending trash '
-        'entries whose author is the attachment owner are restored. Reports '
-        'without writing anything unless `--no-dry-run` is passed. Safe to '
-        'interrupt and run again: it continues with what is left in the trash.'
+        'entries trashed as the owner, and not newer than the oldest attachment '
+        'the owner still has, are restored: the others were trashed by a '
+        'person. Reports without writing anything unless `--no-dry-run` is '
+        'passed. Safe to interrupt and run again: it continues with what is '
+        'left in the trash. If it stops with an error, run it again.'
     )
 
     def add_arguments(self, parser):
@@ -147,9 +149,9 @@ class Command(BaseCommand):
                     )
             self._report_storage_counters(user_ids)
             self.stdout.write(
-                f'{prefix}Nothing has been changed. Entries whose author is not '
-                f'the attachment owner are only detected (and skipped) by the '
-                f'real run.'
+                f'{prefix}Nothing has been changed. Entries trashed by a person '
+                f'(a collaborator, or the owner themselves) are only detected, '
+                f'and left in trash, by the real run.'
             )
             return
 
@@ -159,7 +161,12 @@ class Command(BaseCommand):
 
         try:
             restored_user_ids = self._restore_all(
-                counts_per_user, users, trash_queryset, author, options['chunk_size']
+                counts_per_user,
+                users,
+                trash_queryset,
+                author,
+                since,
+                options['chunk_size'],
             )
             self._reset_storage_counters(user_ids, restored_user_ids)
         finally:
@@ -191,6 +198,7 @@ class Command(BaseCommand):
         users: dict[int, User],
         trash_queryset,
         author: User,
+        since: datetime,
         chunk_size: int,
     ) -> list[int]:
         """
@@ -199,14 +207,16 @@ class Command(BaseCommand):
         """
         restored_user_ids = []
         total_restored = 0
+        total_kept = 0
         total_skipped = 0
 
         try:
             for idx, user_id in enumerate(counts_per_user, start=1):
-                restored, skipped = self._restore_user(
-                    users[user_id], trash_queryset, author, chunk_size
+                restored, kept, skipped = self._restore_user(
+                    users[user_id], trash_queryset, author, since, chunk_size
                 )
                 total_restored += restored
+                total_kept += kept
                 total_skipped += skipped
                 if restored:
                     restored_user_ids.append(user_id)
@@ -214,7 +224,7 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f'[{idx}/{len(counts_per_user)}] User #{user_id} '
                     f'`{users[user_id].username}`: {restored} restored, '
-                    f'{skipped} skipped'
+                    f'{kept} kept (trashed by the owner), {skipped} skipped'
                 )
         finally:
             # Periodic tasks are deleted without signals (see `_restore_chunk()`),
@@ -223,19 +233,28 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f'Restored {total_restored} attachment(s) for '
-            f'{len(restored_user_ids)} user(s), skipped {total_skipped}'
+            f'{len(restored_user_ids)} user(s), kept {total_kept}, '
+            f'skipped {total_skipped}'
         )
         return restored_user_ids
 
     def _restore_user(
-        self, user: User, trash_queryset, author: User, chunk_size: int
-    ) -> tuple[int, int]:
+        self,
+        user: User,
+        trash_queryset,
+        author: User,
+        since: datetime,
+        chunk_size: int,
+    ) -> tuple[int, int, int]:
         """
         Restore the attachments of one user, `chunk_size` at a time, until
-        none is left. Return how many were restored and how many were skipped
+        none is left. Return how many were restored, how many were kept in
+        trash because the owner trashed them, and how many were skipped
         """
         restored = 0
+        kept = 0
         skipped = 0
+        cutoff = self._get_auto_deletion_cutoff(user, since)
         # Read all the IDs once (a few tens of thousands at most for one user)
         # instead of querying the trash table again for every chunk
         attachment_ids = list(
@@ -244,10 +263,13 @@ class Command(BaseCommand):
             .values_list('attachment_id', flat=True)
         )
         for i in range(0, len(attachment_ids), chunk_size):
-            chunk = attachment_ids[i:i + chunk_size]
-            chunk_restored = self._restore_chunk(user, chunk, author)
+            chunk = attachment_ids[i : i + chunk_size]
+            chunk_restored, chunk_kept = self._restore_chunk(
+                user, chunk, author, cutoff
+            )
             restored += chunk_restored
-            skipped += len(chunk) - chunk_restored
+            kept += chunk_kept
+            skipped += len(chunk) - chunk_restored - chunk_kept
 
             # Keep the lock alive while the run makes progress
             cache.touch(LOCK_KEY, LOCK_TTL)
@@ -256,44 +278,93 @@ class Command(BaseCommand):
             # Usage is cached, the user would still see their old storage
             ServiceUsageCalculator(user).clear_cache()
 
-        return restored, skipped
+        return restored, kept, skipped
+
+    def _get_auto_deletion_cutoff(
+        self, user: User, since: datetime
+    ) -> datetime | None:
+        """
+        Return the creation date of the oldest attachment of `user` that
+        auto-deletion left active, or None if there is none
+
+        `auto_delete_excess_attachments` trashes the oldest active attachments
+        first. Everything it trashed is therefore not newer than this date. An
+        attachment trashed in the window but newer than this date was trashed
+        by the owner, and must stay in trash.
+
+        Attachments modified since `since` are ignored: they were restored by
+        an earlier run of this command, or created or changed after the
+        outage. Without that, a run stopped in the middle of a user would
+        move the date back and keep the remaining attachments in trash. When
+        in doubt, the date can only move forward, i.e. towards restoring more.
+        """
+        return (
+            Attachment.objects.filter(user_id=user.pk, date_modified__lt=since)
+            .order_by('date_created')
+            .values_list('date_created', flat=True)
+            .first()
+        )
 
     def _restore_chunk(
-        self, user: User, attachment_ids: list[int], author: User
-    ) -> int:
+        self,
+        user: User,
+        attachment_ids: list[int],
+        author: User,
+        cutoff: datetime | None,
+    ) -> tuple[int, int]:
         """
-        Restore one chunk of attachments and return how many were restored
+        Restore one chunk of attachments. Return how many were restored, and
+        how many were kept in trash because the owner trashed them (see
+        `_get_auto_deletion_cutoff()`).
 
         It does the same job as `put_back()` (the function behind the admin
-        "Put back" action), but does not call it, for three reasons:
+        "Put back" action), but does not call it, for two reasons:
 
         1. `put_back()` updates the row Celery Beat watches every time it is
            called, i.e. thousands of times here. That is the lock which brought
            the server down. Here, it is updated once, at the end of the run.
-        2. `put_back()` restores the attachment in the kobocat database first,
-           then deletes its trash entry in the KPI database. If the second step
-           fails, the attachment looks restored but its trash entry and the
-           task that hard-deletes it are still there, and the file would be
-           deleted for good later. Here, kobocat is updated last: if it fails,
-           the KPI changes are rolled back too and nothing is lost.
-        3. `put_back()` raises an error for the whole chunk if one attachment
+        2. `put_back()` raises an error for the whole chunk if one attachment
            is being deleted at that moment. Here, only that attachment is
            skipped.
+
+        Attachments live in the kobocat database, their trash entries in the
+        KPI one, so one transaction cannot cover both. `toggle_statuses()`
+        commits on kobocat before Mongo is updated and the KPI transaction
+        commits. If one of these last two steps fails, the attachment is
+        active again but its trash entry, and the task that hard-deletes it,
+        are still there. The command stops with an error: run it again, it
+        finishes these attachments (see the `delete_status IS NULL` case
+        below). Do not leave it like that, the files would be deleted for good
+        when the trash retention expires.
         """
         # `auto_delete_excess_attachments` always acts as the owner. Entries
         # trashed by someone else (e.g. a collaborator) are left untouched.
         # Attachments already active come from an earlier run stopped between
-        # the two database commits, only their trash entry is left to remove
+        # the kobocat and KPI commits, only their trash entry is left to remove
         attachments = list(
             Attachment.all_objects.filter(
                 Q(delete_status=AttachmentDeleteStatus.PENDING_DELETE)
                 | Q(delete_status__isnull=True),
                 pk__in=attachment_ids,
                 user_id=user.pk,
-            ).values('pk', 'uid', 'media_file_basename', 'instance_id', 'delete_status')
+            ).values(
+                'pk',
+                'uid',
+                'media_file_basename',
+                'instance_id',
+                'delete_status',
+                'date_created',
+            )
         )
+        kept = 0
+        if cutoff is not None:
+            kept = sum(1 for att in attachments if att['date_created'] > cutoff)
+            attachments = [
+                att for att in attachments if att['date_created'] <= cutoff
+            ]
+
         if not attachments:
-            return 0
+            return 0, kept
 
         with transaction.atomic():
             # Lock the trash entries. An entry already locked by a deletion task
@@ -307,7 +378,7 @@ class Command(BaseCommand):
                 .values_list('pk', 'attachment_id', 'periodic_task_id')
             )
             if not locked_trash:
-                return 0
+                return 0, kept
 
             locked_attachment_ids = {
                 attachment_id for _, attachment_id, _ in locked_trash
@@ -346,9 +417,9 @@ class Command(BaseCommand):
                 ]
             )
 
-            # Kobocat db last: if it fails, everything above is rolled
-            # back too. It clears `delete_status` and adds the storage back to
-            # the user and project counters
+            # Clears `delete_status` and adds the storage back to the user and
+            # project counters. Commits on kobocat right away, see the
+            # docstring above
             if uids := [
                 att['uid']
                 for att in attachments
@@ -357,14 +428,13 @@ class Command(BaseCommand):
                 AttachmentTrash.toggle_statuses(uids, active=True)
 
             # Update the `is_deleted` flag in Mongo, so the attachments show up
-            # again in the data table and exports. Done before the KPI commit:
-            # if Mongo fails, the trash entries are kept and the next run picks
-            # these attachments up again
+            # again in the data table and exports. Done before the KPI commit,
+            # so if Mongo fails, the trash entries are kept for the next run
             ParsedInstance.bulk_update_attachments(
                 list({att['instance_id'] for att in attachments})
             )
 
-        return len(attachments)
+        return len(attachments), kept
 
     def _get_storage_counters(self, user_ids: list[int]):
         """
@@ -406,6 +476,10 @@ class Command(BaseCommand):
         if not settings.STRIPE_ENABLED:
             return
 
+        # Every storage counter is reset, not only those of the restored
+        # users, as agreed with product: the counters kept counting while
+        # enforcement was off, so no user was ever told when auto-deletion
+        # would start. The countdown restarts for everyone from today.
         # `update()` skips `auto_now`, `date_modified` is set explicitly so the
         # daily increment starts counting from now
         reset_count = self._get_storage_counters(user_ids).update(
