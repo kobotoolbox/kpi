@@ -192,8 +192,7 @@ class Command(BaseCommand):
                 options,
             )
             restored_user_ids = sorted(
-                set(restored_user_ids)
-                | self._restore_orphans(options, since, until)
+                set(restored_user_ids) | self._restore_orphans(options, since, until)
             )
             self._reset_storage_counters(user_ids, restored_user_ids, since)
         finally:
