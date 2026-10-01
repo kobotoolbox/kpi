@@ -192,19 +192,14 @@ class SignupExtraFieldsForm(forms.Form):
         these checks cannot run twice there.
         """
         from allauth.account.adapter import get_adapter
-        from allauth.socialaccount.forms import SignupForm as SocialSignupForm
         from django.contrib.auth import get_user_model
 
         cleaned_data = super().clean()
 
         email = self.cleaned_data.get('email')
         if email and '@' in email:
-            # A managed domain exists to send people through SSO, so an SSO signup
-            # must not be turned away. `SocialSignupForm.clean_email` makes the
-            # same exception for the HTML page.
-            is_social_signup = isinstance(self, SocialSignupForm)
             try:
-                validate_email_domain(email, allow_managed_domains=is_social_signup)
+                validate_email_domain(email)
             except forms.ValidationError as e:
                 self.add_error('email', e)
 
