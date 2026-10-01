@@ -70,6 +70,8 @@ export default function ProviderSignupForm({
     initialValues: { ...initialValues, termsOfService: false },
     validate: {
       // No managed-domain check, unlike `RegisterForm`: signing up through SSO is what that check asks for.
+      // TODO: the server still runs it on this endpoint, so a managed domain cannot finish this form - it is
+      // told to use SSO while using SSO. Needs the backend fix DEV-3004.
       email: validateEmailFormat,
       username: validateUsername,
       // No checkbox to tick when there is no legal document. Mantine reads these rules fresh on every render,
