@@ -230,6 +230,26 @@ export const sessionAnonymousMock = () =>
     ),
   )
 
+/** Somebody is signed in, which is how a sign-on *login* that worked looks from the callback screen. */
+export const sessionAuthenticatedMock = () =>
+  http.get(SESSION_URL, () =>
+    HttpResponse.json({
+      status: 200,
+      data: {
+        user: { id: 1, display: 'sallyride', username: 'sallyride', email: 'sallyride@nasa.com' },
+        methods: [],
+      },
+      meta: { is_authenticated: true },
+    }),
+  )
+
+/**
+ * The session lookup itself breaking, leaving "is anybody signed in?" unanswered rather than answered with a
+ * no. `once` leaves the handler behind it to answer the retry.
+ */
+export const sessionServerErrorMock = ({ once }: { once?: boolean } = {}) =>
+  http.get(SESSION_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })
+
 /** Looking up an activation key that is still good. */
 export const emailVerificationInfoMock = (email: string, display: string) =>
   http.get(EMAIL_VERIFY_URL, () =>
@@ -385,6 +405,13 @@ export const providerSignupPendingMock = ({
       },
     }),
   )
+
+/**
+ * allauth is holding no provider signup: the handshake never finished, or it was finished already. Also how a
+ * sign-on *login* that worked looks, which is why the callback screen asks about the session next.
+ */
+export const providerSignupNothingPendingMock = () =>
+  http.get(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
 
 /**
  * A finished provider signup on the KPI default: `SOCIALACCOUNT_EMAIL_VERIFICATION` is `none`, so the provider

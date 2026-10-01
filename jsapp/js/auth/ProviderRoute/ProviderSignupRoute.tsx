@@ -78,7 +78,7 @@ interface LookupErrorPanelProps {
   isRetrying: boolean
 }
 
-/** A 5xx or a dead connection. The signup is probably still pending, so retry rather than start over. */
+/** A 5xx or a dead connection on either lookup. Nothing is lost yet, so retry rather than start over. */
 function LookupErrorPanel({ onRetry, isRetrying }: LookupErrorPanelProps) {
   return (
     <Stack gap='md' ta='center'>
@@ -87,6 +87,31 @@ function LookupErrorPanel({ onRetry, isRetrying }: LookupErrorPanelProps) {
       </Title>
       {/* Deliberately generic: the failed request already raised a toast carrying the server's own message. */}
       <Text>{t('We could not finish your login. Please check your connection and try again.')}</Text>
+      <ButtonNew size='lg' fullWidth loading={isRetrying} onClick={onRetry}>
+        {t('Retry')}
+      </ButtonNew>
+    </Stack>
+  )
+}
+
+interface ConfigurationErrorPanelProps {
+  onRetry: () => void
+  isRetrying: boolean
+}
+
+/**
+ * Shown when `/environment` never arrived. It is what says which legal documents have to be agreed to, and
+ * the signup endpoint does not re-check that - a form built without it would offer no checkbox and then be
+ * rejected for not having ticked one.
+ */
+function ConfigurationErrorPanel({ onRetry, isRetrying }: ConfigurationErrorPanelProps) {
+  return (
+    <Stack gap='md' ta='center'>
+      <Title order={1} size='h3'>
+        {t('Sign up is temporarily unavailable')}
+      </Title>
+      {/* Deliberately generic: the failed request already raised a toast carrying the server's own message. */}
+      <Text>{t('We could not load the sign up form. Please check your connection and try again.')}</Text>
       <ButtonNew size='lg' fullWidth loading={isRetrying} onClick={onRetry}>
         {t('Retry')}
       </ButtonNew>
@@ -115,7 +140,13 @@ const goToApp = () => window.location.assign(`${ROOT_URL}/`)
  */
 export default function ProviderSignupRoute({ onAuthenticated = goToApp }: ProviderSignupRouteProps) {
   const { search } = useLocation()
-  const { data: environment, isPending: isEnvironmentPending } = useAuthEnvironment()
+  const {
+    data: environment,
+    isPending: isEnvironmentPending,
+    isError: isEnvironmentError,
+    isFetching: isEnvironmentFetching,
+    refetch: refetchEnvironment,
+  } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<ProviderSignupOutcome | null>(null)
 
   const errorCode = readProviderRedirectError(window.location.search, search)
@@ -150,9 +181,10 @@ export default function ProviderSignupRoute({ onAuthenticated = goToApp }: Provi
     },
   })
   const isSignedIn = session.data === true
-  // Not `isPending`: a disabled query stays pending for good. A failed check counts as decided - there is
-  // nothing better to do with it than the login screen.
+  // Not `isPending`: a disabled query stays pending for good.
   const isSessionUndecided = isLoginPossiblyComplete && session.data === undefined && !session.isError
+  // A 5xx or a dead connection leaves "are they already signed in?" unanswered, which is not the same as a no.
+  const isSessionLookupFailed = isLoginPossiblyComplete && session.isError
 
   // Leaving for the app is a side effect, so it cannot happen while rendering the panel that announces it.
   useEffect(() => {
@@ -200,6 +232,14 @@ export default function ProviderSignupRoute({ onAuthenticated = goToApp }: Provi
         </AuthCard>
       )
     }
+    // Someone whose login worked must not be told it expired on the strength of a request that failed.
+    if (isSessionLookupFailed) {
+      return (
+        <AuthCard>
+          <LookupErrorPanel onRetry={() => session.refetch()} isRetrying={session.isFetching} />
+        </AuthCard>
+      )
+    }
     // The flow going away under a filled in form ends the same way as never having had one.
     if (outcome?.kind === 'flowExpired' || nothingPending) {
       return (
@@ -220,6 +260,15 @@ export default function ProviderSignupRoute({ onAuthenticated = goToApp }: Provi
       return (
         <AuthCard>
           <LoadingPanel />
+        </AuthCard>
+      )
+    }
+    // `!environment` matters as much as the error: a failed background refetch leaves the last good response
+    // in place, and swapping a half filled form for this panel over a blip would throw that typing away.
+    if (isEnvironmentError && !environment) {
+      return (
+        <AuthCard>
+          <ConfigurationErrorPanel onRetry={() => refetchEnvironment()} isRetrying={isEnvironmentFetching} />
         </AuthCard>
       )
     }
