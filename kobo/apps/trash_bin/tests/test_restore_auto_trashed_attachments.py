@@ -1,5 +1,6 @@
 from datetime import timedelta
 from io import StringIO
+from unittest.mock import patch
 
 import pytest
 from constance.test import override_config
@@ -18,6 +19,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteSta
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trash_bin.management.commands.restore_auto_trashed_attachments import (  # noqa: E501
     LOCK_KEY,
+    Command,
 )
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.utils import move_to_trash
@@ -189,6 +191,176 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         self.attachment.refresh_from_db()
         self.assertIsNone(self.attachment.delete_status)
 
+    def test_dry_run_counts_orphans(self):
+        self._make_orphans(self.attachment)
+
+        output = self._call_command()
+
+        assert '1 orphan attachment(s)' in output
+        assert 'for 1 user(s)' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+
+    def test_restores_orphan_attachment(self):
+        """
+        An attachment left `pending-delete` without trash entry, by an
+        auto-deletion task killed half-way, is restored with its storage
+        """
+        self._make_orphans(self.attachment)
+        self.owner_profile.refresh_from_db()
+        assert self.owner_profile.attachment_storage_bytes < self.original_storage_bytes
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        assert 'Restored 1 orphan attachment(s) for 1 user(s), kept 0' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status is None
+        self.owner_profile.refresh_from_db()
+        assert (
+            self.owner_profile.attachment_storage_bytes == self.original_storage_bytes
+        )
+        # No trash entry was ever created, so no put-back to log
+        assert not AuditLog.objects.filter(
+            object_id=self.attachment.pk, action=AuditAction.PUT_BACK
+        ).exists()
+
+    def test_restores_orphans_sharing_the_same_date_modified(self):
+        """
+        `toggle_statuses()` gives the same `date_modified` to every attachment
+        of a call. Reading one attachment at a time must not skip any of them
+        """
+        others = [self._create_attachment(days_ago=days) for days in (10, 20)]
+        self._make_orphans(self.attachment, *others)
+
+        output = self._call_command(
+            '--no-dry-run', '--author', 'superadmin', '--chunk-size', '1'
+        )
+
+        assert 'Restored 3 orphan attachment(s)' in output
+        assert not Attachment.all_objects.filter(
+            user=self.owner, delete_status=AttachmentDeleteStatus.PENDING_DELETE
+        ).exists()
+
+    def test_keeps_orphan_newer_than_oldest_active_attachment(self):
+        older = self._create_attachment(days_ago=10)
+        self._age(self.attachment, days_ago=1)
+        self._make_orphans(self.attachment)
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        assert 'Restored 0 orphan attachment(s) for 0 user(s), kept 1' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+        older.refresh_from_db()
+        assert older.delete_status is None
+
+    def test_skips_orphan_outside_window(self):
+        self._make_orphans(self.attachment)
+        self.since = (timezone.now() + timedelta(minutes=1)).isoformat()
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        assert 'Restored 0 orphan attachment(s)' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+
+    def test_skips_orphans_of_excluded_users(self):
+        self._make_orphans(self.attachment)
+
+        output = self._call_command(
+            '--no-dry-run',
+            '--author',
+            'superadmin',
+            '--exclude-user-id',
+            str(self.owner.pk),
+        )
+
+        assert 'Restored 0 orphan attachment(s)' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+
+    def test_trash_entries_are_not_counted_as_orphans(self):
+        orphan = self._create_attachment(days_ago=20)
+        self._age(self.attachment, days_ago=10)
+        self.owner_profile.refresh_from_db()
+        storage_bytes = self.owner_profile.attachment_storage_bytes
+        self._move_to_trash(self.owner)
+        self._make_orphans(orphan)
+
+        output = self._call_command('--no-dry-run', '--author', 'superadmin')
+
+        assert 'Restored 1 attachment(s) for 1 user(s), kept 0, skipped 0' in output
+        assert 'Restored 1 orphan attachment(s) for 1 user(s), kept 0' in output
+        self.owner_profile.refresh_from_db()
+        assert self.owner_profile.attachment_storage_bytes == storage_bytes
+
+    def test_rerun_resumes_orphans_from_saved_position(self):
+        """
+        A run killed half-way saves where it was, so the next run does not
+        read the window again from the start
+        """
+        first = self._create_attachment(days_ago=20)
+        self._make_orphans(first)
+        self._make_orphans(self.attachment)
+        restore_orphan_chunk = Command._restore_orphan_chunk
+        calls = []
+
+        def fail_on_second_chunk(command, attachments):
+            calls.append(attachments)
+            if len(calls) == 2:
+                raise KeyboardInterrupt
+            return restore_orphan_chunk(command, attachments)
+
+        with patch.object(Command, '_restore_orphan_chunk', fail_on_second_chunk):
+            with pytest.raises(KeyboardInterrupt):
+                self._call_command(
+                    '--no-dry-run', '--author', 'superadmin', '--chunk-size', '1'
+                )
+
+        first.refresh_from_db()
+        assert first.delete_status is None
+        assert cache.get(LOCK_KEY) is None
+
+        output = self._call_command(
+            '--no-dry-run', '--author', 'superadmin', '--chunk-size', '1'
+        )
+
+        assert 'Resuming from the saved position' in output
+        assert 'Restored 1 orphan attachment(s)' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status is None
+
+    def test_rerun_resumes_trash_entries_from_saved_position(self):
+        first = self._create_attachment(days_ago=20)
+        self._age(self.attachment, days_ago=10)
+        self._move_to_trash(self.owner, attachment=first)
+        self._move_to_trash(self.owner)
+        restore_chunk = Command._restore_chunk
+        calls = []
+
+        def fail_on_second_chunk(command, *args):
+            calls.append(args)
+            if len(calls) == 2:
+                raise KeyboardInterrupt
+            return restore_chunk(command, *args)
+
+        with patch.object(Command, '_restore_chunk', fail_on_second_chunk):
+            with pytest.raises(KeyboardInterrupt):
+                self._call_command(
+                    '--no-dry-run', '--author', 'superadmin', '--chunk-size', '1'
+                )
+
+        output = self._call_command(
+            '--no-dry-run', '--author', 'superadmin', '--chunk-size', '1'
+        )
+
+        assert 'Resuming from the saved position' in output
+        assert 'Restored 1 attachment(s) for 1 user(s), kept 0, skipped 0' in output
+        self.attachment.refresh_from_db()
+        assert self.attachment.delete_status is None
+        self.owner_profile.refresh_from_db()
+        assert self.owner_profile.attachment_storage_bytes > 0
+
     def test_real_run_requires_superuser_author(self):
         with self.assertRaises(CommandError):
             self._call_command('--no-dry-run')
@@ -332,6 +504,16 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         self._age(attachment, days_ago)
         attachment.refresh_from_db()
         return attachment
+
+    def _make_orphans(self, *attachments):
+        """
+        Do what `move_to_trash()` does before it gets killed: mark the
+        attachments `pending-delete` and subtract their storage, without
+        creating any trash entry
+        """
+        AttachmentTrash.toggle_statuses(
+            [attachment.uid for attachment in attachments], active=False
+        )
 
     def _move_to_trash(self, request_author: User, attachment=None):
         attachment = attachment or self.attachment

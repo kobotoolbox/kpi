@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 from datetime import timezone as dt_timezone
 
@@ -7,7 +8,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import BooleanField, Count, Q
+from django.db.models.expressions import RawSQL
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_celery_beat.models import PeriodicTask, PeriodicTasks
@@ -26,6 +28,10 @@ from kpi.utils.usage_calculator import ServiceUsageCalculator
 LOCK_KEY = 'restore_auto_trashed_attachments_lock'
 # Refreshed after every chunk, so it only expires if the run dies
 LOCK_TTL = 60 * 10
+# Print a progress line every N chunks
+PROGRESS_EVERY = 50
+# How long the position of an interrupted run is kept (see `_get_saved_position()`)
+POSITION_TTL = 60 * 60 * 24 * 7
 
 
 class Command(BaseCommand):
@@ -40,7 +46,9 @@ class Command(BaseCommand):
         'the owner still has, are restored: the others were trashed by a '
         'person. Reports without writing anything unless `--no-dry-run` is '
         'passed. Safe to interrupt and run again: it continues with what is '
-        'left in the trash. If it stops with an error, run it again.'
+        'left in the trash. If it stops with an error, run it again. '
+        'Attachments left `pending-delete` without any trash entry (orphans, '
+        'when auto-deletion was killed half-way) are restored too.'
     )
 
     def add_arguments(self, parser):
@@ -92,6 +100,15 @@ class Command(BaseCommand):
             type=int,
             default=200,
             help='Number of attachments restored per transaction (default: 200)',
+        )
+        parser.add_argument(
+            '--from-start',
+            action='store_true',
+            default=False,
+            help=(
+                'Ignore the position saved by an interrupted run with the same '
+                'options, and read everything again from the start of the window'
+            ),
         )
         parser.add_argument(
             '--no-dry-run',
@@ -149,6 +166,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f'  User #{user_id} `{users[user_id].username}`: {count}'
                     )
+            self._report_orphans(options, since, until)
             self._report_storage_counters(user_ids, since)
             self.stdout.write(
                 f'{prefix}Nothing has been changed. Entries trashed by a person '
@@ -168,7 +186,11 @@ class Command(BaseCommand):
                 trash_queryset,
                 author,
                 since,
-                options['chunk_size'],
+                options,
+            )
+            restored_user_ids = sorted(
+                set(restored_user_ids)
+                | self._restore_orphans(options, since, until)
             )
             self._reset_storage_counters(user_ids, restored_user_ids, since)
         finally:
@@ -201,91 +223,94 @@ class Command(BaseCommand):
         trash_queryset,
         author: User,
         since: datetime,
-        chunk_size: int,
-    ) -> list[int]:
+        options: dict,
+    ) -> set[int]:
         """
-        Restore the attachments of every user, one user after the other, and
-        return the IDs of the users who got at least one attachment back
+        Restore the attachments of every trash entry of the window, and return
+        the IDs of the users who got at least one attachment back
+
+        Entries are read `--chunk-size` at a time in primary key order (they
+        were all created during the window, so their keys follow each other),
+        then grouped by user. Nothing grows with the number of entries, and
+        the position is saved after every chunk, so a run killed half-way
+        continues from there (see `_get_saved_position()`).
         """
-        restored_user_ids = []
-        total_restored = 0
-        total_kept = 0
-        total_skipped = 0
+        # {user_id: [restored, kept, skipped]}
+        stats = {user_id: [0, 0, 0] for user_id in counts_per_user}
+        cutoffs = {}
+        position_key = self._get_position_key('trash', options)
+        last_pk = self._get_saved_position(position_key, options) or 0
 
         try:
-            for idx, user_id in enumerate(counts_per_user, start=1):
-                restored, kept, skipped = self._restore_user(
-                    users[user_id], trash_queryset, author, since, chunk_size
+            idx = 0
+            while True:
+                chunk = list(
+                    trash_queryset.filter(pk__gt=last_pk)
+                    .order_by('pk')
+                    .values_list('pk', 'request_author_id', 'attachment_id')[
+                        : options['chunk_size']
+                    ]
                 )
-                total_restored += restored
-                total_kept += kept
-                total_skipped += skipped
-                if restored:
-                    restored_user_ids.append(user_id)
+                if not chunk:
+                    break
 
-                self.stdout.write(
-                    f'[{idx}/{len(counts_per_user)}] User #{user_id} '
-                    f'`{users[user_id].username}`: {restored} restored, '
-                    f'{kept} kept (trashed by the owner), {skipped} skipped'
-                )
+                attachment_ids_per_user = defaultdict(list)
+                for _, user_id, attachment_id in chunk:
+                    attachment_ids_per_user[user_id].append(attachment_id)
+
+                for user_id, attachment_ids in attachment_ids_per_user.items():
+                    if user_id not in cutoffs:
+                        cutoffs[user_id] = self._get_auto_deletion_cutoff(
+                            user_id, since
+                        )
+                    restored, kept = self._restore_chunk(
+                        users[user_id], attachment_ids, author, cutoffs[user_id]
+                    )
+                    user_stats = stats.setdefault(user_id, [0, 0, 0])
+                    user_stats[0] += restored
+                    user_stats[1] += kept
+                    user_stats[2] += len(attachment_ids) - restored - kept
+
+                last_pk = chunk[-1][0]
+                cache.set(position_key, last_pk, POSITION_TTL)
+                # Keep the lock alive while the run makes progress
+                cache.touch(LOCK_KEY, LOCK_TTL)
+
+                idx += 1
+                if options['verbosity'] > 1 or idx % PROGRESS_EVERY == 0:
+                    self.stdout.write(
+                        f'Trash entries: {sum(s[0] for s in stats.values())} '
+                        f'restored so far, up to entry #{last_pk}'
+                    )
         finally:
             # Periodic tasks are deleted without signals (see `_restore_chunk()`),
             # so Celery Beat is told once here that its schedule changed
             PeriodicTasks.update_changed()
 
+        restored_user_ids = set()
+        for user_id, (restored, kept, skipped) in stats.items():
+            if restored:
+                restored_user_ids.add(user_id)
+                # Usage is cached, the user would still see their old storage
+                ServiceUsageCalculator(users[user_id]).clear_cache()
+            self.stdout.write(
+                f'User #{user_id} `{users[user_id].username}`: {restored} '
+                f'restored, {kept} kept (trashed by the owner), {skipped} skipped'
+            )
+
         self.stdout.write(
-            f'Restored {total_restored} attachment(s) for '
-            f'{len(restored_user_ids)} user(s), kept {total_kept}, '
-            f'skipped {total_skipped}'
+            f'Restored {sum(s[0] for s in stats.values())} attachment(s) for '
+            f'{len(restored_user_ids)} user(s), '
+            f'kept {sum(s[1] for s in stats.values())}, '
+            f'skipped {sum(s[2] for s in stats.values())}'
         )
         return restored_user_ids
 
-    def _restore_user(
-        self,
-        user: User,
-        trash_queryset,
-        author: User,
-        since: datetime,
-        chunk_size: int,
-    ) -> tuple[int, int, int]:
+    def _get_auto_deletion_cutoff(
+        self, user_id: int, since: datetime
+    ) -> datetime | None:
         """
-        Restore the attachments of one user, `chunk_size` at a time, until
-        none is left. Return how many were restored, how many were kept in
-        trash because the owner trashed them, and how many were skipped
-        """
-        restored = 0
-        kept = 0
-        skipped = 0
-        cutoff = self._get_auto_deletion_cutoff(user, since)
-        # Read all the IDs once (a few tens of thousands at most for one user)
-        # instead of querying the trash table again for every chunk
-        attachment_ids = list(
-            trash_queryset.filter(request_author_id=user.pk)
-            .order_by('pk')
-            .values_list('attachment_id', flat=True)
-        )
-        for start in range(0, len(attachment_ids), chunk_size):
-            end = start + chunk_size
-            chunk = attachment_ids[start:end]
-            chunk_restored, chunk_kept = self._restore_chunk(
-                user, chunk, author, cutoff
-            )
-            restored += chunk_restored
-            kept += chunk_kept
-            skipped += len(chunk) - chunk_restored - chunk_kept
-
-            # Keep the lock alive while the run makes progress
-            cache.touch(LOCK_KEY, LOCK_TTL)
-
-        if restored:
-            # Usage is cached, the user would still see their old storage
-            ServiceUsageCalculator(user).clear_cache()
-
-        return restored, kept, skipped
-
-    def _get_auto_deletion_cutoff(self, user: User, since: datetime) -> datetime | None:
-        """
-        Return the creation date of the oldest attachment of `user` that
+        Return the creation date of the oldest attachment of `user_id` that
         auto-deletion left active, or None if there is none
 
         `auto_delete_excess_attachments` trashes the oldest active attachments
@@ -300,7 +325,7 @@ class Command(BaseCommand):
         in doubt, the date can only move forward, i.e. towards restoring more.
         """
         return (
-            Attachment.objects.filter(user_id=user.pk, date_modified__lt=since)
+            Attachment.objects.filter(user_id=user_id, date_modified__lt=since)
             .order_by('date_created')
             .values_list('date_created', flat=True)
             .first()
@@ -434,6 +459,247 @@ class Command(BaseCommand):
             )
 
         return len(attachments), kept
+
+    def _iter_orphan_chunks(
+        self,
+        options: dict,
+        since: datetime,
+        until: datetime,
+        last_position: tuple[datetime, int] | None = None,
+    ):
+        """
+        Yield, chunk after chunk, the attachments left `pending-delete` within
+        the window without any trash entry (orphans), and how many attachments
+        of the chunk were skipped because they have one
+
+        Orphans come from `move_to_trash()` killed half-way: the attachments
+        were marked `pending-delete` (and their storage subtracted) on
+        kobocat, but the trash entries were never created on KPI.
+
+        `toggle_statuses()` gives the same `date_modified` to every attachment
+        of a call, i.e. up to tens of thousands of rows share it. The chunks
+        are therefore read with `(date_modified, id) > (last date_modified,
+        last id)`, which needs this temporary index on kobocat to stay fast:
+
+            CREATE INDEX CONCURRENTLY tmp_logger_attachment_pending_delete_dm_id
+                ON logger_attachment (date_modified, id)
+                WHERE delete_status = 'pending-delete';
+
+        The position always moves forward, even when nothing is restored in a
+        chunk, and restored attachments leave the index, so a new run only
+        reads what is left.
+        """
+        user_ids = set(options['user_ids'])
+        excluded_user_ids = set(options['excluded_user_ids'])
+        table = Attachment._meta.db_table
+        while True:
+            queryset = Attachment.all_objects.filter(
+                delete_status=AttachmentDeleteStatus.PENDING_DELETE,
+                date_modified__gte=since,
+                date_modified__lt=until,
+            )
+            if user_ids:
+                # A few users only: read their attachments through the
+                # `user_id` index instead of the whole window
+                queryset = queryset.filter(user_id__in=user_ids)
+            if last_position:
+                queryset = queryset.filter(
+                    RawSQL(
+                        f'("{table}"."date_modified", "{table}"."id") > (%s, %s)',
+                        last_position,
+                        output_field=BooleanField(),
+                    )
+                )
+            attachments = list(
+                queryset.order_by('date_modified', 'pk').values(
+                    'pk',
+                    'uid',
+                    'user_id',
+                    'instance_id',
+                    'date_created',
+                    'date_modified',
+                )[: options['chunk_size']]
+            )
+            if not attachments:
+                return
+
+            last_position = (attachments[-1]['date_modified'], attachments[-1]['pk'])
+
+            # Excluded users are filtered here rather than in SQL, so that the
+            # query keeps reading the index in order
+            attachments = [
+                att
+                for att in attachments
+                if (not user_ids or att['user_id'] in user_ids)
+                and att['user_id'] not in excluded_user_ids
+            ]
+            # Handled by the trash loop, or trashed by a person: not orphans
+            with_trash = set(
+                AttachmentTrash.objects.filter(
+                    attachment_id__in=[att['pk'] for att in attachments]
+                ).values_list('attachment_id', flat=True)
+            )
+            yield (
+                [att for att in attachments if att['pk'] not in with_trash],
+                len(with_trash),
+                last_position,
+            )
+
+    def _report_orphans(self, options: dict, since: datetime, until: datetime):
+        """
+        Print how many orphan attachments a real run would restore (see
+        `_iter_orphan_chunks()`)
+        """
+        total = 0
+        total_with_trash = 0
+        counts_per_user = {}
+        for idx, (orphans, with_trash, last_position) in enumerate(
+            self._iter_orphan_chunks(options, since, until), start=1
+        ):
+            total += len(orphans)
+            total_with_trash += with_trash
+            for att in orphans:
+                counts_per_user[att['user_id']] = (
+                    counts_per_user.get(att['user_id'], 0) + 1
+                )
+            if idx % PROGRESS_EVERY == 0:
+                self.stdout.write(
+                    f'[DRY RUN] Orphans: {total} found so far, up to '
+                    f'{last_position[0].isoformat()}'
+                )
+
+        self.stdout.write(
+            f'[DRY RUN] {total} orphan attachment(s) (pending-delete without '
+            f'trash entry) for {len(counts_per_user)} user(s), '
+            f'{total_with_trash} pending-delete attachment(s) with a trash entry '
+            f'left to the trash loop'
+        )
+        if options['verbosity'] > 1:
+            for user_id, count in sorted(counts_per_user.items()):
+                self.stdout.write(f'  User #{user_id}: {count} orphan(s)')
+
+    def _restore_orphan_chunk(self, attachments: list[dict]) -> int:
+        """
+        Restore orphan attachments (see `_iter_orphan_chunks()`) and return how
+        many were restored
+
+        No trash entry, periodic task or audit log to deal with: none was ever
+        created. `toggle_statuses()` only changes the attachments still
+        `pending-delete` and adds their storage back, in the same kobocat
+        transaction, so the storage counters stay right if the run stops.
+        """
+        _, restored = AttachmentTrash.toggle_statuses(
+            [att['uid'] for att in attachments], active=True
+        )
+        instance_ids = sorted({att['instance_id'] for att in attachments})
+        try:
+            ParsedInstance.bulk_update_attachments(instance_ids)
+        except Exception:
+            # The attachments are active again, a new run would not find them.
+            # Give what is needed to update Mongo by hand
+            self.stderr.write(
+                f'Mongo update failed, run it again from a shell:\n'
+                f'ParsedInstance.bulk_update_attachments({instance_ids})'
+            )
+            raise
+        return restored
+
+    def _restore_orphans(
+        self, options: dict, since: datetime, until: datetime
+    ) -> set[int]:
+        """
+        Restore every orphan attachment of the window (see
+        `_iter_orphan_chunks()`), and return the IDs of the users who got at
+        least one back
+
+        The same rule as for trash entries applies: orphans newer than the
+        oldest attachment the owner still has were trashed by a person, and
+        stay `pending-delete`.
+        """
+        cutoffs = {}
+        restored_user_ids = set()
+        total_restored = 0
+        total_kept = 0
+        total_with_trash = 0
+        position_key = self._get_position_key('orphans', options)
+        start_position = self._get_saved_position(position_key, options)
+        for idx, (orphans, with_trash, last_position) in enumerate(
+            self._iter_orphan_chunks(options, since, until, start_position),
+            start=1,
+        ):
+            total_with_trash += with_trash
+            to_restore = []
+            for att in orphans:
+                user_id = att['user_id']
+                if user_id not in cutoffs:
+                    cutoffs[user_id] = self._get_auto_deletion_cutoff(user_id, since)
+                cutoff = cutoffs[user_id]
+                if cutoff is not None and att['date_created'] > cutoff:
+                    total_kept += 1
+                else:
+                    to_restore.append(att)
+
+            if to_restore:
+                total_restored += self._restore_orphan_chunk(to_restore)
+                restored_user_ids.update(att['user_id'] for att in to_restore)
+
+            cache.set(position_key, last_position, POSITION_TTL)
+            # Keep the lock alive while the run makes progress
+            cache.touch(LOCK_KEY, LOCK_TTL)
+
+            if options['verbosity'] > 1 or idx % PROGRESS_EVERY == 0:
+                self.stdout.write(
+                    f'Orphans: {total_restored} restored, {total_kept} kept so '
+                    f'far, up to {last_position[0].isoformat()}'
+                )
+
+        # Usage is cached, the users would still see their old storage
+        for user in User.objects.filter(pk__in=restored_user_ids).iterator():
+            ServiceUsageCalculator(user).clear_cache()
+
+        self.stdout.write(
+            f'Restored {total_restored} orphan attachment(s) for '
+            f'{len(restored_user_ids)} user(s), kept {total_kept} (newer than '
+            f'the oldest attachment the owner still has), {total_with_trash} '
+            f'with a trash entry left untouched'
+        )
+        return restored_user_ids
+
+    def _get_position_key(self, loop: str, options: dict) -> str:
+        """
+        Return the cache key of the position reached by `loop` for a run with
+        these options. Runs with other options (window, users) do not share it
+        """
+        return ':'.join(
+            [
+                LOCK_KEY,
+                'position',
+                loop,
+                options['since'],
+                options['until'],
+                ','.join(map(str, sorted(options['user_ids']))),
+                ','.join(map(str, sorted(options['excluded_user_ids']))),
+            ]
+        )
+
+    def _get_saved_position(self, position_key: str, options: dict):
+        """
+        Return the position saved by an interrupted run, or None to start from
+        the beginning
+
+        Everything before it was already processed: restored, or left in place
+        on purpose (kept, skipped). Nothing new can appear before it, since
+        auto-deletion is disabled. Starting from the beginning is always
+        correct too, only slower.
+        """
+        if options['from_start']:
+            cache.delete(position_key)
+            return None
+
+        position = cache.get(position_key)
+        if position:
+            self.stdout.write(f'Resuming from the saved position {position}')
+        return position
 
     def _get_storage_counters(self, user_ids: list[int]):
         """
