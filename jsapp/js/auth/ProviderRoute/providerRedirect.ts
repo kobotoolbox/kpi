@@ -32,7 +32,7 @@ export function getProviderRedirectId(socialApp: SocialApp): string {
 /**
  * A parameter from either place a hash routed app has to look: the real query string first, then the matched
  * route's own. allauth appends to the real one, since it parses the callback URL and leaves the fragment
- * alone - `…/#/accounts/provider/signup` comes back as `…/?error=denied#/accounts/provider/signup`.
+ * alone - `…/#/auth/provider/signup` comes back as `…/?error=denied#/auth/provider/signup`.
  *
  * @param windowSearch `window.location.search`
  * @param routeSearch the search string of the matched hash route, where KPI's own links write theirs

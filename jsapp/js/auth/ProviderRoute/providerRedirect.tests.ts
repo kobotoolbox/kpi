@@ -9,31 +9,31 @@ describe('getProviderCallbackUrl', () => {
   it('keeps the deployment prefix, which the bare origin would drop', () => {
     chai
       .expect(getProviderCallbackUrl('', '', PREFIXED_ROOT))
-      .to.equal('https://kf.example.org/kpi/#/accounts/provider/signup')
+      .to.equal('https://kf.example.org/kpi/#/auth/provider/signup')
   })
 
   it('carries the destination Django asked for, which lands outside the fragment', () => {
     chai
       .expect(getProviderCallbackUrl(`?next=${NEXT_ENCODED}`, '', PREFIXED_ROOT))
-      .to.equal(`https://kf.example.org/kpi/#/accounts/provider/signup?next=${NEXT_ENCODED}`)
+      .to.equal(`https://kf.example.org/kpi/#/auth/provider/signup?next=${NEXT_ENCODED}`)
   })
 
   it('carries the destination from the hash route as well', () => {
     chai
       .expect(getProviderCallbackUrl('', `?next=${NEXT_ENCODED}`, PREFIXED_ROOT))
-      .to.equal(`https://kf.example.org/kpi/#/accounts/provider/signup?next=${NEXT_ENCODED}`)
+      .to.equal(`https://kf.example.org/kpi/#/auth/provider/signup?next=${NEXT_ENCODED}`)
   })
 
   it('ignores anything else in the URL, `?error=` from an earlier attempt included', () => {
     chai
       .expect(getProviderCallbackUrl('?error=denied', '?process=login', PREFIXED_ROOT))
-      .to.equal('https://kf.example.org/kpi/#/accounts/provider/signup')
+      .to.equal('https://kf.example.org/kpi/#/auth/provider/signup')
   })
 })
 
 describe('readProviderRedirectError', () => {
   it('reads the parameter allauth writes, which lands outside the fragment', () => {
-    // `…/?error=denied#/accounts/provider/signup`, so the hash route sees no search at all.
+    // `…/?error=denied#/auth/provider/signup`, so the hash route sees no search at all.
     chai.expect(readProviderRedirectError('?error=denied', '')).to.equal('denied')
   })
 

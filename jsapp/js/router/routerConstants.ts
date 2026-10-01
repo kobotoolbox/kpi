@@ -10,8 +10,8 @@ export const PATHS = Object.freeze({
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ROOT: '',
-  /** Mirrors allauth's server side `/accounts/` prefix. Nothing collides - these only exist after the `#`. */
-  ACCOUNTS_ROOT: '/accounts',
+  /** Kept distinct from the server's own `/accounts/` prefix, so a URL says which side it means. */
+  AUTH_ROOT: '/auth',
   ACCOUNT_ROOT: '/account',
   ORGANIZATION: '/account/organization',
   LIBRARY: '/library',
@@ -51,35 +51,35 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 })
 
-/** The screens you reach without a session. Paths follow allauth paths (the difference is the `#` prefix). */
+/** The screens you reach without a session. Leaf paths keep allauth's own names, under our `/auth` prefix. */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
-  LOGIN: ROUTES.ACCOUNTS_ROOT + '/login',
-  SIGNUP: ROUTES.ACCOUNTS_ROOT + '/signup',
+  LOGIN: ROUTES.AUTH_ROOT + '/login',
+  SIGNUP: ROUTES.AUTH_ROOT + '/signup',
   /**
-   * Matches allauth's `account_confirm_email`, which is where the sign up email's link points - except that
-   * link has no `#`, so it still lands on the server rendered page. Aiming the email here is DEV-1860.
+   * Named after allauth's `account_confirm_email`, where the sign up email's link points. That link goes to
+   * the server rendered page, not here - aiming it at this screen is DEV-1860.
    */
-  CONFIRM_EMAIL: ROUTES.ACCOUNTS_ROOT + '/confirm-email/:key',
+  CONFIRM_EMAIL: ROUTES.AUTH_ROOT + '/confirm-email/:key',
   /** Asks for an address to mail a password reset link to */
-  RESET_PASSWORD: ROUTES.ACCOUNTS_ROOT + '/password/reset',
+  RESET_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset',
   /**
    * The same as `NEW_PASSWORD` for a server that mails a code rather than a link: the code is typed into the
    * form instead of arriving in the URL.
    */
-  RESET_PASSWORD_CODE: ROUTES.ACCOUNTS_ROOT + '/password/reset/code',
+  RESET_PASSWORD_CODE: ROUTES.AUTH_ROOT + '/password/reset/code',
   /** Where the link in the password reset email lands, to pick the new password */
-  NEW_PASSWORD: ROUTES.ACCOUNTS_ROOT + '/password/reset/key/:key',
+  NEW_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset/key/:key',
   /** One-time code prompt, for a sign-in allauth paused after the password */
-  MFA_AUTHENTICATE: ROUTES.ACCOUNTS_ROOT + '/authenticate/totp',
+  MFA_AUTHENTICATE: ROUTES.AUTH_ROOT + '/authenticate/totp',
   /** The same prompt, answered with a recovery code */
-  MFA_RECOVERY_CODES: ROUTES.ACCOUNTS_ROOT + '/authenticate/recovery-codes',
+  MFA_RECOVERY_CODES: ROUTES.AUTH_ROOT + '/authenticate/recovery-codes',
   /**
    * Where a single sign-on link lands, to confirm the provider before the handshake starts. This is the only
    * way in for a provider kept off the login page.
    */
-  PROVIDER_LOGIN: ROUTES.ACCOUNTS_ROOT + '/provider/:providerId/login',
+  PROVIDER_LOGIN: ROUTES.AUTH_ROOT + '/provider/:providerId/login',
   /** Where an SSO sign-in lands when allauth still needs a username or an address */
-  PROVIDER_SIGNUP: ROUTES.ACCOUNTS_ROOT + '/provider/signup',
+  PROVIDER_SIGNUP: ROUTES.AUTH_ROOT + '/provider/signup',
 }
 
 /**

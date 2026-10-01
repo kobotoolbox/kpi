@@ -70,10 +70,10 @@ const onAuthenticated = fn()
 
 const Subject = () => <ProviderSignupRoute onAuthenticated={onAuthenticated} />
 
-/** Renders the story as `/accounts/provider/signup`, where allauth's `callback_url` points. */
+/** Renders the story as `/auth/provider/signup`, where allauth's `callback_url` points. */
 const providerSignupRouting = reactRouterParameters({
   location: { path: AUTH_ROUTES.PROVIDER_SIGNUP },
-  routing: reactRouterOutlet({ path: ROUTES.ACCOUNTS_ROOT }, { path: 'provider/signup', element: <Subject /> }),
+  routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'provider/signup', element: <Subject /> }),
 })
 
 const meta: Meta<typeof AuthContainer> = {

@@ -34,12 +34,12 @@ const storyHandlers = (socialApp?: RequestHandler): RequestHandler[] => [
   socialApp ?? makeSocialAppMock({ provider_id: PROVIDER_ID, name: PROVIDER_NAME }),
 ]
 
-/** Renders the story as `/accounts/provider/:providerId/login`, so the route really reads its id off the URL. */
+/** Renders the story as `/auth/provider/:providerId/login`, so the route really reads its id off the URL. */
 const providerLoginRouting = (providerId: string) =>
   reactRouterParameters({
-    location: { path: `${ROUTES.ACCOUNTS_ROOT}/provider/${providerId}/login` },
+    location: { path: `${ROUTES.AUTH_ROOT}/provider/${providerId}/login` },
     routing: reactRouterOutlet(
-      { path: ROUTES.ACCOUNTS_ROOT },
+      { path: ROUTES.AUTH_ROOT },
       { path: 'provider/:providerId/login', element: <ProviderLoginRoute /> },
     ),
   })
