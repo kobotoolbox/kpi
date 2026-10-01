@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0011_socialappcustomdata_in_app_message_and_more'),
+        ('accounts', '0010_socialappcustomdata_managed_socialappmanageddomain'),
     ]
 
     operations = [

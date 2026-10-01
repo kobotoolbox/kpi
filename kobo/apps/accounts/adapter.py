@@ -23,7 +23,6 @@ from django.utils.translation import gettext_lazy as t
 
 from kpi.utils.log import logging
 from .models import SocialAppCustomData, SocialAppManagedDomain
-from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
