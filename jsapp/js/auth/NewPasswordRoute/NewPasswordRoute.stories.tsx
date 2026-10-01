@@ -46,13 +46,13 @@ const storyHandlers = (options?: { environment?: RequestHandler; keyCheck?: Requ
     (handler): handler is RequestHandler => Boolean(handler),
   )
 
-/** Renders the story as `/auth/reset-password/:key`, so the route really reads its key off the URL. */
+/** Renders the story as `/auth/password/reset/key/:key`, so the route really reads its key off the URL. */
 const newPasswordRouting = (key: string) =>
   reactRouterParameters({
-    location: { path: `${ROUTES.AUTH_ROOT}/reset-password/${key}` },
+    location: { path: `${ROUTES.AUTH_ROOT}/password/reset/key/${key}` },
     routing: reactRouterOutlet(
       { path: ROUTES.AUTH_ROOT },
-      { path: 'reset-password/:key', element: <NewPasswordRoute /> },
+      { path: 'password/reset/key/:key', element: <NewPasswordRoute /> },
     ),
   })
 

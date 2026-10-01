@@ -91,10 +91,10 @@ const storyHandlers = (options?: { environment?: RequestHandler; signup?: Reques
     Boolean(handler),
   )
 
-/** Renders the story as `/auth/register`, so what you see is the routed screen inside its frame. */
+/** Renders the story as `/auth/signup`, so what you see is the routed screen inside its frame. */
 const registerRouting = reactRouterParameters({
-  location: { path: AUTH_ROUTES.REGISTER },
-  routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'register', element: <RegisterRoute /> }),
+  location: { path: AUTH_ROUTES.SIGNUP },
+  routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'signup', element: <RegisterRoute /> }),
 })
 
 const meta: Meta<typeof AuthContainer> = {

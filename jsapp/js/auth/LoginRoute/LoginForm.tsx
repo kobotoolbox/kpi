@@ -196,7 +196,7 @@ export default function LoginForm({ credential, isConfigurationPending, onOutcom
 
       <Text size='sm' ta='center'>
         {t('New user?')}&nbsp;
-        <Anchor component={Link} to={AUTH_ROUTES.REGISTER} inherit>
+        <Anchor component={Link} to={AUTH_ROUTES.SIGNUP} inherit>
           {t('Create an account')}
         </Anchor>
       </Text>

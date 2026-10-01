@@ -24,13 +24,13 @@ import ActivateAccountRoute from './ActivateAccountRoute'
 const EMAIL = 'caroline.herschel@kbtdev.org'
 const USERNAME = 'caroline_herschel'
 
-/** Renders the story as `/auth/activate/:key`, so the route really reads its key off the URL. */
+/** Renders the story as `/auth/confirm-email/:key`, so the route really reads its key off the URL. */
 const activationRouting = (key: string) =>
   reactRouterParameters({
-    location: { path: `${ROUTES.AUTH_ROOT}/activate/${key}` },
+    location: { path: `${ROUTES.AUTH_ROOT}/confirm-email/${key}` },
     routing: reactRouterOutlet(
       { path: ROUTES.AUTH_ROOT },
-      { path: 'activate/:key', element: <ActivateAccountRoute /> },
+      { path: 'confirm-email/:key', element: <ActivateAccountRoute /> },
     ),
   })
 

@@ -30,8 +30,8 @@ const environmentMockWithFooterLinks = makeEnvironmentMock(FOOTER_LINKS)
  */
 const authRouting = (outlet: React.ReactNode) =>
   reactRouterParameters({
-    location: { path: AUTH_ROUTES.REGISTER },
-    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'register', element: outlet }),
+    location: { path: AUTH_ROUTES.SIGNUP },
+    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'signup', element: outlet }),
   })
 
 /** Placeholder card content. The input gives the tab-order assertions something to land on. */
