@@ -49,13 +49,10 @@ const storyHandlers = (options?: { environment?: RequestHandler; request?: Reque
     Boolean(handler),
   )
 
-/** Renders the story as `/accounts/password/reset`, so what you see is the routed screen inside its frame. */
+/** Renders the story as `/auth/password/reset`, so what you see is the routed screen inside its frame. */
 const resetPasswordRouting = reactRouterParameters({
   location: { path: AUTH_ROUTES.RESET_PASSWORD },
-  routing: reactRouterOutlet(
-    { path: ROUTES.ACCOUNTS_ROOT },
-    { path: 'password/reset', element: <ResetPasswordRoute /> },
-  ),
+  routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'password/reset', element: <ResetPasswordRoute /> }),
 })
 
 const meta: Meta<typeof AuthContainer> = {
@@ -131,7 +128,7 @@ export const ResetByCode: Story = {
     // The code screen is a route of its own, so the story has to carry it as well as the request form.
     reactRouter: reactRouterParameters({
       location: { path: AUTH_ROUTES.RESET_PASSWORD },
-      routing: reactRouterOutlets({ path: ROUTES.ACCOUNTS_ROOT }, [
+      routing: reactRouterOutlets({ path: ROUTES.AUTH_ROOT }, [
         { path: 'password/reset', element: <ResetPasswordRoute /> },
         { path: 'password/reset/code', element: <NewPasswordRoute collectCode /> },
       ]),

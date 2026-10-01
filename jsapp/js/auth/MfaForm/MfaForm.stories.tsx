@@ -57,11 +57,11 @@ const storyHandlers = (options?: { environment?: RequestHandler; mfa?: RequestHa
 
 const onAuthenticated = fn()
 
-/** Renders the story as `/accounts/login`, so what you see is the routed screen inside its frame. */
+/** Renders the story as `/auth/login`, so what you see is the routed screen inside its frame. */
 const loginRouting = reactRouterParameters({
   location: { path: AUTH_ROUTES.LOGIN },
   routing: reactRouterOutlet(
-    { path: ROUTES.ACCOUNTS_ROOT },
+    { path: ROUTES.AUTH_ROOT },
     { path: 'login', element: <LoginRoute onAuthenticated={onAuthenticated} /> },
   ),
 })

@@ -30,7 +30,7 @@ const AuthPlaceholderRoute = React.lazy(
 export default function authRoutes() {
   return (
     <Route
-      path={ROUTES.ACCOUNTS_ROOT}
+      path={ROUTES.AUTH_ROOT}
       element={
         <RequireFeatureFlag flag={FeatureFlag.authRedesignEnabled}>
           <AuthAppProviders>
@@ -48,7 +48,7 @@ export default function authRoutes() {
 
       {/*
         `MfaForm` exists, but `LoginRoute` swaps it into its own card on success, so the URL stays on
-        `/accounts/login`. Pointing this route at the real form would let you land on it with no sign-in
+        `/auth/login`. Pointing this route at the real form would let you land on it with no sign-in
         underway, and what that shows is a redirect decision - see `PATHS.MFA_AUTHENTICATE`, DEV-1860.
       */}
       <Route path={AUTH_ROUTES.MFA_AUTHENTICATE} element={<AuthPlaceholderRoute title='One-time code' hasAuthCard />} />
