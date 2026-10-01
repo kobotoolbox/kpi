@@ -1,5 +1,7 @@
 import { Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
+import { isInRepeatGroup } from '#/components/processing/common/questionType'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
@@ -85,7 +87,16 @@ export default function DataTableCell(props: DataTableCellProps) {
     props.reactTableRow.value !== null &&
     (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
   ) {
-    return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
+    return (
+      <RepeatGroupCell
+        submissionData={submission}
+        rowName={props.columnKey}
+        // Processing doesn't support repeat groups, so NLP supported questions get a disabled way into it.
+        showDisabledProcessingAction={
+          isNlpSupported(props.question?.type) && isInRepeatGroup(props.asset, props.columnKey, submission)
+        }
+      />
+    )
   }
 
   // `question_xpath` was recorded when the submission came in, so it finds the file even
@@ -100,6 +111,8 @@ export default function DataTableCell(props: DataTableCellProps) {
   const questionType = props.question?.type ?? (attachment && inferAttachmentQuestionType(attachment))
   // The attachment's path is also the one the processing view has to open at.
   const questionXpath = attachment?.question_xpath ?? props.question?.$xpath
+  // Processing doesn't support answers inside a repeat group, whatever the question type.
+  const isAnswerInRepeatGroup = questionXpath !== undefined && isInRepeatGroup(props.asset, questionXpath, submission)
 
   if (questionType && props.reactTableRow.value) {
     if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
@@ -117,6 +130,7 @@ export default function DataTableCell(props: DataTableCellProps) {
               submissionData={submission}
               mediaAttachment={mediaAttachment}
               questionLabel={columnName}
+              isInRepeatGroup={isAnswerInRepeatGroup}
             />
           )
         }
@@ -176,6 +190,7 @@ export default function DataTableCell(props: DataTableCellProps) {
         submissionData={submission}
         text={props.reactTableRow.value}
         questionLabel={columnName}
+        isInRepeatGroup={isAnswerInRepeatGroup}
       />
     )
   }

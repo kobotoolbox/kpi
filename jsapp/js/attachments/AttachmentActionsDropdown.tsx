@@ -10,6 +10,7 @@ import ModalNew from '#/components/common/ModalNew'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
+import { isInRepeatGroup } from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
 import { stripRepeatIndices } from '#/components/submissions/submissionUtils'
 import { QuestionTypeName } from '#/constants'
@@ -96,6 +97,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
               assetUid={props.asset.uid}
               xpath={questionXpath}
               submissionEditId={getSubmissionRootUuid(props.submission)}
+              isInRepeatGroup={isInRepeatGroup(props.asset, attachment.question_xpath, props.submission)}
             />
             <Menu.Divider />
           </>

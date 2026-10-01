@@ -1,11 +1,12 @@
 import './AudioCell.scss'
 
 import { Group, Text } from '@mantine/core'
-import { IconArrowsDiagonal, IconPencilStar, IconVolume } from '@tabler/icons-react'
+import { IconArrowsDiagonal, IconVolume } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
+import ActionIconProcessing from '#/components/common/ActionIconProcessing'
 import KoboIcon from '#/components/common/KoboIcon'
 import ProcessingPromptModal from '#/components/common/ProcessingPromptModal'
 import AudioPlayer from '#/components/common/audioPlayer'
@@ -27,6 +28,8 @@ interface AudioCellProps {
   mediaAttachment: SubmissionAttachment | string
   /** The question label, as displayed in the column header. */
   questionLabel: string
+  /** Processing doesn't support answers inside a repeat group, so the way into it is disabled. */
+  isInRepeatGroup?: boolean
 }
 
 /**
@@ -67,11 +70,8 @@ export default function AudioCell(props: AudioCellProps) {
                 onClick={() => setIsDetailsDialogOpen(true)}
               />
             )}
-            <ActionIcon
-              variant='transparent'
-              tooltip={t('Open')}
-              icon={IconPencilStar}
-              size='sm'
+            <ActionIconProcessing
+              isInRepeatGroup={props.isInRepeatGroup}
               onClick={() => {
                 goToProcessing(props.assetUid, props.xpath, submissionEditId)
               }}
@@ -89,10 +89,14 @@ export default function AudioCell(props: AudioCellProps) {
               <Text fw={600}>{props.questionLabel}</Text>
             </Group>
           }
-          onAction={() => {
-            setIsDetailsDialogOpen(false)
-            goToProcessing(props.assetUid, props.xpath, submissionEditId)
-          }}
+          onAction={
+            props.isInRepeatGroup
+              ? undefined
+              : () => {
+                  setIsDetailsDialogOpen(false)
+                  goToProcessing(props.assetUid, props.xpath, submissionEditId)
+                }
+          }
         >
           <AudioPlayer mediaURL={downloadUrl} />
         </ProcessingPromptModal>

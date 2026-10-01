@@ -1,7 +1,8 @@
 import { Group, ScrollArea, Text } from '@mantine/core'
-import { IconArrowsDiagonal, IconPencilStar } from '@tabler/icons-react'
+import { IconArrowsDiagonal } from '@tabler/icons-react'
 import React, { useState } from 'react'
 import ActionIcon from '#/components/common/ActionIcon'
+import ActionIconProcessing from '#/components/common/ActionIconProcessing'
 import ProcessingPromptModal from '#/components/common/ProcessingPromptModal'
 import Icon from '#/components/common/icon'
 import { goToProcessing } from '#/components/processing/routes.utils'
@@ -19,6 +20,8 @@ interface TextCellProps {
   text: string | null | undefined
   /** The question label, as displayed in the column header. */
   questionLabel: string
+  /** Processing doesn't support answers inside a repeat group, so the way into it is disabled. */
+  isInRepeatGroup?: boolean
 }
 
 /**
@@ -64,15 +67,7 @@ export default function TextCell(props: TextCellProps) {
           size='sm'
           onClick={() => setIsDetailsDialogOpen(true)}
         />
-        {canOpenProcessing && (
-          <ActionIcon
-            variant='transparent'
-            tooltip={t('Open')}
-            icon={IconPencilStar}
-            size='sm'
-            onClick={openProcessing}
-          />
-        )}
+        {canOpenProcessing && <ActionIconProcessing isInRepeatGroup={props.isInRepeatGroup} onClick={openProcessing} />}
       </Group>
 
       <ProcessingPromptModal
@@ -85,7 +80,7 @@ export default function TextCell(props: TextCellProps) {
           </Group>
         }
         onAction={
-          canOpenProcessing
+          canOpenProcessing && !props.isInRepeatGroup
             ? () => {
                 setIsDetailsDialogOpen(false)
                 openProcessing()

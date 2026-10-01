@@ -9,3 +9,7 @@ export const SUBSEQUENCES_SCHEMA_VERSION = '20250820'
  * - such objects usually require special handling *somewhere*, then if-else over it's UUID.
  */
 export const LOCALLY_EDITED_PLACEHOLDER_UUID = 'placeholder'
+
+/** Why the ways into Processing are disabled for answers inside a repeat group. */
+export const getRepeatGroupProcessingUnavailableMessage = () =>
+  t('Qualitative processing is currently unavailable for repeat group submissions')

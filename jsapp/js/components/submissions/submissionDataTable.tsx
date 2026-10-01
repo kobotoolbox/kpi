@@ -11,6 +11,7 @@ import bem, { makeBem } from '#/bem'
 import MenuItemProcessing from '#/components/common/MenuItemProcessing'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import SimpleTable from '#/components/common/SimpleTable'
+import { isInRepeatGroup } from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
 import {
   DISPLAY_GROUP_TYPES,
@@ -293,6 +294,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               assetUid={this.props.asset.uid}
               xpath={questionXpath}
               submissionEditId={getSubmissionRootUuid(this.props.submissionData)}
+              isInRepeatGroup={isInRepeatGroup(this.props.asset, xpath, this.props.submissionData)}
             />
           </MoreActionsMenu>
         )}
