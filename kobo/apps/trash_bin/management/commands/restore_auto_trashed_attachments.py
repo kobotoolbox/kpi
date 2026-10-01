@@ -32,7 +32,8 @@ class Command(BaseCommand):
     help = (
         'Restore attachments moved to trash by `auto_delete_excess_attachments` '
         'within a time window, e.g. when `AUTO_DELETE_ATTACHMENTS` was enabled '
-        'by mistake, and reset the storage `ExceededLimitCounter` to 0 days. '
+        'by mistake, and restart the storage `ExceededLimitCounter` from '
+        '`--since`, the day enforcement was enabled. '
         'Users are processed one at a time, in chunks. Only pending trash '
         'entries trashed as the owner, and not newer than the oldest attachment '
         'the owner still has, are restored: the others were trashed by a '
@@ -147,7 +148,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f'  User #{user_id} `{users[user_id].username}`: {count}'
                     )
-            self._report_storage_counters(user_ids)
+            self._report_storage_counters(user_ids, since)
             self.stdout.write(
                 f'{prefix}Nothing has been changed. Entries trashed by a person '
                 f'(a collaborator, or the owner themselves) are only detected, '
@@ -168,7 +169,7 @@ class Command(BaseCommand):
                 since,
                 options['chunk_size'],
             )
-            self._reset_storage_counters(user_ids, restored_user_ids)
+            self._reset_storage_counters(user_ids, restored_user_ids, since)
         finally:
             cache.delete(LOCK_KEY)
 
@@ -280,9 +281,7 @@ class Command(BaseCommand):
 
         return restored, kept, skipped
 
-    def _get_auto_deletion_cutoff(
-        self, user: User, since: datetime
-    ) -> datetime | None:
+    def _get_auto_deletion_cutoff(self, user: User, since: datetime) -> datetime | None:
         """
         Return the creation date of the oldest attachment of `user` that
         auto-deletion left active, or None if there is none
@@ -359,9 +358,7 @@ class Command(BaseCommand):
         kept = 0
         if cutoff is not None:
             kept = sum(1 for att in attachments if att['date_created'] > cutoff)
-            attachments = [
-                att for att in attachments if att['date_created'] <= cutoff
-            ]
+            attachments = [att for att in attachments if att['date_created'] <= cutoff]
 
         if not attachments:
             return 0, kept
@@ -449,7 +446,15 @@ class Command(BaseCommand):
             counters = counters.filter(user_id__in=user_ids)
         return counters
 
-    def _report_storage_counters(self, user_ids: list[int]):
+    def _get_days_since_enforcement(self, since: datetime) -> int:
+        """
+        Return the number of days the storage counters are reset to: the days
+        elapsed since `since`, the day enforcement was enabled. Counted on
+        dates, like `check_exceeded_limit()` does, e.g. 1 the day after
+        """
+        return (timezone.now().date() - since.date()).days
+
+    def _report_storage_counters(self, user_ids: list[int], since: datetime):
         """
         Print how many storage counters a real run would reset, and how many
         of them have already reached the number of days before auto-deletion
@@ -461,29 +466,34 @@ class Command(BaseCommand):
         counters = self._get_storage_counters(user_ids)
         retention = config.OVER_LIMIT_ATTACHMENT_RETENTION
         self.stdout.write(
-            f'Storage counters to reset: {counters.count()} '
+            f'Storage counters to reset to '
+            f'{self._get_days_since_enforcement(since)} day(s): {counters.count()} '
             f'({counters.filter(days__gte=retention).count()} at {retention} '
             f'days or more)'
         )
 
     def _reset_storage_counters(
-        self, user_ids: list[int], restored_user_ids: list[int]
+        self, user_ids: list[int], restored_user_ids: list[int], since: datetime
     ):
         """
-        Restart the countdown before auto-deletion from today: set the storage
-        counters to 0 days, and give one back to restored users who lost it
+        Restart the countdown before auto-deletion from the day enforcement was
+        enabled: set the storage counters to the days elapsed since `since`,
+        and give one back to restored users who lost it
         """
         if not settings.STRIPE_ENABLED:
             return
 
+        days = self._get_days_since_enforcement(since)
+
         # Every storage counter is reset, not only those of the restored
         # users, as agreed with product: the counters kept counting while
         # enforcement was off, so no user was ever told when auto-deletion
-        # would start. The countdown restarts for everyone from today.
+        # would start. The countdown restarts for everyone from the day
+        # enforcement was enabled.
         # `update()` skips `auto_now`, `date_modified` is set explicitly so the
-        # daily increment starts counting from now
+        # next daily increment happens 24 hours from now
         reset_count = self._get_storage_counters(user_ids).update(
-            days=0, date_modified=timezone.now()
+            days=days, date_modified=timezone.now()
         )
 
         # A user back under the limit after the trashing had their counter
@@ -499,14 +509,15 @@ class Command(BaseCommand):
         created = ExceededLimitCounter.objects.bulk_create(
             [
                 ExceededLimitCounter(
-                    user_id=user_id, limit_type=UsageType.STORAGE_BYTES, days=0
+                    user_id=user_id, limit_type=UsageType.STORAGE_BYTES, days=days
                 )
                 for user_id in restored_user_ids
                 if user_id not in existing_user_ids
             ]
         )
         self.stdout.write(
-            f'Reset {reset_count} storage counter(s), created {len(created)}'
+            f'Reset {reset_count} storage counter(s) to {days} day(s), '
+            f'created {len(created)}'
         )
 
     def _parse_datetime(self, value: str, option: str):

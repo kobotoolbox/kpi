@@ -215,6 +215,8 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
     def test_reset_storage_counters(self):
+        # Enforcement enabled yesterday: the countdown is at 1 day today
+        self.since = (timezone.now() - timedelta(days=1)).isoformat()
         ExceededLimitCounter = apps.get_model('stripe', 'ExceededLimitCounter')
         other = User.objects.create(username='other')
         ExceededLimitCounter.objects.create(
@@ -228,7 +230,8 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
 
         dry_run_output = self._call_command()
         self.assertIn(
-            'Storage counters to reset: 1 (1 at 90 days or more)', dry_run_output
+            'Storage counters to reset to 1 day(s): 1 (1 at 90 days or more)',
+            dry_run_output,
         )
         self.assertEqual(
             ExceededLimitCounter.objects.get(
@@ -243,7 +246,7 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
             ExceededLimitCounter.objects.get(
                 user=other, limit_type=UsageType.STORAGE_BYTES
             ).days,
-            0,
+            1,
         )
         # Other limit types are left alone
         self.assertEqual(
@@ -256,13 +259,14 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
             ExceededLimitCounter.objects.get(
                 user=self.owner, limit_type=UsageType.STORAGE_BYTES
             ).days,
-            0,
+            1,
         )
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
     def test_only_resets_counters_of_given_users(self):
+        self.since = (timezone.now() - timedelta(days=1)).isoformat()
         ExceededLimitCounter = apps.get_model('stripe', 'ExceededLimitCounter')
         other = User.objects.create(username='other')
         ExceededLimitCounter.objects.create(
@@ -284,7 +288,7 @@ class RestoreAutoTrashedAttachmentsTestCase(BaseTestCase, AssetSubmissionTestMix
             ExceededLimitCounter.objects.get(
                 user=self.owner, limit_type=UsageType.STORAGE_BYTES
             ).days,
-            0,
+            1,
         )
 
     def _assert_still_in_trash(self):
