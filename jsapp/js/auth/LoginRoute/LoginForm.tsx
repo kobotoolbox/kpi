@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FlowId } from '#/api/models/flowId'
 import type { LoginBody } from '#/api/models/loginBody'
+import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthLoginPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { getRequiredFieldMessage, validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -58,13 +60,15 @@ function withIdentifierError(fieldErrors: Record<string, string>, credentialPara
 
 export interface LoginFormProps {
   credential: LoginCredential
+  /** From `/api/v2/environment/`. The single sign-on providers this server advertises, if any. */
+  socialApps: SocialApp[] | undefined
   /** Blocks submitting until allauth's settings land, since the field name comes from them */
   isConfigurationPending: boolean
   onOutcome: (outcome: LoginOutcome) => void
 }
 
-/** Credentials and nothing else. Password recovery, single sign-on etc. all live elsewhere */
-export default function LoginForm({ credential, isConfigurationPending, onOutcome }: LoginFormProps) {
+/** Credentials, and the single sign-on providers next to them. Password recovery etc. live elsewhere */
+export default function LoginForm({ credential, socialApps, isConfigurationPending, onOutcome }: LoginFormProps) {
   const credentialParam = getLoginCredentialParam(credential)
 
   const form = useForm<LoginFormValues>({
@@ -192,7 +196,7 @@ export default function LoginForm({ credential, isConfigurationPending, onOutcom
         </Stack>
       </form>
 
-      {/* TODO: the single sign-on providers from `social_apps` go here, in DEV-1853. */}
+      <ProviderLoginButtons socialApps={socialApps} />
 
       <Text size='sm' ta='center'>
         {t('New user?')}&nbsp;

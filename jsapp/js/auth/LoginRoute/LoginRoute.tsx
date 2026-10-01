@@ -238,6 +238,7 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
         {/* The credential may still be on its way; the form keeps submitting blocked until it lands. */}
         <LoginForm
           credential={credential ?? 'username'}
+          socialApps={environment?.socialApps}
           isConfigurationPending={allauth.isPending}
           onOutcome={handleOutcome}
         />
