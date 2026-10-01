@@ -265,7 +265,7 @@ class Command(BaseCommand):
             .values_list('attachment_id', flat=True)
         )
         for i in range(0, len(attachment_ids), chunk_size):
-            chunk = attachment_ids[i: i + chunk_size]
+            chunk = attachment_ids[i : i + chunk_size]
             chunk_restored, chunk_kept = self._restore_chunk(
                 user, chunk, author, cutoff
             )
@@ -523,7 +523,7 @@ class Command(BaseCommand):
 
     def _parse_datetime(self, value: str, option: str):
         """
-        Convert the text given to `--since` or `--until` into a datetime,
+        Convert the text given to `--since` or `--until` into a UTC datetime,
         e.g. `2026-09-30T19:00:00`. Without a timezone, UTC is assumed
         """
         parsed = parse_datetime(value)
@@ -531,4 +531,6 @@ class Command(BaseCommand):
             raise CommandError(f'`{option}` is not a valid ISO 8601 datetime')
         if timezone.is_naive(parsed):
             parsed = parsed.replace(tzinfo=dt_timezone.utc)
-        return parsed
+        # Always work in UTC, so that dates taken from it (e.g. by
+        # `_get_days_since_enforcement()`) do not depend on the offset typed
+        return parsed.astimezone(dt_timezone.utc)
