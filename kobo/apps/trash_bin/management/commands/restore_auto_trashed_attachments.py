@@ -1,4 +1,5 @@
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime
+from datetime import timezone as dt_timezone
 
 from constance import config
 from django.apps import apps
