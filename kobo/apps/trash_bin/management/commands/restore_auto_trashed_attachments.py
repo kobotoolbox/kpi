@@ -264,8 +264,9 @@ class Command(BaseCommand):
             .order_by('pk')
             .values_list('attachment_id', flat=True)
         )
-        for i in range(0, len(attachment_ids), chunk_size):
-            chunk = attachment_ids[i : i + chunk_size]
+        for start in range(0, len(attachment_ids), chunk_size):
+            end = start + chunk_size
+            chunk = attachment_ids[start:end]
             chunk_restored, chunk_kept = self._restore_chunk(
                 user, chunk, author, cutoff
             )
