@@ -6,6 +6,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { SocialApp } from '#/api/models/socialApp'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { type Canvas, field } from '#/auth/authStoryHelpers'
+import { ROOT_URL } from '#/constants'
 import {
   LOGIN_URL,
   allauthConfigurationMock,
@@ -168,7 +169,7 @@ export const SingleSignOnProviders: Story = {
     // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
     // `provider_id`, not its `provider` kind.
     const form = gitlabButton.closest('form')
-    expect(form).toHaveAttribute('action', '/api/v2/allauth/browser/v1/auth/provider/redirect')
+    expect(form).toHaveAttribute('action', `${ROOT_URL}/api/v2/allauth/browser/v1/auth/provider/redirect`)
     expect(form?.querySelector('input[name="provider"]')).toHaveValue('gitlab-dev')
   },
 }

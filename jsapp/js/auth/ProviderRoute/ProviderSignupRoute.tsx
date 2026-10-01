@@ -1,11 +1,13 @@
 import { Stack, Text, Title } from '@mantine/core'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { Link, useLocation } from 'react-router-dom'
 import type { ProviderSignupResponseData } from '#/api/models/providerSignupResponseData'
 import {
   getAllauthBrowserV1AuthProviderSignupGetQueryKey,
+  getAllauthBrowserV1AuthSessionGetQueryKey,
   useAllauthBrowserV1AuthProviderSignupGet,
+  useAllauthBrowserV1AuthSessionGet,
 } from '#/api/react-query/authentication-allauth-headless'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
@@ -13,6 +15,7 @@ import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import CheckInboxPanel from '#/auth/RegisterRoute/CheckInboxPanel'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
+import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import ProviderSignupForm, { type ProviderSignupOutcome } from './ProviderSignupForm'
 import { getProviderRedirectErrorMessage, readProviderRedirectError } from './providerRedirect'
@@ -49,9 +52,8 @@ interface NothingPendingPanelProps {
 /**
  * Nothing to fill in: allauth is not holding a provider signup.
  *
- * One panel for three causes, because a 409 is all the server tells us - the handshake failed, the signup
- * already finished in some tab, or the session holding it expired. An `?error=` narrows it down when there
- * is one, and all three end back at the login screen either way.
+ * One panel for three causes, because a 409 is all the server tells us - a failed handshake, a signup already
+ * finished in another tab, or an expired session. All three end back at the login screen anyway.
  */
 function NothingPendingPanel({ errorCode }: NothingPendingPanelProps) {
   return (
@@ -76,10 +78,7 @@ interface LookupErrorPanelProps {
   isRetrying: boolean
 }
 
-/**
- * A 5xx or a dead connection. The pending signup is probably still there, so offer a retry rather than
- * sending someone back through a handshake they already finished.
- */
+/** A 5xx or a dead connection. The signup is probably still pending, so retry rather than start over. */
 function LookupErrorPanel({ onRetry, isRetrying }: LookupErrorPanelProps) {
   return (
     <Stack gap='md' ta='center'>
@@ -101,18 +100,22 @@ export interface ProviderSignupRouteProps {
 }
 
 /**
+ * Hoisted so the effect below can depend on it without refiring on every render. `ROOT_URL`, not `/`, so a
+ * prefixed instance lands in its own app. The `next` the callback carries back is ignored until the resolver
+ * on the PR stacked above this one arrives to replace this default.
+ */
+const goToApp = () => window.location.assign(`${ROOT_URL}/`)
+
+/**
  * Where a single sign-on handshake comes back to - `callback_url` in {@link getProviderCallbackUrl}.
  *
- * With allauth the frontend has to ask what state it is in rather than being told. After the provider round
- * trip we may already be signed in, or a signup may be pending because the provider gave us too little.
- * `GET auth/provider/signup` answers both at once: the pending account and what it knows, or a 409. A failed
- * handshake lands here too, with an `?error=` and nothing pending.
+ * allauth tells us nothing on arrival, so the state has to be asked for: `GET auth/provider/signup` answers
+ * with a pending account whose gaps need filling, or a 409. A failed handshake lands here too, with an
+ * `?error=` and nothing pending.
  */
-export default function ProviderSignupRoute({
-  onAuthenticated = () => window.location.assign('/'),
-}: ProviderSignupRouteProps) {
+export default function ProviderSignupRoute({ onAuthenticated = goToApp }: ProviderSignupRouteProps) {
   const { search } = useLocation()
-  const { data: environment } = useAuthEnvironment()
+  const { data: environment, isPending: isEnvironmentPending } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<ProviderSignupOutcome | null>(null)
 
   const errorCode = readProviderRedirectError(window.location.search, search)
@@ -130,6 +133,33 @@ export default function ProviderSignupRoute({
       select: (response) => (response.status === 200 ? response.data.data : null),
     },
   })
+  const nothingPending = pendingSignup.data === null
+
+  // A sign-on *login* that worked comes back here with nothing pending too, so the 409 above cannot tell
+  // "already in" from "the flow died". An `?error=` rules a success out, so those skip the lookup.
+  const isLoginPossiblyComplete = nothingPending && !errorCode
+  const session = useAllauthBrowserV1AuthSessionGet<boolean>({
+    query: {
+      // The same key the hook would have defaulted to; the generated options type asks for it outright.
+      queryKey: getAllauthBrowserV1AuthSessionGetQueryKey(),
+      enabled: isLoginPossiblyComplete,
+      // A 401 is allauth's way of saying "nobody is logged in" - an answer, not a failure to retry.
+      retry: false,
+      refetchOnWindowFocus: false,
+      select: (response) => response.status === 200 && response.data.meta.is_authenticated,
+    },
+  })
+  const isSignedIn = session.data === true
+  // Not `isPending`: a disabled query stays pending for good. A failed check counts as decided - there is
+  // nothing better to do with it than the login screen.
+  const isSessionUndecided = isLoginPossiblyComplete && session.data === undefined && !session.isError
+
+  // Leaving for the app is a side effect, so it cannot happen while rendering the panel that announces it.
+  useEffect(() => {
+    if (isSignedIn) {
+      onAuthenticated()
+    }
+  }, [isSignedIn, onAuthenticated])
 
   function handleOutcome(next: ProviderSignupOutcome) {
     setOutcome(next)
@@ -147,7 +177,8 @@ export default function ProviderSignupRoute({
       />
     )
 
-    if (outcome?.kind === 'authenticated') {
+    // Either this form just created the session, or the login that came back here already had one.
+    if (outcome?.kind === 'authenticated' || isSignedIn) {
       return (
         <AuthCard>
           <SigningInPanel />
@@ -161,8 +192,16 @@ export default function ProviderSignupRoute({
         </AuthCard>
       )
     }
+    // Nothing pending and no session yet to rule out, so keep waiting rather than calling the flow dead.
+    if (isSessionUndecided) {
+      return (
+        <AuthCard>
+          <LoadingPanel />
+        </AuthCard>
+      )
+    }
     // The flow going away under a filled in form ends the same way as never having had one.
-    if (outcome?.kind === 'flowExpired' || pendingSignup.data === null) {
+    if (outcome?.kind === 'flowExpired' || nothingPending) {
       return (
         <AuthCard>
           <NothingPendingPanel errorCode={errorCode} />
@@ -198,13 +237,13 @@ export default function ProviderSignupRoute({
         <ProviderSignupForm
           providerName={account.provider.name}
           initialValues={{
-            // allauth derives `display` from the provider account: a real name where there was one, an
-            // account handle where there was not.
-            name: account.display,
             // The provider may have handed over several addresses; only the primary one belongs here.
             email: email.find((address) => address.primary)?.email ?? email[0]?.email ?? '',
             username: user.username,
           }}
+          termsOfServiceUrl={environment?.termsOfServiceUrl}
+          privacyPolicyUrl={environment?.privacyPolicyUrl}
+          isConfigurationPending={isEnvironmentPending}
           onOutcome={handleOutcome}
         />
       </AuthCard>
