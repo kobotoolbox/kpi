@@ -27256,6 +27256,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "gender": {
+                                "type": "string"
+                            },
                             "sector": {
                                 "type": "string"
                             },
@@ -27290,7 +27293,7 @@
                                 "type": "boolean"
                             },
                             "newsletter_subscription": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         }
                     },
@@ -29744,6 +29747,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "gender": {
+                                "type": "string"
+                            },
                             "sector": {
                                 "type": "string"
                             },
@@ -29778,7 +29784,7 @@
                                 "type": "boolean"
                             },
                             "newsletter_subscription": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         }
                     },

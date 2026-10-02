@@ -22,6 +22,7 @@ class ExtraDetailField(OpenApiSerializerFieldExtension):
                 'bio': GENERIC_STRING_SCHEMA,
                 'city': GENERIC_STRING_SCHEMA,
                 'name': GENERIC_STRING_SCHEMA,
+                'gender': GENERIC_STRING_SCHEMA,
                 'sector': GENERIC_STRING_SCHEMA,
                 'country': GENERIC_STRING_SCHEMA,
                 'twitter': GENERIC_STRING_SCHEMA,
@@ -33,7 +34,7 @@ class ExtraDetailField(OpenApiSerializerFieldExtension):
                 'organization_website': GENERIC_STRING_SCHEMA,
                 'project_views_settings': GENERIC_OBJECT_SCHEMA,
                 'require_auth': build_basic_type(OpenApiTypes.BOOL),
-                'newsletter_subscription': GENERIC_STRING_SCHEMA,
+                'newsletter_subscription': build_basic_type(OpenApiTypes.BOOL),
             }
         )
 
