@@ -2950,7 +2950,7 @@
                                                         "language": "en",
                                                         "locale": "en-US"
                                                     },
-                                                    "auto_accept": false,
+                                                    "auto_accept": true,
                                                     "progress": 66,
                                                     "created_by": {
                                                         "username": "someuser"
@@ -3146,7 +3146,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
-                                            "auto_accept": false,
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3234,7 +3234,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
-                                            "auto_accept": false,
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3370,7 +3370,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
-                                            "auto_accept": false,
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3539,7 +3539,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
-                                            "auto_accept": false,
+                                            "auto_accept": true,
                                             "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"

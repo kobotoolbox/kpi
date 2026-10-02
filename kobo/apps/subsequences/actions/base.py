@@ -464,7 +464,6 @@ class BaseAction:
 
         verified = action_data.pop('verified', None)
         accepted = action_data.pop('accepted', None)
-        auto_accept = action_data.pop('auto_accept', False)
         if verified is not None or accepted is not None:
             # if we're just verifying or accepting, no need to get more data
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -481,14 +480,17 @@ class BaseAction:
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
+            # Popped only after run_external_process(): the async poll it may
+            # schedule copies `action_data` and must still carry the flag
+            auto_accept = action_data.pop('auto_accept', False)
+
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
             self.validate_external_data(action_data)
             if auto_accept and action_data.get('status') == 'complete':
-                # bulk requests may ask for the generated result to be
-                # accepted in the same write that stores it
+                # accept the generated result in the same write that stores it
                 accepted = True
         else:
             # manual action
@@ -879,8 +881,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         - `value` is optional but, if present, it MUST be `null`
            (no other type allowed).
         - `accepted` is optional.
-        - `auto_accept` is optional; when true, a bulk job accepts the
-          generated result as soon as it completes.
+        - `auto_accept` is optional; when true, the generated result is
+          accepted as soon as it completes.
         - `bulk_action_uid` is optional and identifies a SubsequenceBulkAction.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
