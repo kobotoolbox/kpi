@@ -1,10 +1,16 @@
+from datetime import timedelta
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask, PeriodicTasks
+from freezegun import freeze_time
 
+from kobo.apps.beat.schedulers import ThrottledDatabaseScheduler
+from kobo.celery import celery_app
 from ..models.account import AccountTrash
 from ..tasks import garbage_collector
 from ..utils import move_to_trash, put_back, temporarily_disconnect_signals
@@ -76,6 +82,32 @@ class TemporarilyDisconnectSignalsTestCase(TestCase):
         # Outside the block, the signals notify Celery Beat again as usual
         ClockedSchedule.objects.create(clocked_time=timezone.now())
         self.assertGreater(PeriodicTasks.last_change(), self.last_change)
+
+    # Beat closes its database connections, which would close the one of the test
+    @patch('django_celery_beat.schedulers.close_old_connections')
+    def test_beat_picks_up_task_without_being_notified(self, _):
+        """
+        Beat must find a task created while signals are disconnected before it
+        is due, without being notified. It relies on Beat's own full reload
+        every 5 minutes (django-celery-beat 2.9.0 and later).
+        """
+        with freeze_time('2026-10-02 10:00:00') as frozen:
+            scheduler = ThrottledDatabaseScheduler(app=celery_app)
+            due_time = timezone.now() + timedelta(minutes=7)
+            with temporarily_disconnect_signals(save=True):
+                clocked = ClockedSchedule.objects.create(clocked_time=due_time)
+                PeriodicTask.objects.bulk_create(
+                    [
+                        PeriodicTask(
+                            name='test', task='test', clocked=clocked, one_off=True
+                        )
+                    ]
+                )
+
+            # Just after Beat's next full reload, still before the task is due
+            frozen.tick(timedelta(minutes=5, seconds=1))
+            self.assertLess(timezone.now(), due_time)
+            self.assertIn('test', scheduler.schedule)
 
     def _assert_beat_row_untouched(self, ctx: CaptureQueriesContext):
         beat_row_queries = [
