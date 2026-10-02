@@ -464,6 +464,7 @@ class BaseAction:
 
         verified = action_data.pop('verified', None)
         accepted = action_data.pop('accepted', None)
+        auto_accept = action_data.pop('auto_accept', False)
         if verified is not None or accepted is not None:
             # if we're just verifying or accepting, no need to get more data
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -485,6 +486,10 @@ class BaseAction:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
             self.validate_external_data(action_data)
+            if auto_accept and action_data.get('status') == 'complete':
+                # bulk requests may ask for the generated result to be
+                # accepted in the same write that stores it
+                accepted = True
         else:
             # manual action
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -874,12 +879,16 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         - `value` is optional but, if present, it MUST be `null`
            (no other type allowed).
         - `accepted` is optional.
+        - `auto_accept` is optional; when true, a bulk job accepts the
+          generated result as soon as it completes.
         - `bulk_action_uid` is optional and identifies a SubsequenceBulkAction.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
           * If `accepted` is present, `value` must be absent.
+        - `auto_accept` cannot be combined with `accepted` or `value`.
         - No additional properties are allowed beyond:
-          `language`, `locale`, `value`, `accepted`, `bulk_action_uid`.
+          `language`, `locale`, `value`, `accepted`, `auto_accept`,
+          `bulk_action_uid`.
         """
 
         return {
@@ -891,17 +900,21 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'locale': {'$ref': '#/$defs/locale'},
                 'value': {'$ref': '#/$defs/value_null_only'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'auto_accept': {'$ref': '#/$defs/auto_accept'},
                 'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language'],
             'allOf': [
                 # Forbid having both `accepted` and `value` at the same time
                 {'not': {'required': ['accepted', 'value']}},
+                {'not': {'required': ['accepted', 'auto_accept']}},
+                {'not': {'required': ['value', 'auto_accept']}},
             ],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
                 'locale': {'type': ['string', 'null']},
                 'accepted': {'const': True},
+                'auto_accept': {'type': 'boolean'},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
                 'bulk_action_uid': {'type': 'string'},
