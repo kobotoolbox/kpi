@@ -33,8 +33,16 @@ export function getProcessingQuestionType(
   return typeof submission[xpath] === 'string' ? QUESTION_TYPES.text.id : undefined
 }
 
+/** Paths of the repeat groups of each survey, as forms can be large and the check runs while rendering. */
+const repeatGroupPathsCache = new WeakMap<SurveyRow[], Set<string>>()
+
 /** Paths of every repeat group of the form, nested ones included (e.g. `household/members`). */
 function getRepeatGroupPaths(survey: SurveyRow[]): Set<string> {
+  const cachedPaths = repeatGroupPathsCache.get(survey)
+  if (cachedPaths) {
+    return cachedPaths
+  }
+
   const repeatPaths = new Set<string>()
   const openedGroups: string[] = []
 
@@ -49,7 +57,36 @@ function getRepeatGroupPaths(survey: SurveyRow[]): Set<string> {
     }
   }
 
+  repeatGroupPathsCache.set(survey, repeatPaths)
   return repeatPaths
+}
+
+/**
+ * Whether the submission keeps a parent group of the answer as a list of repeat instances.
+ *
+ * Walks the path the way `getRepeatGroupAnswerTree` does: regular groups may be stored as objects
+ * (keyed by full path, or by their bare name inside another object), and a level the submission
+ * leaves out is skipped. So a repeat nested in a regular group is found even after the form turned
+ * it into a regular group.
+ */
+function hasRepeatedParentInSubmission(submission: DataResponse | SubmissionResponse, pathSegments: string[]): boolean {
+  let container: Record<string, unknown> = submission as unknown as Record<string, unknown>
+  let isNestedContainer = false
+
+  for (let depth = 0; depth < pathSegments.length - 1; depth++) {
+    const parentPath = pathSegments.slice(0, depth + 1).join('/')
+    const value = container[parentPath] ?? (isNestedContainer ? container[pathSegments[depth]] : undefined)
+
+    if (Array.isArray(value)) {
+      return true
+    }
+    if (value !== null && typeof value === 'object') {
+      container = value as Record<string, unknown>
+      isNestedContainer = true
+    }
+  }
+
+  return false
 }
 
 /**
@@ -57,7 +94,7 @@ function getRepeatGroupPaths(survey: SurveyRow[]): Set<string> {
  * works per question and not per repeat instance, so such answers must not lead there.
  *
  * A repeat-instance index in the path (e.g. `members[2]/name`) settles it. Otherwise the submission
- * decides where it has the data (a parent path holding the list of repeat instances, or a plain
+ * decides where it has the data (a parent group holding the list of repeat instances, or a plain
  * answer at `xpath`), so a question moved in or out of a repeat since is judged by where this
  * submission put it. Only then does the form definition decide.
  */
@@ -71,10 +108,9 @@ export function isInRepeatGroup(
   }
 
   const pathSegments = xpath.split('/')
-  const parentPaths = pathSegments.slice(0, -1).map((_segment, index) => pathSegments.slice(0, index + 1).join('/'))
 
   if (submission) {
-    if (parentPaths.some((parentPath) => Array.isArray(submission[parentPath]))) {
+    if (hasRepeatedParentInSubmission(submission, pathSegments)) {
       return true
     }
     if (submission[xpath] !== undefined) {
@@ -83,5 +119,7 @@ export function isInRepeatGroup(
   }
 
   const repeatPaths = getRepeatGroupPaths(asset.content?.survey ?? [])
-  return parentPaths.some((parentPath) => repeatPaths.has(parentPath))
+  return pathSegments
+    .slice(0, -1)
+    .some((_segment, index) => repeatPaths.has(pathSegments.slice(0, index + 1).join('/')))
 }

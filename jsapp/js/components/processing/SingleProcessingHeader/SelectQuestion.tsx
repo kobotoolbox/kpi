@@ -65,10 +65,14 @@ export default function SelectQuestion({
      * NLP can work with (including anything inside a repeat group). `row` supplies the translated
      * label where the form still has one;
      * without it the type comes from the submission, so a moved question is still offered.
+     *
+     * A repeated question already open (e.g. from an older link) is kept, disabled, so the header
+     * still tells which question the page is about.
      */
     const buildOption = (optionXpath: string, row?: SurveyRow) => {
       const type = row?.type ?? getProcessingQuestionType(asset, optionXpath, submission)
-      if (!type || !isNlpSupported(type) || isInRepeatGroup(asset, optionXpath, submission)) {
+      const isRepeated = isInRepeatGroup(asset, optionXpath, submission)
+      if (!type || !isNlpSupported(type) || (isRepeated && optionXpath !== xpath)) {
         return undefined
       }
 
@@ -79,6 +83,7 @@ export default function SelectQuestion({
         label: rowName
           ? (getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName)
           : (optionXpath.split('/').at(-1) ?? optionXpath),
+        disabled: isRepeated,
       }
     }
 
@@ -106,7 +111,7 @@ export default function SelectQuestion({
     }
 
     return { options: result, icons }
-  }, [asset.content, questionLabelLanguage, submission])
+  }, [asset.content, questionLabelLanguage, submission, xpath])
 
   const selectedIcon = icons[xpath]
 

@@ -13,6 +13,7 @@ interface ActionIconProcessingProps {
 export default function ActionIconProcessing({ onClick, isInRepeatGroup }: ActionIconProcessingProps) {
   return (
     <ActionIcon
+      className='hide-on-print'
       variant='transparent'
       tooltip={isInRepeatGroup ? getRepeatGroupProcessingUnavailableMessage() : t('Open')}
       icon={IconPencilStar}

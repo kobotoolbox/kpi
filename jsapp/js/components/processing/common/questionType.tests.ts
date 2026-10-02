@@ -157,6 +157,21 @@ describe('isInRepeatGroup', () => {
     chai.expect(isInRepeatGroup(ASSET_WITH_GROUPED_AUDIO, 'repeated/notes', submission)).to.equal(true)
   })
 
+  it('finds a repeat nested in a regular group stored as an object, after the form made it a regular group', () => {
+    // `audio_group/members` is no repeat in the current form, only older submissions know it was one.
+    const instances = [{ 'audio_group/members/notes': 'first' }, { 'audio_group/members/notes': 'second' }]
+    const byFullPath = buildSubmission({ audio_group: { 'audio_group/members': instances } })
+    const byBareName = buildSubmission({ audio_group: { members: instances } })
+
+    chai.expect(isInRepeatGroup(ASSET_WITH_GROUPED_AUDIO, 'audio_group/members/notes', byFullPath)).to.equal(true)
+    chai.expect(isInRepeatGroup(ASSET_WITH_GROUPED_AUDIO, 'audio_group/members/notes', byBareName)).to.equal(true)
+  })
+
+  it('is false for an answer of a regular group stored as an object', () => {
+    const submission = buildSubmission({ audio_group: { 'audio_group/recording': 'clip.mp3' } })
+    chai.expect(isInRepeatGroup(ASSET_WITH_GROUPED_AUDIO, 'audio_group/recording', submission)).to.equal(false)
+  })
+
   it('is false when the submission holds a plain answer, even if the question was moved into a repeat since', () => {
     const submission = buildSubmission({ 'household/members/recording': 'old.mp3' })
     chai.expect(isInRepeatGroup(ASSET_WITH_REPEATED_AUDIO, 'household/members/recording', submission)).to.equal(false)
