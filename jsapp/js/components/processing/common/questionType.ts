@@ -33,16 +33,8 @@ export function getProcessingQuestionType(
   return typeof submission[xpath] === 'string' ? QUESTION_TYPES.text.id : undefined
 }
 
-/** Paths of the repeat groups of each survey, as forms can be large and the check runs while rendering. */
-const repeatGroupPathsCache = new WeakMap<SurveyRow[], Set<string>>()
-
 /** Paths of every repeat group of the form, nested ones included (e.g. `household/members`). */
 function getRepeatGroupPaths(survey: SurveyRow[]): Set<string> {
-  const cachedPaths = repeatGroupPathsCache.get(survey)
-  if (cachedPaths) {
-    return cachedPaths
-  }
-
   const repeatPaths = new Set<string>()
   const openedGroups: string[] = []
 
@@ -57,7 +49,6 @@ function getRepeatGroupPaths(survey: SurveyRow[]): Set<string> {
     }
   }
 
-  repeatGroupPathsCache.set(survey, repeatPaths)
   return repeatPaths
 }
 

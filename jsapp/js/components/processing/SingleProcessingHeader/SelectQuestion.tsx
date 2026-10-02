@@ -46,7 +46,7 @@ export default function SelectQuestion({
   }
 
   /**
-   * We display all NLP supported questions, except the ones inside a repeat group
+   * We display all NLP supported questions, except the ones inside a repeat group (unless already open)
    */
   const { options, icons } = useMemo(() => {
     const assetContent = asset.content
@@ -71,8 +71,11 @@ export default function SelectQuestion({
      */
     const buildOption = (optionXpath: string, row?: SurveyRow) => {
       const type = row?.type ?? getProcessingQuestionType(asset, optionXpath, submission)
+      if (!type || !isNlpSupported(type)) {
+        return undefined
+      }
       const isRepeated = isInRepeatGroup(asset, optionXpath, submission)
-      if (!type || !isNlpSupported(type) || (isRepeated && optionXpath !== xpath)) {
+      if (isRepeated && optionXpath !== xpath) {
         return undefined
       }
 

@@ -1,4 +1,6 @@
-import ActionIconProcessing from '#/components/common/ActionIconProcessing'
+import { IconPencilStar } from '@tabler/icons-react'
+import ActionIcon from '#/components/common/ActionIcon'
+import { getRepeatGroupProcessingUnavailableMessage } from '#/components/processing/common/constants'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getRepeatGroupAnswers } from '../repeatGroupUtils'
 import styles from './RepeatGroupCell.module.scss'
@@ -38,7 +40,16 @@ export default function RepeatGroupCell(props: RepeatGroupCellProps) {
   return (
     <div className={styles.cellWithAction}>
       {answers}
-      <ActionIconProcessing isInRepeatGroup />
+      {/* `data-disabled` rather than `disabled`, as a disabled button gets no hover, and so no tooltip. */}
+      <ActionIcon
+        className='hide-on-print'
+        variant='transparent'
+        tooltip={getRepeatGroupProcessingUnavailableMessage()}
+        icon={IconPencilStar}
+        size='sm'
+        data-disabled
+        aria-disabled
+      />
     </div>
   )
 }

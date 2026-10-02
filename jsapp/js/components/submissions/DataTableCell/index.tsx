@@ -111,8 +111,6 @@ export default function DataTableCell(props: DataTableCellProps) {
   const questionType = props.question?.type ?? (attachment && inferAttachmentQuestionType(attachment))
   // The attachment's path is also the one the processing view has to open at.
   const questionXpath = attachment?.question_xpath ?? props.question?.$xpath
-  // Processing doesn't support answers inside a repeat group, whatever the question type.
-  const isAnswerInRepeatGroup = questionXpath !== undefined && isInRepeatGroup(props.asset, questionXpath, submission)
 
   if (questionType && props.reactTableRow.value) {
     if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
@@ -130,7 +128,6 @@ export default function DataTableCell(props: DataTableCellProps) {
               submissionData={submission}
               mediaAttachment={mediaAttachment}
               questionLabel={columnName}
-              isInRepeatGroup={isAnswerInRepeatGroup}
             />
           )
         }
@@ -190,7 +187,6 @@ export default function DataTableCell(props: DataTableCellProps) {
         submissionData={submission}
         text={props.reactTableRow.value}
         questionLabel={columnName}
-        isInRepeatGroup={isAnswerInRepeatGroup}
       />
     )
   }
