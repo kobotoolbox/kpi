@@ -214,3 +214,6 @@ AUTH_THEME_CHOICES = [
     (AUTH_THEME_DEFAULT, 'Default'),
     (AUTH_THEME_CUSTOM, 'Customizable'),
 ]
+
+# Maximum choices sheet size in bytes (2 MB) for XLSForm uploads
+DEFAULT_MAX_CHOICES_SIZE_BYTES = 2 * 1024 * 1024

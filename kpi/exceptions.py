@@ -49,6 +49,10 @@ class BadPermissionsException(Exception):
     pass
 
 
+class ChoicesSizeLimitError(ValueError):
+    pass
+
+
 class BulkUpdateSubmissionsClientException(exceptions.ValidationError):
     # This is message should be overridden with something more specific
     default_detail = t('Invalid payload for bulk updating of submissions')
