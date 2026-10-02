@@ -467,7 +467,7 @@ class ImportTask(ImportExportTask):
         `formpack.utils.expand_content._get_special_survey_cols()`.
         """
         uniq_cols = OrderedDict()
-        for sheet in ('survey', 'choices', 'library'):
+        for sheet in ('survey', 'choices', 'library', 'external_choices'):
             for row in survey_dict.get(sheet, []):
                 uniq_cols.update(OrderedDict.fromkeys(row.keys()))
 
