@@ -5,6 +5,7 @@ from celery.signals import task_failure, task_retry
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
+from redis.exceptions import LockError
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
@@ -13,6 +14,7 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.stripe.utils.limit_enforcement import update_or_remove_limit_counter
 from kobo.celery import celery_app
+from kpi.models import Asset
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..exceptions import TrashTaskInProgressError
 from ..models.attachment import AttachmentTrash
@@ -97,15 +99,43 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
 @celery_app.task(queue='kpi_low_priority_queue')
 @requires_stripe
 def auto_delete_excess_attachments(user_id: int, **stripe_models):
-    cache_key = f'auto_delete_excess_attachments_lock_for_user_{user_id}'
-    lock_timeout = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
-    with cache.lock(
-        cache_key, timeout=lock_timeout, blocking_timeout=0
-    ) as lock_acquired:
-        if not lock_acquired:
-            logging.info(f'Lock already held for user `{user_id}`')
-            return
+    """
+    Move the oldest attachments of `user_id` to trash until they are back
+    under their storage limit, `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER` at most
+    per run. A user still over their limit gets the next ones on a later run
+    """
+    # Tasks already in the queue when the feature is turned off must not run
+    if not config.AUTO_DELETE_ATTACHMENTS:
+        logging.info(f'Auto-deletion is disabled, nothing trashed for user `{user_id}`')
+        return
 
+    lock = cache.lock(
+        f'auto_delete_excess_attachments_lock_for_user_{user_id}',
+        timeout=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
+    )
+    if not lock.acquire(blocking=False):
+        logging.info(f'Lock already held for user `{user_id}`')
+        return
+
+    try:
+        _trash_excess_attachments(
+            user_id, stripe_models['exceeded_limit_counter_model']
+        )
+    finally:
+        # The lock outlives the task's time limit, so it is still ours here,
+        # unless Redis lost the key (restart, eviction). `release()` raises
+        # then, and must not hide the task's own result or error
+        try:
+            lock.release()
+        except LockError as e:
+            logging.warning(f'Lock was not released for user `{user_id}`: {e}')
+
+
+def _trash_excess_attachments(user_id: int, exceeded_limit_counter_model):
+    """
+    Do the work of `auto_delete_excess_attachments()`, which holds the lock of
+    `user_id` while it runs
+    """
     user = User.objects.get(pk=user_id)
     usage_balance = ServiceUsageCalculator(user).get_usage_balances()
 
@@ -123,25 +153,61 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
         f'User `{user_id}` has exceeded storage limits by {exceeded_bytes} bytes.'
     )
 
+    # Oldest first, `pk` breaks ties so that a later run picks up exactly where
+    # this one stopped. Trashed attachments are excluded by the default manager
+    attachments = list(
+        Attachment.objects.filter(user_id=user_id)
+        .order_by('date_created', 'pk')
+        .values(
+            'pk',
+            'uid',
+            'media_file_basename',
+            'media_file_size',
+            'instance_id',
+            'xform__kpi_asset_uid',
+        )[: settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER]
+    )
+
+    # Assets live in the KPI database, they cannot be joined from the
+    # attachments. Fetch all of them at once instead of one per attachment
+    asset_ids = dict(
+        Asset.all_objects.filter(
+            uid__in={att['xform__kpi_asset_uid'] for att in attachments}
+        ).values_list('uid', 'pk')
+    )
+
     attachments_to_trash = []
     submission_ids = set()
     trashed_bytes = 0
-    queryset = Attachment.objects.filter(user_id=user_id).order_by('date_created').only(
-        'pk', 'uid', 'media_file_basename', 'media_file_size'
-    )
+    for att in attachments:
+        asset_uid = att['xform__kpi_asset_uid']
+        if asset_uid not in asset_ids:
+            logging.warning(
+                f'Attachment #{att["pk"]} of user `{user_id}` has no project, '
+                f'not trashed'
+            )
+            continue
 
-    for att in queryset.iterator():
-        attachments_to_trash.append({
-            'pk': att.pk,
-            'asset_id': att.xform.asset.id,
-            'asset_uid': att.xform.asset.uid,
-            'attachment_uid': att.uid,
-            'attachment_basename': att.media_file_basename,
-        })
-        submission_ids.add(att.instance_id)
-        trashed_bytes += att.media_file_size
+        attachments_to_trash.append(
+            {
+                'pk': att['pk'],
+                'asset_id': asset_ids[asset_uid],
+                'asset_uid': asset_uid,
+                'attachment_uid': att['uid'],
+                'attachment_basename': att['media_file_basename'],
+            }
+        )
+        submission_ids.add(att['instance_id'])
+        trashed_bytes += att['media_file_size'] or 0
         if trashed_bytes >= exceeded_bytes:
             break
+    else:
+        if len(attachments) == settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER:
+            logging.info(
+                f'User `{user_id}` reached the limit of '
+                f'{settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER} attachments per '
+                f'run, the next run continues'
+            )
 
     if attachments_to_trash:
         move_to_trash(
@@ -156,10 +222,10 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
 
         # Clear the cache and update the limit counter
         ServiceUsageCalculator(user).clear_cache()
-        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
         counter = (
-            ExceededLimitCounter.objects
-            .filter(user=user, limit_type=UsageType.STORAGE_BYTES)
+            exceeded_limit_counter_model.objects.filter(
+                user=user, limit_type=UsageType.STORAGE_BYTES
+            )
             .select_related('user')
             .first()
         )

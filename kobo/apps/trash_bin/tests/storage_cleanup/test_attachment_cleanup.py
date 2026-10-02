@@ -6,6 +6,9 @@ from constance import config
 from constance.test import override_config
 from django.conf import settings
 from django.core.cache import cache
+from django.db import connection
+from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 
@@ -55,6 +58,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_auto_delete_excess_attachments_user_within_limit(self):
         """
         Test that no attachments are deleted if user is under quota
@@ -78,6 +82,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_auto_delete_excess_attachments_user_exceeds_limit(self):
         """
         Test that attachments are soft deleted when a user is over quota
@@ -116,6 +121,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_auto_delete_trashes_minimum_attachments_to_meet_limit(self):
         """
         Test only the minimum number of attachments are soft-deleted to bring
@@ -209,6 +215,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_auto_delete_excess_attachments_ignores_missing_balance_info(self):
         """
         If `ServiceUsageCalculator` returns no info for 'storage_bytes',
@@ -228,37 +235,101 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
     @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_auto_delete_excess_attachments_skips_if_lock_held(self):
         """
-        Test that the task does not run if a cache lock is already held
+        Test that nothing is trashed while another task holds the lock of the
+        same user
         """
-        lock_key = f'auto_delete_excess_attachments_lock_for_user_{self.owner.pk}'
-
-        # Manually acquire the lock to simulate another task running
-        lock = cache.lock(lock_key, timeout=30)
-
+        lock = cache.lock(self._get_lock_key(), timeout=30)
+        self.assertTrue(lock.acquire(blocking=False))
         try:
-            acquired = lock.acquire(blocking_timeout=0)
-            self.assertTrue(acquired)
-
-            mock_balances = {
-                UsageType.STORAGE_BYTES: {
-                    'effective_limit': 100000,
-                    'balance_value': -50000,
-                    'balance_percent': 150,
-                    'exceeded': True,
-                },
-            }
-            with patch(
-                'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
-                return_value=mock_balances,
-            ):
-
-                with patch(
-                    'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'  # noqa
-                ) as mock_task:
-                    schedule_auto_attachment_cleanup_for_users()
-                    mock_task.assert_not_called()
+            self._run_task_over_limit()
         finally:
             lock.release()
+
+        self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    def test_auto_delete_excess_attachments_releases_lock(self):
+        """
+        Test that the lock is released once the task is done, even when it
+        fails, so that the next run is not blocked
+        """
+        self._run_task_over_limit()
+        self._assert_lock_is_free()
+
+        self._create_submissions_with_attachments(count=1)
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.move_to_trash',
+            side_effect=RuntimeError('boom'),
+        ):
+            with self.assertRaises(RuntimeError):
+                self._run_task_over_limit()
+        self._assert_lock_is_free()
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=False)
+    def test_auto_delete_excess_attachments_skips_if_auto_delete_disabled(self):
+        """
+        Test that a task already queued does nothing once the feature is
+        turned off
+        """
+        self._run_task_over_limit()
+        self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    @override_settings(AUTO_DELETE_ATTACHMENTS_MAX_PER_USER=2)
+    def test_auto_delete_excess_attachments_respects_max_per_user(self):
+        """
+        Test that no more than `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER`
+        attachments are trashed per run, oldest first, and that the next run
+        continues with the next oldest ones
+        """
+        self._create_submissions_with_attachments(count=3)
+        all_attachment_ids = list(
+            Attachment.objects.filter(user=self.owner)
+            .order_by('date_created', 'pk')
+            .values_list('pk', flat=True)
+        )
+        self.assertEqual(len(all_attachment_ids), 4)
+
+        self._run_task_over_limit()
+        self.assertEqual(self._get_active_attachment_ids(), all_attachment_ids[2:])
+
+        self._run_task_over_limit()
+        self.assertEqual(self._get_active_attachment_ids(), [])
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    def test_auto_delete_excess_attachments_query_count_does_not_grow(self):
+        """
+        Test that trashing more attachments does not run more queries, i.e.
+        nothing is fetched once per attachment
+        """
+        # Warm up the caches filled by the first run (e.g. content types)
+        self._run_task_over_limit()
+
+        self._create_submissions_with_attachments(count=2)
+        with CaptureQueriesContext(connection) as two_attachments:
+            self._run_task_over_limit()
+
+        self._create_submissions_with_attachments(count=5)
+        with CaptureQueriesContext(connection) as five_attachments:
+            self._run_task_over_limit()
+
+        self.assertEqual(self._get_active_attachment_ids(), [])
+        self.assertEqual(
+            len(five_attachments.captured_queries),
+            len(two_attachments.captured_queries),
+        )
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
@@ -315,6 +386,39 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self.assertFalse(
             ExceededLimitCounter.objects.filter(id=counter.id).exists()
         )
+
+    def _assert_lock_is_free(self):
+        lock = cache.lock(self._get_lock_key(), timeout=30)
+        self.assertTrue(lock.acquire(blocking=False))
+        lock.release()
+
+    def _get_active_attachment_ids(self) -> list[int]:
+        return list(
+            Attachment.objects.filter(user=self.owner)
+            .order_by('date_created', 'pk')
+            .values_list('pk', flat=True)
+        )
+
+    def _get_lock_key(self) -> str:
+        return f'auto_delete_excess_attachments_lock_for_user_{self.owner.pk}'
+
+    def _run_task_over_limit(self):
+        """
+        Run the task as if the owner was far over their storage limit, i.e.
+        every attachment the task may trash is trashed
+        """
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
+            return_value={
+                UsageType.STORAGE_BYTES: {
+                    'effective_limit': 1,
+                    'balance_value': -(10**12),
+                    'balance_percent': 100,
+                    'exceeded': True,
+                },
+            },
+        ):
+            auto_delete_excess_attachments(self.owner.pk)
 
     def _create_submissions_with_attachments(self, count=1):
         """

@@ -2454,6 +2454,12 @@ MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
 MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
 
+# Number of attachments `auto_delete_excess_attachments` moves to trash per user
+# and per run. A user still over their limit gets the next ones on a later run
+AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
+    'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
+)
+
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
 TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
