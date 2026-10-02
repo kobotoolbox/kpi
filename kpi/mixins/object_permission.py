@@ -32,7 +32,10 @@ from kpi.utils.object_permission import (
     post_assign_perm,
     post_remove_perm,
 )
-from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.permissions import (
+    get_allowed_anonymous_permissions,
+    is_user_anonymous,
+)
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
@@ -141,12 +144,12 @@ class ObjectPermissionMixin:
         """
         Restrict a set of tuples in the format (user_id, permission_id) to
         only those permissions that apply to the content_type of this object
-        and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS.
+        and are allowed for anonymous users.
         """
         content_type = ContentType.objects.get_for_model(self)
-        # Translate settings.ALLOWED_ANONYMOUS_PERMISSIONS to primary keys
+        # Translate the allowed anonymous permissions to primary keys
         codenames = set()
-        for perm in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+        for perm in get_allowed_anonymous_permissions():
             app_label, codename = perm_parse(perm)
             if app_label == content_type.app_label:
                 codenames.add(codename)
@@ -455,13 +458,15 @@ class ObjectPermissionMixin:
         if is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = f'{app_label}.{codename}'
-            if (
-                not deny
-                and fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
-            ):
-                raise serializers.ValidationError({
-                    'permission': f'Anonymous users cannot be granted the permission {codename}.'
-                })
+            if not deny and fq_permission not in get_allowed_anonymous_permissions():
+                raise serializers.ValidationError(
+                    {
+                        'permission': (
+                            f'Anonymous users cannot be granted the '
+                            f'permission {codename}.'
+                        )
+                    }
+                )
         perm_model = self._get_permission_model(app_label, codename)
         existing_perms = self.permissions.filter(user=user_obj)
         identical_existing_perm = existing_perms.filter(
@@ -649,7 +654,7 @@ class ObjectPermissionMixin:
         if result and is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
-            if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            if fq_permission not in get_allowed_anonymous_permissions():
                 return False
         return result
 
