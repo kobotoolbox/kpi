@@ -60,6 +60,7 @@ DataResponse = inline_serializer_class(
         '_status': serializers.CharField(),
         '_geolocation': GeoLocationField(),
         '_submission_time': serializers.DateTimeField(),
+        '_date_modified': serializers.DateTimeField(),
         '_validation_status': DataValidationStatusField(),
         '_submitted_by': serializers.CharField(),
         '_supplementalDetails': DataSupplementalDetailsField(required=False),
