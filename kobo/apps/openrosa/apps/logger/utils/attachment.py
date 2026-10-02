@@ -1,10 +1,17 @@
-from django.db.models import F, OuterRef, Sum, Subquery
+from collections import defaultdict
+
+from django.db import connections, router
+from django.db.models import F, OuterRef, Subquery, Sum
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
+from kpi.deployment_backends.kc_access.utils import (
+    conditional_kc_transaction_atomic,
+    kc_transaction_atomic,
+)
 
 
 def bulk_update_attachment_storage_counters(
@@ -64,6 +71,67 @@ def bulk_update_attachment_storage_counters(
                 sign * Coalesce(Subquery(xform_subquery), 0)
             )
         )
+
+
+def toggle_delete_status_and_storage_counters(
+    attachment_uids: list[str], active: bool
+) -> int:
+    """
+    Move attachments to trash (`active=False`) or put them back
+    (`active=True`), and update the storage counters of their users and
+    projects. Return how many attachments were changed.
+
+    Only the attachments this call changed are counted. An attachment already
+    in the target state, e.g. trashed a moment earlier by another request, is
+    neither changed nor counted. Reading the rows back after the update, as
+    `bulk_update_attachment_storage_counters()` does, would count it a second
+    time, because it cannot tell which call changed it.
+
+    Raw SQL because Django's `QuerySet.update()` cannot return the rows it
+    changed, and `UPDATE ... RETURNING` does it in one query, with no lock other
+    than the one the update takes anyway.
+    """
+    if active:
+        current_status = AttachmentDeleteStatus.PENDING_DELETE
+        new_status = None
+        sign = 1
+    else:
+        current_status = None
+        new_status = AttachmentDeleteStatus.PENDING_DELETE
+        sign = -1
+
+    db_alias = router.db_for_write(Attachment)
+    with kc_transaction_atomic():
+        with connections[db_alias].cursor() as cursor:
+            cursor.execute(
+                f'UPDATE "{Attachment._meta.db_table}" '
+                'SET delete_status = %s, date_modified = %s '
+                'WHERE uid = ANY(%s) AND delete_status IS NOT DISTINCT FROM %s '
+                'RETURNING user_id, xform_id, media_file_size',
+                [new_status, timezone.now(), list(attachment_uids), current_status],
+            )
+            changed_rows = cursor.fetchall()
+
+        bytes_per_user = defaultdict(int)
+        bytes_per_xform = defaultdict(int)
+        for user_id, xform_id, media_file_size in changed_rows:
+            bytes_per_user[user_id] += media_file_size or 0
+            bytes_per_xform[xform_id] += media_file_size or 0
+
+        # Always in the same order, so that two calls updating the same users
+        # or projects cannot deadlock
+        for user_id in sorted(bytes_per_user):
+            UserProfile.objects.filter(user_id=user_id).update(
+                attachment_storage_bytes=F('attachment_storage_bytes')
+                + sign * bytes_per_user[user_id]
+            )
+        for xform_id in sorted(bytes_per_xform):
+            XForm.all_objects.filter(pk=xform_id).update(
+                attachment_storage_bytes=F('attachment_storage_bytes')
+                + sign * bytes_per_xform[xform_id]
+            )
+
+    return len(changed_rows)
 
 
 def update_user_attachment_storage_counters(
