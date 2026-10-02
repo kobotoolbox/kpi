@@ -5,7 +5,6 @@ from celery.signals import task_failure, task_retry
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Q
 from redis.exceptions import LockError
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -254,29 +253,27 @@ def _iter_trashable_attachments(user_id: int):
     """
 
     page_size = settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER
-    # Oldest first, `pk` breaks ties so that a later run picks up exactly where
-    # this one stopped. Trashed attachments are excluded by the default manager
+    # Oldest first: `pk` follows the insertion order. Ordering by `pk` lets the
+    # partial index `attachment_active_user_id_idx` return each page directly,
+    # without sorting every attachment of the user (millions for the largest
+    # accounts). Trashed attachments are excluded by the default manager
     queryset = (
         Attachment.objects.filter(user_id=user_id, xform__kpi_asset_uid__isnull=False)
-        .order_by('date_created', 'pk')
+        .order_by('pk')
         .values(
             'pk',
             'uid',
             'media_file_basename',
             'media_file_size',
             'instance_id',
-            'date_created',
             'xform__kpi_asset_uid',
         )
     )
-    last = None
+    last_pk = None
     while True:
         page_queryset = queryset
-        if last:
-            page_queryset = queryset.filter(
-                Q(date_created__gt=last['date_created'])
-                | Q(date_created=last['date_created'], pk__gt=last['pk'])
-            )
+        if last_pk:
+            page_queryset = queryset.filter(pk__gt=last_pk)
         page = list(page_queryset[:page_size])
         if not page:
             return
@@ -299,4 +296,4 @@ def _iter_trashable_attachments(user_id: int):
 
         if len(page) < page_size:
             return
-        last = page[-1]
+        last_pk = page[-1]['pk']

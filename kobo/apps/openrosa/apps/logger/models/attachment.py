@@ -109,6 +109,15 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
 
     class Meta:
         app_label = 'logger'
+        indexes = [
+            models.Index(
+                fields=['user', 'id'],
+                name='attachment_active_user_id_idx',
+                condition=models.Q(
+                    delete_status__isnull=True, deleted_at__isnull=True
+                ),
+            ),
+        ]
 
     @property
     def absolute_mp3_path(self):

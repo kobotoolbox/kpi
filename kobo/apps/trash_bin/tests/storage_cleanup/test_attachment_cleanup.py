@@ -1,5 +1,4 @@
 import uuid
-from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -15,6 +14,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.trash_bin.constants import AUTO_DELETE_CURSOR_KEY
@@ -139,7 +139,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self._create_submissions_with_attachments(count=3)
 
         all_attachments = list(
-            Attachment.objects.filter(user=self.owner).order_by('date_created')
+            Attachment.objects.filter(user=self.owner).order_by('pk')
         )
         total_size = sum(att.media_file_size for att in all_attachments)
 
@@ -349,7 +349,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self._create_submissions_with_attachments(count=3)
         all_attachment_ids = list(
             Attachment.objects.filter(user=self.owner)
-            .order_by('date_created', 'pk')
+            .order_by('pk')
             .values_list('pk', flat=True)
         )
         self.assertEqual(len(all_attachment_ids), 4)
@@ -453,6 +453,13 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         prevent the newer ones from being trashed, even when they fill a whole
         page (the limit per run is 2 here)
         """
+        # The attachment of `setUp()` is the oldest one and has a project. Take
+        # it out of the way, so that the oldest active attachments are the ones
+        # without a project
+        Attachment.all_objects.filter(pk=self.attachment.pk).update(
+            delete_status=AttachmentDeleteStatus.PENDING_DELETE
+        )
+
         # Oldest attachments: a form created before KPI (no project uid), left
         # out by the query, then two forms whose project cannot be found, which
         # fill the first page and are skipped
@@ -462,9 +469,6 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
                 user=self.owner
             )
             XForm.objects.filter(pk=xform.pk).update(kpi_asset_uid=kpi_asset_uid)
-            Attachment.all_objects.filter(pk=attachment.pk).update(
-                date_created=self.attachment.date_created - timedelta(days=1)
-            )
             without_project_ids.append(attachment.pk)
 
         self._create_submissions_with_attachments(count=1)
@@ -473,7 +477,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             for pk in self._get_active_attachment_ids()
             if pk not in without_project_ids
         ]
-        self.assertEqual(len(with_project_ids), 2)
+        self.assertEqual(len(with_project_ids), 1)
 
         self._run_task_over_limit()
 
@@ -510,7 +514,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
     def _get_active_attachment_ids(self) -> list[int]:
         return list(
             Attachment.objects.filter(user=self.owner)
-            .order_by('date_created', 'pk')
+            .order_by('pk')
             .values_list('pk', flat=True)
         )
 
