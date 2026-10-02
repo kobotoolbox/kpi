@@ -16,6 +16,7 @@ from kobo.apps.stripe.utils.limit_enforcement import update_or_remove_limit_coun
 from kobo.celery import celery_app
 from kpi.models import Asset
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from ..constants import AUTO_DELETE_CURSOR_KEY
 from ..exceptions import TrashTaskInProgressError
 from ..models.attachment import AttachmentTrash
 from ..utils import (
@@ -76,7 +77,12 @@ def empty_attachment_retry(sender=None, **kwargs):
 def schedule_auto_attachment_cleanup_for_users(**stripe_models):
     """
     Identifies users exceeding storage limits beyond the grace period and
-    schedules a cleanup task for each.
+    schedules a cleanup task for `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN` of
+    them.
+
+    Users take turns: each run starts after the last counter of the previous
+    run (in `id` order), and starts over from the first one once the end is
+    reached. Every user gets a turn, without queuing all of them at once.
 
     Runs only if AUTO_DELETE_ATTACHMENTS and Stripe billing is enabled.
     """
@@ -84,16 +90,36 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
         return
 
     ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+    users_per_run = settings.AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN
 
     exceeded_counters = ExceededLimitCounter.objects.filter(
         limit_type=UsageType.STORAGE_BYTES,
-        days__gte=config.OVER_LIMIT_ATTACHMENT_RETENTION
+        days__gte=config.OVER_LIMIT_ATTACHMENT_RETENTION,
+    ).order_by('id')
+
+    cursor = cache.get(AUTO_DELETE_CURSOR_KEY) or 0
+    counters = list(
+        exceeded_counters.filter(id__gt=cursor).values_list('id', 'user_id')[
+            :users_per_run
+        ]
+    )
+    if not counters and cursor:
+        # The previous run reached the end, start over from the first one
+        counters = list(exceeded_counters.values_list('id', 'user_id')[:users_per_run])
+
+    logging.info(
+        f'Found {exceeded_counters.count()} users exceeding storage limits, '
+        f'scheduling cleanup for {len(counters)} of them.'
     )
 
-    logging.info(f'Found {len(exceeded_counters)} users exceeding storage limits.')
+    # A shorter run than `users_per_run` reached the end: the next one starts
+    # over from the first counter
+    next_cursor = counters[-1][0] if len(counters) == users_per_run else 0
+    # No expiry: if the key is lost, the next run simply starts over
+    cache.set(AUTO_DELETE_CURSOR_KEY, next_cursor, None)
 
-    for counter in exceeded_counters:
-        auto_delete_excess_attachments.delay(counter.user_id)
+    for _, user_id in counters:
+        auto_delete_excess_attachments.delay(user_id)
 
 
 @celery_app.task(queue='kpi_low_priority_queue')

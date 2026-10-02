@@ -2459,6 +2459,11 @@ MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS
 AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
     'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
 )
+# Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
+# Users take turns, the next run continues with the following ones
+AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
+    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 20
+)
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention

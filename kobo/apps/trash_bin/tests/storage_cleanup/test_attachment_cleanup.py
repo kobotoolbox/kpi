@@ -16,6 +16,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.trash_bin.constants import AUTO_DELETE_CURSOR_KEY
 from kobo.apps.trash_bin.tasks.attachment import (
     auto_delete_excess_attachments,
     schedule_auto_attachment_cleanup_for_users,
@@ -33,6 +34,10 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self.asset, self.xform, self.instance, self.owner_profile, self.attachment = (
             self._create_test_asset_and_submission(user=self.owner)
         )
+        # The cursor of `schedule_auto_attachment_cleanup_for_users` lives in
+        # the cache, do not let it leak from one test to another
+        cache.delete(AUTO_DELETE_CURSOR_KEY)
+        self.addCleanup(cache.delete, AUTO_DELETE_CURSOR_KEY)
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
@@ -211,6 +216,55 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         ) as mock_task:
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_called_once_with(self.owner.pk)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    @override_settings(AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN=2)
+    def test_schedule_cleanup_rotates_users(self):
+        """
+        Test that each run queues the next users, and starts over from the
+        first ones once every user had a turn
+        """
+        user_ids = self._create_users_over_grace_period(count=5)
+
+        self.assertEqual(self._run_scheduler(), user_ids[0:2])
+        self.assertEqual(self._run_scheduler(), user_ids[2:4])
+        # Last user alone: the end is reached
+        self.assertEqual(self._run_scheduler(), user_ids[4:5])
+        self.assertEqual(self._run_scheduler(), user_ids[0:2])
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    @override_settings(AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN=2)
+    def test_schedule_cleanup_starts_over_when_cursor_is_past_the_end(self):
+        """
+        Test that the first users are queued when no counter is left after
+        the cursor, e.g. the last counters were removed since the previous run
+        """
+        user_ids = self._create_users_over_grace_period(count=3)
+        cache.set(AUTO_DELETE_CURSOR_KEY, 10**9, None)
+
+        self.assertEqual(self._run_scheduler(), user_ids[0:2])
+        self.assertEqual(self._run_scheduler(), user_ids[2:3])
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    @override_settings(AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN=20)
+    def test_schedule_cleanup_queues_every_user_when_fewer_than_per_run(self):
+        """
+        Test that every run queues all the users when there are fewer of them
+        than `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN`
+        """
+        user_ids = self._create_users_over_grace_period(count=3)
+
+        self.assertEqual(self._run_scheduler(), user_ids)
+        self.assertEqual(self._run_scheduler(), user_ids)
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
@@ -419,6 +473,35 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             },
         ):
             auto_delete_excess_attachments(self.owner.pk)
+
+    @requires_stripe
+    def _create_users_over_grace_period(self, count: int, **stripe_models) -> list[int]:
+        """
+        Create `count` users whose storage counter is past the grace period,
+        and return their IDs in the order of their counters
+        """
+        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+        user_ids = []
+        for idx in range(count):
+            user = User.objects.create(username=f'over_limit_{idx}')
+            ExceededLimitCounter.objects.create(
+                user=user,
+                limit_type=UsageType.STORAGE_BYTES,
+                days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1,
+            )
+            user_ids.append(user.pk)
+        return user_ids
+
+    def _run_scheduler(self) -> list[int]:
+        """
+        Run `schedule_auto_attachment_cleanup_for_users` and return the IDs of
+        the users it queued
+        """
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
+        ) as mock_task:
+            schedule_auto_attachment_cleanup_for_users()
+        return [call.args[0] for call in mock_task.call_args_list]
 
     def _create_submissions_with_attachments(self, count=1):
         """
