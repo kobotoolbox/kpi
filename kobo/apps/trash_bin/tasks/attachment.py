@@ -252,12 +252,12 @@ def _iter_trashable_attachments(user_id: int):
     skipped, and reading goes on after them, page by page, so that they never
     hold back the newer attachments.
     """
+
     page_size = settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER
     # Oldest first, `pk` breaks ties so that a later run picks up exactly where
     # this one stopped. Trashed attachments are excluded by the default manager
     queryset = (
-        Attachment.objects.filter(user_id=user_id)
-        .exclude(Q(xform__kpi_asset_uid__isnull=True) | Q(xform__kpi_asset_uid=''))
+        Attachment.objects.filter(user_id=user_id, xform__kpi_asset_uid__isnull=False)
         .order_by('date_created', 'pk')
         .values(
             'pk',
