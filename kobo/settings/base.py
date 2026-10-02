@@ -1760,9 +1760,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    # Small and frequent runs: each one queues at most
+    # `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN` users, and each user gets at most
+    # `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER` attachments trashed per run
     CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
