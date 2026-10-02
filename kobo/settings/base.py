@@ -1760,9 +1760,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    # Small and frequent runs: each one queues at most
+    # `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN` users, and each user gets at most
+    # `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER` attachments trashed per run
     CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -2453,6 +2456,17 @@ MAX_RESTARTED_TRANSFERS = 20
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
 MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+
+# Number of attachments `auto_delete_excess_attachments` moves to trash per user
+# and per run. A user still over their limit gets the next ones on a later run
+AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
+    'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
+)
+# Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
+# Users take turns, the next run continues with the following ones
+AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
+    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 20
+)
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
