@@ -80,6 +80,10 @@ function hasRepeatedParentInSubmission(submission: DataResponse | SubmissionResp
   return false
 }
 
+/** Why the ways into Processing are disabled for answers inside a repeat group. */
+export const getRepeatGroupProcessingUnavailableMessage = () =>
+  t('Qualitative processing is currently unavailable for repeat group submissions')
+
 /**
  * Whether the answer at `xpath` sits inside a repeat group, whatever its question type. Processing
  * works per question and not per repeat instance, so such answers must not lead there.

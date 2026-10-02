@@ -1,6 +1,6 @@
 import { IconPencilStar } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
-import { getRepeatGroupProcessingUnavailableMessage } from '#/components/processing/common/constants'
+import { getRepeatGroupProcessingUnavailableMessage } from '#/components/processing/common/questionType'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getRepeatGroupAnswers } from '../repeatGroupUtils'
 import styles from './RepeatGroupCell.module.scss'

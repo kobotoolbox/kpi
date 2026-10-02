@@ -11,8 +11,10 @@ import bem, { makeBem } from '#/bem'
 import MenuItemProcessing from '#/components/common/MenuItemProcessing'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import SimpleTable from '#/components/common/SimpleTable'
-import { getRepeatGroupProcessingUnavailableMessage } from '#/components/processing/common/constants'
-import { isInRepeatGroup } from '#/components/processing/common/questionType'
+import {
+  getRepeatGroupProcessingUnavailableMessage,
+  isInRepeatGroup,
+} from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
 import {
   DISPLAY_GROUP_TYPES,
