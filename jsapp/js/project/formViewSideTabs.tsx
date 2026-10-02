@@ -1,7 +1,7 @@
 import React from 'react'
 
 import autoBind from 'react-autobind'
-import { NavLink } from 'react-router-dom'
+import { NavLink, matchPath } from 'react-router-dom'
 import Reflux from 'reflux'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -17,6 +17,8 @@ export interface FormViewSideTab {
   icon: string
   path: string
   isDisabled?: boolean
+  /** Route patterns that should keep this tab highlighted, besides its own path. */
+  alsoActiveFor?: string[]
 }
 
 export interface FormViewSideTabsProps extends WithRouterProps {
@@ -33,6 +35,9 @@ export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
       label: t('Table'),
       icon: 'k-icon k-icon-table',
       path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
+      // A single submission record has a route of its own, next to the table's
+      // rather than inside it, but it is still the table the user is browsing.
+      alsoActiveFor: [ROUTES.FORM_SUBMISSION.replace(':uid', assetUid)],
     },
     {
       label: t('Reports'),
@@ -106,6 +111,14 @@ class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSid
 
       evt.preventDefault()
     }
+  }
+
+  /**
+   * Whether we are on one of the routes a tab covers besides its own, e.g. the
+   * "Table" tab while a single submission record is open.
+   */
+  isOnRelatedRoute(tab: FormViewSideTab) {
+    return Boolean(tab.alsoActiveFor?.some((pattern) => matchPath(pattern, this.props.router.location.pathname)))
   }
 
   renderFormSideTabs(): React.ReactNode {
@@ -187,7 +200,11 @@ class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSid
               <NavLink
                 to={item.path}
                 key={ind}
-                className={className}
+                // Taking over `className` means we have to add `active`
+                // ourselves, as `NavLink` only does that for a plain string.
+                className={({ isActive }) =>
+                  isActive || this.isOnRelatedRoute(item) ? `${className} active` : className
+                }
                 data-path={item.path}
                 onClick={this.triggerRefresh}
                 end
