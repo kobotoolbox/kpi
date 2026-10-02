@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -13,7 +14,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.trash_bin.constants import AUTO_DELETE_CURSOR_KEY
@@ -440,6 +441,66 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self.assertFalse(
             ExceededLimitCounter.objects.filter(id=counter.id).exists()
         )
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    @override_settings(AUTO_DELETE_ATTACHMENTS_MAX_PER_USER=2)
+    def test_auto_delete_excess_attachments_skips_attachments_without_project(self):
+        """
+        Test that the oldest attachments, when they have no project, do not
+        prevent the newer ones from being trashed, even when they fill a whole
+        page (the limit per run is 2 here)
+        """
+        # Oldest attachments: a form created before KPI (no project uid), left
+        # out by the query, then two forms whose project cannot be found, which
+        # fill the first page and are skipped
+        without_project_ids = []
+        for kpi_asset_uid in (None, 'aDoesNotExist', 'aDoesNotExistEither'):
+            _, xform, _, _, attachment = self._create_test_asset_and_submission(
+                user=self.owner
+            )
+            XForm.objects.filter(pk=xform.pk).update(kpi_asset_uid=kpi_asset_uid)
+            Attachment.all_objects.filter(pk=attachment.pk).update(
+                date_created=self.attachment.date_created - timedelta(days=1)
+            )
+            without_project_ids.append(attachment.pk)
+
+        self._create_submissions_with_attachments(count=1)
+        with_project_ids = [
+            pk
+            for pk in self._get_active_attachment_ids()
+            if pk not in without_project_ids
+        ]
+        self.assertEqual(len(with_project_ids), 2)
+
+        self._run_task_over_limit()
+
+        self.assertEqual(
+            sorted(self._get_active_attachment_ids()), sorted(without_project_ids)
+        )
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    @override_settings(AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN=3)
+    def test_schedule_cleanup_keeps_users_left_out_when_queuing_fails(self):
+        """
+        Test that users whose task could not be queued are the first ones of
+        the next run, instead of waiting for the next full rotation
+        """
+        user_ids = self._create_users_over_grace_period(count=3)
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay',
+            side_effect=[None, RuntimeError('broker unreachable')],
+        ):
+            with self.assertRaises(RuntimeError):
+                schedule_auto_attachment_cleanup_for_users()
+
+        self.assertEqual(self._run_scheduler(), user_ids[1:3])
 
     def _assert_lock_is_free(self):
         lock = cache.lock(self._get_lock_key(), timeout=30)

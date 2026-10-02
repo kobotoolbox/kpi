@@ -5,6 +5,7 @@ from celery.signals import task_failure, task_retry
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Q
 from redis.exceptions import LockError
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -105,6 +106,7 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
     )
     if not counters and cursor:
         # The previous run reached the end, start over from the first one
+        cursor = 0
         counters = list(exceeded_counters.values_list('id', 'user_id')[:users_per_run])
 
     logging.info(
@@ -112,14 +114,23 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
         f'scheduling cleanup for {len(counters)} of them.'
     )
 
-    # A shorter run than `users_per_run` reached the end: the next one starts
-    # over from the first counter
-    next_cursor = counters[-1][0] if len(counters) == users_per_run else 0
-    # No expiry: if the key is lost, the next run simply starts over
-    cache.set(AUTO_DELETE_CURSOR_KEY, next_cursor, None)
-
-    for _, user_id in counters:
-        auto_delete_excess_attachments.delay(user_id)
+    queued = 0
+    try:
+        for _, user_id in counters:
+            auto_delete_excess_attachments.delay(user_id)
+            queued += 1
+    finally:
+        # Only move past the users actually queued. If queuing fails half-way,
+        # the next run starts with the first user left out
+        if queued < len(counters):
+            next_cursor = counters[queued - 1][0] if queued else cursor
+        elif len(counters) == users_per_run:
+            next_cursor = counters[-1][0]
+        else:
+            # A shorter run reached the end, the next one starts over
+            next_cursor = 0
+        # No expiry: if the key is lost, the next run simply starts over
+        cache.set(AUTO_DELETE_CURSOR_KEY, next_cursor, None)
 
 
 @celery_app.task(queue='kpi_low_priority_queue')
@@ -179,46 +190,16 @@ def _trash_excess_attachments(user_id: int, exceeded_limit_counter_model):
         f'User `{user_id}` has exceeded storage limits by {exceeded_bytes} bytes.'
     )
 
-    # Oldest first, `pk` breaks ties so that a later run picks up exactly where
-    # this one stopped. Trashed attachments are excluded by the default manager
-    attachments = list(
-        Attachment.objects.filter(user_id=user_id)
-        .order_by('date_created', 'pk')
-        .values(
-            'pk',
-            'uid',
-            'media_file_basename',
-            'media_file_size',
-            'instance_id',
-            'xform__kpi_asset_uid',
-        )[: settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER]
-    )
-
-    # Assets live in the KPI database, they cannot be joined from the
-    # attachments. Fetch all of them at once instead of one per attachment
-    asset_ids = dict(
-        Asset.all_objects.filter(
-            uid__in={att['xform__kpi_asset_uid'] for att in attachments}
-        ).values_list('uid', 'pk')
-    )
-
+    max_per_user = settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER
     attachments_to_trash = []
     submission_ids = set()
     trashed_bytes = 0
-    for att in attachments:
-        asset_uid = att['xform__kpi_asset_uid']
-        if asset_uid not in asset_ids:
-            logging.warning(
-                f'Attachment #{att["pk"]} of user `{user_id}` has no project, '
-                f'not trashed'
-            )
-            continue
-
+    for att, asset_id in _iter_trashable_attachments(user_id):
         attachments_to_trash.append(
             {
                 'pk': att['pk'],
-                'asset_id': asset_ids[asset_uid],
-                'asset_uid': asset_uid,
+                'asset_id': asset_id,
+                'asset_uid': att['xform__kpi_asset_uid'],
                 'attachment_uid': att['uid'],
                 'attachment_basename': att['media_file_basename'],
             }
@@ -227,13 +208,12 @@ def _trash_excess_attachments(user_id: int, exceeded_limit_counter_model):
         trashed_bytes += att['media_file_size'] or 0
         if trashed_bytes >= exceeded_bytes:
             break
-    else:
-        if len(attachments) == settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER:
+        if len(attachments_to_trash) == max_per_user:
             logging.info(
-                f'User `{user_id}` reached the limit of '
-                f'{settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER} attachments per '
-                f'run, the next run continues'
+                f'User `{user_id}` reached the limit of {max_per_user} '
+                f'attachments per run, the next run continues'
             )
+            break
 
     if attachments_to_trash:
         move_to_trash(
@@ -259,3 +239,64 @@ def _trash_excess_attachments(user_id: int, exceeded_limit_counter_model):
             update_or_remove_limit_counter(counter)
     else:
         logging.info(f'No attachments to trash for user `{user_id}`.')
+
+
+def _iter_trashable_attachments(user_id: int):
+    """
+    Yield the active attachments of `user_id` that can be moved to trash,
+    oldest first, with the ID of their project
+
+    An attachment without a project cannot be trashed: the trash logs it in
+    the project history. Forms created before KPI have no project at all, the
+    query leaves them out. The few left whose project cannot be found are
+    skipped, and reading goes on after them, page by page, so that they never
+    hold back the newer attachments.
+    """
+    page_size = settings.AUTO_DELETE_ATTACHMENTS_MAX_PER_USER
+    # Oldest first, `pk` breaks ties so that a later run picks up exactly where
+    # this one stopped. Trashed attachments are excluded by the default manager
+    queryset = (
+        Attachment.objects.filter(user_id=user_id)
+        .exclude(Q(xform__kpi_asset_uid__isnull=True) | Q(xform__kpi_asset_uid=''))
+        .order_by('date_created', 'pk')
+        .values(
+            'pk',
+            'uid',
+            'media_file_basename',
+            'media_file_size',
+            'instance_id',
+            'date_created',
+            'xform__kpi_asset_uid',
+        )
+    )
+    last = None
+    while True:
+        page_queryset = queryset
+        if last:
+            page_queryset = queryset.filter(
+                Q(date_created__gt=last['date_created'])
+                | Q(date_created=last['date_created'], pk__gt=last['pk'])
+            )
+        page = list(page_queryset[:page_size])
+        if not page:
+            return
+
+        # Assets live in the KPI database, they cannot be joined from the
+        # attachments. Fetch the ones of the page at once
+        asset_ids = dict(
+            Asset.all_objects.filter(
+                uid__in={att['xform__kpi_asset_uid'] for att in page}
+            ).values_list('uid', 'pk')
+        )
+        for att in page:
+            if (asset_id := asset_ids.get(att['xform__kpi_asset_uid'])) is None:
+                logging.warning(
+                    f'Attachment #{att["pk"]} of user `{user_id}` has no project, '
+                    f'not trashed'
+                )
+                continue
+            yield att, asset_id
+
+        if len(page) < page_size:
+            return
+        last = page[-1]
