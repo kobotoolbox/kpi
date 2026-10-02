@@ -1,7 +1,9 @@
 import constants from '#/constants'
+import userExistence from '#/users/userExistence.store'
 import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
 import type { AssignablePermsMap } from './sharingForm.component'
+import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import {
   EMPTY_EDITOR_STATE,
   applyValidityRules,
@@ -193,6 +195,45 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsAdd: true,
         submissionsView: true,
       })
+    })
+  })
+
+  describe('onUsernameChangeEnd', () => {
+    it('should return early when re-entering a username that does not exist', async () => {
+      const component = new UserAssetPermsEditor({
+        asset: {} as any,
+        assignablePerms: new Map(),
+        nonOwnerPerms: [],
+        onSubmitEnd: () => undefined,
+      })
+
+      component.state = {
+        ...EMPTY_EDITOR_STATE,
+        username: 'no-such-user',
+      }
+
+      component.checkedUsernames.set('no-such-user', false)
+
+      let notified = ''
+      component.notifyUnknownUser = (username: string) => {
+        notified = username
+      }
+
+      let lookupCalled = false
+      const originalCheckUsername = userExistence.checkUsername
+      userExistence.checkUsername = async () => {
+        lookupCalled = true
+        return true
+      }
+
+      try {
+        await component.onUsernameChangeEnd()
+
+        chai.expect(notified).to.equal('no-such-user')
+        chai.expect(lookupCalled).to.equal(false)
+      } finally {
+        userExistence.checkUsername = originalCheckUsername
+      }
     })
   })
 })
