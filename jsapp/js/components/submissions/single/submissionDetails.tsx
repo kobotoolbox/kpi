@@ -11,6 +11,7 @@ import type { ValidationStatusOptionName } from '#/components/submissions/valida
 import { EnketoActions } from '#/constants'
 import type { AssetResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
+import { getSubmissionRootUuid } from '#/utils'
 import SubmissionBackgroundAudio from './SubmissionBackgroundAudio'
 import SubmissionActions from './submissionActions'
 import SubmissionDuplicateBanner from './submissionDuplicateBanner'
@@ -26,11 +27,18 @@ interface SubmissionDetailsProps {
    * as the user stays on the record the duplication produced.
    */
   duplicatedFromUuid?: string
+  /** Shown over another screen rather than on one of its own, which rules out printing. */
+  isInModal?: boolean
   /** Asks for a fresh copy of `submission`, e.g. after an edit in Enketo. */
   onRefreshRequested: () => void
   onDeleted: () => void
-  /** @param newSubmissionDbId - `_id` of the record the duplication produced. */
-  onDuplicated: (newSubmissionDbId: string, duplicatedFromUuid: string) => void
+  /**
+   * Leave it out to hide the Duplicate action: the flow carries on in Enketo and
+   * ends on the new record with a banner, which needs a screen of its own.
+   *
+   * @param newSubmissionDbId - `_id` of the record the duplication produced.
+   */
+  onDuplicated?: (newSubmissionDbId: string, duplicatedFromUuid: string) => void
 }
 
 interface SubmissionDetailsState {
@@ -170,7 +178,14 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
   }
 
   onDuplicateSubmissionCompleted(_assetUid: string, newSubmissionDbId: string, duplicatedFrom: SubmissionResponse) {
-    this.props.onDuplicated(String(newSubmissionDbId), duplicatedFrom['meta/rootUuid'] || duplicatedFrom._uuid)
+    // The Reflux action is global, so every record on screen hears it. Only the one
+    // the duplicate was made from should follow it - the user may have moved on.
+    if (duplicatedFrom._id !== this.state.submission._id) {
+      return
+    }
+
+    // Without the `uuid:` prefix, as that is how the app passes root UUIDs around.
+    this.props.onDuplicated?.(String(newSubmissionDbId), getSubmissionRootUuid(duplicatedFrom))
   }
 
   /**
@@ -282,6 +297,8 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
           asset={this.props.asset}
           submission={this.state.submission}
           isInDuplicateFlow={duplicateFlowFromUuid !== undefined}
+          showDuplicateAction={this.props.onDuplicated !== undefined}
+          showPrintAction={!this.props.isInModal}
           isEditable={this.isSubmissionEditable()}
           isEditPending={this.state.isEnketoEditLoading}
           isViewPending={this.state.isEnketoViewLoading}

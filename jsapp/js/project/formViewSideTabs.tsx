@@ -1,7 +1,7 @@
 import React from 'react'
 
 import autoBind from 'react-autobind'
-import { NavLink, matchPath } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import Reflux from 'reflux'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -17,8 +17,12 @@ export interface FormViewSideTab {
   icon: string
   path: string
   isDisabled?: boolean
-  /** Route patterns that should keep this tab highlighted, besides its own path. */
-  alsoActiveFor?: string[]
+  /**
+   * Keeps the tab highlighted on routes nested under its own, e.g. a submission
+   * record under the table. Off by default: the Settings tabs sit inside one
+   * another's paths and would light up together.
+   */
+  matchesNestedRoutes?: boolean
 }
 
 export interface FormViewSideTabsProps extends WithRouterProps {
@@ -35,9 +39,9 @@ export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
       label: t('Table'),
       icon: 'k-icon k-icon-table',
       path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
-      // A single submission record has a route of its own, next to the table's
-      // rather than inside it, but it is still the table the user is browsing.
-      alsoActiveFor: [ROUTES.FORM_SUBMISSION.replace(':uid', assetUid)],
+      // A submission record lives under the table, and reading one still counts as
+      // browsing the table.
+      matchesNestedRoutes: true,
     },
     {
       label: t('Reports'),
@@ -111,14 +115,6 @@ class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSid
 
       evt.preventDefault()
     }
-  }
-
-  /**
-   * Whether we are on one of the routes a tab covers besides its own, e.g. the
-   * "Table" tab while a single submission record is open.
-   */
-  isOnRelatedRoute(tab: FormViewSideTab) {
-    return Boolean(tab.alsoActiveFor?.some((pattern) => matchPath(pattern, this.props.router.location.pathname)))
   }
 
   renderFormSideTabs(): React.ReactNode {
@@ -200,14 +196,10 @@ class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSid
               <NavLink
                 to={item.path}
                 key={ind}
-                // Taking over `className` means we have to add `active`
-                // ourselves, as `NavLink` only does that for a plain string.
-                className={({ isActive }) =>
-                  isActive || this.isOnRelatedRoute(item) ? `${className} active` : className
-                }
+                className={className}
                 data-path={item.path}
                 onClick={this.triggerRefresh}
-                end
+                end={!item.matchesNestedRoutes}
               >
                 <i className={`k-icon ${item.icon}`} />
                 <span className='form-view__tab-name'>{item.label}</span>

@@ -44,6 +44,9 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { queryClient } from '#/api/queryClient'
+import { getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
+import SubmissionPreviewModal from '#/components/submissions/single/submissionPreviewModal'
 import { getBackToCurrentScreen, goToSubmission } from '#/components/submissions/single/submissionRouting'
 
 export const SUBMISSIONS_PER_PAGE = 1000
@@ -168,6 +171,8 @@ interface FormMapState {
   showMapSettings: boolean
   overridenStyles?: AssetMapStyles
   noData: boolean
+  /** The record being read in the preview modal, if any. */
+  previewedSubmissionId?: string
   previousViewby?: string
   // Note: In case 2 of createDataQuery(), we have a situation where a selected question exists without updating
   // overridenStyles. It is much easier to pass the selected question like this than doing some hack with AssetMapStyles
@@ -739,7 +744,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers.addLayers(prepPoints)
       }
 
-      markers.on('click', this.goToClickedSubmission.bind(this)).addTo(map)
+      markers.on('click', this.previewClickedSubmission.bind(this)).addTo(map)
 
       if (bounds) {
         // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
@@ -975,13 +980,43 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return map
   }
 
-  goToClickedSubmission(evt: L.LeafletMouseEvent) {
+  /**
+   * Opens the clicked point in the preview modal. Leaving the map to read one
+   * record would cost the user their place among the points.
+   */
+  previewClickedSubmission(evt: L.LeafletMouseEvent) {
     // Markers only carry an `_id`, so we will try to get rootUuid and fall back to `_id` in edge cases
     const submissionId: number = evt.layer.options.sId
     const submission = this.props.allData.find((item) => item._id === submissionId)
-    goToSubmission(this.props.asset.uid, submission ? getSubmissionRootUuid(submission) : submissionId, {
+
+    this.setState({
+      previewedSubmissionId: String(submission ? getSubmissionRootUuid(submission) : submissionId),
+    })
+  }
+
+  closeSubmissionPreview() {
+    this.setState({ previewedSubmissionId: undefined })
+  }
+
+  /** Leaves for the record's own address, offering the way back to the map. */
+  openPreviewedSubmissionRecord() {
+    if (!this.state.previewedSubmissionId) {
+      return
+    }
+
+    goToSubmission(this.props.asset.uid, this.state.previewedSubmissionId, {
       state: { backTo: getBackToCurrentScreen(t('Back to Map')) },
     })
+  }
+
+  onPreviewedSubmissionDeleted() {
+    this.closeSubmissionPreview()
+
+    // The deleted record is still plotted, so the map needs its points again -
+    // every page of them sits under this key prefix.
+    // Not `invalidatePaginatedList`: it skips keys ending in a string, and the
+    // map's page keys end with the sort order (see `formMapWrapper`).
+    queryClient.invalidateQueries({ queryKey: getAssetsDataListQueryKey(this.props.asset.uid) })
   }
 
   toggleMapSettings() {
@@ -1475,6 +1510,16 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               queryLimit={this.getQueryLimit()}
             />
           </Modal>
+        )}
+
+        {this.state.previewedSubmissionId && (
+          <SubmissionPreviewModal
+            asset={this.props.asset}
+            submissionId={this.state.previewedSubmissionId}
+            onClose={this.closeSubmissionPreview.bind(this)}
+            onOpenFullRecord={this.openPreviewedSubmissionRecord.bind(this)}
+            onDeleted={this.onPreviewedSubmissionDeleted.bind(this)}
+          />
         )}
 
         <div id='data-map' />

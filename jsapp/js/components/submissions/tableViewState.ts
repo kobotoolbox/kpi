@@ -1,22 +1,20 @@
 import type { ReactTableStateFilteredItem } from '#/components/submissions/table.types'
 
 /**
- * How the data table was last left. This lives in component state, so it is lost
- * whenever the table unmounts - which it does when you open a submission record
- * at its own address.
+ * How the data table was last left. The table keeps this in component state, which
+ * goes with it when it unmounts - as it does when you open a submission record at
+ * its own address - so the bits worth restoring are remembered out here.
  *
- * Two things are deliberately absent. Sort order, because it is a saved table
- * setting kept on the asset. And the page number, because `react-table` (v6)
- * resets to the first page whenever the filters change, including on mount, so it
- * cannot be seeded without asking for a second page of data - coming back to a
- * filtered table starts at its first page.
+ * Sort order is absent on purpose: it is a table setting saved on the asset.
  *
- * In memory and per-tab only: returning to a project later, or through a link
- * someone sent, starts unfiltered.
+ * Only covers the trip to a record and back - the table clears this when the user
+ * leaves for anywhere else, so a project always opens unfiltered on page one.
  */
 export interface TableViewState {
   pageSize: number
   filtered: ReactTableStateFilteredItem[]
+  /** Zero-based, the way `react-table` counts pages. */
+  page: number
 }
 
 /** Partial, because callers set only what they own. */
@@ -29,4 +27,8 @@ export function getTableViewState(assetUid: string): Partial<TableViewState> | u
 /** Merges into what is already remembered, rather than replacing it. */
 export function setTableViewState(assetUid: string, viewState: Partial<TableViewState>): void {
   _viewStates.set(assetUid, { ..._viewStates.get(assetUid), ...viewState })
+}
+
+export function clearTableViewState(assetUid: string): void {
+  _viewStates.delete(assetUid)
 }

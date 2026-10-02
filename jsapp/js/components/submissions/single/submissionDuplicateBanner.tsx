@@ -43,8 +43,7 @@ export default function SubmissionDuplicateBanner({
       </p>
 
       <p className='submission-duplicate__text'>
-        {t('Source submission uuid:' + ' ')}
-        <code>{duplicatedFromUuid}</code>
+        {t('Source submission uuid:')} <code>{duplicatedFromUuid}</code>
       </p>
 
       {/* Labelled buttons, unlike the icons in the actions row: this is a prompt,

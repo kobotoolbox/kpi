@@ -31,7 +31,7 @@ import {
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
-import { goToSubmission } from '#/components/submissions/single/submissionRouting'
+import { goToSubmission, isOnSubmissionRoute } from '#/components/submissions/single/submissionRouting'
 import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
@@ -66,7 +66,7 @@ import {
   selectNestedRow,
 } from '#/components/submissions/tableUtils'
 import type { TableFilterQuery } from '#/components/submissions/tableUtils'
-import { getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
+import { clearTableViewState, getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
@@ -175,6 +175,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   private readonly initialFiltered: ReactTableStateFilteredItem[]
 
   /**
+   * Page the user left the table on, applied on the first fetch and then cleared.
+   * Seeding `react-table`'s own page does not work - it counts the initial filters
+   * as a filter change and zeroes the page on mount. See `fetchData`.
+   */
+  private pageToRestore?: number
+
+  /**
    * Filters the last fetch used, handed to a record the user opens so it can step
    * between neighbours the way this table lists them. Deliberately not kept in
    * `tableViewState`, where it would outlive the table and filter records opened
@@ -188,6 +195,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const viewState = getTableViewState(props.asset.uid)
     this.initialPageSize = viewState?.pageSize ?? DEFAULT_PAGE_SIZE
     this.initialFiltered = viewState?.filtered ?? []
+    this.pageToRestore = viewState?.page
 
     this.state = {
       loading: true, // for fetching submissions data
@@ -236,6 +244,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.unlisteners.forEach((clb) => {
       clb()
     })
+
+    // What we remembered is only meant to survive a trip to one of this table's
+    // records and back. Leaving for anywhere else starts the table fresh.
+    if (!isOnSubmissionRoute(this.props.asset.uid)) {
+      clearTableViewState(this.props.asset.uid)
+    }
   }
 
   componentDidUpdate(prevProps: DataTableProps) {
@@ -396,10 +410,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.currentFilterQuery = filterQueryObj
 
     // Remembered so that leaving for a submission record and coming back keeps
-    // the user's filters.
+    // the table as the user left it.
     setTableViewState(this.props.asset.uid, {
       pageSize,
       filtered: filter,
+      page: instance.state.page,
     })
 
     const sortBy = tableStore.getSortBy()
@@ -426,6 +441,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     options: GetSubmissionsOptions,
   ) {
     const results = response.results
+    const lastPage = Math.max(Math.ceil(response.count / this.state.pageSize) - 1, 0)
+
     if (results && results.length > 0) {
       this.setState(
         {
@@ -439,6 +456,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           this._prepColumns(results)
         },
       )
+    } else if (lastPage < this.state.currentPage && this.state.fetchInstance) {
+      // We asked for a page past the end - deleting the record the user came back
+      // from is enough to shrink the table. Drop to the last page there is.
+      this.state.fetchInstance.onPageChange(lastPage)
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
       // want to display the "no data" message
@@ -1067,6 +1088,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /** Function for `react-table` for fetching data. */
   fetchData(tableState: ReactTableState, tableInstance: ReactTableInstance) {
+    const pageToRestore = this.pageToRestore
+    this.pageToRestore = undefined
+
+    // Asking the table to change page fires another fetch, for the page we
+    // actually want, so there is nothing to do with this one.
+    if (pageToRestore !== undefined && pageToRestore !== tableInstance.state.page) {
+      tableInstance.onPageChange(pageToRestore)
+      return
+    }
+
     this.setState({
       loading: true,
       pageSize: tableInstance.state.pageSize,

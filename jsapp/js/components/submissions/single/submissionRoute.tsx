@@ -1,21 +1,18 @@
 import './submissionRoute.scss'
-import { useQueryClient } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
-import CenteredMessage from '#/components/common/centeredMessage.component'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import type { SubmissionResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
 import SubmissionDetails from './submissionDetails'
 import SubmissionNeighborNav from './submissionNeighborNav'
+import SubmissionRecordPlaceholder from './submissionRecordPlaceholder'
 import type { SubmissionRouteState } from './submissionRouting'
-import { getDataTablePath, getSubmissionLookupParams, getSubmissionPath } from './submissionRouting'
+import { getDataTablePath, getSubmissionPath } from './submissionRouting'
 import { useSubmissionNeighbors } from './useSubmissionNeighbors'
+import { useSubmissionRecord } from './useSubmissionRecord'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -32,21 +29,13 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
   const { uid: assetUid, submissionId } = params
   const navigate = useNavigate()
   const location = useLocation()
-  const queryClient = useQueryClient()
 
   // NOTE: This route component is being loaded with PermProtectedRoute so we
   // know that the call to backend to get asset was already made, and thus we can
   // safely assume asset data is present.
   const asset = assetUid ? assetStore.getAsset(assetUid) : null
 
-  const lookupParams = getSubmissionLookupParams(submissionId)
-  const lookupQueryKey = getAssetsDataListQueryKey(assetUid, lookupParams)
-  const query = useAssetsDataList(assetUid, lookupParams, {
-    query: { queryKey: lookupQueryKey, enabled: Boolean(assetUid && submissionId) },
-  })
-
-  const record =
-    query.data?.status === 200 && query.data.data.results.length > 0 ? query.data.data.results[0] : undefined
+  const { isPending, isError, record, refresh } = useSubmissionRecord(assetUid, submissionId)
 
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
@@ -103,22 +92,11 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
     </DocumentTitle>
   )
 
-  if (!asset || query.isPending) {
-    return renderInLayout(<LoadingSpinner />)
-  }
-
-  if (query.isError) {
-    return renderInLayout(<CenteredMessage message={t('Error: could not load data.')} />)
-  }
-
-  if (!record) {
+  // The asset is already loaded by the time this route renders, so a missing one
+  // means the store has yet to catch up - something to wait out, not an error.
+  if (!asset || !record) {
     return renderInLayout(
-      <CenteredMessage
-        message={t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace(
-          '##id##',
-          submissionId,
-        )}
-      />,
+      <SubmissionRecordPlaceholder isPending={isPending || !asset} isError={isError} submissionId={submissionId} />,
     )
   }
 
@@ -128,20 +106,18 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
       // a pending "Refresh submission" prompt) from leaking into the next one.
       key={record._id}
       asset={asset}
-      // `DataResponse` and `SubmissionResponse` describe the same payload, but the
-      // submission endpoints are typed against the latter, which also allows
-      // arbitrary question names as keys.
-      submission={record as unknown as SubmissionResponse}
+      submission={record}
       duplicatedFromUuid={routeState?.duplicatedFromUuid}
-      onRefreshRequested={() => {
-        queryClient.invalidateQueries({ queryKey: lookupQueryKey })
-      }}
+      onRefreshRequested={refresh}
       onDeleted={goBack}
       onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
-        // A duplicate answers the questions the same way, so it belongs in the
-        // same filtered list as the record it was copied from.
+        // The filters the source was found with are deliberately dropped: a brand
+        // new record does not necessarily match them (filtering by `_id` is the
+        // clearest case), and claiming a place in a list it is not part of would
+        // leave the user with a wrong count and dead Previous/Next buttons. So the
+        // duplicate sits in the full list instead.
         navigate(getSubmissionPath(assetUid, newSubmissionDbId), {
-          state: { duplicatedFromUuid, backTo: routeState?.backTo, filterQuery: routeState?.filterQuery },
+          state: { duplicatedFromUuid, backTo: routeState?.backTo },
         })
       }}
     />,

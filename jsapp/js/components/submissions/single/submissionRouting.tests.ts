@@ -6,10 +6,18 @@ import {
   getSubmissionNeighborParams,
   getSubmissionPath,
   goToSubmission,
+  isOnSubmissionRoute,
 } from './submissionRouting'
 
 describe('submissionRouting', () => {
   const navigate = jest.fn()
+
+  /** Stands in for the app's router sitting on the given address. */
+  const injectRouterAt = (pathname: string, search = '') => {
+    injectRouter({ navigate, state: { location: { pathname, search } } } as unknown as Parameters<
+      typeof injectRouter
+    >[0])
+  }
 
   beforeEach(() => {
     navigate.mockClear()
@@ -21,11 +29,11 @@ describe('submissionRouting', () => {
     it('addresses a submission by its root UUID', () => {
       chai
         .expect(getSubmissionPath('aBcDeF', 'a1b2c3d4-1111-2222-3333-444455556666'))
-        .to.equal('/forms/aBcDeF/data/submission/a1b2c3d4-1111-2222-3333-444455556666')
+        .to.equal('/forms/aBcDeF/data/table/submission/a1b2c3d4-1111-2222-3333-444455556666')
     })
 
     it('accepts a numeric id, for links made before submissions had an address', () => {
-      chai.expect(getSubmissionPath('aBcDeF', 1234)).to.equal('/forms/aBcDeF/data/submission/1234')
+      chai.expect(getSubmissionPath('aBcDeF', 1234)).to.equal('/forms/aBcDeF/data/table/submission/1234')
     })
   })
 
@@ -40,7 +48,7 @@ describe('submissionRouting', () => {
       goToSubmission('aBcDeF', 1234)
 
       chai.expect(navigate.mock.calls).to.have.lengthOf(1)
-      chai.expect(navigate.mock.calls[0][0]).to.equal('/forms/aBcDeF/data/submission/1234')
+      chai.expect(navigate.mock.calls[0][0]).to.equal('/forms/aBcDeF/data/table/submission/1234')
     })
 
     it('passes on the route state, so a duplicate can explain itself', () => {
@@ -53,14 +61,27 @@ describe('submissionRouting', () => {
     })
   })
 
-  describe('getBackToCurrentScreen', () => {
-    /** Stands in for the app's router sitting on the given address. */
-    const injectRouterAt = (pathname: string, search = '') => {
-      injectRouter({ navigate, state: { location: { pathname, search } } } as unknown as Parameters<
-        typeof injectRouter
-      >[0])
-    }
+  describe('isOnSubmissionRoute', () => {
+    it('recognises a record of the given project', () => {
+      injectRouterAt('/forms/aBcDeF/data/table/submission/a1b2c3d4-1111-2222-3333-444455556666')
 
+      chai.expect(isOnSubmissionRoute('aBcDeF')).to.equal(true)
+    })
+
+    it('does not mistake a record of another project for one of ours', () => {
+      injectRouterAt('/forms/zZzZzZ/data/table/submission/1234')
+
+      chai.expect(isOnSubmissionRoute('aBcDeF')).to.equal(false)
+    })
+
+    it('says no for any other screen of the same project', () => {
+      injectRouterAt('/forms/aBcDeF/data/table')
+
+      chai.expect(isOnSubmissionRoute('aBcDeF')).to.equal(false)
+    })
+  })
+
+  describe('getBackToCurrentScreen', () => {
     it('captures the address as it stands, so returning restores the screen', () => {
       injectRouterAt('/forms/aBcDeF/data/map/Your_place')
 

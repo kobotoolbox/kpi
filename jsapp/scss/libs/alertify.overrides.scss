@@ -3,9 +3,17 @@
 
 // alertify overrides
 
+// Alertify ships these at 1981, below Mantine modals - so a confirm raised from
+// one (deleting a submission in the map preview) would be buried. The fallbacks
+// cover prompts raised outside the Mantine provider, where the vars are unset.
 .alertify .ajs-dimmer {
   background-color: colors.$kobo-white;
   opacity: 0.55;
+  z-index: var(--kobo-z-index-nested-modal-overlay, 4500);
+}
+
+.alertify .ajs-modal {
+  z-index: var(--kobo-z-index-nested-modal, 4600);
 }
 
 .alertify .ajs-dialog {

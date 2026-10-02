@@ -29,6 +29,10 @@ interface SubmissionActionsProps {
    * everything works, or if it requires some work to make it usable.
    */
   isInDuplicateFlow: boolean
+  /** Off where the duplicate flow has nowhere to go, see `SubmissionDetails`. */
+  showDuplicateAction: boolean
+  /** Printing prints the page, so it is off wherever the record is not the page. */
+  showPrintAction: boolean
   /** Whether the record can be changed at all, by this user, right now. */
   isEditable: boolean
   isEditPending: boolean
@@ -48,6 +52,8 @@ export default function SubmissionActions({
   asset,
   submission,
   isInDuplicateFlow,
+  showDuplicateAction,
+  showPrintAction,
   isEditable,
   isEditPending,
   isViewPending,
@@ -120,14 +126,16 @@ export default function SubmissionActions({
             loading={isViewPending}
           />
 
-          <ActionIcon
-            onClick={onDuplicate}
-            variant='light'
-            size='md'
-            icon={IconFilesFilled}
-            tooltip={t('Duplicate submission')}
-            disabled={!isEditable}
-          />
+          {showDuplicateAction && (
+            <ActionIcon
+              onClick={onDuplicate}
+              variant='light'
+              size='md'
+              icon={IconFilesFilled}
+              tooltip={t('Duplicate submission')}
+              disabled={!isEditable}
+            />
+          )}
 
           <ActionIcon
             onClick={shareRecord}
@@ -137,7 +145,9 @@ export default function SubmissionActions({
             tooltip={t('Copy link to this submission')}
           />
 
-          <ActionIcon onClick={launchPrinting} variant='light' size='md' icon={IconPrinter} tooltip={t('Print')} />
+          {showPrintAction && (
+            <ActionIcon onClick={launchPrinting} variant='light' size='md' icon={IconPrinter} tooltip={t('Print')} />
+          )}
 
           <ActionIcon
             onClick={onDelete}

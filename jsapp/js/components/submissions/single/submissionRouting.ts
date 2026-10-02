@@ -1,3 +1,4 @@
+import { matchPath } from 'react-router-dom'
 import type { AssetsDataListParams } from '#/api/models/assetsDataListParams'
 import type { TableFilterQuery } from '#/components/submissions/tableUtils'
 import { router } from '#/router/legacy'
@@ -48,7 +49,7 @@ export function getBackToCurrentScreen(label: string): SubmissionBackTo | undefi
 
 /**
  * The address of a single submission record, e.g.
- * `#/forms/aBcDeF/data/submission/a1b2c3d4-…`.
+ * `#/forms/aBcDeF/data/table/submission/a1b2c3d4-…`.
  *
  * @param submissionId - `meta/rootUuid` (preferably) or `_id`
  */
@@ -81,6 +82,17 @@ export function goToSubmission(
 
 export function getDataTablePath(assetUid: string) {
   return ROUTES.FORM_TABLE.replace(':uid', assetUid)
+}
+
+/** Whether the app is right now on a record belonging to the given project */
+export function isOnSubmissionRoute(assetUid: string) {
+  const pathname = router?.state.location.pathname
+
+  if (!pathname) {
+    return false
+  }
+
+  return matchPath(ROUTES.FORM_SUBMISSION, pathname)?.params.uid === assetUid
 }
 
 /**
