@@ -22,6 +22,7 @@
     "removeComments": false,
     "sourceMap": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "allowJs": true,
     "outDir": "out",
     "jsx": "react-jsx",
