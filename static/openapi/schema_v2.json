@@ -21492,7 +21492,11 @@
                             "languages": {
                                 "type": "array",
                                 "items": {
-                                    "type": "string"
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
                                 }
                             },
                             "row_count": {
