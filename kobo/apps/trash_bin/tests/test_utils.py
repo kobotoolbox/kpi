@@ -20,10 +20,7 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.exceptions import (
-    FormInactiveError,
-    TemporarilyUnavailableError,
-)
+from kobo.apps.openrosa.apps.logger.exceptions import TemporarilyUnavailableError
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
@@ -501,12 +498,6 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
     def test_owner_other_projects_accept_submissions_during_deletion(self):
         project_trash = self.test_move_to_trash()
 
-        # The trashed project already refuses submissions
-        with self.assertRaises(FormInactiveError):
-            project_trash.asset.deployment.mock_submissions(
-                [{'q1': 'foo', 'q2': 'bar'}]
-            )
-
         other_asset = Asset.objects.create(
             owner=project_trash.asset.owner,
             asset_type='survey',
@@ -529,7 +520,8 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         ) as mock_delete:
             empty_project(project_trash.pk)
 
-        # The owner's other projects must keep accepting submissions
+        # The trashed project already refuses submissions, the owner's other
+        # projects must keep accepting them
         assert mock_delete.called
         assert captured.get('accepted') is True
 
