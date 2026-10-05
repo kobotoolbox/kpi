@@ -11,7 +11,6 @@ from django.db.models.signals import pre_delete
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
-from django_redis import get_redis_connection
 from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import (
@@ -21,9 +20,6 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.constants import (
-    SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
-)
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
@@ -499,16 +495,15 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             == 0
         )
 
-    def test_owner_submissions_suspended_during_deletion(self):
+    def test_owner_submissions_not_suspended_during_deletion(self):
         project_trash = self.test_move_to_trash()
         owner = project_trash.asset.owner
-        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
+        UserProfile.objects.get_or_create(user=owner)
         captured = {}
 
         def capture_state(*args, **kwargs):
             profile = UserProfile.objects.get(user=owner)
             captured['suspended'] = profile.submissions_suspended
-            captured['holders'] = get_redis_connection().hlen(holders_key)
 
         with patch(
             'kobo.apps.trash_bin.utils.project._delete_submissions',
@@ -516,35 +511,9 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         ):
             empty_project(project_trash.pk)
 
-        assert captured['suspended'] is True
-        assert captured['holders'] == 1
-
-    def test_owner_submissions_released_after_deletion(self):
-        project_trash = self.test_move_to_trash()
-        owner = project_trash.asset.owner
-        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
-
-        empty_project(project_trash.pk)
-
-        profile = UserProfile.objects.get(user=owner)
-        assert profile.submissions_suspended is False
-        assert not get_redis_connection().exists(holders_key)
-
-    def test_owner_submissions_released_when_deletion_fails(self):
-        project_trash = self.test_move_to_trash()
-        owner = project_trash.asset.owner
-        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
-
-        with patch(
-            'kobo.apps.trash_bin.utils.project._delete_submissions',
-            side_effect=RuntimeError('boom'),
-        ):
-            with self.assertRaises(RuntimeError):
-                empty_project(project_trash.pk)
-
-        profile = UserProfile.objects.get(user=owner)
-        assert profile.submissions_suspended is False
-        assert not get_redis_connection().exists(holders_key)
+        # The trashed project already refuses submissions, the owner's other
+        # projects must keep accepting them
+        assert captured['suspended'] is False
 
     def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
         """
