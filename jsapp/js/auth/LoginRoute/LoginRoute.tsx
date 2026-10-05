@@ -71,15 +71,15 @@ function EmailVerificationRequiredPanel({ email }: { email: string }) {
         <Text fw={500}>{email}</Text>
       </Stack>
 
+      {/* A 200 means the request was taken, not that any mail arrived - delivery failures answer the same way. */}
       {linkRequested ? (
-        // Definite, unlike the other panel: the password was right, so this address is on a real account.
-        <Text>{t('A new verification link is on its way to that address.')}</Text>
+        <Text>{t('A new link has been requested. Give it a few minutes, then try again if nothing arrives.')}</Text>
       ) : (
-        <>
-          <Text>{t('Check your spam folder too. Links expire, so request a new one if yours no longer works.')}</Text>
-          <ResendVerificationLink label={t('Request new link')} email={email} onSent={() => setLinkRequested(true)} />
-        </>
+        <Text>{t('Check your spam folder too. Links expire, so request a new one if yours no longer works.')}</Text>
       )}
+
+      {/* Stays put after a request, since that is the only way back from mail that never shows up. */}
+      <ResendVerificationLink label={t('Request new link')} email={email} onSent={() => setLinkRequested(true)} />
     </EmailVerificationFrame>
   )
 }
@@ -96,16 +96,19 @@ function EmailVerificationRequiredWithoutAddressPanel() {
         )}
       </Text>
 
+      {/* Hedged twice over: the address was never checked against an account, and a 200 is not a delivery. */}
       {linkRequested ? (
-        // Vague on purpose: the address typed in was never checked against an account.
-        <Text>{t('If an account exists for that email address, a new verification link is on its way to it.')}</Text>
+        <Text>
+          {t(
+            'If an account uses that address, a new link has been requested for it. Give it a few minutes, then try again if nothing arrives.',
+          )}
+        </Text>
       ) : (
-        <>
-          <Text>{t('Links expire. To get a new one, enter the email address your account uses:')}</Text>
-          {/* No address to hand it, so it asks for one. */}
-          <ResendVerificationLink label={t('Request new link')} onSent={() => setLinkRequested(true)} />
-        </>
+        <Text>{t('Links expire. To get a new one, enter the email address your account uses:')}</Text>
       )}
+
+      {/* No address to hand it, so it asks for one - and stays for a second go if no mail turns up. */}
+      <ResendVerificationLink label={t('Request new link')} onSent={() => setLinkRequested(true)} />
     </EmailVerificationFrame>
   )
 }
