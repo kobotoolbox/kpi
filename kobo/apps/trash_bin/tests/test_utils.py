@@ -20,10 +20,10 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.exceptions import TemporarilyUnavailableError
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
@@ -495,25 +495,33 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             == 0
         )
 
-    def test_owner_submissions_not_suspended_during_deletion(self):
+    def test_owner_other_projects_accept_submissions_during_deletion(self):
         project_trash = self.test_move_to_trash()
-        owner = project_trash.asset.owner
-        UserProfile.objects.get_or_create(user=owner)
+        other_asset = Asset.objects.create(
+            owner=project_trash.asset.owner,
+            asset_type='survey',
+            content=project_trash.asset.content,
+        )
+        other_asset.deploy(backend='mock', active=True)
         captured = {}
 
-        def capture_state(*args, **kwargs):
-            profile = UserProfile.objects.get(user=owner)
-            captured['suspended'] = profile.submissions_suspended
+        def submit_to_other_project(*args, **kwargs):
+            try:
+                other_asset.deployment.mock_submissions([{'q1': 'foo', 'q2': 'bar'}])
+            except TemporarilyUnavailableError:
+                captured['accepted'] = False
+            else:
+                captured['accepted'] = True
 
         with patch(
             'kobo.apps.trash_bin.utils.project._delete_submissions',
-            side_effect=capture_state,
+            side_effect=submit_to_other_project,
         ):
             empty_project(project_trash.pk)
 
         # The trashed project already refuses submissions, the owner's other
         # projects must keep accepting them
-        assert captured['suspended'] is False
+        assert captured['accepted'] is True
 
     def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
         """
