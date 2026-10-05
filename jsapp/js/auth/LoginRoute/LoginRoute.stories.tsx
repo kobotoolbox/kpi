@@ -281,9 +281,10 @@ export const EmailVerificationRequired: Story = {
 
     // And that offer works, for a link that went astray or expired while it sat in an inbox.
     await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
-    await canvas.findByText(/A new verification link is on its way/)
-    // The offer goes with it, rather than still asking to request one.
-    expect(canvas.queryByRole('button', { name: 'Request new link' })).not.toBeInTheDocument()
+    // Reported as a request, not a delivery - the endpoint answers 200 even when the mail could not go out.
+    await canvas.findByText(/A new link has been requested/)
+    // So the offer stays, rather than dead-ending on a link that never arrives.
+    expect(canvas.getByRole('button', { name: 'Request new link' })).toBeEnabled()
   },
 }
 
@@ -313,9 +314,9 @@ export const EmailVerificationRequiredWithoutAddress: Story = {
     await userEvent.type(canvas.getByLabelText('Email'), CREDENTIALS.email)
     await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
 
-    // Once it is sent the field goes, rather than sitting under an instruction to fill it in.
-    await canvas.findByText(/a new verification link is on its way/)
-    expect(canvas.queryByLabelText('Email')).not.toBeInTheDocument()
+    // Hedged on both counts, and the field keeps the address for a second attempt.
+    await canvas.findByText(/a new link has been requested for it/)
+    expect(canvas.getByLabelText('Email')).toHaveValue(CREDENTIALS.email)
   },
 }
 
