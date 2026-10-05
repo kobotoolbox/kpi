@@ -6,7 +6,7 @@ import { getLanguageIndex, getRowName, getRowTypeIcon, getTranslatedRowLabel } f
 import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { getProcessingQuestionType } from '#/components/processing/common/questionType'
+import { getProcessingQuestionType, isInRepeatGroup } from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
 import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import { getSubmissionDataListItems } from '#/components/submissions/submissionDataListUtils'
@@ -46,7 +46,7 @@ export default function SelectQuestion({
   }
 
   /**
-   * We display all NLP supported questions
+   * We display all NLP supported questions, except the ones inside a repeat group
    */
   const { options, icons } = useMemo(() => {
     const assetContent = asset.content
@@ -62,12 +62,13 @@ export default function SelectQuestion({
 
     /**
      * The option for an NLP supported question, or `undefined` when the path holds nothing
-     * NLP can work with. `row` supplies the translated label where the form still has one;
+     * NLP can work with (including anything inside a repeat group). `row` supplies the translated
+     * label where the form still has one;
      * without it the type comes from the submission, so a moved question is still offered.
      */
     const buildOption = (optionXpath: string, row?: SurveyRow) => {
       const type = row?.type ?? getProcessingQuestionType(asset, optionXpath, submission)
-      if (!type || !isNlpSupported(type)) {
+      if (!type || !isNlpSupported(type) || isInRepeatGroup(asset, optionXpath, submission)) {
         return undefined
       }
 
