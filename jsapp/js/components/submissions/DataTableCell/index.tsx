@@ -1,6 +1,6 @@
 import { Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
-import { getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
+import { getCellPreviewText, getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   META_QUESTION_TYPES,
@@ -197,7 +197,7 @@ export default function DataTableCell(props: DataTableCellProps) {
 
   return (
     <span className='trimmed-text' dir='auto'>
-      {props.reactTableRow.value}
+      {getCellPreviewText(props.reactTableRow.value)}
     </span>
   )
 }

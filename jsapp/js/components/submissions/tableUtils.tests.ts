@@ -2,9 +2,11 @@ import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName, SUPPLEMENTAL_DE
 import type { AnyRowTypeName } from '#/constants'
 import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import {
+  CELL_PREVIEW_MAX_LENGTH,
   buildColumnRowFinder,
   getAllDataColumns,
   getAllDataColumnsWithAliases,
+  getCellPreviewText,
   getColumnLabel,
   getMetadataColumns,
   getSelectResponseLabel,
@@ -157,6 +159,35 @@ describe('tableUtils', () => {
       // mangle this into 'a, b, Crocodile'.
       const test = getAnimalsLabel('a b c', QuestionTypeName.select_one)
       chai.expect(test).to.equal('a b c')
+    })
+  })
+
+  describe('getCellPreviewText', () => {
+    it('should leave a response that fits the cap untouched', () => {
+      const test = getCellPreviewText('Alors bonjour docteur')
+      chai.expect(test).to.equal('Alors bonjour docteur')
+    })
+
+    it('should cap a response at the preview length', () => {
+      // Safari renders nothing but the ellipsis past 10240 characters, so a long
+      // transcript must never reach the cell as-is.
+      const transcript = 'a'.repeat(30000)
+      const test = getCellPreviewText(transcript)
+      chai.expect(test).to.have.lengthOf(CELL_PREVIEW_MAX_LENGTH)
+      chai.expect(transcript.startsWith(test)).to.equal(true)
+    })
+
+    it('should not cut a surrogate pair in half', () => {
+      // The emoji straddles the cap, so keeping its first half would render `�`.
+      const test = getCellPreviewText(`${'a'.repeat(CELL_PREVIEW_MAX_LENGTH - 1)}👍${'a'.repeat(100)}`)
+      chai.expect(test).to.have.lengthOf(CELL_PREVIEW_MAX_LENGTH - 1)
+      chai.expect(test.endsWith('a')).to.equal(true)
+    })
+
+    it('should pass values that are not text through', () => {
+      chai.expect(getCellPreviewText(7)).to.equal(7)
+      chai.expect(getCellPreviewText(null)).to.equal(null)
+      chai.expect(getCellPreviewText(undefined)).to.equal(undefined)
     })
   })
 
