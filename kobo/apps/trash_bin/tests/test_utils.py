@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db.models.signals import pre_delete
+from django.http import Http404
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
@@ -497,6 +498,12 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     def test_owner_other_projects_accept_submissions_during_deletion(self):
         project_trash = self.test_move_to_trash()
+
+        # The trashed project already refuses submissions
+        with self.assertRaises(Http404):
+            project_trash.asset.deployment.mock_submissions(
+                [{'q1': 'foo', 'q2': 'bar'}]
+            )
 
         other_asset = Asset.objects.create(
             owner=project_trash.asset.owner,
