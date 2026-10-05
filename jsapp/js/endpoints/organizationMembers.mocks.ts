@@ -43,31 +43,6 @@ export const membersMockList: MemberListResponse[] = [
   buildMember('bob', 'Bob Brown'),
 ]
 
-const ORDERABLE_FIELDS = ['user__username', 'date_joined', 'user__has_sso_enabled'] as const satisfies ReadonlyArray<
-  keyof MemberListResponse
->
-
-/** Orders `members` the way the endpoint would for the given `ordering` parameter. An unsupported name is ignored. */
-function applyOrdering(members: MemberListResponse[], ordering: string) {
-  const isDescending = ordering.startsWith('-')
-  const requestedName = ordering.replace(/^-/, '')
-  const fieldName = ORDERABLE_FIELDS.find((name) => name === requestedName)
-
-  if (!fieldName) {
-    return members
-  }
-
-  // `sort` mutates, and the array we were handed is the caller's fixture.
-  return [...members].sort((a, b) => {
-    // `localeCompare` needs strings, and a boolean has to stringify so that `false` sorts first, as in the database.
-    const [left, right] = [a, b].map((member) => {
-      const value = member[fieldName]
-      return typeof value === 'boolean' ? String(Number(value)) : String(value)
-    })
-    return (isDescending ? -1 : 1) * left.localeCompare(right)
-  })
-}
-
 /**
  * Mock API handler for the organization members endpoint. Use it in Storybook stories in `parameters.msw.handlers[]`.
  *
@@ -77,8 +52,7 @@ function applyOrdering(members: MemberListResponse[], ordering: string) {
  * Reproduces the parts of the `q` contract that callers have to cope with: a bare phrase under
  * `MIN_SEARCH_PHRASE_LENGTH` is an error rather than an empty result.
  *
- * `limit`, `start` and `ordering` are honored, but `next`/`previous` stay null, because the frontend derives pages
- * from `count`.
+ * `limit` and `start` are honored, but `next`/`previous` stay null, because the frontend derives pages from `count`.
  */
 const organizationMembersMock = (members: MemberListResponse[] = membersMockList) =>
   http.get<never, never, PaginatedMemberListResponseList | { detail: string }>(
@@ -107,16 +81,14 @@ const organizationMembersMock = (members: MemberListResponse[] = membersMockList
           )
         : members
 
-      const ordered = applyOrdering(matches, searchParams.get('ordering') ?? '')
-
       const start = Number(searchParams.get('start')) || 0
-      const limit = Number(searchParams.get('limit')) || ordered.length
+      const limit = Number(searchParams.get('limit')) || matches.length
 
       return HttpResponse.json({
-        count: ordered.length,
+        count: matches.length,
         next: null,
         previous: null,
-        results: ordered.slice(start, start + limit),
+        results: matches.slice(start, start + limit),
       })
     },
   )

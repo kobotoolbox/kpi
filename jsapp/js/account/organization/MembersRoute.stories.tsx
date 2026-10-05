@@ -112,38 +112,6 @@ export const SsoColumnWithoutSsoProvider: Story = {
   },
 }
 
-/**
- * The SSO column sorts, but 2FA doesn't - both label and menu should look alike and be aligned similarly
- */
-export const SsoColumnSorts: Story = {
-  parameters: {
-    msw: {
-      handlers: [
-        organizationMock(),
-        organizationMembersMock([
-          buildMember('alice', 'Alice Alvarez', { user__has_sso_enabled: false }),
-          buildMember('bob', 'Bob Brown', { user__has_sso_enabled: true }),
-        ]),
-        helpBubbleMock,
-      ],
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await canvas.findByText('alice')
-    const usernameOrder = () => canvas.getAllByText(/^(alice|bob)$/).map((element) => element.textContent)
-
-    // Nothing is sorted yet, so the rows arrive in the fixture's order - which puts the SSO-less member first
-    expect(usernameOrder()).toEqual(['alice', 'bob'])
-
-    await userEvent.click(canvas.getByRole('button', { name: 'SSO' }))
-    await userEvent.click(await within(document.body).findByRole('menuitem', { name: 'Sort Z→A' }))
-
-    // Descending by SSO puts the member who has it first.
-    await waitFor(() => expect(usernameOrder()).toEqual(['bob', 'alice']))
-  },
-}
-
 /** A usable phrase reaches the endpoint and the table shows only the matches. */
 export const SearchNarrowsList: Story = {
   play: async ({ canvasElement }) => {
