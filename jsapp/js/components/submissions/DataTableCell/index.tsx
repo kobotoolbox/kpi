@@ -16,6 +16,7 @@ import {
 } from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
+import styles from './DataTableCell.module.scss'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'
 import SupplementalDetailsCell from './SupplementalDetailsCell'
@@ -195,9 +196,21 @@ export default function DataTableCell(props: DataTableCellProps) {
     )
   }
 
+  // Responses of any length land here, and there is no dialog to read one in full, so a response too long for the
+  // line gets a second, print-only copy. Printing un-trims these cells, and Safari only loses text on a trimmed line.
+  const preview = getCellPreviewText(props.reactTableRow.value)
+  const isTrimmed = preview !== props.reactTableRow.value
+
   return (
     <span className='trimmed-text' dir='auto'>
-      {getCellPreviewText(props.reactTableRow.value)}
+      {isTrimmed ? (
+        <>
+          <span className={styles.screenOnly}>{preview}</span>
+          <span className={styles.printOnly}>{props.reactTableRow.value}</span>
+        </>
+      ) : (
+        preview
+      )}
     </span>
   )
 }
