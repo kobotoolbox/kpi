@@ -164,8 +164,6 @@ export const SubmitAuthenticated: Story = {
     expect(onAuthenticated).toHaveBeenCalledWith(`${window.location.origin}/`)
   },
 }
-  },
-}
 
 /** Both kinds of server error at once: one attributed to a field, one that belongs to no field. */
 export const ServerErrors: Story = {
