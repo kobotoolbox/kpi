@@ -64,11 +64,19 @@ export interface LoginFormProps {
   socialApps: SocialApp[] | undefined
   /** Blocks submitting until allauth's settings land, since the field name comes from them */
   isConfigurationPending: boolean
+  /** Drops the signup link: with signup closed there is only a dead end behind it */
+  isRegistrationClosed?: boolean
   onOutcome: (outcome: LoginOutcome) => void
 }
 
 /** Credentials, and the single sign-on providers next to them. Password recovery etc. live elsewhere */
-export default function LoginForm({ credential, socialApps, isConfigurationPending, onOutcome }: LoginFormProps) {
+export default function LoginForm({
+  credential,
+  socialApps,
+  isConfigurationPending,
+  isRegistrationClosed = false,
+  onOutcome,
+}: LoginFormProps) {
   const credentialParam = getLoginCredentialParam(credential)
 
   const form = useForm<LoginFormValues>({
@@ -198,12 +206,14 @@ export default function LoginForm({ credential, socialApps, isConfigurationPendi
 
       <ProviderLoginButtons socialApps={socialApps} />
 
-      <Text size='sm' ta='center'>
-        {t('New user?')}&nbsp;
-        <Anchor component={Link} to={AUTH_ROUTES.SIGNUP} inherit>
-          {t('Create an account')}
-        </Anchor>
-      </Text>
+      {!isRegistrationClosed && (
+        <Text size='sm' ta='center'>
+          {t('New user?')}&nbsp;
+          <Anchor component={Link} to={AUTH_ROUTES.SIGNUP} inherit>
+            {t('Create an account')}
+          </Anchor>
+        </Text>
+      )}
     </Stack>
   )
 }
