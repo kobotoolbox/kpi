@@ -1424,6 +1424,9 @@ ENKETO_URL = ENKETO_URL.rstrip('/')  # Remove any trailing slashes
 ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
+# PoC: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+# server-side calls (form, manifest, media, submissions) stay inside the cluster
+ENKETO_USE_INTERNAL_OPENROSA_URL = env.bool('ENKETO_USE_INTERNAL_OPENROSA_URL', False)
 
 ENKETO_API_KEY = os.environ.get('ENKETO_API_KEY', 'enketorules')
 # http://apidocs.enketo.org/v2/

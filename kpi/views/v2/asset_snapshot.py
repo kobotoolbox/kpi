@@ -19,6 +19,7 @@ from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
+from kpi.deployment_backends.openrosa_utils import to_internal_url
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -437,13 +438,17 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             data = {
-                'server_url': reverse(
-                    viewname='assetsnapshot-detail',
-                    kwargs={'uid_asset_snapshot': snapshot.uid},
-                    request=request,
+                'server_url': to_internal_url(
+                    reverse(
+                        viewname='assetsnapshot-detail',
+                        kwargs={'uid_asset_snapshot': snapshot.uid},
+                        request=request,
+                    )
                 ),
                 'form_id': snapshot.uid,
             }
+
+            print('DATA[server_url]', data['server_url'], flush=True)
 
             # Use Enketo API to create preview instead of `preview?form=`,
             # which does not load any form media files.

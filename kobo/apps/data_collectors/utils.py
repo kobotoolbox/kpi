@@ -48,8 +48,8 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
             'server_url': server_url,
             'form_id': xform_id_string,
         }
-        response = create_enketo_links(data)
-        enketo_id = response.json()['enketo_id']
+        links = create_enketo_links(data)
+        enketo_id = links['enketo_id']
         # replace the enketo hash with a longer one
         new_id = ShortUUID().random(31)
         key = get_redis_key_for_token_and_xform(token, xform_id_string)

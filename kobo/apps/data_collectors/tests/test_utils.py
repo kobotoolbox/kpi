@@ -1,6 +1,6 @@
 import random
 import string
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import fakeredis
 from django.test import TestCase
@@ -50,9 +50,7 @@ class TestDataCollectorUtils(TestCase):
         id_key = get_redis_key_for_enketo_id(fake_enketo_id)
         self.redis_client.set(url_key, fake_enketo_id)
         self.redis_client.hset(id_key, 'openRosaServer', server_url)
-        mock_response = MagicMock()
-        mock_response.json = lambda: {'enketo_id': fake_enketo_id}
-        return mock_response
+        return {'enketo_id': fake_enketo_id}
 
     def _check_expected_redis_entries(self, token, form_id):
         expected_url = DC_ENKETO_URL_TEMPLATE.format(token)
