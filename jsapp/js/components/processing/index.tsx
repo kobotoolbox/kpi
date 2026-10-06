@@ -10,11 +10,11 @@ import {
   useAssetsDataList,
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
-import assetStore from '#/assetStore'
 import { findRowByXpath } from '#/assetUtils'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PROCESSING_BULK_ACTIONS_POLL_INTERVAL } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import { addDefaultUuidPrefix, getSubmissionRootUuid } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
@@ -43,17 +43,15 @@ function getActiveBulkActions(bulkActions: BulkActionResponse[]) {
  * Provides the base pieces of data for all processing components. Also renders
  * everything with nice spinners.
  */
-export default function SingleProcessingRoute({ params: routeParams }: { params: RouteParams }) {
+export default function SingleProcessingRoute({
+  params: routeParams,
+  asset,
+}: { params: RouteParams; asset?: AssetResponse }) {
   // This is for determining the translation we use for survey questions,
   // so it is separate from processing languages.
   const [questionLabelLanguage, setQuestionLabelLanguage] = useState<LanguageCode | string>('')
   const [hasUnsavedWork, setHasUnsavedWork] = useState(false)
   const { uid: assetId, xpath: questionXpath, submissionEditId: submissionId } = routeParams
-
-  // NOTE: This route component is being loaded with PermProtectedRoute so
-  // we know that the call to backend to get asset was already made, and
-  // thus we can safely assume asset data is present :happy_face:
-  const asset = assetId ? assetStore.getAsset(assetId) : null
 
   const queryAF = useAssetsAdvancedFeaturesList(assetId)
   const advancedFeatures = queryAF.data?.status === 200 ? queryAF.data.data : undefined
