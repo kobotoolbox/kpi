@@ -10,7 +10,6 @@ from xml.etree.ElementTree import ParseError
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
-import requests
 from constance import config
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
@@ -84,7 +83,7 @@ from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
-from .openrosa_utils import create_enketo_links
+from .openrosa_utils import create_enketo_links, to_internal_url
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -710,23 +709,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             return {}
 
         data = {
-            'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
+            'server_url': to_internal_url(
+                '{}/{}'.format(
+                    settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
+                )
             ),
             'form_id': self.xform.id_string,
         }
 
-        try:
-            response = create_enketo_links(data)
-            response.raise_for_status()
-        except requests.exceptions.RequestException:
-            # Don't 500 the entire asset view if Enketo is unreachable
-            logging.error('Failed to retrieve links from Enketo', exc_info=True)
-            return {}
-        try:
-            links = response.json()
-        except ValueError:
-            logging.error('Received invalid JSON from Enketo', exc_info=True)
+        print('DATA[server_url]', data['server_url'], flush=True)
+
+        # Don't 500 the entire asset view if Enketo is unreachable
+        if not (links := create_enketo_links(data)):
             return {}
 
         try:
@@ -739,7 +733,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             return {}
 
         stored_enketo_id = self.get_data('enketo_id')
+
+        print('stored_enketo_id', stored_enketo_id, flush=True)
+
         if stored_enketo_id != enketo_id:
+            print('DIFFERENT !!!!!', flush=True)
             if stored_enketo_id:
                 logging.warning(
                     f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
@@ -1097,6 +1095,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         server_url = settings.KOBOCAT_URL.rstrip('/')
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
+        server_url = to_internal_url(server_url)
+
+        print('SERVER_URL', server_url, enketo_id, flush=True)
 
         enketo_redis_client = get_redis_connection('enketo_redis_main')
         enketo_redis_client.hset(

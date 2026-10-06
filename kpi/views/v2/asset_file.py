@@ -207,7 +207,9 @@ class AssetFileViewSet(
     @action(detail=True, methods=['GET'])
     def content(self, *args, **kwargs):
 
+        print('!!! IN CONTENT !!!', self.request.user, flush=True)
         asset_file = self.get_object()
+        print('After get_object', flush=True)
 
         if redirect_url := asset_file.metadata.get('redirect_url'):
             # The stored URL may predate validation (legacy rows, or rows

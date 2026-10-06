@@ -53,6 +53,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
+from kpi.deployment_backends.openrosa_utils import to_internal_url
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -1004,26 +1005,34 @@ class DataViewSet(
         )
 
         data = {
-            'server_url': reverse(
-                viewname='assetsnapshot-detail',
-                kwargs={'uid_asset_snapshot': snapshot.uid},
-                request=request,
+            'server_url': to_internal_url(
+                reverse(
+                    viewname='assetsnapshot-detail',
+                    kwargs={'uid_asset_snapshot': snapshot.uid},
+                    request=request,
+                )
             ),
             'instance': xml_tostring(submission_xml_root),
             'instance_id': submission_json['_uuid'],
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
         }
+        print('SERVER_URL', data['server_url'], flush=True)
 
         # Add attachments if any.
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
         for attachment in attachments:
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
-            data[key_] = reverse(
-                'attachment-detail',
-                args=(self.asset.uid, submission_id, attachment.uid),
-                request=request,
+            data[key_] = to_internal_url(
+                reverse(
+                    'attachment-detail',
+                    args=(self.asset.uid, submission_id, attachment.uid),
+                    request=request,
+                ),
+                openrosa=False,
             )
+
+        print('DATA', data, flush=True)
 
         response = requests.post(
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
