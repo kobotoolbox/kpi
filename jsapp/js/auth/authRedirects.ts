@@ -1,11 +1,29 @@
-import type { NavigateFunction } from 'react-router-dom'
-import { ROUTES } from '#/router/routerConstants'
+import { type NavigateFunction, matchPath } from 'react-router-dom'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { AuthChangeEvent, type AuthStatus } from './authStatus'
 import { isReauthenticationRoutePath, pathForPendingFlow, pathForReauthentication } from './flowRoutes'
 import { getLoginRouteWithNext, getRouteWithNext, getUrlForNextRoute } from './nextUrl'
 
 // Where each auth change sends somebody, kept apart from `AuthChangeRedirector` so the whole decision reads top to
 // bottom and can be tested without a browser
+
+/**
+ * Screens where signing in is a side effect rather than the point (confirming an email address, or finishing a password
+ * reset). Each one ends by reporting what happened with a `Continue to KoboToolbox` button pointing at `${ROOT_URL}/` -
+ * which is exactly where the `loggedIn` redirect below would send somebody. Redirecting would press that button for
+ * them, before the message was read.
+ *
+ * Path patterns, not paths - two of them carry a `:key`, hence `matchPath` used below.
+ */
+const SELF_ANNOUNCED_SIGN_IN_ROUTES: readonly string[] = [
+  AUTH_ROUTES.CONFIRM_EMAIL,
+  AUTH_ROUTES.RESET_PASSWORD_CODE,
+  AUTH_ROUTES.NEW_PASSWORD,
+]
+
+function announcesItsOwnSignIn(routePath: string): boolean {
+  return SELF_ANNOUNCED_SIGN_IN_ROUTES.some((pattern) => matchPath(pattern, routePath) !== null)
+}
 
 /** Where the browser is, gathered up so the effect can read it in one go. */
 export interface RedirectContext {
@@ -36,6 +54,10 @@ export function redirectForAuthChange(event: AuthChangeEvent, status: AuthStatus
       return
 
     case AuthChangeEvent.loggedIn:
+      // The screen is mid-sentence about the session that just appeared, so let it finish
+      if (announcesItsOwnSignIn(routePath)) {
+        return
+      }
       // The one move that cannot be a soft navigation - see `getUrlForNextRoute`. With nowhere named and not on an
       // authentication screen, this is a sign-in from another tab: already the right page, it just needs the session.
       if (nextRoute || routePath.startsWith(ROUTES.AUTH_ROOT)) {

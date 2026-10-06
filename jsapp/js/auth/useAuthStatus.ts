@@ -1,16 +1,14 @@
-import {
-  getAllauthBrowserV1AuthSessionGetQueryKey,
-  useAllauthBrowserV1AuthSessionGet,
-} from '#/api/react-query/authentication-allauth-headless'
+import { useAllauthBrowserV1AuthSessionGet } from '#/api/react-query/authentication-allauth-headless'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
+import { getAuthStatusQueryKey } from './authChangeWatcher'
 import { type AuthStatus, getAuthStatus } from './authStatus'
 
 // Who is signed in, according to allauth - the live answer (something `profileStore.isLoggedIn` fails to be).
 // Anonymous-safe. All three of the endpoint's answers are normal and `fetchAllauth` hands the two non-2xx ones back as
 // data, so a rejection here means a 5xx or a dead connection - never "nobody is signed in".
-
-/** The key everything shares, so one request covers every guard on a page */
-const getAuthStatusQueryKey = getAllauthBrowserV1AuthSessionGetQueryKey
+//
+// `getAuthStatusQueryKey` is the shared key, so one request covers every guard on a page - and an answer from any
+// other allauth endpoint reaches those guards too (see `#/auth/authChangeWatcher`).
 
 const AUTH_STATUS_STALE_TIME = 60 * 1000
 
