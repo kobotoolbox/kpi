@@ -1,3 +1,4 @@
+import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { isReauthenticationRoutePath } from './flowRoutes'
 
@@ -41,7 +42,11 @@ export function resolveNextRoute(rawNext: string | null, origin: Origin): string
 
   // `pathname` is compared against `/` as well, so this keeps working wherever `KPI_PREFIX` puts the app
   if (url.hash.startsWith('#/') && (url.pathname === origin.pathname || url.pathname === '/')) {
-    return url.hash.slice(1)
+    const routePath = url.hash.slice(1)
+    // Checked on the way in as well as out: `next` is attacker-writable, and one naming an authentication screen
+    // would bounce somebody back where they came from.
+    const [path] = routePath.split('?')
+    return isAuthenticationScreen(path) ? null : routePath
   }
 
   // Same origin, but a Django page rather than a route of ours
@@ -72,11 +77,15 @@ export function getLoginRouteWithNext(currentRoute: string | null): string {
 }
 
 /**
- * A resolved `next` as something to hand `window.location.assign`, falling back to the site root.
+ * A resolved `next` as something to hand `window.location.assign`, falling back to the app root.
  *
  * Signing in needs the page load even though the destination is always a route: `<App />` reads `/me/`, the permission
  * config and `/environment` at boot, and a route change refetches none of it.
+ *
+ * Built from {@link ROOT_URL}, so an instance served under `KPI_PREFIX` lands in its own app, not the bare origin.
+ *
+ * @param appRootUrl only a parameter so the prefixed case can be tested
  */
-export function getUrlForNextRoute(routePath: string | null): string {
-  return routePath === null ? '/' : `/#${routePath}`
+export function getUrlForNextRoute(routePath: string | null, appRootUrl = ROOT_URL): string {
+  return routePath === null ? `${appRootUrl}/` : `${appRootUrl}/#${routePath}`
 }

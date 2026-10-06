@@ -4,6 +4,10 @@ import { getLoginRouteWithNext, getRouteWithNext, getUrlForNextRoute, readNextPa
 
 const origin = { origin: 'https://kf.kobotoolbox.org', pathname: '/' }
 
+/** `ROOT_URL` on a plain instance, and behind `KPI_PREFIX`. */
+const UNPREFIXED_ROOT = 'https://kf.example.org'
+const PREFIXED_ROOT = 'https://kf.example.org/kpi'
+
 describe('readNextParam', () => {
   it('reads what the server appended, which lands outside the fragment', () => {
     chai.expect(readNextParam('?next=%2Fadmin%2F', '')).to.equal('/admin/')
@@ -50,6 +54,15 @@ describe('resolveNextRoute', () => {
     chai.expect(resolveNextRoute('/admin/auth/user/#/projects/home', origin)).to.equal(null)
   })
 
+  it('refuses a destination that is an authentication screen itself', () => {
+    chai.expect(resolveNextRoute(`/#${AUTH_ROUTES.LOGIN}`, origin)).to.equal(null)
+    chai.expect(resolveNextRoute(`/#${ACCOUNT_AUTH_ROUTES.REAUTHENTICATE}?next=%2F%23%2F`, origin)).to.equal(null)
+  })
+
+  it('reads an account settings page, which is not an authentication screen', () => {
+    chai.expect(resolveNextRoute(`/#${ACCOUNT_AUTH_ROUTES.MFA}`, origin)).to.equal(ACCOUNT_AUTH_ROUTES.MFA)
+  })
+
   it('refuses another origin, so the login screen cannot bounce anybody off it', () => {
     chai.expect(resolveNextRoute('https://evil.example/phish', origin)).to.equal(null)
   })
@@ -78,11 +91,20 @@ describe('resolveNextRoute', () => {
 
 describe('getUrlForNextRoute', () => {
   it('sends a route back through the fragment, since the app has to boot either way', () => {
-    chai.expect(getUrlForNextRoute('/projects/home')).to.equal('/#/projects/home')
+    chai
+      .expect(getUrlForNextRoute('/projects/home', UNPREFIXED_ROOT))
+      .to.equal('https://kf.example.org/#/projects/home')
   })
 
-  it('falls back to the site root, which is what signing in has always done', () => {
-    chai.expect(getUrlForNextRoute(null)).to.equal('/')
+  it('falls back to the app root, which is what signing in has always done', () => {
+    chai.expect(getUrlForNextRoute(null, UNPREFIXED_ROOT)).to.equal('https://kf.example.org/')
+  })
+
+  it('keeps the deployment prefix, which a root-relative URL would drop', () => {
+    chai
+      .expect(getUrlForNextRoute('/projects/home', PREFIXED_ROOT))
+      .to.equal('https://kf.example.org/kpi/#/projects/home')
+    chai.expect(getUrlForNextRoute(null, PREFIXED_ROOT)).to.equal('https://kf.example.org/kpi/')
   })
 })
 

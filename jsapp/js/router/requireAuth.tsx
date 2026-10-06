@@ -7,6 +7,7 @@ import { useAuthStatus } from '#/auth/useAuthStatus'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import profileStore from '#/stores/profile'
 import LoadingSpinner from '../components/common/loadingSpinner'
+import { AuthCheckFailedCard } from './AuthCheckFailed'
 import { RequireOrg } from './RequireOrg'
 import { redirectToLogin } from './routerUtils'
 
@@ -16,7 +17,7 @@ interface Props {
 
 /** The routes that need a session. Without it sends user to the login screen keeping the destination in `?next=` */
 export default function RequireAuth({ children }: Props) {
-  const { data: authStatus, isLoading } = useAuthStatus()
+  const { data: authStatus, isLoading, isError } = useAuthStatus()
   const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
@@ -24,6 +25,7 @@ export default function RequireAuth({ children }: Props) {
   const decision = getAuthGateDecision({
     authStatus,
     isAuthStatusLoading: isLoading,
+    isAuthStatusCheckFailed: isError,
     // With the flag on, `/auth/session` answers for itself and the store is not consulted at all.
     isLegacyLoggedIn: isAuthRedesignEnabled ? false : profileStore.isLoggedIn,
   })
@@ -42,6 +44,11 @@ export default function RequireAuth({ children }: Props) {
       redirectToLogin()
     }
   }, [decision, isAuthRedesignEnabled, navigate, pathname, search])
+
+  // The same answer `allRoutes` gives for a failed `/me/`, with a way out that is not the login screen
+  if (decision === 'checkFailed') {
+    return <AuthCheckFailedCard />
+  }
 
   if (decision !== 'allow') {
     return <LoadingSpinner />

@@ -25,6 +25,8 @@ export function useAuthStatus() {
       enabled: isAuthRedesignEnabled,
       select: getAuthStatus,
       staleTime: AUTH_STATUS_STALE_TIME,
+      // `'always'`, not `true`: `true` skips a query still inside `staleTime`, hiding a sign-out from another tab
+      refetchOnWindowFocus: 'always',
       // Overrides `onErrorDefaultHandler`, as each guard already has an answer for a session it could not check
       throwOnError: false,
     },

@@ -160,8 +160,10 @@ export const SubmitAuthenticated: Story = {
     await agreeAndSubmit(canvas)
 
     await canvas.findByRole('heading', { level: 1, name: 'Signing you in…' })
-    // The real route hands this to `window.location.assign('/')` - see `ProviderSignupRouteProps`.
-    expect(onAuthenticated).toHaveBeenCalledTimes(1)
+    // The real route hands this to `window.location.assign` - see `ProviderSignupRouteProps`.
+    expect(onAuthenticated).toHaveBeenCalledWith(`${window.location.origin}/`)
+  },
+}
   },
 }
 

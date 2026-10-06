@@ -375,6 +375,7 @@ export const AlreadyLoggedIn: Story = {
 
     await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
     // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
+    const appRoot = `${window.location.origin}/`
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', appRoot)
   },
 }

@@ -10,6 +10,7 @@ import {
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import ButtonNew from '#/components/common/ButtonNew'
+import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 
@@ -29,7 +30,7 @@ function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
         <>
           <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
           {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-          <ButtonNew component='a' href='/' size='lg' fullWidth>
+          <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
             {t('Continue to KoboToolbox')}
           </ButtonNew>
         </>

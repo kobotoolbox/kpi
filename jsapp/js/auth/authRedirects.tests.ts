@@ -1,6 +1,7 @@
 import chai from 'chai'
 import type { Flow } from '#/api/models/flow'
 import { FlowId } from '#/api/models/flowId'
+import { ROOT_URL } from '#/constants'
 import { ACCOUNT_AUTH_ROUTES, AUTH_ROUTES, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { type RedirectContext, redirectForAuthChange } from './authRedirects'
 import { ANONYMOUS_AUTH_STATUS, AuthChangeEvent, type AuthStatus } from './authStatus'
@@ -8,7 +9,7 @@ import { ANONYMOUS_AUTH_STATUS, AuthChangeEvent, type AuthStatus } from './authS
 const signedIn: AuthStatus = {
   ...ANONYMOUS_AUTH_STATUS,
   isAuthenticated: true,
-  user: { id: 7, display: 'sallyride', username: 'sallyride', has_usable_password: true },
+  user: { id: 7, display: 'sallyride', username: 'sallyride', has_usable_password: true, has_validated_password: true },
   methodCount: 1,
 }
 
@@ -52,7 +53,7 @@ describe('redirectForAuthChange', () => {
 
     redirectForAuthChange(AuthChangeEvent.loggedIn, signedIn, context)
 
-    chai.expect(context.goToPage.mock.calls).to.deep.equal([[`/#${PROJECTS_ROUTES.MY_PROJECTS}`]])
+    chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/#${PROJECTS_ROUTES.MY_PROJECTS}`]])
     chai.expect(context.navigate.mock.calls).to.deep.equal([])
   })
 

@@ -5,6 +5,7 @@ import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
+import { ROOT_URL } from '#/constants'
 import CheckInboxPanel from './CheckInboxPanel'
 import RegisterForm from './RegisterForm'
 
@@ -28,7 +29,7 @@ function AccountReadyPanel() {
       </Title>
       <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
       {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-      <ButtonNew component='a' href='/' size='lg' fullWidth>
+      <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
         {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
