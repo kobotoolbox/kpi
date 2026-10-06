@@ -8,6 +8,7 @@ import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getSubmissionRootUuid } from '#/utils'
+import { getCellPreviewText } from '../tableUtils'
 import styles from './TextCell.module.scss'
 
 interface TextCellProps {
@@ -54,7 +55,7 @@ export default function TextCell(props: TextCellProps) {
 
   return (
     <div className={styles.cell} dir='auto'>
-      <span className={styles.textContent}>{props.text}</span>
+      <span className={styles.textContent}>{getCellPreviewText(props.text)}</span>
 
       <Group ml='auto' gap={0} wrap='nowrap'>
         <ActionIcon
