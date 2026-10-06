@@ -203,6 +203,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   private unlisteners: Function[] = []
   private lastRenderedBoundsSignature?: string
 
+  /**
+   * Leaves the view alone while the map rebuilds, so that deleting a record does not take the user away from the part
+   * of the map they were looking at. Stays on until they ask for a different set of points (see `overrideStyles`).
+   */
+  private keepViewOnRebuild = false
+
   /** Repeats the markers across the copies of the world the map shows. Replaced whenever the marker group is. */
   private worldCopies?: WorldCopies
 
@@ -752,7 +758,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         // The last condition is only possible if we are coming from having no points to having points in the same page,
         // i.e., we are done waiting for the `allData` prop to populate. We can then reset the zoom once.
         // Additionally, we now only auto-fit when plotted bounds actually changed between rebuilds.
-        const shouldFitBounds = boundsChanged && (!viewby || !this.state.componentRefreshed || this.state.noData)
+        const shouldFitBounds =
+          boundsChanged && !this.keepViewOnRebuild && (!viewby || !this.state.componentRefreshed || this.state.noData)
         if (shouldFitBounds) {
           // Fitting the plotted points rather than `markers.getBounds()`, as the latter grows with the copies of the
           // world we are about to add to the group.
@@ -762,7 +769,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
         this.setState({ noData: false })
       } else {
-        if (boundsChanged) {
+        if (boundsChanged && !this.keepViewOnRebuild) {
           // Legacy fallback location used when there are no plotted points.
           // Single-point bounds around Cambridge, MA.
           map.fitBounds([[42.373, -71.124]])
@@ -925,9 +932,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   componentDidUpdate(prevProps: FormMapProps, prevState: FormMapState) {
     const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
+    // An empty `allData` is both what the first render looks like, before any page has arrived, and what deleting the
+    // last plotted record leaves behind. Only the latter had points to clear off the map.
+    const hasPointsToDraw = this.props.allData.length > 0 || prevProps.allData.length > 0
     const dataChanged =
-      (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) &&
-      this.props.allData.length > 0
+      (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && hasPointsToDraw
     const viewbyChanged = prevProps.viewby !== this.props.viewby
 
     // We get the first page of results in order to get the total count, then we call createDataQuery again to update
@@ -1011,6 +1020,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   onPreviewedSubmissionDeleted() {
     this.closeSubmissionPreview()
+    this.keepViewOnRebuild = true
 
     // The deleted record is still plotted, so the map needs its points again -
     // every page of them sits under this key prefix.
@@ -1027,6 +1037,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
+    // Another question or query limit means another set of points, which the view is worth fitting to again.
+    this.keepViewOnRebuild = false
+
     this.setState(
       {
         filteredByMarker: undefined,
