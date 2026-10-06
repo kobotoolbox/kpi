@@ -5,7 +5,6 @@ import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from '#/
 import { getEditableProfileFieldNames } from '#/account/account.utils'
 import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
 import { ServerError } from '#/api/ServerError'
-import type { PatchedCurrentUser } from '#/api/models/patchedCurrentUser'
 import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
 import { getMeRetrieveQueryKey, useMePartialUpdate } from '#/api/react-query/user-team-organization-usage'
 import { useLogout } from '#/auth/useLogout'
@@ -117,11 +116,7 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
     setFieldErrors({})
     setFormErrors([])
 
-    // TODO: the generated `PatchedCurrentUserExtraDetails` is wrong - `ExtraDetailField` in
-    // `kpi/schema_extensions/v2/me/extensions.py` leaves `gender` out and types
-    // `newsletter_subscription` as a string. The cast goes when DEV-2903 is fixed.
-    const extraDetails = editedFields as PatchedCurrentUser['extra_details']
-    save.mutate({ data: { extra_details: extraDetails } })
+    save.mutate({ data: { extra_details: editedFields } })
   }
 
   async function handleLogout() {

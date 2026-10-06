@@ -96,6 +96,11 @@ interface MixinsObject {
  * @deprecated Use some of the utils functions spread throught many files in
  * the repo (search for files with "utils" in the name). Some of the functions
  * below have direct replacements mentioned.
+ *
+ * Converting a component away from `dmix`? Besides the methods, the mixin also keeps `this.state` current by
+ * subscribing to `assetStore` (see `dmixAssetStoreChange` below). Drop that without a replacement and every save on the
+ * screen silently stops re-rendering. Under `PermProtectedRoute` the replacement is its `asset` prop; anything else has
+ * to follow `assetStore` itself.
  */
 const mixins: MixinsObject = {
   dmix: {

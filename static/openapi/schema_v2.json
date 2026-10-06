@@ -21492,7 +21492,11 @@
                             "languages": {
                                 "type": "array",
                                 "items": {
-                                    "type": "string"
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
                                 }
                             },
                             "row_count": {
@@ -27256,6 +27260,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "gender": {
+                                "type": "string"
+                            },
                             "sector": {
                                 "type": "string"
                             },
@@ -27290,7 +27297,7 @@
                                 "type": "boolean"
                             },
                             "newsletter_subscription": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         }
                     },
@@ -29744,6 +29751,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "gender": {
+                                "type": "string"
+                            },
                             "sector": {
                                 "type": "string"
                             },
@@ -29778,7 +29788,7 @@
                                 "type": "boolean"
                             },
                             "newsletter_subscription": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         }
                     },
