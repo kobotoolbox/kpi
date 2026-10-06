@@ -187,9 +187,10 @@ class SignupExtraFieldsForm(forms.Form):
 
     def clean(self):
         """
-        Only runs on the headless API. `KoboSignupMixin.clean()` sits above
-        allauth's classes on the HTML and SSO forms and skips this method, so
-        these checks cannot run twice there.
+        Only runs on the headless API, for both the password signup and the SSO
+        one. `KoboSignupMixin.clean()` sits above allauth's classes on the HTML
+        and SSO pages and skips this method, so these checks cannot run twice
+        there
         """
         from allauth.account.adapter import get_adapter
         from django.contrib.auth import get_user_model
@@ -199,7 +200,7 @@ class SignupExtraFieldsForm(forms.Form):
         email = self.cleaned_data.get('email')
         if email and '@' in email:
             try:
-                validate_email_domain(email)
+                self._validate_email(email)
             except forms.ValidationError as e:
                 self.add_error('email', e)
 
@@ -217,3 +218,34 @@ class SignupExtraFieldsForm(forms.Form):
                 self.add_error('password', e)
 
         return cleaned_data
+
+    def _validate_email(self, email):
+        """
+        Apply the email rules of whichever signup this form is serving
+
+        allauth injects this class as a base of every signup form, so `clean()`
+        also runs on `POST .../auth/provider/signup`, where the account comes
+        from an SSO login rather than a password. Only that form carries the
+        pending `SocialLogin`, which is how the two are told apart.
+        """
+        sociallogin = getattr(self, 'sociallogin', None)
+
+        # The managed-domain rule bans passwords on the domain, so it cannot
+        # apply to somebody signing up through SSO: it would answer an SSO
+        # signup with 'Please sign up using SSO instead'. Waiving it is only
+        # safe while the address remains the one the provider vouched for, which
+        # the next check enforces
+        validate_email_domain(email, allow_managed_domains=bool(sociallogin))
+
+        if not sociallogin:
+            return
+
+        # `SocialSignupForm.clean_email()` does this for the HTML page. Here the
+        # provider's address is only an initial value and the SPA renders it
+        # read-only, but a caller can still post anything, and without this an
+        # account could claim an address on a managed domain by signing in with
+        # an unmanaged provider. Providers that return no address leave the
+        # initial value empty, and the user has to supply one
+        sso_email = self.initial.get('email')
+        if sso_email and email.lower() != sso_email.lower():
+            raise forms.ValidationError(t('Email must match SSO server email'))
