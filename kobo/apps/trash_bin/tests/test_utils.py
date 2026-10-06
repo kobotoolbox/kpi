@@ -8,10 +8,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db.models.signals import pre_delete
+from django.http import Http404
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
-from django_redis import get_redis_connection
 from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import (
@@ -21,9 +21,7 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.constants import (
-    SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX,
-)
+from kobo.apps.openrosa.apps.logger.exceptions import TemporarilyUnavailableError
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
@@ -502,52 +500,41 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             == 0
         )
 
-    def test_owner_submissions_suspended_during_deletion(self):
+    def test_owner_other_projects_accept_submissions_during_deletion(self):
         project_trash = self.test_move_to_trash()
-        owner = project_trash.asset.owner
-        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
+
+        # The trashed project already refuses submissions
+        with self.assertRaises(Http404):
+            project_trash.asset.deployment.mock_submissions(
+                [{'q1': 'foo', 'q2': 'bar'}]
+            )
+
+        other_asset = Asset.objects.create(
+            owner=project_trash.asset.owner,
+            asset_type='survey',
+            content=project_trash.asset.content,
+        )
+        other_asset.deploy(backend='mock', active=True)
         captured = {}
 
-        def capture_state(*args, **kwargs):
-            profile = UserProfile.objects.get(user=owner)
-            captured['suspended'] = profile.submissions_suspended
-            captured['holders'] = get_redis_connection().hlen(holders_key)
+        def submit_to_other_project(*args, **kwargs):
+            try:
+                other_asset.deployment.mock_submissions([{'q1': 'foo', 'q2': 'bar'}])
+            except TemporarilyUnavailableError:
+                captured['accepted'] = False
+            else:
+                captured['accepted'] = True
 
         with patch(
             'kobo.apps.trash_bin.utils.project._delete_submissions',
-            side_effect=capture_state,
-        ):
+            side_effect=submit_to_other_project,
+        ) as mock_delete:
             empty_project(project_trash.pk)
 
-        assert captured['suspended'] is True
-        assert captured['holders'] == 1
-
-    def test_owner_submissions_released_after_deletion(self):
-        project_trash = self.test_move_to_trash()
-        owner = project_trash.asset.owner
-        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
-
-        empty_project(project_trash.pk)
-
-        profile = UserProfile.objects.get(user=owner)
-        assert profile.submissions_suspended is False
-        assert not get_redis_connection().exists(holders_key)
-
-    def test_owner_submissions_released_when_deletion_fails(self):
-        project_trash = self.test_move_to_trash()
-        owner = project_trash.asset.owner
-        holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{owner.username}'
-
-        with patch(
-            'kobo.apps.trash_bin.utils.project._delete_submissions',
-            side_effect=RuntimeError('boom'),
-        ):
-            with self.assertRaises(RuntimeError):
-                empty_project(project_trash.pk)
-
-        profile = UserProfile.objects.get(user=owner)
-        assert profile.submissions_suspended is False
-        assert not get_redis_connection().exists(holders_key)
+        # The trashed project already refuses submissions, the owner's other
+        # projects must keep accepting them
+        assert mock_delete.called
+        assert captured.get('accepted') is True
 
     def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
         """
