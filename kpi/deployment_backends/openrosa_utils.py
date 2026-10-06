@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
 import requests
+from constance import config
 from django.conf import settings
 
 from kpi.utils.log import logging
@@ -52,8 +53,8 @@ def to_internal_url(url: str, openrosa: bool = True) -> str:
     `ENKETO_USE_INTERNAL_OPENROSA_URL` is enabled, `url` unchanged otherwise
     """
 
-    #if not settings.ENKETO_USE_INTERNAL_OPENROSA_URL:
-    #    return url
+    if not config.ENKETO_USE_INTERNAL_OPENROSA_URL:
+        return url
 
     internal_url = urlparse(
         settings.KOBOCAT_INTERNAL_URL if openrosa else settings.KOBOFORM_INTERNAL_URL
