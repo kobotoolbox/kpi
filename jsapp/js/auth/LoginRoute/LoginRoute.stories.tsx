@@ -162,9 +162,10 @@ export const SingleSignOnProviders: Story = {
     // `findBy`, not `getBy`: the buttons arrive with `/environment` rather than with the form.
     const gitlabButton = await canvas.findByRole('button', { name: 'Log in with GitLab' })
     await canvas.findByRole('button', { name: 'Log in with Example Organization' })
-    // Separated from the credentials, which still work.
+    // Separated from the credentials, which still work. Awaited, since the button spins until the configuration
+    // lands and `/environment` can get back first.
     await canvas.findByText('or')
-    expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled()
+    await waitForConfiguration(canvas)
 
     // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
     // `provider_id`, not its `provider` kind.
