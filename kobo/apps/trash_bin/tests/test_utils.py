@@ -25,7 +25,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import TemporarilyUnavailableErro
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.exceptions import MissingXFormException
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
