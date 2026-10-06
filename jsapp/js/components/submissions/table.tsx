@@ -23,6 +23,7 @@ import { AudioDurationsProvider } from '#/components/submissions/AudioDurationsC
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
 import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
+import TablePagination from '#/components/submissions/TablePagination'
 import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
@@ -1374,6 +1375,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             // Held in fields, not state - see `initialPageSize`.
             defaultPageSize={this.initialPageSize}
             defaultFiltered={this.initialFiltered}
+            PaginationComponent={TablePagination}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
             minRows={0}
             className={tableClasses.join(' ')}
