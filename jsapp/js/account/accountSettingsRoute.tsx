@@ -14,7 +14,12 @@ import { dataInterface } from '../dataInterface'
 import { useProfile } from '../stores/useProfile'
 import DeleteAccountBanner from './DeleteAccountBanner'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
-import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
+import {
+  getEditableProfileFieldNames,
+  getInitialAccountFieldsValues,
+  getProfileFieldsValues,
+  getProfilePatchData,
+} from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
@@ -39,33 +44,15 @@ const AccountSettings = () => {
   useEffect(() => {
     if (!currentLoggedAccount) return
 
-    const fields = {
-      name: currentLoggedAccount.extra_details.name,
-      organization_type: currentLoggedAccount.extra_details.organization_type,
-      organization: currentLoggedAccount.extra_details.organization,
-      organization_website: currentLoggedAccount.extra_details.organization_website,
-      sector: currentLoggedAccount.extra_details.sector,
-      gender: currentLoggedAccount.extra_details.gender,
-      bio: currentLoggedAccount.extra_details.bio,
-      city: currentLoggedAccount.extra_details.city,
-      country: currentLoggedAccount.extra_details.country,
-      require_auth: currentLoggedAccount.extra_details.require_auth,
-      twitter: currentLoggedAccount.extra_details.twitter,
-      linkedin: currentLoggedAccount.extra_details.linkedin,
-      instagram: currentLoggedAccount.extra_details.instagram,
-      newsletter_subscription: currentLoggedAccount.extra_details.newsletter_subscription,
-    }
+    const fieldsValues = getProfileFieldsValues(currentLoggedAccount.extra_details)
 
-    setFormFields(fields)
+    setFormFields(fieldsValues)
 
-    const fieldKeys = recordKeys(fields)
-
-    // We will not display organization fields if user is a member of an MMO,
-    // only displaying these fields in organization settings view
     setDisplayedFields(
-      organization?.is_mmo
-        ? fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key))
-        : fieldKeys,
+      getEditableProfileFieldNames({
+        configuredFieldNames: recordKeys(fieldsValues),
+        isMmoMember: Boolean(organization?.is_mmo),
+      }),
     )
   }, [currentLoggedAccount, organization])
 

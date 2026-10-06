@@ -15598,7 +15598,10 @@ components:
             languages:
               type: array
               items:
-                type: string
+                type:
+                - string
+                - 'null'
+                nullable: true
             row_count:
               type: integer
             name_quality:
@@ -25653,10 +25656,16 @@ components:
           description: The username.
           example: wizard
           type: string
+        has_validated_password:
+          description: Whether the account password is valid. An administrator can
+            invalidate it, setting this to false and restricting the account.
+          example: true
+          type: boolean
       required:
       - display
       - has_usable_password
       - username
+      - has_validated_password
     BaseAuthenticator:
       type: object
       properties:
@@ -25895,6 +25904,7 @@ components:
         email: email@domain.org
         has_usable_password: true
         username: wizard
+        has_validated_password: true
     AuthenticatedByPassword:
       summary: |
         Authenticated by password.
@@ -25907,6 +25917,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: password
             at: 1711555057.065702
@@ -25927,6 +25938,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: code
             at: 1711555057.065702
@@ -25947,6 +25959,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: password
             at: 1711555057.065702
@@ -26164,6 +26177,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: password
             at: 1711555057.065702
@@ -26711,6 +26725,7 @@ components:
                     email: email@domain.org
                     has_usable_password: true
                     username: wizard
+                    has_validated_password: true
                   methods:
                   - method: password
                     at: 1711555057.065702
