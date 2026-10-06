@@ -10,6 +10,9 @@ import type { AllauthResponse } from './allauthErrors'
 // The status code carries the meaning, and all three answers are normal: `200` a session with nothing outstanding,
 // `401` either nobody signed in or somebody who has to prove it again (`meta.is_authenticated` tells those two apart),
 // `410` a session allauth has thrown away.
+//
+// TODO: DEV-3053 - only `200` and a plain anonymous `401` reach us as wired: the reauthentication pair comes back from
+// the sensitive request itself, so `reauthenticationRequired` cannot fire until those responses land in this cache too.
 
 // Spelled out rather than taken from the generated response union
 interface SessionResponseBody {
@@ -28,7 +31,10 @@ export interface AuthStatus {
   /** Also true for a 401 carrying `meta.is_authenticated`: allauth wants the password again, the session is real */
   isAuthenticated: boolean
   isReauthenticationRequired: boolean
-  /** The session existed and allauth dropped it (which is not the same as never having had one) */
+  /**
+   * The session existed and allauth dropped it (which is not the same as never having had one). `app` clients only, so
+   * never true for KPI - kept to match the reference client.
+   */
   isSessionGone: boolean
   /** Every step allauth named, flagged as pending or not */
   flows: Flow[]
