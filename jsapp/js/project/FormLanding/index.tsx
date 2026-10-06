@@ -1,12 +1,23 @@
-import { Group, Stack } from '@mantine/core'
+import { Group, Stack, TextInput } from '@mantine/core'
 import { IconWorldFilled } from '@tabler/icons-react'
-import React from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import React, { useState } from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
-import reactMixin from 'react-mixin'
-import { Link } from 'react-router-dom'
-import { actions } from '#/actions'
-import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import {
+  useAssetsPermissionAssignmentsCreate,
+  useAssetsPermissionAssignmentsDestroy,
+} from '#/api/react-query/manage-permissions'
+import {
+  getAssetsListQueryKey,
+  getAssetsRetrieveQueryKey,
+  useAssetsCreate,
+  useAssetsDeploymentCreate,
+  useAssetsDeploymentPartialUpdate,
+  useAssetsRetrieve,
+} from '#/api/react-query/manage-projects-and-library-content'
+import { parsed } from '#/assetParserUtils'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -14,47 +25,25 @@ import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import { openEnketoPreviewModal } from '#/components/enketoPreview/openEnketoPreviewModal'
+import KoboPrompt from '#/components/modals/koboPrompt'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { COLLECTION_METHODS, CollectionMethodName } from '#/constants'
-import type { AssetResponse, PermissionResponse } from '#/dataInterface'
+import { ASSET_TYPES, COLLECTION_METHODS, CollectionMethodName } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import mixins from '#/mixins'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
-import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
 import FormHistory from './FormHistory'
-
-/** `mixins.dmix` reads the asset uid out of the route params. */
-type FormLandingProps = WithRouterProps & { params: { uid?: string } }
-
-/**
- * `mixins.dmix` assigns the whole loaded asset onto this component's state, but the state starts out without it -
- * hence all the asset properties being optional here.
- */
-type FormLandingState = Partial<AssetResponse> & {
-  selectedCollectMethod: CollectionMethodName
-  anonymousSubmissions: boolean
-  anonymousPermissions: PermissionResponse[]
-  /** Toggled by `mixins.dmix`'s `toggleDeploymentHistory`. */
-  historyExpanded?: boolean
-}
-
-/** The `mixins.dmix` methods this component calls. Hand-written, as `mixins.tsx` doesn't export its own types. */
-interface DmixMethods {
-  removeSharing: () => void
-  saveCloneAs: (versionId?: string) => void
-  toggleDeploymentHistory: () => void
-}
 
 /**
  * URL of the permission that lets anonymous users submit data to a project. This is a function rather than a module
@@ -68,121 +57,235 @@ function getAnonCanAddSubmissionsPermUrl() {
  * The URL for collecting data with given method. `null` for the Android app, which has no link, and for methods the
  * deployment didn't give us a link for.
  */
-function getCollectMethodLink(asset: AssetResponse, method: CollectionMethodName): string | null {
+function getCollectMethodLink(loadedAsset: AssetResponse, method: CollectionMethodName): string | null {
   if (method === CollectionMethodName.android) {
     return null
   }
-  return asset.deployment__links[method] || null
+  return loadedAsset.deployment__links[method] || null
 }
 
-class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
-  private unlisteners: Function[] = []
-  private nonOwnerSelfRemovalUnlistener?: Function
+export default function FormLanding() {
+  // Fallback for getting uid from URL, needed without WithRouter wrapper
+  const { uid = '' } = useParams<{ uid: string }>()
+  const [selectedCollectMethod, setSelectedCollectMethod] = useState(CollectionMethodName.offline_url)
+  const [historyExpanded, setHistoryExpanded] = useState(false)
+  // TODO: simplify this type
+  const [prompt, setPrompt] = useState<
+    { type: 'unarchive' } | { type: 'clone'; assetType: string; versionUid?: string } | null
+  >(null)
+  const [cloneName, setCloneName] = useState('')
 
-  /**
-   * `reactMixin` at the bottom of this file puts `mixins.dmix`'s methods on the prototype, where TypeScript can't see
-   * them, so reach them through this cast rather than off `this` directly.
-   */
-  private get dmix() {
-    return this as unknown as DmixMethods
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const invalidateAssetQueries = () => {
+    queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(uid) })
+    queryClient.invalidateQueries({ queryKey: getAssetsListQueryKey() })
   }
+  const assetQuery = useAssetsRetrieve(uid)
+  const asset = assetQuery.data?.status === 200 ? parsed({ ...assetQuery.data.data }) : undefined
+  const anonymousPermissionUrl = getAnonCanAddSubmissionsPermUrl()
+  const anonymousSubmissionPermission = asset?.permissions.find(
+    (permission) => permission.user === buildUserUrl(ANON_USERNAME) && permission.permission === anonymousPermissionUrl,
+  )
 
-  constructor(props: FormLandingProps) {
-    super(props)
-    this.state = {
-      selectedCollectMethod: CollectionMethodName.offline_url,
-      anonymousSubmissions: false,
-      anonymousPermissions: [],
+  const createAssetMutation = useAssetsCreate({
+    mutation: { onSettled: invalidateAssetQueries },
+  })
+  const createPermissionMutation = useAssetsPermissionAssignmentsCreate({
+    mutation: { onSettled: invalidateAssetQueries },
+  })
+  const destroyPermissionMutation = useAssetsPermissionAssignmentsDestroy({
+    mutation: { onSettled: invalidateAssetQueries },
+  })
+  const deployMutation = useAssetsDeploymentCreate({
+    mutation: { onSettled: invalidateAssetQueries },
+  })
+  const deploymentUpdateMutation = useAssetsDeploymentPartialUpdate({
+    mutation: { onSettled: invalidateAssetQueries },
+  })
+
+  const updateAssetAnonymousSubmissions = () => {
+    if (!uid) return
+    if (anonymousSubmissionPermission) {
+      const assignmentUid = anonymousSubmissionPermission.url.split('/').filter(Boolean).at(-1)
+      if (!assignmentUid) {
+        notify.error(t('Failed to update permissions'))
+        return
+      }
+      destroyPermissionMutation.mutate({ uidAsset: uid, uidPermissionAssignment: assignmentUid })
+      return
     }
-  }
-
-  componentDidMount() {
-    this.unlisteners.push(
-      actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
-      actions.resources.loadAsset.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
-    )
-
-    // `PermProtectedRoute` loads the asset before it renders us, so that first `loadAsset.completed` fired before the
-    // listener above existed. We ask for the asset again to get the anonymous permissions we render from.
-    const assetUid = this.props.params.uid
-    if (assetUid) {
-      actions.resources.loadAsset({ id: assetUid })
+    if (!anonymousPermissionUrl) {
+      notify.error(t('Failed to update permissions'))
+      return
     }
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
-    this.nonOwnerSelfRemovalUnlistener?.()
-  }
-
-  /**
-   * The asset that `mixins.dmix` put into the state, or `undefined` while it's still being loaded. As `dmix` only ever
-   * assigns the asset as a whole, `uid` being there means the rest of it is there too.
-   */
-  private getAsset(): AssetResponse | undefined {
-    return this.state.uid ? (this.state as AssetResponse) : undefined
-  }
-
-  /**
-   * Both actions we listen to end up here: `getAssetPermissions` hands us the permissions, while `loadAsset` hands us
-   * the whole asset to dig them out of.
-   */
-  onAssetPermissionsUpdated(response: AssetResponse | PermissionResponse[]) {
-    const permissions = Array.isArray(response) ? response : response.permissions
-    const anonCanAddPermUrl = getAnonCanAddSubmissionsPermUrl()
-    const publicPerms = permissions.filter((assignment) => assignment.user === buildUserUrl(ANON_USERNAME))
-    const anonCanAdd = publicPerms.find((perm) => perm.permission === anonCanAddPermUrl)
-
-    this.setState({
-      anonymousPermissions: publicPerms,
-      anonymousSubmissions: Boolean(anonCanAdd),
+    createPermissionMutation.mutate({
+      uidAsset: uid,
+      data: { user: buildUserUrl(ANON_USERNAME), permission: anonymousPermissionUrl },
     })
   }
 
-  updateAssetAnonymousSubmissions() {
-    const assetUid = this.props.params.uid
-    if (!assetUid) {
+  const handleEnketoPreviewClick = (evt: React.MouseEvent<HTMLElement>) => {
+    evt.preventDefault()
+    if (asset?.url) {
+      openEnketoPreviewModal({ assetUrl: asset.url })
+    }
+  }
+
+  const callUnarchiveAsset = () => setPrompt({ type: 'unarchive' })
+
+  const isCurrentVersionDeployed = (loadedAsset: AssetResponse) => {
+    if (loadedAsset.deployment__active && loadedAsset.deployed_versions.count > 0 && loadedAsset.deployed_version_id) {
+      const deployedVersion = loadedAsset.deployed_versions.results.find(
+        (version) => version.uid === loadedAsset.deployed_version_id,
+      )
+      return deployedVersion?.content_hash === loadedAsset.version__content_hash
+    }
+    return false
+  }
+  const isFormRedeploymentNeeded = (loadedAsset: AssetResponse) =>
+    !isCurrentVersionDeployed(loadedAsset) && userCan('change_asset', loadedAsset)
+  const hasLanguagesDefined = (translations: Array<string | null> | undefined) =>
+    Boolean(translations && (translations.length > 1 || translations[0] !== null))
+
+  const deployAsset = (loadedAsset: AssetResponse) => {
+    if (loadedAsset.has_deployment) {
+      openKoboConfirmModal({
+        title: t('Overwrite existing deployment'),
+        children: (
+          <>
+            {t('This form has already been deployed. Are you sure you want overwrite the existing deployment?')}
+            <br />
+            <br />
+            <strong>{t('This action cannot be undone.')}</strong>
+          </>
+        ),
+        labels: { confirm: t('Ok'), cancel: t('Cancel') },
+        onConfirm: () => {
+          deploymentUpdateMutation.mutate(
+            { uidAsset: loadedAsset.uid, data: { active: true, version_id: loadedAsset.version_id ?? undefined } },
+            { onSuccess: () => notify(t('redeployed form')) },
+          )
+        },
+      })
       return
     }
 
-    const anonCanAddPermUrl = getAnonCanAddSubmissionsPermUrl()
-    const permission = this.state.anonymousPermissions.find((perm) => perm.permission === anonCanAddPermUrl)
+    notify.warning(t('deploying to kobocat...'), { duration: 60 * 1000 })
+    deployMutation.mutate(
+      { uidAsset: loadedAsset.uid, data: { active: true } },
+      {
+        onSuccess: () => {
+          notify(t('deployed form'))
+          navigate(`/forms/${loadedAsset.uid}`)
+        },
+      },
+    )
+  }
 
-    if (this.state.anonymousSubmissions) {
-      if (permission) {
-        actions.permissions.removeAssetPermission(assetUid, permission.url, undefined, undefined, undefined)
-      }
-    } else {
-      actions.permissions.assignAssetPermission(assetUid, {
-        user: buildUserUrl(ANON_USERNAME),
-        permission: anonCanAddPermUrl,
-      })
+  const cloneAsset = (assetType: string, versionUid?: string) => {
+    if (!asset) return
+    setCloneName(assetType === ASSET_TYPES.template.id ? asset.name || '' : `${t('Clone of')} ${asset.name || ''}`)
+    setPrompt({ type: 'clone', assetType, versionUid })
+  }
+
+  const submitClone = () => {
+    if (!asset || prompt?.type !== 'clone') return
+    const data = {
+      name: cloneName || asset.name || '',
+      clone_from: asset.uid,
+      asset_type: prompt.assetType,
+      ...(prompt.versionUid ? { clone_from_version_id: prompt.versionUid } : {}),
     }
+    createAssetMutation.mutate(
+      { data },
+      {
+        onSuccess: (response) => {
+          if (response.status !== 201) {
+            notify.error(t('Failed to clone project'))
+            return
+          }
+          setPrompt(null)
+          if (prompt.assetType === ASSET_TYPES.survey.id) {
+            navigate(ROUTES.FORM_LANDING.replace(':uid', response.data.uid))
+          } else {
+            navigate(ROUTES.LIBRARY)
+          }
+        },
+      },
+    )
   }
 
-  handleEnketoPreviewClick(evt: React.MouseEvent<HTMLElement>) {
-    evt.preventDefault()
-    if (this.state.url) {
-      openEnketoPreviewModal({ assetUrl: this.state.url })
+  const renderPrompt = () => {
+    if (prompt?.type === 'unarchive') {
+      return (
+        <KoboPrompt
+          isOpen
+          title={t('Unarchive Project')}
+          onRequestClose={() => setPrompt(null)}
+          buttons={[
+            { label: t('Cancel'), type: 'secondary', onClick: () => setPrompt(null) },
+            {
+              label: t('Unarchive'),
+              isPending: deploymentUpdateMutation.isPending,
+              onClick: () =>
+                deploymentUpdateMutation.mutate(
+                  { uidAsset: uid, data: { active: true } },
+                  {
+                    onSuccess: () => {
+                      notify(t('Project unarchived successfully'))
+                      setPrompt(null)
+                    },
+                  },
+                ),
+            },
+          ]}
+        >
+          {t('Are you sure you want to unarchive this project?')}
+        </KoboPrompt>
+      )
     }
+    if (prompt?.type === 'clone') {
+      return (
+        <KoboPrompt
+          isOpen
+          title={
+            prompt.assetType === ASSET_TYPES.template.id
+              ? t('Create new template from this project')
+              : t('Clone Project')
+          }
+          onRequestClose={() => setPrompt(null)}
+          buttons={[
+            { label: t('Cancel'), type: 'secondary', onClick: () => setPrompt(null) },
+            {
+              label: prompt.assetType === ASSET_TYPES.template.id ? t('Create') : t('Clone'),
+              isPending: createAssetMutation.isPending,
+              onClick: submitClone,
+            },
+          ]}
+        >
+          <TextInput
+            label={
+              prompt.assetType === ASSET_TYPES.template.id
+                ? t('Enter the name of the new template.')
+                : t('Enter the name of the cloned project. Leave empty to keep the original name.')
+            }
+            value={cloneName}
+            onChange={(event) => setCloneName(event.currentTarget.value)}
+          />
+        </KoboPrompt>
+      )
+    }
+    return null
   }
 
-  callUnarchiveAsset(asset: AssetResponse) {
-    unarchiveAsset(asset, () => {
-      const assetUid = this.props.params.uid
-      if (assetUid) {
-        actions.resources.loadAsset({ id: assetUid }, true)
-      }
-    })
-  }
-
-  renderFormInfo(asset: AssetResponse, userCanEdit: boolean) {
-    let dvcount = asset.deployed_versions.count
+  // TODO: FormInfo should be a seperate component
+  const renderFormInfo = (loadedAsset: AssetResponse, userCanEdit: boolean) => {
+    let dvcount = loadedAsset.deployed_versions.count
     let undeployedVersion: string | undefined
     // Undeployed changes count as a version of their own, so the number we show is one ahead of the deployed count.
-    if (!this.isCurrentVersionDeployed(asset)) {
+    if (!isCurrentVersionDeployed(loadedAsset)) {
       undeployedVersion = `(${t('undeployed')})`
       dvcount = dvcount + 1
     }
@@ -195,131 +298,92 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
           )}
           <bem.FormView__cell m='date'>
             {t('Last Modified')}&nbsp;:&nbsp;
-            {asset.date_modified && formatTime(asset.date_modified)}&nbsp;-&nbsp;
+            {loadedAsset.date_modified && formatTime(loadedAsset.date_modified)}&nbsp;-&nbsp;
             <span className='question-count'>
-              {asset.summary.row_count || '0'}&nbsp;
+              {loadedAsset.summary.row_count || '0'}&nbsp;
               {t('questions')}
             </span>
           </bem.FormView__cell>
         </bem.FormView__cell>
         <bem.FormView__cell m='buttons'>
-          {userCanEdit && asset.deployment_status === 'deployed' && (
+          {userCanEdit && loadedAsset.deployment_status === 'deployed' && (
             <Button
               type='primary'
               size='l'
               isUpperCase
-              onClick={() => {
-                deployAsset(asset)
-              }}
+              onClick={() => deployAsset(loadedAsset)}
               label={t('redeploy')}
             />
           )}
-          {userCanEdit && asset.deployment_status === 'draft' && (
-            <Button
-              type='primary'
-              size='l'
-              isUpperCase
-              onClick={() => {
-                deployAsset(asset)
-              }}
-              label={t('deploy')}
-            />
+          {userCanEdit && loadedAsset.deployment_status === 'draft' && (
+            <Button type='primary' size='l' isUpperCase onClick={() => deployAsset(loadedAsset)} label={t('deploy')} />
           )}
-          {userCanEdit && asset.deployment_status === 'archived' && (
-            <Button
-              type='primary'
-              size='l'
-              isUpperCase
-              onClick={() => {
-                this.callUnarchiveAsset(asset)
-              }}
-              label={t('unarchive')}
-            />
+          {userCanEdit && loadedAsset.deployment_status === 'archived' && (
+            <Button type='primary' size='l' isUpperCase onClick={callUnarchiveAsset} label={t('unarchive')} />
           )}
         </bem.FormView__cell>
       </bem.FormView__cell>
     )
   }
 
-  handleShareClick(evt: React.MouseEvent<HTMLElement>) {
+  const handleShareClick = (evt: React.MouseEvent<HTMLElement>) => {
     evt.preventDefault()
-    const asset = this.getAsset()
     if (asset) {
       openSharingModal({ asset })
     }
   }
 
-  handleReplaceFormClick(evt: React.MouseEvent<HTMLElement>) {
+  const handleReplaceFormClick = (evt: React.MouseEvent<HTMLElement>) => {
     evt.preventDefault()
-    const asset = this.getAsset()
     if (asset) {
       openReplaceProjectModal({ asset })
     }
   }
 
-  isCurrentVersionDeployed(asset: AssetResponse) {
-    if (asset.deployment__active && asset.deployed_versions.count > 0 && asset.deployed_version_id) {
-      const deployedVersion = asset.deployed_versions.results.find(
-        (version) => version.uid === asset.deployed_version_id,
-      )
-      return deployedVersion?.content_hash === asset.version__content_hash
-    }
-    return false
-  }
-
-  isFormRedeploymentNeeded(asset: AssetResponse) {
-    return !this.isCurrentVersionDeployed(asset) && userCan('change_asset', asset)
-  }
-
-  hasLanguagesDefined(translations: Array<string | null> | undefined) {
-    return Boolean(translations && (translations.length > 1 || translations[0] !== null))
-  }
-
-  showLanguagesModal(evt: React.MouseEvent<HTMLElement>) {
+  const showLanguagesModal = (evt: React.MouseEvent<HTMLElement>) => {
     evt.preventDefault()
-    const asset = this.getAsset()
     if (asset) {
       openFormLanguagesModal(asset)
     }
   }
 
-  renderHistory(asset: AssetResponse) {
-    return (
-      <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
-        <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
-          <bem.FormView__cell m='label'>{t('Form history')}</bem.FormView__cell>
-        </bem.FormView__cell>
+  // FormHistory owns the version list so we should keep the visibility and page-action wiring here
+  const renderHistory = (loadedAsset: AssetResponse) => (
+    <bem.FormView__row className={historyExpanded ? 'historyExpanded' : 'historyHidden'}>
+      <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
+        <bem.FormView__cell m='label'>{t('Form history')}</bem.FormView__cell>
+      </bem.FormView__cell>
 
-        <bem.FormView__cell m={['history-table']}>
-          <FormHistory
-            isEnabled={Boolean(this.state.historyExpanded)}
-            assetUid={asset.uid}
-            deployedVersionId={asset.deployed_version_id ?? undefined}
-            deployedVersionsCount={asset.deployed_versions.count}
-            deploymentActive={asset.deployment__active}
-            deploymentStatus={asset.deployment_status}
-            onClone={(versionUid) => this.dmix.saveCloneAs(versionUid)}
-          />
-        </bem.FormView__cell>
-        {asset.deployed_versions.count > 1 && (
-          <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
-            <ButtonNew
-              size='md'
-              onClick={this.dmix.toggleDeploymentHistory.bind(this)}
-              leftIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
-              variant='transparent'
-            >
-              {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-            </ButtonNew>
-          </Group>
-        )}
-      </bem.FormView__row>
-    )
-  }
+      <bem.FormView__cell m={['history-table']}>
+        <FormHistory
+          isEnabled={historyExpanded}
+          assetUid={loadedAsset.uid}
+          deployedVersionId={loadedAsset.deployed_version_id ?? undefined}
+          deployedVersionsCount={loadedAsset.deployed_versions.count}
+          deploymentActive={loadedAsset.deployment__active}
+          deploymentStatus={loadedAsset.deployment_status}
+          onClone={(versionUid) => cloneAsset(ASSET_TYPES.survey.id, versionUid)}
+        />
+      </bem.FormView__cell>
+      {loadedAsset.deployed_versions.count > 1 && (
+        <Group justify='center' gap='md' pt={historyExpanded ? 'md' : 0}>
+          <ButtonNew
+            size='md'
+            onClick={() => setHistoryExpanded((expanded) => !expanded)}
+            leftIcon={historyExpanded ? 'angle-up' : 'angle-down'}
+            variant='transparent'
+          >
+            {historyExpanded ? t('Hide full history') : t('Show full history')}
+          </ButtonNew>
+        </Group>
+      )}
+    </bem.FormView__row>
+  )
 
-  renderCollectData(asset: AssetResponse) {
-    const chosenMethod = this.state.selectedCollectMethod
-    const chosenMethodLink = getCollectMethodLink(asset, chosenMethod)
+  // TODO: CollectData should be a seperate component
+  const renderCollectData = (loadedAsset: AssetResponse) => {
+    const chosenMethod = selectedCollectMethod
+    const chosenMethodLink = getCollectMethodLink(loadedAsset, chosenMethod)
 
     // KoboCollect wants just the origin, and `open_rosa_server` is a full URL - let the DOM parse it out for us.
     const openRosaServerAnchor = document.createElement('a')
@@ -334,13 +398,13 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
             <bem.FormView__cell>
               <CollectMethodSelector
                 onChange={(newMethod) => {
-                  this.setCollectMethod(newMethod)
+                  setSelectedCollectMethod(newMethod)
                 }}
                 selectedMethod={chosenMethod}
               />
             </bem.FormView__cell>
 
-            <bem.FormView__cell className='collect-header-actions'>{this.renderCollectLink(asset)}</bem.FormView__cell>
+            <bem.FormView__cell className='collect-header-actions'>{renderCollectLink(loadedAsset)}</bem.FormView__cell>
           </bem.FormView__cell>
 
           <Stack pb='lg' pl='lg' pr='lg' className='collect-meta-description'>
@@ -377,13 +441,13 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
             )}
           </Stack>
 
-          {userCan('change_asset', asset) && (
+          {userCan('change_asset', loadedAsset) && (
             <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
               <AnonymousSubmission
-                checked={this.state.anonymousSubmissions}
+                checked={Boolean(anonymousSubmissionPermission)}
                 // This whole block is already behind a `change_asset` check, so the toggle is always usable here.
                 disabled={false}
-                onChange={() => this.updateAssetAnonymousSubmissions()}
+                onChange={updateAssetAnonymousSubmissions}
               />
             </bem.FormView__cell>
           )}
@@ -392,9 +456,9 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     )
   }
 
-  renderCollectLink(asset: AssetResponse) {
-    const chosenMethod = this.state.selectedCollectMethod
-    const chosenMethodLink = getCollectMethodLink(asset, chosenMethod)
+  const renderCollectLink = (loadedAsset: AssetResponse) => {
+    const chosenMethod = selectedCollectMethod
+    const chosenMethodLink = getCollectMethodLink(loadedAsset, chosenMethod)
 
     if (chosenMethod === CollectionMethodName.android) {
       return (
@@ -459,46 +523,57 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     )
   }
 
-  setCollectMethod(newMethod: CollectionMethodName) {
-    this.setState({ selectedCollectMethod: newMethod })
-  }
-
-  goToProjectsList() {
-    this.props.router.navigate(ROUTES.FORMS)
-  }
-
-  handleNonOwnerSelfRemovalClick(evt: React.MouseEvent<HTMLElement>) {
-    evt.preventDefault()
-    // `removeSharing` opens a confirm dialog and cancelling it dispatches nothing, so a listener from an earlier
-    // click may still be attached. Drop it first, otherwise it piles up and outlives the component.
-    this.nonOwnerSelfRemovalUnlistener?.()
-    this.nonOwnerSelfRemovalUnlistener = actions.permissions.removeAssetPermission.completed.listen(
-      this.nonOwnerSelfRemovalCompleted.bind(this),
-    )
-    this.dmix.removeSharing()
-  }
-
-  /**
-   * Only a non-owner dropping their own permissions should send us away. `removeAssetSharing` is the sole caller that
-   * passes `isNonOwner`, so a `manage_asset` user removing somebody else leaves us on the page.
-   */
-  nonOwnerSelfRemovalCompleted(_assetUid: string, isNonOwner: boolean | undefined) {
-    if (!isNonOwner) {
+  const removeSharedProject = (loadedAsset: AssetResponse) => {
+    const username = profileStore.currentAccount.username
+    const assignmentUids = loadedAsset.permissions
+      .filter((permission) => permission.user === buildUserUrl(username))
+      .map((permission) => permission.url.split('/').filter(Boolean).at(-1))
+      .filter((permissionUid): permissionUid is string => Boolean(permissionUid))
+    if (assignmentUids.length === 0) {
+      notify.error(t('Failed to remove permissions'))
       return
     }
-    this.nonOwnerSelfRemovalUnlistener?.()
-    this.nonOwnerSelfRemovalUnlistener = undefined
-    this.goToProjectsList()
+
+    let remaining = assignmentUids.length
+    let failed = false
+    const onFinished = () => {
+      remaining -= 1
+      if (remaining !== 0) return
+      if (!failed) navigate(ROUTES.FORMS)
+    }
+    assignmentUids.forEach((assignmentUid) => {
+      destroyPermissionMutation.mutate(
+        { uidAsset: loadedAsset.uid, uidPermissionAssignment: assignmentUid },
+        {
+          onSuccess: onFinished,
+          onError: () => {
+            failed = true
+            onFinished()
+          },
+        },
+      )
+    })
   }
 
-  renderButtons(asset: AssetResponse, userCanEdit: boolean) {
-    const downloads = asset.downloads || []
+  const handleNonOwnerSelfRemovalClick = (evt: React.MouseEvent<HTMLElement>, loadedAsset: AssetResponse) => {
+    evt.preventDefault()
+    openKoboConfirmModal({
+      title: t('Remove shared form'),
+      children: t('Are you sure you want to remove this shared form?'),
+      labels: { confirm: t('Remove'), cancel: t('Cancel') },
+      onConfirm: () => removeSharedProject(loadedAsset),
+    })
+  }
+
+  // TODO: FormLandingActions should be a seperate component
+  const renderButtons = (loadedAsset: AssetResponse, userCanEdit: boolean) => {
+    const downloads = loadedAsset.downloads || []
     const isLoggedIn = profileStore.isLoggedIn
 
     return (
       <React.Fragment>
         {userCanEdit ? (
-          <Link to={`/forms/${asset.uid}/edit`}>
+          <Link to={`/forms/${loadedAsset.uid}/edit`}>
             {/*
               We put non clickable button inside Link, so that it's possible
               to open it in new tab.
@@ -522,8 +597,8 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
           startIcon='view'
           tooltip={t('Preview')}
           tooltipPosition='right'
-          onClick={this.handleEnketoPreviewClick.bind(this)}
-          isDisabled={!asset.url}
+          onClick={handleEnketoPreviewClick}
+          isDisabled={!loadedAsset.url}
         />
 
         {userCanEdit && (
@@ -533,7 +608,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
             startIcon='replace'
             tooltip={t('Replace form')}
             tooltipPosition='right'
-            onClick={this.handleReplaceFormClick.bind(this)}
+            onClick={handleReplaceFormClick}
           />
         )}
 
@@ -555,17 +630,14 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
             ))}
 
             {userCanEdit && (
-              <Menu.Item
-                onClick={this.handleShareClick.bind(this)}
-                leftSection={<i className='k-icon k-icon-user-share' />}
-              >
+              <Menu.Item onClick={handleShareClick} leftSection={<i className='k-icon k-icon-user-share' />}>
                 {t('Share this project')}
               </Menu.Item>
             )}
 
-            {isLoggedIn && userCanRemoveSharedProject(asset) && (
+            {isLoggedIn && userCanRemoveSharedProject(loadedAsset) && (
               <Menu.Item
-                onClick={this.handleNonOwnerSelfRemovalClick.bind(this)}
+                onClick={(evt) => handleNonOwnerSelfRemovalClick(evt, loadedAsset)}
                 leftSection={<i className='k-icon k-icon-trash' />}
               >
                 {t('Remove shared project')}
@@ -574,7 +646,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
             {isLoggedIn && (
               <Menu.Item
-                onClick={() => this.dmix.saveCloneAs()}
+                onClick={() => cloneAsset(ASSET_TYPES.survey.id)}
                 leftSection={<i className='k-icon k-icon-duplicate' />}
               >
                 {t('Clone this project')}
@@ -583,9 +655,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
             {isLoggedIn && (
               <Menu.Item
-                onClick={() => {
-                  cloneAssetAsTemplate(asset.uid, asset.name)
-                }}
+                onClick={() => cloneAsset(ASSET_TYPES.template.id)}
                 leftSection={<i className='k-icon k-icon-template' />}
               >
                 {t('Create template')}
@@ -597,16 +667,17 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     )
   }
 
-  renderLanguages(asset: AssetResponse, canEdit: boolean) {
-    const translations = asset.content?.translations
+  // TODO: FormLanguages should be a seperate component and keep the layout that joins it to FormInfo in FormLanding.
+  const renderLanguages = (loadedAsset: AssetResponse, canEdit: boolean) => {
+    const translations = loadedAsset.content?.translations
 
     return (
       <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
         <bem.FormView__cell m='translation-list'>
           <strong>{t('Languages:')}</strong>
           &nbsp;
-          {!this.hasLanguagesDefined(translations) && t('This project has no languages defined yet')}
-          {this.hasLanguagesDefined(translations) && (
+          {!hasLanguagesDefined(translations) && t('This project has no languages defined yet')}
+          {hasLanguagesDefined(translations) && (
             <ul>
               {translations?.map((langString, n) => (
                 <li key={n}>{langString || t('Unnamed language')}</li>
@@ -617,12 +688,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
         {canEdit && (
           <bem.FormView__cell>
-            <ButtonNew
-              variant='outline'
-              size='md'
-              rightIcon={IconWorldFilled}
-              onClick={this.showLanguagesModal.bind(this)}
-            >
+            <ButtonNew variant='outline' size='md' rightIcon={IconWorldFilled} onClick={showLanguagesModal}>
               {t('Manage')}
             </ButtonNew>
           </bem.FormView__cell>
@@ -631,18 +697,16 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     )
   }
 
-  render() {
-    const asset = this.getAsset()
+  if (!asset) {
+    return <LoadingSpinner />
+  }
 
-    if (!asset) {
-      return <LoadingSpinner />
-    }
+  const docTitle = asset.name || t('Untitled')
+  const userCanEdit = userCan('change_asset', asset)
+  const isLoggedIn = profileStore.isLoggedIn
 
-    const docTitle = asset.name || t('Untitled')
-    const userCanEdit = userCan('change_asset', asset)
-    const isLoggedIn = profileStore.isLoggedIn
-
-    return (
+  return (
+    <>
       <DocumentTitle title={`${docTitle} | ${t('Form')} | KoboToolbox`}>
         <bem.FormView m='form'>
           <LimitNotifications />
@@ -655,10 +719,10 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
                     ? t('Archived version')
                     : t('Draft version')}
               </bem.FormView__cell>
-              <bem.FormView__cell m='action-buttons'>{this.renderButtons(asset, userCanEdit)}</bem.FormView__cell>
+              <bem.FormView__cell m='action-buttons'>{renderButtons(asset, userCanEdit)}</bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.isFormRedeploymentNeeded(asset) && (
+              {isFormRedeploymentNeeded(asset) && (
                 <Stack pt='lg' pl='lg' pr='lg'>
                   <InlineMessage
                     icon='alert'
@@ -667,18 +731,15 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
                   />
                 </Stack>
               )}
-              {this.renderFormInfo(asset, userCanEdit)}
-              {this.renderLanguages(asset, userCanEdit)}
+              {renderFormInfo(asset, userCanEdit)}
+              {renderLanguages(asset, userCanEdit)}
             </bem.FormView__cell>
           </bem.FormView__row>
-          {asset.deployed_versions.count > 0 && this.renderHistory(asset)}
-          {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && this.renderCollectData(asset)}
+          {asset.deployed_versions.count > 0 && renderHistory(asset)}
+          {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && renderCollectData(asset)}
         </bem.FormView>
       </DocumentTitle>
-    )
-  }
+      {renderPrompt()}
+    </>
+  )
 }
-
-reactMixin(FormLanding.prototype, mixins.dmix)
-
-export default withRouter(FormLanding)

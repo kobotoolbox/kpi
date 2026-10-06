@@ -7,13 +7,10 @@ export function parseTags(asset: Asset | AssetResponse) {
   }
 }
 
-function parseSettings(asset: AssetResponse) {
+function parseSettings(asset: Asset | AssetResponse) {
   const settings = asset.content && asset.content.settings
   if (settings) {
-    let foundSettings: AssetContentSettings = {}
-    if (Array.isArray(settings) && settings.length) {
-      foundSettings = settings[0]
-    }
+    const foundSettings: AssetContentSettings = Array.isArray(settings) ? (settings[0] ?? {}) : settings
     return {
       unparsed__settings: foundSettings,
       settings__style: foundSettings.style,
@@ -25,6 +22,6 @@ function parseSettings(asset: AssetResponse) {
   }
 }
 
-export function parsed(asset: AssetResponse): AssetResponse {
+export function parsed(asset: Asset | AssetResponse): AssetResponse {
   return Object.assign(asset, parseSettings(asset), parseTags(asset)) as AssetResponse
 }
