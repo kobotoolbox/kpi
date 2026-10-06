@@ -124,6 +124,17 @@ describe('redirectForAuthChange', () => {
     chai.expect(context.navigate.mock.calls).to.deep.equal([[AUTH_ROUTES.PROVIDER_SIGNUP, { replace: true }]])
   })
 
+  it('carries the destination to the step`s screen, so a flow started in another tab does not drop it', () => {
+    const context = contextAt({ routePath: AUTH_ROUTES.LOGIN, nextRoute: PROJECTS_ROUTES.MY_PROJECTS })
+    const status = statusWithFlows([{ id: FlowId.provider_signup, is_pending: true }], ANONYMOUS_AUTH_STATUS)
+
+    redirectForAuthChange(AuthChangeEvent.flowUpdated, status, context)
+
+    chai
+      .expect(context.navigate.mock.calls)
+      .to.deep.equal([[`${AUTH_ROUTES.PROVIDER_SIGNUP}?next=%2F%23%2Fprojects%2Fhome`, { replace: true }]])
+  })
+
   // The card that started the step answers it in place - see `FLOW_PATHS`.
   it('stays put on a step with no screen of its own', () => {
     const context = contextAt({ routePath: AUTH_ROUTES.LOGIN })

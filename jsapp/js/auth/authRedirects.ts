@@ -68,7 +68,9 @@ export function redirectForAuthChange(event: AuthChangeEvent, status: AuthStatus
       // Most anonymous-side steps are answered inside the card that started them, so staying put is correct - see
       // `FLOW_PATHS`.
       if (path) {
-        goToRoute(path, { replace: true })
+        // `nextRoute`, not `routeWithSearch`: we are on an auth screen already, and `getRouteWithNext` refuses to
+        // point `next` back at one. Passing the destination along keeps it across the step.
+        goToRoute(getRouteWithNext(path, nextRoute), { replace: true })
       }
       return
     }
