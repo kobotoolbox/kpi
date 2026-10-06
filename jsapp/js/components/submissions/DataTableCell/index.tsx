@@ -1,5 +1,7 @@
 import { Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
+import { isInRepeatGroup } from '#/components/processing/common/questionType'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
@@ -85,7 +87,16 @@ export default function DataTableCell(props: DataTableCellProps) {
     props.reactTableRow.value !== null &&
     (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
   ) {
-    return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
+    return (
+      <RepeatGroupCell
+        submissionData={submission}
+        rowName={props.columnKey}
+        // Processing doesn't support repeat groups, so NLP supported questions get a disabled way into it.
+        showDisabledProcessingAction={
+          isNlpSupported(props.question?.type) && isInRepeatGroup(props.asset, props.columnKey, submission)
+        }
+      />
+    )
   }
 
   // `question_xpath` was recorded when the submission came in, so it finds the file even

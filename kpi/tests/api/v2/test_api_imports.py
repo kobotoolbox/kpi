@@ -6,6 +6,7 @@ from io import BytesIO
 import openpyxl
 import responses
 import xlwt
+from ddt import data, ddt, unpack
 from django.db import transaction
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -20,6 +21,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 
 
+@ddt
 class AssetImportTaskTest(BaseTestCase):
     fixtures = ['test_data']
 
@@ -1328,17 +1330,22 @@ class AssetImportTaskTest(BaseTestCase):
             == 'The `label` column is not translated'
         )
 
-    def test_import_xls_blocks_untranslated_column_in_choices_sheet(self):
+    @data(True, False)
+    def test_import_xls_blocks_untranslated_column_in_choices_sheet(
+        self, external_choices
+    ):
+        choices_sheet_name = 'external_choices' if external_choices else 'choices'
+        question_type = 'select_one_external' if external_choices else 'select_one'
         content = (
             (
                 'survey',
                 [
                     ['type', 'name', 'label::English (en)'],
-                    ['select_one gender', 'gender', 'Gender?'],
+                    [f'{question_type} gender', 'gender', 'Gender?'],
                 ],
             ),
             (
-                'choices',
+                choices_sheet_name,
                 [
                     ['list_name', 'name', 'label'],
                     ['gender', 'female', 'Female'],
@@ -1356,34 +1363,48 @@ class AssetImportTaskTest(BaseTestCase):
             == 'The `label` column is not translated'
         )
 
-    def test_import_xls_allows_fully_untranslated_form(self):
-        content = (
-            (
-                'survey',
-                [
-                    ['type', 'name', 'label', 'hint'],
-                    ['integer', 'age', 'Age?', 'in years'],
-                ],
-            ),
-        )
-        response = self._create_asset_from_xls(
-            content, 'No translations', excel_format='xlsx'
-        )
-        detail_response = self.client.get(response.data['url'])
-        assert detail_response.data['status'] == 'complete'
+    @data(
+        # include choices question, include external choices question, translate
+        (True, True, False),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, True),
+    )
+    @unpack
+    def test_import_xls_allows_fully_untranslated_or_fully_translated_form(
+        self, include_choices, include_external_choices, translate
+    ):
+        label_column = 'label::English (en)' if translate else 'label'
+        hint_column = 'hint::English (en)' if translate else 'hint'
+        survey_content = [
+            ['type', 'name', label_column, hint_column],
+            ['integer', 'age', 'Age?', 'in years'],
+        ]
+        content = []
+        if include_choices:
+            survey_content.append(['select_one color', 'color', 'Fav color?'])
+            choices = [
+                ['list_name', 'name', label_column],
+                ['color', 'blue', 'Blue'],
+                ['color', 'red', 'Red'],
+            ]
+            content.append(('choices', choices))
+        if include_external_choices:
+            survey_content.append(['select_one_external pizza', 'pizza', 'Fav pizza?'])
+            choices = [
+                ['list_name', 'name', label_column],
+                ['pizza', 'cheese', 'Cheese'],
+                ['pizza', 'pepperoni', 'Pepperoni'],
+            ]
+            content.append(('external_choices', choices))
+        content = (('survey', survey_content), *content)
 
-    def test_import_xls_allows_fully_translated_form(self):
-        content = (
-            (
-                'survey',
-                [
-                    ['type', 'name', 'label::English (en)', 'hint::English (en)'],
-                    ['integer', 'age', 'Age?', 'in years'],
-                ],
-            ),
-        )
         response = self._create_asset_from_xls(
-            content, 'Fully translated', excel_format='xlsx'
+            content, 'Consistent translations', excel_format='xlsx'
         )
         detail_response = self.client.get(response.data['url'])
         assert detail_response.data['status'] == 'complete'
