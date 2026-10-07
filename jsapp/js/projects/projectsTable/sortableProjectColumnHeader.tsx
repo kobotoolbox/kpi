@@ -70,7 +70,7 @@ export default function SortableProjectColumnHeader<FieldName extends string>(
         onClose={() => setIsMenuVisible(false)}
       >
         <Menu.Target>
-          <button type='button' className={styles.trigger}>
+          <button type='button' className={cx(styles.trigger, { [styles.triggerUnpadded]: !props.styling })}>
             <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
 
             <span className={cx(rowStyles.headerLabel, styles.triggerLabel)}>{props.field.label}</span>
