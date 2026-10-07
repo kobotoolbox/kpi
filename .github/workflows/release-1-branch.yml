@@ -7,13 +7,10 @@ concurrency:
 
 
 on:
+  # Triggered manually by whoever is about to start QA testing the next
+  # release, rather than auto-created on a schedule. This avoids ending up
+  # with an unused next-release branch that then needs to be deleted.
   workflow_dispatch:
-  schedule:
-    # It's good to deploy early in week:
-    # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
-    # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
-    # - In the worst case, the last chance is to deploy on after-next Monday.
-    - cron: '17 5 * * 3'
 
 
 jobs:
@@ -24,6 +21,13 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
+    - name: validate dispatched from main
+      run: |
+        set -xe
+        if [[ "${{ github.ref_name }}" != "main" ]]; then
+          echo "::error::This workflow must be run on 'main', not '${{ github.ref_name }}'."
+          exit 1
+        fi
     - name: determine current release branch name
       id: branch
       run: |
@@ -53,6 +57,15 @@ jobs:
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    - name: validate branch does not already exist
+      env:
+        NEW_BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        set -xe
+        if git ls-remote --exit-code --heads origin "$NEW_BRANCH"; then
+          echo "::error::Branch '$NEW_BRANCH' already exists. Someone already started this release this week; refusing to recreate it."
+          exit 1
+        fi
     - name: create next RC branch
       id: branch
       env:
