@@ -1,15 +1,27 @@
 import threading
+import uuid
+from unittest.mock import patch
 
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.db import connections
+from django.db.models import Sum
+from django.db.models.signals import post_delete, pre_delete
 from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.libs.utils import logger_tools
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    get_soft_deleted_attachments,
+    get_submission_media_basenames,
+)
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -17,6 +29,7 @@ from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.django_orm_helper import ReturningUpdateQuerySet
 
 
 class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMixin):
@@ -314,6 +327,7 @@ class TransferredProjectAttachmentTrashCounterTestCase(
         self.xform.refresh_from_db()
 
 
+@ddt
 class AttachmentTrashConcurrentStorageCountersTestCase(
     TransactionTestCase, AssetSubmissionTestMixin
 ):
@@ -367,6 +381,7 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
             self._create_test_asset_and_submission(user=user)
         )
         xform.refresh_from_db()
+        assert attachment.media_file_size > 0
         assert xform.attachment_storage_bytes == attachment.media_file_size
 
         barrier = threading.Barrier(2)
@@ -405,3 +420,212 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         xform.refresh_from_db()
         assert xform.attachment_storage_bytes == 0
         assert self._get_user_storage(user) == 0
+
+    def test_deletion_does_not_subtract_an_attachment_trashed_meanwhile(self):
+        """
+        Force the order that used to count twice: the submission deletion has
+        started, and another request trashes one of its attachments and commits
+        right before the attachments are deleted. The trash already subtracted
+        the size, so the deletion must not subtract it again.
+
+        The former code read the attachments first and deleted them afterwards,
+        so it still saw the attachment active and subtracted it a second time.
+        """
+        user = User.objects.create(username='owner')
+        asset, xform, instance, _, attachment = (
+            self._create_test_asset_and_submission(user=user)
+        )
+        xform.refresh_from_db()
+        assert attachment.media_file_size > 0
+        assert xform.attachment_storage_bytes == attachment.media_file_size
+
+        real_delete_returning = ReturningUpdateQuerySet.delete_returning
+        trashed = []
+
+        def trash_then_delete(queryset, *args, **kwargs):
+            # Trash the attachment from another connection, and wait for it to
+            # commit, right before the deletion deletes it
+            if not trashed:
+                trashed.append(True)
+                self._run_in_thread(self._trash, attachment)
+            return real_delete_returning(queryset, *args, **kwargs)
+
+        with patch.object(
+            ReturningUpdateQuerySet,
+            'delete_returning',
+            autospec=True,
+            side_effect=trash_then_delete,
+        ):
+            asset.deployment.delete_submissions(
+                {'submission_ids': [instance.pk], 'query': ''}, user
+            )
+
+        assert trashed
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes == 0
+        assert self._get_user_storage(user) == 0
+
+    @data(
+        # (submissions deleted by the first call, by the concurrent one)
+        ('both', 'both'),
+        ('both', 'first'),
+        ('first', 'both'),
+    )
+    @unpack
+    def test_concurrent_deletions_of_the_same_submissions_subtract_once(
+        self, first_call, concurrent_call
+    ):
+        """
+        Two deletions sharing submissions: the first one has already listed its
+        submissions when the other one deletes some of them and commits, right
+        before the first one deletes their attachments. Each attachment must be
+        subtracted once, by whichever call actually deletes it.
+        """
+        user = User.objects.create(username='owner')
+        asset, xform, first_instance, _, _ = (
+            self._create_test_asset_and_submission(user=user)
+        )
+        second_instance = self._add_submission(asset, user)
+        submission_ids = {
+            'first': [first_instance.pk],
+            'both': [first_instance.pk, second_instance.pk],
+        }
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes > 0
+
+        real_delete_returning = ReturningUpdateQuerySet.delete_returning
+        deleted_meanwhile = []
+
+        def delete_concurrently_then_delete(queryset, *args, **kwargs):
+            # Run the other deletion to completion, on another connection, right
+            # before this one deletes the attachments
+            if not deleted_meanwhile:
+                deleted_meanwhile.append(True)
+                # `delete_instances()` disconnects signals while it runs and
+                # reconnects them when it ends, and signals are shared by the
+                # whole process. In production, two deletions never share a
+                # process (uWSGI and Celery workers are single-threaded
+                # processes), but this test runs both in one: stop the other
+                # deletion from reconnecting them while this one still runs.
+                with patch.object(pre_delete, 'connect'), patch.object(
+                    post_delete, 'connect'
+                ):
+                    self._run_in_thread(
+                        self._delete_submissions,
+                        asset,
+                        user,
+                        submission_ids[concurrent_call],
+                    )
+            return real_delete_returning(queryset, *args, **kwargs)
+
+        with patch.object(
+            ReturningUpdateQuerySet,
+            'delete_returning',
+            autospec=True,
+            side_effect=delete_concurrently_then_delete,
+        ):
+            self._delete_submissions(asset, user, submission_ids[first_call])
+
+        assert deleted_meanwhile
+        xform.refresh_from_db()
+        remaining = Attachment.all_objects.filter(xform_id=xform.pk).aggregate(
+            total=Sum('media_file_size')
+        )['total'] or 0
+        assert xform.attachment_storage_bytes == remaining
+        if first_call == 'both' or concurrent_call == 'both':
+            assert xform.attachment_storage_bytes == 0
+
+    def test_edit_does_not_subtract_an_attachment_trashed_meanwhile(self):
+        """
+        An edit picks the attachments its submission no longer references, then
+        soft deletes them. If another request trashes one of them in between,
+        the trash already subtracted its size, so the edit must not return it
+        for the caller to subtract again.
+        """
+        user = User.objects.create(username='owner')
+        _, xform, instance, _, attachment = self._create_test_asset_and_submission(
+            user=user
+        )
+        # The submission now references another file, so the attachment is to
+        # be soft deleted
+        Instance.objects.filter(pk=instance.pk).update(
+            xml=instance.xml.replace(attachment.media_file_basename, 'other.3gp')
+        )
+        instance.refresh_from_db()
+        assert get_submission_media_basenames(instance) == {'other.3gp'}
+
+        real_now = timezone.now
+        trashed = []
+
+        def trash_then_now():
+            # `now()` is called right after the attachments are picked and
+            # right before the `UPDATE`: trash the attachment there, from
+            # another connection, and wait for it to commit
+            if not trashed:
+                trashed.append(True)
+                self._run_in_thread(self._trash, attachment)
+            return real_now()
+
+        with patch.object(
+            logger_tools.dj_timezone, 'now', side_effect=trash_then_now
+        ):
+            soft_deleted = get_soft_deleted_attachments(instance)
+
+        assert trashed
+        assert soft_deleted == []
+        attachment.refresh_from_db()
+        assert attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes == 0
+
+    def _add_submission(self, asset, user) -> Instance:
+        """
+        Add another submission with an attachment to the project
+        """
+        submission_uuid = str(uuid.uuid4())
+        asset.deployment.mock_submissions(
+            [
+                {
+                    'q1': 'audio_conversion_test_clip.3gp',
+                    '_uuid': submission_uuid,
+                    '_attachments': [
+                        {
+                            'download_url': f'http://testserver/{user.username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                            'filename': f'{user.username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                            'mimetype': 'video/3gpp',
+                        },
+                    ],
+                    '_submitted_by': user.username,
+                }
+            ]
+        )
+        return Instance.objects.get(root_uuid=submission_uuid)
+
+    def _delete_submissions(self, asset, user, submission_ids: list[int]):
+        asset.deployment.delete_submissions(
+            {'submission_ids': submission_ids, 'query': ''}, user
+        )
+
+    def _run_in_thread(self, target, *args):
+        """
+        Run `target` in another thread, so on its own database connection, and
+        wait for it to finish. Re-raise what it raised.
+        """
+        errors = []
+
+        def run():
+            try:
+                target(*args)
+            except Exception as e:
+                errors.append(e)
+            finally:
+                connections.close_all()
+
+        thread = threading.Thread(target=run)
+        thread.start()
+        thread.join()
+        if errors:
+            raise errors[0]
+
+    def _trash(self, attachment):
+        AttachmentTrash.toggle_statuses([attachment.uid], active=False)

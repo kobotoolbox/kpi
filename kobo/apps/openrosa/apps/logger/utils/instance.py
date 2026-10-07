@@ -80,6 +80,13 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
 
     # Disconnect per-row signals; their side-effects are replayed once for the
     # whole batch below.
+    #
+    # Signals are shared by the whole process, not by the thread: another
+    # deletion running in a thread of the same process would reconnect them,
+    # in its `finally`, while this one still runs. That never happens in
+    # production, where uWSGI and Celery (prefork) workers are single-threaded
+    # processes. Only tests that run two deletions in threads must guard
+    # against it (see `test_attachment_trash_storage.py`).
     pre_delete.disconnect(pre_delete_attachment, sender=Attachment)
     pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
     post_delete.disconnect(
