@@ -708,11 +708,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if not self.get_data('backend_response'):
             return {}
 
+        # Always use the OpenRosa public URL: Enketo derives its ID from it, so changing
+        # it would change every survey link
         data = {
-            'server_url': to_internal_url(
-                '{}/{}'.format(
-                    settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
-                )
+            'server_url': '{}/{}'.format(
+                settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
             ),
             'form_id': self.xform.id_string,
         }
@@ -734,22 +734,26 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         stored_enketo_id = self.get_data('enketo_id')
 
-        print('stored_enketo_id', stored_enketo_id, flush=True)
+        print('STORED_ENKETO_ID', stored_enketo_id, flush=True)
+        print('STORED_ENKETO_ID', enketo_id, flush=True)
 
         if stored_enketo_id != enketo_id:
-            print('DIFFERENT !!!!!', flush=True)
             if stored_enketo_id:
                 logging.warning(
                     f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
                 )
             self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
 
-        if self.xform.require_auth:
+        if self.xform.require_auth or config.ENKETO_USE_INTERNAL_OPENROSA_URL:
+            print('ICTTEEEEE', flush=True)
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
             # Thus, we need to always generated the ID with the same URL
-            # (i.e.: with username) to be retro-compatible and then,
-            # overwrite the OpenRosa server URL again.
-            self.set_enketo_open_rosa_server(require_auth=True, enketo_id=enketo_id)
+            # (i.e.: public, with username) to be retro-compatible and then,
+            # overwrite the OpenRosa server URL again (without username if
+            # authentication is required, internal domain name if enabled).
+            self.set_enketo_open_rosa_server(
+                require_auth=self.xform.require_auth, enketo_id=enketo_id
+            )
 
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
@@ -1097,7 +1101,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             server_url = f'{server_url}/{self.asset.owner.username}'
         server_url = to_internal_url(server_url)
 
-        print('SERVER_URL', server_url, enketo_id, flush=True)
+        print('OPENROSA SERVER_URL', server_url, enketo_id, flush=True)
 
         enketo_redis_client = get_redis_connection('enketo_redis_main')
         enketo_redis_client.hset(
