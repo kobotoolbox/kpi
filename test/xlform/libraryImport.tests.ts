@@ -22,6 +22,7 @@ interface SavedForm {
   survey: Array<Record<string, string>>
   choices?: Array<Record<string, string>>
   settings: Array<{ default_language?: string }>
+  translations?: Array<string | null>
 }
 
 const LANG_FR = getLangString({ name: 'Francais', code: 'fr' }) as LangString
@@ -83,7 +84,13 @@ const buildLibraryBlock = (languages: TestLanguages) =>
  */
 const importIntoAndSave = (host: Survey, item: TestAssetContent): SavedForm => {
   host.insertSurvey(Survey.loadDict(item, host), 0)
-  return JSON.parse(unnullifyTranslations(surveyToValidJson(host), host._initialParams))
+  const surveyJson = surveyToValidJson(host)
+  // `EditableForm` reverses the hack only for a form that has a default language, so neither do we - without one
+  // there is nothing to name the columns after
+  if (!host._initialParams.translations_0) {
+    return JSON.parse(surveyJson)
+  }
+  return JSON.parse(unnullifyTranslations(surveyJson, host._initialParams))
 }
 
 /**
@@ -103,14 +110,29 @@ const getLabelsByLanguage = (saved: SavedForm, rowName: string) => {
 // A user dragging an item out of the Library into an open form. Every case checks a row from both sheets, because
 // choices are indexed by the same language list as the survey rows.
 describe('importing a library item into a form', () => {
-  it('keeps the labels of a multi-language item in a form that has no language', () => {
+  it("takes over the item's languages when the form has none of its own", () => {
     const saved = importIntoAndSave(openForm([LANG_NONE]), buildLibraryBlock([LANG_FR, LANG_PL]))
 
-    // The form's labels sit in a plain `label`, and an unnamed language beside named ones is what Formbuilder refuses
-    // to reopen - so the item's languages cannot come along, only its default label.
-    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [UNNAMED]: 'fr' })
-    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [UNNAMED]: 'fr' })
+    // The form had nowhere to put a named language - its own labels sat in a plain `label`, and an unnamed language
+    // beside named ones is what Formbuilder refuses to reopen. So the form takes the item's default language as its
+    // own, and every label stays with the language it was written in.
+    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_FR]: 'fr', [LANG_PL]: 'pl' })
+    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: 'fr', [LANG_PL]: 'pl' })
+    // The form's own question had no language, so its label becomes one of the adopted language
+    chai.expect(getLabelsByLanguage(saved, 'question')).to.deep.equal({ [LANG_FR]: 'no lang' })
+    chai.expect(saved.settings[0].default_language).to.equal(LANG_FR)
+    // Without this list the backend keeps the `[null]` it has stored, and that null comes back as an unnamed language
+    chai.expect(saved.translations).to.deep.equal([LANG_FR, LANG_PL])
+  })
+
+  it('leaves a form with no language alone when the item has none either', () => {
+    const saved = importIntoAndSave(openForm([LANG_NONE]), buildLibraryBlock([LANG_NONE]))
+
+    // There is no language to adopt here, so nothing gets named out of thin air
+    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [UNNAMED]: 'no lang' })
+    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [UNNAMED]: 'no lang' })
     chai.expect(saved.settings[0].default_language).to.be.undefined
+    chai.expect(saved.translations).to.be.undefined
   })
 
   it("puts a language-less item's labels in the form's default language", () => {
@@ -128,6 +150,8 @@ describe('importing a library item into a form', () => {
     // Formbuilder renders the form's default language, so that slot cannot be left blank - in either sheet.
     chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_FR]: 'pl', [LANG_PL]: 'pl' })
     chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: 'pl', [LANG_PL]: 'pl' })
+    // The language the item brought along joins the form's own list
+    chai.expect(saved.translations).to.deep.equal([LANG_FR, LANG_PL])
   })
 
   it("reorders the choices along with the survey when the item's languages are in another order", () => {

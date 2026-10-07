@@ -36,6 +36,8 @@ export interface FlatSurvey {
   survey: FlatRow[]
   choices?: FlatChoice[]
   settings: Record<string, any>[]
+  /** The form's languages, default first. Only written out when the form is being saved. */
+  translations?: Array<string | null>
   [key: string]: any
 }
 

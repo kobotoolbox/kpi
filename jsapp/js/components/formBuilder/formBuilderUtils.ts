@@ -94,6 +94,11 @@ export function unnullifyTranslations(surveyDataJSON: string, surveyInitialParam
         })
       })
     }
+
+    // Formbuilder's JSON carries no language list, and without one the backend keeps the list it has stored - which
+    // is `[null]` for a form that had no language. That stale null would come back as an unnamed language beside the
+    // columns we just named, and Formbuilder refuses to reopen a form like that.
+    surveyData.translations = [defaultLang, ...(surveyInitialParams.translations ?? []).slice(1)]
   }
 
   return JSON.stringify(surveyData)
@@ -195,13 +200,9 @@ export function nullifyTranslations(
       // case 1: imported asset has no language of its own, so its values
       // already sit in the single slot the form's default language uses
     } else if (formDefaultLang === null) {
-      // case 2: the form has no named language, so there is nowhere to put one
-      // (mixing unnamed with named is what the throw above rejects). Keep the
-      // asset's default language values and drop its other translations.
-      // TODO: adopt the asset's languages instead of dropping them, once we settle
-      // on how the form's default language gets named.
-      data.translations = [null]
-      rewriteTranslatedValues(sheets, props, (values) => [values[0]])
+      // case 2: the form's own values sit in the single unnamed slot, and leaving it beside the asset's named
+      // languages is the mix the throw above rejects. Nothing is rewritten: the caller adopts the asset's default
+      // language (`translations_0` below) as the form's own, so both sides agree on what the first slot means.
     } else if (data.translations[0] === formDefaultLang) {
       // case 3: nothing to do - same default language in both
     } else if (data.translations.includes(formDefaultLang)) {
