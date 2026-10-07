@@ -6,8 +6,7 @@ INDEX_NAME = 'attachment_active_user_id_idx'
 
 
 def manually_create_index_instructions(apps, schema_editor):
-    print(
-        f"""
+    print(f"""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
@@ -17,13 +16,11 @@ def manually_create_index_instructions(apps, schema_editor):
         CREATE INDEX CONCURRENTLY "{INDEX_NAME}"
             ON "logger_attachment" ("user_id", "id")
             WHERE "delete_status" IS NULL AND "deleted_at" IS NULL;
-        """
-    )
+        """)
 
 
 def manually_drop_index_instructions(apps, schema_editor):
-    print(
-        f"""
+    print(f"""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
@@ -31,8 +28,7 @@ def manually_drop_index_instructions(apps, schema_editor):
         -- Drop partial index {INDEX_NAME} on logger_attachment
         --
         DROP INDEX CONCURRENTLY IF EXISTS "{INDEX_NAME}";
-        """
-    )
+        """)
 
 
 class Migration(migrations.Migration):

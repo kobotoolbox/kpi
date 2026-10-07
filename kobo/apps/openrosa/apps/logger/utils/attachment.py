@@ -68,8 +68,8 @@ def bulk_update_attachment_storage_counters(
     with conditional_kc_transaction_atomic():
         XForm.all_objects.filter(pk__in=xform_ids).update(
             attachment_storage_bytes=(
-                F('attachment_storage_bytes') +
-                sign * Coalesce(Subquery(xform_subquery), 0)
+                F('attachment_storage_bytes')
+                + sign * Coalesce(Subquery(xform_subquery), 0)
             )
         )
 
