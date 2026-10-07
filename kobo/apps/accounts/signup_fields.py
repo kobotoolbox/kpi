@@ -113,6 +113,46 @@ def validate_email_domain(email, allow_managed_domains=False):
     )
 
 
+def provider_manages_email_domain(sociallogin, email):
+    """
+    Is `email`'s domain managed by the SSO provider this signup comes from?
+
+    Only the managing provider's own signup may hold an address on its domain:
+    an account reachable through a second login route - another SSO provider, or
+    a password - would defeat the reason the organisation mandated SSO, which is
+    that disabling somebody there ends their KoboToolbox access
+
+    A server offers whatever providers it was configured with: the Google and
+    Microsoft buttons anybody may use, plus apps set up for individual clients.
+    `managed` is for the latter, and it is what ties a domain to one provider.
+    Say UNHCR's Azure app is `managed` and owns `unhcr.test`:
+
+        bob@unhcr.test from UNHCR Azure -> True, the signup UNHCR asked for
+        bob@unhcr.test from Google      -> False, UNHCR's own app is the only
+                                           one that may hold its domain
+        bob@gmail.com from Google       -> False, but nothing manages gmail.com,
+                                           so the managed-domain check that
+                                           calls this never fires anyway
+
+    A domain belongs to at most one app (`SocialAppManagedDomain.domain` is
+    unique), so there is never a second managing provider to consider.
+    """
+    from .models import SocialAppManagedDomain, get_normalized_domain
+
+    # Mirrors the lookup in `SocialAccountAdapter.is_open_for_signup`, which
+    # asks the same question for a different reason
+    app = getattr(sociallogin.provider, 'app', None)
+    if app is None:
+        # A provider configured without a `SocialApp` cannot manage a domain
+        return False
+
+    return SocialAppManagedDomain.objects.filter(
+        domain__iexact=get_normalized_domain(email),
+        social_app__managed=True,
+        social_app__social_app=app,
+    ).exists()
+
+
 class SignupExtraFieldsForm(forms.Form):
     """
     The signup fields that must be collected while the account is created
@@ -230,22 +270,25 @@ class SignupExtraFieldsForm(forms.Form):
         """
         sociallogin = getattr(self, 'sociallogin', None)
 
-        # The managed-domain rule bans passwords on the domain, so it cannot
-        # apply to somebody signing up through SSO: it would answer an SSO
-        # signup with 'Please sign up using SSO instead'. Waiving it is only
-        # safe while the address remains the one the provider vouched for, which
-        # the next check enforces
-        validate_email_domain(email, allow_managed_domains=bool(sociallogin))
+        # The rule bans passwords, so it cannot apply to the provider that
+        # manages the domain: that signup is what the organisation asked for.
+        # Every other provider stays subject to it, SSO or not - a second way
+        # in would defeat the point
+        validate_email_domain(
+            email,
+            allow_managed_domains=(
+                sociallogin is not None
+                and provider_manages_email_domain(sociallogin, email)
+            ),
+        )
 
         if not sociallogin:
             return
 
-        # `SocialSignupForm.clean_email()` does this for the HTML page. Here the
-        # provider's address is only an initial value and the SPA renders it
-        # read-only, but a caller can still post anything, and without this an
-        # account could claim an address on a managed domain by signing in with
-        # an unmanaged provider. Providers that return no address leave the
-        # initial value empty, and the user has to supply one
+        # The address is only an initial value, so a caller can post anything:
+        # without this, somebody could claim a colleague's address on the same
+        # domain. `SocialSignupForm` does the same for the HTML page. An empty
+        # initial means the provider gave no address to match
         sso_email = self.initial.get('email')
         if sso_email and email.lower() != sso_email.lower():
             raise forms.ValidationError(t('Email must match SSO server email'))

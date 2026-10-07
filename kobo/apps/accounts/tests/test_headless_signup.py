@@ -200,8 +200,9 @@ class HeadlessProviderSignupTestCase(TestCase):
     of somebody who has just authenticated with an SSO provider
 
     The managed-domain rule bans passwords on the domain, not SSO, so it must
-    not stand in their way here - but the address they end up with must still be
-    the one the provider vouched for
+    not stand in the way of the provider that manages it - but no other provider
+    may hold one of its addresses, and the address must be the one the provider
+    vouched for
     """
 
     def setUp(self):
@@ -212,9 +213,9 @@ class HeadlessProviderSignupTestCase(TestCase):
             UNMANAGED_PROVIDER_ID, managed=False
         )
 
-    def test_managed_domain_email_is_accepted(self):
-        # The whole point of the endpoint: this person is signing up through
-        # SSO, which is exactly what a managed domain demands of them
+    def test_managed_domain_email_is_accepted_from_the_managing_provider(self):
+        # The whole point of the endpoint: this person is signing up through the
+        # provider that manages their domain, which is what it demands of them
         self._stash_pending_signup()
 
         response = self._post(self._payload())
@@ -241,13 +242,24 @@ class HeadlessProviderSignupTestCase(TestCase):
         assert b'restricted the use of passwords' in response.content
         assert not get_user_model().objects.filter(username='password_user').exists()
 
+    def test_managed_domain_email_is_rejected_from_another_provider(self):
+        # A second provider vouching for the same address is no help to the
+        # organisation: disabling the person where their domain is managed would
+        # not end an account that signs in through the other one. The email-match
+        # check cannot catch this, since the address is the vouched-for one
+        self._stash_pending_signup(provider_id=UNMANAGED_PROVIDER_ID)
+
+        response = self._post(self._payload())
+
+        assert response.status_code == 400
+        assert b'restricted the use of passwords' in response.content
+        assert not get_user_model().objects.filter(username='sso_user').exists()
+
     def test_email_must_match_the_one_the_provider_vouched_for(self):
         # The address is only an initial value on this form, so without a check
-        # of its own, waiving the managed-domain rule would let anyone claim an
-        # address on a managed domain through an unmanaged provider
-        self._stash_pending_signup(
-            provider_id=UNMANAGED_PROVIDER_ID, email='bob@unmanaged.test'
-        )
+        # of its own, the waiver would let somebody signing up through the
+        # managing provider claim a colleague's address on that same domain
+        self._stash_pending_signup()
 
         response = self._post(self._payload(email=f'director@{MANAGED_DOMAIN}'))
 
@@ -257,8 +269,8 @@ class HeadlessProviderSignupTestCase(TestCase):
 
     @override_config(REGISTRATION_BLACKLIST_EMAIL_DOMAINS=MANAGED_DOMAIN)
     def test_blacklisted_email_domain_is_still_rejected(self):
-        # Only the managed-domain check is waived for SSO; the blacklist and the
-        # allowlist keep applying, as they do on the HTML page
+        # Only the managed-domain check is waived for the managing provider; the
+        # blacklist and the allowlist keep applying, as they do on the HTML page
         self._stash_pending_signup()
 
         response = self._post(self._payload())
