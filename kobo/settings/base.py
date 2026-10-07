@@ -2463,9 +2463,12 @@ AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
     'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
 )
 # Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
-# Users take turns, the next run continues with the following ones
+# Users take turns, the next run continues with the following ones.
+# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
+# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
+# on every schedule reload, so raising this grows Beat's work too.
 AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
-    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 20
+    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
 )
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
