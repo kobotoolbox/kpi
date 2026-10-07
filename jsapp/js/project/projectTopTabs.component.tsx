@@ -41,7 +41,7 @@ export default function ProjectTopTabs() {
   const isFormSummaryRoute = pathname === summaryRoute
   const isFormLandingRoute = pathname === formRoute
   const isAnyFormDataRoute = pathname === dataRoute || pathname.startsWith(dataRoute)
-  const isAnyFormSettingsRoute = pathname === dataRoute || pathname.startsWith(settingsRoute)
+  const isAnyFormSettingsRoute = pathname === settingsRoute || pathname.startsWith(settingsRoute)
 
   return (
     <nav className={styles.root}>
