@@ -3,7 +3,7 @@ import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { ExtraProjectMetadataFieldType } from '#/constants'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
-import type { UserFieldName } from './account/account.constants'
+import type { UserFieldName, UserMetadataField } from './account/account.constants'
 
 export interface EnvironmentResponse {
   terms_of_service_url: string
@@ -53,12 +53,6 @@ export interface EnvironmentResponse {
  * guaranteed (e.g. children rendered by an observer-gated parent) do not need
  * `observer()` themselves.
  */
-
-export interface UserMetadataField {
-  name: UserFieldName
-  required: boolean
-  label: string
-}
 
 export interface EnvStoreFieldItem {
   name: string

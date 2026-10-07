@@ -1,20 +1,29 @@
 import chai from 'chai'
-import type { AccountFieldsValues, UserFieldName } from '#/account/account.constants'
+import type { AccountFieldsValues, UserFieldName, UserMetadataField } from '#/account/account.constants'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'
+import type { AccountResponse } from '#/dataInterface'
+import { meMockResponse } from '#/endpoints/me.mocks'
 import {
   doBlankFieldsDependOnMmoStatus,
   getBlankRequiredProfileFieldNames,
+  getBlankRequiredProfileFieldNamesForAccount,
+  getProfileFieldsContext,
   getRequiredProfileFieldErrors,
   splitProfileUpdateErrors,
 } from './profileDetails.utils'
 
-const values = (overrides: Partial<AccountFieldsValues> = {}): AccountFieldsValues => ({
-  ...getInitialAccountFieldsValues(),
-  ...overrides,
-})
+const values = (overrides: Partial<AccountFieldsValues> = {}): AccountFieldsValues => {
+  return {
+    ...getInitialAccountFieldsValues(),
+    ...overrides,
+  }
+}
 
 /** The set an instance gets when an administrator asks for the organization block. */
 const ORG_FIELDS: UserFieldName[] = ['name', 'organization_type', 'organization', 'organization_website']
+
+const account = (extraDetails: Partial<AccountFieldsValues>): AccountResponse =>
+  ({ ...meMockResponse, extra_details: extraDetails }) as unknown as AccountResponse
 
 describe('getBlankRequiredProfileFieldNames', () => {
   it('finds nothing to complain about when every required field is filled in', () => {
@@ -101,8 +110,96 @@ describe('getBlankRequiredProfileFieldNames', () => {
   })
 })
 
+describe('getProfileFieldsContext', () => {
+  const fields: UserMetadataField[] = [
+    { name: 'name', required: true, label: 'Full name' },
+    { name: 'city', required: false, label: 'City' },
+    { name: 'country', required: true, label: 'Country' },
+  ]
+
+  it('splits the instance configuration into the names and the required ones, in the order given', () => {
+    chai.expect(getProfileFieldsContext(fields, false)).to.deep.equal({
+      configuredFieldNames: ['name', 'city', 'country'],
+      requiredFieldNames: ['name', 'country'],
+      isMmoMember: false,
+    })
+  })
+
+  it('carries who is being asked', () => {
+    chai.expect(getProfileFieldsContext(fields, true).isMmoMember).to.equal(true)
+  })
+
+  it('answers empty lists for an instance that asks for nothing', () => {
+    chai.expect(getProfileFieldsContext([], false)).to.deep.equal({
+      configuredFieldNames: [],
+      requiredFieldNames: [],
+      isMmoMember: false,
+    })
+  })
+})
+
+describe('getBlankRequiredProfileFieldNamesForAccount', () => {
+  const fields: UserMetadataField[] = [
+    { name: 'name', required: true, label: 'Full name' },
+    { name: 'organization', required: true, label: 'Organization name' },
+  ]
+
+  it("reads the values out of the account's `extra_details`", () => {
+    const result = getBlankRequiredProfileFieldNamesForAccount({
+      account: account({ name: 'Caroline Herschel' }),
+      userMetadataFields: fields,
+    })
+
+    chai.expect(result).to.deep.equal(['organization'])
+  })
+
+  it('finds nothing to ask for once the account has it all', () => {
+    const result = getBlankRequiredProfileFieldNamesForAccount({
+      account: account({ name: 'Caroline Herschel', organization: 'Royal Astronomical Society' }),
+      userMetadataFields: fields,
+    })
+
+    chai.expect(result).to.deep.equal([])
+  })
+
+  it('answers nothing before `/environment` lands, whatever the account is missing', () => {
+    const result = getBlankRequiredProfileFieldNamesForAccount({
+      account: account({}),
+      userMetadataFields: undefined,
+    })
+
+    chai.expect(result).to.deep.equal([])
+  })
+
+  it('answers nothing with nobody signed in', () => {
+    const result = getBlankRequiredProfileFieldNamesForAccount({ account: undefined, userMetadataFields: fields })
+
+    chai.expect(result).to.deep.equal([])
+  })
+
+  it("counts the organization's own fields when not told whose organization it is", () => {
+    // The widest reading, which is what decides whether the organization is worth asking about at all.
+    const result = getBlankRequiredProfileFieldNamesForAccount({
+      account: account({ name: 'Caroline Herschel' }),
+      userMetadataFields: fields,
+    })
+
+    chai.expect(doBlankFieldsDependOnMmoStatus(result)).to.equal(true)
+  })
+
+  it('excuses them once the organization says it has more than one member', () => {
+    const result = getBlankRequiredProfileFieldNamesForAccount({
+      account: account({ name: 'Caroline Herschel' }),
+      userMetadataFields: fields,
+      isMmoMember: true,
+    })
+
+    chai.expect(result).to.deep.equal([])
+  })
+})
+
 describe('doBlankFieldsDependOnMmoStatus', () => {
-  it('says no when everything missing is the user’s own to fill in', () => {
+  it("says no when everything missing is the user's own to fill in", () => {
     chai.expect(doBlankFieldsDependOnMmoStatus(['name', 'city'])).to.equal(false)
   })
 

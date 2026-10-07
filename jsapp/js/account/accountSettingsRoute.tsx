@@ -1,19 +1,16 @@
 import './accountSettings.scss'
-
 import React, { useEffect, useState } from 'react'
-
 import { useBlocker } from 'react-router-dom'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useProfile } from '../stores/useProfile'
 import DeleteAccountBanner from './DeleteAccountBanner'
-import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
+import type { AccountFieldsConfig, AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import {
   getEditableProfileFieldNames,
   getInitialAccountFieldsValues,
@@ -109,10 +106,11 @@ const AccountSettings = () => {
 
   const accountName = currentLoggedAccount?.username || ''
 
-  const helpArticleUrl =
-    envStore.data.support_url && envStore.data.support_url.includes('support.kobotoolbox.org')
-      ? envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-      : envStore.data.support_url
+  const fieldsConfig: AccountFieldsConfig = {
+    userMetadataFields: envStore.data.user_metadata_fields,
+    countryChoices: envStore.data.country_choices,
+    sectorChoices: envStore.data.sector_choices,
+  }
 
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
@@ -131,9 +129,10 @@ const AccountSettings = () => {
           <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
-        {currentLoggedAccount && (
+        {currentLoggedAccount && envStore.isReady && (
           <bem.AccountSettings__item m='fields'>
             <AccountFieldsEditor
+              fieldsConfig={fieldsConfig}
               errors={fieldErrors}
               values={formFields}
               onFieldChange={onFieldChange}

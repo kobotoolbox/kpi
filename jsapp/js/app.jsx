@@ -150,7 +150,7 @@ const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, 
   }
 
   if (profileDetails.status === 'active') {
-    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} />
+    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} fieldsConfig={profileDetails.fieldsConfig} />
   }
 
   // TODO: We have multiple routes that shouldn't display `MainHeader`,

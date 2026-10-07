@@ -1,5 +1,7 @@
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
+import type { LabelValuePair } from '#/dataInterface'
 import { recordKeys } from '#/utils'
-import type { AccountFieldsValues, UserFieldName } from './account.constants'
+import type { AccountFieldsConfig, AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
 import { MMO_MANAGED_FIELD_NAMES, USER_FIELD_NAMES } from './account.constants'
 
 /**
@@ -66,6 +68,48 @@ export function getEditableProfileFieldNames({
     return [...configuredFieldNames]
   }
   return configuredFieldNames.filter((name) => !MMO_MANAGED_FIELD_NAMES.includes(name))
+}
+
+const toChoices = (tuples: string[][]): LabelValuePair[] =>
+  tuples.map(([value, label]) => {
+    return { value, label }
+  })
+
+/** The profile fields configuration built from `/environment` response. */
+export function getAccountFieldsConfig(environment: EnvironmentResponse): AccountFieldsConfig {
+  const userMetadataFields: UserMetadataField[] = []
+  for (const field of environment.user_metadata_fields) {
+    if (field.name in USER_FIELD_NAMES) {
+      userMetadataFields.push({
+        name: field.name as UserFieldName,
+        required: Boolean(field.required),
+        label: field.label,
+      })
+    }
+  }
+
+  return {
+    userMetadataFields,
+    countryChoices: toChoices(environment.country_choices),
+    sectorChoices: toChoices(environment.sector_choices),
+  }
+}
+
+export function getUserMetadataFieldsByName(
+  userMetadataFields: readonly UserMetadataField[],
+): Partial<Record<UserFieldName, UserMetadataField>> {
+  const byName: Partial<Record<UserFieldName, UserMetadataField>> = {}
+  for (const field of userMetadataFields) {
+    byName[field.name] = field
+  }
+  return byName
+}
+
+export function getUserMetadataFieldLabel(
+  userMetadataFields: readonly UserMetadataField[],
+  fieldName: UserFieldName,
+): string {
+  return userMetadataFields.find((field) => field.name === fieldName)?.label || fieldName
 }
 
 export function hasNoOrganizationAffiliation(

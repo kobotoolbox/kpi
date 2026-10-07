@@ -1,9 +1,14 @@
 import chai from 'chai'
-import type { AccountFieldsValues, UserFieldName } from './account.constants'
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
+import { environmentResponse } from '#/endpoints/environment.mocks'
+import type { AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
 import {
+  getAccountFieldsConfig,
   getEditableProfileFieldNames,
   getInitialAccountFieldsValues,
   getProfileFieldsValues,
+  getUserMetadataFieldLabel,
+  getUserMetadataFieldsByName,
   hasNoOrganizationAffiliation,
 } from './account.utils'
 
@@ -54,6 +59,93 @@ describe('getEditableProfileFieldNames', () => {
     const result = getEditableProfileFieldNames({ configuredFieldNames, isMmoMember: false })
 
     chai.expect(result).to.not.equal(configuredFieldNames)
+  })
+})
+
+describe('getAccountFieldsConfig', () => {
+  /** A production-like `/environment`, with only the part each case is about overridden. */
+  const environment = (overrides: Partial<EnvironmentResponse>): EnvironmentResponse => {
+    return {
+      ...environmentResponse,
+      ...overrides,
+    }
+  }
+
+  it('keeps the fields in the order the instance lists them', () => {
+    const result = getAccountFieldsConfig(
+      environment({
+        user_metadata_fields: [
+          { name: 'country', label: 'Country', required: true },
+          { name: 'name', label: 'Full name', required: true },
+        ],
+      }),
+    )
+
+    chai.expect(result.userMetadataFields.map((field) => field.name)).to.deep.equal(['country', 'name'])
+  })
+
+  it('reads a field without `required` as not required, the way the serializer does', () => {
+    const result = getAccountFieldsConfig(environment({ user_metadata_fields: [{ name: 'city', label: 'City' }] }))
+
+    chai.expect(result.userMetadataFields).to.deep.equal([{ name: 'city', required: false, label: 'City' }])
+  })
+
+  it('drops a field this build has no input for, rather than asking for something it cannot show', () => {
+    const result = getAccountFieldsConfig(
+      environment({
+        user_metadata_fields: [
+          { name: 'name', label: 'Full name', required: true },
+          { name: 'favourite_comet', label: 'Favourite comet', required: true },
+        ],
+      }),
+    )
+
+    chai.expect(result.userMetadataFields.map((field) => field.name)).to.deep.equal(['name'])
+  })
+
+  it('turns the choice tuples into dropdown options', () => {
+    const result = getAccountFieldsConfig(
+      environment({
+        country_choices: [['DEU', 'Germany']],
+        sector_choices: [['Public Administration', 'Public Administration']],
+      }),
+    )
+
+    chai.expect(result.countryChoices).to.deep.equal([{ value: 'DEU', label: 'Germany' }])
+    chai
+      .expect(result.sectorChoices)
+      .to.deep.equal([{ value: 'Public Administration', label: 'Public Administration' }])
+  })
+})
+
+describe('getUserMetadataFieldsByName', () => {
+  it('keys the configuration by field name', () => {
+    const city: UserMetadataField = { name: 'city', required: false, label: 'City' }
+
+    chai.expect(getUserMetadataFieldsByName([city])).to.deep.equal({ city })
+  })
+
+  it('leaves out a field the instance does not ask for, which is how callers tell', () => {
+    chai.expect(getUserMetadataFieldsByName([])).to.not.have.property('city')
+  })
+})
+
+describe('getUserMetadataFieldLabel', () => {
+  const fields: UserMetadataField[] = [
+    { name: 'name', required: true, label: 'Full name' },
+    { name: 'city', required: false, label: '' },
+  ]
+
+  it('gives the instance’s own label', () => {
+    chai.expect(getUserMetadataFieldLabel(fields, 'name')).to.equal('Full name')
+  })
+
+  it('falls back to the field name when the instance configured none', () => {
+    chai.expect(getUserMetadataFieldLabel(fields, 'city')).to.equal('city')
+  })
+
+  it('falls back to the field name for a field that is not configured at all', () => {
+    chai.expect(getUserMetadataFieldLabel(fields, 'bio')).to.equal('bio')
   })
 })
 
