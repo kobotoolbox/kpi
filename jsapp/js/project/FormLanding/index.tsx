@@ -22,7 +22,6 @@ import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
 import Button from '#/components/common/button'
-import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import KoboPrompt from '#/components/modals/koboPrompt'
@@ -39,6 +38,7 @@ import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
+import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
 import FormHistory from './FormHistory'
 import FormLandingActions from './FormLandingActions'
 
@@ -595,15 +595,8 @@ export default function FormLanding() {
               </Box>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {isFormRedeploymentNeeded(asset) && (
-                <Stack pt='lg' pl='lg' pr='lg'>
-                  <InlineMessage
-                    icon='alert'
-                    type='warning'
-                    message={t('If you want to make these changes public, you must deploy this form.')}
-                  />
-                </Stack>
-              )}
+              {isFormRedeploymentNeeded(asset) && <FormLandingRedeploymentAlert />}
+
               {renderFormInfo(asset, userCanEdit)}
               {renderLanguages(asset, userCanEdit)}
             </bem.FormView__cell>
