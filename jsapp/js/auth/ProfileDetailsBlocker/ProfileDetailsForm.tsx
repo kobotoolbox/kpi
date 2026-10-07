@@ -1,8 +1,13 @@
 import { Stack, Text, Title } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from '#/account/account.constants'
-import { getEditableProfileFieldNames } from '#/account/account.utils'
+import type {
+  AccountFieldsConfig,
+  AccountFieldsErrors,
+  AccountFieldsValues,
+  UserFieldName,
+} from '#/account/account.constants'
+import { getEditableProfileFieldNames, getUserMetadataFieldLabel } from '#/account/account.utils'
 import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
 import { ServerError } from '#/api/ServerError'
 import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
@@ -10,10 +15,9 @@ import { getMeRetrieveQueryKey, useMePartialUpdate } from '#/api/react-query/use
 import { useLogout } from '#/auth/useLogout'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
-import envStore from '#/envStore'
-import type { ProfileFieldsContext } from './profileDetails.utils'
 import {
   getBlankRequiredProfileFieldNames,
+  getProfileFieldsContext,
   getRequiredProfileFieldErrors,
   splitProfileUpdateErrors,
 } from './profileDetails.utils'
@@ -23,8 +27,8 @@ type UserFieldValue = string | boolean
 export interface ProfileDetailsFormProps {
   /** Values as `/me/` has them. Seeds the inputs, and tells us what actually changed. */
   initialValues: AccountFieldsValues
-  /** What the instance asks for, and who is being asked. */
-  fieldsContext: ProfileFieldsContext
+  fieldsConfig: AccountFieldsConfig
+  isMmoMember: boolean
   /**
    * Called once the details are saved. This form does not decide how the app gets un-blocked, which is
    * also what keeps it testable - the real caller reloads the page.
@@ -39,7 +43,12 @@ export interface ProfileDetailsFormProps {
  * Field errors and general ones are both possible from the same response, so both are catered for - see
  * {@link splitProfileUpdateErrors}.
  */
-export default function ProfileDetailsForm({ initialValues, fieldsContext, onSaved }: ProfileDetailsFormProps) {
+export default function ProfileDetailsForm({
+  initialValues,
+  fieldsConfig,
+  isMmoMember,
+  onSaved,
+}: ProfileDetailsFormProps) {
   const queryClient = useQueryClient()
   const [values, setValues] = useState<AccountFieldsValues>(initialValues)
   // Only what was touched gets sent. A PATCH retains the keys it does not carry, so this both keeps the
@@ -52,10 +61,11 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
 
   const logout = useLogout()
 
+  const fieldsContext = getProfileFieldsContext(fieldsConfig.userMetadataFields, isMmoMember)
   const displayedFieldNames = getEditableProfileFieldNames(fieldsContext)
 
   /** The instance's own label for a field, for a message that cannot sit under the input. */
-  const labelFor = (fieldName: UserFieldName) => envStore.data.getUserMetadataFieldLabel(fieldName)
+  const labelFor = (fieldName: UserFieldName) => getUserMetadataFieldLabel(fieldsConfig.userMetadataFields, fieldName)
 
   const save = useMePartialUpdate<OrvalFetchError>({
     mutation: {
@@ -162,6 +172,7 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
       <form onSubmit={handleSubmit} noValidate>
         <Stack gap='xl'>
           <AccountFieldsEditor
+            fieldsConfig={fieldsConfig}
             displayedFields={displayedFieldNames}
             errors={fieldErrors}
             values={values}

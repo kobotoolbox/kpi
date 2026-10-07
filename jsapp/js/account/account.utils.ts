@@ -1,5 +1,6 @@
-import { recordKeys } from '#/utils'
-import type { AccountFieldsValues, UserFieldName } from './account.constants'
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
+import { choicesFromTuples, recordKeys } from '#/utils'
+import type { AccountFieldsConfig, AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
 import { MMO_MANAGED_FIELD_NAMES, USER_FIELD_NAMES } from './account.constants'
 
 /**
@@ -66,6 +67,43 @@ export function getEditableProfileFieldNames({
     return [...configuredFieldNames]
   }
   return configuredFieldNames.filter((name) => !MMO_MANAGED_FIELD_NAMES.includes(name))
+}
+
+/** The profile fields configuration built from `/environment` response. */
+export function getAccountFieldsConfig(environment: EnvironmentResponse): AccountFieldsConfig {
+  // Keyed, because `USER_METADATA_FIELDS` accepts the same name twice - its uniqueness check compares whole entries,
+  // not names. One entry per name, the last one given, which is the rule the rest of the code already follows.
+  const byName = new Map<UserFieldName, UserMetadataField>()
+  for (const field of environment.user_metadata_fields) {
+    if (field.name in USER_FIELD_NAMES) {
+      const name = field.name as UserFieldName
+      byName.set(name, { name, required: Boolean(field.required), label: field.label })
+    }
+  }
+
+  return {
+    userMetadataFields: [...byName.values()],
+    countryChoices: choicesFromTuples(environment.country_choices),
+    sectorChoices: choicesFromTuples(environment.sector_choices),
+  }
+}
+
+export function getUserMetadataFieldsByName(
+  userMetadataFields: readonly UserMetadataField[],
+): Partial<Record<UserFieldName, UserMetadataField>> {
+  const byName: Partial<Record<UserFieldName, UserMetadataField>> = {}
+  for (const field of userMetadataFields) {
+    byName[field.name] = field
+  }
+  return byName
+}
+
+export function getUserMetadataFieldLabel(
+  userMetadataFields: readonly UserMetadataField[],
+  fieldName: UserFieldName,
+): string {
+  // Through the same dict the editor labels its inputs from, so the two can never name a field differently.
+  return getUserMetadataFieldsByName(userMetadataFields)[fieldName]?.label || fieldName
 }
 
 export function hasNoOrganizationAffiliation(
