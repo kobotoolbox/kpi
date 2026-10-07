@@ -1437,9 +1437,6 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
-ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
-# How long to wait before flushing an individual preview from Enketo's cache
-ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
