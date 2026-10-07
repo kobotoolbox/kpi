@@ -1,10 +1,10 @@
-import { Group, Stack, TextInput } from '@mantine/core'
+import { Box, Group, Stack, TextInput } from '@mantine/core'
 import { IconWorldFilled } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   useAssetsPermissionAssignmentsCreate,
   useAssetsPermissionAssignmentsDestroy,
@@ -21,14 +21,11 @@ import { parsed } from '#/assetParserUtils'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
-import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
-import { openEnketoPreviewModal } from '#/components/enketoPreview/openEnketoPreviewModal'
 import KoboPrompt from '#/components/modals/koboPrompt'
-import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
@@ -37,13 +34,13 @@ import { ASSET_TYPES, COLLECTION_METHODS, CollectionMethodName } from '#/constan
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
-import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
 import FormHistory from './FormHistory'
+import FormLandingActions from './FormLandingActions'
 
 /**
  * URL of the permission that lets anonymous users submit data to a project. This is a function rather than a module
@@ -124,13 +121,6 @@ export default function FormLanding() {
       uidAsset: uid,
       data: { user: buildUserUrl(ANON_USERNAME), permission: anonymousPermissionUrl },
     })
-  }
-
-  const handleEnketoPreviewClick = (evt: React.MouseEvent<HTMLElement>) => {
-    evt.preventDefault()
-    if (asset?.url) {
-      openEnketoPreviewModal({ assetUrl: asset.url })
-    }
   }
 
   const callUnarchiveAsset = () => setPrompt({ type: 'unarchive' })
@@ -324,20 +314,6 @@ export default function FormLanding() {
         </bem.FormView__cell>
       </bem.FormView__cell>
     )
-  }
-
-  const handleShareClick = (evt: React.MouseEvent<HTMLElement>) => {
-    evt.preventDefault()
-    if (asset) {
-      openSharingModal({ asset })
-    }
-  }
-
-  const handleReplaceFormClick = (evt: React.MouseEvent<HTMLElement>) => {
-    evt.preventDefault()
-    if (asset) {
-      openReplaceProjectModal({ asset })
-    }
   }
 
   const showLanguagesModal = (evt: React.MouseEvent<HTMLElement>) => {
@@ -555,118 +531,6 @@ export default function FormLanding() {
     })
   }
 
-  const handleNonOwnerSelfRemovalClick = (evt: React.MouseEvent<HTMLElement>, loadedAsset: AssetResponse) => {
-    evt.preventDefault()
-    openKoboConfirmModal({
-      title: t('Remove shared form'),
-      children: t('Are you sure you want to remove this shared form?'),
-      labels: { confirm: t('Remove'), cancel: t('Cancel') },
-      onConfirm: () => removeSharedProject(loadedAsset),
-    })
-  }
-
-  // TODO: FormLandingActions should be a seperate component
-  const renderButtons = (loadedAsset: AssetResponse, userCanEdit: boolean) => {
-    const downloads = loadedAsset.downloads || []
-    const isLoggedIn = profileStore.isLoggedIn
-
-    return (
-      <React.Fragment>
-        {userCanEdit ? (
-          <Link to={`/forms/${loadedAsset.uid}/edit`}>
-            {/*
-              We put non clickable button inside Link, so that it's possible
-              to open it in new tab.
-            */}
-            <Button type='text' size='m' startIcon='edit' tooltip={t('Edit in Form Builder')} tooltipPosition='right' />
-          </Link>
-        ) : (
-          <Button
-            type='text'
-            size='m'
-            startIcon='edit'
-            tooltip={t('Editing capabilities not granted, you can only view this form')}
-            tooltipPosition='right'
-            isDisabled
-          />
-        )}
-
-        <Button
-          type='text'
-          size='m'
-          startIcon='view'
-          tooltip={t('Preview')}
-          tooltipPosition='right'
-          onClick={handleEnketoPreviewClick}
-          isDisabled={!loadedAsset.url}
-        />
-
-        {userCanEdit && (
-          <Button
-            type='text'
-            size='m'
-            startIcon='replace'
-            tooltip={t('Replace form')}
-            tooltipPosition='right'
-            onClick={handleReplaceFormClick}
-          />
-        )}
-
-        <Menu>
-          <Menu.Target>
-            <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
-          </Menu.Target>
-          <Menu.Dropdown>
-            {downloads.map((dl) => (
-              <Menu.Item
-                component='a'
-                href={dl.url}
-                key={`dl-${dl.format}`}
-                leftSection={<i className={`k-icon k-icon-file-${dl.format}`} />}
-              >
-                {t('Download')}&nbsp;
-                {dl.format.toUpperCase()}
-              </Menu.Item>
-            ))}
-
-            {userCanEdit && (
-              <Menu.Item onClick={handleShareClick} leftSection={<i className='k-icon k-icon-user-share' />}>
-                {t('Share this project')}
-              </Menu.Item>
-            )}
-
-            {isLoggedIn && userCanRemoveSharedProject(loadedAsset) && (
-              <Menu.Item
-                onClick={(evt) => handleNonOwnerSelfRemovalClick(evt, loadedAsset)}
-                leftSection={<i className='k-icon k-icon-trash' />}
-              >
-                {t('Remove shared project')}
-              </Menu.Item>
-            )}
-
-            {isLoggedIn && (
-              <Menu.Item
-                onClick={() => cloneAsset(ASSET_TYPES.survey.id)}
-                leftSection={<i className='k-icon k-icon-duplicate' />}
-              >
-                {t('Clone this project')}
-              </Menu.Item>
-            )}
-
-            {isLoggedIn && (
-              <Menu.Item
-                onClick={() => cloneAsset(ASSET_TYPES.template.id)}
-                leftSection={<i className='k-icon k-icon-template' />}
-              >
-                {t('Create template')}
-              </Menu.Item>
-            )}
-          </Menu.Dropdown>
-        </Menu>
-      </React.Fragment>
-    )
-  }
-
   // TODO: FormLanguages should be a seperate component and keep the layout that joins it to FormInfo in FormLanding.
   const renderLanguages = (loadedAsset: AssetResponse, canEdit: boolean) => {
     const translations = loadedAsset.content?.translations
@@ -719,7 +583,16 @@ export default function FormLanding() {
                     ? t('Archived version')
                     : t('Draft version')}
               </bem.FormView__cell>
-              <bem.FormView__cell m='action-buttons'>{renderButtons(asset, userCanEdit)}</bem.FormView__cell>
+              <Box className='form-view__cell form-view__cell--action-buttons'>
+                <FormLandingActions
+                  asset={asset}
+                  canEdit={userCanEdit}
+                  isLoggedIn={isLoggedIn}
+                  canRemoveSharedProject={userCanRemoveSharedProject(asset)}
+                  onRemoveSharedProject={() => removeSharedProject(asset)}
+                  onClone={(assetType) => cloneAsset(assetType)}
+                />
+              </Box>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {isFormRedeploymentNeeded(asset) && (
