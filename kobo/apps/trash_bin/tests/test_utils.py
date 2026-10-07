@@ -627,8 +627,8 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         again once restored. Counter on xform remains unchanged.
         """
         someuser = User.objects.get(username='someuser')
-        asset, xform, instance, _, attachment = (
-            self._create_test_asset_and_submission(user=someuser)
+        asset, xform, instance, _, attachment = self._create_test_asset_and_submission(
+            user=someuser
         )
 
         xform_storage_init = xform.attachment_storage_bytes
@@ -675,8 +675,8 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         project is archived or unarchived
         """
         someuser = User.objects.get(username='someuser')
-        asset, xform, instance, _, attachment = (
-            self._create_test_asset_and_submission(user=someuser)
+        asset, xform, instance, _, attachment = self._create_test_asset_and_submission(
+            user=someuser
         )
 
         xform_storage_init = xform.attachment_storage_bytes
@@ -880,9 +880,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             PeriodicTask.objects, 'bulk_create', side_effect=IntegrityError
         ):
             with pytest.raises(TrashIntegrityError):
-                self._move_attachment_to_trash(
-                    self.asset, self.attachment, self.user
-                )
+                self._move_attachment_to_trash(self.asset, self.attachment, self.user)
 
         toggle_statuses.assert_not_called()
         self._refresh_all()

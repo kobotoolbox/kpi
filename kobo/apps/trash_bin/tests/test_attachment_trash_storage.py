@@ -76,12 +76,8 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         self._put_back_from_trash()
 
         # Counters should be restored to original values
-        self.assertEqual(
-            self.xform.attachment_storage_bytes, original_xform_bytes
-        )
-        self.assertEqual(
-            self._get_user_storage(self.user), original_user_bytes
-        )
+        self.assertEqual(self.xform.attachment_storage_bytes, original_xform_bytes)
+        self.assertEqual(self._get_user_storage(self.user), original_user_bytes)
         self.assertIsNone(self.attachment.delete_status)
 
     def test_toggling_twice_does_not_count_storage_twice(self):
@@ -118,8 +114,8 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         counters of their own user and project only
         """
         other_user = User.objects.create(username='other_owner')
-        _, other_xform, _, _, other_attachment = (
-            self._create_test_asset_and_submission(user=other_user)
+        _, other_xform, _, _, other_attachment = self._create_test_asset_and_submission(
+            user=other_user
         )
         self._refresh_all()
         other_xform.refresh_from_db()
@@ -165,12 +161,8 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         self.xform.refresh_from_db()
 
         # Verify that the attachment storage counter is not decreased twice
-        self.assertEqual(
-            self.xform.attachment_storage_bytes, decremented_xform_bytes
-        )
-        self.assertEqual(
-            self._get_user_storage(self.user), decremented_user_bytes
-        )
+        self.assertEqual(self.xform.attachment_storage_bytes, decremented_xform_bytes)
+        self.assertEqual(self._get_user_storage(self.user), decremented_user_bytes)
 
     def _move_to_trash(self):
         """
@@ -245,9 +237,7 @@ class TransferredProjectAttachmentTrashCounterTestCase(
         self._refresh_all()
         xform_storage_after_transfer = self.xform.attachment_storage_bytes
         owner_storage_after_transfer = self._get_user_storage(self.owner)
-        new_owner_storage_after_transfer = (
-            self._get_user_storage(self.new_owner)
-        )
+        new_owner_storage_after_transfer = self._get_user_storage(self.new_owner)
 
         self.assertGreater(xform_storage_after_transfer, 0)
         self.assertEqual(owner_storage_after_transfer, 0)
@@ -293,9 +283,7 @@ class TransferredProjectAttachmentTrashCounterTestCase(
 
         xform_storage_after_restore = self.xform.attachment_storage_bytes
         owner_storage_after_restore = self._get_user_storage(self.owner)
-        new_owner_storage_after_restore = (
-            self._get_user_storage(self.new_owner)
-        )
+        new_owner_storage_after_restore = self._get_user_storage(self.new_owner)
 
         # After restore: values should match post-transfer values
         self.assertEqual(xform_storage_after_restore, xform_storage_after_transfer)
@@ -339,9 +327,7 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
 
     def test_concurrent_trash_subtracts_once(self):
         user = User.objects.create(username='owner')
-        _, xform, _, _, attachment = self._create_test_asset_and_submission(
-            user=user
-        )
+        _, xform, _, _, attachment = self._create_test_asset_and_submission(user=user)
         xform.refresh_from_db()
         storage_before = self._get_user_storage(user)
         size = attachment.media_file_size
@@ -377,8 +363,8 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         as it deletes them, so it skips an attachment the trash just counted.
         """
         user = User.objects.create(username='owner')
-        asset, xform, instance, _, attachment = (
-            self._create_test_asset_and_submission(user=user)
+        asset, xform, instance, _, attachment = self._create_test_asset_and_submission(
+            user=user
         )
         xform.refresh_from_db()
         assert attachment.media_file_size > 0
@@ -432,8 +418,8 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         so it still saw the attachment active and subtracted it a second time.
         """
         user = User.objects.create(username='owner')
-        asset, xform, instance, _, attachment = (
-            self._create_test_asset_and_submission(user=user)
+        asset, xform, instance, _, attachment = self._create_test_asset_and_submission(
+            user=user
         )
         xform.refresh_from_db()
         assert attachment.media_file_size > 0
@@ -482,8 +468,8 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         subtracted once, by whichever call actually deletes it.
         """
         user = User.objects.create(username='owner')
-        asset, xform, first_instance, _, _ = (
-            self._create_test_asset_and_submission(user=user)
+        asset, xform, first_instance, _, _ = self._create_test_asset_and_submission(
+            user=user
         )
         second_instance = self._add_submission(asset, user)
         submission_ids = {
@@ -528,9 +514,12 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
 
         assert deleted_meanwhile
         xform.refresh_from_db()
-        remaining = Attachment.all_objects.filter(xform_id=xform.pk).aggregate(
-            total=Sum('media_file_size')
-        )['total'] or 0
+        remaining = (
+            Attachment.all_objects.filter(xform_id=xform.pk).aggregate(
+                total=Sum('media_file_size')
+            )['total']
+            or 0
+        )
         assert xform.attachment_storage_bytes == remaining
         if first_call == 'both' or concurrent_call == 'both':
             assert xform.attachment_storage_bytes == 0
@@ -566,9 +555,7 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
                 self._run_in_thread(self._trash, attachment)
             return real_now()
 
-        with patch.object(
-            logger_tools.dj_timezone, 'now', side_effect=trash_then_now
-        ):
+        with patch.object(logger_tools.dj_timezone, 'now', side_effect=trash_then_now):
             soft_deleted = get_soft_deleted_attachments(instance)
 
         assert trashed

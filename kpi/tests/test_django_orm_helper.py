@@ -288,9 +288,9 @@ class ReturningQuerySetTestCase(TestCase, AssetSubmissionTestMixin):
     def test_delete_returning_returns_nothing_when_no_row_matches(self):
         Attachment.all_objects.filter(pk=self.attachment.pk).delete()
 
-        rows = Attachment.all_objects.filter(
-            pk=self.attachment.pk
-        ).delete_returning(['id'])
+        rows = Attachment.all_objects.filter(pk=self.attachment.pk).delete_returning(
+            ['id']
+        )
 
         assert rows == []
         assert Attachment.all_objects.filter(pk=self.other_attachment.pk).exists()

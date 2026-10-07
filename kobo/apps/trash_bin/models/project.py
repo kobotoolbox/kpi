@@ -9,8 +9,8 @@ from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
-from . import BaseTrash
 from ..type_aliases import UpdatedQuerySetAndCount
+from . import BaseTrash
 
 
 class ProjectTrash(BaseTrash):
@@ -81,9 +81,7 @@ class ProjectTrash(BaseTrash):
             # same back end to avoid looping on each object to update their
             # back end.
             queryset = Asset.all_objects.filter(**filter_params)
-            updated = queryset.update(
-                **update_params
-            )
+            updated = queryset.update(**update_params)
 
             if toggle_delete and not active:
                 Invite.objects.filter(

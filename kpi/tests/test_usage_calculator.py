@@ -14,7 +14,7 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.organizations.constants import UsageType, USAGE_TYPES_WITH_COUNTERS
+from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset

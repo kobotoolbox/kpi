@@ -7,8 +7,8 @@ from django.utils.timezone import now
 
 from hub.models import ExtraUserDetail
 from kpi.fields import KpiUidField
-from . import BaseTrash
 from ..type_aliases import UpdatedQuerySetAndCount
+from . import BaseTrash
 
 
 class AccountTrash(BaseTrash):
