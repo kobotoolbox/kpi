@@ -1,6 +1,15 @@
 from collections import defaultdict
 
-from django.db.models import F, OuterRef, Subquery, Sum
+from django.db.models import (
+    BigIntegerField,
+    Case,
+    F,
+    OuterRef,
+    Subquery,
+    Sum,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -57,17 +66,17 @@ def bulk_update_attachment_storage_counters(
     )
 
     with conditional_kc_transaction_atomic():
-        UserProfile.objects.filter(user_id__in=user_ids).update(
-            attachment_storage_bytes=(
-                F('attachment_storage_bytes') +
-                sign * Coalesce(Subquery(user_profile_subquery), 0)
-            )
-        )
-
         XForm.all_objects.filter(pk__in=xform_ids).update(
             attachment_storage_bytes=(
                 F('attachment_storage_bytes') +
                 sign * Coalesce(Subquery(xform_subquery), 0)
+            )
+        )
+
+        UserProfile.objects.filter(user_id__in=user_ids).update(
+            attachment_storage_bytes=(
+                F('attachment_storage_bytes') +
+                sign * Coalesce(Subquery(user_profile_subquery), 0)
             )
         )
 
@@ -106,6 +115,8 @@ def toggle_delete_status_and_storage_counters(
             delete_status=new_status,
             date_modified=timezone.now(),
         )
+        if not changed_rows:
+            return 0
 
         bytes_per_user = defaultdict(int)
         bytes_per_xform = defaultdict(int)
@@ -113,18 +124,33 @@ def toggle_delete_status_and_storage_counters(
             bytes_per_user[row['user_id']] += row['media_file_size'] or 0
             bytes_per_xform[row['xform_id']] += row['media_file_size'] or 0
 
-        # Always in the same order, so that two calls updating the same users
-        # or projects cannot deadlock
-        for user_id in sorted(bytes_per_user):
-            UserProfile.objects.filter(user_id=user_id).update(
-                attachment_storage_bytes=F('attachment_storage_bytes')
-                + sign * bytes_per_user[user_id]
+        # Projects first and user profiles last, like `update_user_counters()`
+        # does for each submission, so both cannot deadlock and the profile
+        # rows stay locked as briefly as possible.
+        XForm.all_objects.bulk_update(
+            [
+                XForm(
+                    pk=xform_id,
+                    attachment_storage_bytes=F('attachment_storage_bytes')
+                    + sign * size,
+                )
+                for xform_id, size in bytes_per_xform.items()
+            ],
+            ['attachment_storage_bytes'],
+        )
+        # Same SQL as `bulk_update()` (one `UPDATE` with a `CASE` per row), but
+        # keyed on `user_id`, because `bulk_update()` needs the profile pk,
+        # which would cost an extra query.
+        UserProfile.objects.filter(user_id__in=bytes_per_user).update(
+            attachment_storage_bytes=F('attachment_storage_bytes')
+            + Case(
+                *[
+                    When(user_id=user_id, then=Value(sign * size))
+                    for user_id, size in bytes_per_user.items()
+                ],
+                output_field=BigIntegerField(),
             )
-        for xform_id in sorted(bytes_per_xform):
-            XForm.all_objects.filter(pk=xform_id).update(
-                attachment_storage_bytes=F('attachment_storage_bytes')
-                + sign * bytes_per_xform[xform_id]
-            )
+        )
 
     return len(changed_rows)
 
