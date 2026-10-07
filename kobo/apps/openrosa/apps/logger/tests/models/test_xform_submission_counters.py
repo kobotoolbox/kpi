@@ -206,6 +206,9 @@ class TestCatchAllCounterLockOrder(TransactionTestCase):
             try:
                 with transaction.atomic():
                     self._force_sequential_scan()
+                    with connection.cursor() as cursor:
+                        # Fail instead of hanging the suite on a lock never released
+                        cursor.execute('SET LOCAL lock_timeout = 5000')
                     MonthlyXFormSubmissionCounter.update_catch_all_counter_on_delete(
                         sender=XForm, instance=xform
                     )
@@ -227,6 +230,8 @@ class TestCatchAllCounterLockOrder(TransactionTestCase):
                 thread.start()
             for thread in threads:
                 thread.join(timeout=10)
+            # Never assert or clean up while a worker still holds row locks
+            assert not any(thread.is_alive() for thread in threads)
 
         assert errors == []
         catch_all = MonthlyXFormSubmissionCounter.objects.filter(
