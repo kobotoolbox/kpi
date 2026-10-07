@@ -112,21 +112,25 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         files_to_delete = set()
 
         with kc_transaction_atomic(), transaction.atomic():
-            # One query: collect PKs + aggregate storage bytes before deleting.
-            # all_objects is used to include soft-deleted attachments
-            # (delete_status IS NOT NULL) that the default manager excludes.
-            attachment_rows = list(
-                Attachment.all_objects.filter(instance_id__in=instance_ids).values(
-                    'pk',
+            # Delete the attachments and get them back in the same query, so
+            # storage is counted from the rows as they were when deleted. Reading
+            # them first and deleting them afterwards would count, a second time,
+            # an attachment trashed in between. `all_objects` includes the
+            # soft-deleted attachments that the default manager leaves out.
+            attachment_rows = Attachment.all_objects.filter(
+                instance_id__in=instance_ids
+            ).delete_returning(
+                fields=[
+                    'id',
                     'media_file',
                     'media_file_size',
                     'delete_status',
                     'mimetype',
-                )
+                ]
             )
 
             # Bulk cleanup AttachmentTrash (cross-DB: KPI default DB, no FK
-            # constraint) before fast-deleting Attachments.
+            # constraint)
             if attachment_rows:
                 attachment_ids = []
                 for attachment_row in attachment_rows:
@@ -136,7 +140,7 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                     if attachment_row['delete_status'] is None:
                         total_storage_bytes += attachment_row['media_file_size'] or 0
 
-                    attachment_ids.append(attachment_row['pk'])
+                    attachment_ids.append(attachment_row['id'])
                     if media_file := attachment_row['media_file']:
                         files_to_delete.add(media_file)
                         if attachment_row['mimetype'].startswith('image/'):
@@ -159,7 +163,6 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                         pk__in=periodic_task_ids
                     ).delete()
 
-            Attachment.all_objects.filter(instance_id__in=instance_ids).delete()
             Note.objects.filter(instance_id__in=instance_ids).delete()
             InstanceModification.objects.filter(instance_id__in=instance_ids).delete()
             ParsedInstance.objects.filter(instance_id__in=instance_ids).delete()

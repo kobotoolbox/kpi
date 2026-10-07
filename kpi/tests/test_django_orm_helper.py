@@ -7,7 +7,9 @@ from django.utils import timezone
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.user_reports.models import BillingAndUsageSnapshotRun
+from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
@@ -244,3 +246,51 @@ class DjangoORMHelperTestCase(TestCase):
         queryset = Attachment.all_objects.filter(xform__kpi_asset_uid='aFoo')
         with pytest.raises(ValueError):
             queryset.update_returning(['pk'], date_modified=timezone.now())
+
+
+class ReturningQuerySetTestCase(TestCase, AssetSubmissionTestMixin):
+
+    def setUp(self):
+        user = User.objects.create(username='owner')
+        _, _, self.instance, _, self.attachment = (
+            self._create_test_asset_and_submission(user=user)
+        )
+        _, _, _, _, self.other_attachment = self._create_test_asset_and_submission(
+            user=user
+        )
+
+    def test_delete_returning_refuses_joins(self):
+        queryset = Attachment.all_objects.filter(xform__kpi_asset_uid='aFoo')
+        with pytest.raises(ValueError):
+            queryset.delete_returning(['pk'])
+
+    def test_delete_returning_returns_deleted_rows_only(self):
+        Attachment.all_objects.filter(pk=self.attachment.pk).update(
+            delete_status=AttachmentDeleteStatus.PENDING_DELETE
+        )
+
+        rows = Attachment.all_objects.filter(
+            instance_id=self.instance.pk
+        ).delete_returning(['id', 'media_file', 'media_file_size', 'delete_status'])
+
+        # Values as they were just before the delete
+        assert rows == [
+            {
+                'id': self.attachment.pk,
+                'media_file': self.attachment.media_file.name,
+                'media_file_size': self.attachment.media_file_size,
+                'delete_status': AttachmentDeleteStatus.PENDING_DELETE,
+            }
+        ]
+        assert not Attachment.all_objects.filter(pk=self.attachment.pk).exists()
+        assert Attachment.all_objects.filter(pk=self.other_attachment.pk).exists()
+
+    def test_delete_returning_returns_nothing_when_no_row_matches(self):
+        Attachment.all_objects.filter(pk=self.attachment.pk).delete()
+
+        rows = Attachment.all_objects.filter(
+            pk=self.attachment.pk
+        ).delete_returning(['id'])
+
+        assert rows == []
+        assert Attachment.all_objects.filter(pk=self.other_attachment.pk).exists()

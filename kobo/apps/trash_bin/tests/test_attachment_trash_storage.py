@@ -318,7 +318,7 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
     TransactionTestCase, AssetSubmissionTestMixin
 ):
     """
-    Two requests trashing the same attachment at the same time must subtract
+    Two requests changing the same attachment at the same time must subtract
     its size once. The second one waits for the first one to commit, then
     changes nothing, and must count nothing
     """
@@ -355,3 +355,53 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         self.assertEqual(sorted(updated), [0, 1])
         self.assertEqual(self._get_user_storage(user), storage_before - size)
         self.assertEqual(xform.attachment_storage_bytes, storage_before - size)
+
+    def test_concurrent_trash_and_submission_deletion_subtract_once(self):
+        """
+        Trashing an attachment while its submission is deleted must subtract
+        its size once, whichever commits first. The deletion counts the rows
+        as it deletes them, so it skips an attachment the trash just counted.
+        """
+        user = User.objects.create(username='owner')
+        asset, xform, instance, _, attachment = (
+            self._create_test_asset_and_submission(user=user)
+        )
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes == attachment.media_file_size
+
+        barrier = threading.Barrier(2)
+        errors = []
+
+        def trash():
+            try:
+                barrier.wait()
+                AttachmentTrash.toggle_statuses([attachment.uid], active=False)
+            except Exception as e:
+                errors.append(e)
+            finally:
+                connections.close_all()
+
+        def delete_submission():
+            try:
+                barrier.wait()
+                asset.deployment.delete_submissions(
+                    {'submission_ids': [instance.pk], 'query': ''}, user
+                )
+            except Exception as e:
+                errors.append(e)
+            finally:
+                connections.close_all()
+
+        threads = [
+            threading.Thread(target=trash),
+            threading.Thread(target=delete_submission),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert errors == []
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes == 0
+        assert self._get_user_storage(user) == 0
