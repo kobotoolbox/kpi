@@ -15,6 +15,7 @@ from kobo.apps.data_collectors.utils import (
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
+from kpi.deployment_backends.openrosa_utils import to_internal_url
 from kpi.utils.log import logging
 
 
@@ -53,7 +54,7 @@ class TestDataCollectorUtils(TestCase):
         return {'enketo_id': fake_enketo_id}
 
     def _check_expected_redis_entries(self, token, form_id):
-        expected_url = DC_ENKETO_URL_TEMPLATE.format(token)
+        expected_url = to_internal_url(DC_ENKETO_URL_TEMPLATE.format(token))
         enketo_key = get_redis_key_for_token_and_xform(token, form_id)
         enketo_id = self.redis_client.get(enketo_key).decode('utf-8')
         open_rosa_server = self.redis_client.hget(
