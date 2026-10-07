@@ -24,6 +24,7 @@ export interface BulkActionResponse {
   submission_uuids: string[]
   submission_statuses: BulkActionSubmissionStatusResponse[]
   params: BulkActionParamsResponse
+  auto_accept: boolean
   /**
    * @minimum 0
    * @maximum 100
