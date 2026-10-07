@@ -19,8 +19,8 @@ on:
 
 jobs:
 
-  resolve-author:
-    uses: './.github/workflows/resolve-author.yml'
+  resolve-actor:
+    uses: './.github/workflows/resolve-actor.yml'
 
   # Validate the selected branch and pass it downstream.
   current-branch:
@@ -546,7 +546,7 @@ jobs:
 
   on-failure:
     needs:
-      - resolve-author
+      - resolve-actor
       - version
       - validate
       - pull-transifex
@@ -561,4 +561,4 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ needs.version.outputs.current_patch }}`. ${{ needs.resolve-actor.outputs.mention || '@*devs*' }} please investigate."

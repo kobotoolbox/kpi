@@ -1,10 +1,10 @@
-name: Resolve commit author to Zulip mention
+name: Resolve actor to Zulip mention
 
 on:
   workflow_call:
     outputs:
       mention:
-        description: 'Zulip @**Name** mention for the commit author, empty if not found'
+        description: 'Zulip @**Name** mention for the actor who triggered the run, empty if not found'
         value: ${{ jobs.resolve.outputs.mention }}
 
 permissions:
@@ -16,7 +16,7 @@ jobs:
     outputs:
       mention: ${{ steps.resolve.outputs.mention }}
     steps:
-      - name: Resolve commit author to Zulip mention
+      - name: Resolve actor to Zulip mention
         id: resolve
         env:
           MAP: ${{ vars.ZULIP_USERNAME_MAP }}
