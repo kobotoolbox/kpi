@@ -47,7 +47,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
-from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
@@ -1443,14 +1443,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             xform=self.xform, user_id=self.asset.owner.pk
         ).update(user=new_owner)
 
-        UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
-            attachment_storage_bytes=F('attachment_storage_bytes')
-            - self.xform.attachment_storage_bytes
-        )
-        UserProfile.objects.filter(user_id=new_owner.pk).update(
-            attachment_storage_bytes=F('attachment_storage_bytes')
-            + self.xform.attachment_storage_bytes
-        )
+        # Storage follows the project: user storage is the sum of their
+        # projects, and `XForm.user` moves to the new owner with it.
 
     @property
     def _backend_identifier(self):

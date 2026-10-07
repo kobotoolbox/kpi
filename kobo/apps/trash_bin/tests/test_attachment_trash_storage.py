@@ -29,11 +29,10 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
     def setUp(self):
         self.factory = APIRequestFactory()
         self.user = User.objects.create(username='owner')
-        self.user_profile, _ = UserProfile.objects.get_or_create(user=self.user)
         self.extra = {
             'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token
         }
-        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+        self.asset, self.xform, self.instance, _, self.attachment = (
             self._create_test_asset_and_submission(user=self.user)
         )
 
@@ -46,16 +45,16 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         self._refresh_all()
         self.assertIsNotNone(self.attachment.media_file_size)
         self.assertGreater(self.xform.attachment_storage_bytes, 0)
-        self.assertGreater(self.user_profile.attachment_storage_bytes, 0)
+        self.assertGreater(self._get_user_storage(self.user), 0)
         original_xform_bytes = self.xform.attachment_storage_bytes
-        original_user_bytes = self.user_profile.attachment_storage_bytes
+        original_user_bytes = self._get_user_storage(self.user)
 
         # Move the attachment to trash
         self._move_to_trash()
 
         # Counters should be decremented
         self.assertEqual(self.xform.attachment_storage_bytes, 0)
-        self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(self._get_user_storage(self.user), 0)
         self.assertEqual(
             self.attachment.delete_status, AttachmentDeleteStatus.PENDING_DELETE
         )
@@ -68,7 +67,7 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
             self.xform.attachment_storage_bytes, original_xform_bytes
         )
         self.assertEqual(
-            self.user_profile.attachment_storage_bytes, original_user_bytes
+            self._get_user_storage(self.user), original_user_bytes
         )
         self.assertIsNone(self.attachment.delete_status)
 
@@ -79,7 +78,7 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         """
         self._refresh_all()
         size = self.attachment.media_file_size
-        self.assertEqual(self.user_profile.attachment_storage_bytes, size)
+        self.assertEqual(self._get_user_storage(self.user), size)
         self.assertEqual(self.xform.attachment_storage_bytes, size)
 
         for expected_updated in (1, 0):
@@ -88,7 +87,7 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
             )
             self._refresh_all()
             self.assertEqual(updated, expected_updated)
-            self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
+            self.assertEqual(self._get_user_storage(self.user), 0)
             self.assertEqual(self.xform.attachment_storage_bytes, 0)
 
         for expected_updated in (1, 0):
@@ -97,7 +96,7 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
             )
             self._refresh_all()
             self.assertEqual(updated, expected_updated)
-            self.assertEqual(self.user_profile.attachment_storage_bytes, size)
+            self.assertEqual(self._get_user_storage(self.user), size)
             self.assertEqual(self.xform.attachment_storage_bytes, size)
 
     def test_counters_of_each_user_and_project_are_updated(self):
@@ -106,14 +105,13 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         counters of their own user and project only
         """
         other_user = User.objects.create(username='other_owner')
-        _, other_xform, _, other_profile, other_attachment = (
+        _, other_xform, _, _, other_attachment = (
             self._create_test_asset_and_submission(user=other_user)
         )
         self._refresh_all()
-        other_profile.refresh_from_db()
         other_xform.refresh_from_db()
         other_size = other_attachment.media_file_size
-        self.assertEqual(other_profile.attachment_storage_bytes, other_size)
+        self.assertEqual(self._get_user_storage(other_user), other_size)
 
         # Only the other user's attachment changes, the first one is already
         # trashed
@@ -123,11 +121,10 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         )
 
         self._refresh_all()
-        other_profile.refresh_from_db()
         other_xform.refresh_from_db()
-        self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(self._get_user_storage(self.user), 0)
         self.assertEqual(self.xform.attachment_storage_bytes, 0)
-        self.assertEqual(other_profile.attachment_storage_bytes, 0)
+        self.assertEqual(self._get_user_storage(other_user), 0)
         self.assertEqual(other_xform.attachment_storage_bytes, 0)
 
     def test_deleting_submission_does_not_decrease_counters_twice(self):
@@ -138,7 +135,7 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         # Move the attachment to trash
         self._move_to_trash()
         decremented_xform_bytes = self.xform.attachment_storage_bytes
-        decremented_user_bytes = self.user_profile.attachment_storage_bytes
+        decremented_user_bytes = self._get_user_storage(self.user)
 
         # Delete the submission
         submission_detail_url = reverse(
@@ -153,14 +150,13 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
 
         # Verify that the attachment storage counter is not decreased twice
         self.assertEqual(
             self.xform.attachment_storage_bytes, decremented_xform_bytes
         )
         self.assertEqual(
-            self.user_profile.attachment_storage_bytes, decremented_user_bytes
+            self._get_user_storage(self.user), decremented_user_bytes
         )
 
     def _move_to_trash(self):
@@ -203,7 +199,6 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         """
         self.attachment.refresh_from_db()
         self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
 
 
 class TransferredProjectAttachmentTrashCounterTestCase(
@@ -216,17 +211,16 @@ class TransferredProjectAttachmentTrashCounterTestCase(
     def setUp(self):
         self.owner = User.objects.create(username='owner')
         self.new_owner = User.objects.create(username='new_owner')
-        self.owner_profile = UserProfile.objects.create(user=self.owner)
-        self.new_owner_profile = UserProfile.objects.create(user=self.new_owner)
-        self.asset, self.xform, self.instance, self.owner_profile, self.attachment = (
+        UserProfile.objects.create(user=self.new_owner)
+        self.asset, self.xform, self.instance, _, self.attachment = (
             self._create_test_asset_and_submission(user=self.owner)
         )
 
     def test_counters_are_updated_when_attachments_are_trashed_after_transfer(self):
         # Initial state: attachment belongs to original owner
         xform_storage_init = self.xform.attachment_storage_bytes
-        owner_storage_init = self.owner_profile.attachment_storage_bytes
-        new_owner_storage_init = self.new_owner_profile.attachment_storage_bytes
+        owner_storage_init = self._get_user_storage(self.owner)
+        new_owner_storage_init = self._get_user_storage(self.new_owner)
 
         self.assertGreater(xform_storage_init, 0)
         self.assertGreater(owner_storage_init, 0)
@@ -237,9 +231,9 @@ class TransferredProjectAttachmentTrashCounterTestCase(
 
         self._refresh_all()
         xform_storage_after_transfer = self.xform.attachment_storage_bytes
-        owner_storage_after_transfer = self.owner_profile.attachment_storage_bytes
+        owner_storage_after_transfer = self._get_user_storage(self.owner)
         new_owner_storage_after_transfer = (
-            self.new_owner_profile.attachment_storage_bytes
+            self._get_user_storage(self.new_owner)
         )
 
         self.assertGreater(xform_storage_after_transfer, 0)
@@ -264,8 +258,8 @@ class TransferredProjectAttachmentTrashCounterTestCase(
         self._refresh_all()
 
         xform_storage_after_trash = self.xform.attachment_storage_bytes
-        owner_storage_after_trash = self.owner_profile.attachment_storage_bytes
-        new_owner_storage_after_trash = self.new_owner_profile.attachment_storage_bytes
+        owner_storage_after_trash = self._get_user_storage(self.owner)
+        new_owner_storage_after_trash = self._get_user_storage(self.new_owner)
 
         # After trash: all counters should be 0
         self.assertEqual(xform_storage_after_trash, 0)
@@ -285,9 +279,9 @@ class TransferredProjectAttachmentTrashCounterTestCase(
         self._refresh_all()
 
         xform_storage_after_restore = self.xform.attachment_storage_bytes
-        owner_storage_after_restore = self.owner_profile.attachment_storage_bytes
+        owner_storage_after_restore = self._get_user_storage(self.owner)
         new_owner_storage_after_restore = (
-            self.new_owner_profile.attachment_storage_bytes
+            self._get_user_storage(self.new_owner)
         )
 
         # After restore: values should match post-transfer values
@@ -318,8 +312,6 @@ class TransferredProjectAttachmentTrashCounterTestCase(
         """
         self.asset.refresh_from_db()
         self.xform.refresh_from_db()
-        self.owner_profile.refresh_from_db()
-        self.new_owner_profile.refresh_from_db()
 
 
 class AttachmentTrashConcurrentStorageCountersTestCase(
@@ -333,12 +325,11 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
 
     def test_concurrent_trash_subtracts_once(self):
         user = User.objects.create(username='owner')
-        _, xform, _, user_profile, attachment = self._create_test_asset_and_submission(
+        _, xform, _, _, attachment = self._create_test_asset_and_submission(
             user=user
         )
-        user_profile.refresh_from_db()
         xform.refresh_from_db()
-        storage_before = user_profile.attachment_storage_bytes
+        storage_before = self._get_user_storage(user)
         size = attachment.media_file_size
 
         barrier = threading.Barrier(2)
@@ -360,8 +351,7 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         for thread in threads:
             thread.join()
 
-        user_profile.refresh_from_db()
         xform.refresh_from_db()
         self.assertEqual(sorted(updated), [0, 1])
-        self.assertEqual(user_profile.attachment_storage_bytes, storage_before - size)
+        self.assertEqual(self._get_user_storage(user), storage_before - size)
         self.assertEqual(xform.attachment_storage_bytes, storage_before - size)

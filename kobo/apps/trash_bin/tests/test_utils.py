@@ -620,17 +620,16 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     def test_storage_updates_on_project_trash_and_restore(self):
         """
-        Test that attachment storage counter in UserProfile is cleared on trash,
-        and restored properly on untrash. Counter on xform remains unchanged.
+        Test that the user's storage leaves out a trashed project, and counts it
+        again once restored. Counter on xform remains unchanged.
         """
-        asset, xform, instance, user_profile, attachment = (
-            self._create_test_asset_and_submission(
-                user=User.objects.get(username='someuser')
-            )
+        someuser = User.objects.get(username='someuser')
+        asset, xform, instance, _, attachment = (
+            self._create_test_asset_and_submission(user=someuser)
         )
 
         xform_storage_init = xform.attachment_storage_bytes
-        user_storage_init = user_profile.attachment_storage_bytes
+        user_storage_init = self._get_user_storage(someuser)
         self.assertGreater(xform_storage_init, 0)
         self.assertGreater(user_storage_init, 0)
 
@@ -648,9 +647,8 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             trash_type='asset',
         )
         xform.refresh_from_db()
-        user_profile.refresh_from_db()
         self.assertEqual(xform.attachment_storage_bytes, xform_storage_init)
-        self.assertEqual(user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(self._get_user_storage(someuser), 0)
 
         # Restore the project
         put_back(
@@ -665,25 +663,21 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             trash_type='asset',
         )
         xform.refresh_from_db()
-        user_profile.refresh_from_db()
         self.assertEqual(xform.attachment_storage_bytes, xform_storage_init)
-        self.assertGreater(user_profile.attachment_storage_bytes, 0)
-        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
-        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, self._get_user_storage(someuser))
 
     def test_storage_does_not_change_on_archive_unarchive(self):
         """
-        Test that attachment storage counters in XForm and UserProfile remain
-        unchanged when a project is archived or unarchived
+        Test that the storage of the XForm and the user remain unchanged when a
+        project is archived or unarchived
         """
-        asset, xform, instance, user_profile, attachment = (
-            self._create_test_asset_and_submission(
-                user=User.objects.get(username='someuser')
-            )
+        someuser = User.objects.get(username='someuser')
+        asset, xform, instance, _, attachment = (
+            self._create_test_asset_and_submission(user=someuser)
         )
 
         xform_storage_init = xform.attachment_storage_bytes
-        user_storage_init = user_profile.attachment_storage_bytes
+        user_storage_init = self._get_user_storage(someuser)
         self.assertGreater(xform_storage_init, 0)
         self.assertGreater(user_storage_init, 0)
 
@@ -692,18 +686,82 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             [asset.uid], active=False, toggle_delete=False
         )
         xform.refresh_from_db()
-        user_profile.refresh_from_db()
         self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
-        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, self._get_user_storage(someuser))
 
         # Simulate unarchiving the project by updating the status
         ProjectTrash.toggle_statuses(
             [asset.uid], active=True, toggle_delete=False
         )
         xform.refresh_from_db()
-        user_profile.refresh_from_db()
         self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
-        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, self._get_user_storage(someuser))
+
+    def test_storage_does_not_go_negative_when_trashed_project_is_emptied(self):
+        """
+        Emptying a trashed project must not subtract its storage a second time.
+        It used to: trashing subtracted it from the profile, and deleting its
+        submissions subtracted it again.
+        """
+        someuser = User.objects.get(username='someuser')
+        trashed_asset, trashed_xform, *_ = self._create_test_asset_and_submission(
+            user=someuser
+        )
+        _, kept_xform, *_ = self._create_test_asset_and_submission(user=someuser)
+        kept_storage = kept_xform.attachment_storage_bytes
+        assert trashed_xform.attachment_storage_bytes > 0
+        assert kept_storage > 0
+
+        move_to_trash(
+            request_author=someuser,
+            objects_list=[
+                {
+                    'pk': trashed_asset.pk,
+                    'asset_uid': trashed_asset.uid,
+                    'asset_name': trashed_asset.name,
+                }
+            ],
+            grace_period=1,
+            trash_type='asset',
+        )
+        assert self._get_user_storage(someuser) == kept_storage
+
+        empty_project(ProjectTrash.objects.get(asset=trashed_asset).pk)
+
+        assert not XForm.all_objects.filter(pk=trashed_xform.pk).exists()
+        assert self._get_user_storage(someuser) == kept_storage
+
+    def test_storage_is_right_when_interrupted_deletion_is_restored(self):
+        """
+        Submissions deleted from a trashed project are subtracted from its
+        counter, even though `XForm.objects` leaves the project out. Otherwise,
+        a deletion that stops halfway and is then restored would count files
+        that are gone.
+        """
+        someuser = User.objects.get(username='someuser')
+        asset, xform, instance, *_ = self._create_test_asset_and_submission(
+            user=someuser
+        )
+        assert xform.attachment_storage_bytes > 0
+        objects_list = [
+            {'pk': asset.pk, 'asset_uid': asset.uid, 'asset_name': asset.name}
+        ]
+
+        move_to_trash(
+            request_author=someuser,
+            objects_list=objects_list,
+            grace_period=1,
+            trash_type='asset',
+        )
+        # The deletion removes the submissions, then stops before the project
+        asset.deployment.delete_submissions(
+            {'submission_ids': [instance.pk], 'query': ''}, someuser
+        )
+        put_back(request_author=someuser, objects_list=objects_list, trash_type='asset')
+
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes == 0
+        assert self._get_user_storage(someuser) == 0
 
     def test_status_on_error_when_killed(self):
         someuser = get_user_model().objects.get(username='someuser')
@@ -745,13 +803,13 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
     def setUp(self):
         self.user = User.objects.create(username='user', password='password')
-        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+        self.asset, self.xform, self.instance, _, self.attachment = (
             self._create_test_asset_and_submission(user=self.user)
         )
 
     def test_move_to_trash(self):
         assert self.xform.attachment_storage_bytes > 0
-        assert self.user_profile.attachment_storage_bytes > 0
+        assert self._get_user_storage(self.user) > 0
         assert not self.attachment.delete_status
         assert not AttachmentTrash.objects.filter(
             attachment_id=self.attachment.id
@@ -760,7 +818,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         self._move_attachment_to_trash(self.asset, self.attachment, self.user)
 
         assert self.xform.attachment_storage_bytes == 0
-        assert self.user_profile.attachment_storage_bytes == 0
+        assert self._get_user_storage(self.user) == 0
         assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
         assert AttachmentTrash.objects.filter(
             attachment_id=self.attachment.id
@@ -783,7 +841,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
         assert not self.attachment.delete_status
         assert self.xform.attachment_storage_bytes > 0
-        assert self.user_profile.attachment_storage_bytes > 0
+        assert self._get_user_storage(self.user) > 0
         assert not AttachmentTrash.objects.filter(
             attachment_id=self.attachment.id
         ).exists()
@@ -1026,7 +1084,6 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         """
         self.asset.refresh_from_db()
         self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
         self.attachment.refresh_from_db()
 
 
