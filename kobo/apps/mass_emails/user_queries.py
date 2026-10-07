@@ -3,7 +3,7 @@ from math import inf
 
 from constance import config
 from django.conf import settings
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -12,12 +12,17 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
 )
+from kobo.apps.user_reports.models import BillingAndUsageSnapshot
 from kpi.utils.usage_calculator import (
     ServiceUsageCalculator,
     get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
     get_submissions_for_current_billing_period_by_user_id,
 )
+
+# Owners whose snapshot storage reaches this share of the lowest threshold are
+# checked again with fresh numbers, in case they stored more since the snapshot
+STORAGE_SNAPSHOT_MARGIN = 0.9
 
 
 def get_active_users(days: int = 365) -> QuerySet:
@@ -120,9 +125,24 @@ def get_users_within_range_of_usage_limit(
 
         return get_nlp_usage
 
+    def get_storage_usage():
+        # Summing project storage for every user would group the whole
+        # `logger_xform` table. The user reports snapshot already holds each
+        # owner's storage and limit, so it narrows the list down to the owners
+        # close enough to their limit, and only their storage is summed again,
+        # fresh. The margin covers storage added since the last snapshot.
+        candidate_ids = BillingAndUsageSnapshot.objects.filter(
+            storage_bytes_limit__gt=0,
+            effective_user_id__isnull=False,
+            total_storage_bytes__gte=(
+                F('storage_bytes_limit') * minimum * STORAGE_SNAPSHOT_MARGIN
+            ),
+        ).values_list('effective_user_id', flat=True)
+        return get_storage_usage_by_user_id(list(candidate_ids))
+
     usage_method_by_type = {
         UsageType.SUBMISSION: get_submissions_for_current_billing_period_by_user_id,
-        UsageType.STORAGE_BYTES: get_storage_usage_by_user_id,
+        UsageType.STORAGE_BYTES: get_storage_usage,
         UsageType.ASR_SECONDS: get_nlp_usage_method(UsageType.ASR_SECONDS),
         UsageType.MT_CHARACTERS: get_nlp_usage_method(UsageType.MT_CHARACTERS),
         UsageType.LLM_REQUESTS: get_nlp_usage_method(UsageType.LLM_REQUESTS),

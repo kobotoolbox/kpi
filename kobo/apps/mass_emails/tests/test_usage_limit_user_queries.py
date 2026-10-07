@@ -12,6 +12,10 @@ from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_l
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trash_bin.utils import move_to_trash
+from kobo.apps.user_reports.models import (
+    BillingAndUsageSnapshot,
+    BillingAndUsageSnapshotRun,
+)
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
@@ -101,6 +105,52 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         # infinite storage
         aslist = list(results)
         assert aslist == []
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_storage_usage_summed_only_for_snapshot_candidates(self):
+        near_limit = User.objects.get(username='someuser')
+        far_from_limit = User.objects.get(username='anotheruser')
+        no_limit = User.objects.get(username='adminuser')
+
+        run = baker.make(BillingAndUsageSnapshotRun)
+        # 76% is within the margin below 80% (0.8 * 0.9 = 72%)
+        baker.make(
+            BillingAndUsageSnapshot,
+            last_snapshot_run=run,
+            effective_user_id=near_limit.pk,
+            total_storage_bytes=760,
+            storage_bytes_limit=1000,
+        )
+        baker.make(
+            BillingAndUsageSnapshot,
+            last_snapshot_run=run,
+            effective_user_id=far_from_limit.pk,
+            total_storage_bytes=700,
+            storage_bytes_limit=1000,
+        )
+        baker.make(
+            BillingAndUsageSnapshot,
+            last_snapshot_run=run,
+            effective_user_id=no_limit.pk,
+            total_storage_bytes=10**12,
+            storage_bytes_limit=None,
+        )
+
+        with patch(
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
+            return_value={},
+        ):
+            with patch(
+                'kobo.apps.mass_emails.user_queries.get_storage_usage_by_user_id',
+                return_value={},
+            ) as patched_storage_usage:
+                get_users_within_range_of_usage_limit(
+                    usage_types=[UsageType.STORAGE_BYTES], minimum=0.8, maximum=0.9
+                )
+
+        patched_storage_usage.assert_called_once_with([near_limit.pk])
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'

@@ -10,8 +10,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
-from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import NLPUsage, UsageBalance, UsageBalances
@@ -105,14 +104,29 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     return results
 
 
-def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
-    query = UserProfile.objects.values('user_id', 'attachment_storage_bytes')
-    if user_ids is not None:
-        query = query.filter(user_id__in=user_ids)
-    else:
-        query = query.exclude(user_id=settings.ANONYMOUS_USER_ID)
+def get_storage_usage_by_user_id(user_ids: list[int]) -> dict[int, int]:
+    """
+    Return the storage used by each user, summed from the counters of their
+    projects.
 
-    return {res['user_id']: res['attachment_storage_bytes'] for res in query.iterator()}
+    `XForm.objects` leaves out trashed projects, so their storage stops
+    counting as soon as they are trashed. Users without any project get 0.
+
+    `user_ids` is required: summing every user's projects would group the
+    whole `logger_xform` table. Users are processed in batches, so that
+    `user_id IN (...)` keeps going through the index.
+    """
+
+    query = XForm.objects.order_by().values('user_id')
+    user_ids = list(user_ids)
+    storage_by_user_id = dict.fromkeys(user_ids, 0)
+    for start in range(0, len(user_ids), settings.DEFAULT_BATCH_SIZE):
+        batch = user_ids[start:start + settings.DEFAULT_BATCH_SIZE]
+        storage_by_user_id.update(
+            _sum_storage_by_user_id(query.filter(user_id__in=batch))
+        )
+
+    return storage_by_user_id
 
 
 def get_submission_counts_in_date_range_by_user_id(
@@ -183,6 +197,13 @@ def _as_date(value):
     # Billing bounds are tz-aware datetimes; `date` is a DateField, so
     # normalize to a date for grouping users into shared query windows below.
     return value.date() if isinstance(value, datetime) else value
+
+
+def _sum_storage_by_user_id(query) -> dict[int, int]:
+    rows = query.annotate(total=Sum('attachment_storage_bytes')).values_list(
+        'user_id', 'total'
+    )
+    return {user_id: total or 0 for user_id, total in rows.iterator()}
 
 
 class ServiceUsageCalculator(CachedClass):

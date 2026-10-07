@@ -302,20 +302,18 @@ def generate_forms_count_by_submission_range(output_filename: str):
 
 @shared_task
 def generate_media_storage_report(output_filename: str):
-    attachments = UserProfile.objects.all().values(
-        'user__username',
-        'attachment_storage_bytes',
+    # Trashed projects are left out, like for usage limits
+    storage_by_user = (
+        XForm.objects.order_by()
+        .values('user__username')
+        .annotate(storage_bytes=Sum('attachment_storage_bytes'))
+        .values_list('user__username', 'storage_bytes')
     )
 
-    data = []
-
-    for attachment_count in attachments.iterator():
-        data.append(
-            [
-                attachment_count['user__username'],
-                attachment_count['attachment_storage_bytes'],
-            ]
-        )
+    data = [
+        [username, storage_bytes or 0]
+        for username, storage_bytes in storage_by_user.iterator()
+    ]
 
     headers = ['Username', 'Storage Used (Bytes)']
 
