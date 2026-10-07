@@ -18,8 +18,16 @@ export default function ProjectTopTabs() {
   const [asset, setAsset] = useState<AssetResponse | undefined>(undefined)
 
   useEffect(() => {
+    let active = true
     if (assetUid !== null) {
-      assetStore.whenLoaded(assetUid, setAsset)
+      assetStore.whenLoaded(assetUid, (loadedAsset) => {
+        if (active) {
+          setAsset(loadedAsset)
+        }
+      })
+    }
+    return () => {
+      active = false
     }
   }, [assetUid])
 
