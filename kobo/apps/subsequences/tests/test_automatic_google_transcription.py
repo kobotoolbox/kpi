@@ -390,6 +390,42 @@ def test_run_external_process_passes_bulk_action_uid_to_service():
     }
 
 
+def test_async_poll_keeps_auto_accept():
+    """
+    A request that goes async must hand `auto_accept` to the scheduled poll,
+    otherwise the result completes without being accepted
+    """
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params, asset=MagicMock(pk=1))
+
+    mock_service = MagicMock()
+    mock_service.process_data.return_value = {'status': 'in_progress'}
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_transcription'
+        '.GoogleTranscriptionService'
+    )
+    poll_path = (
+        'kobo.apps.subsequences.actions.base.poll_run_external_process.apply_async'
+    )
+    with patch(service_path, return_value=mock_service), patch(
+        poll_path
+    ) as enqueue_poll:
+        result = action.revise_data(
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {'language': 'fr', 'auto_accept': True},
+        )
+
+    enqueue_poll.assert_called_once()
+    poll_action_data = enqueue_poll.call_args.kwargs['kwargs']['action_data']
+    assert poll_action_data['auto_accept'] is True
+    latest_version = result['_versions'][0]
+    assert latest_version['_data']['status'] == 'in_progress'
+    assert 'auto_accept' not in latest_version['_data']
+    assert '_dateAccepted' not in latest_version
+
+
 def test_transcription_versions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
