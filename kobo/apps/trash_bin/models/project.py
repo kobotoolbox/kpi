@@ -76,24 +76,25 @@ class ProjectTrash(BaseTrash):
         # No storage counter to update: user storage is the sum of their
         # projects, and `XForm.objects` leaves out the ones pending deletion.
         with transaction.atomic():
+            # Deployment back end should be per asset. But, because we need
+            # to do a bulk action, we assume that all `Asset` objects use the
+            # same back end to avoid looping on each object to update their
+            # back end.
+            queryset = Asset.all_objects.filter(**filter_params)
+            updated = queryset.update(
+                **update_params
+            )
+
+            if toggle_delete and not active:
+                Invite.objects.filter(
+                    pk__in=Transfer.objects.filter(
+                        asset_id__in=queryset.values_list('pk', flat=True),
+                        invite__status=InviteStatusChoices.PENDING,
+                    ).values_list('invite_id', flat=True)
+                ).update(status=InviteStatusChoices.CANCELLED)
+
+            # Only so a failed `assert` also rolls back the XForm update
             with kc_transaction_atomic():
-                # Deployment back end should be per asset. But, because we need
-                # to do a bulk action, we assume that all `Asset` objects use the
-                # same back end to avoid looping on each object to update their
-                # back end.
-                queryset = Asset.all_objects.filter(**filter_params)
-                updated = queryset.update(
-                    **update_params
-                )
-
-                if toggle_delete and not active:
-                    Invite.objects.filter(
-                        pk__in=Transfer.objects.filter(
-                            asset_id__in=queryset.values_list('pk', flat=True),
-                            invite__status=InviteStatusChoices.PENDING,
-                        ).values_list('invite_id', flat=True)
-                    ).update(status=InviteStatusChoices.CANCELLED)
-
                 kc_updated = XForm.all_objects.filter(**kc_filter_params).update(
                     **kc_update_params
                 )

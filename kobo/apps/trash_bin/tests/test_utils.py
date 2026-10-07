@@ -1,12 +1,14 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 from constance import config
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.db import IntegrityError
 from django.db.models.signals import pre_delete
 from django.http import Http404
 from django.test import TestCase, override_settings
@@ -28,6 +30,7 @@ from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
+from ..exceptions import TrashIntegrityError, TrashTaskInProgressError
 from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
@@ -857,6 +860,64 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             action=AuditAction.PUT_BACK,
             log_type=AuditType.ATTACHMENT_MANAGEMENT,
         ).exists()
+
+    def test_failed_move_to_trash_leaves_attachment_and_storage_untouched(self):
+        """
+        The attachment is trashed on the KoboCAT database, which commits on its
+        own, so it must only happen once every KPI write succeeded. Here, the
+        KPI part fails: the attachment must not even be toggled.
+
+        Tests share one database, so a rollback would undo the toggle anyway:
+        checking that it is never called is what proves the order.
+        """
+
+        storage = self.xform.attachment_storage_bytes
+        assert storage > 0
+
+        with patch.object(
+            AttachmentTrash, 'toggle_statuses', wraps=AttachmentTrash.toggle_statuses
+        ) as toggle_statuses, patch.object(
+            PeriodicTask.objects, 'bulk_create', side_effect=IntegrityError
+        ):
+            with pytest.raises(TrashIntegrityError):
+                self._move_attachment_to_trash(
+                    self.asset, self.attachment, self.user
+                )
+
+        toggle_statuses.assert_not_called()
+        self._refresh_all()
+        assert self.attachment.delete_status is None
+        assert self.xform.attachment_storage_bytes == storage
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.pk
+        ).exists()
+
+    def test_put_back_of_attachment_being_deleted_leaves_it_trashed(self):
+        """
+        `put_back()` refuses an attachment whose deletion has started. It must
+        refuse before restoring it on the KoboCAT database: otherwise the
+        attachment would be restored, with its storage added back, while its
+        trash entry stays and still gets it deleted.
+        """
+        trash_obj = self._move_attachment_to_trash(
+            self.asset, self.attachment, self.user
+        )
+        assert self.xform.attachment_storage_bytes == 0
+        AttachmentTrash.objects.filter(pk=trash_obj.pk).update(
+            status=TrashStatus.IN_PROGRESS
+        )
+
+        with patch.object(
+            AttachmentTrash, 'toggle_statuses', wraps=AttachmentTrash.toggle_statuses
+        ) as toggle_statuses:
+            with pytest.raises(TrashTaskInProgressError):
+                self._put_back_attachment_from_trash(self.attachment, self.user)
+
+        toggle_statuses.assert_not_called()
+        self._refresh_all()
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+        assert self.xform.attachment_storage_bytes == 0
+        assert AttachmentTrash.objects.filter(pk=trash_obj.pk).exists()
 
     def test_trashing_attachment_deletes_file_but_preserves_db_object(self):
         """
