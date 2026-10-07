@@ -708,6 +708,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if not self.get_data('backend_response'):
             return {}
 
+        # TODO
+        #  - Stop fetching enketo_id from EE API if already in backend response
+        #  - Add a flag in backend response to know if openRosaServer property has
+        #    been already converted to the internal URL
+
         # Always use the OpenRosa public URL: Enketo derives its ID from it, so changing
         # it would change every survey link
         data = {

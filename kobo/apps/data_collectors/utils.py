@@ -5,7 +5,10 @@ from django_redis import get_redis_connection
 from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
-from kpi.deployment_backends.openrosa_utils import create_enketo_links
+from kpi.deployment_backends.openrosa_utils import (
+    create_enketo_links,
+    to_internal_url,
+)
 from kpi.utils.log import logging
 
 
@@ -63,6 +66,12 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
             raise redis.exceptions.ResponseError(
                 'Attempt to rename non-existent' f' key {old_id_key}'
             ) from e
+        # Enketo stored the public URL, let it call the internal one instead
+        redis_client.hset(
+            get_redis_key_for_enketo_id(new_id),
+            'openRosaServer',
+            to_internal_url(server_url),
+        )
 
 
 def remove_data_collector_enketo_links(token: str, xform_id_strings: list[str] = None):
@@ -116,6 +125,8 @@ def rename_data_collector_enketo_links(old_token: str, new_token: str):
             enketo_id = redis_client.get(new_key).decode('utf-8')
             enketo_key = get_redis_key_for_enketo_id(enketo_id)
             # update the server urls to use the new token
-            redis_client.hset(enketo_key, 'openRosaServer', new_server_url)
+            redis_client.hset(
+                enketo_key, 'openRosaServer', to_internal_url(new_server_url)
+            )
         except redis.exceptions.ResponseError:
             logging.warning(f'Attempt to rename non-existent key {key}')

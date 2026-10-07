@@ -59,6 +59,18 @@ def to_internal_url(url: str, openrosa: bool = True) -> str:
     internal_url = urlparse(
         settings.KOBOCAT_INTERNAL_URL if openrosa else settings.KOBOFORM_INTERNAL_URL
     )
+
+    u = (
+        urlparse(url)
+        ._replace(scheme=internal_url.scheme, netloc=internal_url.netloc)
+        .geturl()
+    )
+
+    print('TO INTERNAL --->', url, u, flush=True)
+    print('\topenrosa? --->', openrosa, flush=True)
+
+
+
     return (
         urlparse(url)
         ._replace(scheme=internal_url.scheme, netloc=internal_url.netloc)
