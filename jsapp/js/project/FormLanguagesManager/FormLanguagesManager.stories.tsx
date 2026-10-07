@@ -185,10 +185,28 @@ export const BasicFlow: Story = {
       // Scope to the row, so no other question's textarea can match.
       const row = page.getByText('Question 1').closest('tr')
       await expect(row).not.toBeNull()
-      const textarea = within(row as HTMLElement).getByRole('textbox')
+      const textarea = within(row as HTMLElement).getByRole('textbox') as HTMLTextAreaElement
+
+      // Temporary instrumentation: CI saw an empty textarea after typing, so report
+      // what held focus and whether the node survived. Chai truncates assertion
+      // messages at 40 chars, hence the terse keys. Remove once we know the cause.
+      const focusTag = () => {
+        const el = document.activeElement
+        if (el === textarea) return 'ta'
+        return el ? el.tagName.toLowerCase() : 'null'
+      }
+
+      await userEvent.click(textarea)
+      await expect(`afterClick foc=${focusTag()}`).toBe('afterClick foc=ta')
 
       await userEvent.type(textarea, 'Nom')
-      await expect(textarea).toHaveValue('Nom')
+      const state = [
+        `v=${JSON.stringify(textarea.value)}`,
+        `att=${document.body.contains(textarea) ? 1 : 0}`,
+        `dis=${textarea.disabled ? 1 : 0}`,
+        `foc=${focusTag()}`,
+      ].join(' ')
+      await expect(state).toBe('v="Nom" att=1 dis=0 foc=ta')
 
       await userEvent.click(page.getByRole('button', { name: /Save Changes/ }))
 
