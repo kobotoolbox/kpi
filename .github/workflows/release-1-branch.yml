@@ -7,9 +7,6 @@ concurrency:
 
 
 on:
-  # Triggered manually by whoever is about to start QA testing the next
-  # release, rather than auto-created on a schedule. This avoids ending up
-  # with an unused next-release branch that then needs to be deleted.
   workflow_dispatch:
 
 
@@ -63,7 +60,7 @@ jobs:
       run: |
         set -xe
         if git ls-remote --exit-code --heads origin "$NEW_BRANCH"; then
-          echo "::error::Branch '$NEW_BRANCH' already exists. Someone already started this release this week; refusing to recreate it."
+          echo "::error::Branch '$NEW_BRANCH' already exists."
           exit 1
         fi
     - name: create next RC branch
