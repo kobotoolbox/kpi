@@ -2,12 +2,10 @@ import type { environmentRetrieveResponse } from '#/api/react-query/configuratio
 import { useEnvironmentQuery } from '#/api/useEnvironmentQuery'
 
 /**
- * Everything the authentication page frame needs from `/environment`. Anonymous-safe.
- *
- * Later auth screens will read `logo_url`, `supporting_text`, `supporting_image_url`,
- * `allow_login_with_username` and `registration_open` from here too.
+ * Everything the authentication screens need from `/environment`: how the server is dressed, not how it
+ * authenticates. Anonymous-safe. Accepted credentials come from `useAllauthConfiguration` instead.
  */
-export function useAuthConfiguration() {
+export function useAuthEnvironment() {
   return useEnvironmentQuery({
     // `select` is based on the same query as `StandaloneUILanguageSelector` uses, so the frame and the language
     // dropdown share one request rather than making two.

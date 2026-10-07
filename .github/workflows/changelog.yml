@@ -43,7 +43,11 @@ jobs:
       env:
         VERSION: ${{ inputs.version }}
       run: |
-        npx git-cliff@2.10.0 -u --tag "$VERSION"
+        if git rev-parse "refs/tags/$VERSION" &>/dev/null; then
+          npx git-cliff@2.10.0 --tag "$VERSION" --current
+        else
+          npx git-cliff@2.10.0 --tag "$VERSION" -u
+        fi
 
     - name: Prepend draft notice (if draft)
       if: ${{ inputs.draft }}
