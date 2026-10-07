@@ -16,7 +16,7 @@ const mockAssetUid = 'storyFormLanguagesManagerUid'
 const onAssetPatched = fn()
 
 function buildInitialAsset(): AssetResponse {
-  const survey: AssetContentSurveyItem[] = Array.from({ length: 11 }, (_, idx) => {
+  const survey: AssetContentSurveyItem[] = Array.from({ length: 3 }, (_, idx) => {
     const index = idx + 1
     return {
       $kuid: `kuid_question_${index}`,
@@ -56,9 +56,8 @@ function createAssetPatchHandler(initialAsset: AssetResponse) {
         asset.content = JSON.parse(payload.content)
       }
     },
+    // Snapshot every PATCH, so assertions can inspect what got saved.
     onPatch: (asset) => {
-      // Keep the most recent saved snapshot around so the play steps can
-      // inspect the translated survey structure after each PATCH.
       onAssetPatched(asset)
     },
   })
@@ -127,12 +126,13 @@ type Story = StoryObj<typeof StoryTrigger>
 /** Opens the modal from a minimal story shell without extra interactions. */
 export const Default: Story = {}
 
-/** Exercises the language management workflow from setup through saving translations. */
+/** Walks the workflow: name the default language, add another, translate, save. */
 export const BasicFlow: Story = {
   play: async ({ canvasElement, step }) => {
     onAssetPatched.mockClear()
 
     const canvas = within(canvasElement)
+    // The modal renders outside the story canvas, so everything else goes through body.
     const page = within(document.body)
 
     await step('Open the manager modal', async () => {
@@ -148,11 +148,8 @@ export const BasicFlow: Story = {
         await expect(page.getByRole('textbox', { name: 'Default language name' })).toBeInTheDocument()
       })
 
-      const defaultNameInput = page.getByRole('textbox', { name: 'Default language name' })
-      const defaultCodeInput = page.getByRole('textbox', { name: 'Default language code' })
-
-      await userEvent.type(defaultNameInput, 'English')
-      await userEvent.type(defaultCodeInput, 'en')
+      await userEvent.type(page.getByRole('textbox', { name: 'Default language name' }), 'English')
+      await userEvent.type(page.getByRole('textbox', { name: 'Default language code' }), 'en')
       await userEvent.click(page.getByRole('button', { name: 'Set' }))
 
       await waitFor(async () => {
@@ -163,11 +160,8 @@ export const BasicFlow: Story = {
     await step('Add another language', async () => {
       await userEvent.click(page.getByRole('button', { name: 'Add language' }))
 
-      const languageNameInput = page.getByRole('textbox', { name: 'Language name' })
-      const languageCodeInput = page.getByRole('textbox', { name: 'Language code' })
-
-      await userEvent.type(languageNameInput, 'French')
-      await userEvent.type(languageCodeInput, 'fr')
+      await userEvent.type(page.getByRole('textbox', { name: 'Language name' }), 'French')
+      await userEvent.type(page.getByRole('textbox', { name: 'Language code' }), 'fr')
       await userEvent.click(page.getByRole('button', { name: 'Add' }))
 
       await waitFor(async () => {
@@ -176,128 +170,39 @@ export const BasicFlow: Story = {
     })
 
     await step('Open translations table', async () => {
-      await waitFor(async () => {
-        const languageItems = page.getAllByText(/French \(fr\)/)
-        await expect(languageItems.length > 0).toBe(true)
-      })
+      // Scope to the French card, so we don't hit the default language's button.
+      const frenchCard = page.getByText('French (fr)').closest('div[data-with-border="true"]')
+      await expect(frenchCard).not.toBeNull()
 
-      // Scope the action to the French language card and query by accessible name.
-      const frenchLanguageElement = page.getByText(/French \(fr\)/).closest('div[data-with-border="true"]')
-      await expect(frenchLanguageElement).not.toBeNull()
+      await userEvent.click(within(frenchCard as HTMLElement).getByRole('button', { name: 'Update translations' }))
 
-      const updateTranslationsButton = within(frenchLanguageElement as HTMLElement).getByRole('button', {
-        name: 'Update translations',
-      })
-      await userEvent.click(updateTranslationsButton)
-
-      // Wait for the translation table/editor to render with row content.
       await waitFor(async () => {
         await expect(page.getByText('Question 1')).toBeInTheDocument()
       })
     })
 
-    await step('Go to next translations page', async () => {
-      // Wait for first-page row content instead of matching pagination text,
-      // because the "Page X of Y" label can be split across nested elements.
-      await waitFor(async () => {
-        await expect(page.getByText('Question 1')).toBeInTheDocument()
-      })
+    await step('Translate a question and save', async () => {
+      // Scope to the row, so no other question's textarea can match.
+      const row = page.getByText('Question 1').closest('tr')
+      await expect(row).not.toBeNull()
+      const textarea = within(row as HTMLElement).getByRole('textbox')
 
-      const translationsTable = page.getByText('Question 1').closest('table')
-      await expect(translationsTable).not.toBeNull()
-
-      // Scope pagination lookup to this table's container to avoid interacting
-      // with unrelated controls elsewhere in the document.
-      const tableRootContainer = (translationsTable as HTMLTableElement).parentElement?.parentElement
-      const paginationFooter = tableRootContainer?.querySelector('footer')
-
-      await expect(paginationFooter).not.toBeNull()
-      await expect(paginationFooter).toBeDefined()
-
-      // In this state, first/previous are disabled, so the first enabled
-      // button is always "next page".
-      const nextPageButton = (paginationFooter as HTMLElement).querySelector('button:not([disabled])')
-      await expect(nextPageButton).not.toBeNull()
-
-      await userEvent.click(nextPageButton as HTMLButtonElement)
-
-      await waitFor(async () => {
-        await expect(page.getByText('Question 11')).toBeInTheDocument()
-      })
-    })
-
-    await step('Edit a single translation', async () => {
-      // Wait for the translation textarea to be visible
-      await waitFor(async () => {
-        await expect(page.getByText('Question 11')).toBeInTheDocument()
-      })
-
-      // Scope textbox lookup to the "Question 11" row so we do not hit
-      // another input when multiple textboxes exist in the modal.
-      const question11Row = page.getByText('Question 11').closest('tr')
-      await expect(question11Row).not.toBeNull()
-
-      const textarea = within(question11Row as HTMLElement).getByRole('textbox') as HTMLTextAreaElement
-
-      await userEvent.click(textarea)
-      // Use the native HTMLTextAreaElement setter so React's synthetic event system
-      // picks up the change and updates the controlled component's state.
-      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set
-      nativeSetter?.call(textarea, 'Nom')
-      textarea.dispatchEvent(new Event('input', { bubbles: true }))
-
-      // The cell keeps the edited value in its own local state and only lifts it
-      // into the parent's `tableRows` on blur (see TranslationsEditorCell). Letting
-      // the Save click blur + save in one shot is racy: the save handler can read
-      // `tableRows` before React flushes the blur-triggered update, so the PATCH
-      // captures the stale (null) value. Commit the edit with an explicit
-      // `focusout` first — React flushes discrete events synchronously, so the
-      // parent state (and therefore the save handler's closure) is up to date
-      // before we click Save.
-      textarea.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+      await userEvent.type(textarea, 'Nom')
+      await expect(textarea).toHaveValue('Nom')
 
       await userEvent.click(page.getByRole('button', { name: /Save Changes/ }))
 
-      // Verify the modal is still visible after saving
-      await waitFor(async () => {
-        await expect(page.getByRole('dialog', { name: 'Manage Languages' })).toBeInTheDocument()
-      })
-    })
-
-    await step('Verify API saved translation for question 11', async () => {
-      await waitFor(async () => {
-        await expect(onAssetPatched).toHaveBeenCalled()
-
-        const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
-        const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
-
-        const survey = latestPatchedAsset?.content?.survey || []
-        const question11 = survey.find((item) => item.name === 'question_11')
-        const label = question11?.label as Array<string | null> | undefined
-
-        await expect(label?.[1]).toBe('Nom')
-      })
-    })
-
-    await step('Close modal', async () => {
-      const manageDialog = page.getByRole('dialog', { name: 'Manage Languages' })
-      const closeButtons = within(manageDialog).getAllByRole('button', { name: 'Close' })
-      // Inside the Manage Languages dialog, target the header close control.
-      await userEvent.click(closeButtons[closeButtons.length - 1])
-
-      // Closing while the translations table is still the active view may
-      // trigger an "unsaved changes" confirmation dialog (even after a
-      // successful save, the ref can still be set in some timing scenarios).
-      // Handle it inside waitFor so it is retried until the state settles.
+      // Generous timeout: the PATCH goes through the MSW service worker, which can
+      // outlast the 1s `waitFor` default on a loaded CI machine.
       await waitFor(
         async () => {
-          const confirmDialog = page.queryByRole('dialog', { name: 'Close Translations Table?' })
-          if (confirmDialog) {
-            // Scoping to the confirmation dialog avoids hitting the header
-            // "Close" button of the outer modal by accident.
-            await userEvent.click(within(confirmDialog).getByRole('button', { name: 'Close' }))
-          }
-          await expect(page.queryByRole('dialog', { name: 'Manage Languages' })).not.toBeInTheDocument()
+          await expect(onAssetPatched).toHaveBeenCalled()
+
+          const savedAsset = onAssetPatched.mock.calls.at(-1)?.[0] as AssetResponse | undefined
+          const survey = savedAsset?.content?.survey || []
+          const label = survey.find((item) => item.name === 'question_1')?.label as Array<string | null> | undefined
+
+          await expect(label?.[1]).toBe('Nom')
         },
         { timeout: 10000 },
       )

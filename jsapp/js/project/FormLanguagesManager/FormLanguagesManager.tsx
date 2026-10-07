@@ -45,6 +45,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [isTranslationTableUnsaved, setIsTranslationTableUnsaved] = useState(false)
   // Track if any cell has been edited without committing to state (to avoid first-keystroke parent re-render)
   const tableHasUnsavedEditsRef = useRef(false)
+  // Latest draft of every edited cell, keyed by absolute row index. Saving reads
+  // this on top of `tableRows`, which only catches up once React has flushed the
+  // blur commit.
+  const pendingCellEditsRef = useRef(new Map<number, string>())
 
   const translations = asset.content?.translations || []
   const canAddLanguages = !(translations.length === 1 && translations[0] === null)
@@ -59,6 +63,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(false)
       tableHasUnsavedEditsRef.current = false
+      pendingCellEditsRef.current.clear()
       setPagination({ limit: 10, start: 0 })
     }
   }, [activeView, asset, selectedLangIndex])
@@ -198,8 +203,12 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       return
     }
 
+    const pendingCellEdits = pendingCellEditsRef.current
+
     for (let i = 0; i < tableRows.length; i++) {
       const row = tableRows[i]
+      // The cell's own draft is always at least as fresh as the row.
+      const rowValue = pendingCellEdits.get(i) ?? row.value
       const contentSection = content[row.contentProp]
       if (!contentSection) {
         continue
@@ -213,8 +222,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       const itemRecord = item as Record<string, Array<string | null> | undefined> | undefined
       const itemProperty = itemRecord?.[row.itemProp]
 
-      if (itemProperty && itemProperty[selectedLangIndex] !== row.value) {
-        itemProperty[selectedLangIndex] = row.value
+      if (itemProperty && itemProperty[selectedLangIndex] !== rowValue) {
+        itemProperty[selectedLangIndex] = rowValue
       }
     }
 
@@ -227,6 +236,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(false)
       tableHasUnsavedEditsRef.current = false
+      pendingCellEditsRef.current.clear()
     } else {
       setSaveButtonText(SAVE_BUTTON_LABEL.dirty)
       setIsSavingTable(false)
@@ -296,6 +306,13 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     // Mantine autosize Textarea lose focus, so the asterisk in the save button
     // is handled locally inside TranslationsEditor instead. The close/back
     // guards read this ref to catch unsaved edits before onBlur commits them.
+    tableHasUnsavedEditsRef.current = true
+  }, [])
+
+  const onEditTranslationCell = useCallback((absoluteIndex: number, value: string) => {
+    // Runs on every keystroke, so ref writes only — a setState here would steal
+    // the textarea's focus, same as in `onStartEditingCell` above.
+    pendingCellEditsRef.current.set(absoluteIndex, value)
     tableHasUnsavedEditsRef.current = true
   }, [])
 
@@ -383,6 +400,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
               setPendingUnsavedConfirm(null)
               setIsTranslationTableUnsaved(false)
               tableHasUnsavedEditsRef.current = false
+              pendingCellEditsRef.current.clear()
 
               if (action === 'close') {
                 props.onRequestClose()
@@ -504,6 +522,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
           onToggleInlineLanguageForm={toggleInlineLanguageForm}
           onLanguageChange={onLanguageChange}
           onStartEditing={onStartEditingCell}
+          onEditCell={onEditTranslationCell}
           onChangeCell={onChangeTranslationCell}
         />
       )}
