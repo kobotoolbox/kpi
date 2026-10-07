@@ -71,19 +71,18 @@ export function getEditableProfileFieldNames({
 
 /** The profile fields configuration built from `/environment` response. */
 export function getAccountFieldsConfig(environment: EnvironmentResponse): AccountFieldsConfig {
-  const userMetadataFields: UserMetadataField[] = []
+  // Keyed, because `USER_METADATA_FIELDS` accepts the same name twice - its uniqueness check compares whole entries,
+  // not names. One entry per name, the last one given, which is the rule the rest of the code already follows.
+  const byName = new Map<UserFieldName, UserMetadataField>()
   for (const field of environment.user_metadata_fields) {
     if (field.name in USER_FIELD_NAMES) {
-      userMetadataFields.push({
-        name: field.name as UserFieldName,
-        required: Boolean(field.required),
-        label: field.label,
-      })
+      const name = field.name as UserFieldName
+      byName.set(name, { name, required: Boolean(field.required), label: field.label })
     }
   }
 
   return {
-    userMetadataFields,
+    userMetadataFields: [...byName.values()],
     countryChoices: choicesFromTuples(environment.country_choices),
     sectorChoices: choicesFromTuples(environment.sector_choices),
   }
@@ -103,7 +102,8 @@ export function getUserMetadataFieldLabel(
   userMetadataFields: readonly UserMetadataField[],
   fieldName: UserFieldName,
 ): string {
-  return userMetadataFields.find((field) => field.name === fieldName)?.label || fieldName
+  // Through the same dict the editor labels its inputs from, so the two can never name a field differently.
+  return getUserMetadataFieldsByName(userMetadataFields)[fieldName]?.label || fieldName
 }
 
 export function hasNoOrganizationAffiliation(

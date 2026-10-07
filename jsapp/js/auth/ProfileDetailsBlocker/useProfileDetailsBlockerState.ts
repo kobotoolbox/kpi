@@ -16,7 +16,7 @@ export type ProfileDetailsBlockerState =
   | { status: 'active'; isMmoMember: boolean; fieldsConfig: AccountFieldsConfig }
   /** Waiting on something without which there is no answer. */
   | { status: 'pending' }
-  /** The organization could not be read, so there is no answer to give. */
+  /** `/environment` or the organization could not be read, so there is no answer to give. */
   | { status: 'error' }
 
 /**
@@ -61,11 +61,11 @@ export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
     return { status: 'pending' }
   }
 
-  // A failed `/environment` leaves nothing to ask of the account, so nobody gets blocked. No screen about it here:
-  // the request has raised its own toast, and `AppGuard` holds the whole app back until `envStore` has the same
-  // response anyway.
+  // Without the configuration there is nothing to ask of the account, and answering `inactive` would let somebody
+  // with blank required fields into the app. `AppGuard` cannot cover for this: its own gate is `envStore`, which
+  // fetches the same endpoint separately and can have succeeded while this request failed.
   if (!fieldsConfig) {
-    return { status: 'inactive' }
+    return { status: 'error' }
   }
 
   if (!isPossiblyActive) {

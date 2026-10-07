@@ -101,6 +101,23 @@ describe('getAccountFieldsConfig', () => {
     chai.expect(result.userMetadataFields.map((field) => field.name)).to.deep.equal(['name'])
   })
 
+  it('keeps one entry for a name the instance lists twice, the last one given', () => {
+    const result = getAccountFieldsConfig(
+      environment({
+        user_metadata_fields: [
+          { name: 'name', label: 'Full name', required: false },
+          { name: 'city', label: 'City', required: false },
+          { name: 'name', label: 'Your name', required: true },
+        ],
+      }),
+    )
+
+    chai.expect(result.userMetadataFields).to.deep.equal([
+      { name: 'name', required: true, label: 'Your name' },
+      { name: 'city', required: false, label: 'City' },
+    ])
+  })
+
   it('turns the choice tuples into dropdown options', () => {
     const result = getAccountFieldsConfig(
       environment({
@@ -144,6 +161,17 @@ describe('getUserMetadataFieldLabel', () => {
 
   it('falls back to the field name for a field that is not configured at all', () => {
     chai.expect(getUserMetadataFieldLabel(fields, 'bio')).to.equal('bio')
+  })
+
+  it('agrees with the editor about a name given twice, so a message cannot name a field the input does not', () => {
+    const duplicated: UserMetadataField[] = [
+      { name: 'name', required: true, label: 'Full name' },
+      { name: 'name', required: true, label: 'Your name' },
+    ]
+
+    chai
+      .expect(getUserMetadataFieldLabel(duplicated, 'name'))
+      .to.equal(getUserMetadataFieldsByName(duplicated).name?.label)
   })
 })
 
