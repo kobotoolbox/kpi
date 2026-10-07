@@ -10,7 +10,7 @@ import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useProfile } from '../stores/useProfile'
 import DeleteAccountBanner from './DeleteAccountBanner'
-import type { AccountFieldsConfig, AccountFieldsErrors, AccountFieldsValues } from './account.constants'
+import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import {
   getEditableProfileFieldNames,
   getInitialAccountFieldsValues,
@@ -18,6 +18,7 @@ import {
   getProfilePatchData,
 } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
+import { useAccountFieldsConfig } from './useAccountFieldsConfig'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
@@ -33,6 +34,9 @@ const AccountSettings = () => {
   const isSelfDeleteFeatureEnabled = envStore.data.allow_self_account_deletion
 
   const { currentLoggedAccount, refreshAccount } = useProfile()
+
+  /** Same field config the authentication screens read, so both ask for the same things. */
+  const { data: fieldsConfig } = useAccountFieldsConfig()
 
   const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
 
@@ -106,12 +110,6 @@ const AccountSettings = () => {
 
   const accountName = currentLoggedAccount?.username || ''
 
-  const fieldsConfig: AccountFieldsConfig = {
-    userMetadataFields: envStore.data.user_metadata_fields,
-    countryChoices: envStore.data.country_choices,
-    sectorChoices: envStore.data.sector_choices,
-  }
-
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
@@ -129,7 +127,8 @@ const AccountSettings = () => {
           <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
-        {currentLoggedAccount && envStore.isReady && (
+        {/* No fields to render until `/environment` says which ones this instance asks for. */}
+        {currentLoggedAccount && fieldsConfig && (
           <bem.AccountSettings__item m='fields'>
             <AccountFieldsEditor
               fieldsConfig={fieldsConfig}

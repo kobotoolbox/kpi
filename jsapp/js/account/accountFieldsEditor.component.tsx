@@ -9,7 +9,7 @@ import TextInput from '#/components/common/TextInput'
 import Textarea from '#/components/common/Textarea'
 import { addRequiredToLabel } from '#/textUtils'
 import type { AccountFieldsConfig, AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
-import { getUserMetadataFieldLabel, getUserMetadataFieldsByName, hasNoOrganizationAffiliation } from './account.utils'
+import { getUserMetadataFieldsByName, hasNoOrganizationAffiliation } from './account.utils'
 import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
 
@@ -47,11 +47,12 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
-    if (!metadata[fieldName]?.label) {
+    const label = metadata[fieldName]?.label
+    if (!label) {
       // Here it means a field is on screen that the Backend never configured, which is worth knowing about
       console.error(`No label for fieldname "${fieldName}"`)
     }
-    return getUserMetadataFieldLabel(userMetadataFields, fieldName)
+    return label || fieldName
   }
 
   /** Is this field required by Backend configuration? */

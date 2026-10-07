@@ -2,6 +2,7 @@ import chai from 'chai'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { environmentResponse } from '#/endpoints/environment.mocks'
 import type { AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
+import { ORG_FIELDS } from './account.mocks'
 import {
   getAccountFieldsConfig,
   getEditableProfileFieldNames,
@@ -11,9 +12,6 @@ import {
   getUserMetadataFieldsByName,
   hasNoOrganizationAffiliation,
 } from './account.utils'
-
-/** The set an instance gets when an administrator asks for the organization block. */
-const ORG_FIELDS: UserFieldName[] = ['name', 'organization_type', 'organization', 'organization_website']
 
 describe('getProfileFieldsValues', () => {
   it('fills in a blank for every field the account has nothing for', () => {

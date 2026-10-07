@@ -1,5 +1,6 @@
 import chai from 'chai'
 import type { AccountFieldsValues, UserFieldName, UserMetadataField } from '#/account/account.constants'
+import { ORG_FIELDS } from '#/account/account.mocks'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'
 import type { AccountResponse } from '#/dataInterface'
 import { meMockResponse } from '#/endpoints/me.mocks'
@@ -19,9 +20,7 @@ const values = (overrides: Partial<AccountFieldsValues> = {}): AccountFieldsValu
   }
 }
 
-/** The set an instance gets when an administrator asks for the organization block. */
-const ORG_FIELDS: UserFieldName[] = ['name', 'organization_type', 'organization', 'organization_website']
-
+/** The `/me` mock with profile values swapped in; cast because the generated type is not an `AccountResponse`. */
 const account = (extraDetails: Partial<AccountFieldsValues>): AccountResponse =>
   ({ ...meMockResponse, extra_details: extraDetails }) as unknown as AccountResponse
 

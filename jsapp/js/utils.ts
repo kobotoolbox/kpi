@@ -17,7 +17,7 @@ import { toast } from 'react-hot-toast'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isMapDisplayableGeopointType } from './constants'
-import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
+import type { FailResponse, LabelValuePair, MongoQuery, SurveyRow } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -42,6 +42,10 @@ export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T
  * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
  */
 export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
+
+/** Turns the `[value, label]` tuples `/environment` sends its choice lists as into the shape dropdowns take. */
+export const choicesFromTuples = (tuples: string[][]): LabelValuePair[] =>
+  tuples.map(([value, label]) => ({ value, label }))
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
