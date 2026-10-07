@@ -1718,14 +1718,6 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
-    'sync-storage-counters': {
-        'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
-        'schedule': crontab(minute=30, hour=0, day_of_week=0),
-        'description': (
-            'Synchronize out of sync attachment storage bytes of profile and projects'
-        ),
-        'options': {'queue': 'kpi_long_running_tasks_queue'},
-    },
     'retry-stalled-submissions': {
         'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
