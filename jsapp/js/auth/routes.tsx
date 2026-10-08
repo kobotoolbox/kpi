@@ -58,8 +58,9 @@ export default function authRoutes() {
         element={<AuthPlaceholderRoute title='Recovery code' hasAuthCard />}
       />
       {/*
-        Both halves of the single sign-on flow. `PROVIDER_SIGNUP` is also where allauth returns the browser
-        after the provider round trip, whatever the outcome - see `ProviderSignupRoute`.
+        Both halves of the single sign-on flow, in place of the placeholder that stood here. `PROVIDER_SIGNUP`
+        is also where allauth returns the browser after the provider round trip, whatever the outcome - see
+        `ProviderSignupRoute`.
       */}
       <Route path={AUTH_ROUTES.PROVIDER_SIGNUP} element={<ProviderSignupRoute />} />
       <Route path={AUTH_ROUTES.PROVIDER_LOGIN} element={<ProviderLoginRoute />} />

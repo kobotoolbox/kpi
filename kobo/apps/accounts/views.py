@@ -1,6 +1,9 @@
 from allauth.account.models import EmailAddress
+from allauth.headless.account.views import LoginView as BaseHeadlessLoginView
+from allauth.headless.base.response import AuthenticationResponse
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.contrib.auth import logout
 from django.core.exceptions import MultipleObjectsReturned
 from django.http import Http404
 from drf_spectacular.utils import (
@@ -414,3 +417,24 @@ class SocialAppView(generics.RetrieveAPIView):
         # object-level checks. Kept so tightening `permission_classes` is enough
         self.check_object_permissions(self.request, social_app)
         return social_app
+
+
+class HeadlessLoginView(BaseHeadlessLoginView):
+    """
+    Lets an authenticated user log in as another account, which allauth would
+    refuse with a 409. Mirrors `MfaLoginView` for the templated login page
+    """
+
+    def post(self, request, *args, **kwargs):
+        # The credentials were already checked in `handle_input()`: a wrong
+        # password returned 400 before reaching here, so a failed attempt never
+        # drops the current session
+        user = request.user
+        if user.is_authenticated:
+            # Same account: already logged in, so answer like a successful login
+            if user.pk == self.input.login.user.pk:
+                return AuthenticationResponse(request)
+            # Log out before the login runs, not after: the MFA and email
+            # verification stages refuse authenticated requests
+            logout(request)
+        return super().post(request, *args, **kwargs)

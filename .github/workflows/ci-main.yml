@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 jobs:
-  resolve-author:
-    uses: './.github/workflows/resolve-author.yml'
+  resolve-actor:
+    uses: './.github/workflows/resolve-actor.yml'
 
   darker:
     uses: ./.github/workflows/darker.yml
@@ -33,7 +33,7 @@ jobs:
 
   on-failure:
     needs:
-      - resolve-author
+      - resolve-actor
       - darker
       - openapi
       - pytest
@@ -52,4 +52,4 @@ jobs:
     secrets: inherit
     with:
       topic: "Github Actions (main)"
-      content: ":boom: ${{ needs.resolve-author.outputs.mention || '@*devs*' }}, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+      content: ":boom: ${{ needs.resolve-actor.outputs.mention || '@*devs*' }}, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
