@@ -268,7 +268,7 @@ export default function FormLanding() {
                   isLoggedIn={isLoggedIn}
                   canRemoveSharedProject={userCanRemoveSharedProject(asset)}
                   onRemoveSharedProject={() => removeSharedProject(asset)}
-                  onClone={(assetType) => cloneAsset(assetType)}
+                  onClone={cloneAsset}
                 />
               </Box>
             </Box>
@@ -292,7 +292,7 @@ export default function FormLanding() {
             <FormLandingCollectData
               asset={asset}
               anonymousSubmissionsEnabled={Boolean(anonymousSubmissionPermission)}
-              canEdit={userCan('change_asset', asset)}
+              canEdit={userCanEdit}
               onAnonymousSubmissionsChange={updateAssetAnonymousSubmissions}
             />
           )}
