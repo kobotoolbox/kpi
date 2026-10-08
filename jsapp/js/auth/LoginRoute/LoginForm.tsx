@@ -45,6 +45,8 @@ export type LoginOutcome =
    * a username there is nothing to prefill the resend with.
    */
   | { kind: 'emailVerificationRequired'; email?: string }
+  /** Credentials accepted, and allauth wants a one-time code before it hands out the session. */
+  | { kind: 'mfaRequired' }
   /** Credentials accepted, but allauth wants a step this screen cannot show yet. */
   | { kind: 'unsupportedStep' }
 
@@ -109,6 +111,10 @@ export default function LoginForm({
             kind: 'emailVerificationRequired',
             email: 'email' in variables.data ? variables.data.email : undefined,
           })
+          return
+        }
+        if (pendingFlowIds.includes(FlowId.mfa_authenticate)) {
+          onOutcome({ kind: 'mfaRequired' })
           return
         }
         if (pendingFlowIds.length > 0) {
