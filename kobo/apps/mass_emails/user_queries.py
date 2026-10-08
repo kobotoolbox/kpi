@@ -3,7 +3,7 @@ from math import inf
 
 from constance import config
 from django.conf import settings
-from django.db.models import F, Q, QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -21,8 +21,9 @@ from kpi.utils.usage_calculator import (
 )
 
 # Owners whose snapshot storage reaches this share of the lowest threshold are
-# checked again with fresh numbers, in case they stored more since the snapshot
-STORAGE_SNAPSHOT_MARGIN = 0.9
+# checked again with fresh numbers, in case they stored more since the snapshot.
+# A wide margin barely adds to the time it takes, so it is set low to be safe.
+STORAGE_SNAPSHOT_MARGIN = 0.6
 
 
 def get_active_users(days: int = 365) -> QuerySet:
@@ -128,16 +129,40 @@ def get_users_within_range_of_usage_limit(
     def get_storage_usage():
         # Summing project storage for every user would group the whole
         # `logger_xform` table. The user reports snapshot already holds each
-        # owner's storage and limit, so it narrows the list down to the owners
-        # close enough to their limit, and only their storage is summed again,
-        # fresh. The margin covers storage added since the last snapshot.
-        candidate_ids = BillingAndUsageSnapshot.objects.filter(
-            storage_bytes_limit__gt=0,
-            effective_user_id__isnull=False,
-            total_storage_bytes__gte=(
-                F('storage_bytes_limit') * minimum * STORAGE_SNAPSHOT_MARGIN
-            ),
-        ).values_list('effective_user_id', flat=True)
+        # owner's storage, so it narrows the list down to the owners close
+        # enough to their limit, and only their storage is summed again, fresh.
+        # `limits_by_owner` is built below, before this gets called.
+        #
+        # Limits are the current ones, not the snapshot's: a plan or add-on may
+        # have changed since. The margin covers storage added since the last
+        # snapshot. Owners without a snapshot yet (new organizations) are
+        # always checked.
+        storage_limit_key = f'{UsageType.STORAGE_BYTES}_limit'
+        storage_limits = {
+            owner_id: limit
+            for owner_id, limits in limits_by_owner.items()
+            if 0 < (limit := limits.get(storage_limit_key, inf)) < inf
+        }
+        snapshot_storage = dict(
+            BillingAndUsageSnapshot.objects.filter(
+                total_storage_bytes__gt=0, effective_user_id__isnull=False
+            )
+            .values_list('effective_user_id', 'total_storage_bytes')
+            .iterator(chunk_size=settings.DEFAULT_BATCH_SIZE)
+        )
+        candidate_ids = {
+            owner_id
+            for owner_id, limit in storage_limits.items()
+            if snapshot_storage.get(owner_id, 0)
+            >= limit * minimum * STORAGE_SNAPSHOT_MARGIN
+        }
+        candidate_ids.update(
+            owner_id
+            for owner_id in Organization.objects.filter(
+                owner__isnull=False, billingandusagesnapshot__isnull=True
+            ).values_list('owner__organization_user__user__id', flat=True)
+            if owner_id in storage_limits
+        )
         return get_storage_usage_by_user_id(list(candidate_ids))
 
     usage_method_by_type = {

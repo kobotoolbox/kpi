@@ -17,10 +17,12 @@ from django.db.models import (
     F,
     Func,
     IntegerField,
+    OuterRef,
+    Subquery,
     Sum,
     Value,
 )
-from django.db.models.functions import Cast, Concat, Lower
+from django.db.models.functions import Cast, Coalesce, Concat, Lower
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
@@ -302,17 +304,25 @@ def generate_forms_count_by_submission_range(output_filename: str):
 
 @shared_task
 def generate_media_storage_report(output_filename: str):
-    # Trashed projects are left out, like for usage limits
-    storage_by_user = (
-        XForm.objects.order_by()
-        .values('user__username')
-        .annotate(storage_bytes=Sum('attachment_storage_bytes'))
-        .values_list('user__username', 'storage_bytes')
+    # Every user with a profile, as before, with the storage of their projects.
+    # Trashed projects are left out, like for usage limits, and users without
+    # any other project get 0.
+    project_storage = (
+        XForm.objects.filter(user_id=OuterRef('user_id'))
+        .order_by()
+        .values('user_id')
+        .annotate(total=Sum('attachment_storage_bytes'))
+        .values('total')
     )
+    storage_by_user = UserProfile.objects.annotate(
+        storage_bytes=Coalesce(Subquery(project_storage), 0)
+    ).values_list('user__username', 'storage_bytes')
 
     data = [
-        [username, storage_bytes or 0]
-        for username, storage_bytes in storage_by_user.iterator()
+        [username, storage_bytes]
+        for username, storage_bytes in storage_by_user.iterator(
+            chunk_size=settings.DEFAULT_BATCH_SIZE
+        )
     ]
 
     headers = ['Username', 'Storage Used (Bytes)']
