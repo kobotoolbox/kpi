@@ -1074,32 +1074,42 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         .order_by('-id')
     )
 
-    latest_attachments, remaining_attachments_ids = [], []
+    attachments_to_soft_delete = {}
     basename_set = set(basenames)
     for attachment in queryset:
         # Legacy rows may be stored in NFD; normalize both sides before comparing
         normalized_basename = normalize_nfc(attachment.media_file_basename)
         if normalized_basename in basename_set:
-            latest_attachments.append(attachment)
             basename_set.remove(normalized_basename)
         else:
-            remaining_attachments_ids.append(attachment.id)
-    remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)
-    soft_deleted_attachments = list(remaining_attachments)
+            attachments_to_soft_delete[attachment.id] = attachment
 
+    if not attachments_to_soft_delete:
+        return []
+
+    # Return only the attachments this `UPDATE` actually soft-deleted. Between
+    # the loop above and this `UPDATE`, another request may have moved one of
+    # them to the trash. The trash already subtracted its size from the storage
+    # counter, and the `UPDATE` skips it because it is no longer active.
+    # Returning it anyway would make the caller subtract its size a second time.
+    #
     # The query below updates only the database records, not the in-memory
     # `Attachment` objects.
     # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
     # in memory after the update.
     # This behavior is necessary to allow the signal to handle file deletion from
     # storage.
-    remaining_attachments.update(
-        date_modified=dj_timezone.now(),
-        deleted_at=dj_timezone.now(),
+    now = dj_timezone.now()
+    changed_rows = Attachment.objects.filter(
+        id__in=list(attachments_to_soft_delete)
+    ).update_returning(
+        fields=['id'],
+        date_modified=now,
+        deleted_at=now,
         delete_status=AttachmentDeleteStatus.SOFT_DELETED,
     )
 
-    return soft_deleted_attachments
+    return [attachments_to_soft_delete[row['id']] for row in changed_rows]
 
 
 def get_submission_media_basenames(

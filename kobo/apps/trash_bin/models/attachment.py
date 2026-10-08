@@ -7,9 +7,9 @@ from kobo.apps.openrosa.apps.logger.models.attachment import (
     Attachment,
     AttachmentDeleteStatus,
 )
-from kobo.apps.openrosa.apps.logger.utils.attachment import (
-    toggle_delete_status_and_storage_counters,
-)
+from kobo.apps.openrosa.apps.logger.utils.attachment import update_delete_status
+from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from ..type_aliases import UpdatedQuerySetAndCount
 from . import BaseTrash
@@ -60,18 +60,23 @@ class AttachmentTrash(BaseTrash):
     ) -> UpdatedQuerySetAndCount:
         """
         Toggle statuses of attachments based on their `uid`, and update the
-        storage counters of their users and projects.
+        storage counters of their projects.
 
-        See `toggle_delete_status_and_storage_counters()` for why only the
-        attachments changed by this call are counted.
+        See `update_delete_status()` for why only the attachments changed by
+        this call are counted.
         """
-        current_delete_status = (
-            AttachmentDeleteStatus.PENDING_DELETE if active else None
-        )
+        if active:
+            from_status, to_status = AttachmentDeleteStatus.PENDING_DELETE, None
+        else:
+            from_status, to_status = None, AttachmentDeleteStatus.PENDING_DELETE
+
         queryset = Attachment.all_objects.filter(
-            uid__in=object_identifiers, delete_status=current_delete_status
+            uid__in=object_identifiers, delete_status=from_status
         )
-        updated = toggle_delete_status_and_storage_counters(
-            object_identifiers, active=active
-        )
+        with kc_transaction_atomic():
+            updated, storage_bytes_by_xform_id = update_delete_status(
+                object_identifiers, from_status=from_status, to_status=to_status
+            )
+            update_storage_counters(storage_bytes_by_xform_id)
+
         return queryset, updated
