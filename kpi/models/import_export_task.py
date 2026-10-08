@@ -563,12 +563,16 @@ class ImportTask(ImportExportTask):
         if choices_size > max_size:
             max_size_mb = max_size / (1024 * 1024)
             choices_size_mb = choices_size / (1024 * 1024)
-            raise ChoicesSizeLimitError(
-                f'The choices sheet is too large ({choices_size_mb:.2f} MB). '
-                f'The maximum allowed size is {max_size_mb:.2f} MB. '
-                'Please use external choice lists instead: '
-                'https://support.kobotoolbox.org/external_file.html'
+            message = t(
+                'The choices sheet is too large ({choices_size_mb:.2f} MB). '
+                'The maximum allowed size is {max_size_mb:.2f} MB. '
+                'Please use external choice lists instead: {support_url}'
+            ).format(
+                choices_size_mb=choices_size_mb,
+                max_size_mb=max_size_mb,
+                support_url='https://support.kobotoolbox.org/external_file.html',
             )
+            raise ChoicesSizeLimitError(message)
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
