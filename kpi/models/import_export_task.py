@@ -403,6 +403,10 @@ class ImportTask(ImportExportTask):
         # Pre-validate all assets before saving any of them
         parsed_contents = {}
         for item in fif._parsed:
+            if item.parent and item.parent not in fif._parsed:
+                raise ValueError(
+                    t('The archive contains an invalid folder hierarchy.')
+                )
             if item.get_type() == 'asset':
                 try:
                     kontent = xlsx_to_dict(item.readable)
@@ -466,13 +470,16 @@ class ImportTask(ImportExportTask):
             for item in fif._parsed:
                 if item.parent and item._orm != destination_asset:
                     parent_orm = getattr(item.parent, '_orm', None)
-                    if parent_orm:
-                        collections_to_assign.append(
-                            [
-                                item._orm,
-                                parent_orm,
-                            ]
+                    if not parent_orm:
+                        raise ValueError(
+                            t('The archive contains an invalid folder hierarchy.')
                         )
+                    collections_to_assign.append(
+                        [
+                            item._orm,
+                            parent_orm,
+                        ]
+                    )
                 elif destination_collection:
                     collections_to_assign.append(
                         [
