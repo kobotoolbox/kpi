@@ -4,9 +4,10 @@ import KoboMenu from '#/components/common/Menu'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import { openEnketoPreviewModal } from '#/components/enketoPreview/openEnketoPreviewModal'
 import { openSharingModal } from '#/components/permissions/openSharingModal'
-import { ASSET_TYPES } from '#/constants'
+import { AssetTypeName, ASSET_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
+import type { FormLandingCloneAssetType } from './index'
 
 interface FormLandingActionsProps {
   asset: AssetResponse
@@ -14,7 +15,7 @@ interface FormLandingActionsProps {
   isLoggedIn: boolean
   canRemoveSharedProject: boolean
   onRemoveSharedProject: () => void
-  onClone: (assetType: string) => void
+  onClone: (assetType: FormLandingCloneAssetType) => void
 }
 
 export default function FormLandingActions({
@@ -120,7 +121,7 @@ export default function FormLandingActions({
 
           {isLoggedIn && (
             <KoboMenu.Item
-              onClick={() => onClone(ASSET_TYPES.survey.id)}
+              onClick={() => onClone(AssetTypeName.survey)}
               leftSection={<i className='k-icon k-icon-duplicate' />}
             >
               {t('Clone this project')}
@@ -129,7 +130,7 @@ export default function FormLandingActions({
 
           {isLoggedIn && (
             <KoboMenu.Item
-              onClick={() => onClone(ASSET_TYPES.template.id)}
+              onClick={() => onClone(AssetTypeName.template)}
               leftSection={<i className='k-icon k-icon-template' />}
             >
               {t('Create template')}

@@ -24,7 +24,7 @@ import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { ASSET_TYPES } from '#/constants'
+import { AssetTypeName, ASSET_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import { ROUTES } from '#/router/routerConstants'
@@ -38,6 +38,13 @@ import FormLandingHistory from './FormLandingHistory'
 import FormLandingInfo from './FormLandingInfo'
 import FormLandingLanguages from './FormLandingLanguages'
 
+export type FormLandingCloneAssetType = AssetTypeName.survey | AssetTypeName.template
+
+// `type` identifies which prompt to render as each variant carries only that prompt's required data.
+type FormLandingPrompt =
+  | { type: 'unarchive' }
+  | { type: 'clone'; assetType: FormLandingCloneAssetType; versionUid?: string }
+
 /**
  * URL of the permission that lets anonymous users submit data to a project. This is a function rather than a module
  * constant, because `permConfig` throws when asked before the app has fetched its config.
@@ -49,10 +56,7 @@ function getAnonCanAddSubmissionsPermUrl() {
 export default function FormLanding() {
   // Fallback for getting uid from URL, needed without WithRouter wrapper
   const { uid = '' } = useParams<{ uid: string }>()
-  // TODO: simplify this type
-  const [prompt, setPrompt] = useState<
-    { type: 'unarchive' } | { type: 'clone'; assetType: string; versionUid?: string } | null
-  >(null)
+  const [prompt, setPrompt] = useState<FormLandingPrompt | null>(null)
   const [cloneName, setCloneName] = useState('')
 
   const navigate = useNavigate()
@@ -154,7 +158,7 @@ export default function FormLanding() {
     )
   }
 
-  const cloneAsset = (assetType: string, versionUid?: string) => {
+  const cloneAsset = (assetType: FormLandingCloneAssetType, versionUid?: string) => {
     if (!asset) return
     setCloneName(assetType === ASSET_TYPES.template.id ? asset.name || '' : `${t('Clone of')} ${asset.name || ''}`)
     setPrompt({ type: 'clone', assetType, versionUid })
@@ -337,7 +341,7 @@ export default function FormLanding() {
           {asset.deployed_versions.count > 0 && (
             <FormLandingHistory
               asset={asset}
-              onClone={(versionUid) => cloneAsset(ASSET_TYPES.survey.id, versionUid)}
+              onClone={(versionUid) => cloneAsset(AssetTypeName.survey, versionUid)}
             />
           )}
           {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && (
