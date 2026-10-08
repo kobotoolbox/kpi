@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -8,7 +9,7 @@ from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.libs.utils.image_tools import image_url
+from kobo.apps.openrosa.libs.utils.image_tools import image_url, resize
 from kpi.constants import SAFE_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -84,26 +85,28 @@ class TestAttachment(TestBase):
 
     def test_create_thumbnails_command(self):
         call_command('create_image_thumbnails')
-        created_times = {}
         for attachment in Attachment.objects.filter(instance=self.instance):
             filename = attachment.media_file.name.replace('.jpg', '')
             for size in settings.THUMB_CONF.keys():
                 thumbnail = '%s-%s.jpg' % (filename, size)
                 self.assertTrue(default_storage.exists(thumbnail))
-                created_times[size] = default_storage.get_modified_time(
-                    thumbnail
-                )
-        # replace or regenerate thumbnails if they exist
-        call_command('create_image_thumbnails', force=True)
+
+        # replace or regenerate thumbnails if they exist. Storage modified times
+        # are only precise to the second, so check that `resize()` ran again
+        # instead of comparing them.
+        with patch(
+            'kobo.apps.openrosa.apps.logger.management.commands'
+            '.create_image_thumbnails.resize',
+            wraps=resize,
+        ) as mock_resize:
+            call_command('create_image_thumbnails', force=True)
+
         for attachment in Attachment.objects.filter(instance=self.instance):
+            mock_resize.assert_any_call(attachment.media_file.name)
             filename = attachment.media_file.name.replace('.jpg', '')
             for size in settings.THUMB_CONF.keys():
                 thumbnail = f'{filename}-{size}.jpg'
                 self.assertTrue(default_storage.exists(thumbnail))
-                self.assertTrue(
-                    default_storage.get_modified_time(thumbnail)
-                    > created_times[size]
-                )
                 default_storage.delete(thumbnail)
 
     def test_attachment_save_populates_user_and_xform(self):

@@ -83,3 +83,12 @@ if STORAGES['default']['BACKEND'].endswith('S3Boto3Storage'):  # noqa F405
     AWS_STORAGE_BUCKET_NAME = 'test-bucket'
     AWS_PRIVATE_STORAGE_BUCKET_NAME = 'test-bucket'
     KOBOCAT_AWS_STORAGE_BUCKET_NAME = 'test-bucket'
+
+# Give each pytest-xdist worker (`gw0`, `gw1`, ...) its own Redis database, so
+# locks and cached values do not leak between tests running in parallel. A key
+# prefix is not enough: `cache.clear()` flushes the whole database.
+if xdist_worker := os.environ.get('PYTEST_XDIST_WORKER'):
+    worker_index = int(xdist_worker.removeprefix('gw'))
+    for cache_alias in ('default', 'constance'):
+        redis_url, redis_db = CACHES[cache_alias]['LOCATION'].rsplit('/', 1)  # noqa F405 E501
+        CACHES[cache_alias]['LOCATION'] = f'{redis_url}/{int(redis_db) + worker_index}'
