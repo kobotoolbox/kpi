@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+from itertools import batched
 from json import dumps, loads
 from math import inf
 
@@ -120,8 +121,7 @@ def get_storage_usage_by_user_id(user_ids: list[int]) -> dict[int, int]:
     query = XForm.objects.order_by().values('user_id')
     user_ids = list(user_ids)
     storage_by_user_id = dict.fromkeys(user_ids, 0)
-    for start in range(0, len(user_ids), settings.DEFAULT_BATCH_SIZE):
-        batch = user_ids[start : start + settings.DEFAULT_BATCH_SIZE]
+    for batch in batched(user_ids, settings.DEFAULT_BATCH_SIZE):
         storage_by_user_id.update(
             _sum_storage_by_user_id(query.filter(user_id__in=batch))
         )
