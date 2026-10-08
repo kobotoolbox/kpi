@@ -135,8 +135,20 @@ describe('fetchAllauth', () => {
       await fetchAllauth('/api/v2/allauth/browser/v1/account/password/change', { method: 'POST' })
 
       chai.expect(mockedRecordAllauthResponse.mock.calls).to.have.length(1)
-      chai.expect(mockedRecordAllauthResponse.mock.calls[0][0]).to.include({ status: 401 })
-      chai.expect(mockedRecordAllauthResponse.mock.calls[0][0].data).to.deep.equal(body)
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][1]).to.include({ status: 401 })
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][1].data).to.deep.equal(body)
+    })
+
+    // The watcher needs it to tell the session query's own fetch apart from everything else
+    it('says where the answer came from', async () => {
+      fetchSpy.mockReturnValue(makeResponse(200, { meta: { is_authenticated: true } }))
+
+      await fetchAllauth('/api/v2/allauth/browser/v1/auth/session', { method: 'GET' })
+
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][0]).to.deep.equal({
+        url: '/api/v2/allauth/browser/v1/auth/session',
+        method: 'GET',
+      })
     })
 
     it('offers a refusal too, and lets `recordAllauthResponse` turn it down', async () => {
@@ -145,7 +157,7 @@ describe('fetchAllauth', () => {
       await fetchAllauth('/api/v2/allauth/browser/v1/auth/login', { method: 'POST' })
 
       chai.expect(mockedRecordAllauthResponse.mock.calls).to.have.length(1)
-      chai.expect(mockedRecordAllauthResponse.mock.calls[0][0]).to.include({ status: 400 })
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][1]).to.include({ status: 400 })
     })
 
     it('offers nothing from an answer it threw on, which carries no session reading', async () => {

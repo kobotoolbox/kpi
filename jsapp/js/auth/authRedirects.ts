@@ -8,16 +8,16 @@ import { getLoginRouteWithNext, getRouteWithNext, getUrlForNextRoute } from './n
 // bottom and can be tested without a browser
 
 /**
- * Screens where signing in is a side effect rather than the point (confirming an email address, or finishing a password
- * reset). Each one ends by reporting what happened with a `Continue to KoboToolbox` button pointing at `${ROOT_URL}/` -
- * which is exactly where the `loggedIn` redirect below would send somebody. Redirecting would press that button for
- * them, before the message was read.
+ * Screens where signing in is a side effect rather than the point (confirming an email address, finishing a password
+ * reset, or signing up on a deployment that does not verify email). Each one ends by reporting what happened with a
+ * `Continue to KoboToolbox` button pointing at `${ROOT_URL}/` - which is exactly where the `loggedIn` redirect below
+ * would send somebody. Redirecting would press that button for them, before the message was read.
  *
  * Path patterns, not paths - two of them carry a `:key`, hence `matchPath` used below.
  */
 const SELF_ANNOUNCED_SIGN_IN_ROUTES: readonly string[] = [
+  AUTH_ROUTES.SIGNUP,
   AUTH_ROUTES.CONFIRM_EMAIL,
-  AUTH_ROUTES.RESET_PASSWORD_CODE,
   AUTH_ROUTES.NEW_PASSWORD,
 ]
 

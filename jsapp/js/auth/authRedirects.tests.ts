@@ -69,9 +69,10 @@ describe('redirectForAuthChange', () => {
   // The panel announcing it has a button out of it, and that acknowledgement is the point of the screen.
   it('leaves a sign-in alone on the screens that announce it themselves', () => {
     const paths = [
+      // With `ACCOUNT_EMAIL_VERIFICATION` off, signup answers 200 and signs the new account straight in
+      AUTH_ROUTES.SIGNUP,
       AUTH_ROUTES.CONFIRM_EMAIL.replace(':key', 'a-verification-key'),
       AUTH_ROUTES.NEW_PASSWORD.replace(':key', 'a-reset-key'),
-      AUTH_ROUTES.RESET_PASSWORD_CODE,
     ]
 
     for (const routePath of paths) {

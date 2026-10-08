@@ -3,15 +3,25 @@ import { queryClient } from '#/api/queryClient'
 import {
   allauthBrowserV1AccountPasswordChangePost,
   getAllauthBrowserV1AuthSessionGetQueryKey,
+  getAllauthBrowserV1AuthSessionGetUrl,
 } from '#/api/react-query/authentication-allauth-headless'
 import type { AllauthResponse } from './allauthErrors'
-import { getAuthStatusQueryKey, isAuthChangeResponse, recordAllauthResponse } from './authChangeWatcher'
+import {
+  AUTH_STATUS_URL,
+  getAuthStatusQueryKey,
+  isAuthChangeResponse,
+  recordAllauthResponse,
+} from './authChangeWatcher'
 import { getAuthStatus } from './authStatus'
 
 const user = { id: 7, display: 'sallyride', username: 'sallyride', has_usable_password: true }
 
 /** As `fetchAllauth` hands it over: allauth's own body nested under `data`. */
 const response = (status: number, body: unknown = {}): AllauthResponse => ({ status, data: body })
+
+/** As the server sends it, for the tests that go through `fetchAllauth` rather than around it. */
+const jsonResponse = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
 const session = response(200, { data: { user, methods: [{ method: 'password' }] }, meta: { is_authenticated: true } })
 const anonymous = response(401, { data: { flows: [{ id: 'login' }] }, meta: { is_authenticated: false } })
@@ -20,10 +30,15 @@ const reauthenticationRequired = response(401, {
   meta: { is_authenticated: true },
 })
 
-describe('getAuthStatusQueryKey', () => {
-  // Hand-written to keep `fetchAllauth` out of an import cycle, so this is what catches orval moving the endpoint.
-  it('is the key the generated session query uses', () => {
+const sessionUrl = getAllauthBrowserV1AuthSessionGetUrl()
+/** The kind of request that raises a reauthentication ask, and the kind the session poll can race. */
+const fromAccountCall = { url: '/api/v2/allauth/browser/v1/account/password/change', method: 'POST' }
+
+// Both hand-written to keep `fetchAllauth` out of an import cycle, so this is what catches orval moving the endpoint.
+describe('the session query`s key and URL', () => {
+  it('are the ones the generated session query uses', () => {
     chai.expect(getAuthStatusQueryKey()).to.deep.equal(getAllauthBrowserV1AuthSessionGetQueryKey())
+    chai.expect(AUTH_STATUS_URL).to.equal(sessionUrl)
   })
 })
 
@@ -67,8 +82,8 @@ describe('recordAllauthResponse', () => {
     queryClient.removeQueries({ queryKey: getAuthStatusQueryKey() })
   })
 
-  it('files a session where the guards and `AuthChangeRedirector` read it', () => {
-    recordAllauthResponse(session)
+  it('files a session where the guards and `AuthChangeRedirector` read it', async () => {
+    await recordAllauthResponse(fromAccountCall, session)
 
     const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
     chai.expect(getAuthStatus(cached).isAuthenticated).to.equal(true)
@@ -76,26 +91,40 @@ describe('recordAllauthResponse', () => {
   })
 
   // The point of the whole module: this pair comes back from the sensitive request, never from `GET /auth/session`.
-  it('files a reauthentication ask from whichever endpoint raised it', () => {
-    recordAllauthResponse(session)
-    recordAllauthResponse(reauthenticationRequired)
+  it('files a reauthentication ask from whichever endpoint raised it', async () => {
+    await recordAllauthResponse(fromAccountCall, session)
+    await recordAllauthResponse(fromAccountCall, reauthenticationRequired)
 
     const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
     chai.expect(getAuthStatus(cached).isReauthenticationRequired).to.equal(true)
   })
 
-  it('leaves the last reading in place when the answer is not one', () => {
-    recordAllauthResponse(session)
-    recordAllauthResponse(response(400, { errors: [{ message: 'Wrong password.' }] }))
+  it('leaves the last reading in place when the answer is not one', async () => {
+    await recordAllauthResponse(fromAccountCall, session)
+    await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Wrong password.' }] }))
 
     const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
     chai.expect(cached.status).to.equal(200)
   })
 
-  it('writes nothing at all when it has never seen a reading', () => {
-    recordAllauthResponse(response(400, {}))
+  it('writes nothing at all when it has never seen a reading', async () => {
+    await recordAllauthResponse(fromAccountCall, response(400, {}))
 
     chai.expect(queryClient.getQueryData(getAuthStatusQueryKey())).to.equal(undefined)
+  })
+
+  // Cancelling would abort the very request whose answer this is, leaving the query reverted on every poll.
+  it('leaves the session query alone when the answer is that query`s own', async () => {
+    const cancelSpy = jest.spyOn(queryClient, 'cancelQueries')
+
+    await recordAllauthResponse({ url: `${sessionUrl}?x=1`, method: 'GET' }, session)
+    chai.expect(cancelSpy.mock.calls).to.have.length(0)
+
+    // Signing out is a `DELETE` on the same URL, and nothing else reports it
+    await recordAllauthResponse({ url: sessionUrl, method: 'DELETE' }, anonymous)
+    chai.expect(cancelSpy.mock.calls).to.have.length(1)
+
+    cancelSpy.mockRestore()
   })
 })
 
@@ -113,14 +142,7 @@ describe('an allauth call from a screen other than the session poll', () => {
   })
 
   it('leaves its answer as the newest session reading', async () => {
-    const body = {
-      status: 401,
-      data: { user, methods: [{ method: 'password' }], flows: [{ id: 'reauthenticate', is_pending: true }] },
-      meta: { is_authenticated: true },
-    }
-    fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify(body), { status: 401, headers: { 'Content-Type': 'application/json' } }),
-    )
+    fetchSpy.mockResolvedValue(jsonResponse(401, reauthenticationRequired.data))
 
     await allauthBrowserV1AccountPasswordChangePost({ current_password: 'hunter2', new_password: 'hunter3' })
 

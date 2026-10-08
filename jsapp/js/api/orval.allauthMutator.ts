@@ -44,7 +44,7 @@ export const fetchAllauth = async <T>(url: string, config: FetchAllauthConfig): 
   }
 
   // Before the caller gets it, so a screen reading the session in the same tick sees the new one.
-  recordAllauthResponse(result)
+  await recordAllauthResponse({ url, method: config.method }, result)
 
   return result as T
 }
