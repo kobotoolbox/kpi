@@ -683,6 +683,19 @@ export function buildAssetUrl(assetUid: string) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`
 }
 
+/**
+ * Returns whichever of the two assets the backend serialized later, going by `date_modified` (set on every save).
+ *
+ * An asset can be fetched (`GET`) and saved (`PATCH`) at the same time, and those responses can resolve in either
+ * order.
+ */
+export function getNewerAsset(currentAsset: AssetResponse | null, incomingAsset: AssetResponse): AssetResponse {
+  if (!currentAsset?.date_modified || !incomingAsset.date_modified) {
+    return incomingAsset
+  }
+  return Date.parse(incomingAsset.date_modified) < Date.parse(currentAsset.date_modified) ? currentAsset : incomingAsset
+}
+
 /*
  * Inspired by https://gist.github.com/john-doherty/b9195065884cdbfd2017a4756e6409cc
  * Remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD

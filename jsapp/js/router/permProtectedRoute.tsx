@@ -2,6 +2,7 @@ import React, { Suspense } from 'react'
 
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
+import { getNewerAsset } from '#/assetUtils'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
@@ -120,11 +121,15 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
       return
     }
 
+    // A save that landed while this load was in flight carries newer data, so keep that one. Either way the load is
+    // finished, and permissions are evaluated against whichever asset we end up keeping.
+    const newerAsset = getNewerAsset(this.state.asset, asset)
+
     this.setState({
-      asset: asset,
+      asset: newerAsset,
       isLoadAssetFinished: true,
       userHasRequiredPermissions: this.getUserHasRequiredPermissions(
-        asset,
+        newerAsset,
         this.props.requiredPermissions,
         this.props.requireAll,
       ),
@@ -143,7 +148,12 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
       return
     }
 
-    this.setState({ asset: asset })
+    // A refresh may have already brought in a version newer than this save response, in which case there is nothing
+    // to apply.
+    const newerAsset = getNewerAsset(this.state.asset, asset)
+    if (newerAsset !== this.state.asset) {
+      this.setState({ asset: newerAsset })
+    }
   }
 
   onLoadAssetFailed(response: FailResponse) {
