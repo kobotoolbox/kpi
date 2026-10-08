@@ -1,4 +1,4 @@
-import { Box, Group, TextInput } from '@mantine/core'
+import { Box, TextInput } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
@@ -17,7 +17,6 @@ import {
 } from '#/api/react-query/manage-projects-and-library-content'
 import { parsed } from '#/assetParserUtils'
 import bem from '#/bem'
-import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import KoboPrompt from '#/components/modals/koboPrompt'
@@ -33,9 +32,9 @@ import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify } from '#/utils'
 import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
-import FormHistory from './FormHistory'
 import FormLandingActions from './FormLandingActions'
 import FormLandingCollectData from './FormLandingCollectData'
+import FormLandingHistory from './FormLandingHistory'
 import FormLandingInfo from './FormLandingInfo'
 import FormLandingLanguages from './FormLandingLanguages'
 
@@ -50,7 +49,6 @@ function getAnonCanAddSubmissionsPermUrl() {
 export default function FormLanding() {
   // Fallback for getting uid from URL, needed without WithRouter wrapper
   const { uid = '' } = useParams<{ uid: string }>()
-  const [historyExpanded, setHistoryExpanded] = useState(false)
   // TODO: simplify this type
   const [prompt, setPrompt] = useState<
     { type: 'unarchive' } | { type: 'clone'; assetType: string; versionUid?: string } | null
@@ -258,39 +256,6 @@ export default function FormLanding() {
     }
   }
 
-  // FormHistory owns the version list so we should keep the visibility and page-action wiring here
-  const renderHistory = (loadedAsset: AssetResponse) => (
-    <bem.FormView__row className={historyExpanded ? 'historyExpanded' : 'historyHidden'}>
-      <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
-        <bem.FormView__cell m='label'>{t('Form history')}</bem.FormView__cell>
-      </bem.FormView__cell>
-
-      <bem.FormView__cell m={['history-table']}>
-        <FormHistory
-          isEnabled={historyExpanded}
-          assetUid={loadedAsset.uid}
-          deployedVersionId={loadedAsset.deployed_version_id ?? undefined}
-          deployedVersionsCount={loadedAsset.deployed_versions.count}
-          deploymentActive={loadedAsset.deployment__active}
-          deploymentStatus={loadedAsset.deployment_status}
-          onClone={(versionUid) => cloneAsset(ASSET_TYPES.survey.id, versionUid)}
-        />
-      </bem.FormView__cell>
-      {loadedAsset.deployed_versions.count > 1 && (
-        <Group justify='center' gap='md' pt={historyExpanded ? 'md' : 0}>
-          <ButtonNew
-            size='md'
-            onClick={() => setHistoryExpanded((expanded) => !expanded)}
-            leftIcon={historyExpanded ? 'angle-up' : 'angle-down'}
-            variant='transparent'
-          >
-            {historyExpanded ? t('Hide full history') : t('Show full history')}
-          </ButtonNew>
-        </Group>
-      )}
-    </bem.FormView__row>
-  )
-
   const removeSharedProject = (loadedAsset: AssetResponse) => {
     const username = profileStore.currentAccount.username
     const assignmentUids = loadedAsset.permissions
@@ -369,7 +334,12 @@ export default function FormLanding() {
               <FormLandingLanguages asset={asset} canEdit={userCanEdit} onManageLanguages={showLanguagesModal} />
             </bem.FormView__cell>
           </bem.FormView__row>
-          {asset.deployed_versions.count > 0 && renderHistory(asset)}
+          {asset.deployed_versions.count > 0 && (
+            <FormLandingHistory
+              asset={asset}
+              onClone={(versionUid) => cloneAsset(ASSET_TYPES.survey.id, versionUid)}
+            />
+          )}
           {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && (
             <FormLandingCollectData
               asset={asset}
