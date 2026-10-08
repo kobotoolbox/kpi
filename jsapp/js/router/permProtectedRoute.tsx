@@ -125,6 +125,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
     this.unlisteners.push(
       actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
       actions.resources.loadAsset.failed.listen(this.onLoadAssetFailed.bind(this)),
+      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
     )
 
     // See if the asset is already loaded in the store
@@ -186,6 +187,21 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
         this.props.requireAll,
       ),
     })
+  }
+
+  /**
+   * Keeps the `asset` prop current after the route component saves something - table sort, column visibility, map
+   * styles, etc. Without this, children reading the asset from props keep rendering pre-save data.
+   *
+   * Unlike `onLoadAssetCompleted`, this does not re-evaluate permissions: a settings `PATCH` can't change them, and the
+   * flows that do (sharing) trigger their own `loadAsset`.
+   */
+  onUpdateAssetCompleted(asset: AssetResponse) {
+    if (asset.uid !== this.props.params.uid) {
+      return
+    }
+
+    this.setState({ asset: asset })
   }
 
   onLoadAssetFailed(response: FailResponse) {

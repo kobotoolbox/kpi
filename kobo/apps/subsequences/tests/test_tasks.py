@@ -108,6 +108,38 @@ class TestPollRunExternalProcess(BaseTestCase):
         self.assertEqual(latest_version['_data']['status'], 'complete')
         self.assertEqual(latest_version['_data']['value'], 'Done!')
 
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_poll_auto_accepts_completed_result(self, mock_run):
+        """
+        Test that a completed result polled with auto_accept is stamped accepted
+        and that the request-only flag never reaches the persisted version data
+        """
+        mock_run.return_value = {
+            'status': 'complete',
+            'value': 'Done!',
+            'language': 'en',
+        }
+
+        poll_run_external_process(
+            asset_id=self.asset.id,
+            submission=self.submission,
+            question_xpath=self.question_xpath,
+            action_id=self.action_id,
+            action_data={'language': 'en', 'auto_accept': True},
+        )
+
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        self.assertTrue(latest_version.get('_dateAccepted'))
+        self.assertNotIn('auto_accept', latest_version['_data'])
+
     @patch('kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process')  # noqa: E501
     def test_poll_handles_graceful_api_failure(self, mock_run):
         """
@@ -249,6 +281,29 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         self.assertEqual(latest_version['_data']['status'], 'failed')
         self.assertEqual(latest_version['_data']['error'], 'Maximum retries exceeded.')
 
+    def test_failure_handler_strips_auto_accept(self):
+        """
+        Test that the failure handler writes the failed version while dropping
+        the request-only auto_accept key the result schema would otherwise reject
+        """
+        self.task_kwargs['kwargs']['action_data'] = {
+            'language': 'en',
+            'auto_accept': True,
+        }
+
+        poll_run_external_process_failure(
+            sender=None, exception=Exception('boom'), **self.task_kwargs
+        )
+
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        self.assertEqual(latest_version['_data']['status'], 'failed')
+        self.assertNotIn('auto_accept', latest_version['_data'])
+
 
 class TestSubsequenceBulkActionExecution(BaseTestCase):
     fixtures = ['test_data']
@@ -375,6 +430,187 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
             '_versions'
         ][0]
         self.assertEqual(latest_version['_data']['status'], 'complete')
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_auto_accepts_completed_result(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that a completed result is stamped accepted when the parent bulk
+        action enables auto_accept
+        """
+        mock_run_external_process.return_value = {
+            'status': 'complete',
+            'value': 'Done!',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            auto_accept=True,
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+
+        start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.COMPLETE)
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset,
+            submission_root_uuid=self.submission_uuid,
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        date_accepted = latest_version['_dateAccepted']
+        self.assertIsInstance(date_accepted, str)
+        self.assertTrue(date_accepted)
+        self.assertNotIn('auto_accept', latest_version['_data'])
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_leaves_result_unaccepted_without_auto_accept(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that a completed result is left unaccepted when the parent bulk
+        action does not enable auto_accept
+        """
+        mock_run_external_process.return_value = {
+            'status': 'complete',
+            'value': 'Done!',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+
+        start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.COMPLETE)
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset,
+            submission_root_uuid=self.submission_uuid,
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        self.assertNotIn('_dateAccepted', latest_version)
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_does_not_accept_in_progress_result(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that an in-progress result is not accepted and that auto_accept is
+        carried into the enqueued poll so completion can accept it later
+        """
+        mock_run_external_process.return_value = {
+            'status': 'in_progress',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            auto_accept=True,
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as enqueue_poll:
+            start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.IN_PROGRESS)
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset,
+            submission_root_uuid=self.submission_uuid,
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        self.assertNotIn('_dateAccepted', latest_version)
+        enqueue_poll.assert_called_once()
+        poll_action_data = enqueue_poll.call_args.kwargs['kwargs']['action_data']
+        self.assertIs(poll_action_data['auto_accept'], True)
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_does_not_accept_failed_result(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that a failed result is not accepted even when auto_accept is enabled
+        """
+        mock_run_external_process.return_value = {
+            'status': 'failed',
+            'error': 'Transcription is not supported for language "en-US"',
+            'language': 'en',
+            'locale': 'en-US',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            auto_accept=True,
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+
+        start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.FAILED)
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset,
+            submission_root_uuid=self.submission_uuid,
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        self.assertNotIn('_dateAccepted', latest_version)
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_resume_polling_carries_auto_accept(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that resuming polling for an existing Google operation carries the
+        auto_accept flag into the enqueued poll
+        """
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            auto_accept=True,
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        item.status = BulkActionItemStatus.IN_PROGRESS
+        item.service_id = 'operations/google-op-1'
+        item.save(update_fields=['status', 'service_id'])
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as enqueue_poll:
+            start_bulk_item_job(item.pk)
+
+        mock_run_external_process.assert_not_called()
+        enqueue_poll.assert_called_once()
+        poll_action_data = enqueue_poll.call_args.kwargs['kwargs']['action_data']
+        self.assertIs(poll_action_data['auto_accept'], True)
 
     @patch(
         'kobo.apps.subsequences.actions.base.'
