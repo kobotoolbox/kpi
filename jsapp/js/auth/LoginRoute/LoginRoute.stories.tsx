@@ -124,7 +124,7 @@ export const Default: Story = {
 
     // Both router links, so neither recovery nor signing up reloads the page.
     expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
-    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.REGISTER)
+    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.SIGNUP)
   },
 }
 
