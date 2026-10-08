@@ -1,9 +1,50 @@
 from collections import defaultdict
+from collections.abc import Iterator
 
+from django.conf import settings
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
+from kpi.utils.django_orm_helper import get_distinct_values
+
+
+def get_suspected_drifted_xform_ids(last_xform_id: int = 0) -> Iterator[list[int]]:
+    """
+    Yield, in batches and in increasing order, the ids of the projects whose
+    storage counter may have drifted: those holding at least one attachment
+    that left the active status (trashed, restored, soft deleted). A project
+    whose attachments were only ever added cannot drift.
+
+    `last_xform_id` resumes after a given project.
+
+    The projects come from the partial index on inactive attachments, walked
+    by `get_distinct_values()`: a plain `SELECT DISTINCT` would read every
+    entry of it, millions, to keep a few thousand projects.
+    """
+
+    inactive_attachments = Attachment.all_objects.filter(delete_status__isnull=False)
+    while xform_ids := get_distinct_values(
+        inactive_attachments,
+        'xform_id',
+        last_value=last_xform_id,
+        limit=settings.DEFAULT_BATCH_SIZE,
+    ):
+        yield xform_ids
+        last_xform_id = xform_ids[-1]
+
+
+def get_xform_ids_with_negative_storage() -> list[int]:
+    """
+    Return the ids of the projects whose storage counter is negative, which can
+    only be wrong
+    """
+
+    return list(
+        XForm.all_objects.filter(attachment_storage_bytes__lt=0)
+        .order_by('pk')
+        .values_list('pk', flat=True)
+    )
 
 
 def update_delete_status(

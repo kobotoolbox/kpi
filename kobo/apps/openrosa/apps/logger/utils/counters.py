@@ -1,8 +1,14 @@
-from django.db.models import Case, F, When
+from django.conf import settings
+from django.core.cache import cache
+from django.db.models import Case, F, OuterRef, Subquery, Sum, When
+from django.db.models.functions import Coalesce
+from redis.exceptions import LockError
 
 from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
+from kpi.utils.log import logging
 from ...main.models import UserProfile
-from ..models import Instance, XForm
+from ..constants import RECOUNT_STORAGE_LOCK_KEY_PREFIX
+from ..models import Attachment, Instance, XForm
 
 
 def decrement_counters_after_deletion(
@@ -82,6 +88,68 @@ def delete_null_user_daily_counters(apps, *args):
 
     # Delete daily counters without a user to avoid creating invalid monthly counters
     DailyXFormSubmissionCounter.objects.filter(user=None).delete()
+
+
+def recount_storage_counter(
+    xform_id: int, dry_run: bool = False
+) -> tuple[int, int] | None:
+    """
+    Fix the storage counter of a project from the attachments it actually
+    holds, and return its value before the fix and the real storage. Return
+    `None` if the project does not exist, or another recount of it runs.
+
+    Nothing is locked while the attachments are summed, which can take a while
+    on a large project: submissions keep coming. The counter and the sum are
+    read by the same statement, so from the same snapshot, where they only
+    differ by the drift: every change of an attachment updates the counter in
+    the same transaction. Only that drift is then added to the counter, so a
+    submission committed meanwhile keeps the bytes it added itself.
+
+    Running it twice changes nothing the second time, but two recounts of the
+    same project at once would both add the drift. The cache lock prevents
+    that; it does not hold back submissions.
+    """
+
+    lock = cache.lock(
+        f'{RECOUNT_STORAGE_LOCK_KEY_PREFIX}{xform_id}',
+        timeout=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
+    )
+    if not lock.acquire(blocking=False):
+        logging.info(f'Storage of xform #{xform_id} is already being recounted')
+        return None
+
+    try:
+        real_storage = Coalesce(
+            Subquery(
+                Attachment.objects.filter(xform_id=OuterRef('pk'))
+                .order_by()
+                .values('xform_id')
+                .annotate(total=Sum('media_file_size'))
+                .values('total')
+            ),
+            0,
+        )
+        row = (
+            XForm.all_objects.filter(pk=xform_id)
+            .annotate(real_storage=real_storage)
+            .values_list('attachment_storage_bytes', 'real_storage')
+            .first()
+        )
+        if row is None:
+            return None
+
+        counter, real = row
+        if not dry_run:
+            update_storage_counters({xform_id: real - counter})
+        return counter, real
+    finally:
+        # The lock outlives any recount, so it is still ours here, unless
+        # Redis lost the key (restart, eviction). `release()` raises then, and
+        # must not hide the recount's own result or error
+        try:
+            lock.release()
+        except LockError as e:
+            logging.warning(f'Recount lock of xform #{xform_id} was lost: {e}')
 
 
 def update_storage_counters(storage_bytes_by_xform_id: dict[int, int]):
