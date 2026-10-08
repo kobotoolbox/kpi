@@ -380,8 +380,11 @@ class ImportTask(ImportExportTask):
         fif.remove_invalid_assets()
         fif.remove_empty_collections()
 
-        destination_collection = destination \
-            if destination.asset_type == ASSET_TYPE_COLLECTION else False
+        destination_collection = (
+            destination
+            if destination and destination.asset_type == ASSET_TYPE_COLLECTION
+            else False
+        )
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -394,29 +397,10 @@ class ImportTask(ImportExportTask):
         real_owner = get_real_owner(self.user)
         transfer = real_owner != self.user and not destination
 
-        collections_to_assign = []
+        # Pre-validate all assets before saving any of them
+        parsed_contents = {}
         for item in fif._parsed:
-            extra_args = {
-                'owner': self.user if destination else real_owner,
-                'name': item._name_base,
-                'created_by': self.user.username,
-                'last_modified_by': self.user.username,
-            }
-            if transfer:
-                extra_args['is_excluded_from_projects_list'] = True
-            # Collections only pass view/change down, so grant manage on every
-            # created asset (like the API does). Explicit grants survive the
-            # later parent assignment, which only recalculates inherited perms.
-            grant_manage = transfer
-
-            if item.get_type() == 'collection':
-                # FIXME: seems to allow importing nested collections, even
-                # though uploading from a file does not (`_parse_b64_upload()`
-                # raises `NotImplementedError`)
-                item._orm = self._create_assets_for_uploader(
-                    item.get_type(), extra_args, grant_manage=grant_manage
-                )
-            elif item.get_type() == 'asset':
+            if item.get_type() == 'asset':
                 try:
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
@@ -424,42 +408,69 @@ class ImportTask(ImportExportTask):
                 self._ensure_valid_node_names(kontent)
                 self._ensure_translated_columns(kontent)
                 self._ensure_choices_size(kontent)
+                parsed_contents[item] = kontent
 
-                if not destination:
-                    extra_args['content'] = _strip_header_keys(kontent)
+        with transaction.atomic():
+            collections_to_assign = []
+            for item in fif._parsed:
+                extra_args = {
+                    'owner': self.user if destination else real_owner,
+                    'name': item._name_base,
+                    'created_by': self.user.username,
+                    'last_modified_by': self.user.username,
+                }
+                if transfer:
+                    extra_args['is_excluded_from_projects_list'] = True
+                # Collections only pass view/change down, so grant manage on every
+                # created asset (like the API does). Explicit grants survive the
+                # later parent assignment, which only recalculates inherited perms.
+                grant_manage = transfer
+
+                if item.get_type() == 'collection':
+                    # FIXME: seems to allow importing nested collections, even
+                    # though uploading from a file does not (`_parse_b64_upload()`
+                    # raises `NotImplementedError`)
                     item._orm = self._create_assets_for_uploader(
                         item.get_type(), extra_args, grant_manage=grant_manage
                     )
-                else:
-                    # The below is copied from `_parse_b64_upload` pretty much as is
-                    # TODO: review and test carefully
-                    asset = destination
-                    # Derive `translations` from the file so `Asset.save()`
-                    # does not restore languages removed from it (DEV-2657)
-                    standardize_content_in_place(kontent)
-                    asset.content = kontent
-                    asset.save()
-                    messages['updated'].append({
-                            'uid': asset.uid,
-                            'kind': 'asset',
-                            'owner__username': self.user.username,
-                        }
-                    )
+                elif item.get_type() == 'asset':
+                    kontent = parsed_contents[item]
 
-            if item.parent:
-                collections_to_assign.append([
-                    item._orm,
-                    item.parent._orm,
-                ])
-            elif destination_collection:
-                collections_to_assign.append([
-                    item._orm,
-                    destination_collection,
-                ])
+                    if not destination:
+                        extra_args['content'] = _strip_header_keys(kontent)
+                        item._orm = self._create_assets_for_uploader(
+                            item.get_type(), extra_args, grant_manage=grant_manage
+                        )
+                    else:
+                        # The below is copied from `_parse_b64_upload` pretty much as is
+                        # TODO: review and test carefully
+                        asset = destination
+                        # Derive `translations` from the file so `Asset.save()`
+                        # does not restore languages removed from it (DEV-2657)
+                        standardize_content_in_place(kontent)
+                        asset.content = kontent
+                        asset.save()
+                        messages['updated'].append({
+                                'uid': asset.uid,
+                                'kind': 'asset',
+                                'owner__username': self.user.username,
+                            }
+                        )
 
-        for (orm_obj, parent_item) in collections_to_assign:
-            orm_obj.parent = parent_item
-            orm_obj.save()
+                if item.parent:
+                    collections_to_assign.append([
+                        item._orm,
+                        item.parent._orm,
+                    ])
+                elif destination_collection:
+                    collections_to_assign.append([
+                        item._orm,
+                        destination_collection,
+                    ])
+
+            for (orm_obj, parent_item) in collections_to_assign:
+                orm_obj.parent = parent_item
+                orm_obj.save()
 
     @staticmethod
     def _ensure_translated_columns(survey_dict):

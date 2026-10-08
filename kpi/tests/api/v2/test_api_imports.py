@@ -1,6 +1,7 @@
 # coding: utf-8
 import base64
 import unittest
+import zipfile
 from io import BytesIO
 
 import openpyxl
@@ -1549,24 +1550,17 @@ class AssetImportTaskTest(BaseTestCase):
             [
                 'fruit',
                 'apple',
-                (
-                    'A long label description to easily exceed the limit, '
-                    'A long label description to easily exceed the limit, '
-                    'A long label description to easily exceed the limit, '
-                ),
+                'long long long long long long long long long long label',
             ],
             [
                 'fruit',
                 'banana',
-                (
-                    'A long label description to easily exceed the limit, '
-                    'A long label description to easily exceed the limit, '
-                ),
+                'long long long long long long long long long long label',
             ],
             [
                 'fruit',
                 'cherry',
-                'A sweet cherry description that takes up even more space in the sheet',
+                'long long long long long long long long long long label',
             ],
         ]
         content = (
@@ -1599,17 +1593,17 @@ class AssetImportTaskTest(BaseTestCase):
             [
                 'fruit',
                 'apple',
-                'A very delicious red apple that has a long label description to easily exceed the limit',
+                'long long long long long long long long long long label',
             ],
             [
                 'fruit',
                 'banana',
-                'A long yellow banana description that takes up space and exceeds bytes limit',
+                'long long long long long long long long long long label',
             ],
             [
                 'fruit',
                 'cherry',
-                'A sweet cherry description that takes up even more space in the sheet',
+                'long long long long long long long long long long label',
             ],
         ]
         content = (
@@ -1622,7 +1616,10 @@ class AssetImportTaskTest(BaseTestCase):
         )
         detail_response = self.client.get(response.data['url'])
         assert detail_response.data['status'] == 'error'
-        assert detail_response.data['messages']['error_type'] == 'ChoicesSizeLimitError'
+        assert (
+            detail_response.data['messages']['error_type']
+            == 'ChoicesSizeLimitError'
+        )
         assert (
             'The choices sheet is too large'
             in detail_response.data['messages']['error']
@@ -1655,6 +1652,84 @@ class AssetImportTaskTest(BaseTestCase):
         updated = detail_response.data['messages']['updated'][0]
         created_asset = Asset.objects.get(uid=updated['uid'])
         assert len(created_asset.content['choices']) == 2
+
+    @patch_ssrf_dns()
+    @responses.activate
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_url_zip_with_oversized_choices_does_not_save_earlier_assets(
+        self,
+    ):
+        def _build_xlsx_bytes(content):
+            wb = openpyxl.workbook.Workbook()
+            for sheet_name, sheet_content in content:
+                ws = wb.create_sheet(sheet_name)
+                for row_num, row_list in enumerate(sheet_content):
+                    for col_num, cell_value in enumerate(row_list):
+                        if cell_value is not None:
+                            ws.cell(row_num + 1, col_num + 1).value = cell_value
+            buf = BytesIO()
+            wb.save(buf)
+            return buf.getvalue()
+
+        form1_content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['text', 'name', 'Your name?'],
+                ],
+            ),
+        )
+        form2_content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['select_one fruit', 'fruit', 'Pick a fruit'],
+                ],
+            ),
+            (
+                'choices',
+                [
+                    ['list_name', 'name', 'label::English (en)'],
+                    [
+                        'fruit',
+                        'apple',
+                        'long long long long long long long long long label',
+                    ],
+                    [
+                        'fruit',
+                        'banana',
+                        'long long long long long long long long long label',
+                    ],
+                ],
+            ),
+        )
+
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+            zf.writestr('form1.xlsx', _build_xlsx_bytes(form1_content))
+            zf.writestr('form2.xlsx', _build_xlsx_bytes(form2_content))
+
+        mock_zip_url = 'http://mock.kbtdev.org/bundle.zip'
+        responses.add(
+            responses.GET,
+            mock_zip_url,
+            content_type='application/zip',
+            body=zip_buffer.getvalue(),
+        )
+
+        asset_count_before = Asset.objects.count()
+        task_data = {
+            'url': mock_zip_url,
+            'name': 'Bundle with oversized form',
+        }
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+
+        assert result.status == ImportExportStatusChoices.ERROR
+        assert result.messages['error_type'] == 'ChoicesSizeLimitError'
+        assert Asset.objects.count() == asset_count_before
 
 
 class LibraryImportOwnershipTest(BaseTestCase):
