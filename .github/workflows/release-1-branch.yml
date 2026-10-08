@@ -8,12 +8,6 @@ concurrency:
 
 on:
   workflow_dispatch:
-  schedule:
-    # It's good to deploy early in week:
-    # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
-    # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
-    # - In the worst case, the last chance is to deploy on after-next Monday.
-    - cron: '17 5 * * 3'
 
 
 jobs:
@@ -24,6 +18,15 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
+    - name: validate dispatched from main
+      env:
+        REF_NAME: ${{ github.ref_name }}
+      run: |
+        set -xe
+        if [[ "$REF_NAME" != "main" ]]; then
+          echo "::error::This workflow must be run on 'main', not '$REF_NAME'."
+          exit 1
+        fi
     - name: determine current release branch name
       id: branch
       run: |
@@ -53,6 +56,22 @@ jobs:
       with:
         client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+    - name: validate branch does not already exist
+      env:
+        NEW_BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        set +e
+        set -x
+        git ls-remote --exit-code --heads origin "$NEW_BRANCH"
+        STATUS=$?
+        set -e
+        if [[ $STATUS -eq 0 ]]; then
+          echo "::error::Branch '$NEW_BRANCH' already exists."
+          exit 1
+        elif [[ $STATUS -ne 2 ]]; then
+          echo "::error::Failed to check whether branch '$NEW_BRANCH' already exists (git ls-remote exit code $STATUS)."
+          exit 1
+        fi
     - name: create next RC branch
       id: branch
       env:
