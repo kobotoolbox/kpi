@@ -13,8 +13,8 @@ on:
 
 jobs:
 
-  resolve-author:
-    uses: './.github/workflows/resolve-author.yml'
+  resolve-actor:
+    uses: './.github/workflows/resolve-actor.yml'
 
   # Validate that the tag exists and matches the selected branch.
   current-branch:
@@ -220,7 +220,7 @@ jobs:
 
   on-failure:
     needs:
-      - resolve-author
+      - resolve-actor
       - version
       - changelog
       - github-release-kpi
@@ -232,4 +232,4 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. ${{ needs.resolve-author.outputs.mention || '@*devs*' }} please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. ${{ needs.resolve-actor.outputs.mention || '@*devs*' }} please investigate."
