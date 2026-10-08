@@ -22,7 +22,7 @@ import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { AssetTypeName, ASSET_TYPES } from '#/constants'
+import { ASSET_TYPES, AssetTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import { ROUTES } from '#/router/routerConstants'
@@ -286,10 +286,7 @@ export default function FormLanding() {
             </Box>
           </Box>
           {asset.deployed_versions.count > 0 && (
-            <FormLandingHistory
-              asset={asset}
-              onClone={(versionUid) => cloneAsset(AssetTypeName.survey, versionUid)}
-            />
+            <FormLandingHistory asset={asset} onClone={(versionUid) => cloneAsset(AssetTypeName.survey, versionUid)} />
           )}
           {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && (
             <FormLandingCollectData

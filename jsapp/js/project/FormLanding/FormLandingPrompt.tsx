@@ -48,9 +48,7 @@ export default function FormLandingPrompt({
       <KoboPrompt
         isOpen
         title={
-          prompt.assetType === ASSET_TYPES.template.id
-            ? t('Create new template from this project')
-            : t('Clone Project')
+          prompt.assetType === ASSET_TYPES.template.id ? t('Create new template from this project') : t('Clone Project')
         }
         onRequestClose={onClose}
         buttons={[
