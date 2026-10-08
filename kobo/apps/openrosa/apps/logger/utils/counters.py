@@ -85,10 +85,10 @@ def delete_null_user_daily_counters(apps, *args):
 def update_storage_counters(xform_id: int, user_id: int, total_bytes: int):
 
     with conditional_kc_transaction_atomic():
-        UserProfile.objects.filter(user_id=user_id).update(
+        XForm.objects.filter(pk=xform_id).update(
             attachment_storage_bytes=F('attachment_storage_bytes') + total_bytes
         )
-        XForm.objects.filter(pk=xform_id).update(
+        UserProfile.objects.filter(user_id=user_id).update(
             attachment_storage_bytes=F('attachment_storage_bytes') + total_bytes
         )
 
