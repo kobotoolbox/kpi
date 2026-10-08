@@ -90,5 +90,7 @@ if STORAGES['default']['BACKEND'].endswith('S3Boto3Storage'):  # noqa F405
 if xdist_worker := os.environ.get('PYTEST_XDIST_WORKER'):
     worker_index = int(xdist_worker.removeprefix('gw'))
     for cache_alias in ('default', 'constance'):
+        # fmt: off
         redis_url, redis_db = CACHES[cache_alias]['LOCATION'].rsplit('/', 1)  # noqa F405 E501
-        CACHES[cache_alias]['LOCATION'] = f'{redis_url}/{int(redis_db) + worker_index}'
+        CACHES[cache_alias]['LOCATION'] = f'{redis_url}/{int(redis_db) + worker_index}'  # noqa F405 E501
+        # fmt: on
