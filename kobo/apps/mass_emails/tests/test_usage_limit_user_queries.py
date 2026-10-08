@@ -112,7 +112,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     def test_storage_usage_summed_only_for_snapshot_candidates(self):
         """
         Only owners close enough to their current limit in the snapshot, and
-        owners without a snapshot yet, get their storage summed again
+        owners without a snapshot yet, get their storage summed again.
+        Snapshots are matched by organization, so the current owner is checked
+        even if the snapshot still names a former one.
         """
 
         near_limit = User.objects.get(username='someuser')
@@ -120,6 +122,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         unlimited = User.objects.get(username='adminuser')
         without_snapshot = User.objects.create_user(
             username='fred', password='fred', email='fred@fred.com'
+        )
+        former_owner = User.objects.create_user(
+            username='george', password='george', email='george@george.com'
         )
 
         limit = 1000
@@ -133,16 +138,18 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         run = baker.make(BillingAndUsageSnapshotRun)
         # Candidates start at 48% (0.8 * 0.6) of the current limit. The limit
         # saved in the snapshot is ignored, the plan may have changed since.
-        for user, total_storage_bytes in (
-            (near_limit, 500),
-            (far_from_limit, 400),
-            (unlimited, 10**12),
+        # The organization close to its limit changed owners since its
+        # snapshot was taken.
+        for user, snapshot_owner, total_storage_bytes in (
+            (near_limit, former_owner, 500),
+            (far_from_limit, far_from_limit, 400),
+            (unlimited, unlimited, 10**12),
         ):
             baker.make(
                 BillingAndUsageSnapshot,
                 organization=user.organization,
                 last_snapshot_run=run,
-                effective_user_id=user.pk,
+                effective_user_id=snapshot_owner.pk,
                 total_storage_bytes=total_storage_bytes,
                 storage_bytes_limit=10**12,
             )

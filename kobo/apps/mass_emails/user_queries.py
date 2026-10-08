@@ -131,30 +131,31 @@ def get_users_within_range_of_usage_limit(
         # `logger_xform` table. The user reports snapshot already holds each
         # owner's storage, so it narrows the list down to the owners close
         # enough to their limit, and only their storage is summed again, fresh.
-        # `limits_by_owner` is built below, before this gets called.
+        # `owner_by_org` and `limits_by_owner` are built below, before this gets
+        # called.
         #
         # Limits are the current ones, not the snapshot's: a plan or add-on may
-        # have changed since. The margin covers storage added since the last
-        # snapshot. Owners without a snapshot yet (new organizations) are
-        # always checked.
+        # have changed since. Snapshots are matched by organization, not by
+        # their saved owner, which may have changed too. The margin covers
+        # storage added since the last snapshot. Owners without a snapshot yet
+        # (new organizations) are always checked.
         storage_limit_key = f'{UsageType.STORAGE_BYTES}_limit'
         storage_limits = {
             owner_id: limit
             for owner_id, limits in limits_by_owner.items()
             if 0 < (limit := limits.get(storage_limit_key, inf)) < inf
         }
-        snapshot_storage = dict(
-            BillingAndUsageSnapshot.objects.filter(
-                total_storage_bytes__gt=0, effective_user_id__isnull=False
-            )
-            .values_list('effective_user_id', 'total_storage_bytes')
+        snapshot_storage_by_org = dict(
+            BillingAndUsageSnapshot.objects.filter(total_storage_bytes__gt=0)
+            .values_list('organization_id', 'total_storage_bytes')
             .iterator(chunk_size=settings.DEFAULT_BATCH_SIZE)
         )
         candidate_ids = {
             owner_id
-            for owner_id, limit in storage_limits.items()
-            if snapshot_storage.get(owner_id, 0)
-            >= limit * minimum * STORAGE_SNAPSHOT_MARGIN
+            for org_id, owner_id in owner_by_org.items()
+            if owner_id in storage_limits
+            and snapshot_storage_by_org.get(org_id, 0)
+            >= storage_limits[owner_id] * minimum * STORAGE_SNAPSHOT_MARGIN
         }
         candidate_ids.update(
             owner_id
