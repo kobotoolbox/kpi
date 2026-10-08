@@ -19,6 +19,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -33,8 +34,10 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.common_tags import (
+    DATE_MODIFIED,
     META_FORM_VERSIONS,
     META_ROOT_UUID,
+    MONGO_STRFTIME,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.organizations.constants import UsageType
@@ -1594,6 +1597,98 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             ]
             == 'Bonjour le monde!'
         )
+
+    def test_list_submissions_include_date_modified(self):
+        """
+        `_date_modified` must be present in the API response and match the
+        PostgreSQL `date_modified` of the submission, while `_submission_time`
+        keeps reflecting the creation time
+        """
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        instances = Instance.objects.in_bulk([s['_id'] for s in self.submissions])
+        assert len(response.data['results']) == len(self.submissions)
+        for submission in response.data['results']:
+            instance = instances[submission['_id']]
+            assert submission[DATE_MODIFIED] == instance.date_modified.strftime(
+                MONGO_STRFTIME
+            )
+            assert submission['_submission_time'] == instance.date_created.strftime(
+                MONGO_STRFTIME
+            )
+
+    def test_list_submissions_filter_by_date_modified(self):
+        """
+        `_date_modified` can be used in `query` to narrow down the results to
+        submissions modified after (or before) a given time
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        instance = Instance.objects.get(pk=submission['_id'])
+        with freeze_time('2030-01-01 12:00:00'):
+            instance.save()
+            instance.parsed_instance.update_mongo(asynchronous=False)
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': '{"_date_modified": {"$gt": "2029-12-31T00:00:00"}}',
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [r['_id'] for r in response.data['results']] == [submission['_id']]
+        assert response.data['results'][0][DATE_MODIFIED] == '2030-01-01T12:00:00'
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': '{"_date_modified": {"$lt": "2029-12-31T00:00:00"}}',
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        response_ids = [r['_id'] for r in response.data['results']]
+        assert submission['_id'] not in response_ids
+        assert len(response_ids) == len(self.submissions) - 1
+
+    def test_inject_date_modified_if_not_present(self):
+        """
+        Submissions written before `_date_modified` was introduced do not have it
+        in MongoDB. It must be injected on the fly using `_submission_time`, even
+        when `_submission_time` itself is not requested with `fields`
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission['_id']},
+            {'$unset': {DATE_MODIFIED: ''}},
+        )
+        assert DATE_MODIFIED not in settings.MONGO_DB.instances.find_one(
+            {'_id': submission['_id']}
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        submission_time = response.data['_submission_time']
+        assert response.data[DATE_MODIFIED] == submission_time
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': json.dumps({'_id': submission['_id']}),
+                'fields': json.dumps([DATE_MODIFIED]),
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0][DATE_MODIFIED] == submission_time
 
 
 @ddt
