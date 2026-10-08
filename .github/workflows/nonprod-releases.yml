@@ -15,8 +15,8 @@ permissions:
   contents: read
 
 jobs:
-  resolve-author:
-    uses: './.github/workflows/resolve-author.yml'
+  resolve-actor:
+    uses: './.github/workflows/resolve-actor.yml'
 
   deploy:
     runs-on: ubuntu-latest
@@ -114,7 +114,7 @@ jobs:
 
   notify-failure:
     needs:
-      - resolve-author
+      - resolve-actor
       - deploy
       - trigger-main-deploy
     if: ${{ !cancelled() && (needs.deploy.result == 'failure' || needs.trigger-main-deploy.result == 'failure') }}
@@ -122,4 +122,4 @@ jobs:
     secrets: inherit
     with:
       topic: "deployments to ${{ github.ref_name }}"
-      content: ":warning: ${{ needs.resolve-author.outputs.mention || '@*devs*' }}, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+      content: ":warning: ${{ needs.resolve-actor.outputs.mention || '@*devs*' }}, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
