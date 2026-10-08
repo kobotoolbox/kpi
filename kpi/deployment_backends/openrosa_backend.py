@@ -36,6 +36,7 @@ from kobo.apps.openrosa.apps.logger.models import (
     MonthlyXFormSubmissionCounter,
     XForm,
 )
+from kobo.apps.openrosa.apps.logger.exceptions import InvalidSubmissionIdsError
 from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
@@ -270,12 +271,32 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
+        # Lazy import to avoid a circular dependency, like `delete_instances()`
+        from kobo.apps.audit_log.signals import add_instance_to_request
+
         self.validate_access_with_partial_perms(
             user=user, perm=PERM_DELETE_SUBMISSIONS, submission_ids=[submission_id]
         )
 
-        count, _ = Instance.objects.filter(pk=submission_id).delete()
-        return count
+        try:
+            instance = Instance.objects.get(pk=submission_id, xform_id=self.xform_id)
+        except Instance.DoesNotExist:
+            return 0
+
+        # Go through `delete_instances()`, like bulk deletions: it counts storage
+        # from the attachment rows as it deletes them. A plain `delete()` counts
+        # them in `pre_delete_attachment()`, from values read beforehand, and
+        # would subtract a second time an attachment trashed in between.
+        # `delete_instances()` disconnects the signal recording the submission
+        # for the audit log, so record it here.
+        add_instance_to_request(instance, 'delete')
+        try:
+            return delete_instances(
+                self.xform, {'submission_ids': [submission_id], 'query': ''}
+            )
+        except InvalidSubmissionIdsError:
+            # Deleted by another request since it was read above
+            return 0
 
     def delete_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs

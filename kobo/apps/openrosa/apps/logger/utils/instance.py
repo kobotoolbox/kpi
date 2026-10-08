@@ -119,43 +119,18 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         files_to_delete = set()
 
         with kc_transaction_atomic(), transaction.atomic():
-            # Delete the attachments and get them back in the same query, so
-            # storage is counted from the rows as they were when deleted. Reading
-            # them first and deleting them afterwards would count, a second time,
-            # an attachment trashed in between. `all_objects` includes the
-            # soft-deleted attachments that the default manager leaves out.
-            attachment_rows = Attachment.all_objects.filter(
-                instance_id__in=instance_ids
-            ).delete_returning(
-                fields=[
-                    'id',
-                    'media_file',
-                    'media_file_size',
-                    'delete_status',
-                    'mimetype',
-                ]
-            )
-
             # Bulk cleanup AttachmentTrash (cross-DB: KPI default DB, no FK
-            # constraint)
-            if attachment_rows:
-                attachment_ids = []
-                for attachment_row in attachment_rows:
-
-                    # Only non-trashed attachments had their storage counted; trashed
-                    # ones were already decremented when moved to the trash bin.
-                    if attachment_row['delete_status'] is None:
-                        total_storage_bytes += attachment_row['media_file_size'] or 0
-
-                    attachment_ids.append(attachment_row['id'])
-                    if media_file := attachment_row['media_file']:
-                        files_to_delete.add(media_file)
-                        if attachment_row['mimetype'].startswith('image/'):
-                            for suffix in settings.THUMB_CONF:
-                                files_to_delete.add(
-                                    get_optimized_image_path(media_file, suffix)
-                                )
-
+            # constraint), before deleting the attachments. `put_back()` locks
+            # the trash rows on the KPI database, then the attachments on the
+            # KoboCAT one: this must lock in the same order. The other way
+            # round, each could hold a row the other waits for, and since the
+            # two locks are on different connections, PostgreSQL would not see
+            # the deadlock and both would wait until a timeout.
+            attachment_ids = list(
+                Attachment.all_objects.filter(instance_id__in=instance_ids)
+                .values_list('pk', flat=True)
+            )
+            if attachment_ids:
                 att_trash_qs = AttachmentTrash.objects.using(DEFAULT_DB_ALIAS).filter(
                     attachment_id__in=attachment_ids
                 )
@@ -169,6 +144,35 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                     PeriodicTask.objects.using(DEFAULT_DB_ALIAS).filter(
                         pk__in=periodic_task_ids
                     ).delete()
+
+            # Delete the attachments and get them back in the same query, so
+            # storage is counted from the rows as they were when deleted. Counting
+            # from the ids read above would count, a second time, an attachment
+            # trashed in between. `all_objects` includes the soft-deleted
+            # attachments that the default manager leaves out.
+            attachment_rows = Attachment.all_objects.filter(
+                instance_id__in=instance_ids
+            ).delete_returning(
+                fields=[
+                    'media_file',
+                    'media_file_size',
+                    'delete_status',
+                    'mimetype',
+                ]
+            )
+            for attachment_row in attachment_rows:
+                # Only non-trashed attachments had their storage counted; trashed
+                # ones were already decremented when moved to the trash bin.
+                if attachment_row['delete_status'] is None:
+                    total_storage_bytes += attachment_row['media_file_size'] or 0
+
+                if media_file := attachment_row['media_file']:
+                    files_to_delete.add(media_file)
+                    if attachment_row['mimetype'].startswith('image/'):
+                        for suffix in settings.THUMB_CONF:
+                            files_to_delete.add(
+                                get_optimized_image_path(media_file, suffix)
+                            )
 
             Note.objects.filter(instance_id__in=instance_ids).delete()
             InstanceModification.objects.filter(instance_id__in=instance_ids).delete()

@@ -294,3 +294,14 @@ class ReturningQuerySetTestCase(TestCase, AssetSubmissionTestMixin):
 
         assert rows == []
         assert Attachment.all_objects.filter(pk=self.other_attachment.pk).exists()
+
+    def test_returning_methods_accept_filters_matching_nothing(self):
+        """
+        Django refuses to build SQL for e.g. `pk__in=[]`, and `update()` or
+        `delete()` simply do nothing then. So must these, rather than raise
+        """
+        queryset = Attachment.all_objects.filter(pk__in=[])
+
+        assert queryset.delete_returning(['id']) == []
+        assert queryset.update_returning(['id'], date_modified=timezone.now()) == []
+        assert Attachment.all_objects.filter(pk=self.attachment.pk).exists()

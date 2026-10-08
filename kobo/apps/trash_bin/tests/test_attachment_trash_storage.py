@@ -164,6 +164,39 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         self.assertEqual(self.xform.attachment_storage_bytes, decremented_xform_bytes)
         self.assertEqual(self._get_user_storage(self.user), decremented_user_bytes)
 
+    def test_deletion_deletes_trash_entries_before_attachments(self):
+        """
+        `put_back()` locks trash entries (KPI database) before attachments
+        (KoboCAT database). Deleting submissions must lock them in the same
+        order, otherwise both could wait on each other: on two connections,
+        PostgreSQL cannot detect that deadlock.
+        """
+        self._move_to_trash()
+        assert AttachmentTrash.objects.filter(attachment_id=self.attachment.pk).exists()
+
+        real_delete_returning = ReturningUpdateQuerySet.delete_returning
+        trash_left_when_deleting_attachments = []
+
+        def check_trash_then_delete(queryset, *args, **kwargs):
+            trash_left_when_deleting_attachments.append(
+                AttachmentTrash.objects.filter(
+                    attachment_id=self.attachment.pk
+                ).exists()
+            )
+            return real_delete_returning(queryset, *args, **kwargs)
+
+        with patch.object(
+            ReturningUpdateQuerySet,
+            'delete_returning',
+            autospec=True,
+            side_effect=check_trash_then_delete,
+        ):
+            self.asset.deployment.delete_submissions(
+                {'submission_ids': [self.instance.pk], 'query': ''}, self.user
+            )
+
+        assert trash_left_when_deleting_attachments == [False]
+
     def _move_to_trash(self):
         """
         Move the attachment to trash and refresh all objects
@@ -523,6 +556,46 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         assert xform.attachment_storage_bytes == remaining
         if first_call == 'both' or concurrent_call == 'both':
             assert xform.attachment_storage_bytes == 0
+
+    def test_single_deletion_does_not_subtract_an_attachment_trashed_meanwhile(
+        self,
+    ):
+        """
+        Same as `test_deletion_does_not_subtract_an_attachment_trashed_meanwhile`,
+        for the deletion of a single submission (`DataViewSet.destroy()`). It
+        used to rely on `pre_delete_attachment()`, which counted from values
+        read before the deletion.
+        """
+        user = User.objects.create(username='owner')
+        asset, xform, instance, _, attachment = (
+            self._create_test_asset_and_submission(user=user)
+        )
+        xform.refresh_from_db()
+        assert attachment.media_file_size > 0
+        assert xform.attachment_storage_bytes == attachment.media_file_size
+
+        real_delete_returning = ReturningUpdateQuerySet.delete_returning
+        trashed = []
+
+        def trash_then_delete(queryset, *args, **kwargs):
+            if not trashed:
+                trashed.append(True)
+                self._run_in_thread(self._trash, attachment)
+            return real_delete_returning(queryset, *args, **kwargs)
+
+        with patch.object(
+            ReturningUpdateQuerySet,
+            'delete_returning',
+            autospec=True,
+            side_effect=trash_then_delete,
+        ):
+            deleted = asset.deployment.delete_submission(instance.pk, user)
+
+        assert deleted == 1
+        assert trashed
+        xform.refresh_from_db()
+        assert xform.attachment_storage_bytes == 0
+        assert self._get_user_storage(user) == 0
 
     def test_edit_does_not_subtract_an_attachment_trashed_meanwhile(self):
         """

@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import EmptyResultSet
 from django.db import connections, transaction
 from django.db.models import F, Field, JSONField, Lookup, QuerySet, TextField, sql
 from django.db.models.expressions import Func, Value
@@ -187,7 +188,12 @@ class ReturningUpdateQuerySet(QuerySet):
         if query.count_active_tables() > 1:
             raise ValueError('`delete_returning()` cannot be used with joins')
 
-        delete_sql, params = query.get_compiler(self.db).as_sql()
+        try:
+            delete_sql, params = query.get_compiler(self.db).as_sql()
+        except EmptyResultSet:
+            # The filters can match nothing, e.g. `pk__in=[]`. `delete()` deletes
+            # nothing then, and so does this
+            return []
         return self._execute_returning(delete_sql, params, fields)
 
     def update_returning(self, fields: list[str], **kwargs) -> list[dict]:
@@ -215,7 +221,12 @@ class ReturningUpdateQuerySet(QuerySet):
         if query.related_updates or query.count_active_tables() > 1:
             raise ValueError('`update_returning()` cannot be used with joins')
 
-        update_sql, params = query.get_compiler(self.db).as_sql()
+        try:
+            update_sql, params = query.get_compiler(self.db).as_sql()
+        except EmptyResultSet:
+            # The filters can match nothing, e.g. `pk__in=[]`. `update()` updates
+            # nothing then, and so does this
+            return []
         return self._execute_returning(update_sql, params, fields)
 
     @staticmethod
