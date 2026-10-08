@@ -58,8 +58,8 @@ const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, err
   const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
   const goToLogin = useGoToLogin()
 
-  // TODO: DEV-3074 this reading can be a minute old (`staleTime` in `useAuthStatus`), so a session that just ended
-  // still reads as signed in and the refusal is shown where the login screen belongs.
+  // A 401 on the asset load has already invalidated this reading (see `#/auth/authChangeWatcher`), so a session that
+  // just ended turns into a redirect as soon as the re-read lands - the refusal below only flashes until then.
   const decision = getAuthGateDecision(
     isAuthRedesignEnabled
       ? { authStatus, isAuthStatusLoading: isLoading, isAuthStatusCheckFailed: isError, isLegacyLoggedIn: false }

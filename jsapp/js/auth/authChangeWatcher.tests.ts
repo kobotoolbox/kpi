@@ -1,4 +1,6 @@
 import chai from 'chai'
+import { fetchGet } from '#/api'
+import { fetchWithAuth } from '#/api/orval.mutator'
 import { queryClient } from '#/api/queryClient'
 import {
   allauthBrowserV1AccountPasswordChangePost,
@@ -7,10 +9,13 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import type { AllauthResponse } from './allauthErrors'
 import {
+  ALLAUTH_BASE_URL,
   AUTH_STATUS_URL,
   getAuthStatusQueryKey,
   isAuthChangeResponse,
+  isSessionEndedResponse,
   recordAllauthResponse,
+  recordApiResponse,
 } from './authChangeWatcher'
 import { getAuthStatus } from './authStatus'
 
@@ -33,12 +38,33 @@ const reauthenticationRequired = response(401, {
 const sessionUrl = getAllauthBrowserV1AuthSessionGetUrl()
 /** The kind of request that raises a reauthentication ask, and the kind the session poll can race. */
 const fromAccountCall = { url: '/api/v2/allauth/browser/v1/account/password/change', method: 'POST' }
+/** An asset, a project list, a submission: a KPI endpoint, which has no use for a 401 other than "no session". */
+const assetUrl = '/api/v2/assets/aXy5nQ2vFmW8pLr3TkJdHc/'
+
+const queryKey = getAuthStatusQueryKey()
+
+/**
+ * Empties the session query, optionally leaving one reading behind. The invalidation tests need that reading: while
+ * the query is absent there is nothing for `invalidateQueries` to mark, and nothing to assert on.
+ */
+function resetSessionReading(reading?: AllauthResponse) {
+  queryClient.removeQueries({ queryKey })
+  if (reading) {
+    queryClient.setQueryData(queryKey, reading)
+  }
+}
+
+const isSessionReadingStale = () => queryClient.getQueryState(queryKey)?.isInvalidated
 
 // Both hand-written to keep `fetchAllauth` out of an import cycle, so this is what catches orval moving the endpoint.
 describe('the session query`s key and URL', () => {
   it('are the ones the generated session query uses', () => {
     chai.expect(getAuthStatusQueryKey()).to.deep.equal(getAllauthBrowserV1AuthSessionGetQueryKey())
     chai.expect(AUTH_STATUS_URL).to.equal(sessionUrl)
+  })
+
+  it('sit under the allauth base that `isSessionEndedResponse` excludes', () => {
+    chai.expect(AUTH_STATUS_URL.startsWith(ALLAUTH_BASE_URL)).to.equal(true)
   })
 })
 
@@ -79,13 +105,13 @@ describe('isAuthChangeResponse', () => {
 
 describe('recordAllauthResponse', () => {
   beforeEach(() => {
-    queryClient.removeQueries({ queryKey: getAuthStatusQueryKey() })
+    resetSessionReading()
   })
 
   it('files a session where the guards and `AuthChangeRedirector` read it', async () => {
     await recordAllauthResponse(fromAccountCall, session)
 
-    const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
+    const cached = queryClient.getQueryData(queryKey) as AllauthResponse
     chai.expect(getAuthStatus(cached).isAuthenticated).to.equal(true)
     chai.expect(getAuthStatus(cached).user).to.deep.equal(user)
   })
@@ -95,7 +121,7 @@ describe('recordAllauthResponse', () => {
     await recordAllauthResponse(fromAccountCall, session)
     await recordAllauthResponse(fromAccountCall, reauthenticationRequired)
 
-    const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
+    const cached = queryClient.getQueryData(queryKey) as AllauthResponse
     chai.expect(getAuthStatus(cached).isReauthenticationRequired).to.equal(true)
   })
 
@@ -103,14 +129,14 @@ describe('recordAllauthResponse', () => {
     await recordAllauthResponse(fromAccountCall, session)
     await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Wrong password.' }] }))
 
-    const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
+    const cached = queryClient.getQueryData(queryKey) as AllauthResponse
     chai.expect(cached.status).to.equal(200)
   })
 
   it('writes nothing at all when it has never seen a reading', async () => {
     await recordAllauthResponse(fromAccountCall, response(400, {}))
 
-    chai.expect(queryClient.getQueryData(getAuthStatusQueryKey())).to.equal(undefined)
+    chai.expect(queryClient.getQueryData(queryKey)).to.equal(undefined)
   })
 
   // Cancelling would abort the very request whose answer this is, leaving the query reverted on every poll.
@@ -133,7 +159,7 @@ describe('an allauth call from a screen other than the session poll', () => {
   let fetchSpy: jest.SpyInstance
 
   beforeEach(() => {
-    queryClient.removeQueries({ queryKey: getAuthStatusQueryKey() })
+    resetSessionReading()
     fetchSpy = jest.spyOn(global, 'fetch')
   })
 
@@ -146,7 +172,93 @@ describe('an allauth call from a screen other than the session poll', () => {
 
     await allauthBrowserV1AccountPasswordChangePost({ current_password: 'hunter2', new_password: 'hunter3' })
 
-    const cached = queryClient.getQueryData(getAuthStatusQueryKey()) as AllauthResponse
+    const cached = queryClient.getQueryData(queryKey) as AllauthResponse
     chai.expect(getAuthStatus(cached).isReauthenticationRequired).to.equal(true)
+  })
+})
+
+describe('isSessionEndedResponse', () => {
+  const unauthorized = (url: string, body?: unknown) => ({ url, status: 401, body })
+
+  it('takes a 401 from anywhere outside allauth', () => {
+    chai.expect(isSessionEndedResponse(unauthorized(assetUrl))).to.equal(true)
+    // `api.ts` and `dataInterface` both prepend `ROOT_URL`, which carries the protocol, the host and any root path
+    chai.expect(isSessionEndedResponse(unauthorized(`https://kf.example.org/kpi${assetUrl}`))).to.equal(true)
+  })
+
+  // A re-read would land on top of what the call itself just reported, and would again on the next one
+  it('leaves allauth`s own 401s alone, as those are data rather than a sign-out', () => {
+    chai.expect(isSessionEndedResponse(unauthorized(sessionUrl))).to.equal(false)
+    chai.expect(isSessionEndedResponse(unauthorized(`${sessionUrl}?x=1`))).to.equal(false)
+    chai.expect(isSessionEndedResponse(unauthorized(fromAccountCall.url))).to.equal(false)
+  })
+
+  // The session is real, and `GET /auth/session` has no way to repeat the ask, so a re-read would lose it
+  it('leaves a reauthentication ask alone', () => {
+    chai.expect(isSessionEndedResponse(unauthorized(assetUrl, reauthenticationRequired.data))).to.equal(false)
+  })
+
+  it('leaves every other status alone', () => {
+    // A 403 is a permission refusal, which signing in again is no answer to
+    chai.expect(isSessionEndedResponse({ url: assetUrl, status: 403 })).to.equal(false)
+    chai.expect(isSessionEndedResponse({ url: assetUrl, status: 404 })).to.equal(false)
+    chai.expect(isSessionEndedResponse({ url: assetUrl, status: 500 })).to.equal(false)
+    // What jQuery reports for a request we aborted, or one the connection dropped
+    chai.expect(isSessionEndedResponse({ url: assetUrl, status: 0 })).to.equal(false)
+  })
+})
+
+describe('recordApiResponse', () => {
+  beforeEach(() => {
+    resetSessionReading(session)
+  })
+
+  it('marks the session reading stale when a 401 says it is wrong', () => {
+    recordApiResponse({ url: assetUrl, status: 401 })
+
+    chai.expect(isSessionReadingStale()).to.equal(true)
+  })
+
+  it('leaves the reading alone for an answer that proves nothing', () => {
+    recordApiResponse({ url: assetUrl, status: 403 })
+    recordApiResponse({ url: sessionUrl, status: 401 })
+    recordApiResponse({ url: assetUrl, status: 401, body: reauthenticationRequired.data })
+
+    chai.expect(isSessionReadingStale()).to.equal(false)
+  })
+
+  // Dropping it instead would leave every guard answerless for the length of one request, which means a spinner
+  // over a page that was fine a moment ago
+  it('keeps the stale reading readable until the re-read lands', () => {
+    recordApiResponse({ url: assetUrl, status: 401 })
+
+    chai.expect(queryClient.getQueryData(queryKey)).to.deep.equal(session)
+  })
+})
+
+// Unmocked again, so these say the transports are wired and not just that the policy above is right.
+describe('a 401 from a KPI endpoint', () => {
+  let fetchSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    resetSessionReading(session)
+    fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(jsonResponse(401, { detail: 'Invalid token.' }))
+  })
+
+  afterEach(() => {
+    fetchSpy.mockRestore()
+  })
+
+  it('invalidates the session reading when it arrives through the Orval mutator', async () => {
+    await fetchWithAuth(assetUrl, { method: 'GET' }).catch(() => null)
+
+    chai.expect(isSessionReadingStale()).to.equal(true)
+  })
+
+  // `notifyAboutError` only to keep a toast out of a unit test - it has no say in any of this
+  it('invalidates the session reading when it arrives through `#/api`', async () => {
+    await fetchGet(assetUrl, { notifyAboutError: false }).catch(() => null)
+
+    chai.expect(isSessionReadingStale()).to.equal(true)
   })
 })

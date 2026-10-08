@@ -4,6 +4,7 @@
 
 import * as Sentry from '@sentry/react'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
+import { recordApiResponse } from '#/auth/authChangeWatcher'
 import type { FailResponse } from '#/dataInterface'
 import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
@@ -202,6 +203,9 @@ export const fetchDataRaw = async <T>(
         // the rejection object.
       }
     }
+
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    recordApiResponse({ url, status: response.status, body: failResponse.responseJSON })
 
     // For these codes we might display a toast with HTTP status (through
     // `handleApiFail` helper)
