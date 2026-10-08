@@ -16,7 +16,6 @@ import {
   useAssetsRetrieve,
 } from '#/api/react-query/manage-projects-and-library-content'
 import { parsed } from '#/assetParserUtils'
-import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import KoboPrompt from '#/components/modals/koboPrompt'
@@ -303,17 +302,17 @@ export default function FormLanding() {
   return (
     <>
       <DocumentTitle title={`${docTitle} | ${t('Form')} | KoboToolbox`}>
-        <bem.FormView m='form'>
+        <Box className='form-view form-view--form'>
           <LimitNotifications />
-          <bem.FormView__row>
-            <bem.FormView__cell m={['columns', 'first']}>
-              <bem.FormView__cell m='label'>
+          <Box className='form-view__row'>
+            <Box className='form-view__cell form-view__cell--columns form-view__cell--first'>
+              <Box className='form-view__cell form-view__cell--label'>
                 {asset.deployment__active
                   ? t('Current version')
                   : asset.has_deployment
                     ? t('Archived version')
                     : t('Draft version')}
-              </bem.FormView__cell>
+              </Box>
               <Box className='form-view__cell form-view__cell--action-buttons'>
                 <FormLandingActions
                   asset={asset}
@@ -324,8 +323,8 @@ export default function FormLanding() {
                   onClone={(assetType) => cloneAsset(assetType)}
                 />
               </Box>
-            </bem.FormView__cell>
-            <bem.FormView__cell m='box'>
+            </Box>
+            <Box className='form-view__cell form-view__cell--box'>
               {isFormRedeploymentNeeded(asset) && <FormLandingRedeploymentAlert />}
 
               <FormLandingInfo
@@ -336,8 +335,8 @@ export default function FormLanding() {
                 onUnarchive={callUnarchiveAsset}
               />
               <FormLandingLanguages asset={asset} canEdit={userCanEdit} onManageLanguages={showLanguagesModal} />
-            </bem.FormView__cell>
-          </bem.FormView__row>
+            </Box>
+          </Box>
           {asset.deployed_versions.count > 0 && (
             <FormLandingHistory
               asset={asset}
@@ -352,7 +351,7 @@ export default function FormLanding() {
               onAnonymousSubmissionsChange={updateAssetAnonymousSubmissions}
             />
           )}
-        </bem.FormView>
+        </Box>
       </DocumentTitle>
       {renderPrompt()}
     </>
