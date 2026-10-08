@@ -1720,8 +1720,7 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
-            'Unlock accounts left suspended by a storage recount or a trash bin'
-            ' deletion which died'
+            'Unlock accounts left suspended by a storage recount which died'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -1895,6 +1894,8 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 # Enable serving django-allauth Headless OpenAPI specs (we ingest these into
 # DRF-Spectacular)
 HEADLESS_SERVE_SPECIFICATION = True
+# Adds `has_validated_password` to the user payload on the session endpoint
+HEADLESS_ADAPTER = 'kobo.apps.accounts.adapter.HeadlessAdapter'
 
 
 EMAIL_BACKEND = os.environ.get(
