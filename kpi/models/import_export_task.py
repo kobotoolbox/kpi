@@ -465,7 +465,7 @@ class ImportTask(ImportExportTask):
                             }
                         )
 
-                if item.parent and not destination_asset:
+                if item.parent and item._orm != destination_asset:
                     collections_to_assign.append(
                         [
                             item._orm,

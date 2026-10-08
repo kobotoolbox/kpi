@@ -1591,7 +1591,7 @@ class AssetImportTaskTest(BaseTestCase):
 
         task_data = self._construct_xls_for_import(content, name='Oversized choices')
         encoded_str = task_data['base64Encoded']
-        encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
+        encoded_substr = encoded_str[encoded_str.index('base64') + 7 :]
         task_data['base64Encoded'] = encoded_substr
         task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
         result = task.run()
