@@ -3,6 +3,7 @@ import { runInAction } from 'mobx'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { AccountFieldsValues } from '#/account/account.constants'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import { meUpdateErrorsMock, meUpdateSuccessMock } from '#/endpoints/me.mocks'
 import envStore, { type UserMetadataField } from '#/envStore'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -99,11 +100,6 @@ const meta: Meta<typeof ProfileDetailsScreen> = {
 
 export default meta
 type Story = StoryObj<typeof ProfileDetailsScreen>
-
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
 /** Resolves once the form is on screen, which needs both `envStore` and the first render. */
 const waitForForm = (canvas: Canvas) => canvas.findByRole('button', { name: 'Continue' })
