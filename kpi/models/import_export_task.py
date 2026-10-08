@@ -386,9 +386,7 @@ class ImportTask(ImportExportTask):
             else False
         )
         destination_asset = (
-            destination
-            if destination and not destination_collection
-            else False
+            destination if destination and not destination_collection else False
         )
 
         if destination_collection and not has_necessary_perm:
