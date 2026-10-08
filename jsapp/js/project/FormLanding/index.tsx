@@ -1,4 +1,4 @@
-import { Box, TextInput } from '@mantine/core'
+import { Box } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
@@ -18,7 +18,6 @@ import {
 import { parsed } from '#/assetParserUtils'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
-import KoboPrompt from '#/components/modals/koboPrompt'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
@@ -36,11 +35,12 @@ import FormLandingCollectData from './FormLandingCollectData'
 import FormLandingHistory from './FormLandingHistory'
 import FormLandingInfo from './FormLandingInfo'
 import FormLandingLanguages from './FormLandingLanguages'
+import FormLandingPrompt from './FormLandingPrompt'
 
 export type FormLandingCloneAssetType = AssetTypeName.survey | AssetTypeName.template
 
 // `type` identifies which prompt to render as each variant carries only that prompt's required data.
-type FormLandingPrompt =
+export type FormLandingPromptState =
   | { type: 'unarchive' }
   | { type: 'clone'; assetType: FormLandingCloneAssetType; versionUid?: string }
 
@@ -55,7 +55,7 @@ function getAnonCanAddSubmissionsPermUrl() {
 export default function FormLanding() {
   // Fallback for getting uid from URL, needed without WithRouter wrapper
   const { uid = '' } = useParams<{ uid: string }>()
-  const [prompt, setPrompt] = useState<FormLandingPrompt | null>(null)
+  const [prompt, setPrompt] = useState<FormLandingPromptState | null>(null)
   const [cloneName, setCloneName] = useState('')
 
   const navigate = useNavigate()
@@ -190,68 +190,16 @@ export default function FormLanding() {
     )
   }
 
-  const renderPrompt = () => {
-    if (prompt?.type === 'unarchive') {
-      return (
-        <KoboPrompt
-          isOpen
-          title={t('Unarchive Project')}
-          onRequestClose={() => setPrompt(null)}
-          buttons={[
-            { label: t('Cancel'), type: 'secondary', onClick: () => setPrompt(null) },
-            {
-              label: t('Unarchive'),
-              isPending: deploymentUpdateMutation.isPending,
-              onClick: () =>
-                deploymentUpdateMutation.mutate(
-                  { uidAsset: uid, data: { active: true } },
-                  {
-                    onSuccess: () => {
-                      notify(t('Project unarchived successfully'))
-                      setPrompt(null)
-                    },
-                  },
-                ),
-            },
-          ]}
-        >
-          {t('Are you sure you want to unarchive this project?')}
-        </KoboPrompt>
-      )
-    }
-    if (prompt?.type === 'clone') {
-      return (
-        <KoboPrompt
-          isOpen
-          title={
-            prompt.assetType === ASSET_TYPES.template.id
-              ? t('Create new template from this project')
-              : t('Clone Project')
-          }
-          onRequestClose={() => setPrompt(null)}
-          buttons={[
-            { label: t('Cancel'), type: 'secondary', onClick: () => setPrompt(null) },
-            {
-              label: prompt.assetType === ASSET_TYPES.template.id ? t('Create') : t('Clone'),
-              isPending: createAssetMutation.isPending,
-              onClick: submitClone,
-            },
-          ]}
-        >
-          <TextInput
-            label={
-              prompt.assetType === ASSET_TYPES.template.id
-                ? t('Enter the name of the new template.')
-                : t('Enter the name of the cloned project. Leave empty to keep the original name.')
-            }
-            value={cloneName}
-            onChange={(event) => setCloneName(event.currentTarget.value)}
-          />
-        </KoboPrompt>
-      )
-    }
-    return null
-  }
+  const confirmUnarchive = () =>
+    deploymentUpdateMutation.mutate(
+      { uidAsset: uid, data: { active: true } },
+      {
+        onSuccess: () => {
+          notify(t('Project unarchived successfully'))
+          setPrompt(null)
+        },
+      },
+    )
 
   const showLanguagesModal = () => {
     if (asset) {
@@ -353,7 +301,16 @@ export default function FormLanding() {
           )}
         </Box>
       </DocumentTitle>
-      {renderPrompt()}
+      <FormLandingPrompt
+        prompt={prompt}
+        cloneName={cloneName}
+        onCloneNameChange={setCloneName}
+        onClose={() => setPrompt(null)}
+        onSubmitClone={submitClone}
+        isClonePending={createAssetMutation.isPending}
+        onConfirmUnarchive={confirmUnarchive}
+        isUnarchivePending={deploymentUpdateMutation.isPending}
+      />
     </>
   )
 }
