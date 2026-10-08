@@ -19,6 +19,7 @@ from kpi.fields.file import ExtendedFileField
 from kpi.fields.kpi_uid import KpiUidField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.django_orm_helper import ReturningUpdateQuerySet
 from kpi.utils.hash import calculate_hash
 from kpi.utils.storage import is_filesystem_storage
 from .instance import Instance
@@ -47,7 +48,13 @@ class AttachmentDeleteStatus(models.TextChoices):
     PENDING_DELETE = 'pending-delete'
 
 
-class AttachmentDefaultManager(models.Manager):
+class AttachmentAllObjectsManager(
+    models.Manager.from_queryset(ReturningUpdateQuerySet)
+):
+    pass
+
+
+class AttachmentDefaultManager(AttachmentAllObjectsManager):
 
     def get_queryset(self):
         # TODO remove "deleted_at__isnull=True" from filter after the long
@@ -98,10 +105,17 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
     audio_length = models.FloatField(null=True, blank=True)
 
     objects = AttachmentDefaultManager()
-    all_objects = models.Manager()
+    all_objects = AttachmentAllObjectsManager()
 
     class Meta:
         app_label = 'logger'
+        indexes = [
+            models.Index(
+                fields=['user', 'id'],
+                name='attachment_active_user_id_idx',
+                condition=models.Q(delete_status__isnull=True, deleted_at__isnull=True),
+            ),
+        ]
 
     @property
     def absolute_mp3_path(self):

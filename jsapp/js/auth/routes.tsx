@@ -45,7 +45,6 @@ export default function authRoutes() {
       <Route path={AUTH_ROUTES.SIGNUP} element={<RegisterRoute />} />
       <Route path={AUTH_ROUTES.CONFIRM_EMAIL} element={<ActivateAccountRoute />} />
       <Route path={AUTH_ROUTES.RESET_PASSWORD} element={<ResetPasswordRoute />} />
-      <Route path={AUTH_ROUTES.RESET_PASSWORD_CODE} element={<NewPasswordRoute collectCode />} />
       <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
 
       {/*

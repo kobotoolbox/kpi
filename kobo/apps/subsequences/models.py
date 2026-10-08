@@ -416,6 +416,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
     )
     question_xpath = models.CharField(max_length=2000)
     params = LazyDefaultJSONBField(default=dict)
+    auto_accept = models.BooleanField(default=False)
     # Uses a denormalized username string, similar to `Asset.created_by`,
     # instead of a foreign key so job records remain intact through user
     # lifecycle changes and are inexpensive to render.
@@ -458,6 +459,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         created_by: str,
         submission_root_uuids: list[str],
         status: str = BulkActionStatus.PENDING,
+        auto_accept: bool = False,
     ) -> 'SubsequenceBulkAction':
         """
         Orchestrates the atomic creation of a bulk action and its constituent items
@@ -480,6 +482,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 params=params,
                 created_by=created_by,
                 status=status,
+                auto_accept=auto_accept,
             )
             SubsequenceBulkActionItem.objects.bulk_create(
                 [
