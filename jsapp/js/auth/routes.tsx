@@ -40,7 +40,6 @@ export default function authRoutes() {
       <Route path={AUTH_ROUTES.REGISTER} element={<RegisterRoute />} />
       <Route path={AUTH_ROUTES.ACTIVATE_ACCOUNT} element={<ActivateAccountRoute />} />
       <Route path={AUTH_ROUTES.RESET_PASSWORD} element={<ResetPasswordRoute />} />
-      <Route path={AUTH_ROUTES.RESET_PASSWORD_CODE} element={<NewPasswordRoute collectCode />} />
       <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
     </Route>
   )
