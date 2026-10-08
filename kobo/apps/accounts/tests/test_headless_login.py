@@ -194,6 +194,9 @@ class SwitchAccountLoginTestCase(TestCase):
 
     def _session_username(self):
         response = self.client.get(HEADLESS_SESSION_URL)
-        if response.status_code != 200:
+        # Only a 401 means no one is logged in; any other error must fail the
+        # test rather than pass for a logout
+        if response.status_code == 401:
             return None
+        assert response.status_code == 200, response.content
         return response.json()['data']['user']['username']
