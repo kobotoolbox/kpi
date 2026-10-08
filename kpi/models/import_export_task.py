@@ -385,6 +385,11 @@ class ImportTask(ImportExportTask):
             if destination and destination.asset_type == ASSET_TYPE_COLLECTION
             else False
         )
+        destination_asset = (
+            destination
+            if destination and not destination_collection
+            else False
+        )
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -437,7 +442,7 @@ class ImportTask(ImportExportTask):
                 elif item.get_type() == 'asset':
                     kontent = parsed_contents[item]
 
-                    if not destination:
+                    if not destination_asset:
                         extra_args['content'] = _strip_header_keys(kontent)
                         item._orm = self._create_assets_for_uploader(
                             item.get_type(), extra_args, grant_manage=grant_manage
@@ -445,12 +450,13 @@ class ImportTask(ImportExportTask):
                     else:
                         # The below is copied from `_parse_b64_upload` pretty much as is
                         # TODO: review and test carefully
-                        asset = destination
+                        asset = destination_asset
                         # Derive `translations` from the file so `Asset.save()`
                         # does not restore languages removed from it (DEV-2657)
                         standardize_content_in_place(kontent)
                         asset.content = kontent
                         asset.save()
+                        item._orm = asset
                         updated_records.append(
                             {
                                 'uid': asset.uid,
@@ -459,7 +465,7 @@ class ImportTask(ImportExportTask):
                             }
                         )
 
-                if item.parent:
+                if item.parent and not destination_asset:
                     collections_to_assign.append(
                         [
                             item._orm,
