@@ -2,19 +2,17 @@ from __future__ import annotations
 
 from django.db import models
 from django.db.utils import IntegrityError
-from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models.attachment import (
     Attachment,
     AttachmentDeleteStatus,
 )
 from kobo.apps.openrosa.apps.logger.utils.attachment import (
-    bulk_update_attachment_storage_counters
+    toggle_delete_status_and_storage_counters,
 )
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
-from . import BaseTrash
 from ..type_aliases import UpdatedQuerySetAndCount
+from . import BaseTrash
 
 
 class AttachmentTrash(BaseTrash):
@@ -61,33 +59,19 @@ class AttachmentTrash(BaseTrash):
         **kwargs
     ) -> UpdatedQuerySetAndCount:
         """
-        Toggle statuses of attachments based on their `uid`.
+        Toggle statuses of attachments based on their `uid`, and update the
+        storage counters of their users and projects.
+
+        See `toggle_delete_status_and_storage_counters()` for why only the
+        attachments changed by this call are counted.
         """
-        if not active:
-            current_delete_status = None
-            new_delete_status = AttachmentDeleteStatus.PENDING_DELETE
-            subtract = True
-        else:
-            current_delete_status = AttachmentDeleteStatus.PENDING_DELETE
-            new_delete_status = None
-            subtract = False
-
-        queryset = Attachment.all_objects.filter(
-            uid__in=object_identifiers,
-            delete_status=current_delete_status
+        current_delete_status = (
+            AttachmentDeleteStatus.PENDING_DELETE if active else None
         )
-
-        with kc_transaction_atomic():
-            updated = queryset.update(
-                delete_status=new_delete_status,
-                date_modified=timezone.now(),
-            )
-            # We defer storage counter updates to run at the end of the
-            # transaction block to avoid holding row-level locks for the
-            # full duration of the transaction. This helps reduce contention
-            # when multiple attachments are being trashed or restored
-            # concurrently by different users.
-            bulk_update_attachment_storage_counters(
-                object_identifiers, subtract=subtract
-            )
+        queryset = Attachment.all_objects.filter(
+            uid__in=object_identifiers, delete_status=current_delete_status
+        )
+        updated = toggle_delete_status_and_storage_counters(
+            object_identifiers, active=active
+        )
         return queryset, updated

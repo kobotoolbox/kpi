@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import pytest
 from django.test import TestCase
+from django.utils import timezone
 
 from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.user_reports.models import BillingAndUsageSnapshotRun
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
@@ -231,3 +234,13 @@ class DjangoORMHelperTestCase(TestCase):
             assert False, 'ValueError was expected but not raised'
         except ValueError:
             pass
+
+    def test_update_returning_refuses_joins(self):
+        """
+        With a join, Django moves the filters into a subquery that PostgreSQL
+        does not check again after a concurrent update, so it must be refused
+        """
+
+        queryset = Attachment.all_objects.filter(xform__kpi_asset_uid='aFoo')
+        with pytest.raises(ValueError):
+            queryset.update_returning(['pk'], date_modified=timezone.now())

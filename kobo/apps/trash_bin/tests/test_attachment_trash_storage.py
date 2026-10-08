@@ -1,5 +1,8 @@
+import threading
+
 from constance.test import override_config
-from django.test import TestCase
+from django.db import connections
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
@@ -8,6 +11,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.project_ownership.utils import create_invite
+from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
@@ -67,6 +71,64 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
             self.user_profile.attachment_storage_bytes, original_user_bytes
         )
         self.assertIsNone(self.attachment.delete_status)
+
+    def test_toggling_twice_does_not_count_storage_twice(self):
+        """
+        Trashing (or restoring) an attachment already trashed (or restored)
+        must not change the counters again
+        """
+        self._refresh_all()
+        size = self.attachment.media_file_size
+        self.assertEqual(self.user_profile.attachment_storage_bytes, size)
+        self.assertEqual(self.xform.attachment_storage_bytes, size)
+
+        for expected_updated in (1, 0):
+            _, updated = AttachmentTrash.toggle_statuses(
+                [self.attachment.uid], active=False
+            )
+            self._refresh_all()
+            self.assertEqual(updated, expected_updated)
+            self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
+            self.assertEqual(self.xform.attachment_storage_bytes, 0)
+
+        for expected_updated in (1, 0):
+            _, updated = AttachmentTrash.toggle_statuses(
+                [self.attachment.uid], active=True
+            )
+            self._refresh_all()
+            self.assertEqual(updated, expected_updated)
+            self.assertEqual(self.user_profile.attachment_storage_bytes, size)
+            self.assertEqual(self.xform.attachment_storage_bytes, size)
+
+    def test_counters_of_each_user_and_project_are_updated(self):
+        """
+        Attachments of several users and projects toggled at once update the
+        counters of their own user and project only
+        """
+        other_user = User.objects.create(username='other_owner')
+        _, other_xform, _, other_profile, other_attachment = (
+            self._create_test_asset_and_submission(user=other_user)
+        )
+        self._refresh_all()
+        other_profile.refresh_from_db()
+        other_xform.refresh_from_db()
+        other_size = other_attachment.media_file_size
+        self.assertEqual(other_profile.attachment_storage_bytes, other_size)
+
+        # Only the other user's attachment changes, the first one is already
+        # trashed
+        AttachmentTrash.toggle_statuses([self.attachment.uid], active=False)
+        AttachmentTrash.toggle_statuses(
+            [self.attachment.uid, other_attachment.uid], active=False
+        )
+
+        self._refresh_all()
+        other_profile.refresh_from_db()
+        other_xform.refresh_from_db()
+        self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(self.xform.attachment_storage_bytes, 0)
+        self.assertEqual(other_profile.attachment_storage_bytes, 0)
+        self.assertEqual(other_xform.attachment_storage_bytes, 0)
 
     def test_deleting_submission_does_not_decrease_counters_twice(self):
         """
@@ -258,3 +320,48 @@ class TransferredProjectAttachmentTrashCounterTestCase(
         self.xform.refresh_from_db()
         self.owner_profile.refresh_from_db()
         self.new_owner_profile.refresh_from_db()
+
+
+class AttachmentTrashConcurrentStorageCountersTestCase(
+    TransactionTestCase, AssetSubmissionTestMixin
+):
+    """
+    Two requests trashing the same attachment at the same time must subtract
+    its size once. The second one waits for the first one to commit, then
+    changes nothing, and must count nothing
+    """
+
+    def test_concurrent_trash_subtracts_once(self):
+        user = User.objects.create(username='owner')
+        _, xform, _, user_profile, attachment = self._create_test_asset_and_submission(
+            user=user
+        )
+        user_profile.refresh_from_db()
+        xform.refresh_from_db()
+        storage_before = user_profile.attachment_storage_bytes
+        size = attachment.media_file_size
+
+        barrier = threading.Barrier(2)
+        updated = []
+
+        def trash():
+            try:
+                barrier.wait()
+                _, count = AttachmentTrash.toggle_statuses(
+                    [attachment.uid], active=False
+                )
+                updated.append(count)
+            finally:
+                connections.close_all()
+
+        threads = [threading.Thread(target=trash) for _ in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        user_profile.refresh_from_db()
+        xform.refresh_from_db()
+        self.assertEqual(sorted(updated), [0, 1])
+        self.assertEqual(user_profile.attachment_storage_bytes, storage_before - size)
+        self.assertEqual(xform.attachment_storage_bytes, storage_before - size)
