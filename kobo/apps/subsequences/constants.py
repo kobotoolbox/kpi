@@ -3,6 +3,9 @@ from django.db import models
 SUBMISSION_UUID_FIELD = 'meta/rootUuid'  # FIXME: import from elsewhere
 SUPPLEMENT_KEY = '_supplementalDetails'  # leave unchanged for backwards compatibility
 SORT_BY_DATE_FIELD = '_sortByDate'
+# Internal arbitration marker flagging a deletion candidate; always popped
+# before output
+DELETED_FIELD = '_deleted'
 
 # Could allow more types in the future? See
 # formpack.utils.replace_aliases.MEDIA_TYPES
