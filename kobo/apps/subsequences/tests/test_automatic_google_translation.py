@@ -267,6 +267,62 @@ def test_result_schema_accepts_bulk_action_uid():
     assert latest_version_data['bulk_action_uid'] == 'bulk-action-uid'
 
 
+def test_auto_accept_stamps_date_accepted_on_completion():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+
+    dependencies = {
+        'question_supplemental_data': {
+            'automatic_google_transcription': {
+                '_versions': [
+                    {
+                        '_data': {
+                            'value': 'Hello world',
+                            'language': 'en',
+                            'status': 'complete',
+                        },
+                        '_dateAccepted': '2026-01-01T00:00:00Z',
+                        '_uuid': '12345678-1234-5678-1234-567812345678',
+                    }
+                ]
+            }
+        }
+    }
+
+    action = AutomaticGoogleTranslationAction(
+        xpath,
+        params,
+        prefetched_dependencies=dependencies,
+    )
+
+    mock_service = MagicMock()
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_translation'
+        '.GoogleTranslationService'
+    )
+
+    with patch(service_path, return_value=mock_service):
+        mock_service.process_data.return_value = {
+            'value': 'Bonjour',
+            'status': 'complete',
+        }
+
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {
+                'language': 'fr',
+                'auto_accept': True,
+            },
+        )
+
+    action.validate_result(mock_sup_det)
+
+    latest_version = mock_sup_det['fr']['_versions'][0]
+    assert latest_version['_dateAccepted']
+    assert 'auto_accept' not in latest_version['_data']
+
+
 def test_run_external_process_passes_bulk_action_uid_to_service():
     xpath = 'group_name/question_name'
     params = [{'language': 'fr'}, {'language': 'es'}]

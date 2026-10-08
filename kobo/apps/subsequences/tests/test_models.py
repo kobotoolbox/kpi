@@ -698,6 +698,20 @@ class SubsequenceBulkActionModelTestCase(TestCase):
         assert items[0].status == BulkActionItemStatus.PENDING
         assert items[1].hash == items[0].hash
 
+    def test_create_with_items_persists_auto_accept(self):
+        parent = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by=self.owner.username,
+            submission_root_uuids=['uuid-1'],
+            auto_accept=True,
+        )
+
+        parent.refresh_from_db()
+        assert parent.auto_accept is True
+
     def test_parent_status_in_progress_propagates_only_pending_items(self):
         parent = SubsequenceBulkAction.objects.create(
             asset=self.asset,
