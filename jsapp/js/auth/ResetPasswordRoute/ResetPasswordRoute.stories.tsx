@@ -1,22 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse } from 'msw'
 import type { RequestHandler } from 'msw'
-import {
-  reactRouterOutlet,
-  reactRouterOutlets,
-  reactRouterParameters,
-  withRouter,
-} from 'storybook-addon-remix-react-router'
+import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
-import NewPasswordRoute from '#/auth/NewPasswordRoute/NewPasswordRoute'
 import { type Canvas, field } from '#/auth/authStoryHelpers'
-import {
-  PASSWORD_REQUEST_URL,
-  PASSWORD_RESET_URL,
-  passwordRequestCodeSentMock,
-  passwordRequestErrorsMock,
-} from '#/endpoints/allauth.mocks'
+import { PASSWORD_REQUEST_URL, passwordRequestErrorsMock } from '#/endpoints/allauth.mocks'
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
@@ -24,9 +13,6 @@ import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import ResetPasswordRoute from './ResetPasswordRoute'
 
 const EMAIL = 'caroline.herschel@kbtdev.org'
-/** Six characters, like the ones allauth generates */
-const CODE = 'MK4T9Z'
-const PASSWORD = 'correct horse battery staple'
 
 const environmentMock = makeEnvironmentMock()
 
@@ -95,74 +81,6 @@ export const EmailSent: Story = {
     // The whole form is replaced, so nothing invites a second attempt.
     expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
     expect(postedBody).toEqual({ email: EMAIL })
-  },
-}
-
-/** Where {@link resetRecordingMock} leaves the key it was posted, to show the typed code arrived as one. */
-let postedKey: unknown = null
-
-/** Accepts one code and rejects the rest, like a server with attempts left. 401 means the password changed. */
-const resetRecordingMock = () =>
-  http.post(PASSWORD_RESET_URL, async ({ request }) => {
-    const body = (await request.json()) as { key?: string }
-    postedKey = body.key
-    if (body.key !== CODE) {
-      return HttpResponse.json(
-        { status: 400, errors: [{ code: 'invalid', param: 'key', message: 'Invalid or expired key.' }] },
-        { status: 400 },
-      )
-    }
-    return HttpResponse.json(
-      { status: 401, data: { flows: [{ id: 'login' }] }, meta: { is_authenticated: false } },
-      { status: 401 },
-    )
-  })
-
-/**
- * A server that mails a code. The code posts as the reset key, and it is never looked up first: attempts are
- * few, so the one POST that sets the password is the only one spent.
- */
-export const ResetByCode: Story = {
-  parameters: {
-    msw: { handlers: storyHandlers({ request: passwordRequestCodeSentMock() }).concat(resetRecordingMock()) },
-    // The code screen is a route of its own, so the story has to carry it as well as the request form.
-    reactRouter: reactRouterParameters({
-      location: { path: AUTH_ROUTES.RESET_PASSWORD },
-      routing: reactRouterOutlets({ path: ROUTES.AUTH_ROOT }, [
-        { path: 'reset-password', element: <ResetPasswordRoute /> },
-        { path: 'reset-password/code', element: <NewPasswordRoute collectCode /> },
-      ]),
-    }),
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    postedKey = null
-
-    await userEvent.type(field(canvas, 'Email'), EMAIL)
-    await submit(canvas)
-
-    // Straight to the form that sets the password, code field and all - no "check your inbox" in between.
-    await canvas.findByRole('heading', { level: 1, name: 'Create new password' })
-    await canvas.findByText(/Enter the code from the password reset email/)
-
-    // A typo first, which is the case that must not leave this screen: attempts are limited, and being sent
-    // off to "request another email" would spend one for nothing.
-    await userEvent.type(field(canvas, 'Password reset code'), 'MK4T92')
-    await userEvent.type(field(canvas, 'New password'), PASSWORD)
-    await userEvent.type(field(canvas, 'Confirm password'), PASSWORD)
-    await userEvent.click(canvas.getByRole('button', { name: 'Change password' }))
-
-    await canvas.findByText(/That code is not valid or has expired/)
-    expect(field(canvas, 'Password reset code')).toHaveValue('MK4T92')
-    expect(canvas.queryByRole('link', { name: 'Go back to Login' })).not.toBeInTheDocument()
-
-    // Corrected in place, with the passwords still typed in and no new email needed.
-    await userEvent.clear(field(canvas, 'Password reset code'))
-    await userEvent.type(field(canvas, 'Password reset code'), CODE)
-    await userEvent.click(canvas.getByRole('button', { name: 'Change password' }))
-
-    await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed' })
-    expect(postedKey).toBe(CODE)
   },
 }
 

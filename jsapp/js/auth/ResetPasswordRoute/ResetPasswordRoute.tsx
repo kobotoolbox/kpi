@@ -1,13 +1,11 @@
 import { Image, Stack, Text, Title } from '@mantine/core'
 import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import { useNavigate } from 'react-router-dom'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
-import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
-import ResetPasswordForm, { type PasswordResetDelivery } from './ResetPasswordForm'
+import ResetPasswordForm from './ResetPasswordForm'
 
 /** Never names the address, like allauth: "no such account" would make this a way of finding who has one */
 function EmailSentPanel() {
@@ -37,12 +35,7 @@ function EmailSentPanel() {
 /** First half of password recovery: the address to mail a link to. Picking new password happens on `NewPasswordRoute`. */
 export default function ResetPasswordRoute() {
   const { data } = useAuthEnvironment()
-  const navigate = useNavigate()
   const [isEmailSent, setIsEmailSent] = useState(false)
-
-  // A code has to be typed somewhere, and the screen that sets the new password is where it is worth anything.
-  const handleRequested = (delivery: PasswordResetDelivery) =>
-    delivery === 'code' ? navigate(AUTH_ROUTES.RESET_PASSWORD_CODE) : setIsEmailSent(true)
 
   function renderCard() {
     if (isEmailSent) {
@@ -63,7 +56,7 @@ export default function ResetPasswordRoute() {
           )
         }
       >
-        <ResetPasswordForm onRequested={handleRequested} />
+        <ResetPasswordForm onRequested={() => setIsEmailSent(true)} />
       </AuthCard>
     )
   }
