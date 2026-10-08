@@ -1,5 +1,4 @@
 import { Box, Group, Stack, TextInput } from '@mantine/core'
-import { IconWorldFilled } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -37,10 +36,12 @@ import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify } from '#/utils'
+import { notify } from '#/utils'
 import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
 import FormHistory from './FormHistory'
 import FormLandingActions from './FormLandingActions'
+import FormLandingInfo from './FormLandingInfo'
+import FormLandingLanguages from './FormLandingLanguages'
 
 /**
  * URL of the permission that lets anonymous users submit data to a project. This is a function rather than a module
@@ -136,9 +137,6 @@ export default function FormLanding() {
   }
   const isFormRedeploymentNeeded = (loadedAsset: AssetResponse) =>
     !isCurrentVersionDeployed(loadedAsset) && userCan('change_asset', loadedAsset)
-  const hasLanguagesDefined = (translations: Array<string | null> | undefined) =>
-    Boolean(translations && (translations.length > 1 || translations[0] !== null))
-
   const deployAsset = (loadedAsset: AssetResponse) => {
     if (loadedAsset.has_deployment) {
       openKoboConfirmModal({
@@ -270,54 +268,7 @@ export default function FormLanding() {
     return null
   }
 
-  // TODO: FormInfo should be a seperate component
-  const renderFormInfo = (loadedAsset: AssetResponse, userCanEdit: boolean) => {
-    let dvcount = loadedAsset.deployed_versions.count
-    let undeployedVersion: string | undefined
-    // Undeployed changes count as a version of their own, so the number we show is one ahead of the deployed count.
-    if (!isCurrentVersionDeployed(loadedAsset)) {
-      undeployedVersion = `(${t('undeployed')})`
-      dvcount = dvcount + 1
-    }
-    return (
-      <bem.FormView__cell m={['columns', 'padding']}>
-        <bem.FormView__cell>
-          <bem.FormView__cell m='version'>{dvcount > 0 ? `v${dvcount}` : ''}</bem.FormView__cell>
-          {undeployedVersion && userCanEdit && (
-            <bem.FormView__cell m='undeployed'>&nbsp;{undeployedVersion}</bem.FormView__cell>
-          )}
-          <bem.FormView__cell m='date'>
-            {t('Last Modified')}&nbsp;:&nbsp;
-            {loadedAsset.date_modified && formatTime(loadedAsset.date_modified)}&nbsp;-&nbsp;
-            <span className='question-count'>
-              {loadedAsset.summary.row_count || '0'}&nbsp;
-              {t('questions')}
-            </span>
-          </bem.FormView__cell>
-        </bem.FormView__cell>
-        <bem.FormView__cell m='buttons'>
-          {userCanEdit && loadedAsset.deployment_status === 'deployed' && (
-            <Button
-              type='primary'
-              size='l'
-              isUpperCase
-              onClick={() => deployAsset(loadedAsset)}
-              label={t('redeploy')}
-            />
-          )}
-          {userCanEdit && loadedAsset.deployment_status === 'draft' && (
-            <Button type='primary' size='l' isUpperCase onClick={() => deployAsset(loadedAsset)} label={t('deploy')} />
-          )}
-          {userCanEdit && loadedAsset.deployment_status === 'archived' && (
-            <Button type='primary' size='l' isUpperCase onClick={callUnarchiveAsset} label={t('unarchive')} />
-          )}
-        </bem.FormView__cell>
-      </bem.FormView__cell>
-    )
-  }
-
-  const showLanguagesModal = (evt: React.MouseEvent<HTMLElement>) => {
-    evt.preventDefault()
+  const showLanguagesModal = () => {
     if (asset) {
       openFormLanguagesModal(asset)
     }
@@ -531,36 +482,6 @@ export default function FormLanding() {
     })
   }
 
-  // TODO: FormLanguages should be a seperate component and keep the layout that joins it to FormInfo in FormLanding.
-  const renderLanguages = (loadedAsset: AssetResponse, canEdit: boolean) => {
-    const translations = loadedAsset.content?.translations
-
-    return (
-      <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
-        <bem.FormView__cell m='translation-list'>
-          <strong>{t('Languages:')}</strong>
-          &nbsp;
-          {!hasLanguagesDefined(translations) && t('This project has no languages defined yet')}
-          {hasLanguagesDefined(translations) && (
-            <ul>
-              {translations?.map((langString, n) => (
-                <li key={n}>{langString || t('Unnamed language')}</li>
-              ))}
-            </ul>
-          )}
-        </bem.FormView__cell>
-
-        {canEdit && (
-          <bem.FormView__cell>
-            <ButtonNew variant='outline' size='md' rightIcon={IconWorldFilled} onClick={showLanguagesModal}>
-              {t('Manage')}
-            </ButtonNew>
-          </bem.FormView__cell>
-        )}
-      </bem.FormView__cell>
-    )
-  }
-
   if (!asset) {
     return <LoadingSpinner />
   }
@@ -597,8 +518,14 @@ export default function FormLanding() {
             <bem.FormView__cell m='box'>
               {isFormRedeploymentNeeded(asset) && <FormLandingRedeploymentAlert />}
 
-              {renderFormInfo(asset, userCanEdit)}
-              {renderLanguages(asset, userCanEdit)}
+              <FormLandingInfo
+                asset={asset}
+                canEdit={userCanEdit}
+                isCurrentVersionDeployed={isCurrentVersionDeployed(asset)}
+                onDeploy={() => deployAsset(asset)}
+                onUnarchive={callUnarchiveAsset}
+              />
+              <FormLandingLanguages asset={asset} canEdit={userCanEdit} onManageLanguages={showLanguagesModal} />
             </bem.FormView__cell>
           </bem.FormView__row>
           {asset.deployed_versions.count > 0 && renderHistory(asset)}
