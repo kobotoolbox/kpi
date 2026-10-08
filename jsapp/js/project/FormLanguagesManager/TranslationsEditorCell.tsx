@@ -39,8 +39,7 @@ export default function TranslationsEditorCell({
       styles={{ input: { width: '100%' } }}
       onChange={(evt) => {
         setValue(evt.target.value)
-        // Report the draft right away, so a save that beats the onBlur commit
-        // below still picks it up.
+        // Report the draft right away, so a save that beats the onBlur commit still picks it up.
         onEditCell(absoluteIndex, evt.target.value)
         if (!isDirtyRef.current) {
           // Mark the table as dirty on the first edit, but avoid committing the

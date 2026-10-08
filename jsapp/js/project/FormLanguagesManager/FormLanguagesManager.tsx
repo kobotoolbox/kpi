@@ -45,9 +45,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [isTranslationTableUnsaved, setIsTranslationTableUnsaved] = useState(false)
   // Track if any cell has been edited without committing to state (to avoid first-keystroke parent re-render)
   const tableHasUnsavedEditsRef = useRef(false)
-  // Latest draft of every edited cell, keyed by absolute row index. Saving reads
-  // this on top of `tableRows`, which only catches up once React has flushed the
-  // blur commit.
+  // Latest draft of every edited cell, keyed by absolute row index. Saving reads it on top
+  // of `tableRows`, which only catches up once the blur commit flushes.
   const pendingCellEditsRef = useRef(new Map<number, string>())
 
   const translations = asset.content?.translations || []

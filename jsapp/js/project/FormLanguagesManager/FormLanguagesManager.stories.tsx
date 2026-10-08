@@ -56,7 +56,7 @@ function createAssetPatchHandler(initialAsset: AssetResponse) {
         asset.content = JSON.parse(payload.content)
       }
     },
-    // Snapshot every PATCH, so assertions can inspect what got saved.
+    // Snapshot every PATCH so assertions can inspect what got saved.
     onPatch: (asset) => {
       onAssetPatched(asset)
     },
@@ -170,7 +170,7 @@ export const BasicFlow: Story = {
     })
 
     await step('Open translations table', async () => {
-      // Scope to the French card, so we don't hit the default language's button.
+      // Scope to the French card so we don't hit the default language's button.
       const frenchCard = page.getByText('French (fr)').closest('div[data-with-border="true"]')
       await expect(frenchCard).not.toBeNull()
 
@@ -182,36 +182,27 @@ export const BasicFlow: Story = {
     })
 
     await step('Translate a question and save', async () => {
-      // Scope to the row, so no other question's textarea can match.
-      const row = page.getByText('Question 1').closest('tr')
-      await expect(row).not.toBeNull()
-      const textarea = within(row as HTMLElement).getByRole('textbox') as HTMLTextAreaElement
+      // `UniversalTable` renders null until its query key has data, so the table remounts
+      // right after the rows appear. Typing into a detached textarea is silently dropped,
+      // so re-query the row on every attempt.
+      await waitFor(
+        async () => {
+          const row = page.getByText('Question 1').closest('tr')
+          const textarea = within(row as HTMLElement).getByRole('textbox')
 
-      // Temporary instrumentation: CI saw an empty textarea after typing, so report
-      // what held focus and whether the node survived. Chai truncates assertion
-      // messages at 40 chars, hence the terse keys. Remove once we know the cause.
-      const focusTag = () => {
-        const el = document.activeElement
-        if (el === textarea) return 'ta'
-        return el ? el.tagName.toLowerCase() : 'null'
-      }
-
-      await userEvent.click(textarea)
-      await expect(`afterClick foc=${focusTag()}`).toBe('afterClick foc=ta')
-
-      await userEvent.type(textarea, 'Nom')
-      const state = [
-        `v=${JSON.stringify(textarea.value)}`,
-        `att=${document.body.contains(textarea) ? 1 : 0}`,
-        `dis=${textarea.disabled ? 1 : 0}`,
-        `foc=${focusTag()}`,
-      ].join(' ')
-      await expect(state).toBe('v="Nom" att=1 dis=0 foc=ta')
+          await userEvent.clear(textarea)
+          await userEvent.type(textarea, 'Nom')
+          await expect(textarea).toHaveValue('Nom')
+        },
+        // Only needs to outlast a couple of remount retries. Stay well under the 30s test
+        // timeout, or a real failure here shows up as a timeout instead of an assertion.
+        { timeout: 5000 },
+      )
 
       await userEvent.click(page.getByRole('button', { name: /Save Changes/ }))
 
-      // Generous timeout: the PATCH goes through the MSW service worker, which can
-      // outlast the 1s `waitFor` default on a loaded CI machine.
+      // The PATCH goes through the MSW service worker, which can outlast the 1s
+      // `waitFor` default on a loaded CI machine.
       await waitFor(
         async () => {
           await expect(onAssetPatched).toHaveBeenCalled()
