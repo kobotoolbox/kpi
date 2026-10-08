@@ -415,7 +415,6 @@ class ImportTask(ImportExportTask):
 
         updated_records = []
         with transaction.atomic():
-            collections_to_assign = []
             for item in fif._parsed:
                 extra_args = {
                     'owner': self.user if destination else real_owner,
@@ -463,13 +462,17 @@ class ImportTask(ImportExportTask):
                             }
                         )
 
+            collections_to_assign = []
+            for item in fif._parsed:
                 if item.parent and item._orm != destination_asset:
-                    collections_to_assign.append(
-                        [
-                            item._orm,
-                            item.parent._orm,
-                        ]
-                    )
+                    parent_orm = getattr(item.parent, '_orm', None)
+                    if parent_orm:
+                        collections_to_assign.append(
+                            [
+                                item._orm,
+                                parent_orm,
+                            ]
+                        )
                 elif destination_collection:
                     collections_to_assign.append(
                         [
