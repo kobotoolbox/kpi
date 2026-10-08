@@ -410,6 +410,7 @@ class ImportTask(ImportExportTask):
                 self._ensure_choices_size(kontent)
                 parsed_contents[item] = kontent
 
+        updated_records = []
         with transaction.atomic():
             collections_to_assign = []
             for item in fif._parsed:
@@ -450,7 +451,7 @@ class ImportTask(ImportExportTask):
                         standardize_content_in_place(kontent)
                         asset.content = kontent
                         asset.save()
-                        messages['updated'].append(
+                        updated_records.append(
                             {
                                 'uid': asset.uid,
                                 'kind': 'asset',
@@ -476,6 +477,8 @@ class ImportTask(ImportExportTask):
             for orm_obj, parent_item in collections_to_assign:
                 orm_obj.parent = parent_item
                 orm_obj.save()
+
+        messages['updated'].extend(updated_records)
 
     @staticmethod
     def _ensure_translated_columns(survey_dict):
