@@ -252,6 +252,9 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
           credential={credential ?? 'username'}
           socialApps={environment?.socialApps}
           isConfigurationPending={allauth.isPending}
+          // Only a definite "no" hides the signup link - the same setting the signup screen itself goes by, so
+          // nothing is hidden over a `/environment` that is slow or broken.
+          isRegistrationClosed={environment?.registrationOpen === false}
           onOutcome={handleOutcome}
         />
       </AuthCard>

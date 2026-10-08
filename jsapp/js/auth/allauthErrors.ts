@@ -103,14 +103,3 @@ export function getPendingFlowIds(response: AllauthResponse): FlowId[] {
 export function isPendingEmailVerification(response: AllauthResponse): boolean {
   return getPendingFlowIds(response).includes(FlowId.verify_email)
 }
-
-/** allauth's spec omits this one from its flow enum, so the generated `FlowId` has no entry for it. */
-const PASSWORD_RESET_BY_CODE_FLOW = 'password_reset_by_code'
-
-/**
- * Whether the mail carried a one-time code instead of a reset link, which `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED`
- * turns on: the request succeeds with a 401 and this flow left pending.
- */
-export function isPendingPasswordResetByCode(response: AllauthResponse): boolean {
-  return getPendingFlowIds(response).some((id) => (id as string) === PASSWORD_RESET_BY_CODE_FLOW)
-}

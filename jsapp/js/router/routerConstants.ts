@@ -53,6 +53,7 @@ export const ROUTES = Object.freeze({
 
 /** The screens you reach without a session. Leaf paths keep allauth's own names, under our `/auth` prefix. */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
+  /** The redesigned sign-in screen. `PATHS.LOGIN` is the Django one it will eventually replace. */
   LOGIN: ROUTES.AUTH_ROOT + '/login',
   SIGNUP: ROUTES.AUTH_ROOT + '/signup',
   /**
@@ -62,11 +63,6 @@ export const AUTH_ROUTES: { readonly [key: string]: string } = {
   CONFIRM_EMAIL: ROUTES.AUTH_ROOT + '/confirm-email/:key',
   /** Asks for an address to mail a password reset link to */
   RESET_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset',
-  /**
-   * The same as `NEW_PASSWORD` for a server that mails a code rather than a link: the code is typed into the
-   * form instead of arriving in the URL.
-   */
-  RESET_PASSWORD_CODE: ROUTES.AUTH_ROOT + '/password/reset/code',
   /** Where the link in the password reset email lands, to pick the new password */
   NEW_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset/key/:key',
   /** One-time code prompt, for a sign-in allauth paused after the password */

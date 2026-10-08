@@ -162,8 +162,8 @@ export const SingleSignOnProviders: Story = {
     // `findBy`, not `getBy`: the buttons arrive with `/environment` rather than with the form.
     const gitlabButton = await canvas.findByRole('button', { name: 'Log in with GitLab' })
     await canvas.findByRole('button', { name: 'Log in with Example Organization' })
-    // Separated from the credentials, which still work. Awaited, since the button spins until the configuration
-    // lands and `/environment` can get back first.
+    // Separated from the credentials, which still work. Waited for rather than asserted: the providers come
+    // from `/environment` and the credential from allauth's settings, so either request may land first.
     await canvas.findByText('or')
     await waitForConfiguration(canvas)
 

@@ -19,13 +19,19 @@ export default function RequireAuth({ children }: Props) {
   const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
   const goToLogin = useGoToLogin()
 
-  const decision = getAuthGateDecision({
-    authStatus,
-    isAuthStatusLoading: isLoading,
-    isAuthStatusCheckFailed: isError,
-    // With the flag on, `/auth/session` answers for itself and the store is not consulted at all.
-    isLegacyLoggedIn: isAuthRedesignEnabled ? false : profileStore.isLoggedIn,
-  })
+  // One whole reading per flag state, rather than field by field: with the flag off the session query never runs, so
+  // nothing it holds is an answer - a disabled query still hands back whatever is in the cache - and the store is the
+  // only reading there is.
+  const decision = getAuthGateDecision(
+    isAuthRedesignEnabled
+      ? { authStatus, isAuthStatusLoading: isLoading, isAuthStatusCheckFailed: isError, isLegacyLoggedIn: false }
+      : {
+          authStatus: undefined,
+          isAuthStatusLoading: false,
+          isAuthStatusCheckFailed: false,
+          isLegacyLoggedIn: profileStore.isLoggedIn,
+        },
+  )
 
   useEffect(() => {
     if (decision === 'redirect') {
