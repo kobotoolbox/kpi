@@ -19,6 +19,8 @@ const NewPasswordRoute = React.lazy(() => import(/* webpackPrefetch: true */ './
 const AuthPlaceholderRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './AuthPlaceholderRoute/AuthPlaceholderRoute'),
 )
+const ProviderLoginRoute = React.lazy(() => import(/* webpackPrefetch: true */ './ProviderRoute/ProviderLoginRoute'))
+const ProviderSignupRoute = React.lazy(() => import(/* webpackPrefetch: true */ './ProviderRoute/ProviderSignupRoute'))
 
 /**
  * The authentication screens you reach without a session.
@@ -55,10 +57,13 @@ export default function authRoutes() {
         path={AUTH_ROUTES.MFA_RECOVERY_CODES}
         element={<AuthPlaceholderRoute title='Recovery code' hasAuthCard />}
       />
-      <Route
-        path={AUTH_ROUTES.PROVIDER_SIGNUP}
-        element={<AuthPlaceholderRoute title='Finish signing up' hasAuthCard />}
-      />
+      {/*
+        Both halves of the single sign-on flow, in place of the placeholder that stood here. `PROVIDER_SIGNUP`
+        is also where allauth returns the browser after the provider round trip, whatever the outcome - see
+        `ProviderSignupRoute`.
+      */}
+      <Route path={AUTH_ROUTES.PROVIDER_SIGNUP} element={<ProviderSignupRoute />} />
+      <Route path={AUTH_ROUTES.PROVIDER_LOGIN} element={<ProviderLoginRoute />} />
     </Route>
   )
 }
