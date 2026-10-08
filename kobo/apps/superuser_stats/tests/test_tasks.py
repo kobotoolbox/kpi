@@ -9,7 +9,6 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter, XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kpi.tests.utils import baker_generators  # noqa: F401 registers KpiUidField gen.
 from kobo.apps.superuser_stats.tasks import (
     generate_continued_usage_report,
     generate_domain_report,
@@ -20,6 +19,7 @@ from kobo.apps.superuser_stats.tasks import (
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models.asset import Asset, AssetDeploymentStatus
+from kpi.tests.utils import baker_generators  # noqa: F401 registers KpiUidField gen.
 
 START_DATE = '2025-01-01'
 END_DATE = '2025-12-31'

@@ -197,6 +197,30 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
 
         assert trash_left_when_deleting_attachments == [False]
 
+    def test_deletion_succeeds_when_file_cleanup_fails(self):
+        """
+        Files are deleted from storage after the submission deletion is
+        committed. A storage failure then must not report the deletion as
+        failed: the submission is gone, and a retry would only get a 404.
+        """
+
+        size = self.attachment.media_file_size
+        assert self.xform.attachment_storage_bytes == size
+
+        with patch(
+            'kobo.apps.openrosa.apps.logger.utils.instance.bulk_delete_files',
+            side_effect=OSError('storage is down'),
+        ), self.assertLogs(level='ERROR') as logs:
+            deleted = self.asset.deployment.delete_submission(
+                self.instance.pk, self.user
+            )
+
+        assert deleted == 1
+        assert not Instance.objects.filter(pk=self.instance.pk).exists()
+        self.xform.refresh_from_db()
+        assert self.xform.attachment_storage_bytes == 0
+        assert any('storage is down' in line for line in logs.output)
+
     def _move_to_trash(self):
         """
         Move the attachment to trash and refresh all objects
@@ -567,8 +591,8 @@ class AttachmentTrashConcurrentStorageCountersTestCase(
         read before the deletion.
         """
         user = User.objects.create(username='owner')
-        asset, xform, instance, _, attachment = (
-            self._create_test_asset_and_submission(user=user)
+        asset, xform, instance, _, attachment = self._create_test_asset_and_submission(
+            user=user
         )
         xform.refresh_from_db()
         assert attachment.media_file_size > 0

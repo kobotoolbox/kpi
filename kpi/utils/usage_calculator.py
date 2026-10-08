@@ -121,7 +121,7 @@ def get_storage_usage_by_user_id(user_ids: list[int]) -> dict[int, int]:
     user_ids = list(user_ids)
     storage_by_user_id = dict.fromkeys(user_ids, 0)
     for start in range(0, len(user_ids), settings.DEFAULT_BATCH_SIZE):
-        batch = user_ids[start:start + settings.DEFAULT_BATCH_SIZE]
+        batch = user_ids[start : start + settings.DEFAULT_BATCH_SIZE]
         storage_by_user_id.update(
             _sum_storage_by_user_id(query.filter(user_id__in=batch))
         )

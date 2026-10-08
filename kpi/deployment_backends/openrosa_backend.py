@@ -29,6 +29,7 @@ from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
+from kobo.apps.openrosa.apps.logger.exceptions import InvalidSubmissionIdsError
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
@@ -36,7 +37,6 @@ from kobo.apps.openrosa.apps.logger.models import (
     MonthlyXFormSubmissionCounter,
     XForm,
 )
-from kobo.apps.openrosa.apps.logger.exceptions import InvalidSubmissionIdsError
 from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,

@@ -127,8 +127,9 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             # two locks are on different connections, PostgreSQL would not see
             # the deadlock and both would wait until a timeout.
             attachment_ids = list(
-                Attachment.all_objects.filter(instance_id__in=instance_ids)
-                .values_list('pk', flat=True)
+                Attachment.all_objects.filter(instance_id__in=instance_ids).values_list(
+                    'pk', flat=True
+                )
             )
             if attachment_ids:
                 att_trash_qs = AttachmentTrash.objects.using(DEFAULT_DB_ALIAS).filter(
@@ -204,8 +205,18 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             )
 
         # File deletion is outside the transaction to avoid locking tables for
-        # too long.
-        bulk_delete_files(files_to_delete, default_kobocat_storage)
+        # too long. The submissions are already deleted and committed by now:
+        # a storage failure must not report the deletion as failed, since it
+        # cannot be retried, so it is logged instead, like
+        # `pre_delete_attachment()` does. The files are left orphaned on storage.
+        try:
+            bulk_delete_files(files_to_delete, default_kobocat_storage)
+        except Exception as e:
+            logging.error(
+                f'Failed to delete {len(files_to_delete)} attachment file(s) of'
+                f' deleted submissions: {e}',
+                exc_info=True,
+            )
     finally:
         # Reconnect signals that were temporarily disabled above.
         pre_delete.connect(pre_delete_attachment, sender=Attachment)
