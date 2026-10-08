@@ -60,6 +60,7 @@ jobs:
       env:
         NEW_BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
+        set +e
         set -x
         git ls-remote --exit-code --heads origin "$NEW_BRANCH"
         STATUS=$?
