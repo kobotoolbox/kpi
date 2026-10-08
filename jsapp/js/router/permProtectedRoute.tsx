@@ -58,14 +58,21 @@ const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, err
   const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
   const goToLogin = useGoToLogin()
 
-  const decision = getAuthGateDecision({
-    authStatus,
-    // With the flag off the session query never runs, so `/me/` stands in for it. A reading that failed or has not
-    // arrived must not pass for "signed out", or this bounces off the login screen.
-    isAuthStatusLoading: isAuthRedesignEnabled ? isLoading : !profileStore.isAuthStateKnown,
-    isAuthStatusCheckFailed: isAuthRedesignEnabled ? isError : profileStore.isAuthStateCheckFailed,
-    isLegacyLoggedIn: isAuthRedesignEnabled ? false : profileStore.isLoggedIn,
-  })
+  // TODO: DEV-3074 this reading can be a minute old (`staleTime` in `useAuthStatus`), so a session that just ended
+  // still reads as signed in and the refusal is shown where the login screen belongs.
+  const decision = getAuthGateDecision(
+    isAuthRedesignEnabled
+      ? { authStatus, isAuthStatusLoading: isLoading, isAuthStatusCheckFailed: isError, isLegacyLoggedIn: false }
+      : {
+          // With the flag off the session query never runs, so nothing it holds is an answer - a disabled query still
+          // hands back whatever is in the cache. `/me/` is the only reading there is, and one that failed or has not
+          // arrived must not pass for "signed out", or this bounces off the login screen.
+          authStatus: undefined,
+          isAuthStatusLoading: !profileStore.isAuthStateKnown,
+          isAuthStatusCheckFailed: profileStore.isAuthStateCheckFailed,
+          isLegacyLoggedIn: profileStore.isLoggedIn,
+        },
+  )
 
   // Signing in will not fix a 5xx. `checkFailed` keeps the refusal too, as the asset error says more than a
   // session-check failure would.
