@@ -1,7 +1,6 @@
-import { Box, Group, Stack, TextInput } from '@mantine/core'
+import { Box, Group, TextInput } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
@@ -18,9 +17,7 @@ import {
 } from '#/api/react-query/manage-projects-and-library-content'
 import { parsed } from '#/assetParserUtils'
 import bem from '#/bem'
-import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
-import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
 import KoboPrompt from '#/components/modals/koboPrompt'
@@ -28,11 +25,9 @@ import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { ASSET_TYPES, COLLECTION_METHODS, CollectionMethodName } from '#/constants'
+import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import envStore from '#/envStore'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
-import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
@@ -40,6 +35,7 @@ import { notify } from '#/utils'
 import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
 import FormHistory from './FormHistory'
 import FormLandingActions from './FormLandingActions'
+import FormLandingCollectData from './FormLandingCollectData'
 import FormLandingInfo from './FormLandingInfo'
 import FormLandingLanguages from './FormLandingLanguages'
 
@@ -51,21 +47,9 @@ function getAnonCanAddSubmissionsPermUrl() {
   return permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions)?.url
 }
 
-/**
- * The URL for collecting data with given method. `null` for the Android app, which has no link, and for methods the
- * deployment didn't give us a link for.
- */
-function getCollectMethodLink(loadedAsset: AssetResponse, method: CollectionMethodName): string | null {
-  if (method === CollectionMethodName.android) {
-    return null
-  }
-  return loadedAsset.deployment__links[method] || null
-}
-
 export default function FormLanding() {
   // Fallback for getting uid from URL, needed without WithRouter wrapper
   const { uid = '' } = useParams<{ uid: string }>()
-  const [selectedCollectMethod, setSelectedCollectMethod] = useState(CollectionMethodName.offline_url)
   const [historyExpanded, setHistoryExpanded] = useState(false)
   // TODO: simplify this type
   const [prompt, setPrompt] = useState<
@@ -307,149 +291,6 @@ export default function FormLanding() {
     </bem.FormView__row>
   )
 
-  // TODO: CollectData should be a seperate component
-  const renderCollectData = (loadedAsset: AssetResponse) => {
-    const chosenMethod = selectedCollectMethod
-    const chosenMethodLink = getCollectMethodLink(loadedAsset, chosenMethod)
-
-    // KoboCollect wants just the origin, and `open_rosa_server` is a full URL - let the DOM parse it out for us.
-    const openRosaServerAnchor = document.createElement('a')
-    openRosaServerAnchor.href = envStore.data.open_rosa_server
-    const kobocollectUrl = openRosaServerAnchor.origin
-
-    return (
-      <bem.FormView__row>
-        <bem.FormView__cell m={['label', 'first']}>{t('Collect data')}</bem.FormView__cell>
-        <bem.FormView__cell m='box'>
-          <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
-            <bem.FormView__cell>
-              <CollectMethodSelector
-                onChange={(newMethod) => {
-                  setSelectedCollectMethod(newMethod)
-                }}
-                selectedMethod={chosenMethod}
-              />
-            </bem.FormView__cell>
-
-            <bem.FormView__cell className='collect-header-actions'>{renderCollectLink(loadedAsset)}</bem.FormView__cell>
-          </bem.FormView__cell>
-
-          <Stack pb='lg' pl='lg' pr='lg' className='collect-meta-description'>
-            {chosenMethod !== CollectionMethodName.android && COLLECTION_METHODS[chosenMethod].desc}
-
-            {chosenMethod === CollectionMethodName.iframe_url && (
-              <pre>{`<iframe src="${chosenMethodLink}" width="800" height="600"></iframe>`}</pre>
-            )}
-
-            {chosenMethod === CollectionMethodName.android && (
-              <ol>
-                <li>
-                  {t('Install')}
-                  &nbsp;
-                  <a
-                    href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en'
-                    target='_blank'
-                  >
-                    KoboCollect
-                  </a>
-                  &nbsp;
-                  {t('on your Android device.')}
-                </li>
-                <li>{t('Select the option "Manually enter project details"')}</li>
-                <li>
-                  {t('Enter the server URL')}&nbsp;
-                  <code>{kobocollectUrl}</code>&nbsp;
-                  {t('and your username and password')}
-                </li>
-                <li>{t('Select "Download form" and select this project')}</li>
-                <li>{t('Select "Start New Form"')}</li>
-                <li>{t('Select this project from the list of downloaded projects')}</li>
-              </ol>
-            )}
-          </Stack>
-
-          {userCan('change_asset', loadedAsset) && (
-            <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
-              <AnonymousSubmission
-                checked={Boolean(anonymousSubmissionPermission)}
-                // This whole block is already behind a `change_asset` check, so the toggle is always usable here.
-                disabled={false}
-                onChange={updateAssetAnonymousSubmissions}
-              />
-            </bem.FormView__cell>
-          )}
-        </bem.FormView__cell>
-      </bem.FormView__row>
-    )
-  }
-
-  const renderCollectLink = (loadedAsset: AssetResponse) => {
-    const chosenMethod = selectedCollectMethod
-    const chosenMethodLink = getCollectMethodLink(loadedAsset, chosenMethod)
-
-    if (chosenMethod === CollectionMethodName.android) {
-      return (
-        <Button
-          type='secondary'
-          size='m'
-          onClick={() => {
-            window.open(COLLECTION_METHODS.android.url, '_blank')
-          }}
-          label={t('Download KoboCollect')}
-        />
-      )
-    }
-
-    if (chosenMethodLink === null) {
-      return (
-        <span
-          className='collect-link-missing right-tooltip'
-          data-tip={t("Try reloading the page, if problem doesn't go away, contact support.")}
-        >
-          <i className='k-icon k-icon-alert' />
-          {t('Link missing')}
-        </span>
-      )
-    }
-
-    if (chosenMethod === CollectionMethodName.iframe_url) {
-      return (
-        <CopyToClipboard
-          text={`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`}
-          onCopy={() => {
-            notify(t('Copied to clipboard'))
-          }}
-          options={{ format: 'text/plain' }}
-        >
-          <Button type='secondary' size='m' label={t('Copy')} />
-        </CopyToClipboard>
-      )
-    }
-
-    return (
-      <React.Fragment>
-        <CopyToClipboard
-          text={chosenMethodLink}
-          onCopy={() => {
-            notify(t('Copied to clipboard'))
-          }}
-          options={{ format: 'text/plain' }}
-        >
-          <Button type='secondary' size='m' label={t('Copy')} />
-        </CopyToClipboard>
-
-        <Button
-          type='secondary'
-          size='m'
-          onClick={() => {
-            window.open(chosenMethodLink, '_blank')
-          }}
-          label={t('Open')}
-        />
-      </React.Fragment>
-    )
-  }
-
   const removeSharedProject = (loadedAsset: AssetResponse) => {
     const username = profileStore.currentAccount.username
     const assignmentUids = loadedAsset.permissions
@@ -529,7 +370,14 @@ export default function FormLanding() {
             </bem.FormView__cell>
           </bem.FormView__row>
           {asset.deployed_versions.count > 0 && renderHistory(asset)}
-          {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && renderCollectData(asset)}
+          {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && (
+            <FormLandingCollectData
+              asset={asset}
+              anonymousSubmissionsEnabled={Boolean(anonymousSubmissionPermission)}
+              canEdit={userCan('change_asset', asset)}
+              onAnonymousSubmissionsChange={updateAssetAnonymousSubmissions}
+            />
+          )}
         </bem.FormView>
       </DocumentTitle>
       {renderPrompt()}
