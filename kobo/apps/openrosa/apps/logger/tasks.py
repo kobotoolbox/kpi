@@ -130,8 +130,8 @@ def generate_stats_zip(output_filename):
 @celery_app.task
 def fix_stale_submissions_suspended_flag():
     """
-    Release the accounts left suspended by a storage recount or a trash bin
-    deletion which died, so that nobody stays locked out of collecting data.
+    Release the accounts left suspended by a storage recount which died, so
+    that nobody stays locked out of collecting data.
     """
     for username in release_orphaned_suspensions():
         logging.info(

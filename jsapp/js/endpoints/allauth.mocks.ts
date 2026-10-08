@@ -266,22 +266,6 @@ export const emailVerifyConfirmWithoutSessionMock = () =>
     ),
   )
 
-/**
- * A taken reset request on a server running `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED`: the mail carries a code, and
- * the 401 says the flow is waiting for it.
- */
-export const passwordRequestCodeSentMock = () =>
-  http.post(PASSWORD_REQUEST_URL, () =>
-    HttpResponse.json(
-      {
-        status: 401,
-        data: { flows: [{ id: 'login' }, { id: 'password_reset_by_code', is_pending: true }] },
-        meta: { is_authenticated: false },
-      },
-      { status: 401 },
-    ),
-  )
-
 /** A rejected reset request. `param: 'email'` puts the message under the input; omit it for the banner. */
 export const passwordRequestErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
   http.post(PASSWORD_REQUEST_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))
