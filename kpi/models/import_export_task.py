@@ -450,7 +450,8 @@ class ImportTask(ImportExportTask):
                         standardize_content_in_place(kontent)
                         asset.content = kontent
                         asset.save()
-                        messages['updated'].append({
+                        messages['updated'].append(
+                            {
                                 'uid': asset.uid,
                                 'kind': 'asset',
                                 'owner__username': self.user.username,
@@ -458,17 +459,21 @@ class ImportTask(ImportExportTask):
                         )
 
                 if item.parent:
-                    collections_to_assign.append([
-                        item._orm,
-                        item.parent._orm,
-                    ])
+                    collections_to_assign.append(
+                        [
+                            item._orm,
+                            item.parent._orm,
+                        ]
+                    )
                 elif destination_collection:
-                    collections_to_assign.append([
-                        item._orm,
-                        destination_collection,
-                    ])
+                    collections_to_assign.append(
+                        [
+                            item._orm,
+                            destination_collection,
+                        ]
+                    )
 
-            for (orm_obj, parent_item) in collections_to_assign:
+            for orm_obj, parent_item in collections_to_assign:
                 orm_obj.parent = parent_item
                 orm_obj.save()
 

@@ -1616,10 +1616,7 @@ class AssetImportTaskTest(BaseTestCase):
         )
         detail_response = self.client.get(response.data['url'])
         assert detail_response.data['status'] == 'error'
-        assert (
-            detail_response.data['messages']['error_type']
-            == 'ChoicesSizeLimitError'
-        )
+        assert detail_response.data['messages']['error_type'] == 'ChoicesSizeLimitError'
         assert (
             'The choices sheet is too large'
             in detail_response.data['messages']['error']
