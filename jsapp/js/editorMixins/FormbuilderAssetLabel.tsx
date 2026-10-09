@@ -17,7 +17,7 @@ export default function FormbuilderAssetLabel(props: FormbuilderAssetLabelProps)
     return null
   }
 
-  const assetTypeLabel = getFormBuilderAssetType(props.asset.asset_type, props.desiredAssetType)?.label || 'asset'
+  const assetTypeLabel = getFormBuilderAssetType(props.asset.asset_type, props.desiredAssetType)?.label || t('asset')
 
   // Case 1: there is no asset yet (creating a new) or asset is not locked
   if (!props.asset.content || !hasAssetAnyLocking(props.asset.content)) {
