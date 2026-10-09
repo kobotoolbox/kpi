@@ -1714,7 +1714,8 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
-            'Unlock accounts left suspended by a storage recount which died'
+            'Unlock accounts left suspended by a process which died before'
+            ' releasing them'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },

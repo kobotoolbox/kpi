@@ -1,5 +1,4 @@
 from collections import defaultdict
-from collections.abc import Iterator
 from typing import NamedTuple
 
 from celery.exceptions import SoftTimeLimitExceeded
@@ -20,6 +19,7 @@ from ..constants import (
     RECOUNT_STORAGE_ROTATION_CURSOR_KEY,
 )
 from ..models import Attachment, Instance, XForm
+from ..type_aliases import XFormIdBatches
 
 
 def decrement_counters_after_deletion(
@@ -103,7 +103,7 @@ def delete_null_user_daily_counters(apps, *args):
 
 def get_xform_ids_to_recount(
     last_xform_id: int = 0,
-) -> Iterator[tuple[int, list[int]]]:
+) -> XFormIdBatches:
     """
     Walk every project in batches, in increasing order, after `last_xform_id`,
     and yield for each batch its last project id, to resume after, and the ids

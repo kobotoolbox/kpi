@@ -134,7 +134,9 @@ def generate_stats_zip(output_filename):
 @celery_app.task
 def fix_stale_submissions_suspended_flag():
     """
-    Release the accounts left suspended by a storage recount which died, so
+    Release the accounts left suspended by a process which died before
+    releasing them (`populate_submission_counters`, or the previous
+    `update_attachment_storage_bytes` still running during a deployment), so
     that nobody stays locked out of collecting data.
     """
     for username in release_orphaned_suspensions():
