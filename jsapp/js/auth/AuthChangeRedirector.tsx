@@ -6,8 +6,13 @@ import { useAuthStatus } from './useAuthStatus'
 import { useNextRoute } from './useNextRoute'
 
 /**
- * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing
- * on a route with an already dead session is `RequireAuth`'s job. Where each change leads is `#/auth/authRedirects`.
+ * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing on
+ * a route with an already dead session is `RequireAuth`'s job, and arriving at a sign-in screen with a live one is
+ * `RequireAnonymous`'s. Where each change leads is `#/auth/authRedirects`.
+ *
+ * Readings come from every allauth answer, not just the session poll (see `#/auth/authChangeWatcher`), so this catches
+ * the reauthentication an `/account/*` call asks for too.
+ *
  * Renders nothing. Mount it inside a router and a `QueryClientProvider`.
  */
 export default function AuthChangeRedirector() {

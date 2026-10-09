@@ -4,6 +4,14 @@ jest.mock('#/utils', () => {
   return { getCsrfToken: mockedGetCsrfToken }
 })
 
+// Which answers count as a session reading is `authChangeWatcher`'s business, tested there. Here we only check that
+// every answer gets offered to it.
+var mockedRecordAllauthResponse: jest.Mock
+jest.mock('#/auth/authChangeWatcher', () => {
+  mockedRecordAllauthResponse = jest.fn()
+  return { recordAllauthResponse: mockedRecordAllauthResponse }
+})
+
 jest.mock('./ServerError', () => {
   return {
     ServerError: {
@@ -32,6 +40,7 @@ describe('fetchAllauth', () => {
   beforeEach(() => {
     fetchSpy = jest.spyOn(global, 'fetch')
     mockedGetCsrfToken.mockReturnValue('test-csrf')
+    mockedRecordAllauthResponse.mockClear()
   })
 
   afterEach(() => {
@@ -115,5 +124,59 @@ describe('fetchAllauth', () => {
       chai.expect((err as TypeError).message).to.equal('Failed to fetch')
     }
     chai.expect(threw).to.equal(true)
+  })
+
+  // The one place every allauth call passes through, so the one place auth changes can be spotted.
+  describe('watching for auth changes', () => {
+    it('offers the answer to `recordAllauthResponse`, whatever endpoint it came from', async () => {
+      const body = { data: { flows: [{ id: 'reauthenticate', is_pending: true }] }, meta: { is_authenticated: true } }
+      fetchSpy.mockReturnValue(makeResponse(401, body))
+
+      await fetchAllauth('/api/v2/allauth/browser/v1/account/password/change', { method: 'POST' })
+
+      chai.expect(mockedRecordAllauthResponse.mock.calls).to.have.length(1)
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][1]).to.include({ status: 401 })
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][1].data).to.deep.equal(body)
+    })
+
+    // The watcher needs it to tell the session query's own fetch apart from everything else
+    it('says where the answer came from', async () => {
+      fetchSpy.mockReturnValue(makeResponse(200, { meta: { is_authenticated: true } }))
+
+      await fetchAllauth('/api/v2/allauth/browser/v1/auth/session', { method: 'GET' })
+
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][0]).to.deep.equal({
+        url: '/api/v2/allauth/browser/v1/auth/session',
+        method: 'GET',
+      })
+    })
+
+    it('offers a refusal too, and lets `recordAllauthResponse` turn it down', async () => {
+      fetchSpy.mockReturnValue(makeResponse(400, { errors: [{ message: 'Wrong password.' }] }))
+
+      await fetchAllauth('/api/v2/allauth/browser/v1/auth/login', { method: 'POST' })
+
+      chai.expect(mockedRecordAllauthResponse.mock.calls).to.have.length(1)
+      chai.expect(mockedRecordAllauthResponse.mock.calls[0][1]).to.include({ status: 400 })
+    })
+
+    it('offers nothing from an answer it threw on, which carries no session reading', async () => {
+      fetchSpy.mockReturnValue(makeResponse(500, { detail: 'Internal Server Error' }))
+
+      await fetchAllauth('/api/v2/allauth/browser/v1/auth/session', { method: 'GET' }).catch(() => null)
+
+      chai.expect(mockedRecordAllauthResponse.mock.calls).to.have.length(0)
+    })
+
+    // Or a screen could read the session it was loaded with in the same tick it is told about the new one
+    it('offers the answer before the caller gets it', async () => {
+      fetchSpy.mockReturnValue(makeResponse(200, { meta: { is_authenticated: true } }))
+
+      const callsByTheTimeTheCallerIsResumed = await fetchAllauth('/api/v2/allauth/browser/v1/auth/login', {
+        method: 'POST',
+      }).then(() => mockedRecordAllauthResponse.mock.calls.length)
+
+      chai.expect(callsByTheTimeTheCallerIsResumed).to.equal(1)
+    })
   })
 })

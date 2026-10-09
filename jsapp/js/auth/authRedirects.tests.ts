@@ -66,6 +66,34 @@ describe('redirectForAuthChange', () => {
     chai.expect(context.goToPage.mock.calls).to.deep.equal([[null]])
   })
 
+  // The panel announcing it has a button out of it, and that acknowledgement is the point of the screen.
+  it('leaves a sign-in alone on the screens that announce it themselves', () => {
+    const paths = [
+      // With `ACCOUNT_EMAIL_VERIFICATION` off, signup answers 200 and signs the new account straight in
+      AUTH_ROUTES.SIGNUP,
+      AUTH_ROUTES.CONFIRM_EMAIL.replace(':key', 'a-verification-key'),
+      AUTH_ROUTES.NEW_PASSWORD.replace(':key', 'a-reset-key'),
+    ]
+
+    for (const routePath of paths) {
+      const context = contextAt({ routePath })
+
+      redirectForAuthChange(AuthChangeEvent.loggedIn, signedIn, context)
+
+      chai.expect(context.goToPage.mock.calls, routePath).to.deep.equal([])
+      chai.expect(context.navigate.mock.calls, routePath).to.deep.equal([])
+    }
+  })
+
+  // Asking for the reset email never produces a session, so there is nothing for that screen to announce.
+  it('still follows a sign-in off the screen that only asks for a reset email', () => {
+    const context = contextAt({ routePath: AUTH_ROUTES.RESET_PASSWORD })
+
+    redirectForAuthChange(AuthChangeEvent.loggedIn, signedIn, context)
+
+    chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/`]])
+  })
+
   it('sends a reauthentication ask to the screen allauth named, carrying the page to come back to', () => {
     const context = contextAt({ routePath: ACCOUNT_AUTH_ROUTES.MFA })
     const status = statusWithFlows([{ id: FlowId.reauthenticate }], { ...signedIn, isReauthenticationRequired: true })
