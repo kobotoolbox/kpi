@@ -1,22 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-
-import { Text } from '@mantine/core'
+import { Box } from '@mantine/core'
 import alertify from 'alertifyjs'
-import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import debounce from 'lodash.debounce'
 import last from 'lodash.last'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker } from 'react-router-dom'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
-import bem, { makeBem } from '#/bem'
-import Select from '#/components/common/Select'
-import Alert from '#/components/common/alert'
-import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import {
@@ -27,25 +20,14 @@ import {
   unnullifyTranslations,
 } from '#/components/formBuilder/formBuilderUtils'
 import FormLockedMessage from '#/components/locking/formLockedMessage'
-import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
-import {
-  hasAssetAnyLocking,
-  hasAssetRestriction,
-  isAssetAllLocked,
-  isAssetLockable,
-} from '#/components/locking/lockingUtils'
-import MetadataEditor from '#/components/metadataEditor'
 import {
   ASSET_TYPES,
-  AVAILABLE_FORM_STYLES,
   AssetTypeName,
   type FormStyleName,
-  NAME_MAX_LENGTH,
   QuestionTypeName,
   type UpdateStatesValue,
   update_states,
 } from '#/constants'
-import envStore from '#/envStore'
 import type { RouterProp } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import dkobo_xlform from '../../xlform/src/_xlform.init'
@@ -64,21 +46,12 @@ import {
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
-import AssetNavigator from './AssetNavigator'
-
-const ErrorMessage = makeBem(null, 'error-message')
-const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
-bem.CascadePopup = makeBem(null, 'cascade-popup')
-bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message')
-bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper')
-
-const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
-const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
+import FormbuilderBackgroundAudioWarning from './FormbuilderBackgroundAudioWarning'
+import FormbuilderHeader from './FormbuilderHeader'
+import FormbuilderSidebar from './FormbuilderSidebar'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
-const LOCKING_SUPPORT_URL = 'library_locking.html'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
 
 interface LaunchAppData {
   name: string
@@ -86,17 +59,6 @@ interface LaunchAppData {
   files: AssetResponseFile[]
   asset_type: AssetTypeName
   asset: AssetResponse
-}
-
-interface EditableFormButtonStates {
-  previewDisabled?: boolean
-  groupable?: boolean
-  showAllAvailable?: boolean
-  name?: string
-  hasSettings?: boolean
-  styleValue?: FormStyleName
-  allButtonsDisabled?: boolean
-  saveButtonText?: string
 }
 
 interface AsideSettings {
@@ -119,14 +81,6 @@ interface EditableFormState extends SurveyStateStoreData {
   asideLibrarySearchVisible: boolean
   asset: AssetResponse | undefined
   asset_updated: UpdateStatesValue
-  cascadeMessage?: {
-    msgType: 'ready' | 'warning'
-    addCascadeMessage?: string
-    message?: string
-  }
-  cascadeReady: boolean
-  cascadeReadySurvey?: Survey
-  cascadeTextareaValue: string
   desiredAssetType: AssetTypeName | undefined
   enketopreviewError?: string
   enketopreviewOverlay: string | undefined
@@ -134,8 +88,6 @@ interface EditableFormState extends SurveyStateStoreData {
   name: string
   preventNavigatingOut: boolean
   settings__style?: FormStyleName
-  showCascadePopup: boolean
-  cascadeLastSelectedRowIndex?: number
   surveyAppRendered: boolean
   surveyLoadError: string | undefined
   surveySaveFail: boolean
@@ -152,15 +104,11 @@ export default function EditableForm(props: EditableFormProps) {
     asideLibrarySearchVisible: false,
     asset: undefined,
     asset_updated: update_states.UP_TO_DATE,
-    cascadeMessage: undefined,
-    cascadeReady: false,
-    cascadeTextareaValue: '',
     desiredAssetType: undefined,
     enketopreviewOverlay: undefined,
     isBackgroundAudioBannerDismissed: false,
     name: '',
     preventNavigatingOut: false,
-    showCascadePopup: false,
     surveyAppRendered: false,
     surveyLoadError: undefined,
     surveySaveFail: false,
@@ -171,7 +119,6 @@ export default function EditableForm(props: EditableFormProps) {
   })
 
   const formWrapRef = useRef<HTMLDivElement>(null)
-  const cascadeRef = useRef<HTMLTextAreaElement>(null)
   const appRef = useRef<SurveyApp | undefined>(undefined)
 
   const onSurveyChangeDebounced = debounce(onSurveyChange, 200)
@@ -308,12 +255,6 @@ export default function EditableForm(props: EditableFormProps) {
     onSurveyChangeDebounced()
   }
 
-  function getStyleSelectVal(optionVal?: FormStyleName) {
-    // Styles we no longer offer leave the dropdown empty instead of adding an
-    // option that couldn't be picked again anyway.
-    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)?.value ?? null
-  }
-
   function onSurveyChange() {
     if (!state.asset_updated !== update_states.UNSAVED_CHANGES) {
       preventClosingTab()
@@ -366,10 +307,6 @@ export default function EditableForm(props: EditableFormProps) {
         state.asset.asset_type === ASSET_TYPES.template.id ||
         state.desiredAssetType === ASSET_TYPES.template.id)
     )
-  }
-
-  function needsSave() {
-    return state.asset_updated === update_states.UNSAVED_CHANGES
   }
 
   function previewForm(evt: React.TouchEvent<HTMLButtonElement>) {
@@ -517,39 +454,6 @@ export default function EditableForm(props: EditableFormProps) {
     }))
   }
 
-  function buttonStates() {
-    var ooo: EditableFormButtonStates = {}
-    if (app) {
-      ooo.previewDisabled = true
-      if (app && app.survey) {
-        ooo.previewDisabled = app.survey.rows.length < 1
-      }
-      ooo.groupable = !!state.groupButtonIsActive
-      ooo.showAllAvailable = (() => {
-        var hasSelect = false
-        app.survey.forEachRow((row) => {
-          if (row._isSelectQuestion()) {
-            hasSelect = true
-          }
-        })
-        return hasSelect
-      })()
-      ooo.name = state.name
-      ooo.hasSettings = state.backRoute === ROUTES.FORMS
-      ooo.styleValue = state.settings__style
-    } else {
-      ooo.allButtonsDisabled = true
-    }
-    if (state.isNewAsset) {
-      ooo.saveButtonText = t('create')
-    } else if (state.surveySaveFail) {
-      ooo.saveButtonText = `${t('save')} (${t('retry')}) `
-    } else {
-      ooo.saveButtonText = t('save')
-    }
-    return ooo
-  }
-
   function toggleAsideLibrarySearch(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.currentTarget.blur()
     const asideSettings: AsideSettings = {
@@ -580,13 +484,6 @@ export default function EditableForm(props: EditableFormProps) {
     setState((currentState) => ({
       ...currentState,
       enketopreviewOverlay: undefined,
-    }))
-  }
-
-  function hideCascade() {
-    setState((currentState) => ({
-      ...currentState,
-      showCascadePopup: false,
     }))
   }
 
@@ -725,490 +622,39 @@ export default function EditableForm(props: EditableFormProps) {
     props.router.navigate(targetRoute)
   }
 
-  function isAddingQuestionsRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.question_add)
-    )
+  // For the next four functions, FormbuilderHeader can't touch `app` directly, so these helpers are passed down as props
+
+  // Insert cascade after last selected row
+  function getCascadeInsertIndex(): number {
+    const lastSelectedRow = last(app?.selectedRows())
+    return lastSelectedRow ? (app?.survey.rows.indexOf(lastSelectedRow) ?? -1) : -1
   }
 
-  function isAddingGroupsRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.group_add)
-    )
+  // Give parsed cascade survey to coffee code
+  function insertCascade(survey: Survey, rowIndex: number | undefined) {
+    app?.survey?.insertSurvey(survey, rowIndex)
   }
 
-  function isChangingAppearanceRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.form_appearance)
-    )
+  // Used to disable the preview button when the form is empty
+  function getSurveyHasRows(): boolean {
+    return (app?.survey?.rows.length ?? 0) >= 1
   }
 
-  function isChangingMetaQuestionsRestricted() {
-    return (
-      state.asset?.content &&
-      isAssetLockable(state.asset.asset_type) &&
-      hasAssetRestriction(state.asset.content, LockingRestrictionName.form_meta_edit)
-    )
+  // Used to enable the "show all" button only when there's something to expand
+  function getSurveyHasSelectQuestion(): boolean {
+    let hasSelect = false
+    app?.survey?.forEachRow((row: any) => {
+      if (row._isSelectQuestion()) {
+        hasSelect = true
+      }
+    })
+    return hasSelect
   }
 
   function hasBackgroundAudio() {
     return app?.survey?.surveyDetails.filter(
       (sd: SurveyDetail) => sd.attributes.name === QuestionTypeName['background-audio'],
     )[0].attributes.value
-  }
-
-  // rendering methods
-
-  function renderFormBuilderHeader() {
-    const { previewDisabled, groupable, showAllAvailable, saveButtonText } = buttonStates()
-
-    return (
-      <bem.FormBuilderHeader>
-        <bem.FormBuilderHeader__row m='primary'>
-          <bem.FormBuilderHeader__cell
-            m={'logo'}
-            data-tip={t('Return to list')}
-            className='left-tooltip'
-            tabIndex='0'
-            onClick={safeNavigateToList}
-          >
-            <i className='k-icon k-icon-kobo' />
-          </bem.FormBuilderHeader__cell>
-
-          <bem.FormBuilderHeader__cell m='name'>
-            <bem.FormModal__item>
-              {renderAssetLabel()}
-              <input
-                type='text'
-                maxLength={NAME_MAX_LENGTH}
-                onChange={nameChange}
-                value={state.name}
-                title={state.name}
-                id='nameField'
-                dir='auto'
-              />
-            </bem.FormModal__item>
-          </bem.FormBuilderHeader__cell>
-
-          <bem.FormBuilderHeader__cell m={'buttonsTopRight'}>
-            <Button
-              type='primary'
-              size='l'
-              isPending={state.asset_updated === update_states.PENDING_UPDATE}
-              isDisabled={!state.surveyAppRendered || !!state.surveyLoadError}
-              onClick={saveForm}
-              isUpperCase
-              label={
-                <>
-                  {saveButtonText}
-                  {state.asset_updated === update_states.SAVE_FAILED || (needsSave() && <>&nbsp;*</>)}
-                </>
-              }
-            />
-
-            <Button type='text' size='l' onClick={safeNavigateToAsset} startIcon='close' />
-          </bem.FormBuilderHeader__cell>
-        </bem.FormBuilderHeader__row>
-
-        <bem.FormBuilderHeader__row m={'secondary'}>
-          <bem.FormBuilderHeader__cell m={'toolsButtons'}>
-            <Button
-              type='text'
-              size='m'
-              isDisabled={previewDisabled}
-              onClick={previewForm}
-              tooltip={t('Preview form')}
-              tooltipPosition='left'
-              startIcon='view'
-            />
-
-            <Button
-              type='text'
-              size='m'
-              isDisabled={!showAllAvailable}
-              onClick={showAll}
-              tooltip={t('Expand / collapse questions')}
-              tooltipPosition='left'
-              startIcon='view-all'
-            />
-
-            <Button
-              type='text'
-              size='m'
-              isDisabled={!groupable}
-              onClick={groupQuestions}
-              tooltip={
-                groupable
-                  ? t('Create group with selected questions')
-                  : t('Grouping disabled. Please select at least one question.')
-              }
-              tooltipPosition='left'
-              startIcon='group'
-              className={cx({
-                [LOCKING_UI_CLASSNAMES.DISABLED]: isAddingGroupsRestricted(),
-              })}
-            />
-
-            <Button
-              type='text'
-              size='m'
-              isDisabled={toggleCascade === undefined}
-              onClick={toggleCascade}
-              tooltip={t('Insert cascading select')}
-              tooltipPosition='left'
-              startIcon='cascading'
-              className={cx({
-                [LOCKING_UI_CLASSNAMES.DISABLED]: isAddingGroupsRestricted(),
-              })}
-            />
-          </bem.FormBuilderHeader__cell>
-
-          <bem.FormBuilderHeader__cell m='verticalRule' />
-
-          <bem.FormBuilderHeader__cell m='spacer' />
-
-          <bem.FormBuilderHeader__cell m='verticalRule' />
-
-          <bem.FormBuilderHeader__cell>
-            <Button
-              type='text'
-              size='m'
-              onClick={toggleAsideLibrarySearch}
-              tooltip={t('Add an item from the library')}
-              tooltipPosition='left'
-              startIcon={state.asideLibrarySearchVisible ? 'close' : 'library'}
-              label={t('Add from Library')}
-            />
-          </bem.FormBuilderHeader__cell>
-
-          <bem.FormBuilderHeader__cell m={'verticalRule'} />
-
-          <bem.FormBuilderHeader__cell>
-            <Button
-              type='text'
-              size='m'
-              onClick={toggleAsideLayoutSettings}
-              tooltip={hasMetadataAndDetails() ? t('Change form layout and settings') : t('Change form layout')}
-              tooltipPosition='left'
-              startIcon={state.asideLayoutSettingsVisible ? 'close' : 'settings'}
-              label={hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
-            />
-          </bem.FormBuilderHeader__cell>
-        </bem.FormBuilderHeader__row>
-      </bem.FormBuilderHeader>
-    )
-  }
-
-  function renderBackgroundAudioWarning() {
-    if (state.isBackgroundAudioBannerDismissed) return null
-    let bannerText = t(
-      'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding with a meaningful consent question to inform respondents or data collectors that they will be recorded while completing this survey.',
-    )
-
-    if (envStore.isReady && envStore.data.support_url) {
-      bannerText = bannerText.replace('##SUPPORT_LINK##', envStore.data.support_url + RECORDING_SUPPORT_URL)
-    } else {
-      // Replaces the link for the text only if link is not available
-      bannerText = bannerText.replace(/\[(.+)]\(##SUPPORT_LINK##\)/, '$1')
-    }
-
-    return (
-      <Alert
-        type='info'
-        iconName='information'
-        p='sm'
-        maw={1024}
-        mb='sm'
-        m='auto'
-        closeButtonLabel={t('Dismiss')}
-        onClose={() => {
-          setState((currentState) => ({
-            ...currentState,
-            isBackgroundAudioBannerDismissed: true,
-          }))
-        }}
-        withCloseButton
-      >
-        <Markdown
-          components={{
-            // Custom link component to open link on target _blank
-            a: (props) => (
-              <a href={props.href} target='_blank'>
-                {props.children}
-              </a>
-            ),
-            // Custom paragraph component to use mantine Text instead of <p>
-            p: (props) => (
-              <Text c='blue.4' mr='lg'>
-                {props.children}
-              </Text>
-            ),
-          }}
-        >
-          {bannerText}
-        </Markdown>
-      </Alert>
-    )
-  }
-
-  function renderAside() {
-    const { styleValue, hasSettings } = buttonStates()
-
-    const isAsideVisible = state.asideLayoutSettingsVisible || state.asideLibrarySearchVisible
-
-    return (
-      <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
-        {state.asideLayoutSettingsVisible && (
-          <bem.FormBuilderAside__content>
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>
-                {t('Form style')}
-
-                {envStore.isReady && envStore.data.support_url && (
-                  <a
-                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
-                    target='_blank'
-                    data-tip={t('Read more about form styles')}
-                  >
-                    <i className='k-icon k-icon-help' />
-                  </a>
-                )}
-              </bem.FormBuilderAside__header>
-
-              <Select
-                id='webform-style'
-                name='webform-style'
-                label={
-                  hasSettings
-                    ? t('Select the form style that you would like to use. This will only affect web forms.')
-                    : t(
-                        'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.',
-                      )
-                }
-                value={getStyleSelectVal(styleValue)}
-                onChange={onStyleChange}
-                placeholder={AVAILABLE_FORM_STYLES[0].label}
-                data={AVAILABLE_FORM_STYLES}
-                disabled={isChangingAppearanceRestricted()}
-                clearable={false}
-              />
-            </bem.FormBuilderAside__row>
-
-            {hasMetadataAndDetails() && (
-              <bem.FormBuilderAside__row>
-                <bem.FormBuilderAside__header>{t('Metadata')}</bem.FormBuilderAside__header>
-
-                <MetadataEditor
-                  survey={app?.survey}
-                  onChange={onMetadataEditorChange}
-                  isDisabled={isChangingMetaQuestionsRestricted()}
-                  {...state}
-                />
-              </bem.FormBuilderAside__row>
-            )}
-          </bem.FormBuilderAside__content>
-        )}
-
-        {state.asideLibrarySearchVisible && (
-          <bem.FormBuilderAside__content
-            className={isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
-          >
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>{t('Search Library')}</bem.FormBuilderAside__header>
-            </bem.FormBuilderAside__row>
-
-            <bem.FormBuilderAside__row>
-              <AssetNavigator />
-            </bem.FormBuilderAside__row>
-          </bem.FormBuilderAside__content>
-        )}
-      </bem.FormBuilderAside>
-    )
-  }
-
-  function renderNotLoadedMessage() {
-    if (state.surveyLoadError) {
-      return (
-        <ErrorMessage>
-          <ErrorMessage__strong>{t('Error loading survey:')}</ErrorMessage__strong>
-          <p>{state.surveyLoadError}</p>
-        </ErrorMessage>
-      )
-    }
-
-    return <LoadingSpinner />
-  }
-
-  function renderAssetLabel() {
-    if (!state.asset) {
-      return null
-    }
-
-    const assetTypeLabel = getFormBuilderAssetType(state.asset.asset_type, state.desiredAssetType)?.label || 'asset'
-
-    // Case 1: there is no asset yet (creting a new) or asset is not locked
-    if (!state.asset?.content || !hasAssetAnyLocking(state.asset.content)) {
-      return assetTypeLabel
-      // Case 2: asset is locked fully or partially
-    } else {
-      let lockedLabel = t('Partially locked ##type##').replace('##type##', assetTypeLabel)
-      if (isAssetAllLocked(state.asset.content)) {
-        lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel)
-      }
-      return (
-        <span className='locked-asset-type-label'>
-          <i className='k-icon k-icon-lock' />
-
-          {lockedLabel}
-
-          {envStore.isReady && envStore.data.support_url && (
-            <a
-              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
-              target='_blank'
-              data-tip={t('Read more about Locking')}
-            >
-              <i className='k-icon k-icon-help' />
-            </a>
-          )}
-        </span>
-      )
-    }
-  }
-
-  function toggleCascade() {
-    var lastSelectedRow = last(app?.selectedRows()),
-      lastSelectedRowIndex = lastSelectedRow ? app?.survey.rows.indexOf(lastSelectedRow) : -1
-
-    setState((currentState) => ({
-      ...currentState,
-      showCascadePopup: !state.showCascadePopup,
-      cascadeTextareaValue: '',
-      cascadeLastSelectedRowIndex: lastSelectedRowIndex,
-    }))
-  }
-
-  function cancelCascade() {
-    setState((currentState) => ({
-      ...currentState,
-      cascadeReady: false,
-      cascadeReadySurvey: undefined,
-      cascadeTextareaValue: '',
-      showCascadePopup: false,
-    }))
-  }
-
-  function cascadePopupChange() {
-    const cascadeEl = cascadeRef.current
-
-    if (cascadeEl === null) {
-      return
-    }
-
-    const textareaEl = cascadeEl as HTMLTextAreaElement
-
-    var s: Partial<EditableFormState> & Pick<EditableFormState, 'cascadeTextareaValue'> = {
-      cascadeTextareaValue: textareaEl.value,
-    }
-    // if (s.cascadeTextareaValue.length === 0) {
-    //   return cancelCascade();
-    // }
-    try {
-      var inp = dkobo_xlform.model.utils.split_paste(s.cascadeTextareaValue)
-      var tmpSurvey = new dkobo_xlform.model.Survey({
-        survey: [],
-        choices: inp,
-      })
-      if (tmpSurvey.choices.length === 0) {
-        throw new Error(
-          // this message is presented to the user
-          t('Paste your formatted table from excel in the box below.'),
-        )
-      }
-      tmpSurvey.choices.at(0).create_corresponding_rows()
-      /*
-      tmpSurvey._addGroup({
-        __rows: tmpSurvey.rows.models,
-        label: '',
-      });
-      */
-      var rowCount = tmpSurvey.rows.length
-      if (rowCount === 0) {
-        throw new Error(
-          // this message is presented to the user
-          t('Paste your formatted table from excel in the box below.'),
-        )
-      }
-      s.cascadeReady = true
-      s.cascadeReadySurvey = tmpSurvey
-      s.cascadeMessage = {
-        msgType: 'ready',
-        addCascadeMessage: t('add cascade with # questions').replace('#', rowCount.toString()),
-      }
-    } catch (err) {
-      const errObject = (err as unknown as { message?: string }) || {}
-      s.cascadeReady = false
-      s.cascadeMessage = {
-        msgType: 'warning',
-        message: errObject.message,
-      }
-    }
-    setState((currentState) => ({
-      ...currentState,
-      ...s,
-    }))
-  }
-
-  function renderCascadePopup() {
-    return (
-      <bem.CascadePopup>
-        {state.cascadeMessage ? (
-          <bem.CascadePopup__message m={state.cascadeMessage.msgType}>
-            {state.cascadeMessage.message}
-          </bem.CascadePopup__message>
-        ) : (
-          <bem.CascadePopup__message m='instructions'>
-            {t('Paste your formatted table from excel in the box below.')}
-          </bem.CascadePopup__message>
-        )}
-
-        {state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
-
-        <textarea ref={cascadeRef} onChange={cascadePopupChange} value={state.cascadeTextareaValue} />
-
-        {envStore.isReady && envStore.data.support_url && (
-          <div className='cascade-help right-tooltip'>
-            <a
-              href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
-              target='_blank'
-              data-tip={t('Learn more about importing cascading lists from Excel')}
-            >
-              <i className='k-icon k-icon-help' />
-            </a>
-          </div>
-        )}
-
-        <bem.CascadePopup__buttonWrapper>
-          <Button
-            type='primary'
-            size='l'
-            isDisabled={!state.cascadeReady}
-            onClick={() => {
-              if (state.cascadeReadySurvey) {
-                app?.survey?.insertSurvey(state.cascadeReadySurvey, state.cascadeLastSelectedRowIndex)
-                cancelCascade()
-              }
-            }}
-            label={t('DONE')}
-          />
-        </bem.CascadePopup__buttonWrapper>
-      </bem.CascadePopup>
-    )
   }
 
   var docTitle = state.name || t('Untitled')
@@ -1225,21 +671,78 @@ export default function EditableForm(props: EditableFormProps) {
     <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <>
         <div className='form-builder-wrapper'>
-          {renderAside()}
+          <FormbuilderSidebar
+            asideLayoutSettingsVisible={state.asideLayoutSettingsVisible}
+            asideLibrarySearchVisible={state.asideLibrarySearchVisible}
+            settings__style={state.settings__style}
+            backRoute={state.backRoute}
+            onStyleChange={onStyleChange}
+            onMetadataEditorChange={onMetadataEditorChange}
+            survey={app?.survey}
+            asset={state.asset}
+            hasMetadataAndDetails={!!hasMetadataAndDetails()}
+          />
 
-          <bem.FormBuilder>
-            {renderFormBuilderHeader()}
+          <Box className='form-builder'>
+            <FormbuilderHeader
+              // Header props
+              name={state.name}
+              asset={state.asset}
+              desiredAssetType={state.desiredAssetType}
+              asset_updated={state.asset_updated}
+              surveyAppRendered={state.surveyAppRendered}
+              surveyLoadError={state.surveyLoadError}
+              surveySaveFail={state.surveySaveFail}
+              isNewAsset={state.isNewAsset}
+              groupButtonIsActive={state.groupButtonIsActive}
+              asideLibrarySearchVisible={state.asideLibrarySearchVisible}
+              asideLayoutSettingsVisible={state.asideLayoutSettingsVisible}
+              hasMetadataAndDetails={!!hasMetadataAndDetails()}
+              surveyHasRows={getSurveyHasRows()}
+              surveyHasSelectQuestion={getSurveyHasSelectQuestion()}
+              onNavigateToList={safeNavigateToList}
+              onNavigateToAsset={safeNavigateToAsset}
+              onSave={saveForm}
+              onPreview={previewForm}
+              onNameChange={nameChange}
+              onShowAll={showAll}
+              onGroupQuestions={groupQuestions}
+              onToggleAsideLibrarySearch={toggleAsideLibrarySearch}
+              onToggleAsideLayoutSettings={toggleAsideLayoutSettings}
+              // Cascade props
+              onGetCascadeInsertIndex={getCascadeInsertIndex}
+              onInsertCascade={insertCascade}
+            />
 
-            <bem.FormBuilder__contents>
+            <Box className='form-builder__contents'>
               {state.asset && <FormLockedMessage asset={state.asset} />}
 
-              {hasBackgroundAudio() && renderBackgroundAudioWarning()}
+              {hasBackgroundAudio() && !state.isBackgroundAudioBannerDismissed && (
+                <FormbuilderBackgroundAudioWarning
+                  onDismiss={() => {
+                    setState((currentState) => ({
+                      ...currentState,
+                      isBackgroundAudioBannerDismissed: true,
+                    }))
+                  }}
+                />
+              )}
 
               <div ref={formWrapRef} className='form-wrap'>
-                {!state.surveyAppRendered && renderNotLoadedMessage()}
+                {!state.surveyAppRendered &&
+                  (state.surveyLoadError ? (
+                    <Box className='error-message'>
+                      <Box component='strong' className='error-message__header'>
+                        {t('Error loading survey:')}
+                      </Box>
+                      <p>{state.surveyLoadError}</p>
+                    </Box>
+                  ) : (
+                    <LoadingSpinner />
+                  ))}
               </div>
-            </bem.FormBuilder__contents>
-          </bem.FormBuilder>
+            </Box>
+          </Box>
 
           {state.enketopreviewOverlay && (
             <Modal open large onClose={hidePreview} title={t('Form Preview')}>
@@ -1256,12 +759,6 @@ export default function EditableForm(props: EditableFormProps) {
             // as I am not sure how to test this, and maybe the popup should appear differently?
             <Modal open onClose={clearPreviewError} title={t('Error generating preview')}>
               <Modal.Body>{state.enketopreviewError}</Modal.Body>
-            </Modal>
-          )}
-
-          {state.showCascadePopup && (
-            <Modal open onClose={hideCascade} title={t('Import Cascading Select Questions')}>
-              <Modal.Body>{renderCascadePopup()}</Modal.Body>
             </Modal>
           )}
         </div>
