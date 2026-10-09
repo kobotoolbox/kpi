@@ -1499,13 +1499,11 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
-        # The automatic transcription is accepted and wins over the deleted manual
-        # transcription, so the accepted value should be returned
+        # The manual deletion is newer than the accepted automatic transcription,
+        # so the transcript is omitted instead of falling back to the automatic one
         assert (
-            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
-                'value'
-            ]
-            == 'Bonjour le monde!'
+            'transcript'
+            not in response.data['results'][0]['_supplementalDetails']['q1']
         )
 
     def test_simplified_supplemental_detail_for_acceptance(self):
