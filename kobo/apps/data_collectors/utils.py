@@ -6,7 +6,7 @@ from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kpi.deployment_backends.openrosa_utils import (
-    create_enketo_links,
+    fetch_enketo_links,
     to_internal_url,
 )
 from kpi.utils.log import logging
@@ -51,7 +51,7 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
             'server_url': server_url,
             'form_id': xform_id_string,
         }
-        links = create_enketo_links(data)
+        links = fetch_enketo_links(data)
         enketo_id = links['enketo_id']
         # replace the enketo hash with a longer one
         new_id = ShortUUID().random(31)

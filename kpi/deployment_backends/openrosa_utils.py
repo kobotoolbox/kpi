@@ -4,18 +4,33 @@ import requests
 from constance import config
 from django.conf import settings
 
+from kpi.constants import ENKETO_URL_FORMATS
 from kpi.utils.log import logging
 
 
 # separated out for easier mocking/testing
-def create_enketo_links(data: dict) -> dict:
+def generate_enketo_links(enketo_id: str, encoded_enketo_id: str) -> dict:
+    """
+    Generate links using Enketo's format
+    """
+    result = {}
+    for key, value in ENKETO_URL_FORMATS.items():
+        value = value.replace('#enketo_id#', enketo_id).replace(
+            '#encoded_enketo_id#', encoded_enketo_id
+        )
+        value = f'{settings.ENKETO_URL}/{value}'
+        result[key] = value
+    return result
+
+
+# separated out for easier mocking/testing
+def fetch_enketo_links(data: dict) -> dict:
     """
     Ask Enketo, through `ENKETO_INTERNAL_URL`, to create the survey links and
     return them with the public `ENKETO_URL` so the internal host never leaks.
 
     Return an empty dict if Enketo is unreachable or its response is invalid
     """
-
     try:
         response = requests.post(
             f'{settings.ENKETO_INTERNAL_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',

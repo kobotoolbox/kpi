@@ -83,7 +83,7 @@ from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
-from .openrosa_utils import create_enketo_links, to_internal_url
+from .openrosa_utils import fetch_enketo_links, generate_enketo_links, to_internal_url
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -707,35 +707,39 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):
             return {}
-
-        # TODO
-        #  - Stop fetching enketo_id from EE API if already in backend response
-        #  - Add a flag in backend response to know if openRosaServer property has
-        #    been already converted to the internal URL
-
-        # Always use the OpenRosa public URL: Enketo derives its ID from it, so changing
-        # it would change every survey link
-        data = {
-            'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
-            ),
-            'form_id': self.xform.id_string,
-        }
-        if not (links := create_enketo_links(data)):
-            # Don't 500 the entire asset view if Enketo is unreachable
-            return {}
-
         enketo_id = self.get_data('enketo_id')
-        if not enketo_id:
+        encoded_enketo_id = self.get_data('encoded_enketo_id')
+        if enketo_id and encoded_enketo_id:
+            links = generate_enketo_links(enketo_id, encoded_enketo_id)
+        else:
+            data = {
+                'server_url': '{}/{}'.format(
+                    settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
+                ),
+                'form_id': self.xform.id_string,
+            }
+            if not (links := fetch_enketo_links(data)):
+                # Don't 500 the entire asset view if Enketo is unreachable
+                return {}
             try:
                 enketo_id = links.pop('enketo_id')
-                self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
+                self.save_to_db(
+                    {'enketo_id': enketo_id}, update_date_modified=False
+                )
+                single_once_url = links.get('single_once_url')
+                encoded_enketo_id = single_once_url[single_once_url.rindex('/') :]
+                self.save_to_db(
+                    {'encoded_enketo_id': encoded_enketo_id},
+                    update_date_modified=False,
+                )
+
             except KeyError:
                 logging.error(
                     'Invalid response from Enketo: `enketo_id` is not found',
                     exc_info=True,
                 )
                 return {}
+
         requires_internal_url_update = (
             config.ENKETO_USE_INTERNAL_OPENROSA_URL
             and not self.get_data('internal_url_updated')
