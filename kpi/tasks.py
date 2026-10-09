@@ -1,6 +1,5 @@
 import time
 
-import requests
 from constance import config
 from django.apps import apps
 from django.conf import settings
@@ -170,24 +169,6 @@ def regenerate_paired_data(asset_uid: str, uid_paired_data: str) -> None:
         # Release the distributed lock so the next manifest request can trigger
         # a fresh regeneration cycle as soon as the expiry window passes.
         cache.delete(f'regen_paired_data_{uid_paired_data}')
-
-
-@celery_app.task
-def enketo_flush_cached_preview(server_url, form_id):
-    """
-    Flush a cached preview from Enketo's Redis database to avoid memory
-    exhaustion. Uses the endpoint described in
-    https://apidocs.enketo.org/v2#/delete-survey-cache.
-    Intended to be run with Celery's `apply_async(countdown=…)` shortly after
-    preview generation.
-    """
-    response = requests.delete(
-        f'{settings.ENKETO_URL}/{settings.ENKETO_FLUSH_CACHE_ENDPOINT}',
-        # bare tuple implies basic auth
-        auth=(settings.ENKETO_API_KEY, ''),
-        data=dict(server_url=server_url, form_id=form_id),
-    )
-    response.raise_for_status()
 
 
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)
