@@ -1,33 +1,39 @@
 import React, { useEffect, useState } from 'react'
 
 import classnames from 'classnames'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import assetStore from '#/assetStore'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { ROUTES } from '#/router/routerConstants'
-import {
-  getRouteAssetUid,
-  isAnyFormDataRoute,
-  isAnyFormSettingsRoute,
-  isFormLandingRoute,
-  isFormSummaryRoute,
-} from '#/router/routerUtils'
+import { getRouteAssetUid } from '#/router/routerUtils'
 import profileStore from '#/stores/profile'
 import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {
+  const location = useLocation()
+
   // First check if uid is available
   const assetUid = getRouteAssetUid()
-  if (assetUid === null) {
-    return null
-  }
-
   const [asset, setAsset] = useState<AssetResponse | undefined>(undefined)
 
   useEffect(() => {
-    assetStore.whenLoaded(assetUid, setAsset)
-  }, [])
+    let active = true
+    if (assetUid !== null) {
+      assetStore.whenLoaded(assetUid, (loadedAsset) => {
+        if (active) {
+          setAsset(loadedAsset)
+        }
+      })
+    }
+    return () => {
+      active = false
+    }
+  }, [assetUid])
+
+  if (assetUid === null) {
+    return null
+  }
 
   const isDataTabEnabled = userCan('view_submissions', asset) || userCanPartially('view_submissions', asset)
 
@@ -39,6 +45,12 @@ export default function ProjectTopTabs() {
   const dataRoute = ROUTES.FORM_DATA.replace(':uid', assetUid)
   const settingsRoute = ROUTES.FORM_SETTINGS.replace(':uid', assetUid)
 
+  const pathname = location.pathname
+  const isFormSummaryRoute = pathname === summaryRoute
+  const isFormLandingRoute = pathname === formRoute
+  const isAnyFormDataRoute = pathname === dataRoute || pathname.startsWith(dataRoute)
+  const isAnyFormSettingsRoute = pathname === settingsRoute || pathname.startsWith(settingsRoute)
+
   return (
     <nav className={styles.root}>
       <ul className={styles.tabs}>
@@ -47,7 +59,7 @@ export default function ProjectTopTabs() {
             <Link
               to={summaryRoute}
               className={classnames(styles.tab, {
-                [styles.active]: isFormSummaryRoute(assetUid),
+                [styles.active]: isFormSummaryRoute,
               })}
             >
               {t('Summary')}
@@ -55,7 +67,7 @@ export default function ProjectTopTabs() {
           ) : (
             <span
               className={classnames(styles.tab, styles.disabled, {
-                [styles.active]: isFormSummaryRoute(assetUid),
+                [styles.active]: isFormSummaryRoute,
               })}
             >
               {t('Summary')}
@@ -67,7 +79,7 @@ export default function ProjectTopTabs() {
           <Link
             to={formRoute}
             className={classnames(styles.tab, {
-              [styles.active]: isFormLandingRoute(assetUid),
+              [styles.active]: isFormLandingRoute,
             })}
           >
             {t('Form')}
@@ -79,7 +91,7 @@ export default function ProjectTopTabs() {
             <Link
               to={dataRoute}
               className={classnames(styles.tab, {
-                [styles.active]: isAnyFormDataRoute(assetUid),
+                [styles.active]: isAnyFormDataRoute,
               })}
             >
               {t('Data')}
@@ -87,7 +99,7 @@ export default function ProjectTopTabs() {
           ) : (
             <span
               className={classnames(styles.tab, styles.disabled, {
-                [styles.active]: isAnyFormDataRoute(assetUid),
+                [styles.active]: isAnyFormDataRoute,
               })}
             >
               {t('Data')}
@@ -100,7 +112,7 @@ export default function ProjectTopTabs() {
             <Link
               to={settingsRoute}
               className={classnames(styles.tab, {
-                [styles.active]: isAnyFormSettingsRoute(assetUid),
+                [styles.active]: isAnyFormSettingsRoute,
               })}
             >
               {t('Settings')}
@@ -108,7 +120,7 @@ export default function ProjectTopTabs() {
           ) : (
             <span
               className={classnames(styles.tab, styles.disabled, {
-                [styles.active]: isAnyFormSettingsRoute(assetUid),
+                [styles.active]: isAnyFormSettingsRoute,
               })}
             >
               {t('Settings')}
