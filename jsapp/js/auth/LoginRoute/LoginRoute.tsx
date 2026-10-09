@@ -6,7 +6,9 @@ import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
+import { getUrlForNextRoute } from '#/auth/nextUrl'
 import { useAllauthConfiguration } from '#/auth/useAllauthConfiguration'
+import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
 import { PATHS } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
@@ -26,7 +28,7 @@ function SigningInPanel() {
 }
 
 /** A session was there all along - another tab signed in, or the back button landed here. */
-function AlreadyLoggedInPanel() {
+function AlreadyLoggedInPanel({ continueUrl }: { continueUrl: string }) {
   return (
     <Stack gap='md' ta='center'>
       <Title order={1} size='h3'>
@@ -34,7 +36,7 @@ function AlreadyLoggedInPanel() {
       </Title>
       <Text>{t('There is nothing to sign in to - your session is still good.')}</Text>
       {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-      <ButtonNew component='a' href='/' size='lg' fullWidth>
+      <ButtonNew component='a' href={continueUrl} size='lg' fullWidth>
         {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
@@ -173,11 +175,11 @@ function ConfigurationErrorPanel({ onRetry, isRetrying }: ConfigurationErrorPane
 
 export interface LoginRouteProps {
   /** What to do once the session exists */
-  onAuthenticated?: () => void
+  onAuthenticated?: (url: string) => void
 }
 
 /** Sign-in screen: on success the card swaps the form for whichever ending the server gave us without route change */
-export default function LoginRoute({ onAuthenticated = () => window.location.assign('/') }: LoginRouteProps) {
+export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
   // Page frame only - logo, aside, legal links. Failing it costs decoration, nothing more.
   const { data: environment } = useAuthEnvironment()
   // allauth's settings, which decide the credential.
@@ -185,10 +187,17 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
   const [outcome, setOutcome] = useState<LoginOutcome | MfaOutcome | null>(null)
   const credential = getLoginCredential(allauth.data?.login_methods)
 
+  // Where signing in leads
+  const destinationUrl = getUrlForNextRoute(useNextRoute())
+
   function handleOutcome(next: LoginOutcome | MfaOutcome) {
     setOutcome(next)
     if (next.kind === 'authenticated') {
-      onAuthenticated()
+      if (onAuthenticated) {
+        onAuthenticated(destinationUrl)
+      } else {
+        window.location.assign(destinationUrl)
+      }
     }
   }
 
@@ -214,7 +223,7 @@ export default function LoginRoute({ onAuthenticated = () => window.location.ass
       return (
         <AuthCard>
           {outcome.kind === 'authenticated' && <SigningInPanel />}
-          {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel />}
+          {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel continueUrl={destinationUrl} />}
           {/* allauth names the address only when it was the credential. */}
           {outcome.kind === 'emailVerificationRequired' &&
             (outcome.email ? (

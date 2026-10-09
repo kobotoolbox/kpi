@@ -308,7 +308,10 @@ export const SubmitSignedIn: Story = {
 
     await canvas.findByRole('heading', { level: 1, name: 'Your account is ready' })
     // A plain `href`, so the click leaves `/auth` and loads the app with the new session.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute(
+      'href',
+      `${window.location.origin}/`,
+    )
   },
 }
 

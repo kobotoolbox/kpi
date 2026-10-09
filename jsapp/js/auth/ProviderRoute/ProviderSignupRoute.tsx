@@ -16,9 +16,10 @@ import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import CheckInboxPanel from '#/auth/RegisterRoute/CheckInboxPanel'
 import { getPendingFlowIds } from '#/auth/allauthErrors'
+import { getUrlForNextRoute } from '#/auth/nextUrl'
+import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
-import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import ProviderSignupForm, { type ProviderSignupOutcome } from './ProviderSignupForm'
 import { getProviderRedirectErrorMessage, readProviderRedirectError } from './providerRedirect'
@@ -137,16 +138,12 @@ type SessionState =
   | { kind: 'anonymous' }
 
 export interface ProviderSignupRouteProps {
-  /** What to do once the session exists */
-  onAuthenticated?: () => void
+  /** What to do once the session exists, handed the URL to leave for */
+  onAuthenticated?: (url: string) => void
 }
 
-/**
- * Hoisted so the effect below can depend on it without refiring on every render. `ROOT_URL`, not `/`, so a
- * prefixed instance lands in its own app. The `next` the callback carries back is ignored until the resolver
- * on the PR stacked above this one arrives to replace this default.
- */
-const goToApp = () => window.location.assign(`${ROOT_URL}/`)
+/** Hoisted so the effect below can depend on it without refiring on every render */
+const goToPage = (url: string) => window.location.assign(url)
 
 /**
  * Where a single sign-on handshake comes back to - `callback_url` in {@link getProviderCallbackUrl}.
@@ -155,7 +152,7 @@ const goToApp = () => window.location.assign(`${ROOT_URL}/`)
  * with a pending account whose gaps need filling, or a 409. A failed handshake lands here too, with an
  * `?error=` and nothing pending.
  */
-export default function ProviderSignupRoute({ onAuthenticated = goToApp }: ProviderSignupRouteProps) {
+export default function ProviderSignupRoute({ onAuthenticated = goToPage }: ProviderSignupRouteProps) {
   const { search } = useLocation()
   const {
     data: environment,
@@ -215,17 +212,20 @@ export default function ProviderSignupRoute({ onAuthenticated = goToApp }: Provi
   // A 5xx or a dead connection leaves "are they already signed in?" unanswered, which is not the same as a no.
   const isSessionLookupFailed = isLoginPossiblyComplete && session.isError
 
+  // The `next` allauth carried back through `callback_url`, or the app root.
+  const destinationUrl = getUrlForNextRoute(useNextRoute())
+
   // Leaving for the app is a side effect, so it cannot happen while rendering the panel that announces it.
   useEffect(() => {
     if (isSignedIn) {
-      onAuthenticated()
+      onAuthenticated(destinationUrl)
     }
-  }, [isSignedIn, onAuthenticated])
+  }, [isSignedIn, onAuthenticated, destinationUrl])
 
   function handleOutcome(next: ProviderSignupOutcome) {
     setOutcome(next)
     if (next.kind === 'authenticated') {
-      onAuthenticated()
+      onAuthenticated(destinationUrl)
     }
   }
 
