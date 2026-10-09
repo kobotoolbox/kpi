@@ -430,6 +430,21 @@ describe('getNewerAsset', () => {
     expect(getNewerAsset(older, newer)).to.equal(newer)
   })
 
+  it('tells apart two saves inside the same millisecond', () => {
+    // `Date.parse` stops at milliseconds, so on its own it reads both of these as 10:00:00.100 and calls it a tie.
+    const sameMillisecond = getApiV2AssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.100999Z' })
+    expect(getNewerAsset(sameMillisecond, older)).to.equal(sameMillisecond)
+    expect(getNewerAsset(older, sameMillisecond)).to.equal(sameMillisecond)
+  })
+
+  it('handles a timestamp that carries no fraction at all', () => {
+    // The backend omits the fraction when it is zero, which also rules out comparing these as plain strings - '…:00Z'
+    // sorts after '…:00.100999Z'.
+    const wholeSecond = getApiV2AssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00Z' })
+    expect(getNewerAsset(wholeSecond, older)).to.equal(older)
+    expect(getNewerAsset(older, wholeSecond)).to.equal(older)
+  })
+
   it('takes the incoming asset when the two were saved at the same moment', () => {
     // Same version either way, so there is nothing to protect - and no reason to drop a response.
     const sameMoment = getApiV2AssetsRetrieveResponseMock({ date_modified: older.date_modified })
