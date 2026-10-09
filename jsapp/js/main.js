@@ -35,6 +35,7 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import Modal from 'react-modal'
+import { watchJqueryResponses } from '#/auth/jqueryAuthWatcher'
 import AllRoutes from '#/router/allRoutes'
 import { csrfSafeMethod, currentLang, getCsrfToken } from '#/utils'
 import RegistrationPasswordApp from './registrationPasswordApp'
@@ -93,6 +94,9 @@ $.ajaxSetup({
     }
   },
 })
+
+// Watch those same AJAX calls for the 401s that mean the session has ended
+watchJqueryResponses()
 
 if (document.head.querySelector('meta[name=kpi-root-path]')) {
   // Create the element for rendering the app into

@@ -10,8 +10,8 @@ import { type AuthStatus, getAuthStatus } from './authStatus'
 // `getAuthStatusQueryKey` is the shared key, so one request covers every guard on a page - and an answer from any
 // other allauth endpoint reaches those guards too (see `#/auth/authChangeWatcher`).
 
-// TODO: DEV-3074 invalidate this query on any 401 from the API, so a session that ended is noticed right away rather
-// than after `staleTime`. Every guard reads this one query, so they would all pick it up.
+// A minute is the longest this reading goes unchecked while nothing contradicts it. A 401 from anywhere in the API
+// invalidates the query (again `#/auth/authChangeWatcher`), so an expiry shows up on the next request instead.
 const AUTH_STATUS_STALE_TIME = 60 * 1000
 
 export function useAuthStatus() {

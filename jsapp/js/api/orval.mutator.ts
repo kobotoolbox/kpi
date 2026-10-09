@@ -1,3 +1,4 @@
+import { recordApiResponse } from '#/auth/authChangeWatcher'
 import { getCsrfToken } from '#/utils'
 import { ServerError } from './ServerError'
 import {
@@ -50,6 +51,9 @@ export const fetchWithAuth = async <T>(url: string, config: FetchWithAuthConfig)
 
   if (!response.ok) {
     const error = await ServerError.new(response)
+
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    recordApiResponse({ url, status: response.status, body: error.parsedResponse })
 
     bridgeOrvalFailureToLegacyActions(url, config, {
       error,
