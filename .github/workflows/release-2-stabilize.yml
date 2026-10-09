@@ -3,7 +3,7 @@ name: 'CD: stabilize'
 
 concurrency:
   group: release-shared-${{ github.ref }}
-  cancel-in-progress: true
+  queue: max
 
 
 on:
