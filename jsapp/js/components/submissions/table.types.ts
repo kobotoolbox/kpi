@@ -1,8 +1,6 @@
 import type { Column } from 'react-table'
 import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 
-export type SubmissionPageName = 'next' | 'prev'
-
 // TODO: there might be some more properties here
 export interface TableColumn extends Column<SubmissionResponse> {
   id: string
