@@ -4,16 +4,13 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.apps.logger.utils.attachment import (
-    update_user_attachment_storage_counters
-)
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
-from . import BaseTrash
 from ..type_aliases import UpdatedQuerySetAndCount
+from . import BaseTrash
 
 
 class ProjectTrash(BaseTrash):
@@ -76,39 +73,28 @@ class ProjectTrash(BaseTrash):
             kc_update_params['pending_delete'] = not active
             update_params['pending_delete'] = not active
 
-        should_update_attachment_storage = False
+        # No storage counter to update: user storage is the sum of their
+        # projects, and `XForm.objects` leaves out the ones pending deletion.
         with transaction.atomic():
+            # Deployment back end should be per asset. But, because we need
+            # to do a bulk action, we assume that all `Asset` objects use the
+            # same back end to avoid looping on each object to update their
+            # back end.
+            queryset = Asset.all_objects.filter(**filter_params)
+            updated = queryset.update(**update_params)
+
+            if toggle_delete and not active:
+                Invite.objects.filter(
+                    pk__in=Transfer.objects.filter(
+                        asset_id__in=queryset.values_list('pk', flat=True),
+                        invite__status=InviteStatusChoices.PENDING,
+                    ).values_list('invite_id', flat=True)
+                ).update(status=InviteStatusChoices.CANCELLED)
+
+            # Only so a failed `assert` also rolls back the XForm update
             with kc_transaction_atomic():
-                # Deployment back end should be per asset. But, because we need
-                # to do a bulk action, we assume that all `Asset` objects use the
-                # same back end to avoid looping on each object to update their
-                # back end.
-                queryset = Asset.all_objects.filter(**filter_params)
-                updated = queryset.update(
-                    **update_params
-                )
-
-                if toggle_delete:
-                    if not active:
-                        Invite.objects.filter(
-                            pk__in=Transfer.objects.filter(
-                                asset_id__in=queryset.values_list('pk', flat=True),
-                                invite__status=InviteStatusChoices.PENDING,
-                            ).values_list('invite_id', flat=True)
-                        ).update(status=InviteStatusChoices.CANCELLED)
-                    should_update_attachment_storage = True
-
                 kc_updated = XForm.all_objects.filter(**kc_filter_params).update(
                     **kc_update_params
                 )
-                if should_update_attachment_storage:
-                    # We defer user storage counter updates to run at the end of
-                    # the transaction block to avoid holding row-level locks on
-                    # UserProfile for the full duration of the transaction. This
-                    # helps reduce contention when multiple projects are being
-                    # trashed or restored concurrently by different users.
-                    update_user_attachment_storage_counters(
-                        object_identifiers, subtract=not active
-                    )
                 assert updated >= kc_updated
         return queryset, updated

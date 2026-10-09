@@ -29,6 +29,7 @@ from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
+from kobo.apps.openrosa.apps.logger.exceptions import InvalidSubmissionIdsError
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
@@ -47,7 +48,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
-from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
@@ -270,12 +271,32 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
+        # Lazy import to avoid a circular dependency, like `delete_instances()`
+        from kobo.apps.audit_log.signals import add_instance_to_request
+
         self.validate_access_with_partial_perms(
             user=user, perm=PERM_DELETE_SUBMISSIONS, submission_ids=[submission_id]
         )
 
-        count, _ = Instance.objects.filter(pk=submission_id).delete()
-        return count
+        try:
+            instance = Instance.objects.get(pk=submission_id, xform_id=self.xform_id)
+        except Instance.DoesNotExist:
+            return 0
+
+        # Go through `delete_instances()`, like bulk deletions: it counts storage
+        # from the attachment rows as it deletes them. A plain `delete()` counts
+        # them in `pre_delete_attachment()`, from values read beforehand, and
+        # would subtract a second time an attachment trashed in between.
+        # `delete_instances()` disconnects the signal recording the submission
+        # for the audit log, so record it here.
+        add_instance_to_request(instance, 'delete')
+        try:
+            return delete_instances(
+                self.xform, {'submission_ids': [submission_id], 'query': ''}
+            )
+        except InvalidSubmissionIdsError:
+            # Deleted by another request since it was read above
+            return 0
 
     def delete_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
@@ -1443,14 +1464,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             xform=self.xform, user_id=self.asset.owner.pk
         ).update(user=new_owner)
 
-        UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
-            attachment_storage_bytes=F('attachment_storage_bytes')
-            - self.xform.attachment_storage_bytes
-        )
-        UserProfile.objects.filter(user_id=new_owner.pk).update(
-            attachment_storage_bytes=F('attachment_storage_bytes')
-            + self.xform.attachment_storage_bytes
-        )
+        # Storage follows the project: user storage is the sum of their
+        # projects, and `XForm.user` moves to the new owner with it.
 
     @property
     def _backend_identifier(self):
