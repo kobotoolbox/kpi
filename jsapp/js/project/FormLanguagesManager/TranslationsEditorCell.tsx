@@ -7,6 +7,7 @@ interface TranslationsEditorCellProps {
   disabled: boolean
   absoluteIndex: number
   onStartEditing: () => void
+  onEditCell: (absoluteIndex: number, value: string) => void
   onChangeCell: (absoluteIndex: number, value: string) => void
 }
 
@@ -15,6 +16,7 @@ export default function TranslationsEditorCell({
   disabled,
   absoluteIndex,
   onStartEditing,
+  onEditCell,
   onChangeCell,
 }: TranslationsEditorCellProps) {
   // Keep the editable value local so typing does not re-render the whole table
@@ -37,6 +39,8 @@ export default function TranslationsEditorCell({
       styles={{ input: { width: '100%' } }}
       onChange={(evt) => {
         setValue(evt.target.value)
+        // Report the draft right away, so a save that beats the onBlur commit still picks it up.
+        onEditCell(absoluteIndex, evt.target.value)
         if (!isDirtyRef.current) {
           // Mark the table as dirty on the first edit, but avoid committing the
           // row update yet so the input keeps its focus.

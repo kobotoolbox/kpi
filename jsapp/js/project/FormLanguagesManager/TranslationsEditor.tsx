@@ -28,6 +28,8 @@ interface TranslationsEditorProps {
   onToggleInlineLanguageForm: () => void
   onLanguageChange: (lang: LangObject, index: number) => void | Promise<void>
   onStartEditing: () => void
+  /** Fires on every keystroke; must not trigger a re-render (see FormLanguagesManager). */
+  onEditCell: (absoluteIndex: number, value: string) => void
   onChangeCell: (absoluteIndex: number, value: string) => void
 }
 
@@ -84,6 +86,7 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
               disabled={row.isLabelLocked}
               absoluteIndex={absoluteIndex}
               onStartEditing={handleStartEditing}
+              onEditCell={props.onEditCell}
               onChangeCell={props.onChangeCell}
             />
           )
@@ -93,6 +96,7 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
     [
       props.canEditLanguages,
       props.onChangeCell,
+      props.onEditCell,
       handleStartEditing,
       props.onToggleInlineLanguageForm,
       props.pagination.start,
