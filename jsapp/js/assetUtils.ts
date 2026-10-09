@@ -683,6 +683,36 @@ export function buildAssetUrl(assetUid: string) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`
 }
 
+/**
+ * A `date_modified` timestamp as microseconds since the epoch.
+ *
+ * `Date.parse` only resolves milliseconds while the backend sends six fractional digits, so two saves in the same
+ * millisecond would otherwise look simultaneous. Comparing the raw strings instead wouldn't work either: the fraction
+ * is missing when it happens to be zero, and `'…:00Z'` sorts after `'…:00.100999Z'`.
+ */
+function getSaveTimeInMicroseconds(dateModified: string): number {
+  // Just the digits below millisecond resolution, zero-padded: '.1009' -> '900'.
+  const subMilliseconds = (dateModified.match(/\.(\d+)/)?.[1] ?? '').padEnd(6, '0').slice(3, 6)
+  return Date.parse(dateModified) * 1000 + Number(subMilliseconds)
+}
+
+/**
+ * Returns whichever of the two assets the backend serialized later, going by `date_modified` (set on every save).
+ *
+ * An asset can be fetched (`GET`) and saved (`PATCH`) at the same time, and those responses can resolve in either
+ * order.
+ */
+export function getNewerAsset(currentAsset: AssetResponse | null, incomingAsset: AssetResponse): AssetResponse {
+  if (!currentAsset?.date_modified || !incomingAsset.date_modified) {
+    return incomingAsset
+  }
+
+  const incomingSaveTime = getSaveTimeInMicroseconds(incomingAsset.date_modified)
+  const currentSaveTime = getSaveTimeInMicroseconds(currentAsset.date_modified)
+
+  return incomingSaveTime < currentSaveTime ? currentAsset : incomingAsset
+}
+
 /*
  * Inspired by https://gist.github.com/john-doherty/b9195065884cdbfd2017a4756e6409cc
  * Remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD

@@ -27,6 +27,7 @@ import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import {
   DeleteBlockerReason,
+  getNewerAsset,
   getSurveyFlatPaths,
   injectSupplementalRowsIntoListOfRows,
   userCanDeleteAssets,
@@ -412,5 +413,50 @@ describe('userCanDeleteAssets', () => {
       const results = userCanDeleteAssets([])
       expect(results).to.have.length(0)
     })
+  })
+})
+
+describe('getNewerAsset', () => {
+  const older = getApiV2AssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.100000Z' })
+  const newer = getApiV2AssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.200000Z' })
+
+  it('keeps the asset already in hand when the incoming response is older', () => {
+    // The race this guards: a refresh `GET` resolves first with post-save data, then the slower `PATCH` response for
+    // that same save lands carrying the older version. Taking the late arrival would show pre-save data.
+    expect(getNewerAsset(newer, older)).to.equal(newer)
+  })
+
+  it('takes the incoming asset when it is newer', () => {
+    expect(getNewerAsset(older, newer)).to.equal(newer)
+  })
+
+  it('tells apart two saves inside the same millisecond', () => {
+    // `Date.parse` stops at milliseconds, so on its own it reads both of these as 10:00:00.100 and calls it a tie.
+    const sameMillisecond = getApiV2AssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.100999Z' })
+    expect(getNewerAsset(sameMillisecond, older)).to.equal(sameMillisecond)
+    expect(getNewerAsset(older, sameMillisecond)).to.equal(sameMillisecond)
+  })
+
+  it('handles a timestamp that carries no fraction at all', () => {
+    // The backend omits the fraction when it is zero, which also rules out comparing these as plain strings - '…:00Z'
+    // sorts after '…:00.100999Z'.
+    const wholeSecond = getApiV2AssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00Z' })
+    expect(getNewerAsset(wholeSecond, older)).to.equal(older)
+    expect(getNewerAsset(older, wholeSecond)).to.equal(older)
+  })
+
+  it('takes the incoming asset when the two were saved at the same moment', () => {
+    // Same version either way, so there is nothing to protect - and no reason to drop a response.
+    const sameMoment = getApiV2AssetsRetrieveResponseMock({ date_modified: older.date_modified })
+    expect(getNewerAsset(older, sameMoment)).to.equal(sameMoment)
+  })
+
+  it('takes the incoming asset when there is nothing to compare against', () => {
+    expect(getNewerAsset(null, older)).to.equal(older)
+
+    // `date_modified` is optional on the type, so neither side is guaranteed to carry one.
+    const undated = getApiV2AssetsRetrieveResponseMock({ date_modified: undefined })
+    expect(getNewerAsset(newer, undated)).to.equal(undated)
+    expect(getNewerAsset(undated, older)).to.equal(older)
   })
 })
