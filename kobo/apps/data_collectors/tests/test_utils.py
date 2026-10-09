@@ -29,7 +29,7 @@ class TestDataCollectorUtils(TestCase):
             return_value=self.redis_client,
         )
         enketo_patcher = patch(
-            'kobo.apps.data_collectors.utils.create_enketo_links',
+            'kobo.apps.data_collectors.utils.fetch_enketo_links',
             side_effect=self.fake_enketo_redis_actions,
         )
         redis_client_patcher.start()
