@@ -39,7 +39,9 @@ from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.django_orm_helper import (
+    UpdateJSONFieldAttributes,
+)
 from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
@@ -573,6 +575,12 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
+        pass
+
+    @abc.abstractmethod
+    def transfer_enketo_links(
+        self, previous_owner_username: str, project_identifier: str
+    ):
         pass
 
     @abc.abstractmethod

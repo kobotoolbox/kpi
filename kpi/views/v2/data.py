@@ -90,6 +90,7 @@ from kpi.schema_extensions.v2.data.serializers import (
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
+from kpi.utils.enketo_utils import rewrite_internal_url_to_external
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -1017,8 +1018,6 @@ class DataViewSet(
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
         }
-        print('SERVER_URL', data['server_url'], flush=True)
-
         # Add attachments if any.
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
         for attachment in attachments:
@@ -1032,10 +1031,8 @@ class DataViewSet(
                 openrosa=False,
             )
 
-        print('DATA', data, flush=True)
-
         response = requests.post(
-            f'{settings.ENKETO_URL}/{enketo_endpoint}',
+            f'{settings.ENKETO_INTERNAL_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
             auth=(settings.ENKETO_API_KEY, ''),
             data=data
@@ -1059,6 +1056,7 @@ class DataViewSet(
 
         json_response = response.json()
         enketo_url = json_response.get(f'{action_}_url')
+        enketo_url = rewrite_internal_url_to_external(enketo_url)
 
         return Response(
             {

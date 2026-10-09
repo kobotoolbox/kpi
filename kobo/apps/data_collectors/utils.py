@@ -5,8 +5,9 @@ from django_redis import get_redis_connection
 from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
+from kobo.apps.openrosa.libs.utils.viewer_tools import EnketoError
 from kpi.deployment_backends.openrosa_utils import (
-    create_enketo_links,
+    fetch_enketo_links,
     to_internal_url,
 )
 from kpi.utils.log import logging
@@ -51,8 +52,11 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
             'server_url': server_url,
             'form_id': xform_id_string,
         }
-        links = create_enketo_links(data)
-        enketo_id = links['enketo_id']
+        links = fetch_enketo_links(data)
+        try:
+            enketo_id = links['enketo_id']
+        except KeyError as e:
+            raise EnketoError('No enketo_id present in enketo response') from e
         # replace the enketo hash with a longer one
         new_id = ShortUUID().random(31)
         key = get_redis_key_for_token_and_xform(token, xform_id_string)

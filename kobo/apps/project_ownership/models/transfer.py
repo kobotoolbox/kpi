@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from functools import partial
 from typing import Optional, Union
 
 from constance import config
@@ -160,8 +161,12 @@ class Transfer(AbstractTimeStampedModel):
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
-                            deployment.rename_enketo_id_key(
-                                previous_owner_username, old_id_string
+                            transaction.on_commit(
+                                partial(
+                                    deployment.transfer_enketo_links,
+                                    previous_owner_username,
+                                    old_id_string,
+                                )
                             )
 
                         self._sent_in_app_messages()

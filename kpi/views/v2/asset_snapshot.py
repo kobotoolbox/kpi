@@ -50,6 +50,7 @@ from kpi.schema_extensions.v2.openrosa.serializers import (
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.enketo_utils import rewrite_internal_url_to_external
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -448,12 +449,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
                 'form_id': snapshot.uid,
             }
 
-            print('DATA[server_url]', data['server_url'], flush=True)
-
             # Use Enketo API to create preview instead of `preview?form=`,
             # which does not load any form media files.
             response = requests.post(
-                f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
+                f'{settings.ENKETO_INTERNAL_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_KEY, ''),
                 data=data
@@ -468,8 +467,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
                 countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
             )
 
+            # enketo will return the internal preview URL, change to external
             json_response = response.json()
             preview_url = json_response.get('preview_url')
+            preview_url = rewrite_internal_url_to_external(preview_url)
 
             return HttpResponseRedirect(preview_url)
         else:
