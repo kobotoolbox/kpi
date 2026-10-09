@@ -448,8 +448,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
                 'form_id': snapshot.uid,
             }
 
-            print('DATA[server_url]', data['server_url'], flush=True)
-
             # Use Enketo API to create preview instead of `preview?form=`,
             # which does not load any form media files.
             response = requests.post(

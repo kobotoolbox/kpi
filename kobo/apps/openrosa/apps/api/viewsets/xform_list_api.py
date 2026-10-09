@@ -319,7 +319,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             require_auth=not bool(kwargs.get('username')),
         )
 
-        print('SERIALIZER', serializer.data, flush=True)
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
     @extend_schema(tags=['OpenRosa Form List'], exclude=True)
@@ -455,7 +454,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             context=context,
             require_auth=not bool(kwargs.get('username')),
         )
-        print('MANIFEST -->', serializer.data, flush=True)
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
     @extend_schema(

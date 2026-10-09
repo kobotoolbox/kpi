@@ -721,38 +721,28 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             ),
             'form_id': self.xform.id_string,
         }
-
-        print('DATA[server_url]', data['server_url'], flush=True)
-
-        # Don't 500 the entire asset view if Enketo is unreachable
         if not (links := create_enketo_links(data)):
+            # Don't 500 the entire asset view if Enketo is unreachable
             return {}
 
-        try:
-            enketo_id = links.pop('enketo_id')
-        except KeyError:
-            logging.error(
-                'Invalid response from Enketo: `enketo_id` is not found',
-                exc_info=True,
-            )
-            return {}
-
-        stored_enketo_id = self.get_data('enketo_id')
-
-        print('STORED_ENKETO_ID', stored_enketo_id, flush=True)
-        print('STORED_ENKETO_ID', enketo_id, flush=True)
-
-        if stored_enketo_id != enketo_id:
-            if stored_enketo_id:
-                logging.warning(
-                    f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
+        enketo_id = self.get_data('enketo_id')
+        if not enketo_id:
+            try:
+                enketo_id = links.pop('enketo_id')
+                self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
+            except KeyError:
+                logging.error(
+                    'Invalid response from Enketo: `enketo_id` is not found',
+                    exc_info=True,
                 )
-            self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
-
-        if self.xform.require_auth or config.ENKETO_USE_INTERNAL_OPENROSA_URL:
-            print('ICTTEEEEE', flush=True)
+                return {}
+        requires_internal_url_update = (
+            config.ENKETO_USE_INTERNAL_OPENROSA_URL and
+            not self.get_data('internal_url_updated')
+        )
+        if self.xform.require_auth or requires_internal_url_update:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
-            # Thus, we need to always generated the ID with the same URL
+            # Thus, we need to always generate the ID with the same URL
             # (i.e.: public, with username) to be retro-compatible and then,
             # overwrite the OpenRosa server URL again (without username if
             # authentication is required, internal domain name if enabled).
@@ -1106,14 +1096,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             server_url = f'{server_url}/{self.asset.owner.username}'
         server_url = to_internal_url(server_url)
 
-        print('OPENROSA SERVER_URL', server_url, enketo_id, flush=True)
-
         enketo_redis_client = get_redis_connection('enketo_redis_main')
         enketo_redis_client.hset(
             f'id:{enketo_id}',
             'openRosaServer',
             server_url,
         )
+        if config.ENKETO_USE_INTERNAL_OPENROSA_URL:
+            self.save_to_db({'internal_url_updated': True}, update_date_modified=False)
 
     def set_mongo_uuid(self):
         """

@@ -1017,8 +1017,6 @@ class DataViewSet(
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
         }
-        print('SERVER_URL', data['server_url'], flush=True)
-
         # Add attachments if any.
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
         for attachment in attachments:
@@ -1031,8 +1029,6 @@ class DataViewSet(
                 ),
                 openrosa=False,
             )
-
-        print('DATA', data, flush=True)
 
         response = requests.post(
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
