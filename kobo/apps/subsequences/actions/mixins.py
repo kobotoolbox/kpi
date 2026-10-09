@@ -166,11 +166,11 @@ class TranscriptionActionMixin:
                 return {}
             # A deletion must compete in the cross-action arbitration by date so
             # it can suppress an older accepted result from a sibling action
-            # instead of resurrecting it
+            # instead of resurrecting it. Dated by creation: deletions have no
+            # `_dateAccepted` (older ones have one equal to `_dateCreated`)
             return {
                 self.col_type: {
-                    SORT_BY_DATE_FIELD: latest.get(self.DATE_ACCEPTED_FIELD)
-                    or latest.get(self.DATE_CREATED_FIELD),
+                    SORT_BY_DATE_FIELD: latest.get(self.DATE_CREATED_FIELD),
                     DELETED_FIELD: True,
                 }
             }
@@ -374,10 +374,11 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
                     continue
                 # A deletion must compete in the cross-action arbitration by
                 # date so it can suppress an older accepted result from a
-                # sibling action instead of resurrecting it
+                # sibling action instead of resurrecting it. Dated by creation:
+                # deletions have no `_dateAccepted` (older ones have one equal
+                # to `_dateCreated`)
                 result[(self.col_type, language)] = {
-                    SORT_BY_DATE_FIELD: latest.get(self.DATE_ACCEPTED_FIELD)
-                    or latest.get(self.DATE_CREATED_FIELD),
+                    SORT_BY_DATE_FIELD: latest.get(self.DATE_CREATED_FIELD),
                     DELETED_FIELD: True,
                 }
                 continue
