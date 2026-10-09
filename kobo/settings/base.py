@@ -192,12 +192,12 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `django.conf.settings.THE_SETTING`
 
 CONSTANCE_CONFIG = {
-    # PoC: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+    # Temporary?: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
     # server-side calls (form, manifest, media, submissions) stay inside the cluster
     'ENKETO_USE_INTERNAL_OPENROSA_URL': (
         True,
         'Save the internal domain name instead of the public one as the '
-        'OpenRosa server URL in Enketo'
+        'OpenRosa server URL in Enketo',
     ),
     'REGISTRATION_OPEN': (
         True,

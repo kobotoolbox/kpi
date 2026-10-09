@@ -38,8 +38,7 @@ def create_enketo_links(data: dict) -> dict:
     return {
         key: (
             settings.ENKETO_URL + value[len(settings.ENKETO_INTERNAL_URL):]
-            if isinstance(value, str)
-            and value.startswith(settings.ENKETO_INTERNAL_URL)
+            if isinstance(value, str) and value.startswith(settings.ENKETO_INTERNAL_URL)
             else value
         )
         for key, value in links.items()

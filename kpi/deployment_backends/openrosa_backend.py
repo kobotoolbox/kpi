@@ -737,8 +737,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 )
                 return {}
         requires_internal_url_update = (
-            config.ENKETO_USE_INTERNAL_OPENROSA_URL and
-            not self.get_data('internal_url_updated')
+            config.ENKETO_USE_INTERNAL_OPENROSA_URL
+            and not self.get_data('internal_url_updated')
         )
         if self.xform.require_auth or requires_internal_url_update:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
