@@ -723,9 +723,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 return {}
             try:
                 enketo_id = links.pop('enketo_id')
-                self.save_to_db(
-                    {'enketo_id': enketo_id}, update_date_modified=False
-                )
+                self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
                 single_once_url = links.get('single_once_url')
                 encoded_enketo_id = single_once_url[single_once_url.rindex('/') :]
                 self.save_to_db(

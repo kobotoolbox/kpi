@@ -52,7 +52,7 @@ def fetch_enketo_links(data: dict) -> dict:
     # Enketo builds its links from the host it was called on
     return {
         key: (
-            settings.ENKETO_URL + value[len(settings.ENKETO_INTERNAL_URL):]
+            settings.ENKETO_URL + value[len(settings.ENKETO_INTERNAL_URL) :]
             if isinstance(value, str) and value.startswith(settings.ENKETO_INTERNAL_URL)
             else value
         )
