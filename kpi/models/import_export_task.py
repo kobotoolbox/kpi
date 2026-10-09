@@ -1,5 +1,6 @@
 import base64
 import datetime
+import json
 import os
 import posixpath
 import re
@@ -55,6 +56,7 @@ from kpi.constants import (
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    DEFAULT_MAX_CHOICES_SIZE_BYTES,
     GEO_QUESTION_TYPES,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
@@ -62,6 +64,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
+    ChoicesSizeLimitError,
     ConcurrentExportException,
     DuplicateNameException,
     XlsFormatException,
@@ -377,8 +380,14 @@ class ImportTask(ImportExportTask):
         fif.remove_invalid_assets()
         fif.remove_empty_collections()
 
-        destination_collection = destination \
-            if destination.asset_type == ASSET_TYPE_COLLECTION else False
+        destination_collection = (
+            destination
+            if destination and destination.asset_type == ASSET_TYPE_COLLECTION
+            else False
+        )
+        destination_asset = (
+            destination if destination and not destination_collection else False
+        )
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -391,71 +400,99 @@ class ImportTask(ImportExportTask):
         real_owner = get_real_owner(self.user)
         transfer = real_owner != self.user and not destination
 
-        collections_to_assign = []
+        # Pre-validate all assets before saving any of them
+        parsed_contents = {}
         for item in fif._parsed:
-            extra_args = {
-                'owner': self.user if destination else real_owner,
-                'name': item._name_base,
-                'created_by': self.user.username,
-                'last_modified_by': self.user.username,
-            }
-            if transfer:
-                extra_args['is_excluded_from_projects_list'] = True
-            # Collections only pass view/change down, so grant manage on every
-            # created asset (like the API does). Explicit grants survive the
-            # later parent assignment, which only recalculates inherited perms.
-            grant_manage = transfer
-
-            if item.get_type() == 'collection':
-                # FIXME: seems to allow importing nested collections, even
-                # though uploading from a file does not (`_parse_b64_upload()`
-                # raises `NotImplementedError`)
-                item._orm = self._create_assets_for_uploader(
-                    item.get_type(), extra_args, grant_manage=grant_manage
+            if item.parent and item.parent not in fif._parsed:
+                raise ValueError(
+                    t('The archive contains an invalid folder hierarchy.')
                 )
-            elif item.get_type() == 'asset':
+            if item.get_type() == 'asset':
                 try:
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
                 self._ensure_valid_node_names(kontent)
                 self._ensure_translated_columns(kontent)
+                self._ensure_choices_size(kontent)
+                parsed_contents[item] = kontent
 
-                if not destination:
-                    extra_args['content'] = _strip_header_keys(kontent)
+        updated_records = []
+        with transaction.atomic():
+            for item in fif._parsed:
+                extra_args = {
+                    'owner': self.user if destination else real_owner,
+                    'name': item._name_base,
+                    'created_by': self.user.username,
+                    'last_modified_by': self.user.username,
+                }
+                if transfer:
+                    extra_args['is_excluded_from_projects_list'] = True
+                # Collections only pass view/change down, so grant manage on every
+                # created asset (like the API does). Explicit grants survive the
+                # later parent assignment, which only recalculates inherited perms.
+                grant_manage = transfer
+
+                if item.get_type() == 'collection':
+                    # FIXME: seems to allow importing nested collections, even
+                    # though uploading from a file does not (`_parse_b64_upload()`
+                    # raises `NotImplementedError`)
                     item._orm = self._create_assets_for_uploader(
                         item.get_type(), extra_args, grant_manage=grant_manage
                     )
-                else:
-                    # The below is copied from `_parse_b64_upload` pretty much as is
-                    # TODO: review and test carefully
-                    asset = destination
-                    # Derive `translations` from the file so `Asset.save()`
-                    # does not restore languages removed from it (DEV-2657)
-                    standardize_content_in_place(kontent)
-                    asset.content = kontent
-                    asset.save()
-                    messages['updated'].append({
-                            'uid': asset.uid,
-                            'kind': 'asset',
-                            'owner__username': self.user.username,
-                        }
+                elif item.get_type() == 'asset':
+                    kontent = parsed_contents[item]
+
+                    if not destination_asset:
+                        extra_args['content'] = _strip_header_keys(kontent)
+                        item._orm = self._create_assets_for_uploader(
+                            item.get_type(), extra_args, grant_manage=grant_manage
+                        )
+                    else:
+                        # The below is copied from `_parse_b64_upload` pretty much as is
+                        # TODO: review and test carefully
+                        asset = destination_asset
+                        # Derive `translations` from the file so `Asset.save()`
+                        # does not restore languages removed from it (DEV-2657)
+                        standardize_content_in_place(kontent)
+                        asset.content = kontent
+                        asset.save()
+                        item._orm = asset
+                        updated_records.append(
+                            {
+                                'uid': asset.uid,
+                                'kind': 'asset',
+                                'owner__username': self.user.username,
+                            }
+                        )
+
+            collections_to_assign = []
+            for item in fif._parsed:
+                if item.parent and item._orm != destination_asset:
+                    parent_orm = getattr(item.parent, '_orm', None)
+                    if not parent_orm:
+                        raise ValueError(
+                            t('The archive contains an invalid folder hierarchy.')
+                        )
+                    collections_to_assign.append(
+                        [
+                            item._orm,
+                            parent_orm,
+                        ]
+                    )
+                elif destination_collection:
+                    collections_to_assign.append(
+                        [
+                            item._orm,
+                            destination_collection,
+                        ]
                     )
 
-            if item.parent:
-                collections_to_assign.append([
-                    item._orm,
-                    item.parent._orm,
-                ])
-            elif destination_collection:
-                collections_to_assign.append([
-                    item._orm,
-                    destination_collection,
-                ])
+            for orm_obj, parent_item in collections_to_assign:
+                orm_obj.parent = parent_item
+                orm_obj.save()
 
-        for (orm_obj, parent_item) in collections_to_assign:
-            orm_obj.parent = parent_item
-            orm_obj.save()
+        messages['updated'].extend(updated_records)
 
     @staticmethod
     def _ensure_translated_columns(survey_dict):
@@ -526,6 +563,34 @@ class ImportTask(ImportExportTask):
                 raise DuplicateNameException(f'Duplicate node name: {name}')
             names.add(name)
 
+    @staticmethod
+    def _ensure_choices_size(survey_dict):
+        """
+        Block importing an XLSForm whose `choices` sheet exceeds the maximum
+        allowed size limit.
+        """
+        choices = survey_dict.get('choices')
+        if not choices:
+            return
+
+        choices_size = len(json.dumps(choices, ensure_ascii=False).encode('utf-8'))
+        max_size = getattr(
+            settings, 'MAX_CHOICES_SIZE_BYTES', DEFAULT_MAX_CHOICES_SIZE_BYTES
+        )
+        if choices_size > max_size:
+            max_size_mb = max_size / (1024 * 1024)
+            choices_size_mb = choices_size / (1024 * 1024)
+            message = t(
+                'The choices sheet is too large ({choices_size_mb:.2f} MB). '
+                'The maximum allowed size is {max_size_mb:.2f} MB. '
+                'Please use external choice lists instead: {support_url}'
+            ).format(
+                choices_size_mb=choices_size_mb,
+                max_size_mb=max_size_mb,
+                support_url='https://support.kobotoolbox.org/external_file.html',
+            )
+            raise ChoicesSizeLimitError(message)
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -538,6 +603,7 @@ class ImportTask(ImportExportTask):
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         self._ensure_valid_node_names(survey_dict)
         self._ensure_translated_columns(survey_dict)
+        self._ensure_choices_size(survey_dict)
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)

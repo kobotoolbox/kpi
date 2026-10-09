@@ -52,6 +52,7 @@ inline-quotes = "single"
 multiline-quotes = "double"
 docstring-quotes = "double"
 max-line-length = 88
+extend-ignore = ["E203", "F821"]
 
 [tool.pytest.ini_options]
 testpaths = [

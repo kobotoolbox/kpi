@@ -1,6 +1,7 @@
 # coding: utf-8
 import base64
 import unittest
+import zipfile
 from io import BytesIO
 
 import openpyxl
@@ -8,6 +9,7 @@ import responses
 import xlwt
 from ddt import data, ddt, unpack
 from django.db import transaction
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -1557,6 +1559,195 @@ class AssetImportTaskTest(BaseTestCase):
         assert result.status == ImportExportStatusChoices.ERROR
         error_message = result.messages['error']
         assert 'note_1' in error_message
+
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_raises_error_with_oversized_choices(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['select_one fruit', 'fruit', 'Pick a fruit'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            [
+                'fruit',
+                'apple',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'banana',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'cherry',
+                'long long long long long long long long long long label',
+            ],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        task_data = self._construct_xls_for_import(content, name='Oversized choices')
+        encoded_str = task_data['base64Encoded']
+        encoded_substr = encoded_str[encoded_str.index('base64') + 7 :]
+        task_data['base64Encoded'] = encoded_substr
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+        assert result.status == ImportExportStatusChoices.ERROR
+        assert result.messages['error_type'] == 'ChoicesSizeLimitError'
+        assert 'The choices sheet is too large' in result.messages['error']
+        assert (
+            'https://support.kobotoolbox.org/external_file.html'
+            in result.messages['error']
+        )
+
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_raises_error_with_oversized_choices_via_api(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['select_one fruit', 'fruit', 'Pick a fruit'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            [
+                'fruit',
+                'apple',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'banana',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'cherry',
+                'long long long long long long long long long long label',
+            ],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        response = self._create_asset_from_xls(
+            content, 'Oversized choices API', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert detail_response.data['messages']['error_type'] == 'ChoicesSizeLimitError'
+        assert (
+            'The choices sheet is too large'
+            in detail_response.data['messages']['error']
+        )
+        assert (
+            'https://support.kobotoolbox.org/external_file.html'
+            in detail_response.data['messages']['error']
+        )
+
+    def test_import_with_normal_choices_succeeds(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['select_one fruit', 'fruit', 'Pick a fruit'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            ['fruit', 'apple', 'Apple'],
+            ['fruit', 'banana', 'Banana'],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        response = self._create_asset_from_xls(
+            content, 'Normal choices', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
+        updated = detail_response.data['messages']['updated'][0]
+        created_asset = Asset.objects.get(uid=updated['uid'])
+        assert len(created_asset.content['choices']) == 2
+
+    @patch_ssrf_dns()
+    @responses.activate
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_url_zip_with_oversized_choices_does_not_save_earlier_assets(
+        self,
+    ):
+        def _build_xlsx_bytes(content):
+            wb = openpyxl.workbook.Workbook()
+            for sheet_name, sheet_content in content:
+                ws = wb.create_sheet(sheet_name)
+                for row_num, row_list in enumerate(sheet_content):
+                    for col_num, cell_value in enumerate(row_list):
+                        if cell_value is not None:
+                            ws.cell(row_num + 1, col_num + 1).value = cell_value
+            buf = BytesIO()
+            wb.save(buf)
+            return buf.getvalue()
+
+        form1_content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['text', 'name', 'Your name?'],
+                ],
+            ),
+        )
+        form2_content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['select_one fruit', 'fruit', 'Pick a fruit'],
+                ],
+            ),
+            (
+                'choices',
+                [
+                    ['list_name', 'name', 'label::English (en)'],
+                    [
+                        'fruit',
+                        'apple',
+                        'long long long long long long long long long label',
+                    ],
+                    [
+                        'fruit',
+                        'banana',
+                        'long long long long long long long long long label',
+                    ],
+                ],
+            ),
+        )
+
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+            zf.writestr('form1.xlsx', _build_xlsx_bytes(form1_content))
+            zf.writestr('form2.xlsx', _build_xlsx_bytes(form2_content))
+
+        mock_zip_url = 'http://mock.kbtdev.org/bundle.zip'
+        responses.add(
+            responses.GET,
+            mock_zip_url,
+            content_type='application/zip',
+            body=zip_buffer.getvalue(),
+        )
+
+        asset_count_before = Asset.objects.count()
+        task_data = {
+            'url': mock_zip_url,
+            'name': 'Bundle with oversized form',
+        }
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+
+        assert result.status == ImportExportStatusChoices.ERROR
+        assert result.messages['error_type'] == 'ChoicesSizeLimitError'
+        assert Asset.objects.count() == asset_count_before
 
 
 class LibraryImportOwnershipTest(BaseTestCase):
