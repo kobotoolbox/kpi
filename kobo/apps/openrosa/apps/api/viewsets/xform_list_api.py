@@ -318,6 +318,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             many=True,
             require_auth=not bool(kwargs.get('username')),
         )
+
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
     @extend_schema(tags=['OpenRosa Form List'], exclude=True)

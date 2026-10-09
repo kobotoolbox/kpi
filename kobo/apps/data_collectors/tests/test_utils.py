@@ -1,6 +1,6 @@
 import random
 import string
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import fakeredis
 from django.test import TestCase
@@ -15,6 +15,7 @@ from kobo.apps.data_collectors.utils import (
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
+from kpi.deployment_backends.openrosa_utils import to_internal_url
 from kpi.utils.log import logging
 
 
@@ -28,7 +29,7 @@ class TestDataCollectorUtils(TestCase):
             return_value=self.redis_client,
         )
         enketo_patcher = patch(
-            'kobo.apps.data_collectors.utils.create_enketo_links',
+            'kobo.apps.data_collectors.utils.fetch_enketo_links',
             side_effect=self.fake_enketo_redis_actions,
         )
         redis_client_patcher.start()
@@ -50,12 +51,10 @@ class TestDataCollectorUtils(TestCase):
         id_key = get_redis_key_for_enketo_id(fake_enketo_id)
         self.redis_client.set(url_key, fake_enketo_id)
         self.redis_client.hset(id_key, 'openRosaServer', server_url)
-        mock_response = MagicMock()
-        mock_response.json = lambda: {'enketo_id': fake_enketo_id}
-        return mock_response
+        return {'enketo_id': fake_enketo_id}
 
     def _check_expected_redis_entries(self, token, form_id):
-        expected_url = DC_ENKETO_URL_TEMPLATE.format(token)
+        expected_url = to_internal_url(DC_ENKETO_URL_TEMPLATE.format(token))
         enketo_key = get_redis_key_for_token_and_xform(token, form_id)
         enketo_id = self.redis_client.get(enketo_key).decode('utf-8')
         open_rosa_server = self.redis_client.hget(

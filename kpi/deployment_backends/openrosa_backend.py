@@ -10,7 +10,6 @@ from xml.etree.ElementTree import ParseError
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
-import requests
 from constance import config
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
@@ -85,7 +84,7 @@ from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
-from .openrosa_utils import create_enketo_links
+from .openrosa_utils import fetch_enketo_links, generate_enketo_links, to_internal_url
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -729,50 +728,50 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):
             return {}
-
-        data = {
-            'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
-            ),
-            'form_id': self.xform.id_string,
-        }
-
-        try:
-            response = create_enketo_links(data)
-            response.raise_for_status()
-        except requests.exceptions.RequestException:
-            # Don't 500 the entire asset view if Enketo is unreachable
-            logging.error('Failed to retrieve links from Enketo', exc_info=True)
-            return {}
-        try:
-            links = response.json()
-        except ValueError:
-            logging.error('Received invalid JSON from Enketo', exc_info=True)
-            return {}
-
-        try:
-            enketo_id = links.pop('enketo_id')
-        except KeyError:
-            logging.error(
-                'Invalid response from Enketo: `enketo_id` is not found',
-                exc_info=True,
-            )
-            return {}
-
-        stored_enketo_id = self.get_data('enketo_id')
-        if stored_enketo_id != enketo_id:
-            if stored_enketo_id:
-                logging.warning(
-                    f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
+        enketo_id = self.get_data('enketo_id')
+        encoded_enketo_id = self.get_data('encoded_enketo_id')
+        if enketo_id and encoded_enketo_id:
+            links = generate_enketo_links(enketo_id, encoded_enketo_id)
+        else:
+            data = {
+                'server_url': '{}/{}'.format(
+                    settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
+                ),
+                'form_id': self.xform.id_string,
+            }
+            if not (links := fetch_enketo_links(data)):
+                # Don't 500 the entire asset view if Enketo is unreachable
+                return {}
+            try:
+                enketo_id = links.pop('enketo_id')
+                self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
+                single_once_url = links.get('single_once_url')
+                encoded_enketo_id = single_once_url[single_once_url.rindex('/') :]  # noqa
+                self.save_to_db(
+                    {'encoded_enketo_id': encoded_enketo_id},
+                    update_date_modified=False,
                 )
-            self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
 
-        if self.xform.require_auth:
+            except KeyError:
+                logging.error(
+                    'Invalid response from Enketo: `enketo_id` is not found',
+                    exc_info=True,
+                )
+                return {}
+
+        requires_internal_url_update = (
+            config.ENKETO_USE_INTERNAL_OPENROSA_URL
+            and not self.get_data('internal_url_updated')
+        )
+        if self.xform.require_auth or requires_internal_url_update:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
-            # Thus, we need to always generated the ID with the same URL
-            # (i.e.: with username) to be retro-compatible and then,
-            # overwrite the OpenRosa server URL again.
-            self.set_enketo_open_rosa_server(require_auth=True, enketo_id=enketo_id)
+            # Thus, we need to always generate the ID with the same URL
+            # (i.e.: public, with username) to be retro-compatible and then,
+            # overwrite the OpenRosa server URL again (without username if
+            # authentication is required, internal domain name if enabled).
+            self.set_enketo_open_rosa_server(
+                require_auth=self.xform.require_auth, enketo_id=enketo_id
+            )
 
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
@@ -1118,6 +1117,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         server_url = settings.KOBOCAT_URL.rstrip('/')
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
+        server_url = to_internal_url(server_url)
 
         enketo_redis_client = get_redis_connection('enketo_redis_main')
         enketo_redis_client.hset(
@@ -1125,6 +1125,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'openRosaServer',
             server_url,
         )
+        if config.ENKETO_USE_INTERNAL_OPENROSA_URL:
+            self.save_to_db({'internal_url_updated': True}, update_date_modified=False)
 
     def set_mongo_uuid(self):
         """

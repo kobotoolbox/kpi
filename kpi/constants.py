@@ -214,3 +214,15 @@ AUTH_THEME_CHOICES = [
     (AUTH_THEME_DEFAULT, 'Default'),
     (AUTH_THEME_CUSTOM, 'Customizable'),
 ]
+
+ENKETO_URL_FORMATS = {
+    'url': '#enketo_id#',
+    'single_url': 'single/#enketo_id#',
+    'single_once_url': 'single/#encoded_enketo_id#',
+    'offline_url': 'x/#enketo_id#',
+    'preview_url': 'preview/#enketo_id#',
+    'iframe_url': 'i/#enketo_id#',
+    'single_iframe_url': 'single/i/#enketo_id#',
+    'single_once_iframe_url': 'single/i/#encoded_enketo_id#',
+    'preview_iframe_url': 'preview/i/#enketo_id#',
+}
