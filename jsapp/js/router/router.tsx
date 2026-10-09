@@ -3,6 +3,7 @@ import React, { Suspense } from 'react'
 import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'react-router-dom'
 import accountRoutes from '#/account/routes'
 import App from '#/app'
+import authAccountRoutes from '#/auth/accountRoutes'
 import authRoutes from '#/auth/routes'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'
 import LibraryItemRoute from '#/components/library/LibraryItemRoute'
@@ -27,15 +28,14 @@ const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/comp
 
 export const router = createHashRouter(
   createRoutesFromElements(
-    // Auth screens are siblings of `<App />`, not children: `App` renders the main header, the drawer
-    // and the TOS / invalidated password blockers, none of which belong on a sign-in page. The
-    // fragment is fine - `createRoutesFromElements` recurses into it - and `/auth/…` is a static path,
-    // so it still outranks `App`'s trailing `path='*'`.
     <>
       {authRoutes()}
       <Route path={ROUTES.ROOT} element={<App />}>
         <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
-        <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
+        <Route path={ROUTES.ACCOUNT_ROOT}>
+          {accountRoutes()}
+          {authAccountRoutes()}
+        </Route>
         {projectsRoutes()}
         <Route path={ROUTES.LIBRARY}>
           <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />

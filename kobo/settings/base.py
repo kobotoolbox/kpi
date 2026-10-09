@@ -1437,9 +1437,6 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
-ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
-# How long to wait before flushing an individual preview from Enketo's cache
-ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1720,8 +1717,7 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
-            'Unlock accounts left suspended by a storage recount or a trash bin'
-            ' deletion which died'
+            'Unlock accounts left suspended by a storage recount which died'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -1766,9 +1762,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    # Small and frequent runs: each one queues at most
+    # `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN` users, and each user gets at most
+    # `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER` attachments trashed per run
     CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -1895,6 +1894,8 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 # Enable serving django-allauth Headless OpenAPI specs (we ingest these into
 # DRF-Spectacular)
 HEADLESS_SERVE_SPECIFICATION = True
+# Adds `has_validated_password` to the user payload on the session endpoint
+HEADLESS_ADAPTER = 'kobo.apps.accounts.adapter.HeadlessAdapter'
 
 
 EMAIL_BACKEND = os.environ.get(
@@ -2447,6 +2448,20 @@ MAX_RESTARTED_TRANSFERS = 20
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
 MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+
+# Number of attachments `auto_delete_excess_attachments` moves to trash per user
+# and per run. A user still over their limit gets the next ones on a later run
+AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
+    'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
+)
+# Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
+# Users take turns, the next run continues with the following ones.
+# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
+# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
+# on every schedule reload, so raising this grows Beat's work too.
+AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
+    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
+)
 
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention

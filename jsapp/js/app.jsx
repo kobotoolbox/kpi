@@ -4,6 +4,7 @@
 import '#/bemComponents' // importing it so it exists
 
 import { useDisclosure } from '@mantine/hooks'
+import { observer } from 'mobx-react-lite'
 import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
@@ -14,11 +15,16 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
+import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
+import ProfileDetailsErrorScreen from '#/auth/ProfileDetailsBlocker/ProfileDetailsErrorScreen'
+import { useProfileDetailsBlockerState } from '#/auth/ProfileDetailsBlocker/useProfileDetailsBlockerState'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import MainHeader from '#/components/header/mainHeader.component'
 import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
+import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import FormViewSideTabs from '#/project/formViewSideTabs'
@@ -106,6 +112,64 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
   )
 }
 
+/**
+ * The route blockers, and the app itself when none of them applies. An active blocker takes the place of the whole
+ * page (see `isAnyRouteBlockerActive`), and the order below is the order they get their turn.
+ *
+ * Only the app branch gets `RootContextProvider`: its billing requests are for the account routes, and one of them
+ * (`/stripe/addons/`) answers 403 to exactly the user `InvalidatedPassword` is up for.
+ *
+ * Observes the stores it asks, because the answers change as the session and `/environment` land.
+ */
+const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+  // Before the early returns, so the hook order stays the same on every render.
+  const profileDetails = useProfileDetailsBlockerState()
+
+  // Two of the three answers below come from `/environment`, and nothing in the app works without it anyway
+  // - so hold everything back rather than show the app and take it away a moment later.
+  if (!envStore.isReady) {
+    return <LoadingSpinner />
+  }
+
+  if (isInvalidatedPasswordRouteBlockerActive()) {
+    return <InvalidatedPassword />
+  }
+
+  if (isTOSAgreementRouteBlockerActive()) {
+    return <TOSAgreement />
+  }
+
+  // Three branches because the organization request can leave this undecided: pending waits, failed gets a
+  // screen with a way out rather than an endless spinner.
+  if (profileDetails.status === 'pending') {
+    return <LoadingSpinner />
+  }
+
+  if (profileDetails.status === 'error') {
+    return <ProfileDetailsErrorScreen onRetry={() => window.location.reload()} />
+  }
+
+  if (profileDetails.status === 'active') {
+    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} />
+  }
+
+  // TODO: We have multiple routes that shouldn't display `MainHeader`,
+  // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
+  // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
+  // opt for a more sane, and singular(!) solution.
+  return (
+    <RootContextProvider>
+      <AppPageWrapper
+        shouldDisplayMain={shouldDisplayMain}
+        inFormBuilder={inFormBuilder}
+        isFormSingle={isFormSingle}
+        isLibrarySingle={isLibrarySingle}
+        assetUid={getRouteAssetUid()}
+      />
+    </RootContextProvider>
+  )
+})
+
 class App extends React.Component {
   constructor(props) {
     super(props)
@@ -138,38 +202,23 @@ class App extends React.Component {
   }
 
   render() {
-    if (isInvalidatedPasswordRouteBlockerActive()) {
-      return <InvalidatedPassword />
-    }
-
-    if (isTOSAgreementRouteBlockerActive()) {
-      return <TOSAgreement />
-    }
-
-    const assetUid = getRouteAssetUid()
-
-    // TODO: We have multiple routes that shouldn't display `MainHeader`,
-    // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
-    // `pageWrapperModifiers`, or `show` properties, or JSX logic - we should
-    // opt for a more sane, and singluar(!) solution.
+    // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
+    // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
             <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
-              <RootContextProvider>
-                <Tracking />
-                <ToasterConfig />
+              <Tracking />
+              <ToasterConfig />
 
-                <AppPageWrapper
-                  shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
-                  inFormBuilder={this.isFormBuilder()}
-                  isFormSingle={this.isFormSingle()}
-                  isLibrarySingle={this.isLibrarySingle()}
-                  assetUid={assetUid}
-                />
-              </RootContextProvider>
+              <AppGuard
+                shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
+                inFormBuilder={this.isFormBuilder()}
+                isFormSingle={this.isFormSingle()}
+                isLibrarySingle={this.isLibrarySingle()}
+              />
             </ModalsProvider>
           </MantineProvider>
 

@@ -902,8 +902,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         Cell: (row: CellInfo) => (
           <DataTableCell
             asset={this.props.asset}
-            reactTableRow={row}
+            submissionData={row.original}
             columnKey={key}
+            columnValue={row.value}
+            submissionIndex={row.index}
             legacyAttachmentPaths={legacyAttachmentPathsByColumn.get(key)}
             question={q}
             choices={choices}

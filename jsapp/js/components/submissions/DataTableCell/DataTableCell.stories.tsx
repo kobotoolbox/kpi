@@ -2,7 +2,6 @@ import { Box } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { CellInfo } from 'react-table'
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionAttachment, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
@@ -54,14 +53,6 @@ function buildMediaSubmission(xpath: string, filename: string, mimetype: string,
     [xpath]: filename,
     _attachments: [attachment],
   } as SubmissionResponse
-}
-
-function buildReactTableRow(submission: SubmissionResponse, value: unknown, index = 0): CellInfo {
-  return {
-    original: submission,
-    value,
-    index,
-  } as CellInfo
 }
 
 const supplementalSubmission = {
@@ -174,6 +165,10 @@ const renamedChoicesSubmission = assetDataFactory(1, { Favourite_animals: 'a b c
 const meta: Meta<typeof DataTableCell> = {
   title: 'Components/DataTableCell',
   component: DataTableCell,
+  // Only reaches the user as "Submission 1 of 2" in the media preview title, so no story varies it.
+  args: {
+    submissionIndex: 0,
+  },
   decorators: [
     (Story) => {
       const queryClient = new QueryClient({
@@ -209,8 +204,9 @@ type Story = StoryObj<typeof DataTableCell>
 export const PlainText: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(simpleSurveySubmission, 'Leszek'),
+    submissionData: simpleSurveySubmission,
     columnKey: 'First_name',
+    columnValue: 'Leszek',
     question: simpleSurvey[2],
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -229,8 +225,9 @@ export const PlainText: Story = {
 export const SelectMultipleWithRenamedChoices: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(renamedChoicesSubmission, renamedChoicesSubmission.Favourite_animals),
+    submissionData: renamedChoicesSubmission,
     columnKey: 'Favourite_animals',
+    columnValue: renamedChoicesSubmission.Favourite_animals,
     question: renamedChoicesQuestion,
     choices: renamedChoices,
     showGroupName: false,
@@ -265,8 +262,9 @@ export const SelectMultipleAsXmlValues: Story = {
 export const AttachmentMissing: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(missingAttachmentSubmission, missingAttachmentSubmission.Missing_photo),
+    submissionData: missingAttachmentSubmission,
     columnKey: 'Missing_photo',
+    columnValue: missingAttachmentSubmission.Missing_photo,
     question: missingAttachmentQuestion as never,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -286,8 +284,9 @@ export const AttachmentMissing: Story = {
 export const ImageAttachment: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(imageSubmission, imageSubmission.Photo_question),
+    submissionData: imageSubmission,
     columnKey: 'Photo_question',
+    columnValue: imageSubmission.Photo_question,
     question: imageQuestion as never,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -299,8 +298,9 @@ export const ImageAttachment: Story = {
 export const AudioAttachment: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(audioSubmission, audioSubmission.Audio_question),
+    submissionData: audioSubmission,
     columnKey: 'Audio_question',
+    columnValue: audioSubmission.Audio_question,
     question: audioQuestion as never,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -312,8 +312,9 @@ export const AudioAttachment: Story = {
 export const VideoAttachment: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(videoSubmission, videoSubmission.Video_question),
+    submissionData: videoSubmission,
     columnKey: 'Video_question',
+    columnValue: videoSubmission.Video_question,
     question: videoQuestion as never,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -325,8 +326,9 @@ export const VideoAttachment: Story = {
 export const RenamedImageQuestion: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(renamedImageSubmission, renamedImageSubmission.Photo_question_v1),
+    submissionData: renamedImageSubmission,
     columnKey: 'Photo_question_v1',
+    columnValue: renamedImageSubmission.Photo_question_v1,
     question: undefined,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -346,8 +348,9 @@ export const RenamedImageQuestion: Story = {
 export const RenamedAudioQuestion: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(renamedAudioSubmission, renamedAudioSubmission.Audio_question_v1),
+    submissionData: renamedAudioSubmission,
     columnKey: 'Audio_question_v1',
+    columnValue: renamedAudioSubmission.Audio_question_v1,
     question: undefined,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -367,8 +370,9 @@ export const RenamedAudioQuestion: Story = {
 export const SupplementalTranscript: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(supplementalSubmission, undefined),
+    submissionData: supplementalSubmission,
     columnKey: transcriptColumnKey,
+    columnValue: undefined,
     question: undefined,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -380,8 +384,9 @@ export const SupplementalTranscript: Story = {
 export const BulkProcessingInProgress: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(simpleSurveySubmissionEmpty, undefined),
+    submissionData: simpleSurveySubmissionEmpty,
     columnKey: transcriptColumnKey,
+    columnValue: undefined,
     question: undefined,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,
@@ -394,8 +399,9 @@ export const BulkProcessingInProgress: Story = {
 export const UnacceptedAutomaticTranscript: Story = {
   args: {
     asset: simpleSurveyAsset,
-    reactTableRow: buildReactTableRow(unacceptedTranscriptSubmission, undefined),
+    submissionData: unacceptedTranscriptSubmission,
     columnKey: transcriptColumnKey,
+    columnValue: undefined,
     question: undefined,
     choices: simpleSurveyChoices as unknown as [],
     showGroupName: false,

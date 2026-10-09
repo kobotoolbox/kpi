@@ -12,6 +12,16 @@
   }
 }
 
+.cellWithAction {
+  @include mixins.centerRowFlex;
+  height: 100%;
+
+  .cell {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 @media print {
   .cell {
     // Avoid trimming data from cells
