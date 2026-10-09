@@ -1718,6 +1718,20 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
+    # To activate only at later time.
+    # 'recount-drifted-storage-counters': {
+    #     'task': (
+    #         'kobo.apps.openrosa.apps.logger.tasks.recount_drifted_storage_counters'
+    #     ),
+    #     # A run lasts about as long as the soft time limit, and a single one
+    #     # runs at a time: a short interval starts the next one soon after
+    #     'schedule': crontab(minute='*/15'),
+    #     'description': (
+    #         'Recount the storage counters of projects which may have drifted, in'
+    #         ' turns, until every one of them was checked, then start over'
+    #     ),
+    #     'options': {'queue': 'kpi_long_running_tasks_queue'},
+    # },
     'retry-stalled-submissions': {
         'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
@@ -2469,6 +2483,7 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+
 # Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
 SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 

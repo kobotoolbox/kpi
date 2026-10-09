@@ -1,19 +1,19 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.core.cache import cache
 from django.test import TestCase, override_settings
+from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.constants import RECOUNT_STORAGE_LOCK_KEY_PREFIX
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.utils import counters
-from kobo.apps.openrosa.apps.logger.utils.attachment import (
-    get_suspected_drifted_xform_ids,
-    get_xform_ids_with_negative_storage,
-    update_delete_status,
-)
+from kobo.apps.openrosa.apps.logger.utils.attachment import update_delete_status
 from kobo.apps.openrosa.apps.logger.utils.counters import (
+    get_xform_ids_to_recount,
     recount_storage_counter,
     update_storage_counters,
 )
@@ -138,7 +138,9 @@ class RecountStorageCounterTestCase(TestCase, AssetSubmissionTestMixin):
     def test_wrong_counter_is_fixed(self):
         self._set_counter(-999)
 
-        assert recount_storage_counter(self.xform.pk) == (-999, self.size)
+        recount = recount_storage_counter(self.xform.pk)
+        assert recount == (self.xform.pk, self.xform.user_id, -999, self.size)
+        assert recount.drift == self.size + 999
 
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == self.size
@@ -146,10 +148,8 @@ class RecountStorageCounterTestCase(TestCase, AssetSubmissionTestMixin):
     def test_dry_run_reports_without_fixing(self):
         self._set_counter(-999)
 
-        assert recount_storage_counter(self.xform.pk, dry_run=True) == (
-            -999,
-            self.size,
-        )
+        recount = recount_storage_counter(self.xform.pk, dry_run=True)
+        assert (recount.counter, recount.real) == (-999, self.size)
 
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == -999
@@ -159,7 +159,8 @@ class RecountStorageCounterTestCase(TestCase, AssetSubmissionTestMixin):
             delete_status=AttachmentDeleteStatus.PENDING_DELETE
         )
 
-        assert recount_storage_counter(self.xform.pk) == (self.size, 0)
+        recount = recount_storage_counter(self.xform.pk)
+        assert (recount.counter, recount.real) == (self.size, 0)
 
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == 0
@@ -196,10 +197,8 @@ class RecountStorageCounterTestCase(TestCase, AssetSubmissionTestMixin):
         with patch.object(
             counters, 'update_storage_counters', side_effect=submit_then_update
         ):
-            assert recount_storage_counter(self.xform.pk) == (
-                self.size + 7,
-                self.size,
-            )
+            recount = recount_storage_counter(self.xform.pk)
+            assert (recount.counter, recount.real) == (self.size + 7, self.size)
 
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == self.size + new_file_size
@@ -225,46 +224,70 @@ class RecountStorageCounterTestCase(TestCase, AssetSubmissionTestMixin):
         )
 
 
-class GetSuspectedDriftedXformIdsTestCase(TestCase, AssetSubmissionTestMixin):
+class GetXformIdsToRecountTestCase(TestCase, AssetSubmissionTestMixin):
 
     def setUp(self):
-        user = User.objects.create(username='owner')
-        # One project per status: active only, trashed, soft deleted
-        (self.active_xform, self.trashed_xform, self.soft_deleted_xform) = (
-            self._create_test_asset_and_submission(user=user)[1] for _ in range(3)
+        active_owner = User.objects.create(username='active_owner')
+        inactive_owner = User.objects.create(username='inactive_owner')
+
+        # Created in this order, so their ids increase in this order
+        self.active_plain = self._create_test_asset_and_submission(user=active_owner)[1]
+        (
+            self.inactive_plain,
+            self.inactive_trashed,
+            self.inactive_negative,
+        ) = (
+            self._create_test_asset_and_submission(user=inactive_owner)[1]
+            for _ in range(3)
         )
-        Attachment.all_objects.filter(xform_id=self.trashed_xform.pk).update(
+        Attachment.all_objects.filter(xform_id=self.inactive_trashed.pk).update(
             delete_status=AttachmentDeleteStatus.PENDING_DELETE
         )
-        Attachment.all_objects.filter(xform_id=self.soft_deleted_xform.pk).update(
-            delete_status=AttachmentDeleteStatus.SOFT_DELETED
-        )
-
-    def test_only_projects_with_inactive_attachments_are_suspected(self):
-        assert self._get_suspected_drifted() == [self.trashed_xform.pk, self.soft_deleted_xform.pk]
-
-    def test_walk_resumes_after_the_last_project(self):
-        assert self._get_suspected_drifted(last_xform_id=self.trashed_xform.pk) == [
-            self.soft_deleted_xform.pk
-        ]
-
-    @override_settings(DEFAULT_BATCH_SIZE=1)
-    def test_projects_come_in_batches(self):
-        assert list(get_suspected_drifted_xform_ids()) == [
-            [self.trashed_xform.pk],
-            [self.soft_deleted_xform.pk],
-        ]
-
-    def test_negative_counters(self):
-        XForm.all_objects.filter(pk=self.active_xform.pk).update(
+        XForm.all_objects.filter(pk=self.inactive_negative.pk).update(
             attachment_storage_bytes=-5
         )
 
-        assert get_xform_ids_with_negative_storage() == [self.active_xform.pk]
+        # No login nor project activity for years
+        User.objects.filter(pk=inactive_owner.pk).update(
+            date_joined=timezone.now() - timedelta(days=3 * 365), last_login=None
+        )
+        ExtraUserDetail.objects.filter(user_id=inactive_owner.pk).update(
+            last_project_activity=None
+        )
 
-    def _get_suspected_drifted(self, **kwargs) -> list[int]:
+    def test_only_projects_worth_recounting_are_returned(self):
+        """
+        Every project of an active owner, and the projects of an inactive owner
+        that hold inactive attachments or a negative counter
+        """
+        assert self._get_xform_ids_to_recount() == [
+            self.active_plain.pk,
+            self.inactive_trashed.pk,
+            self.inactive_negative.pk,
+        ]
+
+    def test_walk_resumes_after_the_last_project(self):
+        assert self._get_xform_ids_to_recount(last_xform_id=self.inactive_plain.pk) == [
+            self.inactive_trashed.pk,
+            self.inactive_negative.pk,
+        ]
+
+    @override_settings(DEFAULT_BATCH_SIZE=2)
+    def test_each_batch_tells_where_to_resume(self):
+        """
+        A batch with nothing worth recounting still moves the cursor forward
+        """
+        assert list(get_xform_ids_to_recount()) == [
+            (self.inactive_plain.pk, [self.active_plain.pk]),
+            (
+                self.inactive_negative.pk,
+                [self.inactive_trashed.pk, self.inactive_negative.pk],
+            ),
+        ]
+
+    def _get_xform_ids_to_recount(self, **kwargs) -> list[int]:
         return [
             xform_id
-            for batch in get_suspected_drifted_xform_ids(**kwargs)
-            for xform_id in batch
+            for _, xform_ids in get_xform_ids_to_recount(**kwargs)
+            for xform_id in xform_ids
         ]

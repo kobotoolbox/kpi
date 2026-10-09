@@ -10,8 +10,10 @@ from celery import shared_task
 from constance import config
 from dateutil import relativedelta
 from django.conf import settings
+from django.core.cache import cache
 from django.core.management import call_command
 from django.utils import timezone
+from redis.exceptions import LockError
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.celery import celery_app
@@ -19,9 +21,11 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.log import logging
+from .constants import RECOUNT_STORAGE_ROTATION_LOCK_KEY
 from .models import Instance, XForm
 from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from .models.instance import InstanceHistory
+from .utils.counters import recount_next_drifted_storage_counters
 from .utils.suspension import release_orphaned_suspensions
 
 
@@ -159,3 +163,44 @@ def delete_expired_instance_history_records(chunk_size=10000, max_records=100000
         # We use _raw_delete to avoid going through the ORM delete process.
         # This model is very simple and can be deleted directly without issues
         queryset._raw_delete(queryset.db)
+
+
+@celery_app.task(
+    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
+)
+def recount_drifted_storage_counters():
+    """
+    Recount the storage counters of the projects which may have drifted (see
+    `get_xform_ids_to_recount()`), in turns: each run recounts until its soft
+    time limit, and the next one resumes after the last project recounted.
+    Once the end is reached, the walk starts over, so every such project is
+    checked again and again.
+    Storage is billed: a counter must not stay wrong.
+
+    Each drift fixed is logged as `storage_counter_drift`. Once counters stop
+    drifting, it should not show up anymore.
+
+    Safe to kill at any time: one run at a time holds the lock, which expires
+    on its own, the cursor is saved after each project, and recounting a
+    project twice changes nothing the second time.
+    """
+
+    lock = cache.lock(
+        RECOUNT_STORAGE_ROTATION_LOCK_KEY,
+        timeout=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5,
+    )
+    if not lock.acquire(blocking=False):
+        logging.info('[Storage recount] - Nothing to do, already running')
+        return
+
+    try:
+        recount_next_drifted_storage_counters()
+    finally:
+        # The lock outlives the task's time limit, so it is still ours here,
+        # unless Redis lost the key (restart, eviction). `release()` raises
+        # then, and must not hide the task's own result or error
+        try:
+            lock.release()
+        except LockError as e:
+            logging.warning(f'[Storage recount] - Lock was not released: {e}')
