@@ -83,6 +83,12 @@ class Command(BaseCommand):
                 cache.set(cursor_key, xform_id, timeout=None)
             # Projects of the batch not worth recounting are skipped too
             cache.set(cursor_key, batch_last_xform_id, timeout=None)
+            if self._verbosity > 1:
+                self.stdout.write(
+                    f'Up to xform #{batch_last_xform_id},'
+                    f' {self._stats["checked"]} checked,'
+                    f' {self._stats["drifted"]} drifted'
+                )
 
         # Every project was checked, the next run starts over
         cache.delete(cursor_key)
