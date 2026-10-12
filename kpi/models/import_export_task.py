@@ -404,9 +404,7 @@ class ImportTask(ImportExportTask):
         parsed_contents = {}
         for item in fif._parsed:
             if item.parent and item.parent not in fif._parsed:
-                raise ValueError(
-                    t('The archive contains an invalid folder hierarchy.')
-                )
+                raise ValueError(t('The archive contains an invalid folder hierarchy.'))
             if item.get_type() == 'asset':
                 try:
                     kontent = xlsx_to_dict(item.readable)
