@@ -14,6 +14,7 @@ export interface RedirectContext {
   /** The same route with its query string, which is what `next` uses */
   routeWithSearch: string
   nextRoute: string | null
+  /** A page load, where `null` means this page again, but now with session it missed */
   goToPage: (url: string | null) => void
 }
 
