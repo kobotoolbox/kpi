@@ -744,6 +744,10 @@ to process, and deterministic `params`. `params.language` is required. For
 transcription, `params.locale` may also be supplied when a more specific Google
 Speech locale is needed.
 
+`auto_accept` (boolean, optional, default `false`) controls review. When true,
+each generated transcript or translation is accepted immediately upon
+completion and needs no manual review.
+
 Creation is atomic. If any selected submission is unknown, already has matching
 results, or already has an active matching bulk action, no job or child items are
 created.

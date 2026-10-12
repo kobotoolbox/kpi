@@ -591,7 +591,7 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
                 'columns': GENERIC_ARRAY_SCHEMA,
                 'lock_all': build_basic_type(OpenApiTypes.BOOL),
                 'lock_any': build_basic_type(OpenApiTypes.BOOL),
-                'languages': GENERIC_ARRAY_SCHEMA,
+                'languages': build_array_type(schema=NULLABLE_STRING_SCHEMA),
                 'row_count': build_basic_type(OpenApiTypes.INT),
                 'name_quality': name_quality_schema,
                 'default_translation': NULLABLE_STRING_SCHEMA,

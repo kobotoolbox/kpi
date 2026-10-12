@@ -30,7 +30,7 @@ const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ '#/comp
 interface FormSubScreensProps {
   /** Asset uid for the cases where it doesn't come from the route. */
   uid?: string
-  /** Asset loaded and authorized by PermProtectedRoute. */
+  /** Asset loaded and authorized by `PermProtectedRoute`, which also keeps it current after every save. */
   asset?: AssetResponse
 }
 

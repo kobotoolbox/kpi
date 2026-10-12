@@ -58,7 +58,7 @@ export function renderKobomatrix(view, el) {
   const model = new KoboMatrixRow(view.model)
   const root = createRoot(el.get(0))
   // This is a detached React root, so the app's `MantineProvider` (in
-  // `basicLayout.component.tsx`) is not an ancestor and Mantine components here
+  // `app.jsx`) is not an ancestor and Mantine components here
   // would find no theme in context. CSS variables are skipped because the app
   // root already writes the same ones to `:root`.
   root.render(

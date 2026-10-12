@@ -7,13 +7,23 @@ import RequireFeatureFlag from '#/router/RequireFeatureFlag'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import AuthAppProviders from './AuthAppProviders'
 
+const LoginRoute = React.lazy(() => import(/* webpackPrefetch: true */ './LoginRoute/LoginRoute'))
 const RegisterRoute = React.lazy(() => import(/* webpackPrefetch: true */ './RegisterRoute/RegisterRoute'))
 const ActivateAccountRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './ActivateAccountRoute/ActivateAccountRoute'),
 )
+const ResetPasswordRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './ResetPasswordRoute/ResetPasswordRoute'),
+)
+const NewPasswordRoute = React.lazy(() => import(/* webpackPrefetch: true */ './NewPasswordRoute/NewPasswordRoute'))
+const AuthPlaceholderRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './AuthPlaceholderRoute/AuthPlaceholderRoute'),
+)
+const ProviderLoginRoute = React.lazy(() => import(/* webpackPrefetch: true */ './ProviderRoute/ProviderLoginRoute'))
+const ProviderSignupRoute = React.lazy(() => import(/* webpackPrefetch: true */ './ProviderRoute/ProviderSignupRoute'))
 
 /**
- * Sign-in, registration and password recovery screens.
+ * The authentication screens you reach without a session.
  *
  * Mounted next to `<App />` rather than inside it, so none of the logged in chrome applies - see
  * `#/router/router`. One feature flag check and one set of providers on the parent route covers every
@@ -31,8 +41,29 @@ export default function authRoutes() {
         </RequireFeatureFlag>
       }
     >
-      <Route path={AUTH_ROUTES.REGISTER} element={<RegisterRoute />} />
-      <Route path={AUTH_ROUTES.ACTIVATE_ACCOUNT} element={<ActivateAccountRoute />} />
+      <Route path={AUTH_ROUTES.LOGIN} element={<LoginRoute />} />
+      <Route path={AUTH_ROUTES.SIGNUP} element={<RegisterRoute />} />
+      <Route path={AUTH_ROUTES.CONFIRM_EMAIL} element={<ActivateAccountRoute />} />
+      <Route path={AUTH_ROUTES.RESET_PASSWORD} element={<ResetPasswordRoute />} />
+      <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
+
+      {/*
+        `MfaForm` exists, but `LoginRoute` swaps it into its own card on success, so the URL stays on
+        `/auth/login`. Pointing this route at the real form would let you land on it with no sign-in
+        underway, and what that shows is a redirect decision - see `PATHS.MFA_AUTHENTICATE`, DEV-1860.
+      */}
+      <Route path={AUTH_ROUTES.MFA_AUTHENTICATE} element={<AuthPlaceholderRoute title='One-time code' hasAuthCard />} />
+      <Route
+        path={AUTH_ROUTES.MFA_RECOVERY_CODES}
+        element={<AuthPlaceholderRoute title='Recovery code' hasAuthCard />}
+      />
+      {/*
+        Both halves of the single sign-on flow, in place of the placeholder that stood here. `PROVIDER_SIGNUP`
+        is also where allauth returns the browser after the provider round trip, whatever the outcome - see
+        `ProviderSignupRoute`.
+      */}
+      <Route path={AUTH_ROUTES.PROVIDER_SIGNUP} element={<ProviderSignupRoute />} />
+      <Route path={AUTH_ROUTES.PROVIDER_LOGIN} element={<ProviderLoginRoute />} />
     </Route>
   )
 }
