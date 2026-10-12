@@ -214,3 +214,8 @@ AUTH_THEME_CHOICES = [
     (AUTH_THEME_DEFAULT, 'Default'),
     (AUTH_THEME_CUSTOM, 'Customizable'),
 ]
+
+# Sentinel `count` values reported by `LimitedCountPagination` (DEV-2626
+# contract): 'many' past the configured row limit, 'unknown' on count timeout
+LIMITED_COUNT_MANY = 'many'
+LIMITED_COUNT_UNKNOWN = 'unknown'

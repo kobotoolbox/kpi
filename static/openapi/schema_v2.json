@@ -11480,7 +11480,7 @@
         "/api/v2/environment/": {
             "get": {
                 "operationId": "api_v2_environment_retrieve",
-                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
+                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n- Pagination behaviour (row limit past which list counts are capped).\n",
                 "tags": [
                     "Configuration"
                 ],
@@ -25687,6 +25687,10 @@
                         "type": "string",
                         "format": "uri",
                         "description": "The OpenRosa server URL (KC)"
+                    },
+                    "limited_count_max_rows": {
+                        "type": "integer",
+                        "description": "Row limit past which paginated endpoints using capped counting report `count: 'many'`. Clients can label such counts as \"{limit}+\""
                     }
                 },
                 "required": [
@@ -25703,6 +25707,7 @@
                     "frontend_max_retry_time",
                     "frontend_min_retry_time",
                     "interface_languages",
+                    "limited_count_max_rows",
                     "mfa_code_length",
                     "mfa_enabled",
                     "mfa_localized_help_text",

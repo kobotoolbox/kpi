@@ -3,13 +3,17 @@ from typing import Union
 
 from constance import config
 from django.conf import settings
+from django.db import OperationalError, connections, transaction
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
+from psycopg.errors import QueryCanceled
 from rest_framework.pagination import LimitOffsetPagination, _positive_int
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
 from rest_framework.utils.urls import replace_query_param
+
+from kpi.constants import LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN
 
 
 class DefaultPagination(LimitOffsetPagination):
@@ -246,6 +250,120 @@ class FastPagination(DefaultPagination):
         if queryset.query.distinct:
             return queryset.only('pk').count()
         return super().get_count(queryset)
+
+
+class LimitedCountPagination(DefaultPagination):
+    """
+    Reports a capped count: an exact integer up to
+    `settings.LIMITED_COUNT_MAX_ROWS`, the string 'many' past it, and the
+    string 'unknown' when the count query exceeds
+    `settings.LIMITED_COUNT_TIMEOUT_MS`.
+
+    The count queries at most `LIMITED_COUNT_MAX_ROWS + 1` rows, so its cost
+    is bounded by the cap instead of the table size. Not meant to be called
+    inside an outer transaction: the scoped `statement_timeout` would persist
+    until that transaction ends. Querysets using `distinct(*fields)`
+    (DISTINCT ON) are not supported.
+    """
+
+    def get_count(self, queryset) -> int | str:
+        """
+        Count up to the configured cap, returning 'many' past it and
+        'unknown' when the scoped count query times out.
+        """
+        max_rows = settings.LIMITED_COUNT_MAX_ROWS
+
+        if not isinstance(queryset, QuerySet):
+            count = len(queryset)
+            return LIMITED_COUNT_MANY if count > max_rows else count
+
+        # Clearing ordering is safe: any L+1 rows already prove 'many', and an
+        # ORDER BY inside a LIMIT subquery forces a full sort. `values('pk')`
+        # avoids detoasting wide columns (e.g. `Asset.content`).
+        capped = queryset.order_by().values('pk')[: max_rows + 1]
+
+        try:
+            if settings.LIMITED_COUNT_TIMEOUT_MS:
+                # `set_config(..., true)` is `SET LOCAL` but accepts bind
+                # parameters; atomic() scopes it and reverts on rollback.
+                with transaction.atomic(using=queryset.db):
+                    with connections[queryset.db].cursor() as cursor:
+                        cursor.execute(
+                            "SELECT set_config('statement_timeout', %s, true)",
+                            [str(settings.LIMITED_COUNT_TIMEOUT_MS)],
+                        )
+                    count = capped.count()
+            else:
+                # Never set statement_timeout when disabled: a value of 0 would
+                # turn off the connection-wide guard too.
+                count = capped.count()
+        except OperationalError as e:
+            if isinstance(e.__cause__, QueryCanceled):
+                return LIMITED_COUNT_UNKNOWN
+            raise
+
+        return LIMITED_COUNT_MANY if count > max_rows else count
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
+
+    def get_paginated_response_schema(self, schema):
+        response_schema = super().get_paginated_response_schema(schema)
+        response_schema['properties']['count'] = {
+            'oneOf': [
+                {'type': 'integer', 'example': 123},
+                {
+                    'type': 'string',
+                    'enum': [LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN],
+                },
+            ],
+            'description': (
+                "Exact number of results, or 'many' when it exceeds the "
+                "server's configured row limit (exposed as "
+                "`limited_count_max_rows` in `/environment`), or 'unknown' "
+                'when counting timed out'
+            ),
+        }
+        return response_schema
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+        self.limit = self.get_limit(request)
+        self.offset = self.get_offset(request)
+        if not self.offset:
+            self.offset = 0
+
+        self.count = self.get_count(queryset)
+        # Default for the early-return paths below; the peek overwrites it
+        self.has_next = False
+        # `count` may be the string 'many'/'unknown'; only an int can drive the
+        # browsable-API page controls or the empty-page shortcut
+        if (
+            isinstance(self.count, int)
+            and self.count > self.limit
+            and self.template is not None
+        ):
+            self.display_page_controls = True
+
+        if isinstance(self.count, int) and (
+            self.count == 0 or self.offset > self.count
+        ):
+            return []
+
+        # Peek one row past the page to detect a next page. Slice bounds are
+        # bound to locals so black keeps the colon un-spaced (flake8 E203).
+        start = self.offset
+        end = self.offset + self.limit + 1
+        items = list(queryset[start:end])
+        self.has_next = len(items) > self.limit
+        return items[: self.limit]
 
 
 class NoCountPagination(DefaultPagination):
