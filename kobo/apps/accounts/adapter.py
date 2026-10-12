@@ -173,7 +173,7 @@ class AccountAdapter(DefaultAccountAdapter):
                     social_app.settings
                     and social_app.settings.get('post_logout_redirect_uri')
                 )
-                or request.build_absolute_uri(resolve_url(settings.LOGIN_URL or '/'))
+                or request.build_absolute_uri(settings.LOGIN_URL or '/')
             )
             if post_logout_redirect_uri:
                 query_params['post_logout_redirect_uri'] = post_logout_redirect_uri
