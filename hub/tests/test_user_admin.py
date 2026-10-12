@@ -1,5 +1,7 @@
 from django.contrib.messages import get_messages
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
@@ -96,6 +98,25 @@ class ExtendedUserAdminActionsTestCase(TestCase):
 
         self._run_action('mark_active', [self.someuser], '?is_active__exact=0')
 
+        self.someuser.refresh_from_db()
+        assert self.someuser.is_active
+
+    def test_mark_active_is_synced_to_openrosa_db(self):
+        """
+        `OPENROSA_DB_ALIAS` points to the default database in tests, so assert
+        that a second `UPDATE` is issued to sync the OpenRosa copy of the users
+        """
+        User.objects.filter(pk=self.someuser.pk).update(is_active=False)
+
+        with CaptureQueriesContext(connection) as context:
+            self._run_action('mark_active', [self.someuser])
+
+        auth_user_updates = [
+            query['sql']
+            for query in context.captured_queries
+            if query['sql'].startswith('UPDATE "auth_user" SET "is_active"')
+        ]
+        assert len(auth_user_updates) == 2
         self.someuser.refresh_from_db()
         assert self.someuser.is_active
 

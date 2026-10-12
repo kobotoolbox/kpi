@@ -12,6 +12,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.forms import CharField
 from django.http import HttpRequest
@@ -32,6 +33,7 @@ from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
@@ -291,10 +293,8 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             extra_details__date_removed__isnull=False
         )
         skipped_count = queryset.filter(not_restorable).count()
-        updated_count = (
-            queryset.filter(is_active=False)
-            .exclude(not_restorable)
-            .update(is_active=True)
+        updated_count = self._set_is_active(
+            queryset.exclude(not_restorable), is_active=True
         )
         self.message_user(
             request,
@@ -441,6 +441,27 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             .filter(user_count__lte=1)
             .order_by('username')
         )
+
+    def _set_is_active(self, queryset, is_active: bool) -> int:
+        """
+        Set `is_active` on users whose status differs, in both KPI and OpenRosa
+        databases, and return the number of updated users
+
+        `QuerySet.update()` bypasses the `save_kobocat_user` signal, so the
+        OpenRosa copy, which `formList` relies on, must be updated explicitly.
+        """
+        user_ids = list(
+            queryset.exclude(is_active=is_active).values_list('pk', flat=True)
+        )
+        if not user_ids:
+            return 0
+
+        User = queryset.model  # noqa
+        with transaction.atomic(), kc_transaction_atomic():
+            User.objects.using(settings.OPENROSA_DB_ALIAS).filter(
+                pk__in=user_ids
+            ).update(is_active=is_active)
+            return User.objects.filter(pk__in=user_ids).update(is_active=is_active)
 
     def _remove_or_delete(
         self,
