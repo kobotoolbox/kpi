@@ -12,7 +12,7 @@ import { recordApiResponse } from './authChangeWatcher'
  * Call once, during app setup.
  */
 export function watchJqueryResponses(): void {
-  $(document).ajaxError((_event, jqXHR, settings) => {
+  $(document).on('ajaxError', (_event, jqXHR, settings) => {
     // `responseJSON` is there on a failure too: jQuery converts the body "no matter what" so that the `responseXXX`
     // fields are always filled in.
     recordApiResponse({ url: settings.url ?? '', status: jqXHR.status, body: jqXHR.responseJSON })
