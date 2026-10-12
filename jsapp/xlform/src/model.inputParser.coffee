@@ -110,8 +110,7 @@ module.exports = do ->
     return normalizedSurvey
 
   # appends the items `list` doesn't have yet, in place. Falsy items are
-  # skipped - a language list carries a null for the default language (the
-  # nullify hack), and that slot belongs to the form.
+  # skipped: the null slot of a language list belongs to the form.
   mergeMissing = (list, items)->
     for item in items when item and item not in list
       list.push(item)
@@ -128,32 +127,20 @@ module.exports = do ->
     # we edit the received object directly, which is totally a case of BAD CODE™
     # but in fact is a necessary part of the nullify hack
     o.survey = nullified.survey;
-    # Choice labels are indexed by the same language list as the survey rows, so they have to be
-    # rewritten alongside them or they end up under the wrong language
+    # Choices are indexed by the same language list as the survey rows, so
+    # they have to be rewritten alongside them
     o.choices = nullified.choices  if nullified.choices
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
 
     formParams = baseSurvey?._initialParams
 
-    # A form with no language of its own takes over the asset's default
-    # language: `translations_0` is what `unnullifyTranslations` names the
-    # form's own columns after on save, and those names are the form's
-    # languages. Has to run before the merges below, which only touch a form
-    # that already has a default language.
-    if formParams and o.translations_0 and not formParams.translations_0
-      formParams.translations_0 = o.translations_0
-
     if formParams?.translations_0 and o.translated
-      # On save, only the columns listed in the form's `translated` get a
-      # language appended (`guidance_hint` -> `guidance_hint::English (en)`).
-      # An imported asset can translate a column the form does not, so we add
-      # those columns to the form's list - one left without a language would
-      # stop the form from opening.
+      # On save only the columns in `translated` get a language appended, so a
+      # column the asset translates and the form doesn't would stay nameless.
       mergeMissing((formParams.translated ?= []), o.translated)
-      # An asset can also bring languages the form doesn't have yet.
-      # `unnullifyTranslations` writes this list into the saved form, so a
-      # language left out of it would reach the backend as a nameless column.
+      # Same for the languages: `unnullifyTranslations` writes this list into
+      # the saved form.
       mergeMissing((formParams.translations ?= [null]), o.translations)
 
     if o.survey

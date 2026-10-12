@@ -8,10 +8,7 @@ import { Survey } from '../../jsapp/xlform/src/model.survey'
 /** Languages of an asset, default first (the backend way). */
 type TestLanguages = Array<string | null>
 
-/**
- * Asset content as the API returns it, before `inputParser` gets to it. Rows are `Partial` so the fixtures below can
- * leave out the keys the parser generates for itself, like `$kuid`.
- */
+/** Asset content as the API returns it. Rows are `Partial` so fixtures can skip generated keys like `$kuid`. */
 type TestAssetContent = Omit<AssetContent, 'survey' | 'choices'> & {
   survey: Array<Partial<SurveyRow>>
   choices?: Array<Partial<SurveyChoice>>
@@ -28,16 +25,18 @@ interface SavedForm {
 const LANG_FR = getLangString({ name: 'Francais', code: 'fr' }) as LangString
 const LANG_PL = getLangString({ name: 'Polski', code: 'pl' }) as LangString
 const LANG_EN = getLangString({ name: 'English', code: 'en' }) as LangString
+const LANG_ES = getLangString({ name: 'Espanol', code: 'es' }) as LangString
+const LANG_PT = getLangString({ name: 'Portugues', code: 'pt' }) as LangString
 const LANG_NONE = null
 
 /** Stands in for a plain `label` column, which belongs to no (named) language. */
 const UNNAMED = 'unnamed'
 
-/** Generates one label per language. Each label is just the language code to make it easier to test things. */
+/** One label per language, each just the language code so the expectations stay readable. */
 const buildLabels = (languages: TestLanguages) =>
   languages.map((language) => (language ? getLangAsObject(language)!.code : 'no lang'))
 
-/** Builds a content the API returns, setting the default language if there is one */
+/** Content as the API returns it, with the default language set when there is one. */
 const buildAssetContent = (
   languages: TestLanguages,
   survey: TestAssetContent['survey'],
@@ -77,16 +76,13 @@ const buildLibraryBlock = (languages: TestLanguages) =>
   )
 
 /**
- * Drags the item into the form, the way `surveyScope.addExternalItemAtPosition()` does, and returns what the backend
- * would receive. The save matters because while a form is open its default language has no column of its own - its
- * labels sit in a plain `label`. Only `unnullifyTranslations` renames that to `label::<default language>`, so the
- * columns say which language each label is in only after saving.
+ * Drags the item in the way `surveyScope.addExternalItemAtPosition()` does and returns what the backend would get.
+ * Saving matters: an open form's default language has no column of its own until `unnullifyTranslations` names it.
  */
 const importIntoAndSave = (host: Survey, item: TestAssetContent): SavedForm => {
   host.insertSurvey(Survey.loadDict(item, host), 0)
   const surveyJson = surveyToValidJson(host)
-  // `EditableForm` reverses the hack only for a form that has a default language, so neither do we - without one
-  // there is nothing to name the columns after
+  // `EditableForm` reverses the hack only when there is a default language to name the columns after
   if (!host._initialParams.translations_0) {
     return JSON.parse(surveyJson)
   }
@@ -94,9 +90,8 @@ const importIntoAndSave = (host: Survey, item: TestAssetContent): SavedForm => {
 }
 
 /**
- * Labels of one row of the saved form, keyed by the language whose column holds them. Languages come from the
- * `label::Language` column suffixes, the way formpack derives them, so `UNNAMED` alongside named ones is exactly the
- * state Formbuilder refuses to reopen.
+ * Labels of one saved row, keyed by the language in its `label::Language` column suffix - the way formpack reads
+ * them. So `UNNAMED` next to named languages is exactly the state Formbuilder refuses to reopen.
  */
 const getLabelsByLanguage = (saved: SavedForm, rowName: string) => {
   const row = [...saved.survey, ...(saved.choices ?? [])].find((candidate) => candidate.name === rowName)!
@@ -107,22 +102,33 @@ const getLabelsByLanguage = (saved: SavedForm, rowName: string) => {
   )
 }
 
-// A user dragging an item out of the Library into an open form. Every case checks a row from both sheets, because
-// choices are indexed by the same language list as the survey rows.
+/**
+ * Same, minus the languages the row says nothing in. Whether that reaches the backend as a missing column or an empty
+ * one depends on the sheet, and only the "writes nothing" case below cares.
+ */
+const getFilledLabelsByLanguage = (saved: SavedForm, rowName: string) =>
+  Object.fromEntries(Object.entries(getLabelsByLanguage(saved, rowName)).filter(([, label]) => label !== null))
+
+// Every case checks a row from both sheets, since choices are indexed by the same language list as survey rows.
 describe('importing a library item into a form', () => {
-  it("takes over the item's languages when the form has none of its own", () => {
+  it("ignores a single item language when the form has none of its own", () => {
+    const saved = importIntoAndSave(openForm([LANG_NONE]), buildLibraryBlock([LANG_FR]))
+
+    // An unnamed language beside named ones won't reopen, so the item's values share the unnamed slot and its name
+    // for the language is dropped - naming the form's default is the user's call, on the project page.
+    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [UNNAMED]: 'fr' })
+    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [UNNAMED]: 'fr' })
+    chai.expect(getLabelsByLanguage(saved, 'question')).to.deep.equal({ [UNNAMED]: 'no lang' })
+    chai.expect(saved.settings[0].default_language).to.be.undefined
+  })
+
+  it('degrades to the unnamed slot if a multi-language item reaches a form with no language', () => {
+    // Blocked by `resolveImportLanguages` in practice; this only pins that the merge can't produce the bad mix
     const saved = importIntoAndSave(openForm([LANG_NONE]), buildLibraryBlock([LANG_FR, LANG_PL]))
 
-    // The form had nowhere to put a named language - its own labels sat in a plain `label`, and an unnamed language
-    // beside named ones is what Formbuilder refuses to reopen. So the form takes the item's default language as its
-    // own, and every label stays with the language it was written in.
-    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_FR]: 'fr', [LANG_PL]: 'pl' })
-    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: 'fr', [LANG_PL]: 'pl' })
-    // The form's own question had no language, so its label becomes one of the adopted language
-    chai.expect(getLabelsByLanguage(saved, 'question')).to.deep.equal({ [LANG_FR]: 'no lang' })
-    chai.expect(saved.settings[0].default_language).to.equal(LANG_FR)
-    // Without this list the backend keeps the `[null]` it has stored, and that null comes back as an unnamed language
-    chai.expect(saved.translations).to.deep.equal([LANG_FR, LANG_PL])
+    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [UNNAMED]: 'fr' })
+    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [UNNAMED]: 'fr' })
+    chai.expect(saved.translations).to.be.undefined
   })
 
   it('leaves a form with no language alone when the item has none either', () => {
@@ -138,20 +144,48 @@ describe('importing a library item into a form', () => {
   it("puts a language-less item's labels in the form's default language", () => {
     const saved = importIntoAndSave(openForm([LANG_FR]), buildLibraryBlock([LANG_NONE]))
 
-    // The item's labels already sit in the slot the form's default language uses. Prepending that language here would
-    // nullify into a second, unnamed one.
+    // Already in the form's default slot - prepending the language would nullify into a second, unnamed one
     chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_FR]: 'no lang' })
     chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: 'no lang' })
   })
 
-  it("stands the item's own label in for the form language it doesn't have", () => {
+  it("leaves the form's default language blank for an item that doesn't have it", () => {
     const saved = importIntoAndSave(openForm([LANG_FR]), buildLibraryBlock([LANG_PL]))
 
-    // Formbuilder renders the form's default language, so that slot cannot be left blank - in either sheet.
-    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_FR]: 'pl', [LANG_PL]: 'pl' })
-    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: 'pl', [LANG_PL]: 'pl' })
+    // The prompt said those translations would have to be added by hand, so no copy of the item's value is invented
+    chai.expect(getFilledLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_PL]: 'pl' })
+    chai.expect(getFilledLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_PL]: 'pl' })
     // The language the item brought along joins the form's own list
     chai.expect(saved.translations).to.deep.equal([LANG_FR, LANG_PL])
+  })
+
+  it('puts every item value in the slot its own language holds in the form', () => {
+    const saved = importIntoAndSave(
+      openForm([LANG_EN, LANG_ES, LANG_PT]),
+      buildLibraryBlock([LANG_EN, LANG_ES, LANG_FR, LANG_PL]),
+    )
+
+    // Matched by name, not by position - `fr` has to skip the Portugues slot the item says nothing in
+    const itemLabels = { [LANG_EN]: 'en', [LANG_ES]: 'es', [LANG_FR]: 'fr', [LANG_PL]: 'pl' }
+    chai.expect(getFilledLabelsByLanguage(saved, 'fruit')).to.deep.equal(itemLabels)
+    chai.expect(getFilledLabelsByLanguage(saved, 'apple')).to.deep.equal(itemLabels)
+    // The form's own rows say nothing in the two languages the item added, and nothing is invented for them
+    chai.expect(getFilledLabelsByLanguage(saved, 'question')).to.deep.equal({
+      [LANG_EN]: 'en',
+      [LANG_ES]: 'es',
+      [LANG_PT]: 'pt',
+    })
+    chai.expect(saved.translations).to.deep.equal([LANG_EN, LANG_ES, LANG_PT, LANG_FR, LANG_PL])
+  })
+
+  it('writes no value at all for a language a row says nothing in', () => {
+    const saved = importIntoAndSave(openForm([LANG_FR]), buildLibraryBlock([LANG_PL]))
+
+    // Choices keep a null where survey rows drop the column. Same thing to the backend: formpack expands a missing
+    // column to `[None] * len(translations)` (`formpack/utils/expand_content.py`).
+    chai.expect(getLabelsByLanguage(saved, 'question')).to.deep.equal({ [LANG_FR]: 'fr' })
+    chai.expect(getLabelsByLanguage(saved, 'fruit')).to.deep.equal({ [LANG_PL]: 'pl' })
+    chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: null, [LANG_PL]: 'pl' })
   })
 
   it("reorders the choices along with the survey when the item's languages are in another order", () => {
@@ -178,8 +212,7 @@ describe('importing a library item into a form', () => {
     })
     const row = saved.survey.find((surveyRow) => surveyRow.name === 'notes')!
 
-    // Only columns in the form's `translated` list get a language on save, so that list has to grow with the item. A
-    // bare `guidance_hint` next to `guidance_hint::Polski (pl)` would be an unnamed language.
+    // `translated` has to grow with the item: a bare `guidance_hint` beside `guidance_hint::Polski (pl)` is unnamed
     chai.expect(row.guidance_hint).to.be.undefined
     chai.expect(row[`guidance_hint::${LANG_FR}`]).to.equal('Aide')
     chai.expect(row[`guidance_hint::${LANG_PL}`]).to.equal('Pomoc')
