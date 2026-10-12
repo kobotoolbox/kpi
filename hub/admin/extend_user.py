@@ -292,9 +292,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         )
         skipped_count = queryset.filter(not_restorable).count()
         updated_count = (
-            queryset.filter(is_active=False).exclude(not_restorable).update(
-                is_active=True
-            )
+            queryset.filter(is_active=False)
+            .exclude(not_restorable)
+            .update(is_active=True)
         )
         self.message_user(
             request,

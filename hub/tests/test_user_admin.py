@@ -18,9 +18,9 @@ class ExtendedUserAdminActionsTestCase(TestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
 
     def test_mark_active(self):
-        User.objects.filter(
-            pk__in=[self.someuser.pk, self.anotheruser.pk]
-        ).update(is_active=False)
+        User.objects.filter(pk__in=[self.someuser.pk, self.anotheruser.pk]).update(
+            is_active=False
+        )
 
         response = self._run_action('mark_active', [self.someuser, self.anotheruser])
 
@@ -39,9 +39,9 @@ class ExtendedUserAdminActionsTestCase(TestCase):
         assert '1 user(s) marked active.' in self._get_messages(response)
 
     def test_mark_active_skips_users_in_trash(self):
-        User.objects.filter(
-            pk__in=[self.someuser.pk, self.anotheruser.pk]
-        ).update(is_active=False)
+        User.objects.filter(pk__in=[self.someuser.pk, self.anotheruser.pk]).update(
+            is_active=False
+        )
         AccountTrash.objects.create(
             user=self.anotheruser, request_author=self.admin_user
         )
@@ -70,9 +70,7 @@ class ExtendedUserAdminActionsTestCase(TestCase):
         assert any('1 user(s) skipped' in message for message in messages)
 
     def test_mark_inactive(self):
-        response = self._run_action(
-            'mark_inactive', [self.someuser, self.anotheruser]
-        )
+        response = self._run_action('mark_inactive', [self.someuser, self.anotheruser])
 
         self.someuser.refresh_from_db()
         self.anotheruser.refresh_from_db()
