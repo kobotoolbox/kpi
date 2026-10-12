@@ -12,7 +12,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.forms import CharField
 from django.http import HttpRequest
 from django.urls import reverse
@@ -218,10 +218,24 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
-    actions = ['remove', 'delete', 'mark_inactive']
+    actions = ['remove', 'delete', 'mark_active', 'mark_inactive']
 
     class Media:
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
+
+    def get_actions(self, request: HttpRequest) -> dict:
+        """
+        Hide the action that would be a no-op when the changelist is filtered
+        by active status, e.g. only offer "Mark selected users active" when
+        listing inactive users
+        """
+        actions = super().get_actions(request)
+        is_active_filter = request.GET.get('is_active__exact')
+        if is_active_filter == '1':
+            actions.pop('mark_active', None)
+        elif is_active_filter == '0':
+            actions.pop('mark_inactive', None)
+        return actions
 
     def get_fieldsets(self, request: HttpRequest, obj=...):
         fieldsets = copy.deepcopy(super().get_fieldsets(request, obj))
@@ -264,6 +278,39 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         self._remove_or_delete(
             request, users=users, grace_period=0, retain_placeholder=False
         )
+
+    @admin.action(description='Mark selected users active')
+    def mark_active(self, request, queryset, **kwargs):
+        """
+        Mark selected users as active
+
+        Users who are in trash or have already been removed are skipped: they
+        must be restored from the trash bin instead.
+        """
+        not_restorable = Q(trash__isnull=False) | Q(
+            extra_details__date_removed__isnull=False
+        )
+        skipped_count = queryset.filter(not_restorable).count()
+        updated_count = (
+            queryset.filter(is_active=False).exclude(not_restorable).update(
+                is_active=True
+            )
+        )
+        self.message_user(
+            request,
+            f'{updated_count} user(s) marked active.',
+            level=messages.SUCCESS,
+        )
+        if skipped_count:
+            url = reverse('admin:trash_bin_accounttrash_changelist')
+            self.message_user(
+                request,
+                mark_safe(
+                    f'{skipped_count} user(s) skipped because they are in'
+                    f' <a href="{url}">trash</a> or have been removed.'
+                ),
+                level=messages.WARNING,
+            )
 
     @admin.action(description='Mark selected users inactive')
     def mark_inactive(self, request, queryset, **kwargs):
