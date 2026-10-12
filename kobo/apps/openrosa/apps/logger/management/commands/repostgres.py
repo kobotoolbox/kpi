@@ -326,6 +326,10 @@ class Command(BaseCommand):
             if create_instance:
                 instance = self._create_instance(record, xform, survey_type)
 
+            # Lock the submission: an overlapping run waits here, then sees the
+            # rebuilt attachments instead of counting them a second time
+            Instance.objects.select_for_update().filter(pk=instance.pk).exists()
+
             if not (
                 question_name_basenames := self._get_question_name_basenames(
                     record, instance, xform

@@ -6,7 +6,9 @@ import uuid as uuid_module
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -153,6 +155,37 @@ class RepostgresRebuildAttachmentsTestCase(TestCase):
 
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == storage_before
+
+    def test_rebuild_locks_submission_before_reading_attachments(self):
+        """
+        Two overlapping runs would both see an attachment as missing and count
+        it twice. The submission row must be locked before its attachments are
+        read, so the second run waits and then finds them rebuilt.
+        """
+
+        rows = Attachment.all_objects.filter(pk=self.attachment_id)
+        rows._raw_delete(rows.db)
+
+        with CaptureQueriesContext(connection) as context:
+            call_command(
+                'repostgres',
+                id_string=ID_STRING,
+                backup_path=self.backup_path,
+                verbosity=0,
+            )
+
+        queries = [query['sql'] for query in context.captured_queries]
+        lock_indexes = [
+            index
+            for index, sql in enumerate(queries)
+            if 'FOR UPDATE' in sql and '"logger_instance"' in sql
+        ]
+        attachment_indexes = [
+            index for index, sql in enumerate(queries) if '"logger_attachment"' in sql
+        ]
+        assert lock_indexes
+        assert attachment_indexes
+        assert lock_indexes[0] < attachment_indexes[0]
 
     def _clear_storage_dir(self, storage_dir: str):
         """
