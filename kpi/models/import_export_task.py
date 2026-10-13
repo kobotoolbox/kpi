@@ -572,9 +572,7 @@ class ImportTask(ImportExportTask):
             return
 
         choices_size = len(json.dumps(choices, ensure_ascii=False).encode('utf-8'))
-        max_size = getattr(
-            settings, 'MAX_CHOICES_SIZE_BYTES', DEFAULT_MAX_CHOICES_SIZE_BYTES
-        )
+        max_size = settings.MAX_CHOICES_SIZE_BYTES
         if choices_size > max_size:
             max_size_mb = max_size / (1024 * 1024)
             choices_size_mb = choices_size / (1024 * 1024)
