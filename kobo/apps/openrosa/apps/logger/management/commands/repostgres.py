@@ -10,7 +10,6 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from typing import Optional
-from kpi.utils.xml import fromstring_preserve_root_xmlns
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -29,11 +28,16 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    MONGO_STRPTIME_NO_TIMEZONE,
+    MONGO_STRPTIME_WITH_TIMEZONE,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 
 class Command(BaseCommand):
@@ -168,9 +172,14 @@ class Command(BaseCommand):
         sub_copy.pop('_id', None)
         submission_time = sub_copy.pop('_submission_time', None)
         if submission_time:
-            submission_time = datetime.strptime(
-                submission_time, '%Y-%m-%dT%H:%M:%S'
-            ).replace(tzinfo=ZoneInfo('UTC'))
+            try:
+                submission_time = datetime.strptime(
+                    submission_time, MONGO_STRPTIME_NO_TIMEZONE
+                ).replace(tzinfo=ZoneInfo('UTC'))
+            except ValueError:
+                submission_time = datetime.strptime(
+                    submission_time, MONGO_STRPTIME_WITH_TIMEZONE
+                )
         else:
             submission_time = timezone.now()
 

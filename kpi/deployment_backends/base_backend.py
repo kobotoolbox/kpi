@@ -25,7 +25,14 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
-from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    META_INSTANCE_ID,
+    META_ROOT_UUID,
+    MONGO_STRFTIME,
+    MONGO_STRPTIME_NO_TIMEZONE,
+    MONGO_STRPTIME_WITH_TIMEZONE,
+    SUBMISSION_TIME,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
@@ -879,6 +886,25 @@ class BaseDeploymentBackend(abc.ABC):
         submission['_validation_status'] = (
             submission.get('_validation_status', None) or {}
         )
+        submission_time = submission.get('_submission_time', None)
+        if submission_time:
+            try:
+                # submission_time should always be stored as UTC, check the tz anyway
+                as_date = datetime.datetime.strptime(
+                    submission_time, MONGO_STRPTIME_WITH_TIMEZONE
+                )
+                as_date = as_date.astimezone(datetime.timezone.utc)
+                submission[SUBMISSION_TIME] = as_date.strftime(MONGO_STRFTIME)
+            except ValueError:
+                try:
+                    # if no timezone info is present, assume it was UTC
+                    as_date = datetime.datetime.strptime(
+                        submission_time, MONGO_STRPTIME_NO_TIMEZONE
+                    )
+                    as_date = as_date.replace(tzinfo=datetime.timezone.utc)
+                    submission[SUBMISSION_TIME] = as_date.strftime(MONGO_STRFTIME)
+                except ValueError:
+                    pass
         submission.pop('_tags', None)
         submission.pop('_notes', None)
         return submission
