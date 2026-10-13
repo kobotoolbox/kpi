@@ -6,11 +6,12 @@ import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
-import { getUrlForNextRoute } from '#/auth/nextUrl'
+import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
 import { useAllauthConfiguration } from '#/auth/useAllauthConfiguration'
 import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
 import { PATHS } from '#/router/routerConstants'
+import { isPlainClick } from '#/utils'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import LoginForm, { type LoginOutcome } from './LoginForm'
 import { getLoginCredential } from './loginCredential'
@@ -35,8 +36,20 @@ function AlreadyLoggedInPanel({ continueUrl }: { continueUrl: string }) {
         {t('You are already logged in')}
       </Title>
       <Text>{t('There is nothing to sign in to - your session is still good.')}</Text>
-      {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-      <ButtonNew component='a' href={continueUrl} size='lg' fullWidth>
+      {/* A plain link, not a router one: leaving `/auth` means loading the logged in app, which the `href` alone would
+          not do here - see `goToPage`. Modified clicks are left alone, since those open a document of their own. */}
+      <ButtonNew
+        component='a'
+        href={continueUrl}
+        onClick={(event) => {
+          if (isPlainClick(event)) {
+            event.preventDefault()
+            goToPage(continueUrl)
+          }
+        }}
+        size='lg'
+        fullWidth
+      >
         {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
@@ -196,7 +209,7 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
       if (onAuthenticated) {
         onAuthenticated(destinationUrl)
       } else {
-        window.location.assign(destinationUrl)
+        goToPage(destinationUrl)
       }
     }
   }
