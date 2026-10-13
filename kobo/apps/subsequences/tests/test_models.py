@@ -321,6 +321,82 @@ class SubmissionSupplementTestCase(TestCase):
         assert translations['fr']['value'] == 'Bonjour'
         assert translations['de']['value'] == 'Guten tag'
 
+    def test_retrieve_data_for_output_deletion_suppresses_older_sibling_transcript(
+        self,
+    ):
+        """
+        Regression test for DEV-3068
+
+        Deleting the manual transcript must not resurrect the older accepted
+        automatic transcript from a sibling action. Without the deletion
+        competing in the cross-action arbitration, the stale automatic result
+        would reappear in the data table.
+        """
+        self._enable_nlp_action('manual_transcription', ['en'])
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+
+        # Older accepted automatic transcript
+        self._add_automatic_nlp_action('transcription', 'en', 'Hello auto', accept=True)
+        # Manual transcript then its deletion, the deletion being newest overall
+        self._add_manual_nlp_action('transcription', 'en', 'Hello manual')
+        self._add_manual_nlp_action('transcription', 'en', None)
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        assert output[self.xpath].get('transcript') is None
+
+    def test_retrieve_data_for_output_newer_sibling_beats_deletion(self):
+        """
+        A deletion must not suppress a newer result from a sibling action
+
+        When a manual deletion is followed by a newer accepted automatic
+        transcript, the automatic value must show; otherwise a stale deletion
+        would wrongly blank out a fresh result.
+        """
+        self._enable_nlp_action('manual_transcription', ['en'])
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+
+        # Manual transcript then its deletion, both older
+        self._add_manual_nlp_action('transcription', 'en', 'Hello')
+        self._add_manual_nlp_action('transcription', 'en', None)
+        # Newer accepted automatic transcript
+        self._add_automatic_nlp_action('transcription', 'en', 'Auto hello', accept=True)
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        transcript = output[self.xpath].get('transcript')
+        assert transcript is not None
+        assert transcript['value'] == 'Auto hello'
+
+    def test_retrieve_data_for_output_deletion_suppresses_sibling_translation(self):
+        """
+        A per-language deletion must suppress only its own sibling translation
+
+        Deleting the manual Spanish translation must omit the Spanish column
+        without resurrecting the older accepted automatic Spanish translation,
+        while leaving the untouched German translation intact.
+        """
+        self._enable_nlp_action('manual_translation', ['es', 'de'])
+        self._enable_nlp_action('automatic_google_translation', ['es', 'de'])
+        # translations require a transcription
+        self._add_manual_nlp_action('transcription', 'en', 'Hi')
+
+        # Older accepted automatic translations
+        self._add_automatic_nlp_action('translation', 'es', 'Hola auto', accept=True)
+        self._add_automatic_nlp_action('translation', 'de', 'Guten tag', accept=True)
+        # Manual Spanish translation then its deletion, the deletion being newest
+        self._add_manual_nlp_action('translation', 'es', 'Hola manual')
+        self._add_manual_nlp_action('translation', 'es', None)
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        translations = output[self.xpath].get('translation', {})
+        assert 'es' not in translations
+        assert translations['de']['value'] == 'Guten tag'
+
     def test_retrieve_data_for_output_deleted_latest_version_returns_empty(self):
         """
         When the latest transcription version is deleted (value is None / status
