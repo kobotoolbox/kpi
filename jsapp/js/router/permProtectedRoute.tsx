@@ -1,14 +1,20 @@
-import React, { Suspense } from 'react'
+import { observer } from 'mobx-react-lite'
+import React, { Suspense, useEffect } from 'react'
 
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
+import { getAuthGateDecision } from '#/auth/authGate'
+import { useAuthStatus } from '#/auth/useAuthStatus'
+import { useGoToLogin } from '#/auth/useGoToLogin'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import { decodeURLParamWithSlash } from '#/components/processing/routes.utils'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import AccessDenied from '#/router/accessDenied'
 import type { WithRouterProps } from '#/router/legacy'
+import profileStore from '#/stores/profile'
 import { withRouter } from './legacy'
 
 interface PermProtectedRouteProps extends WithRouterProps {
@@ -26,6 +32,8 @@ interface PermProtectedRouteState {
   /** Whether loadAsset call was made and ended, regardless of success or failure. */
   isLoadAssetFinished: boolean
   userHasRequiredPermissions: boolean | null
+  /** Status the asset request failed with, absent when it was the permissions that said no. */
+  errorStatus?: number
   errorMessage?: string
   asset: AssetResponse | null
   /**
@@ -34,6 +42,55 @@ interface PermProtectedRouteState {
    */
   initialAssetLoadNotNeeded: boolean
 }
+
+interface AssetAccessDeniedProps {
+  errorStatus?: number
+  errorMessage?: string
+}
+
+/**
+ * What an asset route shows once it has turned somebody away. With no session the refusal may be premature, so the
+ * login screen gets a turn first, carrying this route in `next`. Separate component as the class below cannot use
+ * hooks, and an `observer` because the flag-off path reads `profileStore`.
+ */
+const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, errorMessage }: AssetAccessDeniedProps) {
+  const { data: authStatus, isLoading, isError } = useAuthStatus()
+  const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
+  const goToLogin = useGoToLogin()
+
+  // TODO: DEV-3074 this reading can be a minute old (`staleTime` in `useAuthStatus`), so a session that just ended
+  // still reads as signed in and the refusal is shown where the login screen belongs.
+  const decision = getAuthGateDecision(
+    isAuthRedesignEnabled
+      ? { authStatus, isAuthStatusLoading: isLoading, isAuthStatusCheckFailed: isError, isLegacyLoggedIn: false }
+      : {
+          // With the flag off the session query never runs, so nothing it holds is an answer - a disabled query still
+          // hands back whatever is in the cache. `/me/` is the only reading there is, and one that failed or has not
+          // arrived must not pass for "signed out", or this bounces off the login screen.
+          authStatus: undefined,
+          isAuthStatusLoading: !profileStore.isAuthStateKnown,
+          isAuthStatusCheckFailed: profileStore.isAuthStateCheckFailed,
+          isLegacyLoggedIn: profileStore.isLoggedIn,
+        },
+  )
+
+  // Signing in will not fix a 5xx. `checkFailed` keeps the refusal too, as the asset error says more than a
+  // session-check failure would.
+  const shouldGoToLogin = decision === 'redirect' && (!errorStatus || errorStatus < 500)
+
+  useEffect(() => {
+    if (shouldGoToLogin) {
+      goToLogin()
+    }
+  }, [shouldGoToLogin, goToLogin])
+
+  // Navigation happens in an effect, so the spinner also covers the render that starts it.
+  if (shouldGoToLogin || decision === 'wait') {
+    return <LoadingSpinner />
+  }
+
+  return <AccessDenied errorMessage={errorMessage} />
+})
 
 /**
  * A gateway component for rendering the route only for a user who has
@@ -52,6 +109,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
     return {
       isLoadAssetFinished: false,
       userHasRequiredPermissions: null,
+      errorStatus: undefined,
       errorMessage: undefined,
       asset: null,
       initialAssetLoadNotNeeded: false,
@@ -151,6 +209,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
       this.setState({
         isLoadAssetFinished: true,
         userHasRequiredPermissions: false,
+        errorStatus: response.status,
         errorMessage: `${response.status.toString()}: ${response.responseJSON?.detail || response.statusText}`,
       })
     }
@@ -212,7 +271,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
         </Suspense>
       )
     } else {
-      return <AccessDenied errorMessage={this.state.errorMessage} />
+      return <AssetAccessDenied errorStatus={this.state.errorStatus} errorMessage={this.state.errorMessage} />
     }
   }
 }
