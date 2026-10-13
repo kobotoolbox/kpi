@@ -215,6 +215,31 @@ class RecountStorageCounterTestCase(TestCase, AssetSubmissionTestMixin):
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == -999
 
+    def test_drift_is_not_applied_once_the_lock_expired(self):
+        """
+        A sum outliving the lock lets another recount take it: the first one
+        must not apply its drift on top of the other's
+        """
+        self._set_counter(-999)
+        lock_key = f'{RECOUNT_STORAGE_LOCK_KEY_PREFIX}{self.xform.pk}'
+        other_lock = cache.lock(lock_key)
+        real_storage_recount = counters.StorageRecount
+
+        def expire_then_recount(*args):
+            # The lock expires during the sum, and another recount takes it
+            cache.delete(lock_key)
+            assert other_lock.acquire(blocking=False)
+            return real_storage_recount(*args)
+
+        with patch.object(counters, 'StorageRecount', side_effect=expire_then_recount):
+            try:
+                assert recount_storage_counter(self.xform.pk) is None
+            finally:
+                other_lock.release()
+
+        self.xform.refresh_from_db()
+        assert self.xform.attachment_storage_bytes == -999
+
     def test_unknown_project_is_skipped(self):
         assert recount_storage_counter(0) is None
 

@@ -268,6 +268,17 @@ def recount_storage_counter(
 
         recount = StorageRecount(xform_id, *row)
         if not dry_run:
+            # The sum may have outlived the lock, and another recount may have
+            # applied the same drift meanwhile. Only write if the lock is still
+            # ours, renewed so the update gets the whole TTL to complete
+            try:
+                lock.reacquire()
+            except LockError as e:
+                logging.warning(
+                    f'Recount lock of xform #{xform_id} was lost, drift not'
+                    f' applied: {e}'
+                )
+                return None
             update_storage_counters({xform_id: recount.drift})
         return recount
     finally:
