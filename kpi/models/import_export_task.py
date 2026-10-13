@@ -1,6 +1,7 @@
 import base64
 import datetime
 import json
+import math
 import os
 import posixpath
 import re
@@ -574,15 +575,17 @@ class ImportTask(ImportExportTask):
         choices_size = len(json.dumps(choices, ensure_ascii=False).encode('utf-8'))
         max_size = settings.MAX_CHOICES_SIZE_BYTES
         if choices_size > max_size:
-            max_size_mb = max_size / (1024 * 1024)
-            choices_size_mb = choices_size / (1024 * 1024)
+            max_size_kb = math.ceil(max_size / 1024)
+            choices_size_kb = math.ceil(choices_size / 1024)
+            if choices_size_kb <= max_size_kb:
+                choices_size_kb = max_size_kb + 1
             message = t(
-                'The choices sheet is too large ({choices_size_mb:.2f} MB). '
-                'The maximum allowed size is {max_size_mb:.2f} MB. '
+                'The choices sheet is too large ({choices_size_kb} KB). '
+                'The maximum allowed size is {max_size_kb} KB. '
                 'Please use external choice lists instead: {support_url}'
             ).format(
-                choices_size_mb=choices_size_mb,
-                max_size_mb=max_size_mb,
+                choices_size_kb=choices_size_kb,
+                max_size_kb=max_size_kb,
                 support_url='https://support.kobotoolbox.org/external_file.html',
             )
             raise ChoicesSizeLimitError(message)
