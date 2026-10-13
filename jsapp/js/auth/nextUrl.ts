@@ -77,15 +77,46 @@ export function getLoginRouteWithNext(currentRoute: string | null): string {
 }
 
 /**
- * A resolved `next` as something to hand `window.location.assign`, falling back to the app root.
+ * A resolved `next` as something to hand {@link goToPage}, falling back to the app root.
  *
  * Signing in needs the page load even though the destination is always a route: `<App />` reads `/me/`, the permission
  * config and `/environment` at boot, and a route change refetches none of it.
  *
  * Built from {@link ROOT_URL}, so an instance served under `KPI_PREFIX` lands in its own app, not the bare origin.
  *
- * @param appRootUrl only a parameter so the prefixed case can be tested
+ * @param appRootUrl for testing
  */
 export function getUrlForNextRoute(routePath: string | null, appRootUrl = ROOT_URL): string {
   return routePath === null ? `${appRootUrl}/` : `${appRootUrl}/#${routePath}`
+}
+
+/** Just the bits of `window.location` leaving a page needs */
+type Navigable = Pick<Location, 'href' | 'assign' | 'reload'>
+
+/** The document an address names - everything in it but the fragment */
+const documentUrl = (url: URL) => `${url.origin}${url.pathname}${url.search}`
+
+/**
+ * Leaves for `url` as a page load, or loads this page again when handed `null`.
+ *
+ * The load is the whole point - see {@link getUrlForNextRoute} - and a destination differing only by its fragment is
+ * one the browser moves the address for without loading anything, hence asking for the load outright.
+ *
+ * @param location for testing
+ */
+export function goToPage(url: string | null, location: Navigable = window.location): void {
+  if (url === null) {
+    location.reload()
+    return
+  }
+
+  const here = new URL(location.href)
+  const there = new URL(url, here)
+  const isMoveWithinPage = there.hash !== '' && documentUrl(there) === documentUrl(here)
+
+  location.assign(url)
+  // The address has moved already, so this loads the destination rather than where we came from
+  if (isMoveWithinPage) {
+    location.reload()
+  }
 }
