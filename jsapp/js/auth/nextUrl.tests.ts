@@ -1,6 +1,13 @@
 import chai from 'chai'
 import { ACCOUNT_AUTH_ROUTES, AUTH_ROUTES } from '#/router/routerConstants'
-import { getLoginRouteWithNext, getRouteWithNext, getUrlForNextRoute, readNextParam, resolveNextRoute } from './nextUrl'
+import {
+  getLoginRouteWithNext,
+  getRouteWithNext,
+  getUrlForNextRoute,
+  goToPage,
+  readNextParam,
+  resolveNextRoute,
+} from './nextUrl'
 
 const origin = { origin: 'https://kf.kobotoolbox.org', pathname: '/' }
 
@@ -105,6 +112,49 @@ describe('getUrlForNextRoute', () => {
       .expect(getUrlForNextRoute('/projects/home', PREFIXED_ROOT))
       .to.equal('https://kf.example.org/kpi/#/projects/home')
     chai.expect(getUrlForNextRoute(null, PREFIXED_ROOT)).to.equal('https://kf.example.org/kpi/')
+  })
+})
+
+describe('goToPage', () => {
+  /** Stands in for `window.location`, which jsdom refuses to navigate */
+  const locationAt = (href: string) => ({ href, assign: jest.fn(), reload: jest.fn() })
+
+  // `ROOT_URL` is a path, so a `next` destination differs from the login screen by its fragment alone.
+  it('asks for the load itself when the destination is another route of this same page', () => {
+    const location = locationAt('https://kf.example.org/#/auth/login?next=%2F%23%2Fprojects%2Fhome')
+
+    goToPage('/#/projects/home', location)
+
+    chai.expect(location.assign.mock.calls).to.deep.equal([['/#/projects/home']])
+    chai.expect(location.reload.mock.calls).to.deep.equal([[]])
+  })
+
+  it('does the same under a deployment prefix', () => {
+    const location = locationAt('https://kf.example.org/kpi/#/auth/login')
+
+    goToPage('/kpi/#/projects/home', location)
+
+    chai.expect(location.assign.mock.calls).to.deep.equal([['/kpi/#/projects/home']])
+    chai.expect(location.reload.mock.calls).to.deep.equal([[]])
+  })
+
+  // A second one here would cancel the load the browser is already starting.
+  it('asks for no load of its own when leaving for a page with no fragment', () => {
+    const location = locationAt('https://kf.example.org/#/auth/login')
+
+    goToPage(getUrlForNextRoute(null, UNPREFIXED_ROOT), location)
+
+    chai.expect(location.assign.mock.calls).to.deep.equal([['https://kf.example.org/']])
+    chai.expect(location.reload.mock.calls).to.deep.equal([])
+  })
+
+  it('loads this page again when handed nothing, which is a session that arrived from another tab', () => {
+    const location = locationAt('https://kf.example.org/#/projects/home')
+
+    goToPage(null, location)
+
+    chai.expect(location.reload.mock.calls).to.deep.equal([[]])
+    chai.expect(location.assign.mock.calls).to.deep.equal([])
   })
 })
 

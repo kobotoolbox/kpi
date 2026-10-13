@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { type RedirectContext, redirectForAuthChange } from './authRedirects'
 import { type AuthStatus, determineAuthChangeEvent } from './authStatus'
+import { goToPage } from './nextUrl'
 import { useAuthStatus } from './useAuthStatus'
 import { useNextRoute } from './useNextRoute'
 
@@ -20,9 +21,6 @@ export default function AuthChangeRedirector() {
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
   const nextRoute = useNextRoute()
-
-  // `null` means "this page again, with the session it was loaded without".
-  const goToPage = (url: string | null) => (url === null ? window.location.reload() : window.location.assign(url))
 
   // Kept out of the effect's dependencies: a redirect has to happen once per change in the session, not again every
   // time the address bar moves - which redirecting itself causes.

@@ -16,7 +16,7 @@ import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import CheckInboxPanel from '#/auth/RegisterRoute/CheckInboxPanel'
 import { getPendingFlowIds } from '#/auth/allauthErrors'
-import { getUrlForNextRoute } from '#/auth/nextUrl'
+import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
 import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
@@ -141,9 +141,6 @@ export interface ProviderSignupRouteProps {
   /** What to do once the session exists, handed the URL to leave for */
   onAuthenticated?: (url: string) => void
 }
-
-/** Hoisted so the effect below can depend on it without refiring on every render */
-const goToPage = (url: string) => window.location.assign(url)
 
 /**
  * Where a single sign-on handshake comes back to - `callback_url` in {@link getProviderCallbackUrl}.

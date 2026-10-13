@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { getAnonymousGateDecision } from '#/auth/authGate'
 import type { AuthStatus } from '#/auth/authStatus'
-import { getUrlForNextRoute } from '#/auth/nextUrl'
+import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
 import { useAuthStatus } from '#/auth/useAuthStatus'
 import { useNextRoute } from '#/auth/useNextRoute'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -31,7 +31,7 @@ export default function RequireAnonymous({ children }: RequireAnonymousProps) {
     if (decision !== 'redirect') {
       return
     }
-    window.location.assign(getUrlForNextRoute(nextRoute))
+    goToPage(getUrlForNextRoute(nextRoute))
   }, [decision, nextRoute])
 
   // The spinner covers the gap between deciding to leave and the page load starting

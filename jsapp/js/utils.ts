@@ -396,6 +396,13 @@ export function launchPrinting() {
   window.print()
 }
 
+/** The fields a click's intent is read from, which both DOM and React events carry */
+type ClickIntent = Pick<MouseEvent, 'button' | 'metaKey' | 'ctrlKey' | 'shiftKey' | 'altKey'>
+
+/** A click the browser answers by following the link, rather than one asking for a new tab or a download */
+export const isPlainClick = (event: ClickIntent) =>
+  event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
+
 /**
  * Trunactes strings to specified length
  */
