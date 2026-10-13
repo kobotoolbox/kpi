@@ -10,6 +10,7 @@ import {
   AUTH_STATUS_URL,
   getAuthStatusQueryKey,
   isAuthChangeResponse,
+  isNewestReadingFromOwnCall,
   recordAllauthResponse,
 } from './authChangeWatcher'
 import { getAuthStatus } from './authStatus'
@@ -125,6 +126,22 @@ describe('recordAllauthResponse', () => {
     chai.expect(cancelSpy.mock.calls).to.have.length(1)
 
     cancelSpy.mockRestore()
+  })
+
+  // What `redirectForAuthChange` uses to tell a screen's own sign-in from one made in another tab.
+  it('remembers whether the newest reading came back from a screen`s own call', async () => {
+    await recordAllauthResponse(fromAccountCall, session)
+    chai.expect(isNewestReadingFromOwnCall()).to.equal(true)
+
+    await recordAllauthResponse({ url: sessionUrl, method: 'GET' }, session)
+    chai.expect(isNewestReadingFromOwnCall()).to.equal(false)
+  })
+
+  it('does not move that for an answer carrying no reading', async () => {
+    await recordAllauthResponse({ url: sessionUrl, method: 'GET' }, session)
+    await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Wrong password.' }] }))
+
+    chai.expect(isNewestReadingFromOwnCall()).to.equal(false)
   })
 })
 

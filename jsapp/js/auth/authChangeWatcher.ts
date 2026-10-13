@@ -47,6 +47,13 @@ function isAuthStatusQueryFetch({ url, method = 'GET' }: AllauthRequest): boolea
   return method === 'GET' && url.startsWith(AUTH_STATUS_URL)
 }
 
+// A sign-in in another tab only ever reaches us on the session poll, so where a reading came from is how
+// `redirectForAuthChange` tells one apart from a sign-in a screen is about to announce.
+let newestReadingIsFromOwnCall = false
+
+/** Whether the newest reading came back from a screen's own call. Only meaningful while a change is being acted on. */
+export const isNewestReadingFromOwnCall = () => newestReadingIsFromOwnCall
+
 /** Files an allauth answer as the newest session reading, if it is one. Anything else is left alone. */
 export async function recordAllauthResponse(request: AllauthRequest, response: AllauthResponse): Promise<void> {
   if (!isAuthChangeResponse(response)) {
@@ -54,11 +61,13 @@ export async function recordAllauthResponse(request: AllauthRequest, response: A
   }
 
   const queryKey = getAuthStatusQueryKey()
+  const isFromOwnCall = !isAuthStatusQueryFetch(request)
+  newestReadingIsFromOwnCall = isFromOwnCall
 
   // react-query lets a landing query result beat a manual write, so an in-flight session fetch would undo this one -
   // and since `GET /auth/session` cannot express a reauthentication ask, that ask would be gone. Cancel-then-write is
   // what the optimistic update docs prescribe. Not for the session fetch's own answer: that would abort it mid-flight.
-  if (!isAuthStatusQueryFetch(request)) {
+  if (isFromOwnCall) {
     await queryClient.cancelQueries({ queryKey, exact: true })
   }
 
