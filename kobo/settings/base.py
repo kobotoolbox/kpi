@@ -1712,12 +1712,12 @@ CELERY_BEAT_SCHEDULE = {
         'task': (
             'kobo.apps.openrosa.apps.logger.tasks.fix_stale_submissions_suspended_flag'
         ),
-        'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
+        'schedule': crontab(minute='*/15'),
         'description': (
             'Unlock accounts left suspended by a process which died before'
             ' releasing them'
         ),
-        'options': {'queue': 'kpi_long_running_tasks_queue'},
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # To activate only at later time.
     # 'recount-drifted-storage-counters': {
@@ -2484,9 +2484,6 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
-
-# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
-SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100

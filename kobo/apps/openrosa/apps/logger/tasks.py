@@ -21,12 +21,12 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.log import logging
+from ..main.models import UserProfile
 from .constants import RECOUNT_STORAGE_ROTATION_LOCK_KEY
 from .models import Instance, XForm
 from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
 from .models.instance import InstanceHistory
 from .utils.counters import recount_next_drifted_storage_counters
-from .utils.suspension import release_orphaned_suspensions
 
 
 @celery_app.task()
@@ -131,6 +131,8 @@ def generate_stats_zip(output_filename):
         zip_file.close()
 
 
+# TODO Remove this task (and its Celery Beat entry) once every storage drift
+#  is fixed
 @celery_app.task
 def fix_stale_submissions_suspended_flag():
     """
@@ -139,7 +141,11 @@ def fix_stale_submissions_suspended_flag():
     `update_attachment_storage_bytes` still running during a deployment), so
     that nobody stays locked out of collecting data.
     """
-    for username in release_orphaned_suspensions():
+
+    suspended = UserProfile.objects.filter(submissions_suspended=True)
+    usernames = list(suspended.values_list('user__username', flat=True))
+    suspended.update(submissions_suspended=False)
+    for username in usernames:
         logging.info(
             f'Removed `submissions_suspended` flag on user {username}’s profile'
         )
