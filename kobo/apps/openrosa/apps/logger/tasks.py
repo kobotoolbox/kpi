@@ -142,6 +142,9 @@ def fix_stale_submissions_suspended_flag():
     that nobody stays locked out of collecting data.
     """
 
+    # FIXME Every suspended profile is released, including the ones
+    #  `populate_submission_counters` is still processing, so its suspension can
+    #  be lifted while it recalculates the user's counters
     suspended = UserProfile.objects.filter(submissions_suspended=True)
     usernames = list(suspended.values_list('user__username', flat=True))
     suspended.update(submissions_suspended=False)
