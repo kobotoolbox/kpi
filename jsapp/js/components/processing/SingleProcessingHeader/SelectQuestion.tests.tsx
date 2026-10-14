@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetContent, AssetResponse, SurveyRow } from '#/dataInterface'
-import { FeatureFlag } from '#/featureFlags'
 import { themeKobo } from '#/theme'
 import SelectQuestion from './SelectQuestion'
 
@@ -14,10 +13,6 @@ class ResizeObserverStub {
   disconnect() {}
 }
 global.ResizeObserver = ResizeObserverStub
-
-function setNlpTextActionsEnabled(enabled: boolean) {
-  sessionStorage.setItem('feature_flags', JSON.stringify({ [FeatureFlag.nlpTextActionsEnabled]: enabled }))
-}
 
 const AUDIO_ROW: SurveyRow = {
   $kuid: 'k-audio',
@@ -87,25 +82,7 @@ function openDropdown() {
 }
 
 describe('SelectQuestion', () => {
-  afterEach(() => {
-    sessionStorage.clear()
-  })
-
-  it('lists both the schema and orphan audio entries, but no text or image entries, when the flag is off', () => {
-    setNlpTextActionsEnabled(false)
-    renderSelectQuestion('audio_q')
-    openDropdown()
-
-    chai.expect(screen.queryAllByText('Audio question')).to.have.lengthOf(1)
-    chai.expect(screen.queryAllByText('audio_q')).to.have.lengthOf(1)
-    chai.expect(screen.queryAllByText('Text question')).to.have.lengthOf(0)
-    chai.expect(screen.queryAllByText('text_q')).to.have.lengthOf(0)
-    chai.expect(screen.queryAllByText('Image question')).to.have.lengthOf(0)
-    chai.expect(screen.queryAllByText('image_q')).to.have.lengthOf(0)
-  })
-
-  it('also lists both the schema and orphan text entries when the flag is on', () => {
-    setNlpTextActionsEnabled(true)
+  it('lists both the schema and orphan audio and text entries, but no image entries', () => {
     renderSelectQuestion('audio_q')
     openDropdown()
 
@@ -119,7 +96,6 @@ describe('SelectQuestion', () => {
 
   // Nothing has been transcribed under the old path yet, so the answer is all there is to go on.
   it('lists an orphan text entry that has no NLP content yet', () => {
-    setNlpTextActionsEnabled(true)
     renderSelectQuestion('audio_q', { ...SUBMISSION, _supplementalDetails: {} } as unknown as DataResponse)
     openDropdown()
 
@@ -130,7 +106,6 @@ describe('SelectQuestion', () => {
   // Borrowing the label of `audio_q` for `renamed_group/audio_q` - what leaf-name matching used to do - would show two
   // identically named options, one of them belonging to a question that never held this answer.
   it('labels an orphan entry with its own name, not with the label of the question of the same name', () => {
-    setNlpTextActionsEnabled(true)
     renderSelectQuestion('audio_q')
     openDropdown()
 
@@ -141,7 +116,6 @@ describe('SelectQuestion', () => {
   // Mantine's Select shows nothing for a value it has no option for, and the Data Table sends you here at an orphan
   // path whenever a question has moved.
   it('shows the question being processed even when the current form has no question at its path', () => {
-    setNlpTextActionsEnabled(false)
     renderSelectQuestion('renamed_group/audio_q')
 
     chai.expect(screen.getByRole<HTMLInputElement>('textbox').value).to.equal('audio_q')

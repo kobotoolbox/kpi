@@ -13,7 +13,6 @@ import type { LanguageCode, LocaleCode } from '#/components/languages/languagesS
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
   QualVersionItem,
@@ -365,20 +364,15 @@ export const isAudioQuestionType = (questionType: AnyRowTypeName | undefined): b
 export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
   questionType === QUESTION_TYPES.text.id
 
-/**
- * Whether a question type is one NLP processing supports. Audio is always
- * supported; text is gated behind the `nlpTextActionsEnabled` feature flag.
- */
+/** Whether a question type is one NLP processing supports (audio or text). */
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
-  isAudioQuestionType(questionType) ||
-  (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+  isAudioQuestionType(questionType) || isTextQuestionType(questionType)
 
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
  * questions are analyzed straight from the submission answer (mirroring the back
  * end's `RequiresTranscriptionMixin.attach_action_dependency`), so they need a
- * non-empty answer and the `nlpTextActionsEnabled` feature flag; every other type
- * needs a transcript first.
+ * non-empty answer; every other type needs a transcript first.
  */
 export const hasAnalysisSource = (
   questionType: AnyRowTypeName | undefined,
@@ -386,7 +380,7 @@ export const hasAnalysisSource = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): boolean => {
-  if (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType)) {
+  if (isTextQuestionType(questionType)) {
     const answer = submission[xpath]
     return typeof answer === 'string' && answer.trim() !== ''
   }
