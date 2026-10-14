@@ -1,16 +1,18 @@
 import { Group, Stack, Text, Title } from '@mantine/core'
 import { IconChevronLeft, IconRefresh } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import { actions } from '#/actions'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import SubmissionPreviewModal from '#/components/submissions/single/submissionPreviewModal'
 import { getBackToCurrentScreen, getSubmissionPath } from '#/components/submissions/single/submissionRouting'
 import { HOOK_LOG_STATUSES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
+  AssetResponse,
   ExternalServiceHookResponse,
   ExternalServiceLogResponse,
   FailResponse,
@@ -23,7 +25,7 @@ import RESTServiceLogStatus from './RESTServiceLogStatus'
 import { openRESTServiceLogInfoModal } from './openRESTServiceLogInfoModal'
 
 interface RESTServiceLogsProps {
-  assetUid: string
+  asset: AssetResponse
   hookUid: string
 }
 
@@ -37,7 +39,11 @@ interface RESTServiceLogsProps {
  * "Load more" button. Like the list view, data lives in the Reflux `hooks`
  * store rather than in props.
  */
-export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsProps) {
+export default function RESTServiceLogs({ asset, hookUid }: RESTServiceLogsProps) {
+  const assetUid = asset.uid
+  const navigate = useNavigate()
+  /** The record being read in the preview modal, if any. */
+  const [previewedSubmissionId, setPreviewedSubmissionId] = useState<string | undefined>(undefined)
   const [hookName, setHookName] = useState<string | null>(null)
   const [isHookActive, setIsHookActive] = useState(false)
   const [isLoadingHook, setIsLoadingHook] = useState(true)
@@ -152,6 +158,17 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
     openRESTServiceLogInfoModal({ submissionId: log.submission_id, message: log.message })
   }
 
+  /** Leaves for the record's own address, where the rest of the features live. */
+  const openPreviewedSubmissionRecord = () => {
+    if (!previewedSubmissionId) {
+      return
+    }
+
+    navigate(getSubmissionPath(assetUid, previewedSubmissionId), {
+      state: { backTo: getBackToCurrentScreen(t('Back to REST Service Logs')) },
+    })
+  }
+
   const hasAnyFailedLogs = () => logs.some((log) => log.status === HOOK_LOG_STATUSES.FAILED)
 
   if (isLoadingHook || (isLoadingLogs && logs.length === 0)) {
@@ -165,13 +182,8 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
       grow: true,
       cellFormatter: (log) =>
         log.status === HOOK_LOG_STATUSES.SUCCESS ? (
-          // Logs only record `_id`, the submission route swaps it for the root UUID once it has resolved the record.
-          <ButtonNew
-            variant='transparent'
-            component={Link}
-            to={getSubmissionPath(assetUid, log.submission_id)}
-            state={{ backTo: getBackToCurrentScreen(t('Back to REST Service Logs')) }}
-          >
+          // Logs only record `_id`, which is enough for the preview to find the record.
+          <ButtonNew variant='transparent' onClick={() => setPreviewedSubmissionId(String(log.submission_id))}>
             {log.submission_id}
           </ButtonNew>
         ) : (
@@ -246,6 +258,17 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
               </Group>
             )
           }
+        />
+      )}
+
+      {previewedSubmissionId && (
+        <SubmissionPreviewModal
+          asset={asset}
+          submissionId={previewedSubmissionId}
+          onClose={() => setPreviewedSubmissionId(undefined)}
+          onOpenFullRecord={openPreviewedSubmissionRecord}
+          // A delivery log keeps only the submission's id, so it outlives the record and stays on the list as it is.
+          onDeleted={() => setPreviewedSubmissionId(undefined)}
         />
       )}
     </Stack>
