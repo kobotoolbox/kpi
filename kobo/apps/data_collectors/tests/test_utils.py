@@ -3,7 +3,8 @@ import string
 from unittest.mock import patch
 
 import fakeredis
-from django.test import TestCase
+from constance.test import override_config
+from django.test import TestCase, override_settings
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollectorGroup
@@ -14,6 +15,7 @@ from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
+    toggle_internal_external_open_rosa_server_for_all_data_collectors,
 )
 from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.utils.log import logging
@@ -53,8 +55,10 @@ class TestDataCollectorUtils(TestCase):
         self.redis_client.hset(id_key, 'openRosaServer', server_url)
         return {'enketo_id': fake_enketo_id}
 
-    def _check_expected_redis_entries(self, token, form_id):
-        expected_url = to_internal_or_external_url(DC_ENKETO_URL_TEMPLATE.format(token))
+    def _check_expected_redis_entries(self, token, form_id, expected_url=None):
+        expected_url = expected_url or to_internal_or_external_url(
+            DC_ENKETO_URL_TEMPLATE.format(token)
+        )
         enketo_key = get_redis_key_for_token_and_xform(token, form_id)
         enketo_id = self.redis_client.get(enketo_key).decode('utf-8')
         open_rosa_server = self.redis_client.hget(
@@ -137,3 +141,48 @@ class TestDataCollectorUtils(TestCase):
             rename_data_collector_enketo_links('1', '2')
             log_message = f'No redis entries found for data collector token 1'
             assert log_message in log_context.output[0]
+
+    @override_settings(
+        KOBOCAT_INTERNAL_URL='http://internal', KOBOCAT_URL='https:/external'
+    )
+    def toggle_internal_external_open_rosa_server_for_all_data_collectors(self):
+        with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=False):
+            set_data_collector_enketo_links('1', ['a12345', 'b12345'])
+            set_data_collector_enketo_links('2', ['a12345'])
+
+            # check URLs are external to start with
+            self._check_expected_redis_entries(
+                '1', 'a12345', expected_url='https://external/1'
+            )
+            self._check_expected_redis_entries(
+                '1', 'b12345', expected_url='https://external/1'
+            )
+            self._check_expected_redis_entries(
+                '2', 'a12345', expected_url='https://external/2'
+            )
+
+        with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=True):
+            # switch to internal
+            toggle_internal_external_open_rosa_server_for_all_data_collectors()
+            self._check_expected_redis_entries(
+                '1', 'a12345', expected_url='http://internal/1'
+            )
+            self._check_expected_redis_entries(
+                '1', 'b12345', expected_url='http://internal/1'
+            )
+            self._check_expected_redis_entries(
+                '2', 'a12345', expected_url='http://internal/2'
+            )
+
+        with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=True):
+            # back to external
+            toggle_internal_external_open_rosa_server_for_all_data_collectors()
+            self._check_expected_redis_entries(
+                '1', 'a12345', expected_url='https://external/1'
+            )
+            self._check_expected_redis_entries(
+                '1', 'b12345', expected_url='https://external/1'
+            )
+            self._check_expected_redis_entries(
+                '2', 'a12345', expected_url='https://external/2'
+            )
