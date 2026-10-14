@@ -62,21 +62,27 @@ def fetch_enketo_links(data: dict) -> dict:
     }
 
 
-def to_internal_url(url: str, openrosa: bool = True) -> str:
+def to_internal_or_external_url(url: str, openrosa: bool = True) -> str:
     """
     Return `url` with its scheme and host swapped for `KOBOCAT_INTERNAL_URL`
     (`openrosa=True`) or `KOBOFORM_INTERNAL_URL` (`openrosa=False`) when
     `ENKETO_USE_INTERNAL_OPENROSA_URL` is enabled, `url` unchanged otherwise
     """
 
-    if not config.ENKETO_USE_INTERNAL_OPENROSA_URL:
-        return url
-    internal_url = urlparse(
-        settings.KOBOCAT_INTERNAL_URL if openrosa else settings.KOBOFORM_INTERNAL_URL
-    )
+    use_internal = config.ENKETO_USE_INTERNAL_OPENROSA_URL
+    if use_internal and openrosa:
+        desired_url = settings.KOBOCAT_INTERNAL_URL
+    elif use_internal and not openrosa:
+        desired_url = settings.KOBOFORM_INTERNAL_URL
+    elif not use_internal and openrosa:
+        desired_url = settings.KOBOCAT_URL
+    else:
+        desired_url = settings.KOBOFORM_URL
+
+    parsed_url = urlparse(desired_url)
 
     return (
         urlparse(url)
-        ._replace(scheme=internal_url.scheme, netloc=internal_url.netloc)
+        ._replace(scheme=parsed_url.scheme, netloc=parsed_url.netloc)
         .geturl()
     )

@@ -53,7 +53,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
-from kpi.deployment_backends.openrosa_utils import to_internal_url
+from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -89,8 +89,8 @@ from kpi.schema_extensions.v2.data.serializers import (
     EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
-from kpi.utils.log import logging
 from kpi.utils.enketo_utils import rewrite_internal_url_to_external
+from kpi.utils.log import logging
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -1006,7 +1006,7 @@ class DataViewSet(
         )
 
         data = {
-            'server_url': to_internal_url(
+            'server_url': to_internal_or_external_url(
                 reverse(
                     viewname='assetsnapshot-detail',
                     kwargs={'uid_asset_snapshot': snapshot.uid},
@@ -1022,7 +1022,7 @@ class DataViewSet(
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
         for attachment in attachments:
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
-            data[key_] = to_internal_url(
+            data[key_] = to_internal_or_external_url(
                 reverse(
                     'attachment-detail',
                     args=(self.asset.uid, submission_id, attachment.uid),

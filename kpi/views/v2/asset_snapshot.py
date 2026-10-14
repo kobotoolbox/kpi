@@ -19,7 +19,7 @@ from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
-from kpi.deployment_backends.openrosa_utils import to_internal_url
+from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -439,7 +439,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             data = {
-                'server_url': to_internal_url(
+                'server_url': to_internal_or_external_url(
                     reverse(
                         viewname='assetsnapshot-detail',
                         kwargs={'uid_asset_snapshot': snapshot.uid},

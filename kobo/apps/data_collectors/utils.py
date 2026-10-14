@@ -8,7 +8,7 @@ from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.openrosa.libs.utils.viewer_tools import EnketoError
 from kpi.deployment_backends.openrosa_utils import (
     fetch_enketo_links,
-    to_internal_url,
+    to_internal_or_external_url,
 )
 from kpi.utils.log import logging
 
@@ -43,6 +43,41 @@ def get_all_redis_entries_for_token(redis_client, token):
     return [key.decode('utf-8') for key in keys]
 
 
+def toggle_internal_external_open_rosa_server_for_all_data_collectors():
+    redis_client = get_redis_connection('enketo_redis_main')
+
+    # All data collector keys use the '/collector' url prefix
+    base_url = get_url_for_enketo_key(DC_ENKETO_URL_TEMPLATE.format(''))
+    pattern = f'or:{base_url}*'
+    cursor, all_or_keys = redis_client.scan(cursor=0, match=pattern)
+    while cursor > 0:
+        cursor, more_keys = redis_client.scan(cursor=cursor, match=pattern)
+        all_or_keys.extend(more_keys)
+
+    if not all_or_keys:
+        return
+
+    all_or_keys = [key.decode('utf-8') for key in all_or_keys]
+    enketo_id_values = redis_client.mget(*all_or_keys)
+
+    # Reconstruct the server URL from each or-key to avoid a separate hget
+    # pipeline: the key format is or:<host>/collector/<token>,<xform_id>.
+    pipeline = redis_client.pipeline()
+    for or_key, enketo_id_bytes in zip(all_or_keys, enketo_id_values):
+        if enketo_id_bytes is None:
+            continue
+        enketo_id = enketo_id_bytes.decode('utf-8')
+        url_without_scheme = or_key[3:].split(',')[0].rstrip('/')
+        *_, token = url_without_scheme.split('/')
+        server_url = DC_ENKETO_URL_TEMPLATE.format(token)
+        pipeline.hset(
+            f'id:{enketo_id}',
+            'openRosaServer',
+            to_internal_or_external_url(server_url, openrosa=True),
+        )
+    pipeline.execute()
+
+
 def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
     redis_client = get_redis_connection('enketo_redis_main')
     for xform_id_string in xform_id_strings:
@@ -74,7 +109,7 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
         redis_client.hset(
             get_redis_key_for_enketo_id(new_id),
             'openRosaServer',
-            to_internal_url(server_url),
+            to_internal_or_external_url(server_url),
         )
 
 
@@ -130,7 +165,9 @@ def rename_data_collector_enketo_links(old_token: str, new_token: str):
             enketo_key = get_redis_key_for_enketo_id(enketo_id)
             # update the server urls to use the new token
             redis_client.hset(
-                enketo_key, 'openRosaServer', to_internal_url(new_server_url)
+                enketo_key,
+                'openRosaServer',
+                to_internal_or_external_url(new_server_url),
             )
         except redis.exceptions.ResponseError:
             logging.warning(f'Attempt to rename non-existent key {key}')

@@ -85,7 +85,11 @@ from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
-from .openrosa_utils import fetch_enketo_links, generate_enketo_links, to_internal_url
+from .openrosa_utils import (
+    fetch_enketo_links,
+    generate_enketo_links,
+    to_internal_or_external_url,
+)
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -1124,7 +1128,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         server_url = settings.KOBOCAT_URL.rstrip('/')
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
-        server_url = to_internal_url(server_url)
+        server_url = to_internal_or_external_url(server_url)
         try:
             enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.hset(
