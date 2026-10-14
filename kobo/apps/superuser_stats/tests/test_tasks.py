@@ -7,17 +7,19 @@ from django.test import TestCase
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
-from kpi.tests.utils import baker_generators  # noqa: F401 registers KpiUidField gen.
+from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter, XForm
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.superuser_stats.tasks import (
     generate_continued_usage_report,
     generate_domain_report,
+    generate_media_storage_report,
     generate_user_report,
     generate_user_statistics_report,
 )
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models.asset import Asset, AssetDeploymentStatus
+from kpi.tests.utils import baker_generators  # noqa: F401 registers KpiUidField gen.
 
 START_DATE = '2025-01-01'
 END_DATE = '2025-12-31'
@@ -223,6 +225,53 @@ class GenerateReportsTestCase(TestCase):
 
         usernames = [r[0] for r in rows[1:]]
         assert 'diana' in usernames
+
+    # ------------------------------------------------------------------ #
+    # generate_media_storage_report                                        #
+    # ------------------------------------------------------------------ #
+
+    def test_generate_media_storage_report_includes_users_without_storage(self):
+        """
+        Every user with a profile is listed, as before storage was summed from
+        projects: trashed projects count for nothing, and users without any
+        other project get 0.
+        """
+        with_storage, without_project, all_trashed = (
+            baker.make(User, username=username)
+            for username in ('erin', 'frank', 'grace')
+        )
+        for user in (with_storage, without_project, all_trashed):
+            UserProfile.objects.get_or_create(user=user)
+
+        # `bulk_create()` skips `XForm.save()`, which needs a real form to parse
+        XForm.objects.bulk_create(
+            [
+                XForm(
+                    user=user,
+                    id_string=f'storage_{index}',
+                    title='storage',
+                    xml='',
+                    attachment_storage_bytes=storage_bytes,
+                    pending_delete=pending_delete,
+                )
+                for index, (user, storage_bytes, pending_delete) in enumerate(
+                    (
+                        (with_storage, 100, False),
+                        (with_storage, 50, False),
+                        (with_storage, 25, True),
+                        (all_trashed, 75, True),
+                    )
+                )
+            ]
+        )
+
+        rows = self._run_task_and_get_rows(generate_media_storage_report)
+
+        assert rows[0] == ['Username', 'Storage Used (Bytes)']
+        storage_by_username = dict(rows[1:])
+        assert storage_by_username['erin'] == '150'
+        assert storage_by_username['frank'] == '0'
+        assert storage_by_username['grace'] == '0'
 
     def _run_task_and_get_rows(self, task_func, *args):
         buffers = []

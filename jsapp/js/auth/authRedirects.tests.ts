@@ -22,8 +22,8 @@ const statusWithFlows = (flows: Flow[], base: AuthStatus = signedIn): AuthStatus
 }
 
 /**
- * Defaults put the browser on a project page with nowhere else named, which most events read as "stay put". Only the
- * plain fields are overridable, so the two spies keep their mock types.
+ * Defaults put the browser on a project page with nowhere else named, which most events read as "stay put", and the
+ * reading on a call this tab made. Only the plain fields are overridable, so the two spies keep their mock types.
  */
 function contextAt(overrides: Partial<Omit<RedirectContext, 'navigate' | 'goToPage'>> = {}) {
   const routePath = overrides.routePath ?? PROJECTS_ROUTES.MY_PROJECTS
@@ -33,6 +33,7 @@ function contextAt(overrides: Partial<Omit<RedirectContext, 'navigate' | 'goToPa
     routePath,
     routeWithSearch: routePath,
     nextRoute: null,
+    isReadingFromOwnCall: true,
     ...overrides,
   }
 }
@@ -83,6 +84,15 @@ describe('redirectForAuthChange', () => {
       chai.expect(context.goToPage.mock.calls, routePath).to.deep.equal([])
       chai.expect(context.navigate.mock.calls, routePath).to.deep.equal([])
     }
+  })
+
+  // Nothing on screen is about this sign-in, and allauth answers 409 to a signup from somebody already signed in.
+  it('follows a sign-in these screens had no hand in off them anyway', () => {
+    const context = contextAt({ routePath: AUTH_ROUTES.SIGNUP, isReadingFromOwnCall: false })
+
+    redirectForAuthChange(AuthChangeEvent.loggedIn, signedIn, context)
+
+    chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/`]])
   })
 
   // Asking for the reset email never produces a session, so there is nothing for that screen to announce.

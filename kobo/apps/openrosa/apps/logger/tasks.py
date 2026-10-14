@@ -139,38 +139,6 @@ def fix_stale_submissions_suspended_flag():
         )
 
 
-@celery_app.task(
-    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
-    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
-)
-def sync_storage_counters(**kwargs):
-    """
-    Task to synchronize the "storage" counters for user profiles and their projects (XForm).
-
-    This task ensures consistency between the storage usage tracked at the profile level
-    and the cumulative storage used by all associated projects. The total storage usage
-    calculated from the projects should match the storage counter of the corresponding profile.
-
-    Note:
-    - This task is **not** automatically included in the periodic tasks.
-    - If this task is added to periodic tasks, ensure that the
-      `fix_stale_submissions_suspended_flag` task is also scheduled to maintain
-      system integrity and prevent stale data issues.
-    """
-
-    # The `no_lock` option is not hard-coded when calling the command, allowing
-    # superusers to control the lock behaviour from the admin interface without
-    # requiring a redeployment.
-    no_lock = kwargs.get('no_lock', False)
-
-    call_command(
-        'update_attachment_storage_bytes',
-        verbosity=3,
-        sync=True,
-        no_lock=no_lock,
-    )
-
-
 @celery_app.task
 def delete_expired_instance_history_records(chunk_size=10000, max_records=1000000):
     threshold_time = timezone.now() - timedelta(

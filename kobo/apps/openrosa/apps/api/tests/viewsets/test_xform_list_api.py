@@ -834,7 +834,16 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
                 'pk_0': self.xform_without_auth.pk,
                 'pk_1': self.xform.pk,
             }
-            self.assertEqual(content, form_list_xml % data)
+            expected_content = form_list_xml % data
+            # The form list is not sorted (sorting is left to the client), so
+            # compare the forms regardless of their order.
+            xform_pattern = r'<xform>.*?</xform>'
+            assert sorted(re.findall(xform_pattern, content)) == sorted(
+                re.findall(xform_pattern, expected_content)
+            )
+            assert re.sub(xform_pattern, '', content) == re.sub(
+                xform_pattern, '', expected_content
+            )
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
             self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
             self.assertTrue(response.has_header('Date'))
