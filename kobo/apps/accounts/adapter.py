@@ -18,7 +18,7 @@ from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
-from .models import SocialAppManagedDomain
+from .models import SocialAppManagedDomain, get_normalized_domain
 from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
@@ -141,17 +141,28 @@ class AccountAdapter(DefaultAccountAdapter):
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
     def is_open_for_signup(self, request, sociallogin):
-        email = sociallogin.user.email
-        domain = email.split('@')[1].lower()
         app = getattr(sociallogin.provider, 'app', None)
         if app is None:
-            managed_domain = False
-        else:
-            managed_domain = SocialAppManagedDomain.objects.filter(
-                social_app__social_app=app,
-                social_app__managed=True,
-                domain__iexact=domain,
-            ).exists()
+            # A provider configured without a `SocialApp` carries none of our
+            # custom data, so only the site-wide setting can open the door
+            return config.REGISTRATION_OPEN
+
+        custom_data = getattr(app, 'custom_data', None)
+        if custom_data is not None and custom_data.open_signup:
+            # The provider is the allowlist: it only authenticates people it
+            # recognises, so there is no domain left to check
+            return True
+
+        domain = get_normalized_domain(sociallogin.user.email)
+        if not domain:
+            # No address to match a managed domain against
+            return config.REGISTRATION_OPEN
+
+        managed_domain = SocialAppManagedDomain.objects.filter(
+            social_app__social_app=app,
+            social_app__managed=True,
+            domain__iexact=domain,
+        ).exists()
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
