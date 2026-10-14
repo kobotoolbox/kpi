@@ -157,13 +157,8 @@ export const LookupPending: Story = {
 
 /** A failed lookup says so and offers a retry, rather than reading as "nothing connected" */
 export const LookupFailed: Story = {
-  ...withSso({
-    socialApps: [UNMANAGED_APP],
-    lookupHandlers: [
-      accountProvidersServerErrorMock({ once: true }),
-      accountProvidersMock([providerAccountMock({ providerId: UNMANAGED_APP.provider_id })]),
-    ],
-  }),
+  // Every request fails: react-query asks twice in some browsers, and a success behind the failure would overtake it.
+  ...withSso({ socialApps: [UNMANAGED_APP], lookupHandlers: [accountProvidersServerErrorMock()] }),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
