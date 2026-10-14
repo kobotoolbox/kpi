@@ -151,7 +151,7 @@ class AccountAdapter(DefaultAccountAdapter):
                     social_app.settings
                     and social_app.settings.get('end_session_endpoint')
                 )
-                or self._discover_end_session_endpoint(social_app, social_account)
+                or self._discover_end_session_endpoint(social_app)
             )
             if not end_session_endpoint:
                 return default_url
@@ -185,18 +185,7 @@ class AccountAdapter(DefaultAccountAdapter):
         except Exception:
             return default_url
 
-    def _discover_end_session_endpoint(self, social_app, social_account):
-        try:
-            provider = social_account.get_provider()
-            if hasattr(provider, 'server_metadata') and isinstance(
-                provider.server_metadata, dict
-            ):
-                endpoint = provider.server_metadata.get('end_session_endpoint')
-                if endpoint:
-                    return endpoint
-        except Exception:
-            pass
-
+    def _discover_end_session_endpoint(self, social_app):
         server_url = (social_app.settings or {}).get('server_url')
         if not server_url:
             return None
