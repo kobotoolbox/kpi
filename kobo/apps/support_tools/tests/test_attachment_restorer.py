@@ -26,9 +26,7 @@ from kobo.apps.openrosa.apps.logger.tests.test_form_versions import (
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
 from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
-from kobo.apps.support_tools.utils.restorers import (
-    attachment as attachment_restorer,
-)
+from kobo.apps.support_tools.utils.restorers import attachment as attachment_restorer
 from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kpi.models.asset import Asset
 
