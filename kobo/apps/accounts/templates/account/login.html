@@ -31,7 +31,8 @@
 
     {# Create an account, Forgot Password? #}
     <div class="registration__create-or-forgot">
-      {% if config.REGISTRATION_OPEN %}
+      {% has_open_signup as open_signup %}
+      {% if config.REGISTRATION_OPEN or open_signup %}
         <a href="{{ signup_url }}" class="registration__create-account">
           {% trans "Create an account" %}
         </a>
