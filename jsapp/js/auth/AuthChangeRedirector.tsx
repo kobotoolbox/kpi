@@ -1,10 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { isNewestReadingFromOwnCall } from './authChangeWatcher'
 import { type RedirectContext, redirectForAuthChange } from './authRedirects'
 import { type AuthStatus, determineAuthChangeEvent } from './authStatus'
 import { goToPage } from './nextUrl'
 import { useAuthStatus } from './useAuthStatus'
 import { useNextRoute } from './useNextRoute'
+
+/** A `RedirectContext` minus where the reading came from: only the effect acting on a change can say. */
+type WhereTheBrowserIs = Omit<RedirectContext, 'isReadingFromOwnCall'>
 
 /**
  * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing on
@@ -24,14 +28,14 @@ export default function AuthChangeRedirector() {
 
   // Kept out of the effect's dependencies: a redirect has to happen once per change in the session, not again every
   // time the address bar moves - which redirecting itself causes.
-  const context: RedirectContext = {
+  const context: WhereTheBrowserIs = {
     navigate,
     routePath: pathname,
     routeWithSearch: pathname + search,
     nextRoute,
     goToPage,
   }
-  const contextRef = useRef<RedirectContext>(context)
+  const contextRef = useRef<WhereTheBrowserIs>(context)
   contextRef.current = context
 
   const previousStatusRef = useRef<AuthStatus | undefined>(undefined)
@@ -52,7 +56,9 @@ export default function AuthChangeRedirector() {
 
     const event = determineAuthChangeEvent(previousStatus, authStatus)
     if (event) {
-      redirectForAuthChange(event, authStatus, contextRef.current)
+      // Read here, not during render: it belongs to the reading being acted on, not to whatever lands later.
+      const isReadingFromOwnCall = isNewestReadingFromOwnCall()
+      redirectForAuthChange(event, authStatus, { ...contextRef.current, isReadingFromOwnCall })
     }
   }, [authStatus])
 

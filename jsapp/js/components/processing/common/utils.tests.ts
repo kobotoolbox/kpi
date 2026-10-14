@@ -4,7 +4,6 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import { QUESTION_TYPES } from '#/constants'
-import { FeatureFlag } from '#/featureFlags'
 import {
   getBlockedTargetLanguages,
   getSuggestedLanguages,
@@ -264,17 +263,6 @@ describe('hasAnalysisSource', () => {
     return (answer === undefined ? {} : { [XPATH]: answer }) as unknown as DataResponse
   }
 
-  /** Feature flags are read from session storage, see `checkFeatureFlag`. */
-  function setTextActionsFlag(enabled: boolean) {
-    sessionStorage.setItem(
-      'feature_flags',
-      JSON.stringify(enabled ? { [FeatureFlag.nlpTextActionsEnabled]: true } : {}),
-    )
-  }
-
-  beforeEach(() => setTextActionsFlag(true))
-  afterEach(() => sessionStorage.removeItem('feature_flags'))
-
   it('is true for a text question with an answer, even without a transcript', () => {
     chai.expect(hasAnalysisSource(TEXT, buildSubmission('hello'), buildSupplement([]), XPATH)).to.equal(true)
   })
@@ -283,11 +271,6 @@ describe('hasAnalysisSource', () => {
     chai.expect(hasAnalysisSource(TEXT, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(TEXT, buildSubmission(''), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
-  })
-
-  it('is false for a text question when the text actions feature flag is off', () => {
-    setTextActionsFlag(false)
-    chai.expect(hasAnalysisSource(TEXT, buildSubmission('hello'), buildSupplement([]), XPATH)).to.equal(false)
   })
 
   it('is false for an audio question without a transcript', () => {

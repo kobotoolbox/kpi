@@ -1437,9 +1437,6 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
-ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
-# How long to wait before flushing an individual preview from Enketo's cache
-ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1721,14 +1718,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
         'description': (
             'Unlock accounts left suspended by a storage recount which died'
-        ),
-        'options': {'queue': 'kpi_long_running_tasks_queue'},
-    },
-    'sync-storage-counters': {
-        'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
-        'schedule': crontab(minute=30, hour=0, day_of_week=0),
-        'description': (
-            'Synchronize out of sync attachment storage bytes of profile and projects'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },

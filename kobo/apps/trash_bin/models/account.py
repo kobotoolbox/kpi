@@ -7,6 +7,7 @@ from django.utils.timezone import now
 
 from hub.models import ExtraUserDetail
 from kpi.fields import KpiUidField
+from ..type_aliases import UpdatedQuerySetAndCount
 from . import BaseTrash
 
 
@@ -28,7 +29,9 @@ class AccountTrash(BaseTrash):
             return f'{self.user.username} - None'
 
     @classmethod
-    def toggle_statuses(cls, object_identifiers: list[int], active: bool = False):
+    def toggle_statuses(
+        cls, object_identifiers: list[int], active: bool = False, **kwargs
+    ) -> UpdatedQuerySetAndCount:
         """
         Toggle statuses of projects based on their primary key.
         """

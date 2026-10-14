@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { getAnonymousGateDecision } from '#/auth/authGate'
 import type { AuthStatus } from '#/auth/authStatus'
 import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
@@ -20,12 +21,18 @@ export interface RequireAnonymousProps {
 export default function RequireAnonymous({ children }: RequireAnonymousProps) {
   const { data: authStatus } = useAuthStatus()
   const nextRoute = useNextRoute()
+  const { pathname } = useLocation()
 
-  // `undefined` until allauth answers, which this gate does not wait for - see `getAnonymousGateDecision`
-  const arrivalStatusRef = useRef<AuthStatus | undefined>(undefined)
-  arrivalStatusRef.current ??= authStatus
+  // Latched per route rather than per mount: every anonymous screen renders this gate in the same slot, so React keeps
+  // one instance across a move between them. A reading held over that move would show the login form to somebody sign
+  // up had just signed in. Stays `undefined` until allauth answers, which this gate does not wait for.
+  const arrival = useRef<{ pathname: string; status?: AuthStatus }>({ pathname })
+  if (arrival.current.pathname !== pathname) {
+    arrival.current = { pathname }
+  }
+  arrival.current.status ??= authStatus
 
-  const decision = getAnonymousGateDecision({ authStatus: arrivalStatusRef.current })
+  const decision = getAnonymousGateDecision({ authStatus: arrival.current.status })
 
   useEffect(() => {
     if (decision !== 'redirect') {

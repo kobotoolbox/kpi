@@ -34,11 +34,13 @@ export interface RedirectContext {
   nextRoute: string | null
   /** A page load, where `null` means this page again, but now with session it missed */
   goToPage: (url: string | null) => void
+  /** Whether this change came from one of our own calls rather than the poll - see `#/auth/authChangeWatcher` */
+  isReadingFromOwnCall: boolean
 }
 
 /** `status` is the new reading. */
 export function redirectForAuthChange(event: AuthChangeEvent, status: AuthStatus, context: RedirectContext) {
-  const { navigate, routePath, routeWithSearch, nextRoute, goToPage } = context
+  const { navigate, routePath, routeWithSearch, nextRoute, goToPage, isReadingFromOwnCall } = context
 
   /** Skips a navigation that would land where the browser already is */
   function goToRoute(pathWithSearch: string, { replace = false } = {}) {
@@ -55,8 +57,9 @@ export function redirectForAuthChange(event: AuthChangeEvent, status: AuthStatus
       return
 
     case AuthChangeEvent.loggedIn:
-      // The screen is mid-sentence about the session that just appeared, so let it finish
-      if (announcesItsOwnSignIn(routePath)) {
+      // The screen is mid-sentence about the session it just created, so let it finish. A sign-in in another tab
+      // leaves nothing worth reading here, and a signup form left open only earns a 409 on submit.
+      if (isReadingFromOwnCall && announcesItsOwnSignIn(routePath)) {
         return
       }
       // The one move that cannot be a soft navigation - see `getUrlForNextRoute`. With nowhere named and not on an
