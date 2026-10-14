@@ -1108,7 +1108,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self.store_data({'backend_response': self.backend_response})
         return True
 
-    def set_enketo_open_rosa_server(self, require_auth: bool, enketo_id: str = None):
+    def set_enketo_open_rosa_server(
+        self, require_auth: bool, enketo_id: str = None, raise_on_error: bool = True
+    ):
         # Kobocat handles Open Rosa requests with different accesses.
         #  - Authenticated access, https://[kc]
         #  - Anonymous access, https://[kc]/username
@@ -1123,19 +1125,29 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
         server_url = to_internal_url(server_url)
+        try:
+            enketo_redis_client = get_redis_connection('enketo_redis_main')
+            enketo_redis_client.hset(
+                f'id:{enketo_id}',
+                'openRosaServer',
+                server_url,
+            )
 
-        enketo_redis_client = get_redis_connection('enketo_redis_main')
-        enketo_redis_client.hset(
-            f'id:{enketo_id}',
-            'openRosaServer',
-            server_url,
-        )
-
-        # record whether we used an internal url when we set the open rosa server
-        self.save_to_db(
-            {ENKETO_INTERNAL_URL_FLAG: config.ENKETO_USE_INTERNAL_OPENROSA_URL},
-            update_date_modified=False,
-        )
+            # ENKETO_INTERNAL_URL_FLAG tells us whether we used internal URLs
+            # the previous time we updated redis, ENKETO_USE_INTERNAL_OPENROSA_URL
+            # tells us whether we used the internal URLs this time. If they don't match,
+            # update the stored data to match the constance config
+            if config.ENKETO_USE_INTERNAL_OPENROSA_URL ^ self.get_data(
+                ENKETO_INTERNAL_URL_FLAG, default=False
+            ):
+                self.save_to_db(
+                    {ENKETO_INTERNAL_URL_FLAG: config.ENKETO_USE_INTERNAL_OPENROSA_URL},
+                    update_date_modified=False,
+                )
+        except redis.exceptions.ConnectionError as e:
+            if raise_on_error:
+                raise e
+            logging.error('Unable to connect to redis to update open rosa server')
 
     def set_mongo_uuid(self):
         """
@@ -1440,10 +1452,15 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             XForm.objects.filter(pk=self.xform_id).update(pending_transfer=False)
 
     def transfer_enketo_links(
-        self, previous_owner_username: str, project_identifier: str
+        self,
+        previous_owner_username: str,
+        project_identifier: str,
+        raise_on_error: bool = True,
     ):
         self.rename_enketo_id_key(previous_owner_username, project_identifier)
-        self.set_enketo_open_rosa_server(require_auth=self.xform.require_auth)
+        self.set_enketo_open_rosa_server(
+            require_auth=self.xform.require_auth, raise_on_error=raise_on_error
+        )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 

@@ -505,7 +505,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None
+        self, require_auth: bool, enketo_id: str = None, raise_on_error: bool = True
     ):
         pass
 
@@ -579,7 +579,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def transfer_enketo_links(
-        self, previous_owner_username: str, project_identifier: str
+        self,
+        previous_owner_username: str,
+        project_identifier: str,
+        raise_on_error: bool = True,
     ):
         pass
 
