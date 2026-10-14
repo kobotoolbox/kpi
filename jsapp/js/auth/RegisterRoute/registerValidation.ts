@@ -1,26 +1,21 @@
 import type { SocialApp } from '#/api/models/socialApp'
+import { getRequiredFieldMessage, validateEmailFormat, validateRequiredField } from '#/auth/authValidation'
 
 /**
  * Client side validation for the registration form. The backend is authoritative, so this only saves a
- * round trip.
+ * round trip. The checks shared with the sign-in and password reset forms live in `#/auth/authValidation`.
  */
-
-/** Loose on purpose - rejecting a deliverable address is worse than letting the server say no. */
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 /** Same as in `kobo/apps/accounts/validators.py` */
 const USERNAME_PATTERN = /^[a-z][a-z0-9_]+$/
 const USERNAME_MAX_LENGTH = 30
 
-const requiredFieldMessage = () => t('Required field')
-
-export function validateFullName(value: string): string | null {
-  return value.trim() ? null : requiredFieldMessage()
-}
+/** Nothing to check past it being filled in: names are free form, and deliberately so. */
+export const validateFullName = validateRequiredField
 
 export function validateUsername(value: string): string | null {
   if (!value.trim()) {
-    return requiredFieldMessage()
+    return getRequiredFieldMessage()
   }
   if (!USERNAME_PATTERN.test(value) || value.length > USERNAME_MAX_LENGTH) {
     return t(
@@ -30,25 +25,8 @@ export function validateUsername(value: string): string | null {
   return null
 }
 
-export function validatePassword(value: string): string | null {
-  // No length or complexity rules: every validator in `AUTH_PASSWORD_VALIDATORS` is gated behind a
-  // constance setting that defaults to off, so the server decides.
-  // TODO: strength meter in DEV-1866.
-  return value ? null : requiredFieldMessage()
-}
-
-export function validatePasswordConfirm(value: string, password: string): string | null {
-  if (!value) {
-    return requiredFieldMessage()
-  }
-  if (value !== password) {
-    return t('You must type the same password each time.')
-  }
-  return null
-}
-
 export function validateTermsOfService(value: boolean): string | null {
-  return value ? null : requiredFieldMessage()
+  return value ? null : getRequiredFieldMessage()
 }
 
 function getEmailDomain(email: string): string | null {
@@ -71,11 +49,9 @@ export function findManagedSsoProvider(email: string, socialApps: SocialApp[] | 
 }
 
 export function validateEmail(value: string, socialApps: SocialApp[] | undefined): string | null {
-  if (!value.trim()) {
-    return requiredFieldMessage()
-  }
-  if (!EMAIL_PATTERN.test(value.trim())) {
-    return t('Please enter a valid email address')
+  const formatError = validateEmailFormat(value)
+  if (formatError) {
+    return formatError
   }
   if (findManagedSsoProvider(value, socialApps)) {
     // Verbatim from `KoboSignupMixin.clean_email`, which the headless endpoint never runs.

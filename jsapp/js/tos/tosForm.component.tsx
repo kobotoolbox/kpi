@@ -1,17 +1,12 @@
-import { type default as React, useEffect, useState } from 'react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 
-import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from '#/account/account.constants'
-import { getInitialAccountFieldsValues, getProfilePatchData } from '#/account/account.utils'
-import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
-import { fetchGet, fetchPatch, fetchPost, handleApiFail } from '#/api'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import { fetchGet, fetchPost, handleApiFail } from '#/api'
 import { useLogout } from '#/auth/useLogout'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
-import envStore from '#/envStore'
 import { currentLang, notify } from '#/utils'
-import { useProfile } from '../stores/useProfile'
 import styles from './tosForm.module.scss'
 
 /** A slug for the `sitewide_messages` endpoint */
@@ -19,21 +14,8 @@ const TOS_SLUG = 'terms_of_service'
 /** Where `<language>` is language code, e.g. "fr" */
 const TOS_SLUG_TRANSLATED = `${TOS_SLUG}_<language>`
 
-const ME_ENDPOINT = '/me/'
 const TOS_ACCEPT_ENDPOINT = '/me/tos/'
 const TOS_MESSAGES_ENDPOINT = '/api/v2/terms-of-service/'
-
-/**
- * Organization fields are managed at the organization level, so members of an
- * MMO are not allowed to edit them and we omit them from the form.
- */
-const MMO_HIDDEN_FIELDS: UserFieldName[] = ['organization', 'organization_website', 'organization_type']
-
-interface MePatchFailResponse {
-  responseJSON: {
-    extra_details: AccountFieldsErrors
-  }
-}
 
 interface SitewideMessage {
   url: string
@@ -45,30 +27,18 @@ interface SitewideMessage {
 type SitewideMessagesResponse = SitewideMessage[]
 
 /**
- * This form displays a TOS announcement message together with user metadata
- * fields editor (only for required fields). There is an accept button that will
- * cause the UI to be unlocked, and decline button that will log out the user.
+ * This form displays a TOS announcement message with an accept button that will cause the UI to be
+ * unlocked, and a decline button that will log out the user.
+ *
+ * Required profile details used to be collected here too. They have their own route blocker now
+ * (`ProfileDetailsBlocker`), which runs after this one, so this form is about the terms and nothing else.
  */
 export default function TOSForm() {
-  // After "Accept" button is clicked, this will be true until the call(s) resolve
+  // After "Accept" button is clicked, this will be true until the call resolves
   const [isFormPending, setIsFormPending] = useState(false)
   const [announcementMessage, setAnnouncementMessage] = useState<string | undefined>()
-  const [formFields, setFormFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues())
-  const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({})
-  const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
 
-  const { currentLoggedAccount } = useProfile()
   const logout = useLogout()
-  const [organization] = useOrganizationAssumed()
-
-  const requiredFields = envStore.data.getUserMetadataRequiredFieldNames()
-  if (envStore.data.getUserMetadataFieldsAsSimpleDict().newsletter_subscription) {
-    requiredFields.push('newsletter_subscription')
-  }
-
-  const fieldsToShow = organization?.is_mmo
-    ? requiredFields.filter((fieldName) => !MMO_HIDDEN_FIELDS.includes(fieldName))
-    : requiredFields
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -98,93 +68,27 @@ export default function TOSForm() {
     getTOS()
   }, [])
 
-  // After profile store is ready, we fill in all the fields for the form
-  // (including the non-required ones that will be hidden, but passed to the API
-  // so that they will not get erased).
-  useEffect(() => {
-    if (!currentLoggedAccount) {
-      return
-    }
-
-    setFormFields({
-      name: currentLoggedAccount.extra_details.name,
-      organization: currentLoggedAccount.extra_details.organization,
-      organization_website: currentLoggedAccount.extra_details.organization_website,
-      organization_type: currentLoggedAccount.extra_details.organization_type,
-      sector: currentLoggedAccount.extra_details.sector,
-      gender: currentLoggedAccount.extra_details.gender,
-      bio: currentLoggedAccount.extra_details.bio,
-      city: currentLoggedAccount.extra_details.city,
-      country: currentLoggedAccount.extra_details.country,
-      require_auth: currentLoggedAccount.extra_details.require_auth,
-      twitter: currentLoggedAccount.extra_details.twitter,
-      linkedin: currentLoggedAccount.extra_details.linkedin,
-      instagram: currentLoggedAccount.extra_details.instagram,
-      newsletter_subscription: currentLoggedAccount.extra_details.newsletter_subscription,
-    })
-  }, [currentLoggedAccount])
-
-  const onFieldChange = (fieldName: string, value: string | boolean) => {
-    setFormFields({
-      ...formFields,
-      [fieldName]: value,
-    })
-    setEditedFields({
-      ...editedFields,
-      [fieldName]: value,
-    })
-  }
-
   /**
-   * Submitting does two things (with two consecutive API calls):
-   * 1. Updates user data for all required fields (if any)
-   * 2. Accepts TOS
-   * When TOS is successfully accepted, we reload the page to display
+   * Accepting TOS is simply POSTing to this endpoint. When it succeeds, we reload the page to display
    * the unblocked UI.
    */
   async function submitForm(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault()
     setIsFormPending(true)
 
-    let hasAnyErrors = false
-
-    // If there are no required fields, there is no point doing a call to update
-    // them.
-    if (fieldsToShow.length > 0) {
-      // Get data for the user endpoint
-      const profilePatchData = getProfilePatchData(editedFields)
-
-      try {
-        await fetchPatch(ME_ENDPOINT, profilePatchData)
-        // Remove any obsolete errors
-        setFieldsErrors({})
-        hasAnyErrors = false
-      } catch (err) {
-        const patchFailResult = err as MePatchFailResponse
-        setFieldsErrors(patchFailResult.responseJSON.extra_details || {})
-        hasAnyErrors = true
-      }
+    try {
+      await fetchPost(TOS_ACCEPT_ENDPOINT, {})
+      // TODO ideally we could make the profileStore fetch new account data
+      // or even override the `accepted_tos` flag without fetching. But this
+      // requires the `app.js` file to be reworked in a bit different fashion,
+      // so that it could react to `profileStore.accepted_tos` change. For now
+      // we do ugly and simple forced reload :)
+      window.location.replace('')
+    } catch (err) {
+      const failResult = err as FailResponse
+      handleApiFail(failResult)
+      setIsFormPending(false)
     }
-
-    // If there are some errors in the form, we need user to fix them before
-    // trying to submit the form again.
-    if (!hasAnyErrors) {
-      try {
-        // Accepting TOS is simply POSTing to this endpoint
-        await fetchPost(TOS_ACCEPT_ENDPOINT, {})
-        // TODO ideally we could make the profileStore fetch new account data
-        // or even override the `accepted_tos` flag without fetching. But this
-        // requires the `app.js` file to be reworked in a bit different fashion,
-        // so that it could react to `profileStore.accepted_tos` change. For now
-        // we do ugly and simple forced reload :)
-        window.location.replace('')
-      } catch (err) {
-        const failResult = err as FailResponse
-        handleApiFail(failResult)
-      }
-    }
-
-    setIsFormPending(false)
   }
 
   async function leaveForm() {
@@ -197,9 +101,7 @@ export default function TOSForm() {
     }
   }
 
-  // We are waiting for few pieces of data: the message, fields definitions from
-  // environment endpoint and fields data from me endpoint
-  if (!announcementMessage || !envStore.isReady || !currentLoggedAccount) {
+  if (!announcementMessage) {
     return <LoadingSpinner message={false} />
   }
 
@@ -211,22 +113,6 @@ export default function TOSForm() {
           __html: announcementMessage,
         }}
       />
-
-      {/* No point displaying the form and header if there are no required fields */}
-      {fieldsToShow.length > 0 && (
-        <section className={styles.metaFields}>
-          <h2 className={styles.fieldsHeader}>
-            {t('Please make sure the following details are filled out correctly:')}
-          </h2>
-
-          <AccountFieldsEditor
-            displayedFields={fieldsToShow}
-            errors={fieldsErrors}
-            values={formFields}
-            onFieldChange={onFieldChange}
-          />
-        </section>
-      )}
 
       <footer className={styles.footer}>
         <Button

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 10:33+0000\n"
+"POT-Creation-Date: 2026-10-09 16:38+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Zeresenay Asmelash, 2023\n"
 "Language-Team: Tigrinya (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ti/)\n"
@@ -22,74 +22,103 @@ msgstr ""
 msgid "Log in as user"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:67
+#: kobo/apps/accounts/adapter.py:115
+msgid "SSO account already linked"
+msgstr ""
+
+#: kobo/apps/accounts/adapter.py:117
+msgid ""
+"You can only link one SSO account at a time. Disconnect your existing SSO "
+"account before linking a new one."
+msgstr ""
+
+#: kobo/apps/accounts/admin.py:119
+msgid "The in-app message cannot be empty."
+msgstr ""
+
+#: kobo/apps/accounts/admin.py:223
+#, python-format
+msgid "Confirm Managed SSO Changes for %s"
+msgstr ""
+
+#: kobo/apps/accounts/constants.py:4
+msgid ""
+"If that email address needs confirming, a new confirmation email has been "
+"sent to it."
+msgstr ""
+
+#: kobo/apps/accounts/forms.py:70
 msgid "Please enter a valid URL"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:80 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
+#: kobo/apps/accounts/forms.py:81 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
+#: kobo/apps/accounts/forms.py:82 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:87
+#: kobo/apps/accounts/forms.py:90
 msgid "Male"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:88
+#: kobo/apps/accounts/forms.py:91
 msgid "Female"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:89 kobo/static_lists.py:37
+#: kobo/apps/accounts/forms.py:92 kobo/static_lists.py:37
 msgid "Other"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:120 kobo/apps/accounts/forms.py:123
+#: kobo/apps/accounts/forms.py:123 kobo/apps/accounts/forms.py:126
 #: kobo/apps/accounts/templates/legal/registration_legal.html:8
 msgid "Terms of Service"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:127 kobo/apps/accounts/forms.py:130
+#: kobo/apps/accounts/forms.py:130 kobo/apps/accounts/forms.py:133
 #: kobo/apps/accounts/templates/legal/registration_legal.html:13
 msgid "Privacy Policy"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:132
+#: kobo/apps/accounts/forms.py:135
 msgid "I agree with the ##terms_of_service## and ##privacy_policy##"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:146
+#: kobo/apps/accounts/forms.py:149
 msgid "Password confirmation"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:148
+#: kobo/apps/accounts/forms.py:151
 msgid "name@organization.org"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:223
+#: kobo/apps/accounts/forms.py:226
 msgid "This field is required."
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:280
+#: kobo/apps/accounts/forms.py:288
 msgid "Email must match SSO server email"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:333
+#: kobo/apps/accounts/forms.py:341
 msgid "You must type the same password each time."
+msgstr ""
+
+#: kobo/apps/accounts/forms.py:363 kobo/apps/accounts/forms.py:375
+msgid "Cannot set password for SSO-managed accounts"
 msgstr ""
 
 #: kobo/apps/accounts/mfa/forms.py:26 kobo/apps/accounts/mfa/forms.py:38
@@ -130,9 +159,49 @@ msgstr ""
 msgid "Could not activate this method. Please try again later."
 msgstr ""
 
-#: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:324
+#: kobo/apps/accounts/reauthentication.py:108
+msgid ""
+"This field is required to change the email address when authenticating "
+"without a browser session."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:112
+#: kpi/serializers/current_user.py:211
+msgid "Incorrect current password."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:118
+msgid ""
+"This field is required to change the email address when authenticating "
+"without a browser session and MFA is enabled."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:125
+msgid "Invalid code."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:160
+msgid "Re-authentication is required for this action."
+msgstr ""
+
+#: kobo/apps/accounts/serializers.py:42 kobo/apps/accounts/serializers.py:47
+#: kpi/serializers/current_user.py:329
 msgid "This action is not allowed."
+msgstr ""
+
+#: kobo/apps/accounts/tasks.py:20
+msgid ""
+"Dear ##username##,\n"
+"\n"
+"Going forward, your organization will be managing all Kobo accounts through ##sso_name##. Please connect your ##sso_name## account. Your password will be disabled and you will be required to use ##sso_name## to log in."
+msgstr ""
+
+#: kobo/apps/accounts/tasks.py:64
+msgid "Update your account"
+msgstr ""
+
+#: kobo/apps/accounts/tasks.py:65
+msgid "Please connect your ##sso_name## account"
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
@@ -302,6 +371,7 @@ msgid ""
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email_confirm.html:29
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:14
 msgid "Confirm"
 msgstr ""
 
@@ -410,6 +480,15 @@ msgstr ""
 msgid "Register with SSO"
 msgstr ""
 
+#: kobo/apps/accounts/templates/account/signup_closed.html:9
+msgid "Sign Up Closed"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/signup_closed.html:16
+#: kpi/tests/test_registration.py:160 kpi/tests/test_registration.py:174
+msgid "We are sorry, but the sign up is currently closed."
+msgstr ""
+
 #: kobo/apps/accounts/templates/account/verification_sent.html:8
 msgid "Confirm your email address"
 msgstr ""
@@ -420,16 +499,89 @@ msgid ""
 "folder) and click the link to activate your account."
 msgstr ""
 
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:8
+msgid "Home"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:20
+#, python-format
+msgid "Confirm Managed SSO changes for %(name)s"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:22
+msgid "Are you sure you want to save the following changes?"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:25
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:27
+msgid "Status:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:25
+msgid "Disabling Managed SSO"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:27
+msgid "Enabling Managed SSO"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:31
+msgid "Added domain(s):"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:35
+msgid "Removed domain(s):"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:39
+msgid ""
+"Pending in-app reminders asking users to link their SSO account will be "
+"withdrawn."
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:42
+msgid "Affected Accounts:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:44
+msgid "Linked accounts that will be converted to SSO-only:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:45
+msgid ""
+"Unlinked accounts that will receive an in-app notification to link SSO:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:62
+msgid "Send in-app message to non-linked accounts"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:67
+msgid "In-app message"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:72
+msgid "Available placeholders:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:79
+msgid "Yes, I'm sure"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:80
+msgid "No, take me back"
+msgstr ""
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:11
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
 msgid "SSO Login Failure"
 msgstr ""
 
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:23
 msgid "An error occurred while attempting to login using your SSO account."
 msgstr ""
 
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:20
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:29
 #: kpi/templates/custom_404.html:12
 msgid "Go back"
 msgstr ""
@@ -622,7 +774,7 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
-#: kobo/apps/mass_emails/tasks.py:310
+#: kobo/apps/mass_emails/tasks.py:300
 msgid "Not available"
 msgstr ""
 
@@ -666,7 +818,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1273
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1334
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -776,7 +928,7 @@ msgstr ""
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:132
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:174
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:202
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:701
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:703
 msgid "XML string must have a survey element."
 msgstr ""
 
@@ -1926,93 +2078,93 @@ msgstr ""
 msgid "Unknown or unspecified country"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:216
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:218
 msgid ""
 "Superusers are not allowed to submit data. Please use a regular account."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:232
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:234
 msgid "Forbidden"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:242
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:244
 msgid ""
 "Forbidden attempt to edit a submission. To make a new submission, Remove "
 "`deprecatedID` from the submission XML and try again."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:472
 msgid ""
 "Submission rejected: the form contains unsupported or invisible characters."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:623
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:625
 msgid "Username or ID required."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:626
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:628
 msgid "Received empty submission. No instance was created"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:629
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:631
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:638
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:640
 msgid "Form is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:641
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:643
 msgid "Temporarily unavailable"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:647
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:649
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:653
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:659
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:661
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:662
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:664
 msgid "Form does not exist on this account"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:665
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:667
 msgid "Improperly formatted XML."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:683
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:685
 msgid "Access denied"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:690
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:692
 msgid "File likely corrupted during transmission, please try later."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:827
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:829
 msgid "Invalid URL format."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:839
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:841
 msgid "Form validation timeout, please try again."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:898
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:900
 #: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:931
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:933
 msgid "The requested file could not be found."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1270
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1331
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
@@ -2255,6 +2407,30 @@ msgstr ""
 #, python-format
 msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:187 kobo/apps/organizations/views.py:254
+msgid "Filter the results with search query"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:194
+msgid "Paginate results with start parameter"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:201
+msgid "Paginate results with limit parameter"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:208
+msgid "Which field to use when ordering the results."
+msgstr ""
+
+#: kobo/apps/organizations/views.py:261
+msgid "Number of results to return per page."
+msgstr ""
+
+#: kobo/apps/organizations/views.py:268
+msgid "The initial index from which to return the results."
 msgstr ""
 
 #: kobo/apps/project_ownership/models/invite.py:99
@@ -2559,11 +2735,15 @@ msgid_plural "%d plan add-ons were created."
 msgstr[0] ""
 msgstr[1] ""
 
-#: kobo/apps/subsequences/serializers.py:25
+#: kobo/apps/subsequences/serializers.py:26
 msgid "Invalid parameters for this action"
 msgstr ""
 
-#: kobo/settings/base.py:327
+#: kobo/apps/subsequences/serializers.py:27
+msgid "This action is not supported for this question type"
+msgstr ""
+
+#: kobo/settings/base.py:339
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2571,7 +2751,7 @@ msgid ""
 "email##)."
 msgstr ""
 
-#: kobo/settings/base.py:608
+#: kobo/settings/base.py:627
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2754,53 +2934,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:142
+#: kpi/deployment_backends/base_backend.py:144
 msgid "No submissions match the given `submission_ids`"
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:612
+#: kpi/deployment_backends/base_backend.py:614
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:623
+#: kpi/deployment_backends/base_backend.py:625
 msgid "This param is not supported in `XML` format"
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:628
+#: kpi/deployment_backends/base_backend.py:630
 msgid "This is not supported in `XML` format"
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:648
-#: kpi/deployment_backends/base_backend.py:677
-#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:650
+#: kpi/deployment_backends/base_backend.py:679
+#: kpi/deployment_backends/base_backend.py:701 kpi/views/v2/data.py:1121
 msgid "Value must be valid JSON."
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:653
+#: kpi/deployment_backends/base_backend.py:655
 msgid "Value must be a list."
 msgstr ""
 
-#: kpi/deployment_backends/base_backend.py:684
-#: kpi/deployment_backends/base_backend.py:691
+#: kpi/deployment_backends/base_backend.py:686
+#: kpi/deployment_backends/base_backend.py:693
 msgid "A positive integer is required."
 msgstr ""
 
-#: kpi/deployment_backends/openrosa_backend.py:412
+#: kpi/deployment_backends/openrosa_backend.py:434
 msgid "Your submission XML is malformed."
 msgstr ""
 
-#: kpi/deployment_backends/openrosa_backend.py:418
+#: kpi/deployment_backends/openrosa_backend.py:440
 msgid "Your submission XML is missing critical elements."
 msgstr ""
 
-#: kpi/deployment_backends/openrosa_backend.py:456
+#: kpi/deployment_backends/openrosa_backend.py:478
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr ""
 
-#: kpi/deployment_backends/openrosa_backend.py:1011
+#: kpi/deployment_backends/openrosa_backend.py:1039
 msgid "Successful submission"
 msgstr ""
 
@@ -2836,11 +3016,15 @@ msgstr ""
 msgid "Not supported field lookup"
 msgstr ""
 
-#: kpi/exceptions.py:244
+#: kpi/exceptions.py:226
+msgid "Too many relational filters in the search query"
+msgstr ""
+
+#: kpi/exceptions.py:249
 msgid "Your query is too short"
 msgstr ""
 
-#: kpi/exceptions.py:267
+#: kpi/exceptions.py:272
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
@@ -3050,11 +3234,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:164
+#: kpi/models/import_export_task.py:172
 msgid "Cannot access data"
 msgstr ""
 
-#: kpi/models/import_export_task.py:827
+#: kpi/models/import_export_task.py:971
 msgid "This data does not exist or you do not have access to it"
 msgstr ""
 
@@ -3072,68 +3256,64 @@ msgid ""
 "characters."
 msgstr ""
 
-#: kpi/serializers/current_user.py:210
-msgid "Incorrect current password."
-msgstr ""
-
-#: kpi/serializers/current_user.py:230
+#: kpi/serializers/current_user.py:231
 msgid "`current_password` and `new_password` must both be"
 msgstr ""
 
-#: kpi/serializers/current_user.py:268
+#: kpi/serializers/current_user.py:269
 #: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:167
+#: kpi/serializers/v2/asset.py:166
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:173
+#: kpi/serializers/v2/asset.py:172
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:180
+#: kpi/serializers/v2/asset.py:179
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:186
+#: kpi/serializers/v2/asset.py:185
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:202
+#: kpi/serializers/v2/asset.py:201
 msgid "One or many projects have been deleted already!"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:210
+#: kpi/serializers/v2/asset.py:209
 msgid "One or many projects are already being deleted!"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:352
+#: kpi/serializers/v2/asset.py:351
 msgid "`action` parameter is required"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:357
+#: kpi/serializers/v2/asset.py:356
 msgid "Supported values for `action` are: "
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:379
+#: kpi/serializers/v2/asset.py:378
 msgid "Draft projects cannot be archived"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:385 kpi/serializers/v2/data.py:61
+#: kpi/serializers/v2/asset.py:384 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:1066
+#: kpi/serializers/v2/asset.py:1065
 msgid "The property is required"
 msgstr ""
 
-#: kpi/serializers/v2/asset.py:1070
+#: kpi/serializers/v2/asset.py:1069
 msgid "The property must be an array"
 msgstr ""
 
@@ -3413,21 +3593,21 @@ msgstr ""
 msgid "Invalid asset type. Only `{asset_type}` is allowed"
 msgstr ""
 
-#: kpi/templates/custom_404.html:7
+#: kpi/templates/custom_404.html:7 kpi/templates/error_page.html:50
 msgid "Page not found (404)"
 msgstr ""
 
-#: kpi/templates/custom_404.html:10
+#: kpi/templates/custom_404.html:10 kpi/templates/error_page.html:51
 msgid ""
 "This page does not exist on the server. Please check the URL or link that "
 "sent you here."
 msgstr ""
 
-#: kpi/templates/custom_500.html:7
+#: kpi/templates/custom_500.html:7 kpi/templates/error_page.html:47
 msgid "Server error (500)"
 msgstr ""
 
-#: kpi/templates/custom_500.html:10
+#: kpi/templates/custom_500.html:10 kpi/templates/error_page.html:48
 msgid "Something went wrong when trying to process your request."
 msgstr ""
 
@@ -3480,7 +3660,7 @@ msgstr ""
 msgid "Opera"
 msgstr ""
 
-#: kpi/tests/test_registration.py:73
+#: kpi/tests/test_registration.py:77
 msgid "This email domain is not allowed to create an account"
 msgstr ""
 

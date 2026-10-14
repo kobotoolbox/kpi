@@ -15,6 +15,7 @@ export type PatchedCurrentUserExtraDetails = {
   bio?: string
   city?: string
   name?: string
+  gender?: string
   sector?: string
   country?: string
   twitter?: string
@@ -26,5 +27,5 @@ export type PatchedCurrentUserExtraDetails = {
   organization_website?: string
   project_views_settings?: PatchedCurrentUserExtraDetailsProjectViewsSettings
   require_auth?: boolean
-  newsletter_subscription?: string
+  newsletter_subscription?: boolean
 }

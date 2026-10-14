@@ -1,7 +1,7 @@
 import { Box, Image, Stack, Text, Title } from '@mantine/core'
 import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   getAllauthBrowserV1AuthEmailVerifyGetQueryKey,
   useAllauthBrowserV1AuthEmailVerifyGet,
@@ -10,7 +10,8 @@ import {
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import ButtonNew from '#/components/common/ButtonNew'
-import { PATHS } from '#/router/routerConstants'
+import { ROOT_URL } from '#/constants'
+import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 
 /**
@@ -29,14 +30,14 @@ function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
         <>
           <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
           {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-          <ButtonNew component='a' href='/' size='lg' fullWidth>
+          <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
             {t('Continue to KoboToolbox')}
           </ButtonNew>
         </>
       ) : (
         <>
           <Text>{t('Your account is active. Please log in to get started.')}</Text>
-          <ButtonNew component='a' href={PATHS.LOGIN} size='lg' fullWidth>
+          <ButtonNew component={Link} to={AUTH_ROUTES.LOGIN} size='lg' fullWidth>
             {t('Log in')}
           </ButtonNew>
         </>
@@ -73,8 +74,7 @@ function LinkRequestedPanel() {
           "If an account exists for this email address, a verification email has been sent. Be sure to check your spam folder if you don't see it within a few minutes.",
         )}
       </Text>
-      {/* TODO: switch from Django while doing login form DEV-1851 */}
-      <ButtonNew component='a' href={PATHS.LOGIN} variant='light' size='lg' fullWidth>
+      <ButtonNew component={Link} to={AUTH_ROUTES.LOGIN} variant='light' size='lg' fullWidth>
         {t('Back to sign in')}
       </ButtonNew>
     </Stack>

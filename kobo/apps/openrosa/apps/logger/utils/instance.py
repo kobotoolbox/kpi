@@ -80,6 +80,13 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
 
     # Disconnect per-row signals; their side-effects are replayed once for the
     # whole batch below.
+    #
+    # Signals are shared by the whole process, not by the thread: another
+    # deletion running in a thread of the same process would reconnect them,
+    # in its `finally`, while this one still runs. That never happens in
+    # production, where uWSGI and Celery (prefork) workers are single-threaded
+    # processes. Only tests that run two deletions in threads must guard
+    # against it (see `test_attachment_trash_storage.py`).
     pre_delete.disconnect(pre_delete_attachment, sender=Attachment)
     pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
     post_delete.disconnect(
@@ -112,39 +119,19 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         files_to_delete = set()
 
         with kc_transaction_atomic(), transaction.atomic():
-            # One query: collect PKs + aggregate storage bytes before deleting.
-            # all_objects is used to include soft-deleted attachments
-            # (delete_status IS NOT NULL) that the default manager excludes.
-            attachment_rows = list(
-                Attachment.all_objects.filter(instance_id__in=instance_ids).values(
-                    'pk',
-                    'media_file',
-                    'media_file_size',
-                    'delete_status',
-                    'mimetype',
+            # Bulk cleanup AttachmentTrash (cross-DB: KPI default DB, no FK
+            # constraint), before deleting the attachments. `put_back()` locks
+            # the trash rows on the KPI database, then the attachments on the
+            # KoboCAT one: this must lock in the same order. The other way
+            # round, each could hold a row the other waits for, and since the
+            # two locks are on different connections, PostgreSQL would not see
+            # the deadlock and both would wait until a timeout.
+            attachment_ids = list(
+                Attachment.all_objects.filter(instance_id__in=instance_ids).values_list(
+                    'pk', flat=True
                 )
             )
-
-            # Bulk cleanup AttachmentTrash (cross-DB: KPI default DB, no FK
-            # constraint) before fast-deleting Attachments.
-            if attachment_rows:
-                attachment_ids = []
-                for attachment_row in attachment_rows:
-
-                    # Only non-trashed attachments had their storage counted; trashed
-                    # ones were already decremented when moved to the trash bin.
-                    if attachment_row['delete_status'] is None:
-                        total_storage_bytes += attachment_row['media_file_size'] or 0
-
-                    attachment_ids.append(attachment_row['pk'])
-                    if media_file := attachment_row['media_file']:
-                        files_to_delete.add(media_file)
-                        if attachment_row['mimetype'].startswith('image/'):
-                            for suffix in settings.THUMB_CONF:
-                                files_to_delete.add(
-                                    get_optimized_image_path(media_file, suffix)
-                                )
-
+            if attachment_ids:
                 att_trash_qs = AttachmentTrash.objects.using(DEFAULT_DB_ALIAS).filter(
                     attachment_id__in=attachment_ids
                 )
@@ -159,7 +146,35 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                         pk__in=periodic_task_ids
                     ).delete()
 
-            Attachment.all_objects.filter(instance_id__in=instance_ids).delete()
+            # Delete the attachments and get them back in the same query, so
+            # storage is counted from the rows as they were when deleted. Counting
+            # from the ids read above would count, a second time, an attachment
+            # trashed in between. `all_objects` includes the soft-deleted
+            # attachments that the default manager leaves out.
+            attachment_rows = Attachment.all_objects.filter(
+                instance_id__in=instance_ids
+            ).delete_returning(
+                fields=[
+                    'media_file',
+                    'media_file_size',
+                    'delete_status',
+                    'mimetype',
+                ]
+            )
+            for attachment_row in attachment_rows:
+                # Only non-trashed attachments had their storage counted; trashed
+                # ones were already decremented when moved to the trash bin.
+                if attachment_row['delete_status'] is None:
+                    total_storage_bytes += attachment_row['media_file_size'] or 0
+
+                if media_file := attachment_row['media_file']:
+                    files_to_delete.add(media_file)
+                    if attachment_row['mimetype'].startswith('image/'):
+                        for suffix in settings.THUMB_CONF:
+                            files_to_delete.add(
+                                get_optimized_image_path(media_file, suffix)
+                            )
+
             Note.objects.filter(instance_id__in=instance_ids).delete()
             InstanceModification.objects.filter(instance_id__in=instance_ids).delete()
             ParsedInstance.objects.filter(instance_id__in=instance_ids).delete()
@@ -190,8 +205,18 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             )
 
         # File deletion is outside the transaction to avoid locking tables for
-        # too long.
-        bulk_delete_files(files_to_delete, default_kobocat_storage)
+        # too long. The submissions are already deleted and committed by now:
+        # a storage failure must not report the deletion as failed, since it
+        # cannot be retried, so it is logged instead, like
+        # `pre_delete_attachment()` does. The files are left orphaned on storage.
+        try:
+            bulk_delete_files(files_to_delete, default_kobocat_storage)
+        except Exception as e:
+            logging.error(
+                f'Failed to delete {len(files_to_delete)} attachment file(s) of'
+                f' deleted submissions: {e}',
+                exc_info=True,
+            )
     finally:
         # Reconnect signals that were temporarily disabled above.
         pre_delete.connect(pre_delete_attachment, sender=Attachment)

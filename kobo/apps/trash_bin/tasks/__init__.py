@@ -5,7 +5,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from constance import config
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
@@ -30,35 +30,29 @@ from .project import empty_project
 @celery_app.task
 def garbage_collector():
 
+    # `~Exists()` instead of `exclude(pk__in=...)`: PostgreSQL turns
+    # `NOT EXISTS` into an anti-join, while `NOT IN` falls back to comparing
+    # each row with the whole subquery result when it does not fit in
+    # `work_mem`, which never finishes with millions of trashed attachments.
     with temporarily_disconnect_signals(delete=True):
         with transaction.atomic():
             # Remove orphan periodic tasks
-            PeriodicTask.objects.exclude(
-                pk__in=AccountTrash.objects.values_list('periodic_task_id', flat=True),
-            ).filter(
-                name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
-            ).delete()
-
-            PeriodicTask.objects.exclude(
-                pk__in=ProjectTrash.objects.values_list('periodic_task_id', flat=True),
-            ).filter(
-                name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
-            ).delete()
-
-            PeriodicTask.objects.exclude(
-                pk__in=AttachmentTrash.objects.values_list(
-                    'periodic_task_id', flat=True
-                ),
-            ).filter(
-                name__startswith=DELETE_ATTACHMENT_STR_PREFIX,
-                clocked__isnull=False,
-            ).delete()
+            for trash_model, prefix in (
+                (AccountTrash, DELETE_USER_STR_PREFIX),
+                (ProjectTrash, DELETE_PROJECT_STR_PREFIX),
+                (AttachmentTrash, DELETE_ATTACHMENT_STR_PREFIX),
+            ):
+                PeriodicTask.objects.filter(
+                    ~Exists(
+                        trash_model.objects.filter(periodic_task_id=OuterRef('pk'))
+                    ),
+                    name__startswith=prefix,
+                    clocked__isnull=False,
+                ).delete()
 
             # Then, remove clocked schedules
-            ClockedSchedule.objects.exclude(
-                pk__in=PeriodicTask.objects.filter(clocked__isnull=False).values_list(
-                    'clocked_id', flat=True
-                ),
+            ClockedSchedule.objects.filter(
+                ~Exists(PeriodicTask.objects.filter(clocked_id=OuterRef('pk')))
             ).delete()
 
 

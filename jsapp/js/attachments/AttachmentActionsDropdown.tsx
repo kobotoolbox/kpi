@@ -10,6 +10,10 @@ import ModalNew from '#/components/common/ModalNew'
 import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
+import {
+  getRepeatGroupProcessingUnavailableMessage,
+  isInRepeatGroup,
+} from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
 import { stripRepeatIndices } from '#/components/submissions/submissionUtils'
 import { QuestionTypeName } from '#/constants'
@@ -96,6 +100,11 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
               assetUid={props.asset.uid}
               xpath={questionXpath}
               submissionEditId={getSubmissionRootUuid(props.submission)}
+              disabledReason={
+                isInRepeatGroup(props.asset, attachment.question_xpath, props.submission)
+                  ? getRepeatGroupProcessingUnavailableMessage()
+                  : undefined
+              }
             />
             <Menu.Divider />
           </>

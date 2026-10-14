@@ -1,8 +1,15 @@
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
-import { getBlockedTargetLanguages, getSuggestedLanguages, getTranslationSourceLanguages } from './utils'
+import { QUESTION_TYPES } from '#/constants'
+import {
+  getBlockedTargetLanguages,
+  getSuggestedLanguages,
+  getTranslationSourceLanguages,
+  hasAnalysisSource,
+} from './utils'
 
 // Mock AdvancedFeatureResponse objects for tests
 const BASE: AdvancedFeatureResponse = {
@@ -238,5 +245,44 @@ describe('getTranslationSourceLanguages', () => {
       }),
     ])
     chai.expect(getTranslationSourceLanguages(supplement, XPATH)).to.deep.equal(['fr-CA', 'fr'])
+  })
+})
+
+describe('hasAnalysisSource', () => {
+  const TRANSCRIPT = buildTranscriptVersion({
+    uuid: 'v1',
+    language: 'en',
+    dateCreated: '2026-01-01T10:00:00Z',
+    dateAccepted: '2026-01-01T11:00:00Z',
+  })
+  const TEXT = QUESTION_TYPES.text.id
+  const AUDIO = QUESTION_TYPES.audio.id
+
+  /** Builds a submission whose answer at `XPATH` is the given value (omitted when `undefined`). */
+  function buildSubmission(answer?: string): DataResponse {
+    return (answer === undefined ? {} : { [XPATH]: answer }) as unknown as DataResponse
+  }
+
+  it('is true for a text question with an answer, even without a transcript', () => {
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission('hello'), buildSupplement([]), XPATH)).to.equal(true)
+  })
+
+  it('is false for a text question without an answer', () => {
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission(''), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  it('is false for an audio question without a transcript', () => {
+    chai.expect(hasAnalysisSource(AUDIO, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  it('is true for an audio question with a transcript', () => {
+    chai.expect(hasAnalysisSource(AUDIO, buildSubmission(), buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
+  })
+
+  it('falls back to the transcript check when the question type is unknown', () => {
+    chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
   })
 })

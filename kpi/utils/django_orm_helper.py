@@ -1,7 +1,9 @@
 from typing import Any
 
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import F, Field, JSONField, Lookup, TextField
+from django.core.exceptions import EmptyResultSet
+from django.db import connections, transaction
+from django.db.models import F, Field, JSONField, Lookup, QuerySet, TextField, sql
 from django.db.models.expressions import Func, Value
 from django.db.models.fields.json import KeyTransform
 from django.db.models.functions import Coalesce
@@ -155,6 +157,116 @@ class RemoveJSONFieldAttribute(Func):
             Value('{' + attribute_dotted_path.replace('.', ',') + '}'),
             **extra,
         )
+
+
+class ReturningUpdateQuerySet(QuerySet):
+    """
+    QuerySet that can return the rows changed by an update or a delete.
+    """
+
+    def delete_returning(self, fields: list[str]) -> list[dict]:
+        """
+        Delete the rows of the queryset with a single `DELETE`, and return the
+        rows this call deleted, as dicts holding `fields`, as they were just
+        before the delete.
+
+        Unlike `delete()`, it sends no signal and does not cascade: callers
+        delete related rows themselves. A row that a concurrent update has just
+        changed is checked again against the filters, and the values returned
+        are the ones that update committed, so a caller counting them never
+        works from a stale read. Joins are refused, for the same reason as in
+        `update_returning()`.
+        """
+
+        self._not_support_combined_queries('delete_returning')
+        if self.query.is_sliced:
+            raise TypeError("Cannot use 'limit' or 'offset' with delete.")
+
+        self._for_write = True
+        query = self.query.chain(sql.DeleteQuery)
+        query.get_initial_alias()
+        if query.count_active_tables() > 1:
+            raise ValueError('`delete_returning()` cannot be used with joins')
+
+        try:
+            delete_sql, params = query.get_compiler(self.db).as_sql()
+        except EmptyResultSet:
+            # The filters can match nothing, e.g. `pk__in=[]`. `delete()` deletes
+            # nothing then, and so does this
+            return []
+        return self._execute_returning(delete_sql, params, fields)
+
+    def update_returning(self, fields: list[str], **kwargs) -> list[dict]:
+        """
+        Update the rows of the queryset like `update()`, and return the rows
+        this call changed, as dicts holding `fields`. Values are converted like
+        Django does when it loads a model.
+
+        A row that a concurrent update has just changed is checked again
+        against the filters, once that update is committed. If it does not
+        match anymore, it is neither changed nor returned. This only holds for
+        filters on the table itself: with a join, Django moves the filters into
+        `WHERE pk IN (SELECT ...)`, which PostgreSQL does not check again.
+        Joins are refused for that reason.
+        """
+
+        self._not_support_combined_queries('update_returning')
+        if self.query.is_sliced:
+            raise TypeError('Cannot update a query once a slice has been taken.')
+
+        self._for_write = True
+        query = self.query.chain(sql.UpdateQuery)
+        query.add_update_values(kwargs)
+        query.get_initial_alias()
+        if query.related_updates or query.count_active_tables() > 1:
+            raise ValueError('`update_returning()` cannot be used with joins')
+
+        try:
+            update_sql, params = query.get_compiler(self.db).as_sql()
+        except EmptyResultSet:
+            # The filters can match nothing, e.g. `pk__in=[]`. `update()` updates
+            # nothing then, and so does this
+            return []
+        return self._execute_returning(update_sql, params, fields)
+
+    @staticmethod
+    def _convert(value, col, converters, connection):
+        for converter in converters:
+            value = converter(value, col, connection)
+        return value
+
+    def _execute_returning(self, statement: str, params, fields: list[str]):
+        """
+        Run `statement` with a `RETURNING` clause for `fields`, and convert the
+        values like Django does when it loads a model.
+        """
+
+        connection = connections[self.db]
+        meta = self.model._meta
+        cols = [meta.get_field(name).get_col(meta.db_table) for name in fields]
+        converters = [
+            connection.ops.get_db_converters(col) + col.get_db_converters(connection)
+            for col in cols
+        ]
+        columns = ', '.join(
+            connection.ops.quote_name(col.target.column) for col in cols
+        )
+
+        with transaction.mark_for_rollback_on_error(using=self.db):
+            with connection.cursor() as cursor:
+                cursor.execute(f'{statement} RETURNING {columns}', params)
+                rows = cursor.fetchall()
+
+        self._result_cache = None
+        return [
+            {
+                name: self._convert(value, col, col_converters, connection)
+                for name, col, col_converters, value in zip(
+                    fields, cols, converters, row
+                )
+            }
+            for row in rows
+        ]
 
 
 class UpdateJSONFieldAttributes(Func):

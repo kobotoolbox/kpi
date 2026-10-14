@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 import dateutil.parser
+import jsonschema
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.db import connection
@@ -1635,6 +1636,29 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
     def test_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_summary_languages_with_unnamed_translation_match_schema(self):
+        # A lone unnamed translation is saved as `[]`; it only stays `null`
+        # next to a named one
+        self.asset.content = {
+            'survey': [{'type': 'text', 'name': 'q1', 'label': ['Hello', 'Hi']}],
+            'translations': ['English (en)', None],
+        }
+        self.asset.save()
+
+        response = self.client.get(self.asset_url, format='json')
+        languages = response.data['summary']['languages']
+        assert languages == ['English (en)', None]
+
+        # Asset GET is whitelisted in the OpenAPI validator, so check the
+        # committed schema directly
+        schema_path = os.path.join(settings.BASE_DIR, settings.OPENAPI_SCHEMA_PATH)
+        with open(schema_path) as f:
+            schema = json.load(f)
+        summary_schema = schema['components']['schemas']['Asset']['properties'][
+            'summary'
+        ]
+        jsonschema.validate(languages, summary_schema['properties']['languages'])
 
     def test_can_update_asset_settings(self):
         data = {

@@ -393,6 +393,14 @@ actions.resources.loadAsset.listen((params, refresh = false) => {
   // the cache entry for this asset is currently loading, do nothing
 })
 
+// Without this, a cached `loadAsset` replays the asset as it was at the last GET, undoing any save made since. Every
+// asset mutation ends in this action, so it is the one place that can keep the cache current.
+actions.resources.updateAsset.completed.listen((asset) => {
+  if (asset?.uid) {
+    assetCache[asset.uid] = asset
+  }
+})
+
 actions.resources.updateSubmissionValidationStatus.listen((uid, sid, data) => {
   dataInterface
     .updateSubmissionValidationStatus(uid, sid, data)

@@ -9,6 +9,7 @@ import { findRowByXpath } from '#/assetUtils'
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
+import { isPlainClick } from '#/utils'
 import { getAvailableTabsForQuestionType } from '../common/utils'
 import { ProcessingTab, getTabRoutePath, goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 import TabAnalysis from './TabAnalysis'
@@ -63,7 +64,7 @@ export default function SingleProcessingContent({
         {...props}
         to={getTabRoutePath(route)}
         onClick={(event) => {
-          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          if (!isPlainClick(event)) return
           event.preventDefault()
           safeExecute(() => goToTabRoute(route))
         }}

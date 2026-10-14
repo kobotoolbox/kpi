@@ -147,6 +147,7 @@ export const getApiV2AllauthBrowserV1AuthLoginPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -212,6 +213,7 @@ export const getApiV2AllauthAppV1AuthLoginPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -277,6 +279,7 @@ export const getApiV2AllauthBrowserV1AuthSignupPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -342,6 +345,7 @@ export const getApiV2AllauthAppV1AuthSignupPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -408,6 +412,7 @@ export const getApiV2AllauthBrowserV1AuthEmailVerifyGetResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
   },
   meta: { is_authenticating: faker.datatype.boolean() },
@@ -425,6 +430,7 @@ export const getApiV2AllauthBrowserV1AuthEmailVerifyPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -491,6 +497,7 @@ export const getApiV2AllauthAppV1AuthEmailVerifyGetResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
   },
   meta: { is_authenticating: faker.datatype.boolean() },
@@ -508,6 +515,7 @@ export const getApiV2AllauthAppV1AuthEmailVerifyPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -581,6 +589,7 @@ export const getApiV2AllauthBrowserV1AuthPhoneVerifyPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -646,6 +655,7 @@ export const getApiV2AllauthAppV1AuthPhoneVerifyPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -719,6 +729,7 @@ export const getApiV2AllauthBrowserV1AuthReauthenticatePostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -784,6 +795,7 @@ export const getApiV2AllauthAppV1AuthReauthenticatePostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -858,6 +870,7 @@ export const getApiV2AllauthBrowserV1AuthPasswordResetGetResponseMock = (
         email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
         has_usable_password: faker.datatype.boolean(),
         username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        has_validated_password: faker.datatype.boolean(),
       },
       undefined,
     ]),
@@ -876,6 +889,7 @@ export const getApiV2AllauthBrowserV1AuthPasswordResetPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -942,6 +956,7 @@ export const getApiV2AllauthAppV1AuthPasswordResetGetResponseMock = (
         email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
         has_usable_password: faker.datatype.boolean(),
         username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        has_validated_password: faker.datatype.boolean(),
       },
       undefined,
     ]),
@@ -960,6 +975,7 @@ export const getApiV2AllauthAppV1AuthPasswordResetPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1025,6 +1041,7 @@ export const getApiV2AllauthBrowserV1AuthProviderTokenPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1090,6 +1107,7 @@ export const getApiV2AllauthAppV1AuthProviderTokenPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1174,6 +1192,7 @@ export const getApiV2AllauthBrowserV1AuthProviderSignupGetResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
   },
   ...overrideResponse,
@@ -1190,6 +1209,7 @@ export const getApiV2AllauthBrowserV1AuthProviderSignupPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1274,6 +1294,7 @@ export const getApiV2AllauthAppV1AuthProviderSignupGetResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
   },
   ...overrideResponse,
@@ -1290,6 +1311,7 @@ export const getApiV2AllauthAppV1AuthProviderSignupPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1355,6 +1377,7 @@ export const getApiV2AllauthBrowserV1Auth2faAuthenticatePostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1420,6 +1443,7 @@ export const getApiV2AllauthAppV1Auth2faAuthenticatePostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1485,6 +1509,7 @@ export const getApiV2AllauthBrowserV1Auth2faReauthenticatePostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1550,6 +1575,7 @@ export const getApiV2AllauthAppV1Auth2faReauthenticatePostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1615,6 +1641,7 @@ export const getApiV2AllauthBrowserV1AuthCodeConfirmPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -1680,6 +1707,7 @@ export const getApiV2AllauthAppV1AuthCodeConfirmPostResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -2231,6 +2259,7 @@ export const getApiV2AllauthBrowserV1AuthSessionGetResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
@@ -2296,6 +2325,7 @@ export const getApiV2AllauthAppV1AuthSessionGetResponseMock = (
       email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       has_usable_password: faker.datatype.boolean(),
       username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      has_validated_password: faker.datatype.boolean(),
     },
     methods: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.helpers.arrayElement([
