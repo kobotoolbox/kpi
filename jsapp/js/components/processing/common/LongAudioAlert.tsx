@@ -10,8 +10,8 @@ export default function LongAudioAlert(props: Props) {
   return (
     <Alert type='warning' iconName='alert' {...props}>
       {t(
-        "Audio files over ##number## minutes can't be auto-transcribed at the moment. We are working to fix this " +
-          'limitation. In the meantime, you can still transcribe manually.',
+        "Audio files over ##number## minutes can't be transcribed automatically at the moment. " +
+          'We are working to fix this limitation. In the meantime, you can still transcribe manually.',
       ).replace('##number##', String(MAX_AUTOMATIC_TRANSCRIPTION_AUDIO_MINUTES))}
     </Alert>
   )
