@@ -467,3 +467,18 @@ export const providerSignupFlowExpiredMock = () =>
 /** The provider accounts connected to the current user. Pass `[]` for an account with no SSO. */
 export const accountProvidersMock = (accounts: ProviderAccount[]) =>
   http.get(ACCOUNT_PROVIDERS_URL, () => HttpResponse.json({ status: 200, data: accounts }))
+
+/**
+ * The connection lookup breaking, leaving "is anything connected?" unanswered rather than answered with a no.
+ * `once` leaves the handler behind it to answer the retry.
+ */
+export const accountProvidersServerErrorMock = ({ once }: { once?: boolean } = {}) =>
+  http.get(ACCOUNT_PROVIDERS_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), {
+    once,
+  })
+
+/** A connection lookup that never answers, so the section stays in its loading state. */
+export const accountProvidersNeverAnswersMock = () =>
+  http.get(ACCOUNT_PROVIDERS_URL, async () => {
+    await delay('infinite')
+  })

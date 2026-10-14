@@ -1,8 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { HttpHandler } from 'msw'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import type { ProviderAccount } from '#/api/models/providerAccount'
-import { accountProvidersMock, providerAccountMock } from '#/endpoints/allauth.mocks'
+import {
+  accountProvidersMock,
+  accountProvidersNeverAnswersMock,
+  accountProvidersServerErrorMock,
+  providerAccountMock,
+} from '#/endpoints/allauth.mocks'
 import type { SocialApp } from '#/envStore'
 import { seedEnvStore } from '#/envStore.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -25,6 +31,8 @@ interface SsoStoryOptions {
   connected?: ProviderAccount[]
   /** The real query string to arrive with, for a story about coming back from a handshake */
   search?: string
+  /** What answers the connection lookup, for a story where it fails or never lands. Replaces `connected`. */
+  lookupHandlers?: HttpHandler[]
 }
 
 /** Puts a query string on the real URL and returns the teardown that puts the old one back */
@@ -44,11 +52,11 @@ function seedLocationSearch(search: string) {
  * Everything one story needs: the providers, the connections allauth reports, and the URL to start from.
  * Spelled out per story, because Storybook replaces the handler array instead of merging.
  */
-function withSso({ socialApps, connected = [], search }: SsoStoryOptions) {
+function withSso({ socialApps, connected = [], search, lookupHandlers }: SsoStoryOptions) {
   const seedProviders = seedEnvStore({ social_apps: socialApps })
 
   return {
-    parameters: { msw: { handlers: [accountProvidersMock(connected)] } },
+    parameters: { msw: { handlers: lookupHandlers ?? [accountProvidersMock(connected)] } },
     beforeEach: async () => {
       const restoreSearch = search === undefined ? undefined : seedLocationSearch(search)
       const restoreProviders = await seedProviders()
@@ -132,6 +140,35 @@ export const Unavailable: Story = {
   ...withSso({ socialApps: [] }),
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(within(canvasElement).queryByText('Single-Sign On')).not.toBeInTheDocument())
+  },
+}
+
+/** Nothing is known until the lookup answers, so neither the connect buttons nor `Disable` may be offered yet */
+export const LookupPending: Story = {
+  ...withSso({ socialApps: [UNMANAGED_APP], lookupHandlers: [accountProvidersNeverAnswersMock()] }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByText('Single-Sign On')
+    expect(canvas.queryByRole('button', { name: UNMANAGED_APP.name })).not.toBeInTheDocument()
+    expect(canvas.queryByRole('button', { name: 'Disable' })).not.toBeInTheDocument()
+  },
+}
+
+/** A failed lookup says so and offers a retry, rather than reading as "nothing connected" */
+export const LookupFailed: Story = {
+  ...withSso({
+    socialApps: [UNMANAGED_APP],
+    lookupHandlers: [
+      accountProvidersServerErrorMock({ once: true }),
+      accountProvidersMock([providerAccountMock({ providerId: UNMANAGED_APP.provider_id })]),
+    ],
+  }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByText(/could not check whether your account is connected/)
+    expect(canvas.queryByRole('button', { name: UNMANAGED_APP.name })).not.toBeInTheDocument()
   },
 }
 
