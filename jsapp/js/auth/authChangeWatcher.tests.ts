@@ -29,6 +29,13 @@ const response = (status: number, body: unknown = {}): AllauthResponse => ({ sta
 const jsonResponse = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
+/** Headers announcing a JSON body, and a connection that drops before the body itself turns up. */
+function unreadableResponse(status: number) {
+  const response = jsonResponse(status, {})
+  jest.spyOn(response, 'text').mockRejectedValue(new TypeError('Network request failed'))
+  return response
+}
+
 const session = response(200, { data: { user, methods: [{ method: 'password' }] }, meta: { is_authenticated: true } })
 const anonymous = response(401, { data: { flows: [{ id: 'login' }] }, meta: { is_authenticated: false } })
 const reauthenticationRequired = response(401, {
@@ -277,5 +284,25 @@ describe('a 401 from a KPI endpoint', () => {
     await fetchGet(assetUrl, { notifyAboutError: false }).catch(() => null)
 
     chai.expect(isSessionReadingStale()).to.equal(true)
+  })
+
+  // Both transports read the body before they report the status, so a body that never arrives used to swallow the
+  // 401 along with it - leaving the page on a reading the server had already contradicted.
+  describe('whose body never finishes arriving', () => {
+    beforeEach(() => {
+      fetchSpy.mockResolvedValue(unreadableResponse(401))
+    })
+
+    it('invalidates the session reading through the Orval mutator', async () => {
+      await fetchWithAuth(assetUrl, { method: 'GET' }).catch(() => null)
+
+      chai.expect(isSessionReadingStale()).to.equal(true)
+    })
+
+    it('invalidates the session reading through `#/api`', async () => {
+      await fetchGet(assetUrl, { notifyAboutError: false }).catch(() => null)
+
+      chai.expect(isSessionReadingStale()).to.equal(true)
+    })
   })
 })
