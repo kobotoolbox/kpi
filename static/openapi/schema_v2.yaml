@@ -2053,6 +2053,7 @@ paths:
                       params:
                         language: en
                         locale: en-US
+                      auto_accept: true
                       progress: 66
                       created_by:
                         username: someuser
@@ -2086,6 +2087,7 @@ paths:
                         error: Google quota exceeded
                       params:
                         language: fr
+                      auto_accept: false
                       progress: 66
                       created_by:
                         username: someuser
@@ -2123,6 +2125,10 @@ paths:
         transcription, `params.locale` may also be supplied when a more specific Google
         Speech locale is needed.
 
+        `auto_accept` (boolean, optional, default `false`) controls review. When true,
+        each generated transcript or translation is accepted immediately upon
+        completion and needs no manual review.
+
         Creation is atomic. If any selected submission is unknown, already has matching
         results, or already has an active matching bulk action, no job or child items are
         created.
@@ -2154,9 +2160,11 @@ paths:
                   params:
                     language: en
                     locale: en-US
+                  auto_accept: true
                 summary: Bulk transcription job
                 description: Starts Google transcription for the selected audio question
-                  across the listed submissions. `locale` is optional.
+                  across the listed submissions. `locale` is optional. `auto_accept`
+                  accepts each generated result on completion.
               BulkTranslationJob:
                 value:
                   action_id: automatic_google_translation
@@ -2203,6 +2211,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 66
                     created_by:
                       username: someuser
@@ -2235,6 +2244,7 @@ paths:
                       error: Google quota exceeded
                     params:
                       language: fr
+                    auto_accept: false
                     progress: 66
                     created_by:
                       username: someuser
@@ -2266,6 +2276,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 66
                     created_by:
                       username: someuser
@@ -2363,6 +2374,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 66
                     created_by:
                       username: someuser
@@ -2392,6 +2404,7 @@ paths:
                       error: Google quota exceeded
                     params:
                       language: fr
+                    auto_accept: false
                     progress: 66
                     created_by:
                       username: someuser
@@ -2491,6 +2504,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 100
                     created_by:
                       username: someuser
@@ -2523,6 +2537,7 @@ paths:
                       error: Google quota exceeded
                     params:
                       language: fr
+                    auto_accept: false
                     progress: 100
                     created_by:
                       username: someuser
@@ -17226,6 +17241,10 @@ components:
             type: string
         params:
           $ref: '#/components/schemas/BulkActionParamsRequest'
+        auto_accept:
+          type: boolean
+          default: false
+          description: Automatically accept generated results upon completion.
       required:
       - action_id
       - params
@@ -17252,6 +17271,8 @@ components:
             $ref: '#/components/schemas/BulkActionSubmissionStatusResponse'
         params:
           $ref: '#/components/schemas/BulkActionParamsResponse'
+        auto_accept:
+          type: boolean
         progress:
           type: integer
           maximum: 100
@@ -17274,6 +17295,7 @@ components:
             type: string
       required:
       - action_id
+      - auto_accept
       - created_by
       - date_created
       - date_modified
@@ -17349,6 +17371,8 @@ components:
             $ref: '#/components/schemas/BulkActionSubmissionStatusResponse'
         params:
           $ref: '#/components/schemas/BulkActionParamsResponse'
+        auto_accept:
+          type: boolean
         progress:
           type: integer
           maximum: 100
@@ -17367,6 +17391,7 @@ components:
           - type: 'null'
       required:
       - action_id
+      - auto_accept
       - created_by
       - date_created
       - date_modified

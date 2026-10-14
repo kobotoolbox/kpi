@@ -3,8 +3,9 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
-import { useAuthConfiguration } from '#/auth/AuthContainer/useAuthConfiguration'
+import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
+import { ROOT_URL } from '#/constants'
 import CheckInboxPanel from './CheckInboxPanel'
 import RegisterForm from './RegisterForm'
 
@@ -28,7 +29,7 @@ function AccountReadyPanel() {
       </Title>
       <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
       {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-      <ButtonNew component='a' href='/' size='lg' fullWidth>
+      <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
         {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
@@ -71,7 +72,7 @@ type SignupOutcome = { kind: 'verificationPending'; email: string } | { kind: 's
  * so `index.html` has already loaded and rendered `{% csrf_token %}`, which is what sets it.
  */
 export default function RegisterRoute() {
-  const { data, isPending, isError, isFetching, refetch } = useAuthConfiguration()
+  const { data, isPending, isError, isFetching, refetch } = useAuthEnvironment()
   const [outcome, setOutcome] = useState<SignupOutcome | null>(null)
 
   // Assume registration is open until `/environment` says otherwise, so a slow response does not leave

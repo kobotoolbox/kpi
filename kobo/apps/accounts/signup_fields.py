@@ -113,6 +113,46 @@ def validate_email_domain(email, allow_managed_domains=False):
     )
 
 
+def provider_manages_email_domain(sociallogin, email):
+    """
+    Is `email`'s domain managed by the SSO provider this signup comes from?
+
+    Only the managing provider's own signup may hold an address on its domain:
+    an account reachable through a second login route - another SSO provider, or
+    a password - would defeat the reason the organisation mandated SSO, which is
+    that disabling somebody there ends their KoboToolbox access
+
+    A server offers whatever providers it was configured with: the Google and
+    Microsoft buttons anybody may use, plus apps set up for individual clients.
+    `managed` is for the latter, and it is what ties a domain to one provider.
+    Say UNHCR's Azure app is `managed` and owns `unhcr.test`:
+
+        bob@unhcr.test from UNHCR Azure -> True, the signup UNHCR asked for
+        bob@unhcr.test from Google      -> False, UNHCR's own app is the only
+                                           one that may hold its domain
+        bob@gmail.com from Google       -> False, but nothing manages gmail.com,
+                                           so the managed-domain check that
+                                           calls this never fires anyway
+
+    A domain belongs to at most one app (`SocialAppManagedDomain.domain` is
+    unique), so there is never a second managing provider to consider.
+    """
+    from .models import SocialAppManagedDomain, get_normalized_domain
+
+    # Mirrors the lookup in `SocialAccountAdapter.is_open_for_signup`, which
+    # asks the same question for a different reason
+    app = getattr(sociallogin.provider, 'app', None)
+    if app is None:
+        # A provider configured without a `SocialApp` cannot manage a domain
+        return False
+
+    return SocialAppManagedDomain.objects.filter(
+        domain__iexact=get_normalized_domain(email),
+        social_app__managed=True,
+        social_app__social_app=app,
+    ).exists()
+
+
 class SignupExtraFieldsForm(forms.Form):
     """
     The signup fields that must be collected while the account is created
@@ -187,9 +227,10 @@ class SignupExtraFieldsForm(forms.Form):
 
     def clean(self):
         """
-        Only runs on the headless API. `KoboSignupMixin.clean()` sits above
-        allauth's classes on the HTML and SSO forms and skips this method, so
-        these checks cannot run twice there.
+        Only runs on the headless API, for both the password signup and the SSO
+        one. `KoboSignupMixin.clean()` sits above allauth's classes on the HTML
+        and SSO pages and skips this method, so these checks cannot run twice
+        there
         """
         from allauth.account.adapter import get_adapter
         from django.contrib.auth import get_user_model
@@ -199,7 +240,7 @@ class SignupExtraFieldsForm(forms.Form):
         email = self.cleaned_data.get('email')
         if email and '@' in email:
             try:
-                validate_email_domain(email)
+                self._validate_email(email)
             except forms.ValidationError as e:
                 self.add_error('email', e)
 
@@ -217,3 +258,37 @@ class SignupExtraFieldsForm(forms.Form):
                 self.add_error('password', e)
 
         return cleaned_data
+
+    def _validate_email(self, email):
+        """
+        Apply the email rules of whichever signup this form is serving
+
+        allauth injects this class as a base of every signup form, so `clean()`
+        also runs on `POST .../auth/provider/signup`, where the account comes
+        from an SSO login rather than a password. Only that form carries the
+        pending `SocialLogin`, which is how the two are told apart.
+        """
+        sociallogin = getattr(self, 'sociallogin', None)
+
+        # The rule bans passwords, so it cannot apply to the provider that
+        # manages the domain: that signup is what the organisation asked for.
+        # Every other provider stays subject to it, SSO or not - a second way
+        # in would defeat the point
+        validate_email_domain(
+            email,
+            allow_managed_domains=(
+                sociallogin is not None
+                and provider_manages_email_domain(sociallogin, email)
+            ),
+        )
+
+        if not sociallogin:
+            return
+
+        # The address is only an initial value, so a caller can post anything:
+        # without this, somebody could claim a colleague's address on the same
+        # domain. `SocialSignupForm` does the same for the HTML page. An empty
+        # initial means the provider gave no address to match
+        sso_email = self.initial.get('email')
+        if sso_email and email.lower() != sso_email.lower():
+            raise forms.ValidationError(t('Email must match SSO server email'))

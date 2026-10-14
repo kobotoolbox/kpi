@@ -1,11 +1,21 @@
+from allauth.account.models import EmailAddress
+from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from constance.test import override_config
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from hub.models.sitewide_message import SitewideMessage
+from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomain
 
 HEADLESS_SIGNUP_URL = '/api/v2/allauth/browser/v1/auth/signup'
+HEADLESS_PROVIDER_SIGNUP_URL = '/api/v2/allauth/browser/v1/auth/provider/signup'
+
+MANAGED_PROVIDER_ID = 'managed-sso'
+UNMANAGED_PROVIDER_ID = 'unmanaged-sso'
+MANAGED_DOMAIN = 'managed.test'
+MANAGED_EMAIL = f'bob@{MANAGED_DOMAIN}'
 
 # Collected after login through `PATCH /me/`, never at signup
 PROFILE_FIELDS = {
@@ -181,3 +191,140 @@ class TemplatedSignupRegressionTestCase(TestCase):
         assert extra_data['organization_type'] == 'non-profit'
         assert extra_data['newsletter_subscription'] is True
         assert user.extra_details.private_data['last_tos_accept_time']
+
+
+@override_settings(SOCIALACCOUNT_PROVIDERS={})
+class HeadlessProviderSignupTestCase(TestCase):
+    """
+    `POST /api/v2/allauth/browser/v1/auth/provider/signup` finishes the signup
+    of somebody who has just authenticated with an SSO provider
+
+    The managed-domain rule bans passwords on the domain, not SSO, so it must
+    not stand in the way of the provider that manages it - but no other provider
+    may hold one of its addresses, and the address must be the one the provider
+    vouched for
+    """
+
+    def setUp(self):
+        self.client = Client()
+        SitewideMessage.objects.create(slug='terms_of_service', body='tos agreement')
+        self.managed_app = self._create_social_app(MANAGED_PROVIDER_ID, managed=True)
+        self.unmanaged_app = self._create_social_app(
+            UNMANAGED_PROVIDER_ID, managed=False
+        )
+
+    def test_managed_domain_email_is_accepted_from_the_managing_provider(self):
+        # The whole point of the endpoint: this person is signing up through the
+        # provider that manages their domain, which is what it demands of them
+        self._stash_pending_signup()
+
+        response = self._post(self._payload())
+
+        assert response.status_code == 200, response.content
+        user = get_user_model().objects.get(username='sso_user')
+        assert user.email == MANAGED_EMAIL
+        assert not user.has_usable_password()
+
+    def test_managed_domain_email_is_still_rejected_by_password_signup(self):
+        # Waiving the rule for SSO must leave it in force where it belongs
+        response = self.client.post(
+            HEADLESS_SIGNUP_URL,
+            {
+                'username': 'password_user',
+                'email': MANAGED_EMAIL,
+                'password': 'a-Sufficiently-Long-Passphrase-42',
+                'terms_of_service': True,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        assert b'restricted the use of passwords' in response.content
+        assert not get_user_model().objects.filter(username='password_user').exists()
+
+    def test_managed_domain_email_is_rejected_from_another_provider(self):
+        # A second provider vouching for the same address is no help to the
+        # organisation: disabling the person where their domain is managed would
+        # not end an account that signs in through the other one. The email-match
+        # check cannot catch this, since the address is the vouched-for one
+        self._stash_pending_signup(provider_id=UNMANAGED_PROVIDER_ID)
+
+        response = self._post(self._payload())
+
+        assert response.status_code == 400
+        assert b'restricted the use of passwords' in response.content
+        assert not get_user_model().objects.filter(username='sso_user').exists()
+
+    def test_email_must_match_the_one_the_provider_vouched_for(self):
+        # The address is only an initial value on this form, so without a check
+        # of its own, the waiver would let somebody signing up through the
+        # managing provider claim a colleague's address on that same domain
+        self._stash_pending_signup()
+
+        response = self._post(self._payload(email=f'director@{MANAGED_DOMAIN}'))
+
+        assert response.status_code == 400
+        assert b'Email must match SSO server email' in response.content
+        assert not get_user_model().objects.filter(username='sso_user').exists()
+
+    @override_config(REGISTRATION_BLACKLIST_EMAIL_DOMAINS=MANAGED_DOMAIN)
+    def test_blacklisted_email_domain_is_still_rejected(self):
+        # Only the managed-domain check is waived for the managing provider; the
+        # blacklist and the allowlist keep applying, as they do on the HTML page
+        self._stash_pending_signup()
+
+        response = self._post(self._payload())
+
+        assert response.status_code == 400
+        assert not get_user_model().objects.filter(username='sso_user').exists()
+
+    def _create_social_app(self, provider_id, managed):
+        social_app = SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id=provider_id,
+            name=f'{provider_id} App',
+            client_id=f'{provider_id}.client.id',
+            secret=f'{provider_id}.client.secret',
+        )
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=social_app, managed=managed
+        )
+        if managed:
+            SocialAppManagedDomain.objects.create(
+                social_app=custom_data, domain=MANAGED_DOMAIN
+            )
+        return social_app
+
+    def _stash_pending_signup(
+        self, provider_id=MANAGED_PROVIDER_ID, email=MANAGED_EMAIL
+    ):
+        """
+        Stand in for the provider handshake, which leaves the pending
+        `SocialLogin` in the session for the endpoint to pick up
+        """
+        provider = get_socialaccount_adapter().get_provider(
+            RequestFactory().get('/'), provider_id
+        )
+        sociallogin = SocialLogin(
+            user=get_user_model()(email=email),
+            account=SocialAccount(provider=provider_id, uid=f'{provider_id}-uid'),
+            provider=provider,
+            email_addresses=[EmailAddress(email=email, verified=True, primary=True)],
+        )
+        session = self.client.session
+        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session.save()
+
+    def _payload(self, **overrides):
+        payload = {
+            'username': 'sso_user',
+            'email': MANAGED_EMAIL,
+            'terms_of_service': True,
+        }
+        payload.update(overrides)
+        return payload
+
+    def _post(self, payload):
+        return self.client.post(
+            HEADLESS_PROVIDER_SIGNUP_URL, payload, content_type='application/json'
+        )

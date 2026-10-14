@@ -49,12 +49,11 @@ def suspend_submissions(user: settings.AUTH_USER_MODEL):
     `Instance.check_active()` reject submissions with
     `TemporarilyUnavailableError` (clients retry later).
 
-    Concurrent holders (e.g. several projects of the same owner deleted at
-    once) each register a token: only the last one to finish releases the
-    flag. Tokens older than the lease are treated as dead holders, so a block
-    which may run longer than the lease must call the yielded `heartbeat()`
-    regularly. `release_orphaned_suspensions()` cleans up after holders which
-    died before releasing.
+    Concurrent holders each register a token: only the last one to finish
+    releases the flag. Tokens older than the lease are treated as dead
+    holders, so a block which may run longer than the lease must call the
+    yielded `heartbeat()` regularly. `release_orphaned_suspensions()` cleans
+    up after holders which died before releasing.
     """
     redis_client = get_redis_connection()
     holders_key = f'{SUBMISSIONS_SUSPENDED_HOLDERS_KEY_PREFIX}{user.username}'
@@ -110,7 +109,7 @@ def _mutex(redis_client, holders_key: str):
     release cannot clear the flag under a holder registering at the same time.
 
     Runs the block unlocked when the lock cannot be acquired in time: the race
-    it prevents is narrower than a deletion failing on its bookkeeping.
+    it prevents is narrower than a holder failing on its bookkeeping.
     """
     ttl = settings.SUBMISSIONS_SUSPENSION_LOCK_TTL
     lock = redis_client.lock(

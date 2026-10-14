@@ -165,7 +165,7 @@ class Command(BaseCommand):
 
     def _release_locks(self):
         # Release the profiles a previous run left suspended, without touching
-        # the ones held by a running deletion
+        # the ones still held by a live holder
         if self._verbosity > 1:
             self.stdout.write('Releasing submission locks…')
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 15:50+0000\n"
+"POT-Creation-Date: 2026-10-09 16:39+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hausa (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ha/)\n"
@@ -17,11 +17,15 @@ msgstr ""
 "Language: ha\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: jsapp/js/UniversalTable/UniversalTableCore.tsx:410
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:371
+msgid "There is no data to display."
+msgstr ""
+
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:422
 msgid "Page ##current_page## of ##total_pages##"
 msgstr ""
 
-#: jsapp/js/UniversalTable/UniversalTableCore.tsx:441
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:453
 msgid "##number## rows"
 msgstr ""
 
@@ -78,37 +82,37 @@ msgstr ""
 #: jsapp/js/account/DeleteAccountModal.tsx:66
 #: jsapp/js/account/organization/InviteeActionsDropdown.tsx:69
 #: jsapp/js/account/organization/MemberRemoveModal.tsx:87
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:119
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:110
-#: jsapp/js/alertify.ts:170 jsapp/js/assetQuickActions.tsx:80
-#: jsapp/js/assetQuickActions.tsx:112 jsapp/js/assetQuickActions.tsx:154
-#: jsapp/js/assetQuickActions.tsx:223 jsapp/js/assetQuickActions.tsx:297
-#: jsapp/js/assetQuickActions.tsx:348
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:122
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:132
+#: jsapp/js/alertify.ts:170 jsapp/js/assetQuickActions.tsx:81
+#: jsapp/js/assetQuickActions.tsx:113 jsapp/js/assetQuickActions.tsx:155
+#: jsapp/js/assetQuickActions.tsx:224 jsapp/js/assetQuickActions.tsx:298
+#: jsapp/js/assetQuickActions.tsx:349
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:125
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:98
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:96
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:103
 #: jsapp/js/components/common/openKoboConfirmModal.tsx:13
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:287
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:76
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:77
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:162
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:248
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:247
 #: jsapp/js/components/permissions/userPermissionRow.component.tsx:159
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:159
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:158
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ConfirmEditModal.tsx:26
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:149
 #: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:16
 #: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:65
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:171
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkProcessingWarningModal.tsx:25
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:313
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:237
-#: jsapp/js/components/submissions/submissionModal.tsx:268
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:100
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:161
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:361
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:563
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:584 jsapp/js/mixins.tsx:119
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:307
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:221
+#: jsapp/js/components/submissions/submissionModal.tsx:273
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:99
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:160
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:360
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:562
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:583 jsapp/js/mixins.tsx:119
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:376
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:424
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:464
@@ -117,23 +121,23 @@ msgstr ""
 msgid "Cancel"
 msgstr "Soke"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:22
+#: jsapp/js/account/accountFieldsEditor.component.tsx:24
 msgid "Male"
 msgstr "Namiji"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:23
+#: jsapp/js/account/accountFieldsEditor.component.tsx:25
 msgid "Female"
 msgstr "Mace"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:24
+#: jsapp/js/account/accountFieldsEditor.component.tsx:26
 msgid "Other"
 msgstr "Sauran"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:206
+#: jsapp/js/account/accountFieldsEditor.component.tsx:209
 msgid "Use this to display your real name to other users"
 msgstr "Yi amfani da wannan don nuna ainihin sunan ku ga sauran masu amfani"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:426
+#: jsapp/js/account/accountFieldsEditor.component.tsx:437
 msgid "Newsletter"
 msgstr "Labarai"
 
@@ -147,7 +151,7 @@ msgstr "An samun nasarar sabunta bayanin shafin ku"
 
 #: jsapp/js/account/accountSettingsRoute.tsx:138
 #: jsapp/js/project/FormLanguagesManager/utils.ts:10
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:94
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:93
 msgid "Save Changes"
 msgstr "Adana Canje-canjen"
 
@@ -158,8 +162,8 @@ msgstr "Bayanan martaba"
 
 #: jsapp/js/account/accountSidebar.tsx:44
 #: jsapp/js/account/accountSidebar.tsx:70
-#: jsapp/js/account/security/securityRoute.component.tsx:15
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:277
+#: jsapp/js/account/security/securityRoute.component.tsx:22
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:278
 msgid "Security"
 msgstr "Tsaro"
 
@@ -183,7 +187,7 @@ msgid "ACCOUNT"
 msgstr "SHAFI"
 
 #: jsapp/js/account/accountSidebar.tsx:74
-#: jsapp/js/account/organization/MembersRoute.tsx:202
+#: jsapp/js/account/organization/MembersRoute.tsx:331
 msgid "Members"
 msgstr "Membobi"
 
@@ -247,7 +251,7 @@ msgid "Increase your transcription minutes and translations characters."
 msgstr ""
 
 #: jsapp/js/account/addOns/addOns.component.tsx:187
-#: jsapp/js/account/usage/usage.component.tsx:216
+#: jsapp/js/account/usage/usage.component.tsx:228
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:132
 msgid "Automatic analysis requests"
 msgstr ""
@@ -261,7 +265,7 @@ msgid "your active add-ons"
 msgstr ""
 
 #: jsapp/js/account/addOns/addOns.component.tsx:201
-#: jsapp/js/account/organization/MembersRoute.tsx:97
+#: jsapp/js/account/organization/MembersRoute.tsx:205
 msgid "Active"
 msgstr "Yana aiki"
 
@@ -297,13 +301,13 @@ msgstr ""
 
 #: jsapp/js/account/organization/InviteModal.tsx:99
 #: jsapp/js/account/organization/MemberRoleSelector.tsx:51
-#: jsapp/js/account/organization/MembersRoute.tsx:123
+#: jsapp/js/account/organization/MembersRoute.tsx:231
 msgid "Admin"
 msgstr ""
 
 #: jsapp/js/account/organization/InviteModal.tsx:103
 #: jsapp/js/account/organization/MemberRoleSelector.tsx:55
-#: jsapp/js/account/organization/MembersRoute.tsx:125
+#: jsapp/js/account/organization/MembersRoute.tsx:233
 msgid "Member"
 msgstr ""
 
@@ -338,7 +342,8 @@ msgid "Resend invitation"
 msgstr ""
 
 #: jsapp/js/account/organization/MemberActionsDropdown.tsx:48
-#: jsapp/js/assetQuickActions.tsx:297
+#: jsapp/js/account/security/email/emailSection.component.tsx:191
+#: jsapp/js/assetQuickActions.tsx:298
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:117
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:155
 #: jsapp/js/components/permissions/userPermissionRow.component.tsx:163
@@ -385,60 +390,97 @@ msgid ""
 "##TEAM_OR_ORGANIZATION##. This action cannot be undone."
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:71
+#: jsapp/js/account/organization/MembersRoute.tsx:65
+msgid "Type at least ##CHARACTER_COUNT## characters to search"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:179
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:83
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:239
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:240
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:59
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:266
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:269
 msgid "Name"
 msgstr "Suna"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:90
+#: jsapp/js/account/organization/MembersRoute.tsx:198
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:194
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:90
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:90
 #: jsapp/js/projects/projectViews/constants.ts:166
 msgid "Status"
 msgstr "Matsayi"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:95
+#: jsapp/js/account/organization/MembersRoute.tsx:203
 msgid "Invited"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:103
+#: jsapp/js/account/organization/MembersRoute.tsx:211
 msgid "Date added"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:112
+#: jsapp/js/account/organization/MembersRoute.tsx:220
 msgid "Role"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:121
+#: jsapp/js/account/organization/MembersRoute.tsx:229
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:73
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:102
 #: jsapp/js/components/library/assetInfoBox.tsx:89
 #: jsapp/js/components/templatesList.js:65
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:102
 #: jsapp/js/projects/projectViews/constants.ts:173
 msgid "Owner"
 msgstr "Mai shi"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:127
+#: jsapp/js/account/organization/MembersRoute.tsx:235
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:169
 msgid "Unknown"
 msgstr "Babu sani"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:151
+#: jsapp/js/account/organization/MembersRoute.tsx:259
 msgid "2FA"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:212
-#: jsapp/js/account/organization/MembersRoute.tsx:223
+#: jsapp/js/account/organization/MembersRoute.tsx:273
+msgid "Activate SSO add-on to enable"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:273
+msgid "SSO status"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:274
+msgid "SSO"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:325
+msgid "No members match \"##SEARCH_PHRASE##\""
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:326
+msgid "There are no members to display."
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:337
+#: jsapp/js/account/organization/MembersRoute.tsx:340
+msgid "Search members"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:352
+#: jsapp/js/account/organization/MembersRoute.tsx:363
 msgid "Invite members"
 msgstr ""
 
-#: jsapp/js/account/organization/MembersRoute.tsx:216
+#: jsapp/js/account/organization/MembersRoute.tsx:356
 msgid ""
 "Invite more people to join your ##TEAM_OR_ORGANIZATION## or change their "
 "role permissions below."
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:380
+msgid "Could not search the members list. Try a different phrase."
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:381
+msgid "Could not load the members list."
 msgstr ""
 
 #: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:24
@@ -487,23 +529,23 @@ msgstr ""
 msgid "##TEAM_OR_ORGANIZATION## website"
 msgstr ""
 
-#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:159
+#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:158
 msgid "##TEAM_OR_ORGANIZATION## type"
 msgstr ""
 
-#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:176
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:330
+#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:175
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:331
 #: jsapp/js/components/map/MapSettings.tsx:417
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:250
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:418
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:157
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:201
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:200
-#: jsapp/js/components/reports/customReportEditor.component.tsx:142
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:253
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:406
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:156
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:198
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:197
+#: jsapp/js/components/reports/customReportEditor.component.tsx:141
 #: jsapp/js/components/reports/reportStyleSettings.component.tsx:240
 #: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx:198
 #: jsapp/js/components/submissions/TableSettings.tsx:176
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:219
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:213
 msgid "Save"
 msgstr "Adana"
 
@@ -515,62 +557,62 @@ msgid ""
 "minutes to complete."
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:49
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:51
 msgid "Invitation successfully accepted"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:51
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:53
 msgid "Invitation successfully declined"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:92
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:95
 msgid "Invitation not found"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:96
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:99
 msgid "Could not find invitation ##invite_id## from organization ##org_id##"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:104
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:178
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:107
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:181
 msgid "Unable to join ##TEAM_OR_ORGANIZATION_NAME##"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:108
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:111
 msgid "Failed to respond to invitation"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:123
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:126
 msgid "Sign out"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:135
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:138
 msgid "Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##"
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:143
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:146
 msgid ""
 "When you accept this invitation, all of the submissions, data storage, and "
 "transcription and translation usage for all projects will be transferred to "
 "the ##TEAM_OR_ORGANIZATION##."
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:149
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:152
 msgid "Note: Once you accept, transfer might take a few minutes to complete."
 msgstr ""
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:159
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:162
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:130
 msgid "Decline"
 msgstr "Ƙin aminta"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:170
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:239
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:173
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:237
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:138
 msgid "Accept"
 msgstr "Amince"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:179
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:182
 msgid "This invitation is no longer available for a response"
 msgstr ""
 
@@ -600,7 +642,7 @@ msgstr "ƙungiyoyi"
 
 #: jsapp/js/account/organization/organization.utils.tsx:39
 #: jsapp/js/components/library/assetInfoBox.tsx:127
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:284
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:287
 #: jsapp/js/projects/projectViews/viewSwitcher.tsx:53
 msgid "Organization"
 msgstr "Ƙungiya"
@@ -680,96 +722,100 @@ msgstr "$##price##"
 msgid "$##price## USD/month"
 msgstr "$##price## USD/wata"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:64
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:66
 msgid "Recent account activity"
 msgstr "Ayyukan shafin ku na Kwanan nan"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:70
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:72
 msgid "Log out of all devices"
 msgstr ""
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:74
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:76
 msgid "Export log data"
 msgstr ""
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:87
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:361
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:548
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:349
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:536
 msgid "Action"
 msgstr "Aikaci"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:91
 #: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:41
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:123
 msgid "Failed"
 msgstr "Ba a yi nasara ba"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:91
 #: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:29
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:121
 msgid "Success"
 msgstr "Nasara"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:94
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:96
 #: jsapp/js/components/Drawer.tsx:95
 msgid "Source"
 msgstr "Tushe"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:97
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:99
 msgid "Data Submissions (##count##)"
 msgstr "Bayanai da aka tura(##count##)"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:105
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:107
 msgid "Last activity"
 msgstr "Ayyuka na ƙarshe"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:108
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:110
 msgid "IP Address"
 msgstr "Adireshin IP"
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:40
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:47
 msgid "Failed to get API token"
 msgstr "An gaza samun alamar API"
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:64
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:74
 msgid "API key regenerated successfully"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:67
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:77
 msgid "Failed to regenerate API key"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:79
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:89
 msgid "API Key"
 msgstr "Madannin API"
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:92
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:101
+msgid "Hide API key"
+msgstr ""
+
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:101
+msgid "Display API key"
+msgstr ""
+
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:115
 msgid "Regenerate key"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:94
-msgid "Display"
-msgstr ""
-
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:100
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:122
 msgid "Regenerate API key"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:105
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:127
 msgid ""
 "All access through your existing API key will be revoked, and a new key will"
 " be generated randomly."
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:114
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:136
 msgid "Regenerate"
 msgstr ""
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:150
+#: jsapp/js/account/security/email/emailSection.component.tsx:149
 msgid "Email address"
 msgstr "Adireshin imel"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:162
+#: jsapp/js/account/security/email/emailSection.component.tsx:161
 msgid "Type new email address"
 msgstr "Rubuta sabon adireshin imel"
 
@@ -783,7 +829,11 @@ msgid ""
 " this address will replace ##UNVERIFIED_EMAIL##"
 msgstr "An tura mahaɗi don tabbatar da mallakar ku. Da zarar an tabbatar, wannan adireshin zai maye gurbin ##UNVERIFIED_EMAIL##"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:198
+#: jsapp/js/account/security/email/emailSection.component.tsx:188
+msgid "Resend"
+msgstr ""
+
+#: jsapp/js/account/security/email/emailSection.component.tsx:197
 msgid "Email was sent again: ##TIMESTAMP##"
 msgstr "An sake aika imel: ##TIMESTAMP##"
 
@@ -791,21 +841,21 @@ msgstr "An sake aika imel: ##TIMESTAMP##"
 msgid "Change"
 msgstr ""
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:122
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:158
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:121
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:153
 msgid "Two-factor authentication"
 msgstr "Tabbatarwa ta hanya-biyu"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:139
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:260
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:138
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:261
 msgid "Enabled"
 msgstr "An kunna"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:139
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:138
 msgid "Disabled"
 msgstr "An kashe"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:165
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:160
 #: jsapp/js/components/bigModal/mfaModals.tsx:214
 msgid ""
 "Two-factor authentication (2FA) verifies your identity using an "
@@ -813,40 +863,44 @@ msgid ""
 "enabling two-factor authentication for an additional layer of protection."
 msgstr "Tabbatar da shaida na mataki biyu (2FA) na tabbatar da shaidarka ta amfani da aikace-aikacen tabbatarwa hade da kalmar sirrin da aka saba. Mu na bayar da shawarar saita tsarin tabbatar da shaida na mataki biyu don ƙarin kariya."
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:173
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:168
 msgid "Authenticator app"
 msgstr "app mai tabbatarwa"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:179
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:174
 msgid "Reconfigure"
 msgstr "Sake saitawa"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:188
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:183
 msgid "Recovery codes"
 msgstr "Lambobin farfadowa"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:192
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:187
 msgid "Generate new"
 msgstr "Ƙirƙirar sababbi"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:206
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:201
 msgid "Superusers cannot deactivate their MFA"
 msgstr ""
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:207
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:202
 msgid "MFA restriction explanation"
 msgstr ""
 
-#: jsapp/js/account/security/password/passwordSection.component.tsx:16
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:293
+#: jsapp/js/account/security/password/passwordSection.component.tsx:24
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:294
 msgid "Password"
 msgstr "Kalmar sirri"
 
-#: jsapp/js/account/security/password/passwordSection.component.tsx:25
+#: jsapp/js/account/security/password/passwordSection.component.tsx:29
+msgid "Basic authentication not permitted"
+msgstr ""
+
+#: jsapp/js/account/security/password/passwordSection.component.tsx:39
 msgid "Forgot password"
 msgstr ""
 
-#: jsapp/js/account/security/password/passwordSection.component.tsx:30
+#: jsapp/js/account/security/password/passwordSection.component.tsx:44
 #: jsapp/js/components/AssetTagsModal/AssetTagsModal.tsx:86
 #: jsapp/js/project/FormLanguagesManager/LanguageForm.tsx:78
 msgid "Update"
@@ -874,27 +928,61 @@ msgstr "Kasa canza kalmar sirri"
 msgid "Current Password"
 msgstr "Kalmar sirri na yanzu"
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:142
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:141
 msgid "Forgot Password?"
 msgstr ""
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:148
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:147
 msgid "New Password"
 msgstr ""
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:162
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:160
 msgid "Verify Password"
 msgstr ""
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:171
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:169
 msgid "Save Password"
 msgstr ""
 
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:46
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:18
+msgid "Connecting with ##provider##"
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:26
+msgid ""
+"Your organization has restricted the use of passwords for single-sign on "
+"(SSO) accounts. Once enabled, SSO cannot be disabled again without direct "
+"support from your system administrator."
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:32
+msgid ""
+"Please note that your password will be deleted and you will only be able to "
+"log in using single-sign on (SSO)."
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:38
+msgid "Go back"
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:42
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:166
+msgid "Proceed"
+msgstr "Cigaba"
+
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:50
 msgid "Single-Sign On"
 msgstr "Shigarwa Guda Ɗaya"
 
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:52
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:56
+msgid "Connected to ##app_name##"
+msgstr ""
+
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:57
+msgid "Already connected"
+msgstr "An riga an haɗa shi"
+
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:62
 msgid ""
 "Connect your KoboToolbox account with your organization's identity provider "
 "for single-sign on (SSO). Afterwards, you will only be able to sign in via "
@@ -902,11 +990,7 @@ msgid ""
 "address in case your current address is different."
 msgstr "Haɗa shafin ku na KoboToolbox tare da shaidar ƙungiyar ku da alamar-daya SSO. Bayan haka,  za ku iya shiga ta hanyar SSO kaɗai, sai dai idan kun cire wannan saitin a nan. Wannan kuma zai sabunta adireshin imel ɗin ku idan adireshinku na yanzu ya bambanta."
 
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:58
-msgid "Already connected"
-msgstr "An riga an haɗa shi"
-
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:78
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:71
 msgid "Disable"
 msgstr "A cire"
 
@@ -974,40 +1058,44 @@ msgstr "Akwai jimilar"
 msgid "Purchased add-ons"
 msgstr "An siya ƙari-kan"
 
-#: jsapp/js/account/usage/usage.component.tsx:68
+#: jsapp/js/account/usage/usage.component.tsx:70
 msgid "##start_date## to ##end_date##"
 msgstr "##start_date## zuwa ##end_date##"
 
-#: jsapp/js/account/usage/usage.component.tsx:164
+#: jsapp/js/account/usage/usage.component.tsx:166
 msgid "Your usage"
 msgstr "Amfanin ku"
 
-#: jsapp/js/account/usage/usage.component.tsx:175
+#: jsapp/js/account/usage/usage.component.tsx:174
+msgid "Learn more about account usage"
+msgstr ""
+
+#: jsapp/js/account/usage/usage.component.tsx:187
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:107
-#: jsapp/js/components/formSummary/formSummary.js:194
+#: jsapp/js/project/FormSummary/index.tsx:201
 #: jsapp/js/projects/projectViews/constants.ts:271
 msgid "Submissions"
 msgstr "Abinda aka tura"
 
-#: jsapp/js/account/usage/usage.component.tsx:184
+#: jsapp/js/account/usage/usage.component.tsx:196
 #: jsapp/js/project/submissionsCountGraph.component.tsx:303
 msgid "Total"
 msgstr "Jimla"
 
-#: jsapp/js/account/usage/usage.component.tsx:186
+#: jsapp/js/account/usage/usage.component.tsx:198
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:113
 msgid "File storage"
 msgstr ""
 
-#: jsapp/js/account/usage/usage.component.tsx:187
+#: jsapp/js/account/usage/usage.component.tsx:199
 msgid "per account"
 msgstr ""
 
-#: jsapp/js/account/usage/usage.component.tsx:196
+#: jsapp/js/account/usage/usage.component.tsx:208
 msgid "Transcription minutes"
 msgstr "Mintunan rubutawa"
 
-#: jsapp/js/account/usage/usage.component.tsx:206
+#: jsapp/js/account/usage/usage.component.tsx:218
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:126
 msgid "Translation characters"
 msgstr "Haruffan fassarar"
@@ -1112,8 +1200,8 @@ msgid "Failed to remove permissions"
 msgstr "Kasa cire izini"
 
 #: jsapp/js/actions.js:124
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:148
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:148
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:145
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:145
 msgid "successfully updated"
 msgstr "sabunta cikin nasara"
 
@@ -1269,21 +1357,21 @@ msgstr " A goge?"
 #: jsapp/js/alertify.ts:161
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:98
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:135
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:107
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:105
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:112
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:147
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:147
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:149
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:153
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:91
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:119
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:89
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:117
 #: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:19
 #: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:68
-#: jsapp/js/components/reports/customReportEditor.component.tsx:131
-#: jsapp/js/components/submissions/submissionModal.tsx:268
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:269
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:563
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:584
+#: jsapp/js/components/reports/customReportEditor.component.tsx:130
+#: jsapp/js/components/submissions/submissionModal.tsx:273
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:267
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:562
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:583
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:428
 #: jsapp/js/projects/projectsTable/bulkActions/BulkDeleteModal.tsx:102
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:41
@@ -1295,7 +1383,7 @@ msgid "This action is not reversible"
 msgstr "Wannan aikin ba zai sake komawa ba"
 
 #: jsapp/js/api.ts:65 jsapp/js/api/onErrorDefaultHandler.ts:20
-#: jsapp/js/components/reports/reports.tsx:512
+#: jsapp/js/components/reports/reports.tsx:517
 msgid "An error occurred"
 msgstr "An sami kuskure"
 
@@ -1303,137 +1391,137 @@ msgstr "An sami kuskure"
 msgid "Your connection is offline"
 msgstr "Babu yanar gizo"
 
-#: jsapp/js/assetQuickActions.tsx:57
+#: jsapp/js/assetQuickActions.tsx:58
 msgid "##ASSET_TYPE## deleted permanently"
 msgstr "##ASSET_TYPE## an share har abada"
 
-#: jsapp/js/assetQuickActions.tsx:77
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:234
+#: jsapp/js/assetQuickActions.tsx:78
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:228
 msgid "Archive Project"
 msgstr "Aiki na Ajiya"
 
-#: jsapp/js/assetQuickActions.tsx:78
+#: jsapp/js/assetQuickActions.tsx:79
 msgid "Are you sure you want to archive this project?"
 msgstr "Shin kun tabbata kuna son adana wannan aikin?"
 
-#: jsapp/js/assetQuickActions.tsx:79
+#: jsapp/js/assetQuickActions.tsx:80
 msgid "Your form will not accept submissions while it is archived."
 msgstr "Fom ɗin ku ba zai karɓi abinda aka tura ba yayin da aka adana shi."
 
-#: jsapp/js/assetQuickActions.tsx:80
+#: jsapp/js/assetQuickActions.tsx:81
 msgid "Archive"
 msgstr "Taskoki"
 
-#: jsapp/js/assetQuickActions.tsx:110
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:230
+#: jsapp/js/assetQuickActions.tsx:111
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:224
 msgid "Unarchive Project"
 msgstr "Bude Aiki"
 
-#: jsapp/js/assetQuickActions.tsx:111
+#: jsapp/js/assetQuickActions.tsx:112
 msgid "Are you sure you want to unarchive this project?"
 msgstr "Shin kun tabbata kuna son buɗe wannan aikin?"
 
-#: jsapp/js/assetQuickActions.tsx:112
+#: jsapp/js/assetQuickActions.tsx:113
 msgid "Unarchive"
 msgstr "Bude ajiya"
 
-#: jsapp/js/assetQuickActions.tsx:142 jsapp/js/mixins.tsx:109
+#: jsapp/js/assetQuickActions.tsx:143 jsapp/js/mixins.tsx:109
 msgid "Clone of"
 msgstr "Yin kwafi na"
 
-#: jsapp/js/assetQuickActions.tsx:148
+#: jsapp/js/assetQuickActions.tsx:149
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:278
 #: jsapp/js/components/formLanding/FormHistory.tsx:154 jsapp/js/mixins.tsx:113
 msgid "Clone"
 msgstr "yin kwafi"
 
-#: jsapp/js/assetQuickActions.tsx:149 jsapp/js/mixins.tsx:114
+#: jsapp/js/assetQuickActions.tsx:150 jsapp/js/mixins.tsx:114
 msgid ""
 "Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the "
 "original name."
 msgstr "Shigar da sunan kwafi da aka yi ##ASSET_TYPE##. Bar shi ba komai don kiyaye ainihin suna."
 
-#: jsapp/js/assetQuickActions.tsx:154 jsapp/js/assetQuickActions.tsx:348
+#: jsapp/js/assetQuickActions.tsx:155 jsapp/js/assetQuickActions.tsx:349
 #: jsapp/js/mixins.tsx:119
 msgid "Ok"
 msgstr "Yayi"
 
-#: jsapp/js/assetQuickActions.tsx:157
+#: jsapp/js/assetQuickActions.tsx:158
 msgid "Cloning..."
 msgstr "Yin kwafi..."
 
-#: jsapp/js/assetQuickActions.tsx:192
+#: jsapp/js/assetQuickActions.tsx:193
 msgid "cloned ##ASSET_TYPE## created"
 msgstr "kwafaffe ##ASSET_TYPE## ƙirƙirarre"
 
-#: jsapp/js/assetQuickActions.tsx:223
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:330
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:252
+#: jsapp/js/assetQuickActions.tsx:224
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:331
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:255
 msgid "Create"
 msgstr "Ƙirƙiri"
 
-#: jsapp/js/assetQuickActions.tsx:229
+#: jsapp/js/assetQuickActions.tsx:230
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:483
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:531
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:217
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:211
 msgid "Please wait…"
 msgstr "Da fatan za a jira…"
 
-#: jsapp/js/assetQuickActions.tsx:255
+#: jsapp/js/assetQuickActions.tsx:256
 msgid "Failed to create new asset!"
 msgstr "An kasa ƙirƙirar sabon kadari!"
 
-#: jsapp/js/assetQuickActions.tsx:276
+#: jsapp/js/assetQuickActions.tsx:277
 msgid "Create new template from this project"
 msgstr "Ƙirƙiri sabon samfuri daga wannan aikin"
 
-#: jsapp/js/assetQuickActions.tsx:277
+#: jsapp/js/assetQuickActions.tsx:278
 msgid "Enter the name of the new template."
 msgstr "Shigar da sunan sabon samfurin."
 
-#: jsapp/js/assetQuickActions.tsx:295
+#: jsapp/js/assetQuickActions.tsx:296
 msgid "Remove shared form"
 msgstr "Cire fom da aka raba"
 
-#: jsapp/js/assetQuickActions.tsx:296
+#: jsapp/js/assetQuickActions.tsx:297
 msgid "Are you sure you want to remove this shared form?"
 msgstr "Shin kun tabbata kuna son cire wannan fom ɗin da aka raba?"
 
-#: jsapp/js/assetQuickActions.tsx:315
+#: jsapp/js/assetQuickActions.tsx:316
 msgid "deploying to kobocat..."
 msgstr "tura zuwa kobocat..."
 
-#: jsapp/js/assetQuickActions.tsx:320
+#: jsapp/js/assetQuickActions.tsx:321
 msgid "deployed form"
 msgstr "fom da aka tura"
 
-#: jsapp/js/assetQuickActions.tsx:337
+#: jsapp/js/assetQuickActions.tsx:338
 msgid "Overwrite existing deployment"
 msgstr "Rubuta akan aikin da ake ciki"
 
-#: jsapp/js/assetQuickActions.tsx:342
+#: jsapp/js/assetQuickActions.tsx:343
 msgid ""
 "This form has already been deployed. Are you sure you want overwrite the "
 "existing deployment?"
 msgstr "An riga an tura wannan fom. Shin kun tabbata kuna son maye gurbin aikin da ke kai yanzu?"
 
-#: jsapp/js/assetQuickActions.tsx:345
+#: jsapp/js/assetQuickActions.tsx:346
 #: jsapp/js/components/map/MapSettings.tsx:252
 #: jsapp/xlform/src/view.surveyApp.coffee:683
 msgid "This action cannot be undone."
 msgstr "Ba za a iya soke wannan aikacin ba."
 
-#: jsapp/js/assetQuickActions.tsx:352
+#: jsapp/js/assetQuickActions.tsx:353
 msgid "Deploying..."
 msgstr "Ana tura..."
 
-#: jsapp/js/assetQuickActions.tsx:355
+#: jsapp/js/assetQuickActions.tsx:356
 msgid "redeployed form"
 msgstr "fom da aka sake aika"
 
 #: jsapp/js/assetUtils.ts:78
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:104
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:113
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:104
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:113
 #: jsapp/js/projects/projectsTable/projectsTableRow.tsx:48
 #: jsapp/js/projects/projectsTable/projectsTableRow.tsx:62
 msgid "me"
@@ -1447,20 +1535,20 @@ msgstr "mara suna"
 msgid "Unlabelled"
 msgstr "Maralaƙabi"
 
-#: jsapp/js/assetUtils.ts:431 jsapp/js/components/metadataEditor.js:146
+#: jsapp/js/assetUtils.ts:431 jsapp/js/components/metadataEditor.tsx:155
 #: jsapp/js/components/submissions/tableUtils.ts:118
 msgid "Background audio"
 msgstr "Sautin bayan-fage"
 
-#: jsapp/js/assetUtils.ts:677
+#: jsapp/js/assetUtils.ts:681
 msgid "Name, organization and sector are required to make collection public."
 msgstr "Ana buƙatar suna, ƙungiya da bangaren don bayyana tarin ga jama'a."
 
-#: jsapp/js/assetUtils.ts:680
+#: jsapp/js/assetUtils.ts:684
 msgid "Empty collection is not allowed to be made public."
 msgstr "Ba a yarda a karɓa tari a bainar jama'a ba."
 
-#: jsapp/js/assetUtils.ts:683
+#: jsapp/js/assetUtils.ts:687
 msgid "Only collections are allowed to be made public!"
 msgstr "Tari ne kawai aka yarda a bayyana ga jama'a!"
 
@@ -1481,7 +1569,7 @@ msgid "video recording"
 msgstr ""
 
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:69
-#: jsapp/js/components/submissions/submissionUtils.tsx:778
+#: jsapp/js/components/submissions/submissionUtils.tsx:776
 msgid "image"
 msgstr ""
 
@@ -1490,7 +1578,7 @@ msgid "background audio recording"
 msgstr ""
 
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:88
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:108
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:110
 #: jsapp/js/components/formLanding/formLanding.js:451
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:200
 msgid "Download"
@@ -1504,38 +1592,72 @@ msgstr ""
 msgid "Are you sure you want to delete this ##attachment_type##?"
 msgstr ""
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:45
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:43
 msgid ""
 "Media files from ##number_of_selected_submissions## submission(s) have been "
 "deleted"
 msgstr ""
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:65
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:63
 msgid "Delete media files only"
 msgstr ""
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:68
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:66
 msgid "Delete media files"
 msgstr ""
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:75
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:73
 msgid ""
 "You do not have sufficient permissions to delete attachments from the "
 "selected submissions."
 msgstr ""
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:85
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:83
 msgid ""
 "You are about to permanently remove the following media files from the "
 "selected submissions:"
 msgstr ""
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:94
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:92
 msgid "Careful - it is not possible to recover deleted media files"
 msgstr ""
 
 #: jsapp/js/attachments/deletedAttachment.component.tsx:16
 msgid "Deleted"
+msgstr ""
+
+#: jsapp/js/auth/AuthContainer/AuthContainer.tsx:67
+#: jsapp/js/components/header/accountMenu.tsx:117
+#: jsapp/js/errorApp/ErrorPage.tsx:70
+msgid "Terms of Service"
+msgstr "Sharuɗɗan Sabis"
+
+#: jsapp/js/auth/AuthContainer/AuthContainer.tsx:75
+#: jsapp/js/components/header/accountMenu.tsx:122
+#: jsapp/js/errorApp/ErrorPage.tsx:78
+msgid "Privacy Policy"
+msgstr "Bayanan Kebantawa"
+
+#: jsapp/js/auth/AuthTestRoute/AuthTestRoute.tsx:13
+msgid "Authentication container"
+msgstr ""
+
+#: jsapp/js/auth/AuthTestRoute/AuthTestRoute.tsx:15
+msgid ""
+"This placeholder screen exists to check the page frame. A real sign-in form "
+"will replace it."
+msgstr ""
+
+#: jsapp/js/auth/StandaloneUILanguageSelector/index.tsx:85
+msgid "Could not change the language. Please try again."
+msgstr ""
+
+#: jsapp/js/auth/StandaloneUILanguageSelector/index.tsx:127
+msgid "Interface language: ##language##"
+msgstr ""
+
+#: jsapp/js/auth/StandaloneUILanguageSelector/useSetUILanguage.ts:28
+msgid "Could not set language to ##language_code##"
 msgstr ""
 
 #: jsapp/js/components/AssetTagsModal/AssetTagsModal.stories.tsx:45
@@ -1602,8 +1724,8 @@ msgid "Projects that cannot be deleted"
 msgstr ""
 
 #: jsapp/js/components/DeleteAssetModal/DeleteBlockerModal.tsx:80
-#: jsapp/js/components/bigModal/mfaModals.tsx:539
-#: jsapp/js/editorMixins/EditableForm.tsx:1186
+#: jsapp/js/components/bigModal/mfaModals.tsx:548
+#: jsapp/js/editorMixins/EditableForm.tsx:1180
 msgid "OK"
 msgstr "YAYI"
 
@@ -1622,7 +1744,7 @@ msgstr "Laburare"
 
 #: jsapp/js/components/Drawer.tsx:82
 #: jsapp/js/components/library/librarySidebar.tsx:63
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:98
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:96
 msgid "new"
 msgstr "sabo"
 
@@ -1649,7 +1771,7 @@ msgid "More info"
 msgstr ""
 
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:70
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:147
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:148
 msgid "Could not load REST Service"
 msgstr "An gaza loda Sabis na REST"
 
@@ -1667,7 +1789,7 @@ msgid "Retry all submissions"
 msgstr ""
 
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:218
-#: jsapp/js/components/activity/FormActivity.tsx:97 jsapp/js/constants.ts:292
+#: jsapp/js/components/activity/FormActivity.tsx:92 jsapp/js/constants.ts:289
 msgid "Date"
 msgstr "Kwanan wata"
 
@@ -1680,7 +1802,7 @@ msgid "There are no logs yet"
 msgstr ""
 
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:253
-#: jsapp/js/components/formGallery/formGallery.component.tsx:207
+#: jsapp/js/components/formGallery/formGallery.component.tsx:214
 msgid "Load more"
 msgstr "Ƙara saura"
 
@@ -1690,7 +1812,7 @@ msgstr "Taken HTTP bisa tsari"
 
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:99
 #: jsapp/js/components/reports/reportTable.component.tsx:75
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:130
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:124
 msgid "Value"
 msgstr "Kima"
 
@@ -1698,79 +1820,79 @@ msgstr "Kima"
 msgid "Add header"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:24
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:25
 msgid "JSON"
 msgstr "JSON"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:28
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:29
 msgid "XML"
 msgstr "XML"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:42
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:43
 msgid "No Authorization"
 msgstr "Babu izini"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:46
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:47
 msgid "Basic Authorization"
 msgstr "Izini na asali"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:178
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:179
 msgid "Name required"
 msgstr "Ana bukatar suna"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:182
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:183
 msgid "URL required"
 msgstr "Ana bukatar URL"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:192
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:193
 msgid "Please enter both name and url of your service."
 msgstr "Da fatan za a shigar da duka suna da url na sabis ɗin ku."
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:240
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:241
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:108
 msgid "Service Name"
 msgstr "Sunan Sabis"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:250
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:251
 msgid "Endpoint URL"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:251
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:252
 msgid "https://"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:265
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:266
 msgid "Receive emails notifications"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:268
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:269
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:47
 #: jsapp/js/components/formLanding/FormHistory.tsx:136
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:357
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:345
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:253
-#: jsapp/js/components/submissions/submissionDataTable.tsx:75
+#: jsapp/js/components/submissions/submissionDataTable.tsx:77
 msgid "Type"
 msgstr "Nau'i"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:287
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:288
 msgid "Username"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:303
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:304
 msgid "Add field(s)"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:304
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:305
 msgid "Select fields subset"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:313
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:314
 msgid ""
 "Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by "
 "JSON)"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:317
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:318
 msgid "Add Custom Wrapper"
 msgstr ""
 
@@ -1787,12 +1909,12 @@ msgid "Are you sure you want to delete ##target?"
 msgstr "Shin kun tabbata kuna son goge ## manufa?"
 
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:134
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:316
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:82
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:110
-#: jsapp/js/components/submissions/submissionModal.tsx:654
-#: jsapp/js/components/submissions/table.tsx:704
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:256
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:304
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:80
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:108
+#: jsapp/js/components/submissions/submissionModal.tsx:647
+#: jsapp/js/components/submissions/table.tsx:695
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:254
 msgid "Edit"
 msgstr "Gyara"
 
@@ -1810,8 +1932,8 @@ msgstr "Kuna iya amfani da Sabis na REST don ƙaddamar da abinda aka tura ta ato
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:316
 #: jsapp/js/components/newFeatureDialog.component.tsx:90
 #: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:226
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:307
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:231
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:301
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:215
 msgid "Learn more"
 msgstr "Ƙara koyo"
 
@@ -1831,15 +1953,15 @@ msgstr "Yi Rajista Sabon Sabis"
 #: jsapp/js/components/formLanding/formLanding.js:526
 #: jsapp/js/components/formSubScreens.js:94
 #: jsapp/js/components/formSubScreens.js:107
-#: jsapp/js/components/formSummary/formSummary.js:180
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:107
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:151
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:154
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:182
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:191
 #: jsapp/js/components/projectDownloads/ProjectDownloads.tsx:59
-#: jsapp/js/components/reports/reports.tsx:536
-#: jsapp/js/editorMixins/EditableForm.tsx:1220
+#: jsapp/js/components/reports/reports.tsx:541
+#: jsapp/js/editorMixins/EditableForm.tsx:1214
+#: jsapp/js/project/FormSummary/index.tsx:189
 msgid "Untitled"
 msgstr "Mara suna"
 
@@ -1875,20 +1997,20 @@ msgstr ""
 msgid "Cancel process"
 msgstr ""
 
-#: jsapp/js/components/activity/FormActivity.tsx:90
+#: jsapp/js/components/activity/FormActivity.tsx:85
 msgid "Event description"
 msgstr "Bayanin abinda ya faru"
 
-#: jsapp/js/components/activity/FormActivity.tsx:106
+#: jsapp/js/components/activity/FormActivity.tsx:101
 msgid "Recent project activity"
 msgstr "Ayyukan aikin kwanan nan"
 
-#: jsapp/js/components/activity/FormActivity.tsx:116
+#: jsapp/js/components/activity/FormActivity.tsx:109
 #: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:96
 msgid "Filter by"
 msgstr "Tacewa ta"
 
-#: jsapp/js/components/activity/FormActivity.tsx:120
+#: jsapp/js/components/activity/FormActivity.tsx:113
 #: jsapp/js/projects/universalProjectsRoute.tsx:158
 msgid "Export all data"
 msgstr "Fitar da duk bayanai"
@@ -2257,20 +2379,20 @@ msgstr "Duba cikakkun bayanai"
 msgid "Allow submissions to this form without a username and password"
 msgstr "Bada izinin turawa zuwa wannan fom ba tare da sunan mai amfani da kalmar sirri ta mai amfani ba"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:89
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:91
 #: jsapp/js/components/formLanding/formLanding.js:441
 msgid "More actions"
 msgstr "Ƙarin ayyuka"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:96
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:98
 msgid "Manage translations"
 msgstr "Sarrafa fassarori"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:115
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:117
 msgid "Remove from collection"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:123
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:125
 msgid "Move to"
 msgstr ""
 
@@ -2306,7 +2428,7 @@ msgstr ""
 
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:289
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:148
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:218
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:212
 msgid "Create project"
 msgstr "Ƙirƙiri aikin"
 
@@ -2314,37 +2436,37 @@ msgstr "Ƙirƙiri aikin"
 msgid "View containing Collection"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:181
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:96
+#: jsapp/js/components/assetsTable/assetsTable.tsx:179
 #: jsapp/js/components/library/assetInfoBox.tsx:119
 #: jsapp/js/components/templatesList.js:67
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:96
 msgid "Questions"
 msgstr "Tambayoyi"
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:307
-#: jsapp/js/components/submissions/submissionModal.tsx:570
+#: jsapp/js/components/assetsTable/assetsTable.tsx:305
+#: jsapp/js/components/submissions/submissionModal.tsx:563
 msgid "Previous"
 msgstr "Na Baya"
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:321
-#: jsapp/js/components/bigModal/mfaModals.tsx:276
-#: jsapp/js/components/bigModal/mfaModals.tsx:396
-#: jsapp/js/components/bigModal/mfaModals.tsx:451
-#: jsapp/js/components/bigModal/mfaModals.tsx:499
-#: jsapp/js/components/submissions/submissionModal.tsx:585
-#: jsapp/js/components/submissions/table.tsx:1515
+#: jsapp/js/components/assetsTable/assetsTable.tsx:319
+#: jsapp/js/components/bigModal/mfaModals.tsx:279
+#: jsapp/js/components/bigModal/mfaModals.tsx:402
+#: jsapp/js/components/bigModal/mfaModals.tsx:460
+#: jsapp/js/components/bigModal/mfaModals.tsx:508
+#: jsapp/js/components/submissions/submissionModal.tsx:578
+#: jsapp/js/components/submissions/table.tsx:1401
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:74
 msgid "Next"
 msgstr "Na gaba"
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:336
+#: jsapp/js/components/assetsTable/assetsTable.tsx:334
 msgid "##count## items"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:346
-#: jsapp/js/components/formGallery/formGallery.component.tsx:157
-#: jsapp/js/components/reports/reports.tsx:463
-#: jsapp/js/components/submissions/table.tsx:1477
+#: jsapp/js/components/assetsTable/assetsTable.tsx:344
+#: jsapp/js/components/formGallery/formGallery.component.tsx:156
+#: jsapp/js/components/reports/reports.tsx:468
+#: jsapp/js/components/submissions/table.tsx:1363
 msgid "Toggle fullscreen"
 msgstr "Juya cikakken allo"
 
@@ -2369,48 +2491,40 @@ msgid "Subscribers"
 msgstr "Masu biyan kuɗi"
 
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:85
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:180
 #: jsapp/js/components/library/assetInfoBox.tsx:148
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:180
 #: jsapp/js/projects/projectViews/constants.ts:264
 msgid "Languages"
 msgstr "Yarurruka"
 
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:92
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:289
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:292
 msgid "Primary Sector"
 msgstr "Sashin Farko"
 
-#: jsapp/js/components/bigModal/bigModal.js:22
+#: jsapp/js/components/bigModal/bigModal.js:19
 msgid "Success!"
 msgstr "Nasara!"
 
+#: jsapp/js/components/bigModal/bigModal.js:24
 #: jsapp/js/components/bigModal/bigModal.js:27
-#: jsapp/js/components/bigModal/bigModal.js:30
-#: jsapp/js/components/bigModal/bigModal.js:34
-#: jsapp/js/components/bigModal/bigModal.js:36
+#: jsapp/js/components/bigModal/bigModal.js:31
+#: jsapp/js/components/bigModal/bigModal.js:33
 msgid "Submission Record"
 msgstr "Rikodin abinda aka tura"
 
-#: jsapp/js/components/bigModal/bigModal.js:30
-#: jsapp/js/components/bigModal/bigModal.js:36
-#: jsapp/js/components/submissions/table.tsx:1522
+#: jsapp/js/components/bigModal/bigModal.js:27
+#: jsapp/js/components/bigModal/bigModal.js:33
+#: jsapp/js/components/submissions/table.tsx:1408
 msgid "of"
 msgstr "na"
 
-#: jsapp/js/components/bigModal/bigModal.js:83
+#: jsapp/js/components/bigModal/bigModal.js:80
 msgid "Create Library Item"
 msgstr "Ƙirƙiri Abun Laburare"
 
-#: jsapp/js/components/bigModal/bigModal.js:87
-msgid "Template details"
-msgstr "Bayanin samfuri"
-
-#: jsapp/js/components/bigModal/bigModal.js:91
-msgid "Collection details"
-msgstr "Bayanin tarin"
-
-#: jsapp/js/components/bigModal/bigModal.js:101
-#: jsapp/js/editorMixins/EditableForm.tsx:1251
+#: jsapp/js/components/bigModal/bigModal.js:90
+#: jsapp/js/editorMixins/EditableForm.tsx:1245
 msgid "Form Preview"
 msgstr "Ganin Fom"
 
@@ -2432,15 +2546,15 @@ msgid ""
 "##number##-digit code that you can enter below."
 msgstr "Bayan duba hoton lambar QR, manhaja ɗin mai tabbatarwa zai nuna llambobi ##number## da zaku iya shigar da su a ƙasa."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:258
+#: jsapp/js/components/bigModal/mfaModals.tsx:261
 msgid "No QR code?"
 msgstr "Babu lambar QR?"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:265
+#: jsapp/js/components/bigModal/mfaModals.tsx:268
 msgid "Enter key manually"
 msgstr "Shigar da makullin da hannu"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:294
+#: jsapp/js/components/bigModal/mfaModals.tsx:297
 msgid ""
 "The following recovery codes will help you access your account in case your "
 "authenticator app fails. These codes are unique and will not be stored in "
@@ -2448,60 +2562,60 @@ msgid ""
 "download the file and keep it somewhere safe."
 msgstr "Lambobin farfadowa masu zuwa za su taimaka muku samun damar shafin ku idan manhajar ɗin tabbatarwa ya gaza. Waɗannan lambobin na musamman ne kuma ba za a adana su a cikin shafinku ku na Kobo ba. Wannan ita ce kawai damar ku don ku adana su. Da fatan za a sauke fayil ɗin kuma ajiye shi a wani wuri mai aminci."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:322
+#: jsapp/js/components/bigModal/mfaModals.tsx:325
 msgid "Download codes"
 msgstr "Saukar da lambobin"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:332
+#: jsapp/js/components/bigModal/mfaModals.tsx:335
 msgid "I saved my codes"
 msgstr "Na adana lambobina"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:350
+#: jsapp/js/components/bigModal/mfaModals.tsx:353
 msgid ""
 "Enter this key into your authenticator app to generate a ##number##-digit "
 "token"
 msgstr "Shigar da wannan makullin a cikin manhaja mai tabbatarwa don samar da alamar lambobin ##number##"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:365
+#: jsapp/js/components/bigModal/mfaModals.tsx:368
 msgid ""
 "Once your authenticator app is set up, generate a ##number##-digit token and"
 " enter it in the field below."
 msgstr "Da zarar manhajar ta kafu, ku samar da alamar lambobi ##number## kuma shigar da su a cikin filin da ke ƙasa."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:385
+#: jsapp/js/components/bigModal/mfaModals.tsx:391
 msgid "Take me back to QR code"
 msgstr "Koma dani baya zuwa lambar QR"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:415
+#: jsapp/js/components/bigModal/mfaModals.tsx:421
 msgid ""
 "Please enter your ##number##-digit authenticator token or one of your "
 "recovery codes to regenerate your backup codes."
 msgstr ""
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:419
+#: jsapp/js/components/bigModal/mfaModals.tsx:425
 msgid ""
 "Please enter your ##number##-digit authenticator token or one of your "
 "recovery codes to deactivate two-factor authentication."
 msgstr ""
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:440
+#: jsapp/js/components/bigModal/mfaModals.tsx:449
 msgid "Problems with your token?"
 msgstr "Matsaloli tare da alamar ku?"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:474
+#: jsapp/js/components/bigModal/mfaModals.tsx:483
 msgid ""
 "Please note that generating new recovery codes will invalidate any "
 "previously generated codes."
 msgstr "Lura cewa ƙirƙira sabbin lambobin dawo da bayanai zai lalata duk wasu lambobin da aka ƙirƙira a baya."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:478
+#: jsapp/js/components/bigModal/mfaModals.tsx:487
 msgid ""
 "Please note that in order to reconfigure two-factor authentication (2FA), "
 "the previous set up will first be deleted. Tokens or recovery codes from the"
 " previous set up will not be valid anymore."
 msgstr "Da fatan za a lura cewa don sake saita tabbacin na hanya-biyu (2FA), za a fara goge saitin da ya gabata. Alamu ko lambobin dawowa daga saiti na baya ba za su yi aiki ba kuma."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:486
+#: jsapp/js/components/bigModal/mfaModals.tsx:495
 msgid ""
 "Once your current 2FA has been deactivated, you'll be prompted to configure "
 "it again. If you cannot complete the process, 2FA will remain disabled for "
@@ -2509,16 +2623,16 @@ msgid ""
 "usual process."
 msgstr "Da zarar an cire 2FA ɗin ku na yanzu, za a sa ku sake saita shi. Idan ba za ku iya kammalawa ba, 2FA zai kasance a kashe don shafinku ku. A wannan yanayin, za ku iya sake kunna shi a kowane lokaci ta hanyar da aka saba."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:515
+#: jsapp/js/components/bigModal/mfaModals.tsx:524
 msgid "Issues with the token"
 msgstr "Matsaloli tattare da alamar"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:531
+#: jsapp/js/components/bigModal/mfaModals.tsx:540
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:260
-#: jsapp/js/components/modalForms/ModalBackButton.tsx:18
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:414
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:193
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:192
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:349
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:402
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:190
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:189
 #: jsapp/js/project/FormLanguagesManager/TranslationsEditor.tsx:133
 #: jsapp/js/project/ProjectSettings/components/BackButton.tsx:16
 msgid "Back"
@@ -2530,6 +2644,10 @@ msgstr ""
 
 #: jsapp/js/components/common/InfiniteScrollTrigger.tsx:59
 msgid "You've reached the end of the list"
+msgstr ""
+
+#: jsapp/js/components/common/ProcessingPromptModal.tsx:37
+msgid "Translate & analyze"
 msgstr ""
 
 #: jsapp/js/components/common/TagsInput.tsx:5
@@ -2557,19 +2675,9 @@ msgid "draft"
 msgstr "daftarin aiki"
 
 #: jsapp/js/components/common/audioPlayer.tsx:189
-#: jsapp/js/components/common/miniAudioPlayer.tsx:214
+#: jsapp/js/components/common/miniAudioPlayer.tsx:220
 msgid "Could not load media file"
 msgstr "An kasa loda fayil ɗin kafar labarai"
-
-#: jsapp/js/components/common/koboSelect.tsx:122
-#: jsapp/js/components/common/wrappedSelect.tsx:37
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:525
-msgid "Select…"
-msgstr "Zaɓi…"
-
-#: jsapp/js/components/common/koboSelect.tsx:284
-msgid "No options found"
-msgstr "Ba a sami zaɓuɓɓuka ba"
 
 #: jsapp/js/components/common/loadingSpinner.tsx:26
 msgid "loading…"
@@ -2577,7 +2685,7 @@ msgstr "ana lodawa…"
 
 #: jsapp/js/components/common/modal.tsx:96
 #: jsapp/js/components/processing/SingleProcessingHeader/ButtonReturn.tsx:37
-#: jsapp/js/editorMixins/EditableForm.tsx:1213
+#: jsapp/js/editorMixins/EditableForm.tsx:1207
 msgid "DONE"
 msgstr "ANYI"
 
@@ -2591,36 +2699,36 @@ msgstr "Tabbatar"
 msgid "Deleted project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:185
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:183
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:6
 msgid "No project selected"
 msgstr "Babu aikin da aka zaɓa"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:188
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:186
 msgid "Field is empty"
 msgstr "Babu komai a filin"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:201
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:199
 msgid "Could not remove import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:249
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:261
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:118
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:139
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:247
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:259
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:111
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:132
 msgid "Failed to attach to source"
 msgstr "An kasa haɗawa zuwa tushe"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:250
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:119
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:248
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:112
 msgid "Some fields are invalid:"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:281
 msgid "Privacy Notice"
 msgstr "Sanarwa Kebantarwa"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
 msgid ""
 "This will attach the full dataset from \"##ASSET_NAME##\" as a background "
 "XML file to this form. While not easily visible, it is technically possible "
@@ -2628,31 +2736,31 @@ msgid ""
 "not use this feature if \"##ASSET_NAME##\" includes sensitive data."
 msgstr "Wannan zai haɗa cikakken saitin bayanai daga \"##ASSET_NAME##\" azaman fayil ɗin XML na baya ga wannan fom. Duk da yake ba a iya gani cikin sauƙi ba, yana yiwuwa a fasahance ga duk wanda ke shigar da bayanai zuwa fom ɗin ku don dawo da duba wannan saitin bayanai. Kada ku yi amfani da wannan fasalin idan \"##ASSET_NAME##\" ya ƙunshi bayanai masu mahimmanci."
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:287
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
 msgid "Acknowledge and continue"
 msgstr "Amince ka ci gaba"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:341
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:339
 msgid "Share data with other project forms"
 msgstr "Raba bayanai tare da wasu fom na aikin"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:348
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:346
 msgid ""
 "Enable data sharing to allow other forms to import and use dynamic data from"
 " this project. Learn more about dynamic data attachments"
 msgstr "Kunna raba bayanai don ba da damar wasu fom shigowa da amfani da bayanai masu ƙarfi daga wannan aikin. Koyi game da haɗe-haɗen bayanai masu ƙarfi"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:356
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:385
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:354
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:383
 #: jsapp/js/components/processing/SingleProcessingContent/components/nlpUsageLimitBlockModal/index.tsx:43
 msgid "here"
 msgstr "nan"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:374
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:372
 msgid "Import other project data"
 msgstr "Shigo da sauran bayanai aikin"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:381
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:379
 msgid ""
 "Connect with other project(s) to import dynamic data from them into this "
 "project. Learn more about dynamic data attachments"
@@ -2678,19 +2786,19 @@ msgstr "Ana sabunta tambayoyin da aka raba"
 msgid "Data sharing disabled"
 msgstr "An kashe raba bayanai"
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:72
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:73
 msgid "Remove project?"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:73
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:74
 msgid "Are you sure you want to remove the imported project?"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:79
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:80
 msgid "Remove project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:90
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:91
 msgid "Give a unique name to the import"
 msgstr "Ba da suna na musamman ga shigowar"
 
@@ -2722,53 +2830,53 @@ msgstr ""
 msgid "Configure"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:35
+#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:33
 msgid "Select a different project to import data from"
 msgstr "Zaɓi wani aikin daban don shigar da bayanai"
 
-#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:41
+#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:42
 msgid "No projects to connect"
 msgstr "Babu ayyukan da za a haɗa"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:71
-msgid "Import data from ##SOURCE_NAME##"
-msgstr "Shigo da bayanai daga ##SOURCE_NAME##"
-
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:147
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:140
 msgid "Could not update import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:203
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:193
 msgid ""
 "You are about to import ##SOURCE_NAME##. Select or deselect in the list "
 "below to narrow down the number of questions to import."
 msgstr "Kuna shirin shigar da ##SOURCE_NAME##. Zaɓi ko cire zaɓi a cikin jerin da ke ƙasa don taƙaita adadin tambayoyin da za a shigo da su."
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:208
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:198
 msgid "Select below the questions you want to import"
 msgstr "Zaɓi ƙasa da tambayoyin da kuke son shigo da su"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:211
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:687
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:202
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:696
 msgid "Select all"
 msgstr "Zaɓi duka"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:213
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:205
 msgid "|"
 msgstr "|"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:215
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:697
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:208
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:706
 msgid "Deselect all"
 msgstr "Cire zabin duka"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:220
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:215
 msgid "Loading imported questions"
 msgstr "Ana loda tambayoyin da aka shigo da su"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:230
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:231
 msgid "Updating imported questions"
 msgstr "Ana sabunta tambayoyin da aka shigo da su"
+
+#: jsapp/js/components/dataAttachments/openDataAttachmentColumnsModal.tsx:7
+msgid "Import data from ##SOURCE_NAME##"
+msgstr "Shigo da bayanai daga ##SOURCE_NAME##"
 
 #: jsapp/js/components/exportToEmailButton/exportToEmailButton.component.tsx:26
 msgid "Export is being generated, you will receive an email once it's done"
@@ -2778,35 +2886,35 @@ msgstr ""
 msgid "All questions"
 msgstr "Duka tambayoyi"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:150
+#: jsapp/js/components/formGallery/formGallery.component.tsx:149
 msgid "Image Gallery"
 msgstr "Gidan Hoto"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:162
+#: jsapp/js/components/formGallery/formGallery.component.tsx:161
 msgid "From"
 msgstr "Daga"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:172
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:646
+#: jsapp/js/components/formGallery/formGallery.component.tsx:179
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:655
 msgid "Between"
 msgstr "Tsakanin"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:176
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:657
+#: jsapp/js/components/formGallery/formGallery.component.tsx:183
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:666
 #: jsapp/js/components/usageLimits/limitNotificationUtils.tsx:14
 msgid "and"
 msgstr "kuma"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:199
+#: jsapp/js/components/formGallery/formGallery.component.tsx:206
 #: jsapp/js/components/submissions/columnsHideForm.tsx:193
 msgid "No results"
 msgstr "Babu sakamako"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:249
+#: jsapp/js/components/formGallery/formGallery.component.tsx:256
 msgid "Loading next page"
 msgstr ""
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:249
+#: jsapp/js/components/formGallery/formGallery.component.tsx:256
 msgid "Next image"
 msgstr ""
 
@@ -2829,6 +2937,10 @@ msgstr ""
 #: jsapp/js/components/formLanding/FormHistory.tsx:159
 msgid "Clone this version as a new project"
 msgstr "Yin kwafin wannan sigar azaman sabon aiki"
+
+#: jsapp/js/components/formLanding/FormHistory.tsx:194
+msgid "Could not load the form history."
+msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:98
 msgid "undeployed"
@@ -2863,7 +2975,7 @@ msgid "Show full history"
 msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:236
-#: jsapp/js/components/formSummary/formSummary.js:68
+#: jsapp/js/project/FormSummary/index.tsx:75
 msgid "Collect data"
 msgstr ""
 
@@ -2922,8 +3034,9 @@ msgid "Copy"
 msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:359
-#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:57
-#: jsapp/js/components/submissions/submissionDataTable.tsx:253
+#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:72
+#: jsapp/js/components/submissions/DataTableCell/TextCell.tsx:70
+#: jsapp/js/components/submissions/submissionDataTable.tsx:255
 msgid "Open"
 msgstr "Bude"
 
@@ -2966,8 +3079,9 @@ msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:504
 #: jsapp/js/components/reports/reportStyleSettings.component.tsx:185
-#: jsapp/js/components/submissions/submissionModal.tsx:96
+#: jsapp/js/components/submissions/submissionModal.tsx:101
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:453
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:184
 msgid "Unnamed language"
 msgstr "Yarurruka da ba a ambata ba"
 
@@ -2991,91 +3105,12 @@ msgstr ""
 msgid "path not found / recognized"
 msgstr "ba a samo/ gane hanyar ba"
 
-#: jsapp/js/components/formSummary/formSummary.js:76
-#: jsapp/js/projects/projectsTable/projectQuickActions.tsx:111
-#: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:31
-msgid "Share project"
-msgstr "Raba aikin"
-
-#: jsapp/js/components/formSummary/formSummary.js:89
-#: jsapp/js/components/permissions/permConstants.ts:228
-msgid "Edit form"
-msgstr "Gyara fom"
-
-#: jsapp/js/components/formSummary/formSummary.js:96
-#: jsapp/js/editorMixins/EditableForm.tsx:828
-msgid "Preview form"
-msgstr "Waiwayar fom"
-
-#: jsapp/js/components/formSummary/formSummary.js:116
-#: jsapp/js/project/projectTopTabs.component.tsx:85
-#: jsapp/js/project/projectTopTabs.component.tsx:93
-msgid "Data"
-msgstr "Bayanai"
-
-#: jsapp/js/components/formSummary/formSummary.js:164
-msgid "Team members"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummary.js:204
-msgid "Quick Links"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:74
-msgid "Project information"
-msgstr "Bayanin aikin"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:81
-#: jsapp/js/components/library/assetInfoBox.tsx:96
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:276
-#: jsapp/js/projects/projectViews/constants.ts:150
-msgid "Description"
-msgstr "Bayani"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:112
-#: jsapp/js/projects/projectViews/constants.ts:229
-msgid "Last edited"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:124
-#: jsapp/js/components/templatesList.js:66
-msgid "Last modified"
-msgstr "Gyara na ƙarshe"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:130
-msgid "Last deployed"
-msgstr "Aikawa na ƙarshe"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:138
-msgid "Latest submission"
-msgstr "Sabon abubuwanda aka gabatar"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:149
-#: jsapp/js/components/library/assetInfoBox.tsx:134
-#: jsapp/js/projects/projectViews/constants.ts:250
-msgid "Sector"
-msgstr "Bangaren"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:157
-#: jsapp/js/projects/projectViews/constants.ts:257
-msgid "Countries"
-msgstr "Ƙasashe"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:196
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:311
-msgid "Operational purpose of data"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:204
-msgid "Collects personally identifiable information"
-msgstr ""
-
 #: jsapp/js/components/formViewSideTabs.js:18
 msgid "Table"
 msgstr "Tebur"
 
 #: jsapp/js/components/formViewSideTabs.js:23
-#: jsapp/js/components/reports/reports.tsx:574
+#: jsapp/js/components/reports/reports.tsx:579
 msgid "Reports"
 msgstr "Rahotanni"
 
@@ -3120,30 +3155,22 @@ msgstr "Aiki"
 msgid "XForm is loading"
 msgstr "Ana loda XForm"
 
-#: jsapp/js/components/header/accountMenu.tsx:52
+#: jsapp/js/components/header/accountMenu.tsx:61
 msgid "Please refresh the page"
 msgstr "Da fatan za a sabunta shafin"
 
-#: jsapp/js/components/header/accountMenu.tsx:98
+#: jsapp/js/components/header/accountMenu.tsx:107
 msgid "Account Settings"
 msgstr "Saitunan Asusu"
 
-#: jsapp/js/components/header/accountMenu.tsx:108
-msgid "Terms of Service"
-msgstr "Sharuɗɗan Sabis"
-
-#: jsapp/js/components/header/accountMenu.tsx:113
-msgid "Privacy Policy"
-msgstr "Bayanan Kebantawa"
-
-#: jsapp/js/components/header/accountMenu.tsx:127
-#: jsapp/js/components/map/index.tsx:1285
+#: jsapp/js/components/header/accountMenu.tsx:136
+#: jsapp/js/components/map/index.tsx:1322
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:255
-#: jsapp/js/components/submissions/submissionModal.tsx:432
+#: jsapp/js/components/submissions/submissionModal.tsx:431
 msgid "Language"
 msgstr "Yare"
 
-#: jsapp/js/components/header/accountMenu.tsx:152
+#: jsapp/js/components/header/accountMenu.tsx:161
 msgid "Logout"
 msgstr "Fita"
 
@@ -3235,19 +3262,19 @@ msgid "Upload file"
 msgstr "Ɗora fayil"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:169
-#: jsapp/js/dropzone.utils.tsx:266
+#: jsapp/js/dropzone.utils.tsx:264
 msgid "XLS Import completed"
 msgstr "An gama shigo da XLS"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:176
-#: jsapp/js/dropzone.utils.tsx:240
+#: jsapp/js/dropzone.utils.tsx:238
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:594
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:611
 msgid "Import Failed!"
 msgstr "Shigowa ya gaza!"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:202
-#: jsapp/js/dropzone.utils.tsx:196
+#: jsapp/js/dropzone.utils.tsx:194
 msgid "Import failed"
 msgstr "An kasa shigarwa!"
 
@@ -3263,18 +3290,18 @@ msgid "Uploading file…"
 msgstr "Ana dora fayil…"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:231
-#: jsapp/js/dropzone.utils.tsx:170
+#: jsapp/js/dropzone.utils.tsx:168
 msgid "Failed to read file."
 msgstr ""
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:252
-#: jsapp/js/dropzone.utils.tsx:259 jsapp/js/dropzone.utils.tsx:321
+#: jsapp/js/dropzone.utils.tsx:257 jsapp/js/dropzone.utils.tsx:319
 msgid "Failed to create import."
 msgstr "An gaza ƙirƙirar shigowa."
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:260
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:164
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:219
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:162
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:217
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:394
 #: jsapp/js/project/FormLanguagesManager/openFormLanguagesModal.tsx:20
 msgid "Close"
@@ -3308,7 +3335,7 @@ msgstr "Lura cewa za a yi watsi da wannan lokacin da ake dora fayil ɗin da aka 
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:338
 #: jsapp/js/components/map/MapSettings.tsx:364
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:98
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:87
 msgid "Upload"
 msgstr "Ɗora"
 
@@ -3336,15 +3363,28 @@ msgstr "An gaza samun bayanai mai shi."
 msgid "Date Created"
 msgstr "Ranar Ƙirƙira"
 
+#: jsapp/js/components/library/assetInfoBox.tsx:96
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:279
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:81
+#: jsapp/js/projects/projectViews/constants.ts:150
+msgid "Description"
+msgstr "Bayani"
+
 #: jsapp/js/components/library/assetInfoBox.tsx:103
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:340
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:113
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:343
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:131
 msgid "Tags"
 msgstr "Laƙƙuba"
 
+#: jsapp/js/components/library/assetInfoBox.tsx:134
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:149
+#: jsapp/js/projects/projectViews/constants.ts:250
+msgid "Sector"
+msgstr "Bangaren"
+
 #: jsapp/js/components/library/assetInfoBox.tsx:141
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:300
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:150
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:303
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:141
 msgid "Country"
 msgstr "Ƙasa"
 
@@ -3625,7 +3665,7 @@ msgid ""
 msgstr ""
 
 #: jsapp/js/components/map/MapSettings.tsx:414
-#: jsapp/js/components/map/index.tsx:1363
+#: jsapp/js/components/map/index.tsx:1400
 #: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx:189
 #: jsapp/js/components/submissions/TableSettings.tsx:170
 #: jsapp/js/components/submissions/columnsHideForm.tsx:203
@@ -3634,154 +3674,158 @@ msgstr ""
 msgid "Reset"
 msgstr "Sake saiti"
 
-#: jsapp/js/components/map/index.tsx:114
+#: jsapp/js/components/map/index.tsx:122
 msgid "Could not parse KML file"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:118
+#: jsapp/js/components/map/index.tsx:126
 msgid "KML contained no features"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:132
+#: jsapp/js/components/map/index.tsx:140
 msgid "Error loading overlay layer \"##name##\""
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:286
+#: jsapp/js/components/map/index.tsx:299
 msgid ""
 "By default map is limited to the ##number##  most recent submissions for "
 "performance reasons. Go to map settings to increase this limit."
 msgstr "Ta asali taswirar tana iyakance ga ##number## abinda da aka tura na kwanan nan don dalilan aiki. Je zuwa saitunan taswira don ƙara wannan iyaka."
 
-#: jsapp/js/components/map/index.tsx:384
+#: jsapp/js/components/map/index.tsx:397
 msgid "No latitude/longitude columns found"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:411
+#: jsapp/js/components/map/index.tsx:424
 msgid "Invalid GeoJSON"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:428
+#: jsapp/js/components/map/index.tsx:441
 msgid "No KML file found in KMZ archive"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:765
-#: jsapp/js/components/submissions/submissionModal.tsx:232
-#: jsapp/js/components/submissions/table.tsx:464
+#: jsapp/js/components/map/index.tsx:783
+#: jsapp/js/components/submissions/submissionModal.tsx:237
+#: jsapp/js/components/submissions/table.tsx:456
 msgid "Error: could not load data."
 msgstr "Kuskure: an kasa loda bayanai."
 
-#: jsapp/js/components/map/index.tsx:1070
+#: jsapp/js/components/map/index.tsx:1107
 msgid "Disaggregate by survey responses"
 msgstr "Rarraba ta martanin binciken"
 
-#: jsapp/js/components/map/index.tsx:1075
+#: jsapp/js/components/map/index.tsx:1112
 msgid "Disaggregated using:"
 msgstr "An rarraba ta amfani da:"
 
-#: jsapp/js/components/map/index.tsx:1079
+#: jsapp/js/components/map/index.tsx:1116
 msgid "No \"geopoint\" responses have been received"
 msgstr "Ba a sami martanin \"geopoint\" ba"
 
-#: jsapp/js/components/map/index.tsx:1081
+#: jsapp/js/components/map/index.tsx:1118
 msgid ""
 "The map does not show data because this form does not have a \"geopoint\" "
 "field."
 msgstr "Taswirar bata nuna bayanai saboda wannan fom ɗin bashi da filin \"geopoint\"."
 
-#: jsapp/js/components/map/index.tsx:1186
-#: jsapp/js/components/map/index.tsx:1192
+#: jsapp/js/components/map/index.tsx:1223
+#: jsapp/js/components/map/index.tsx:1229
 msgid "Map display settings"
 msgstr "Saitunan nunin taswira"
 
-#: jsapp/js/components/map/index.tsx:1200
-#: jsapp/js/components/map/index.tsx:1206
+#: jsapp/js/components/map/index.tsx:1237
+#: jsapp/js/components/map/index.tsx:1243
 msgid "Toggle layers"
 msgstr "Juya mahadai"
 
-#: jsapp/js/components/map/index.tsx:1212
-#: jsapp/js/components/map/index.tsx:1218
+#: jsapp/js/components/map/index.tsx:1249
+#: jsapp/js/components/map/index.tsx:1255
 msgid "Toggle Fullscreen"
 msgstr "Juya Cikakken allo"
 
-#: jsapp/js/components/map/index.tsx:1224
-#: jsapp/js/components/map/index.tsx:1230
+#: jsapp/js/components/map/index.tsx:1261
+#: jsapp/js/components/map/index.tsx:1267
 msgid "Show as points"
 msgstr "Nuna azaman maki"
 
-#: jsapp/js/components/map/index.tsx:1237
-#: jsapp/js/components/map/index.tsx:1243
+#: jsapp/js/components/map/index.tsx:1274
+#: jsapp/js/components/map/index.tsx:1280
 msgid "Show as heatmap"
 msgstr "Nuna a zaman taswirar zafi"
 
-#: jsapp/js/components/map/index.tsx:1292
+#: jsapp/js/components/map/index.tsx:1329
 msgid "Default"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1303
+#: jsapp/js/components/map/index.tsx:1340
 msgid "-- See all data --"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1311
+#: jsapp/js/components/map/index.tsx:1348
 msgid "untranslated: "
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1314
+#: jsapp/js/components/map/index.tsx:1351
 msgid "Question label not set"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1340
+#: jsapp/js/components/map/index.tsx:1377
 msgid "Legend"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1375
+#: jsapp/js/components/map/index.tsx:1412
 msgid "not set"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1413
+#: jsapp/js/components/map/index.tsx:1450
 msgid "This project does not include geographical data."
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1414
+#: jsapp/js/components/map/index.tsx:1451
 msgid "To visualize data in the map, create a \"geopoint\" question."
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1423
+#: jsapp/js/components/map/index.tsx:1460
 msgid "No \"geopoint\" responses have been received for the selected question."
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1432
+#: jsapp/js/components/map/index.tsx:1469
 msgid "Fetching points…"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1438
+#: jsapp/js/components/map/index.tsx:1475
 msgid "Map Settings"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:26
+#: jsapp/js/components/metadataEditor.tsx:28
 msgid "Low"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:27
+#: jsapp/js/components/metadataEditor.tsx:29
 msgid "Normal"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:28
+#: jsapp/js/components/metadataEditor.tsx:30
 msgid "Voice only"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:132
+#: jsapp/js/components/metadataEditor.tsx:141
 msgid "Audit settings"
 msgstr "Saitunan dubawa"
 
-#: jsapp/js/components/metadataEditor.js:235
+#: jsapp/js/components/metadataEditor.tsx:227
+msgid "Enter audit settings here"
+msgstr ""
+
+#: jsapp/js/components/metadataEditor.tsx:242
 msgid "This survey will be recorded"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:236
+#: jsapp/js/components/metadataEditor.tsx:243
 msgid "Enable audio recording in the background"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:246
+#: jsapp/js/components/metadataEditor.tsx:256
 msgid "Audio quality"
 msgstr ""
 
@@ -3790,135 +3834,144 @@ msgstr ""
 msgid "Please select an option"
 msgstr ""
 
-#: jsapp/js/components/modalForms/ExtraProjectMetadataFields.tsx:89
+#: jsapp/js/components/modalForms/ExtraProjectMetadataFields.tsx:90
 msgid "This field is required"
 msgstr ""
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:100
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:103
 msgid "##type## ##name## created"
 msgstr "An ƙirƙira ##type## ##name##"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:114
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:117
 msgid "Failed to create ##type##"
 msgstr "An kasa ƙirƙirar ##type##"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:124
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:127
 msgid "Failed to update ##type##"
 msgstr "An kasa sabunta shi ##type##"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:250
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:253
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:101
 #: jsapp/js/project/FormLanguagesManager/utils.ts:12
 msgid "Saving…"
 msgstr "Ana adanawa…"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:252
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:255
 msgid "Creating…"
 msgstr "Ƙirƙirar…"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:267
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:270
 msgid "Enter title of ##type## here"
 msgstr ""
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:277
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:118
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:280
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:117
 msgid "Enter short description here"
 msgstr "Shigar da taƙaitaccen bayanin anan"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:323
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:314
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:197
+msgid "Operational purpose of data"
+msgstr ""
+
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:326
 msgid "Does this project collect personally identifiable information?"
 msgstr ""
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:328
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:331
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:155
-#: jsapp/js/components/submissions/submissionUtils.tsx:645
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:183
+#: jsapp/js/components/submissions/submissionUtils.tsx:643
+#: jsapp/js/project/ProjectSettings/constants.ts:39
 #: jsapp/xlform/src/view.row.templates.coffee:364
 #: jsapp/xlform/src/view.rowDetail.coffee:120
 msgid "Yes"
 msgstr "Ee"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:329
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:332
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:157
-#: jsapp/js/components/submissions/submissionUtils.tsx:645
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:184
+#: jsapp/js/components/submissions/submissionUtils.tsx:643
+#: jsapp/js/project/ProjectSettings/constants.ts:40
 #: jsapp/xlform/src/view.row.templates.coffee:373
 msgid "No"
 msgstr "A'a"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:18
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:73
+msgid "Question Block"
+msgstr "Toshe Tambaya"
+
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:80
+msgid "Template"
+msgstr "Samfuri"
+
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:94
+msgid "Collection"
+msgstr "Tari"
+
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:20
 msgid "n/d"
 msgstr "n/d"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:22
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:24
 msgid "Multiple responses"
 msgstr "Martani dayawa"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:88
-msgid "Editing ##count## submission(s)"
-msgstr ""
-
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:94
-msgid "Editing \"##question##\" for ##count## submissions"
-msgstr "Gyara \"##question##\" don abinda aka tura ##count##"
-
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:203
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:191
 msgid "help article"
 msgstr ""
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:266
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:272
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:254
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:260
 msgid "Type to filter"
 msgstr "Buga don tacewa"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:291
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:700
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:279
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:701
 msgid "Required"
 msgstr "Da ake bukata"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:297
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:285
 msgid "Editing responses from repeat group questions is not possible yet."
 msgstr "Gyara martani daga maimaicin tambayoyin rukuni baya yiwuwa tukuna."
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:341
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:329
 msgid ""
 "Bulk edit mode: Select questions to edit or delete responses across all "
 "selected submissions."
 msgstr ""
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:345
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:333
 msgid ""
 "Note: Changes made here bypass form logic and validation rules and may "
 "affect data integrity."
 msgstr ""
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:347
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:335
 msgid "Learn more in our"
 msgstr ""
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:352
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:340
 msgid "Updated responses"
 msgstr "Martanoni da aka sabunta"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:358
-#: jsapp/js/components/submissions/submissionDataTable.tsx:77
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:346
+#: jsapp/js/components/submissions/submissionDataTable.tsx:79
 msgid "Question"
 msgstr "Tambaya"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:359
-#: jsapp/js/components/submissions/submissionDataTable.tsx:79
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:347
+#: jsapp/js/components/submissions/submissionDataTable.tsx:81
 msgid "Response"
 msgstr "Martani"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:374
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:362
 msgid "Discard Changes"
 msgstr "Yi watsi da Canje-canje"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:383
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:371
 msgid "Confirm & close"
 msgstr "Tabbatar &amp; a rufe"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:395
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:383
 msgid ""
 "You are about to edit responses for one or multiple submissions at once. Use"
 " the XML syntax in the text box below. You can also select one of the "
@@ -3926,39 +3979,43 @@ msgid ""
 " specific responses for one or multiple submissions"
 msgstr "Kuna gab da gyara martanoni don ɗaya ko abinda aka tura dayawa lokaci guda. Yi amfani da mahallin XML a cikin akwatin rubutu da ke ƙasa. Hakanan zaka iya zaɓar ɗaya daga cikin martanonin da ke akwai daga teburin martanoni. Ƙara koyo game da yadda ake gyara takamaiman martanoni don ɗaya ko abinda aka tura da yawa"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:461
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:449
 msgid "Type new response for selected submissions"
 msgstr "Buga sabon martani don zaɓaɓɓun abinda aka tura"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:510
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:498
 msgid "Select"
 msgstr "Zaɓi"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:544
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:532
 msgid "Response value"
 msgstr "Kimar amsa"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:545
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:533
 #: jsapp/js/components/reports/reportTable.component.tsx:75
 msgid "Frequency"
 msgstr "Yawan"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:546
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:534
 #: jsapp/js/components/reports/reportTable.component.tsx:75
 msgid "Percentage"
 msgstr "Kashi"
 
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:88
-msgid "Question Block"
-msgstr "Toshe Tambaya"
+#: jsapp/js/components/modalForms/openBulkEditSubmissionsFormModal.tsx:37
+msgid "Editing ##count## submission(s)"
+msgstr ""
 
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:93
-msgid "Template"
-msgstr "Samfuri"
+#: jsapp/js/components/modalForms/openBulkEditSubmissionsFormModal.tsx:41
+msgid "Editing \"##question##\" for ##count## submission(s)"
+msgstr ""
 
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:103
-msgid "Collection"
-msgstr "Tari"
+#: jsapp/js/components/modalForms/openLibraryAssetModal.tsx:19
+msgid "Collection details"
+msgstr "Bayanin tarin"
+
+#: jsapp/js/components/modalForms/openLibraryAssetModal.tsx:19
+msgid "Template details"
+msgstr "Bayanin samfuri"
 
 #: jsapp/js/components/newFeatureDialog.component.tsx:80
 msgid "New feature"
@@ -4094,10 +4151,6 @@ msgstr "Kuna shirin kwafe izini daga ##source to ## manufa. Ba za a iya soke wan
 msgid "Are you sure you want to copy permissions?"
 msgstr "Shin kun tabbata kuna son kwafin izini?"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:166
-msgid "Proceed"
-msgstr "Cigaba"
-
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:201
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:250
 msgid "Loading…"
@@ -4136,6 +4189,11 @@ msgstr ""
 #: jsapp/js/components/permissions/permConstants.ts:227
 msgid "View form"
 msgstr "Duba fom"
+
+#: jsapp/js/components/permissions/permConstants.ts:228
+#: jsapp/js/project/FormSummary/index.tsx:91
+msgid "Edit form"
+msgstr "Gyara fom"
 
 #: jsapp/js/components/permissions/permConstants.ts:229
 msgid "Manage project"
@@ -4391,11 +4449,11 @@ msgstr ""
 msgid "To complete the transfer, enter the username of the new project owner"
 msgstr ""
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:239
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:238
 msgid "Enter username here"
 msgstr ""
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:250
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:249
 msgid "Transfer project"
 msgstr ""
 
@@ -4430,32 +4488,32 @@ msgid ""
 "change user permissions in the project sharing settings."
 msgstr "Lura: Mai shi na baya ya na da izinin sarrafa aikin. Ku na iya canza izinin mai amfani a cikin saitunan tura aikin."
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:43
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:42
 msgid "Enter usernames separated by comma"
 msgstr "Shigar da sunayen masu amfani raɓe ta waƙafi"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:221
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:220
 msgid "User not found:"
 msgstr "Ba a samo mai amfani ba:"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:407
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:404
 msgid "equals"
 msgstr "daidai da"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:437
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:434
 msgid "Reset changes"
 msgstr "Sake saita canje-canje"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:461
-#: jsapp/js/components/submissions/submissionDataTable.tsx:329
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:457
+#: jsapp/js/components/submissions/tableConstants.ts:64
 msgid "username"
 msgstr "sunan mai amfani"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:499
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:495
 msgid "Grant permissions"
 msgstr "Ba da izini"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:499
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:495
 msgid "Update permissions"
 msgstr "Sabunta izini"
 
@@ -4514,13 +4572,13 @@ msgstr "Izinin da aka adana ba su da inganci. Da fatan za a sake sanya su. Idan 
 msgid "Type option name"
 msgstr "Rubuta sunan zaɓi"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:97
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:169
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:96
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:168
 msgid "Add a hint (optional)"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:112
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:751
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:111
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:752
 msgid "Add new option"
 msgstr "Ƙara sabon zaɓi"
 
@@ -4598,15 +4656,15 @@ msgstr ""
 msgid "Failed to get tag suggestions"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/index.tsx:484
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/index.tsx:483
 msgid "Unknown question type ##type_name##"
 msgstr "Nau'in tambayar da ba a sani ba ##type_name##"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:83
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:80
 msgid "Failed to generate AI response. Please try again later."
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:96
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:93
 msgid ""
 "No transcription found. If there is an existing transcription it may need to"
 " be saved."
@@ -4656,26 +4714,26 @@ msgstr "Canje-canjen da ba a adana ba"
 msgid "Saved"
 msgstr "Adanawa"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:125
-#: jsapp/js/constants.ts:352 jsapp/js/formbuild/containers/KoboMatrix.tsx:129
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:143
+#: jsapp/js/constants.ts:349 jsapp/js/formbuild/containers/KoboMatrix.tsx:129
 msgid "Text"
 msgstr "Rubutu"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:137
-#: jsapp/js/constants.ts:319 jsapp/js/formbuild/containers/KoboMatrix.tsx:133
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:155
+#: jsapp/js/constants.ts:316 jsapp/js/formbuild/containers/KoboMatrix.tsx:133
 msgid "Number"
 msgstr "Lamba"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:149
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:167
 msgid "Single choice"
 msgstr "Zaɓi ɗaya"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:163
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:181
 msgid "Multiple choice"
 msgstr "Zaɓi da yawa"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:177
-#: jsapp/js/constants.ts:328
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:195
+#: jsapp/js/constants.ts:325
 msgid "Note"
 msgstr "Lura"
 
@@ -4688,15 +4746,15 @@ msgstr "Wannan ##type## ba shi da rubutu tukuna"
 msgid "begin"
 msgstr "fara"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:151
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:149
 msgid "Automatic transcription of audio file from"
 msgstr "Rubutun fayil na sauti kai tsaye daga"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:184
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:182
 msgid "Transcription provider"
 msgstr "Mai samar da rubutu"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:188
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:186
 msgid ""
 "Automated transcription is provided by Google Cloud Platform. By using this "
 "service you agree that your audio file will be sent to Google's servers for "
@@ -4706,44 +4764,44 @@ msgid ""
 "service."
 msgstr "Dandalin Google Cloud ne yake samar da rubutun kai tsaye. Ta amfani da wannan aiki, kun yarda cewa za a aika fayil ɗin murya zuwa rumbun bayanan Google don manufar yin rubutu. Amma, ba za a adana shi a rumbun bayanan Google ba fiye da ɗan gajeren lokacin da ake buƙata don kammala rubutun, kuma ba za mu bari Google ya yi amfani da sautin don inganta aikin rubutun sa ba."
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:201
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:254
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:199
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:252
 msgid "cancel"
 msgstr "soke"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:206
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:204
 msgid "create transcript"
 msgstr "ƙirƙirar rubutu"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:49
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:47
 msgid "Please select the original language of the ##type##"
 msgstr "Da fatan za a zaɓi yaren asali na ##type##"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:93
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:91
 msgid "transcribe"
 msgstr "rubuta"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:193
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:192
-#: jsapp/js/components/submissions/submissionModal.tsx:510
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:190
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:189
+#: jsapp/js/components/submissions/submissionModal.tsx:503
 msgid "Discard"
 msgstr "Yi watsi da"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:68
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:66
 msgid "Delete transcription?"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:72
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:68
 msgid "Automatic transcription in progress"
 msgstr "Ana ci gaba da rubutawa ta kai tsaye"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:74
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:199
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:70
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:197
 msgid "Estimated time for completion: ##estimate##"
 msgstr "kiyasin lokacin kammalawa: ##estimate##"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:78
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:79
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:74
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:76
 msgid "This submission is part of an ongoing bulk processing job."
 msgstr ""
 
@@ -4752,7 +4810,7 @@ msgid "source file"
 msgstr "tushen fayil"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/transcript.utils.ts:33
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:199
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:197
 msgid "less than a minute"
 msgstr "ƙasa da minti ɗaya"
 
@@ -4772,24 +4830,24 @@ msgstr "kamar##number## mintuna"
 msgid "This transcript does not have any translations yet"
 msgstr "Wannan rubutun ba shi da fassara tukuna"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:77
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:75
 msgid "Failed to create automatic translation. Please try again later."
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:193
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:72
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:191
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:69
 msgid "Automatic translation in progress"
 msgstr "Ana ci gaba da fassara ta kai tsaye"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:206
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:204
 msgid "Automatic translation of transcript to"
 msgstr "Fassara ta kai tsaye zuwa ga"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:230
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:228
 msgid "Translation provider"
 msgstr "Mai fassara"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:234
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:232
 msgid ""
 "Automated translation is provided by Google Cloud Platform. By using this "
 "service you agree that your transcript text will be sent to Google's servers"
@@ -4797,31 +4855,31 @@ msgid ""
 "servers beyond the very short period needed for completing the translation."
 msgstr "Dandalin Google Cloud ne ke yi fassarar kai tsaye. Ta amfani da wannan aikin, kun yarda cewa za a aika da rubutun ku zuwa rumbun bayanan Google don fassara. Amma, ba za a adana shi a rumbun bayanan Google ba fiye da ɗan gajeren lokacin da ake buƙata don kammala fassarar."
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:259
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:257
 msgid "create translation"
 msgstr "ƙirƙirar fassarar"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:113
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:111
 msgid "Please select the language you want to translate to"
 msgstr "Da fatan za a zaɓi yaren da ku ke son fassarawa zuwa"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:114
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:112
 msgid "translate"
 msgstr "fassara"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:76
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:74
 msgid "Delete translation?"
 msgstr "Goge fassarar?"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:97
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:95
 msgid "new translation"
 msgstr "sabuwar fassarar"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:74
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:71
 msgid "Language: ##language##"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:75
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:72
 msgid "This may take up to a couple of minutes."
 msgstr ""
 
@@ -4909,42 +4967,42 @@ msgstr "Lakabi"
 msgid "XML values"
 msgstr "Lambobi XML"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:90
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:92
 msgid "Original transcript"
 msgstr "Rubutun asali"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:101
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:103
 msgid "Submission data"
 msgstr "Bayanai abinda aka tura"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:107
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:109
 msgid "Original file (Audio)"
 msgstr "Fayil na asali (Sauti)"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:152
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:154
 msgid "Display settings"
 msgstr "Saitunan nuni"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:159
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:161
 msgid "Customize display settings"
 msgstr "Gyara saitunan nuni"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:166
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:168
 msgid ""
 "Select the information you want to display in the side menu to support your "
 "analysis."
 msgstr "Zaɓi bayanin da ku ke son nunawa a cikin jeri don taimakawa binciken ku."
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:172
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:174
 #: jsapp/js/components/submissions/TableSettings.tsx:143
 msgid "Display labels or XML values?"
 msgstr "Nuna alamun ko ƙimar XML?"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:209
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:210
 msgid "Select the submission data to display."
 msgstr "Zaɓi bayanai na abinda aka tura don nunawa."
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:237
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:238
 #: jsapp/js/components/reports/reportsModalTabs.component.tsx:51
 msgid "Translation"
 msgstr "Fassara"
@@ -4958,12 +5016,12 @@ msgid "There is no data for this question for the current submission"
 msgstr "Babu bayanai don wannan tambayar na abinda aka tura na yanzu"
 
 #: jsapp/js/components/projectDownloads/AnonymousExports.tsx:128
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:257
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:264
 msgid "Failed to create export"
 msgstr "An kasa ƙirƙirar fitarwa"
 
 #: jsapp/js/components/projectDownloads/AnonymousExports.tsx:153
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:858
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:864
 msgid "Export"
 msgstr "fitarwa"
 
@@ -4982,7 +5040,7 @@ msgid ""
 "action is not reversible."
 msgstr ""
 
-#: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx:44
+#: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx:36
 msgid "Select export type"
 msgstr "Zaɓi nau'in fitarwa"
 
@@ -4992,85 +5050,85 @@ msgid ""
 "using one of the other export types available."
 msgstr "Wannan sigar fitarwa ba za ya sami tallafi ba nan gaba. Da fatan za a yi la'akari da amfani da ɗayan sauran nau'ikan fitarwa da ke samuwa."
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:42
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:44
 msgid "Latest unsaved settings"
 msgstr "Sabbin saitunan da ba a adan su ba"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:290
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:300
 #: jsapp/js/components/submissions/tableBulkCheckbox.tsx:56
 msgid "None"
 msgstr "Babu"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:400
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:410
 msgid "Failed to update export setting"
 msgstr "An kasa sabunta saitin fitarwa"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:413
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:423
 msgid "Failed to create export setting"
 msgstr "An kasa ƙirƙirar saitin fitarwa"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:488
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:498
 msgid "Include fields from all ##count## versions"
 msgstr "Hada da bayanai daga duka ##count## sigar"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:500
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:510
 msgid "Export ##SELECT_MANY## questions as…"
 msgstr "Fitar da##SELECT_MANY## tambayoyi a matsayin…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:509
-#: jsapp/js/constants.ts:333 jsapp/js/formbuild/containers/KoboMatrix.tsx:125
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:519
+#: jsapp/js/constants.ts:330 jsapp/js/formbuild/containers/KoboMatrix.tsx:125
 msgid "Select Many"
 msgstr "Zaɓi da yawa"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:548
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:555
 msgid "Include groups in headers"
 msgstr "Haɗa rukunai a cikin rubutun kai"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:557
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:564
 msgid "Group separator"
 msgstr "Marabar rukuni"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:579
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:587
 msgid "Flatten GeoJSON"
 msgstr "Baje GeoJSON"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:592
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:600
 msgid "Store date and number responses as text"
 msgstr "Adana kwanan wata da martanin lamba azaman rubutu"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:607
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:615
 msgid "Include media URLs"
 msgstr "Haɗa URLs kafar labarai"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:619
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:627
 msgid "Save selection as…"
 msgstr "Adana zaɓi azaman…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:629
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:637
 msgid "Name your export settings"
 msgstr "Sa wa saitunan fitarwarku suna"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:641
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:650
 msgid "Date range"
 msgstr ""
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:679
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:688
 msgid "Select questions to be exported"
 msgstr "Zaɓi tambayoyin da za a fitar"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:782
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:791
 msgid "Value and header format"
 msgstr "Ƙima da tsarin rubutun kai"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:805
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:813
 msgid "Advanced options"
 msgstr "Zurfaffun zaɓuɓɓuka"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:819
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:827
 msgid "Apply saved export settings"
 msgstr "Aiwatar da saitunan fitarwa da aka ajiye"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:829
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:834
 msgid "No export settings selected"
 msgstr "Babu saitunan fitarwa da aka zaɓa"
 
@@ -5162,11 +5220,11 @@ msgstr "Goge fitarwa?"
 msgid "Delete export settings?"
 msgstr "Goge saitunan fitarwa?"
 
-#: jsapp/js/components/reports/customReportEditor.component.tsx:100
+#: jsapp/js/components/reports/customReportEditor.component.tsx:99
 msgid "Untitled Report"
 msgstr "Rahoto Mara Suna"
 
-#: jsapp/js/components/reports/customReportEditor.component.tsx:105
+#: jsapp/js/components/reports/customReportEditor.component.tsx:104
 msgid "Include the following questions:"
 msgstr "Haɗa tambayoyi masu zuwa:"
 
@@ -5223,78 +5281,78 @@ msgstr "(# sun kasance ba su da bayanai.)"
 msgid "Override Graph Style"
 msgstr "Sauke Salon Zane"
 
-#: jsapp/js/components/reports/reports.tsx:190
+#: jsapp/js/components/reports/reports.tsx:197
 msgid ""
 "Could not load grouped results via \"##\". Will attempt to load the "
 "ungrouped report."
 msgstr "An kasa tura sakamakon rukuni ta hanyar \"##\". Za a yi ƙoƙarin tura rahoton da ba a haɗa shi ba."
 
-#: jsapp/js/components/reports/reports.tsx:243
+#: jsapp/js/components/reports/reports.tsx:250
 msgid "Could not refresh report."
 msgstr "An kasa sabunta rahoto."
 
-#: jsapp/js/components/reports/reports.tsx:394
+#: jsapp/js/components/reports/reports.tsx:401
 msgid "Untitled report"
 msgstr "Rahoto mara suna"
 
-#: jsapp/js/components/reports/reports.tsx:399
+#: jsapp/js/components/reports/reports.tsx:406
 msgid "Default Report"
 msgstr "Rahoto na Ainihi"
 
-#: jsapp/js/components/reports/reports.tsx:425
+#: jsapp/js/components/reports/reports.tsx:430
 msgid "Create New Report"
 msgstr "Ƙirƙiri Sabon Rahoto"
 
-#: jsapp/js/components/reports/reports.tsx:434
+#: jsapp/js/components/reports/reports.tsx:439
 msgid "Edit Report Questions"
 msgstr "Gyara Tambayoyin Rahoto"
 
-#: jsapp/js/components/reports/reports.tsx:443
+#: jsapp/js/components/reports/reports.tsx:448
 msgid "Configure Report Style"
 msgstr "Sarrafa Salon Rahoto"
 
-#: jsapp/js/components/reports/reports.tsx:454
-#: jsapp/js/components/submissions/submissionModal.tsx:625
+#: jsapp/js/components/reports/reports.tsx:459
+#: jsapp/js/components/submissions/submissionModal.tsx:618
 msgid "Print"
 msgstr "Buga"
 
-#: jsapp/js/components/reports/reports.tsx:508
+#: jsapp/js/components/reports/reports.tsx:513
 msgid "This report cannot be loaded."
 msgstr "Ba za a iya tura wannan rahoton ba."
 
-#: jsapp/js/components/reports/reports.tsx:564
+#: jsapp/js/components/reports/reports.tsx:569
 msgid "This report has no data."
 msgstr "Wannan rahoton ba shi da bayanai."
 
-#: jsapp/js/components/reports/reports.tsx:567
+#: jsapp/js/components/reports/reports.tsx:572
 msgid "Try changing Report Style to \"No grouping\"."
 msgstr "Gwada canza Salon Rahoton zuwa \"No grouping\"."
 
-#: jsapp/js/components/reports/reports.tsx:599
+#: jsapp/js/components/reports/reports.tsx:604
 msgid ""
 "For performance reasons, this report only includes the first ## questions."
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:609
+#: jsapp/js/components/reports/reports.tsx:614
 msgid "Show all (##)"
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:620
+#: jsapp/js/components/reports/reports.tsx:625
 msgid ""
 "This is an automated report based on raw data submitted to this project. "
 "Please conduct proper data cleaning prior to using the graphs and figures "
 "used on this page."
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:634
+#: jsapp/js/components/reports/reports.tsx:639
 msgid "Edit Report Style"
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:640
+#: jsapp/js/components/reports/reports.tsx:645
 msgid "Custom Report"
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:652
+#: jsapp/js/components/reports/reports.tsx:657
 msgid "Question Style"
 msgstr ""
 
@@ -5311,7 +5369,7 @@ msgid "Horizontal"
 msgstr "A kwance"
 
 #: jsapp/js/components/reports/reportsConstants.ts:173
-#: jsapp/js/constants.ts:315
+#: jsapp/js/constants.ts:312
 msgid "Line"
 msgstr "Layi"
 
@@ -5324,7 +5382,7 @@ msgid "Donut"
 msgstr "Donut"
 
 #: jsapp/js/components/reports/reportsConstants.ts:201
-#: jsapp/js/constants.ts:314
+#: jsapp/js/constants.ts:311
 msgid "Area"
 msgstr "Yanki"
 
@@ -5416,7 +5474,7 @@ msgid "Approve"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/openBulkApproveModal.tsx:9
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:186
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:183
 msgid "Approve all selected"
 msgstr ""
 
@@ -5433,79 +5491,79 @@ msgid ""
 "displayed in the table"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:39
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:40
 #: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:109
 msgid ""
 "1 audio file totaling ##duration## already transcribed and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:40
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:41
 #: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:110
 msgid ""
 "##count## audio files totaling ##duration## already transcribed and will be "
 "ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:72
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:67
 msgid "Bulk transcription request submitted successfully"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:94
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:89
 msgid "Failed to start transcription. Please try again."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:272
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:266
 msgid ""
 "Your ##total_files## audio files are a total of ##total_length##. This may "
 "take longer to complete than the total duration of your files."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:289
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:217
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:283
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:201
 msgid "I cannot find my language"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:297
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:291
 msgid "Select a region"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:304
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:298
 msgid "Automatic transcription is provided by Google Cloud Platform."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:321
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:315
 msgid "Start transcription"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:333
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:257
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:327
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:241
 msgid "Purchase add-on"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/openBulkTranscriptionModal.tsx:9
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:160
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:157
 msgid "Transcribe selected audio files"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:53
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:54
 msgid "Bulk translation request submitted successfully"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:77
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:78
 msgid "Failed to start translation. Please try again."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:203
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:187
 msgid ""
 "Your ##total_selected## transcripts are a total of ##total_characters## "
 "characters."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:224
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:208
 msgid "Automatic translation is provided by Google Cloud Platform."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:245
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:229
 msgid "Create translations"
 msgstr ""
 
@@ -5594,7 +5652,12 @@ msgstr ""
 msgid "There are no eligible submissions to process."
 msgstr ""
 
-#: jsapp/js/components/submissions/DataTableCell/SupplementalDetailsCell.tsx:55
+#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:64
+#: jsapp/js/components/submissions/DataTableCell/TextCell.tsx:62
+msgid "View details"
+msgstr ""
+
+#: jsapp/js/components/submissions/DataTableCell/SupplementalDetailsCell.tsx:53
 msgid "Review"
 msgstr ""
 
@@ -5669,227 +5732,183 @@ msgstr "Zaɓuɓɓukan nunin tebur"
 msgid "Deleted attachment"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
-#: jsapp/js/constants.ts:310
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
+#: jsapp/js/constants.ts:307
 msgid "Point"
 msgstr "Nuna"
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "latitude (x.y °):"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "longitude (x.y °):"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "altitude (m):"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "accuracy (m):"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:326
-msgid "start"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:327
-msgid "end"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:328
-msgid "today"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:330
-msgid "device ID"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:331
-msgid "phone number"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:332
-msgid "audit"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:333
-msgid "__version__"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:334
-msgid "_id"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:335
-msgid "instanceID"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:336
-msgid "Submitted by"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:337
-msgid "rootUuid"
 msgstr ""
 
 #: jsapp/js/components/submissions/submissionMediaUtils.ts:13
 msgid "Could not find ##fileName##"
 msgstr "Ba a iya samu ba ##fileName##"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:224
+#: jsapp/js/components/submissions/submissionModal.tsx:229
 msgid ""
 "The submission could not be found. It may have been deleted. Submission ID: "
 "##id##"
 msgstr "Ba a gano abinda aka tura ba. Wataƙila an goge shi. ID na Zaɓin: ##id##"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:266
+#: jsapp/js/components/submissions/submissionModal.tsx:271
 msgid "Delete submission?"
 msgstr "Goge abinda aka gabatar?"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:267
+#: jsapp/js/components/submissions/submissionModal.tsx:272
 msgid "Are you sure you want to delete this submission?"
 msgstr "Shin kun tabbata kuna son share wannan abinda aka gabatar?"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:267
+#: jsapp/js/components/submissions/submissionModal.tsx:272
 msgid "This action cannot be undone"
 msgstr "Ba za a iya soke wannan aikacin ba"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:445
+#: jsapp/js/components/submissions/submissionModal.tsx:443
 msgid "Validation status:"
 msgstr "Matsayin tabbatarwa:"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:487
+#: jsapp/js/components/submissions/submissionModal.tsx:480
 msgid "Duplicate created"
 msgstr "An ƙirƙira Kwafi"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:491
+#: jsapp/js/components/submissions/submissionModal.tsx:484
 msgid ""
 "A duplicate of the submission record was successfully created. You can view "
 "the new instance below and make changes using the action buttons below."
 msgstr "An yi nasarar ƙirƙirar kwafin rikodin zaɓin. Kuna iya duba sabon misalin da ke ƙasa kuma ku yi canje-canje ta amfani da maɓallan aikin da ke ƙasa."
 
-#: jsapp/js/components/submissions/submissionModal.tsx:496
+#: jsapp/js/components/submissions/submissionModal.tsx:489
 msgid "Source submission uuid: "
 msgstr "Tushen turawa uuid: "
 
-#: jsapp/js/components/submissions/submissionModal.tsx:511
+#: jsapp/js/components/submissions/submissionModal.tsx:504
 msgid "Discard duplicated submission"
 msgstr "Yi watsi da kwafin abinda da aka tura"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:532
+#: jsapp/js/components/submissions/submissionModal.tsx:525
 msgid ""
 "Click on the button below to load the most recent data for this submission. "
 msgstr "Danna kan maɓallin da ke ƙasa don loda bayanai kwanan nan don wannan abinda aka gabatar."
 
-#: jsapp/js/components/submissions/submissionModal.tsx:534
+#: jsapp/js/components/submissions/submissionModal.tsx:527
 msgid "Refresh submission"
 msgstr "Sake ƙaddamar da turawa"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:594
+#: jsapp/js/components/submissions/submissionModal.tsx:587
 msgid "Display XML names"
 msgstr "Nuna sunayen XML"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:608
-#: jsapp/js/components/submissions/table.tsx:693
+#: jsapp/js/components/submissions/submissionModal.tsx:601
+#: jsapp/js/components/submissions/table.tsx:684
 msgid "View"
 msgstr "Duba"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:616
+#: jsapp/js/components/submissions/submissionModal.tsx:609
 msgid "Duplicate"
 msgstr "Yi Kwafi"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:634
+#: jsapp/js/components/submissions/submissionModal.tsx:627
 msgid "Delete submission"
 msgstr "Goge abinda aka gabatar"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:670
+#: jsapp/js/components/submissions/submissionModal.tsx:663
 msgid "Unknown error"
 msgstr "Kuskuren da ba a sani ba"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:778
+#: jsapp/js/components/submissions/submissionUtils.tsx:776
 msgid "images"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:779
+#: jsapp/js/components/submissions/submissionUtils.tsx:777
 msgid "video"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:779
+#: jsapp/js/components/submissions/submissionUtils.tsx:777
 msgid "videos"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:780
+#: jsapp/js/components/submissions/submissionUtils.tsx:778
 msgid "audio"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:780
+#: jsapp/js/components/submissions/submissionUtils.tsx:778
 msgid "audios"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:781
+#: jsapp/js/components/submissions/submissionUtils.tsx:779
 msgid "file"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:781
+#: jsapp/js/components/submissions/submissionUtils.tsx:779
 msgid "files"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:321
+#: jsapp/js/components/submissions/table.tsx:314
 msgid ""
 "Could not refresh some processing rows. Table data may be temporarily out of"
 " date."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:323
+#: jsapp/js/components/submissions/table.tsx:316
 msgid "Bulk processing row refresh failed."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:431
+#: jsapp/js/components/submissions/table.tsx:423
 msgid "This project has no submitted data. Please collect some and try again."
 msgstr "Wannan aikin ba shi da bayanai da aka tura. Da fatan za a tattara wasu kuma a sake gwadawa."
 
-#: jsapp/js/components/submissions/table.tsx:636
+#: jsapp/js/components/submissions/table.tsx:628
 msgid "results"
 msgstr "sakamako"
 
-#: jsapp/js/components/submissions/table.tsx:739
+#: jsapp/js/components/submissions/table.tsx:730
 #: jsapp/js/components/submissions/tableUtils.ts:125
 msgid "Validation"
 msgstr "Tabbatarwa"
 
-#: jsapp/js/components/submissions/table.tsx:1403
+#: jsapp/js/components/submissions/table.tsx:1289
 msgid ""
 "Please try again later, or [contact the support team](##SUPPORT_URL##) if "
 "this happens repeatedly."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1410
+#: jsapp/js/components/submissions/table.tsx:1296
 msgid "Oops! Something went wrong on our end."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1416
+#: jsapp/js/components/submissions/table.tsx:1302
 msgid "Response details:"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1486
+#: jsapp/js/components/submissions/table.tsx:1372
 msgid "Display options"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1510
+#: jsapp/js/components/submissions/table.tsx:1396
 msgid "Prev"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1520
+#: jsapp/js/components/submissions/table.tsx:1406
 msgid "Your filters returned no submissions."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1521
+#: jsapp/js/components/submissions/table.tsx:1407
 msgid "Page"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1523
+#: jsapp/js/components/submissions/table.tsx:1409
 msgid "rows"
 msgstr ""
 
@@ -5901,76 +5920,108 @@ msgstr "Zaɓi duk sakamakon (##count##)"
 msgid "Select visible results (##count##)"
 msgstr "Zaɓi sakamako bayyananne (##count##)"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:96
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:95
 msgid "Update status of selected submissions"
 msgstr "Sabunta matsayin abinda aka tura"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:98
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:97
 msgid ""
 "You have selected ## submissions. Are you sure you would like to update "
 "their status? This action is irreversible."
 msgstr "Kun zaɓi abinda aka tura ##. Shin kun tabbata kuna son sabunta matsayinsu? Ba za a iya soke wannan aiki ba."
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:100
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:99
 msgid "Update validation status"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:133
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:132
 msgid ""
 "You are about to permanently delete ##count## submissions. It is not "
 "possible to recover deleted submissions."
 msgstr "Kuna shirin goge abinda aka tura ##count## dindindin. Ba zai yiwu a dawo da bayanan da aka goge ba."
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:159
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:158
 msgid "Delete selected submissions"
 msgstr "Goge abinda aka tura wanda aka zaɓa"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:161
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:160
 msgid "Delete selected"
 msgstr "Goge wadanda aka zaɓa"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:202
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:200
 msgid "##count## selected"
 msgstr "##count## zaɓaɓɓe"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:231
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:229
 msgid "Change status"
 msgstr "Canja matsayi"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:239
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:237
 msgid "Set status: ##status##"
 msgstr "Saita matsayi: ##status##"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:114
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:111
 #: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:105
 msgid "Sort A→Z"
 msgstr "Tsarin A→Z"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:115
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:112
 #: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:117
 msgid "Sort Z→A"
 msgstr "Tsarin Z→A"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:124
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:121
 msgid "Clear sort"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:173
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:170
 msgid "Translate selected transcriptions"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:203
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:200
 #: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:129
 msgid "Hide field"
 msgstr "Boye filin"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:215
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:212
 msgid "Unfreeze field"
 msgstr "Narkar da filin"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:216
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:213
 msgid "Freeze field"
 msgstr "Daskare filin"
+
+#: jsapp/js/components/submissions/tableConstants.ts:61
+msgid "start"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:62
+msgid "end"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:63
+msgid "today"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:65
+msgid "device ID"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:66
+msgid "phone number"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:67
+msgid "audit"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:68
+msgid "Submitted by"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:69
+msgid "rootUuid"
+msgstr ""
 
 #: jsapp/js/components/submissions/tableUtils.ts:86
 msgid "transcript"
@@ -6057,6 +6108,11 @@ msgstr "Ba ku da samfuri. Je zuwa Laburare kuma ƙirƙiri wasu."
 #: jsapp/js/components/templatesList.js:64
 msgid "Template name"
 msgstr "Sunan samfuri"
+
+#: jsapp/js/components/templatesList.js:66
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:124
+msgid "Last modified"
+msgstr "Gyara na ƙarshe"
 
 #: jsapp/js/components/usageLimits/limitNotificationUtils.tsx:22
 msgid "limits"
@@ -6185,333 +6241,338 @@ msgstr "Kun kai ƙarshen tsarin ku"
 msgid "remind me later"
 msgstr "tunatar da ni daga baya"
 
-#: jsapp/js/constants.ts:126
+#: jsapp/js/constants.ts:123
 msgid "Default - single page"
 msgstr "Na asali - shafi guda"
 
-#: jsapp/js/constants.ts:127
+#: jsapp/js/constants.ts:124
 msgid "Grid theme"
 msgstr "Jigon Layi"
 
-#: jsapp/js/constants.ts:128
+#: jsapp/js/constants.ts:125
 msgid "Grid theme with headings in ALL CAPS"
 msgstr "Jigon layi tare da kanun labarai a cikin MANYAN BAKAKE duka"
 
-#: jsapp/js/constants.ts:129
+#: jsapp/js/constants.ts:126
 msgid "Multiple pages"
 msgstr "Shafuka masu yawa"
 
-#: jsapp/js/constants.ts:132
+#: jsapp/js/constants.ts:129
 msgid "Grid theme + Multiple pages"
 msgstr "Jigon Layi + Shafuka da yawa"
 
-#: jsapp/js/constants.ts:136
+#: jsapp/js/constants.ts:133
 msgid "Grid theme + Multiple pages + headings in ALL CAPS"
 msgstr "Jigon layi + Shafuka da yawa + kanun labarai a cikin MANYAN BAKAKE duka"
 
-#: jsapp/js/constants.ts:165
+#: jsapp/js/constants.ts:162
 msgid "question"
 msgstr "tambaya"
 
-#: jsapp/js/constants.ts:169
+#: jsapp/js/constants.ts:166
 msgid "block"
 msgstr "toshe"
 
-#: jsapp/js/constants.ts:173
+#: jsapp/js/constants.ts:170
 msgid "template"
 msgstr "samfuri"
 
-#: jsapp/js/constants.ts:177
+#: jsapp/js/constants.ts:174
 msgid "project"
 msgstr "aiki"
 
-#: jsapp/js/constants.ts:181
+#: jsapp/js/constants.ts:178
 msgid "collection"
 msgstr "tari"
 
-#: jsapp/js/constants.ts:192
+#: jsapp/js/constants.ts:189
 msgid "map layer"
 msgstr "shafi na taswira"
 
-#: jsapp/js/constants.ts:196
+#: jsapp/js/constants.ts:193
 msgid "form media"
 msgstr "kafa kafofin watsa labarai"
 
-#: jsapp/js/constants.ts:267
+#: jsapp/js/constants.ts:264
 msgid "Acknowledge"
 msgstr "Bada tabbaci"
 
-#: jsapp/js/constants.ts:271
+#: jsapp/js/constants.ts:268
 msgid "Audio"
 msgstr "Sauti"
 
-#: jsapp/js/constants.ts:273
+#: jsapp/js/constants.ts:270
 msgid "Background Audio"
 msgstr "Sauti dake rerawa"
 
-#: jsapp/js/constants.ts:278
+#: jsapp/js/constants.ts:275
 msgid "Background Geopoint"
 msgstr ""
 
-#: jsapp/js/constants.ts:283
+#: jsapp/js/constants.ts:280
 msgid "Barcode / QR Code"
 msgstr "Barcode / Lambobin QR"
 
-#: jsapp/js/constants.ts:288
+#: jsapp/js/constants.ts:285
 msgid "Calculate"
 msgstr "Lissafa"
 
-#: jsapp/js/constants.ts:294
+#: jsapp/js/constants.ts:291
 msgid "Date & time"
 msgstr "Kwanan wata / lokaci"
 
-#: jsapp/js/constants.ts:299
+#: jsapp/js/constants.ts:296
 msgid "Decimal"
 msgstr "Lambobi"
 
-#: jsapp/js/constants.ts:304
+#: jsapp/js/constants.ts:301
 msgid "External XML"
 msgstr "XML na waje"
 
-#: jsapp/js/constants.ts:308
+#: jsapp/js/constants.ts:305
 msgid "File"
 msgstr "Fayil"
 
-#: jsapp/js/constants.ts:316
+#: jsapp/js/constants.ts:313
 msgid "Hidden"
 msgstr "Boyayye"
 
-#: jsapp/js/constants.ts:317
+#: jsapp/js/constants.ts:314
 msgid "Photo"
 msgstr "Hoto"
 
-#: jsapp/js/constants.ts:324
+#: jsapp/js/constants.ts:321
 msgid "Question Matrix"
 msgstr "Tambayar Matrix"
 
-#: jsapp/js/constants.ts:329
+#: jsapp/js/constants.ts:326
 msgid "Range"
 msgstr "Tsagi"
 
-#: jsapp/js/constants.ts:330
+#: jsapp/js/constants.ts:327
 msgid "Ranking"
 msgstr "Matsayi"
 
-#: jsapp/js/constants.ts:331
+#: jsapp/js/constants.ts:328
 msgid "Rating"
 msgstr "Rattabawa"
 
-#: jsapp/js/constants.ts:338
+#: jsapp/js/constants.ts:335
 msgid "Select Many from File"
 msgstr "Zaɓi da yawa daga Fayil"
 
-#: jsapp/js/constants.ts:343 jsapp/js/formbuild/containers/KoboMatrix.tsx:121
+#: jsapp/js/constants.ts:340 jsapp/js/formbuild/containers/KoboMatrix.tsx:121
 msgid "Select One"
 msgstr "Zaɓi Daya"
 
-#: jsapp/js/constants.ts:348
+#: jsapp/js/constants.ts:345
 msgid "Select One from File"
 msgstr "Zaɓi ɗaya daga Fayil"
 
-#: jsapp/js/constants.ts:353
+#: jsapp/js/constants.ts:350
 msgid "Time"
 msgstr "Lokaci"
 
-#: jsapp/js/constants.ts:354
+#: jsapp/js/constants.ts:351
 msgid "Video"
 msgstr "Bidiyo"
 
-#: jsapp/js/constants.ts:548
+#: jsapp/js/constants.ts:545
 msgid "Online-Offline (multiple submission)"
 msgstr "Kan layi- Ba a Kan layi (aikawa da yawa)"
 
-#: jsapp/js/constants.ts:549
+#: jsapp/js/constants.ts:546
 msgid ""
 "This allows online and offline submissions and is the best option for "
 "collecting data in the field."
 msgstr "Wannan yana ba da damar abubuwan da aka tura kan layi da ba na kan layi ba kuma shine mafi kyawun zaɓi don tattara bayanai a cikin filin."
 
-#: jsapp/js/constants.ts:553
+#: jsapp/js/constants.ts:550
 msgid "Online-Only (multiple submissions)"
 msgstr "Kan Yanzar gizo kawai (abinda da aka tura da yawa)"
 
-#: jsapp/js/constants.ts:555
+#: jsapp/js/constants.ts:552
 msgid ""
 "This is the best option when entering many records at once on a computer, "
 "e.g. for transcribing paper records."
 msgstr "Wannan shine mafi kyawun zaɓi lokacin shigar da bayanai da yawa lokaci ɗaya akan kwamfuta, misali don rubuta bayanan takarda."
 
-#: jsapp/js/constants.ts:560
+#: jsapp/js/constants.ts:557
 msgid "Online-Only (single submission)"
 msgstr "Kan yanar gizo-Kawai (abinda da aka tura guda ɗaya)"
 
-#: jsapp/js/constants.ts:562
+#: jsapp/js/constants.ts:559
 msgid ""
 "This allows a single submission, and can be paired with the \"return_url\" "
 "parameter to redirect the user to a URL of your choice after the form has "
 "been submitted."
 msgstr "Wannan yana ba da damar abubuwan da aka tura guda ɗaya, kuma ana iya haɗa shi tare da ma'aunin \"return_url\" don tura mai amfani zuwa URL ɗin da kuka zaɓa bayan an aika da fom ɗin."
 
-#: jsapp/js/constants.ts:567
+#: jsapp/js/constants.ts:564
 msgid "Online-only (once per respondent)"
 msgstr "Kan layi-kawai (sau ɗaya ga kowane mai amsawa)"
 
-#: jsapp/js/constants.ts:569
+#: jsapp/js/constants.ts:566
 msgid ""
 "This allows your web form to only be submitted once per user, using basic "
 "protection to prevent the same user (on the same browser & device) from "
 "submitting more than once."
 msgstr "Wannan yana ba da aika tura fom ɗin yanar gizo ku sau ɗaya kawai ga kowane mai amfani, ta amfani da kariya ta asali don hana mai amfani iri ɗaya (akan burauza iri da na'ura guda) daga turawa fiye da sau ɗaya."
 
-#: jsapp/js/constants.ts:574
+#: jsapp/js/constants.ts:571
 msgid "Embeddable web form code"
 msgstr "Lambar fom ɗin yanar gizo wanda ake iya haɗewa"
 
-#: jsapp/js/constants.ts:575
+#: jsapp/js/constants.ts:572
 msgid ""
 "Use this html5 code snippet to integrate your form on your own website using"
 " smaller margins."
 msgstr "Yi amfani da wannan lambar snippet na html5 don haɗa fom ɗin ku akan gidan yanar gizonku ta amfani da ƙananan gefe-gefe."
 
-#: jsapp/js/constants.ts:579
+#: jsapp/js/constants.ts:576
 msgid "View only"
 msgstr "Duba kawai"
 
-#: jsapp/js/constants.ts:580
+#: jsapp/js/constants.ts:577
 msgid ""
 "Use this version for testing, getting feedback. Does not allow submitting "
 "data."
 msgstr "Yi amfani da wannan sigar don gwaji, samun ra'ayi. Baya bada izinin aika bayanai."
 
-#: jsapp/js/constants.ts:584
+#: jsapp/js/constants.ts:581
 msgid "Android application"
 msgstr "Manhaja na Android"
 
-#: jsapp/js/constants.ts:585
+#: jsapp/js/constants.ts:582
 msgid "Use this option to collect data in the field with your Android device."
 msgstr "Yi amfani da wannan zaɓi don tattara bayanai a fili da na'urarku ta Android."
 
-#: jsapp/js/dropzone.utils.tsx:222
+#: jsapp/js/dropzone.utils.tsx:220
 msgid "Your upload is being processed. This may take a few moments."
 msgstr "Ana aiwatar da abun da kuke dorawa. Wannan na iya ɗaukar 'yan lokuta kaɗan."
 
-#: jsapp/js/dropzone.utils.tsx:230
+#: jsapp/js/dropzone.utils.tsx:228
 msgid ""
 "Your upload is taking longer than usual. Please check back in a few minutes."
 msgstr ""
 
-#: jsapp/js/dropzone.utils.tsx:305
+#: jsapp/js/dropzone.utils.tsx:303
 msgid "## files"
 msgstr "## fayiloli"
 
-#: jsapp/js/dropzone.utils.tsx:334
+#: jsapp/js/dropzone.utils.tsx:332
 msgid ""
 "Your uploads are being processed. This may take a few moments. You will need"
 " to refresh the page to see them on the list."
 msgstr "Ana aiwatar da abubuwan da ku ka dora. Wannan na iya ɗaukar 'yan lokuta kaɗan. Ku na buƙatar sabunta shafin don ganin su akan jerin."
 
-#: jsapp/js/dropzone.utils.tsx:371
+#: jsapp/js/dropzone.utils.tsx:369
 msgid "Upload error: could not recognize Excel file."
 msgstr "Kuskuren ɗorawa: an kasa gane fayil ɗin Excel."
 
-#: jsapp/js/dropzone.utils.tsx:372
+#: jsapp/js/dropzone.utils.tsx:370
 msgid "Uploaded file name: "
 msgstr "Sunan fayil da aka ɗora:"
 
-#: jsapp/js/dropzone.utils.tsx:376
+#: jsapp/js/dropzone.utils.tsx:374
 msgid "Could not recognize the dropped item(s)."
 msgstr ""
 
-#: jsapp/js/editorMixins/AssetNavigator.tsx:66
+#: jsapp/js/editorMixins/AssetNavigator.tsx:69
 msgid "Unnamed collection"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:79
+#: jsapp/js/editorMixins/EditableForm.tsx:78
 msgid "You have unsaved changes. Leave form without saving?"
 msgstr "Kuna da canje-canje marasa ajiya. A bar fom ba tare da ajiyewa ba?"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:421
+#: jsapp/js/editorMixins/EditableForm.tsx:419
 msgid "Unknown Enketo preview error"
 msgstr "Kuskuren ganin Enketo wanda ba a sani ba"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:495
+#: jsapp/js/editorMixins/EditableForm.tsx:493
 msgid ""
 "Your changes could not be saved, likely because of a lost internet "
 "connection."
 msgstr "Ba za a iya adana canje-canjenku ba, wataƙila saboda haɗin intanet ɗin ya ɓace."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:495
+#: jsapp/js/editorMixins/EditableForm.tsx:493
 msgid ""
 "Keep this window open and try saving again while using a better connection."
 msgstr "Ci gaba da buɗe wannan taga kuma gwada sake yin ajiya yayin amfani da ingantacciyar hanyar haɗi."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:503
+#: jsapp/js/editorMixins/EditableForm.tsx:501
 msgid "Error saving form"
 msgstr "Kuskuren adana fom"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:505
-#: jsapp/js/editorMixins/EditableForm.tsx:931
+#: jsapp/js/editorMixins/EditableForm.tsx:503
+#: jsapp/js/editorMixins/EditableForm.tsx:929
 msgid "Dismiss"
 msgstr "Sallamarwa"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:546
+#: jsapp/js/editorMixins/EditableForm.tsx:544
 msgid "create"
 msgstr "ƙirƙiri"
 
+#: jsapp/js/editorMixins/EditableForm.tsx:546
 #: jsapp/js/editorMixins/EditableForm.tsx:548
-#: jsapp/js/editorMixins/EditableForm.tsx:550
 msgid "save"
 msgstr "ajiye"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:548
+#: jsapp/js/editorMixins/EditableForm.tsx:546
 msgid "retry"
 msgstr "sake gwadawa"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:778
+#: jsapp/js/editorMixins/EditableForm.tsx:776
 msgid "Return to list"
 msgstr "Koma zuwa jerin"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:838
+#: jsapp/js/editorMixins/EditableForm.tsx:826
+#: jsapp/js/project/FormSummary/index.tsx:98
+msgid "Preview form"
+msgstr "Waiwayar fom"
+
+#: jsapp/js/editorMixins/EditableForm.tsx:836
 msgid "Expand / collapse questions"
 msgstr "Faɗada / ruguje tambayoyi"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:850
+#: jsapp/js/editorMixins/EditableForm.tsx:848
 msgid "Create group with selected questions"
 msgstr "Ƙirƙiri ruƙuni da zaɓaɓɓun tambayoyi"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:851
+#: jsapp/js/editorMixins/EditableForm.tsx:849
 msgid "Grouping disabled. Please select at least one question."
 msgstr "An kashe rukuni. Da fatan za a zaɓi aƙalla tambaya ɗaya."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:865
+#: jsapp/js/editorMixins/EditableForm.tsx:863
 msgid "Insert cascading select"
 msgstr "Saka jerarren zaɓi"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:885
+#: jsapp/js/editorMixins/EditableForm.tsx:883
 msgid "Add an item from the library"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:888
+#: jsapp/js/editorMixins/EditableForm.tsx:886
 msgid "Add from Library"
 msgstr "Ƙara daga Laburare"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:899
+#: jsapp/js/editorMixins/EditableForm.tsx:897
 msgid "Change form layout and settings"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:899
+#: jsapp/js/editorMixins/EditableForm.tsx:897
 msgid "Change form layout"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:902
+#: jsapp/js/editorMixins/EditableForm.tsx:900
 msgid "Layout & Settings"
 msgstr "Shimfida &amp; Saituna"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:902
+#: jsapp/js/editorMixins/EditableForm.tsx:900
 msgid "Layout"
 msgstr "Shimfida"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:913
+#: jsapp/js/editorMixins/EditableForm.tsx:911
 msgid ""
 "This form will automatically [record audio in the "
 "background](##SUPPORT_LINK##). Consider adding with a meaningful consent "
@@ -6519,69 +6580,69 @@ msgid ""
 " while completing this survey."
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:973
+#: jsapp/js/editorMixins/EditableForm.tsx:971
 msgid "Form style"
 msgstr "Tsarin fom"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:979
+#: jsapp/js/editorMixins/EditableForm.tsx:977
 msgid "Read more about form styles"
 msgstr "Kara karatu game da tsari fom"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:988
+#: jsapp/js/editorMixins/EditableForm.tsx:989
 msgid ""
 "Select the form style that you would like to use. This will only affect web "
 "forms."
 msgstr "Zaɓi tsarin fom da kuke son amfani da shi. Wannan zai shafi fom ɗin yanar gizo kawai."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:990
+#: jsapp/js/editorMixins/EditableForm.tsx:991
 msgid ""
 "Select the form style. This will only affect the Enketo preview, and it will"
 " not be saved with the question or block."
 msgstr "Zaɓi tsarin fom. Wannan zai shafi ganin Enketo kawai, kuma ba za a adana shi da tambaya ko rukunin ba."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1011
+#: jsapp/js/editorMixins/EditableForm.tsx:1005
 msgid "Metadata"
 msgstr "Metadata"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1029
+#: jsapp/js/editorMixins/EditableForm.tsx:1023
 msgid "Search Library"
 msgstr "Binciki Laburare"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1045
+#: jsapp/js/editorMixins/EditableForm.tsx:1039
 msgid "Error loading survey:"
 msgstr "Kuskuren loda binciken:"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1066
+#: jsapp/js/editorMixins/EditableForm.tsx:1060
 msgid "Partially locked ##type##"
 msgstr "An kulle wani yanki ##type##"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1068
+#: jsapp/js/editorMixins/EditableForm.tsx:1062
 msgid "Fully locked ##type##"
 msgstr "Cikakken kullewa ##type##"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1080
+#: jsapp/js/editorMixins/EditableForm.tsx:1074
 msgid "Read more about Locking"
 msgstr "Kara karantawa game da Kullewa"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1136
-#: jsapp/js/editorMixins/EditableForm.tsx:1150
-#: jsapp/js/editorMixins/EditableForm.tsx:1182
+#: jsapp/js/editorMixins/EditableForm.tsx:1130
+#: jsapp/js/editorMixins/EditableForm.tsx:1144
+#: jsapp/js/editorMixins/EditableForm.tsx:1176
 msgid "Paste your formatted table from excel in the box below."
 msgstr "Manna tebur ɗinku da aka tsara daga Excel a cikin akwatin da ke ƙasa."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1157
+#: jsapp/js/editorMixins/EditableForm.tsx:1151
 msgid "add cascade with # questions"
 msgstr "ƙara saukarwa da tambayoyin #"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1195
+#: jsapp/js/editorMixins/EditableForm.tsx:1189
 msgid "Learn more about importing cascading lists from Excel"
 msgstr "Ƙara koyo game shigar da jeri mai saukowa daga Excel"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1263
+#: jsapp/js/editorMixins/EditableForm.tsx:1257
 msgid "Error generating preview"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1269
+#: jsapp/js/editorMixins/EditableForm.tsx:1263
 msgid "Import Cascading Select Questions"
 msgstr ""
 
@@ -6593,97 +6654,115 @@ msgstr "An kasa buɗe manhaja don\"##url##\""
 msgid "There was an error loading Enketo."
 msgstr "An sami kuskure wajen loda Enketo."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:357
+#: jsapp/js/errorApp/ErrorPage.tsx:13
+msgid "Server error (500)"
+msgstr ""
+
+#: jsapp/js/errorApp/ErrorPage.tsx:14
+msgid "Something went wrong when trying to process your request."
+msgstr ""
+
+#: jsapp/js/errorApp/ErrorPage.tsx:19
+msgid "Page not found (404)"
+msgstr ""
+
+#: jsapp/js/errorApp/ErrorPage.tsx:20
+msgid ""
+"This page does not exist on the server. Please check the URL or link that "
+"sent you here."
+msgstr ""
+
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:356
 msgid "Change column type?"
 msgstr "Canza nau'in rukuni?"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:359
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:358
 msgid ""
 "Are you sure you want to change the type? This action is irreversible, your "
 "existing option choices will be erased."
 msgstr "Shin kun tabbata kuna son canza nau'in? Ba za a iya juyar da wannan aikaci ba, za a share zabinku da ke a ciki yanzu."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:361
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:360
 msgid "Change type"
 msgstr "Canza nau'in"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:391
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:394
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:390
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:393
 msgid "Option 1"
 msgstr "Zabi na 1"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:403
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:406
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:402
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:405
 msgid "Option 2"
 msgstr "Zabi na 2"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:504
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:503
 #: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
 msgid "Row"
 msgstr "Layi"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:507
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:506
 msgid "Option"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:532
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:541
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:531
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:540
 msgid "Column"
 msgstr "Rukuni"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:561
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:560
 msgid "Delete row?"
 msgstr "A goge layi?"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:562
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:561
 msgid ""
 "Are you sure you want to delete this row? This action cannot be undone."
 msgstr "Shin kun tabbata kuna son goge wannan layin? Ba za a iya juyar da wannan aikacin ba."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:582
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:581
 msgid "Delete column?"
 msgstr "A goge Rukuni?"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:583
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:582
 msgid ""
 "Are you sure you want to delete this column? This action cannot be undone."
 msgstr "Shin kun tabbata kuna son goge wannan rukunin? Ba za a iya soke wannan aikacin ba."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:666
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:665
 msgid "Response Type"
 msgstr "Nau'in Martani"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:679
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:710
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:809
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:680
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:711
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:810
 msgid "Label"
 msgstr "Alama"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:690
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:691
 msgid "Data Column Suffix"
 msgstr "Karin Bayanin Rukunin Rukuni"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:711
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:712
 msgid "Data Column Name"
 msgstr "Sunan Bayanai Rukunin"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:760
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:761
 msgid "Delete column"
 msgstr "Goge rukuni"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:819
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:820
 msgid "Data Column Prefix"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:829
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:830
 msgid "Delete row"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:839
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:840
 msgid "Add new row"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:847
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:848
 msgid "Add new column"
 msgstr ""
 
@@ -6761,7 +6840,7 @@ msgid "Set"
 msgstr "Saita"
 
 #: jsapp/js/project/FormLanguagesManager/LanguageForm.tsx:78
-#: jsapp/js/project/FormMedia/index.tsx:282
+#: jsapp/js/project/FormMedia/index.tsx:283
 msgid "Add"
 msgstr "Ƙara"
 
@@ -6913,24 +6992,70 @@ msgstr "danna nan don bincikowa"
 msgid "You can also add files using a URL"
 msgstr "Hakanan zaka iya ƙara fayiloli ta amfani da URL"
 
-#: jsapp/js/project/FormMedia/index.tsx:269
+#: jsapp/js/project/FormMedia/index.tsx:270
 msgid "Paste URL here"
 msgstr "Manna URL anan"
 
-#: jsapp/js/project/FormMedia/index.tsx:289
+#: jsapp/js/project/FormMedia/index.tsx:290
 msgid "Attached files"
 msgstr "Fayilolin da aka makala"
 
-#: jsapp/js/project/FormMedia/index.tsx:295
+#: jsapp/js/project/FormMedia/index.tsx:296
 msgid "loading media"
 msgstr "loda kafofin watsa labarai"
 
-#: jsapp/js/project/FormMedia/index.tsx:300
+#: jsapp/js/project/FormMedia/index.tsx:301
 msgid "No files uploaded yet"
 msgstr "Babu fayilolin da aka ɗora tukuna"
 
-#: jsapp/js/project/FormMedia/index.tsx:326
+#: jsapp/js/project/FormMedia/index.tsx:327
 msgid "Delete file"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:74
+msgid "Project information"
+msgstr "Bayanin aikin"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:112
+#: jsapp/js/projects/projectViews/constants.ts:229
+msgid "Last edited"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:130
+msgid "Last deployed"
+msgstr "Aikawa na ƙarshe"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:138
+msgid "Latest submission"
+msgstr "Sabon abubuwanda aka gabatar"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:157
+#: jsapp/js/projects/projectViews/constants.ts:257
+msgid "Countries"
+msgstr "Ƙasashe"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:205
+msgid "Collects personally identifiable information"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/index.tsx:83
+#: jsapp/js/projects/projectsTable/projectQuickActions.tsx:111
+#: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:31
+msgid "Share project"
+msgstr "Raba aikin"
+
+#: jsapp/js/project/FormSummary/index.tsx:120
+#: jsapp/js/project/projectTopTabs.component.tsx:85
+#: jsapp/js/project/projectTopTabs.component.tsx:93
+msgid "Data"
+msgstr "Bayanai"
+
+#: jsapp/js/project/FormSummary/index.tsx:172
+msgid "Team members"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/index.tsx:211
+msgid "Quick Links"
 msgstr ""
 
 #: jsapp/js/project/ProjectSettings/ProjectSettings.stories.tsx:195
@@ -6983,23 +7108,23 @@ msgid ""
 "Form replacing is not available due to form's Locking Profile restrictions."
 msgstr "Ba a samun maye gurbin fom saboda hani na Kulle bayanin fom."
 
-#: jsapp/js/project/ProjectSettings/constants.ts:20
+#: jsapp/js/project/ProjectSettings/constants.ts:22
 msgid "Choose a source"
 msgstr "Zaɓi tushen"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:21
+#: jsapp/js/project/ProjectSettings/constants.ts:23
 msgid "Choose template"
 msgstr "Zaɓi samfuri"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:22
+#: jsapp/js/project/ProjectSettings/constants.ts:24
 msgid "Upload XLSForm"
 msgstr "Ɗora Fom ɗin XLS"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:23
+#: jsapp/js/project/ProjectSettings/constants.ts:25
 msgid "Import XLSForm"
 msgstr "Shigo da Fom ɗin XLS"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:24
+#: jsapp/js/project/ProjectSettings/constants.ts:26
 msgid "Project details"
 msgstr "Bayanan aikin"
 
@@ -7034,53 +7159,60 @@ msgstr "Shigar da ingantaccen URL na Fom ɗin XLS a cikin filin da ke ƙasa."
 msgid "Having issues? See this help article."
 msgstr "Kuna da matsala? Duba wannan labarin taimako."
 
-#: jsapp/js/project/ProjectSettings/steps/StepImportUrl.tsx:48
+#: jsapp/js/project/ProjectSettings/steps/StepImportUrl.tsx:50
 msgid "URL"
 msgstr "URL"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:103
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:102
 msgid "Please enter a title for your project!"
 msgstr "Da fatan za a shigar da take don aikinku!"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:105
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:104
 msgid "Enter title of project here"
 msgstr "Shigar da taken aikin anan"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:116
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:115
 msgid "Please enter a description for your project"
 msgstr "Da fatan za a shigar da bayanin aikin ku"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:134
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:130
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:145
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:160
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:179
+msgid "Select…"
+msgstr "Zaɓi…"
+
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:132
 msgid "Please choose a sector"
 msgstr "Da fatan za a zaɓi ɓangaren"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:151
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:147
 msgid "Please select at least one country"
 msgstr "Da fatan za a zaɓi aƙalla ƙasa ɗaya"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:168
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:164
 msgid "Please specify the operational purpose of your project"
 msgstr "Da fatan za a saka maƙasudin aiki na aikin ku"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:189
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:183
 msgid ""
 "Please indicate whether or not your project collects personally identifiable"
 " information"
 msgstr "Da fatan za a nuna ko aikinku yana tattara bayanan da za a iya gane da kai ko a'a"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:240
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:234
 msgid "Archive project to stop accepting submissions."
 msgstr "Adana aikin don dakatar da karɓar abinda aka tura."
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:245
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:239
 msgid "Unarchive project to resume accepting submissions."
 msgstr "Bude aikin don ci gaba da karɓar abinda aka tura."
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:256
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:250
 msgid "Delete Project and Data"
 msgstr "Goge Aiki da Bayanai"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:256
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:250
 msgid "Delete Project"
 msgstr "Goge aiki"
 
@@ -7093,11 +7225,11 @@ msgstr " Jawo da sauke fayil ɗin Fom ɗin XLS nan ko danna don bincikowa"
 msgid " Only XLSForm files are supported"
 msgstr ""
 
-#: jsapp/js/project/ProjectSettings/utils.ts:93
+#: jsapp/js/project/ProjectSettings/utils.ts:107
 msgid "Project Name"
 msgstr "Sunan aikin"
 
-#: jsapp/js/project/ProjectSettings/utils.ts:95
+#: jsapp/js/project/ProjectSettings/utils.ts:109
 msgid "##count## characters left"
 msgstr "##count## Haruffa da sun rage"
 
@@ -7224,19 +7356,19 @@ msgstr "Babu abin tacewa, za ku iya ƙara ɗaya a ƙasa"
 msgid "Add filter"
 msgstr "Ƙara abin tacewa"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:106
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:103
 msgid "Select field"
 msgstr "Zaɓi filin"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:112
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:109
 msgid "Condition"
 msgstr "Sharaɗi"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:122
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:116
 msgid "Select condition"
 msgstr "Zaɓi sharaɗi"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:137
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:131
 msgid "Enter value"
 msgstr "Shigar da ƙima"
 
@@ -7399,39 +7531,43 @@ msgstr "Ajiyayye"
 msgid "##field_label## (required)"
 msgstr "##field_label## (Na dole)"
 
-#: jsapp/js/tos/tosForm.component.tsx:76
+#: jsapp/js/theme/kobo/PasswordInput.ts:17
+msgid "Toggle password visibility"
+msgstr ""
+
+#: jsapp/js/tos/tosForm.component.tsx:90
 msgid "TOS Update Message not found"
 msgstr "Ba a sami saƙon TOS na sabuntawa"
 
-#: jsapp/js/tos/tosForm.component.tsx:200
+#: jsapp/js/tos/tosForm.component.tsx:219
 msgid "Please make sure the following details are filled out correctly:"
 msgstr "Da fatan za a tabbatar an cika waɗannan bayanai daidai:"
 
-#: jsapp/js/tos/tosForm.component.tsx:219
+#: jsapp/js/tos/tosForm.component.tsx:238
 msgid "I agree, let's go"
 msgstr "Na amince, mu je zuwa"
 
-#: jsapp/js/tos/tosForm.component.tsx:227
+#: jsapp/js/tos/tosForm.component.tsx:246
 msgid "I don't agree, log me out"
 msgstr "Ban amince ba, a fitar da ni"
 
-#: jsapp/js/utils.ts:197
+#: jsapp/js/utils.ts:198
 msgid "##hours## hours"
 msgstr ""
 
-#: jsapp/js/utils.ts:199
+#: jsapp/js/utils.ts:200
 msgid "##hours## hours, ##minutes## minutes"
 msgstr ""
 
-#: jsapp/js/utils.ts:203
+#: jsapp/js/utils.ts:204
 msgid "##minutes## minutes"
 msgstr ""
 
-#: jsapp/js/utils.ts:205
+#: jsapp/js/utils.ts:206
 msgid "##seconds## seconds"
 msgstr ""
 
-#: jsapp/js/utils.ts:691
+#: jsapp/js/utils.ts:718
 msgid "please check your connection and try again."
 msgstr ""
 

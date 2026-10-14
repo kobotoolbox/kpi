@@ -4,14 +4,12 @@ from collections import defaultdict
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.cache import cache
-from django.utils import timezone
 from redis.exceptions import LockError
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
-from kobo.apps.openrosa.apps.logger.utils.attachment import (
-    bulk_update_attachment_storage_counters,
-)
+from kobo.apps.openrosa.apps.logger.utils.attachment import update_delete_status
+from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_xform_media_question_xpaths,
 )
@@ -184,11 +182,10 @@ class AttachmentRestorer:
         Walk every soft-deleted attachment of the project and restore the ones
         their submission still references, alone on that project.
 
-        Two runs overlapping would credit the same bytes twice.
-        `bulk_update_attachment_storage_counters()` keeps the rows whose
-        `delete_status` is already `NULL`, which is exactly what the other run
-        has just made true of them, and it deliberately runs outside the
-        transaction, so the database cannot arbitrate either.
+        Two runs overlapping would not credit the same bytes twice anymore,
+        since `update_delete_status()` only counts the rows it changed itself.
+        They would still walk and rewrite the same submissions, and share the
+        cursor, so only one run per project is allowed.
         """
 
         if not self._acquire_lock():
@@ -470,22 +467,23 @@ class AttachmentRestorer:
 
     def _write_batch(self, attachments: list, instance_ids: list):
         """
-        Bring the rows back and rewrite Mongo as one, then credit the storage
-        counters.
+        Bring the rows back, rewrite Mongo and credit the storage counters, as
+        one transaction.
 
-        The order is constrained: `ParsedInstance.bulk_update_attachments()` and
-        `bulk_update_attachment_storage_counters()` both read the rows back and only
-        keep the ones whose `delete_status` is already `NULL`, so both follow the
-        update. Mongo reads it uncommitted, from the same connection, the counters
-        read it committed.
+        The order is constrained: `ParsedInstance.bulk_update_attachments()`
+        reads the rows back and only keeps the ones whose `delete_status` is
+        already `NULL`, so it follows the update. It reads them uncommitted,
+        from the same connection. The counters come last, so the project rows
+        stay locked as briefly as possible.
         """
-
-        now = timezone.now()
 
         attachment_uids = [attachment.uid for attachment in attachments]
         with kc_transaction_atomic():
-            Attachment.all_objects.filter(uid__in=attachment_uids).update(
-                delete_status=None, deleted_at=None, date_modified=now
+            _, storage_bytes_by_xform_id = update_delete_status(
+                attachment_uids,
+                from_status=AttachmentDeleteStatus.SOFT_DELETED,
+                to_status=None,
+                deleted_at=None,
             )
 
             # Keep the Mongo update inside the PostgreSQL transaction, so that the
@@ -496,8 +494,4 @@ class AttachmentRestorer:
             # the first failure and keeps that set as small as it can be.
             ParsedInstance.bulk_update_attachments(instance_ids)
 
-        # Outside the transaction, so that the exclusive locks its `UPDATE`s take on
-        # `UserProfile` and `XForm` are not held until the commit. A failure here
-        # costs out-of-sync counters, one batch at most, rather than files left
-        # invisible with no way to recover them
-        bulk_update_attachment_storage_counters(attachment_uids, subtract=False)
+            update_storage_counters(storage_bytes_by_xform_id)

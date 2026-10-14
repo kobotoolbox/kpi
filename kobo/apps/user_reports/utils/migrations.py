@@ -553,11 +553,17 @@ def terminate_backends_touching_mv(cursor):
     user_reports_userreportsmv. The MV is about to be dropped so losing an
     in-flight refresh is harmless; killing the backend forces the Celery
     snapshot task to release its Redis lock via its `finally` block.
+
+    `pg_stat_activity` covers every database of the server, so only the
+    current one is targeted. Otherwise, parallel test runs, each migrating
+    its own database, kill each other's connections (this very query matches
+    its own `ILIKE` pattern).
     """
     cursor.execute("""
         SELECT pg_terminate_backend(pid)
         FROM pg_stat_activity
         WHERE pid <> pg_backend_pid()
+          AND datname = current_database()
           AND (
               query ILIKE '%%REFRESH MATERIALIZED VIEW%%user_reports_userreportsmv%%'
               OR pid IN (
