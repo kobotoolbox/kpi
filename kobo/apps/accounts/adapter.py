@@ -164,7 +164,7 @@ class AccountAdapter(DefaultAccountAdapter):
                 if isinstance(social_account.extra_data, dict)
                 else None
             ) or (hasattr(request, 'session') and request.session.get('oidc_id_token'))
-            if id_token:
+            if isinstance(id_token, str) and id_token.strip():
                 query_params['id_token_hint'] = id_token
 
             post_logout_redirect_uri = (
@@ -265,7 +265,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         extra_data = getattr(account, 'extra_data', None)
         id_token = extra_data.get('id_token') if isinstance(extra_data, dict) else None
         if hasattr(request, 'session'):
-            if id_token:
+            if isinstance(id_token, str) and id_token.strip():
                 request.session['oidc_id_token'] = id_token
             if account:
                 request.session['socialaccount_provider'] = account.provider

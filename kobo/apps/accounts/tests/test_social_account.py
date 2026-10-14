@@ -576,3 +576,69 @@ class SocialAccountLogoutTestCase(TestCase):
         self.assertEqual(request.session.get('oidc_id_token'), 'stashed-id-token')
         self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
         self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')
+
+    def test_pre_social_login_ignores_non_string_id_token(self):
+        adapter = SocialAccountAdapter()
+        account = SocialAccount(
+            provider='keycloak',
+            uid='kc-uid-1',
+            extra_data={'id_token': {'sub': 'kc-uid-1', 'email': 'user@example.com'}},
+        )
+        sociallogin = SocialLogin(user=self.user, account=account)
+        request = self._get_authenticated_request()
+
+        adapter.pre_social_login(request, sociallogin)
+
+        self.assertNotIn('oidc_id_token', request.session)
+        self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
+        self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')
+
+    def test_rp_initiated_omits_id_token_hint_when_not_string(self):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': {'sub': '12345', 'email': 'user@example.com'}},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+        self.assertNotIn('id_token_hint', query)
+        self.assertEqual(
+            query.get('post_logout_redirect_uri'),
+            ['https://kpi.example.com/login/'],
+        )
+        self.assertEqual(query.get('client_id'), ['kpi-client-id'])
+
+    def test_rp_initiated_preserves_compact_jwt_characters(self):
+        jwt_token = (
+            'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.'
+            'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.'
+            'signature-with_dashes_underscores_and_padding=='
+        )
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': jwt_token},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+
+        request = self._get_authenticated_request()
+        url = self.adapter.get_logout_redirect_url(request)
+
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+        self.assertEqual(query.get('id_token_hint'), [jwt_token])
