@@ -202,6 +202,10 @@ CONSTANCE_CONFIG = {
         True,
         'Allow new users to register accounts for themselves',
     ),
+    'REGISTRATION_SHOW_LINK': (
+        True,
+        'Show the "Create an account" link on the login page',
+    ),
     'REGISTRATION_ALLOWED_EMAIL_DOMAINS': (
         '',
         'Email domains allowed to register new accounts, one per line, '
@@ -787,6 +791,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
 CONSTANCE_CONFIG_FIELDSETS = {
     'General Options': (
         'REGISTRATION_OPEN',
+        'REGISTRATION_SHOW_LINK',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
