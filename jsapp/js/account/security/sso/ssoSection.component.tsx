@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import cx from 'classnames'
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { ProviderAccount } from '#/api/models/providerAccount'
@@ -13,6 +13,7 @@ import { getProviderRedirectId, readProviderRedirectError } from '#/auth/Provide
 import { splitAllauthErrors } from '#/auth/allauthErrors'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore, { type SocialApp } from '#/envStore'
 import { useProfile } from '#/stores/useProfile'
 import { notify } from '#/utils'
@@ -43,6 +44,18 @@ function useConsumedRedirectError(): string | null {
   return code
 }
 
+/** The section's title bar, so each state below only has to say what goes under it. */
+function SsoSectionFrame({ children }: { children: ReactNode }) {
+  return (
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Single-Sign On')}</h2>
+      </div>
+      {children}
+    </section>
+  )
+}
+
 /**
  * Single sign-on on the security settings: what the account is connected to, and the way in or out.
  *
@@ -59,8 +72,14 @@ export default function SsoSection() {
   const redirectErrorCode = useConsumedRedirectError()
 
   const providersQuery = useAllauthBrowserV1AccountProvidersGet()
-  // Three `data` deep: orval's wrapper, then allauth's envelope, then the list of connections.
-  const connectedAccount = providersQuery.data?.status === 200 ? providersQuery.data.data.data[0] : undefined
+  // Three `data` deep: orval's wrapper, then allauth's envelope, then the list of connections. `undefined` until a
+  // 200 says what they are, which is not the same thing as there being none.
+  const connections = providersQuery.data?.status === 200 ? providersQuery.data.data.data : undefined
+  // `fetchAllauth` only throws from 500 up, so a refusal below that arrives as a status to check instead.
+  const hasLookupFailed =
+    providersQuery.isError || (providersQuery.data !== undefined && providersQuery.data.status !== 200)
+
+  const connectedAccount = connections?.[0]
   const connectedApp = connectedAccount ? findAppForProviderAccount(envStore.data, connectedAccount) : undefined
   const isManaged = connectedApp?.managed ?? false
 
@@ -87,20 +106,45 @@ export default function SsoSection() {
     )
   }
 
-  // Not gated on the lookup, so the section does not pop in late. With no providers configured and nothing connected
-  // there is nothing to show at all.
+  // With no providers configured there is nothing to offer, and the only connection left to report would be to one
+  // kept off `/environment` - so this stays empty rather than flashing a spinner at everybody else.
   if (!isSsoAvailable(envStore.data) && !connectedAccount) {
     return <></>
   }
 
   const bodyClassName = cx(securityStyles.securitySectionBody, styles.body)
 
-  return (
-    <section className={securityStyles.securitySection}>
-      <div className={securityStyles.securitySectionTitle}>
-        <h2 className={securityStyles.securitySectionTitleText}>{t('Single-Sign On')}</h2>
-      </div>
+  // Offering a connection to somebody who has one, or hiding the way out of one, are both worse than waiting.
+  if (!hasLookupFailed && connections === undefined) {
+    return (
+      <SsoSectionFrame>
+        <div className={bodyClassName}>
+          <LoadingSpinner message={false} />
+        </div>
+      </SsoSectionFrame>
+    )
+  }
 
+  if (hasLookupFailed) {
+    return (
+      <SsoSectionFrame>
+        <div className={bodyClassName}>
+          <Alert type='error' iconName='alert'>
+            {t('We could not check whether your account is connected for single-sign on (SSO).')}
+          </Alert>
+        </div>
+
+        <div className={styles.options}>
+          <ButtonNew variant='filled' loading={providersQuery.isFetching} onClick={() => providersQuery.refetch()}>
+            {t('Try again')}
+          </ButtonNew>
+        </div>
+      </SsoSectionFrame>
+    )
+  }
+
+  return (
+    <SsoSectionFrame>
       <div className={bodyClassName}>
         {connectedAccount
           ? // allauth gives us the provider name, so even one kept off `/environment` gets named here.
@@ -156,6 +200,6 @@ export default function SsoSection() {
           onClose={() => setPendingManagedAppConfirm(null)}
         />
       )}
-    </section>
+    </SsoSectionFrame>
   )
 }
