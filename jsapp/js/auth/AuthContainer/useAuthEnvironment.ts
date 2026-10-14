@@ -19,6 +19,11 @@ export function useAuthEnvironment() {
         socialApps: response.data.social_apps,
         /** The `SUPPORT_EMAIL` constance setting, so private servers point people at their own team. */
         supportEmail: response.data.support_email,
+        /**
+         * The `MFA_CODE_LENGTH` setting, for copy that has to name how long a token is. It comes from here
+         * rather than from allauth's own configuration, which never mentions the length.
+         */
+        mfaCodeLength: response.data.mfa_code_length,
       }
     },
   })

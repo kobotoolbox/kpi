@@ -53,6 +53,21 @@
   }
 }
 
+/**
+ * Align label text with column content
+ */
+.triggerUnpadded {
+  padding-left: 0;
+  // The `SSO` label ellipsises at its 90px without this.
+  padding-right: 0;
+
+  :global {
+    .k-icon:first-child {
+      margin-left: 0 - icon.$s-icon-xxs - 3px;
+    }
+  }
+}
+
 // Dropdown label
 .triggerLabel {
   @include mixins.textEllipsis;
