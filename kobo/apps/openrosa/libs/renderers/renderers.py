@@ -19,7 +19,7 @@ from kpi.renderers import BasicHTMLRenderer, MediaFileRenderer
 class OpenRosaBasicHTMLRenderer(BasicHTMLRenderer):
     """
     Point to the OpenRosa API documentation, which is always served on the
-    KoboCAT domain.
+    KPI domain.
     """
 
     def get_docs_url(self) -> str:
