@@ -1,7 +1,11 @@
+import contextlib
+import csv
+import glob
 import io
 import os
 import tempfile
 import uuid as uuid_module
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -26,9 +30,16 @@ from kobo.apps.openrosa.apps.logger.tests.test_form_versions import (
     xform_xml,
 )
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    create_instance,
+    get_instance_lock,
+)
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.models.asset import Asset
+
+LOCK_TARGET = (
+    'kobo.apps.openrosa.apps.logger.management.commands.repostgres.get_instance_lock'
+)
 
 
 class RepostgresRebuildAttachmentsTestCase(TestCase):
@@ -156,29 +167,67 @@ class RepostgresRebuildAttachmentsTestCase(TestCase):
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == storage_before
 
-    def test_rebuild_locks_submission_before_reading_attachments(self):
+    def test_rebuild_skips_submission_locked_elsewhere(self):
         """
-        Two overlapping runs would both see an attachment as missing and count
-        it twice. The submission row must be locked before its attachments are
-        read, so the second run waits and then finds them rebuilt.
+        While the submission path or another run holds the submission, the
+        rebuild must leave it alone and report it for a later run, rather than
+        race them.
         """
 
         rows = Attachment.all_objects.filter(pk=self.attachment_id)
         rows._raw_delete(rows.db)
+        self.xform.refresh_from_db()
+        storage_before = self.xform.attachment_storage_bytes
 
-        with CaptureQueriesContext(connection) as context:
+        @contextlib.contextmanager
+        def lock_held_elsewhere(*args):
+            yield False
+
+        with patch(LOCK_TARGET, lock_held_elsewhere):
             call_command(
                 'repostgres',
                 id_string=ID_STRING,
                 backup_path=self.backup_path,
                 verbosity=0,
+                stderr=io.StringIO(),
             )
+
+        assert not Attachment.all_objects.filter(pk=self.attachment_id).exists()
+        self.xform.refresh_from_db()
+        assert self.xform.attachment_storage_bytes == storage_before
+
+        (errors_csv,) = glob.glob(os.path.join(self.backup_path, '*', 'errors.csv'))
+        with open(errors_csv) as csvfile:
+            (row,) = list(csv.reader(csvfile))
+        assert row[0] == str(self.instance.pk)
+        assert row[2] == 'Skipped: submission is being processed elsewhere'
+
+    def test_rebuild_takes_submission_lock_before_reading_attachments(self):
+        """
+        The rebuild must hold the lock the submission path takes for the same
+        submission before reading its attachments, so a resubmission or another
+        run cannot race it. It must not lock the `Instance` row: deletion locks
+        the attachments first, and the two would deadlock.
+        """
+
+        rows = Attachment.all_objects.filter(pk=self.attachment_id)
+        rows._raw_delete(rows.db)
+
+        with patch(LOCK_TARGET, wraps=get_instance_lock) as lock:
+            with CaptureQueriesContext(connection) as context:
+                call_command(
+                    'repostgres',
+                    id_string=ID_STRING,
+                    backup_path=self.backup_path,
+                    verbosity=0,
+                )
+
+        # Same key as `create_instance()`, so both paths contend for one lock
+        lock.assert_called_once_with(self.instance.root_uuid, self.xform.pk)
 
         queries = [query['sql'] for query in context.captured_queries]
         lock_indexes = [
-            index
-            for index, sql in enumerate(queries)
-            if 'FOR UPDATE' in sql and '"logger_instance"' in sql
+            index for index, sql in enumerate(queries) if 'pg_try_advisory_lock' in sql
         ]
         attachment_indexes = [
             index for index, sql in enumerate(queries) if '"logger_attachment"' in sql
@@ -186,6 +235,9 @@ class RepostgresRebuildAttachmentsTestCase(TestCase):
         assert lock_indexes
         assert attachment_indexes
         assert lock_indexes[0] < attachment_indexes[0]
+        assert not any(
+            'FOR UPDATE' in sql and '"logger_instance"' in sql for sql in queries
+        )
 
     def _clear_storage_dir(self, storage_dir: str):
         """
