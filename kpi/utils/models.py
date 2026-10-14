@@ -185,6 +185,7 @@ def resolve_url_to_asset(item_path):
     uid = match.kwargs.get('uid_asset')
     return Asset.objects.get(uid=uid)
 
+
 class DjangoModelABCMetaclass(type(models.Model), type(ABC)):
     """
     This metaclass combines Django Model meta class and ABC meta class.

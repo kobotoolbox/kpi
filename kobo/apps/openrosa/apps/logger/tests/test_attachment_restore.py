@@ -38,7 +38,7 @@ class AttachmentRestorerTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='bob')
-        self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        UserProfile.objects.get_or_create(user=self.user)
 
         self.asset = Asset.objects.create(
             owner=self.user,
@@ -107,8 +107,8 @@ class AttachmentRestorerTestCase(TestCase):
         assert attachment.delete_status is None
         assert attachment.deleted_at is None
 
-        self.profile.refresh_from_db()
-        assert self.profile.attachment_storage_bytes == size
+        self.xform.refresh_from_db()
+        assert self.xform.attachment_storage_bytes == size
 
     def test_a_file_the_submission_does_not_reference_stays_dead(self):
         instance, attachment = self._submit_with_photo('first.jpg')
@@ -135,8 +135,8 @@ class AttachmentRestorerTestCase(TestCase):
         attachment.refresh_from_db()
         assert attachment.delete_status == AttachmentDeleteStatus.SOFT_DELETED
         assert restorer.restored == 1
-        self.profile.refresh_from_db()
-        assert self.profile.attachment_storage_bytes == 0
+        self.xform.refresh_from_db()
+        assert self.xform.attachment_storage_bytes == 0
 
     def test_a_dry_run_cursor_does_not_trim_the_front_of_a_real_run(self):
         """
@@ -231,10 +231,9 @@ class AttachmentRestorerTestCase(TestCase):
 
     def test_a_second_run_on_the_same_project_is_refused(self):
         """
-        Two runs overlapping would credit the same bytes twice:
-        `bulk_update_attachment_storage_counters()` keeps every row whose
-        `delete_status` is already `NULL`, which the other run has just made
-        true of them, and it runs outside the transaction that did so.
+        Two runs overlapping would walk and rewrite the same submissions and
+        share the cursor, so the second one is refused while the first holds
+        the project.
         """
 
         _, attachment = self._submit_with_photo('first.jpg')
@@ -350,8 +349,8 @@ class AttachmentRestorerTestCase(TestCase):
 
         attachment.refresh_from_db()
         assert attachment.delete_status == AttachmentDeleteStatus.SOFT_DELETED
-        self.profile.refresh_from_db()
-        assert self.profile.attachment_storage_bytes == 0
+        self.xform.refresh_from_db()
+        assert self.xform.attachment_storage_bytes == 0
 
         # A run that blew up still hands the project back
         assert not cache.has_key(AttachmentRestorer(self.xform).lock_cache_key)
@@ -557,9 +556,7 @@ class AttachmentRestorerTestCase(TestCase):
             delete_status=AttachmentDeleteStatus.SOFT_DELETED,
             deleted_at=attachment.date_created,
         )
-        UserProfile.objects.filter(pk=self.profile.pk).update(
-            attachment_storage_bytes=0
-        )
+        XForm.all_objects.filter(pk=self.xform.pk).update(attachment_storage_bytes=0)
         attachment.refresh_from_db()
 
     def _restore(self, dry_run: bool = False) -> AttachmentRestorer:

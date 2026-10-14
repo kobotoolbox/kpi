@@ -13,7 +13,8 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType, USAGE_TYPES_WITH_COUNTERS
+from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
@@ -309,15 +310,25 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert calculator.get_nlp_usage_by_type('mt_characters') == 5473
         assert calculator.get_nlp_usage_by_type('asr_seconds') == 4586
 
-    def test_storage_usage_all_users(self):
+    @override_settings(DEFAULT_BATCH_SIZE=1)
+    def test_storage_usage_across_batches_and_trashed_projects(self):
         asset_2 = self._create_asset(self.someuser)
         asset_3 = self._create_asset(self.someuser)
         self.add_submissions(count=2, asset=asset_2, username='someuser')
         self.add_submissions(count=2, asset=asset_3, username='someuser')
-        results = get_storage_usage_by_user_id()
+
+        # Storage of a trashed project does not count
+        XForm.all_objects.filter(pk=asset_3.deployment.xform.pk).update(
+            pending_delete=True
+        )
+
+        results = get_storage_usage_by_user_id(
+            [self.adminuser.id, self.someuser.id, self.anotheruser.id]
+        )
+        # One user per batch. `adminuser` has no project, so it gets 0
         assert results == {
             self.adminuser.id: 0,
-            self.someuser.id: 4 * self.expected_file_size(),
+            self.someuser.id: 2 * self.expected_file_size(),
             self.anotheruser.id: 5 * self.expected_file_size(),
         }
 
