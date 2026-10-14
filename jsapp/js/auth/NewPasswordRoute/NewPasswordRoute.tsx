@@ -10,6 +10,7 @@ import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
+import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import NewPasswordForm, { type NewPasswordOutcome } from './NewPasswordForm'
@@ -44,7 +45,7 @@ function PasswordChangedAndSignedInPanel() {
       <Text>{t('You are signed in and ready to go')}</Text>
 
       {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-      <ButtonNew component='a' href='/' size='lg' fullWidth>
+      <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
         {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
@@ -76,7 +77,7 @@ function AlreadyLoggedInPanel() {
         {t('You are already logged in')}
       </Title>
       <Text>{t('Log out first to reset your password from this link, or change it in your account settings.')}</Text>
-      <ButtonNew component='a' href='/' size='lg' fullWidth>
+      <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
         {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
