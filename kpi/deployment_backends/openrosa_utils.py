@@ -64,9 +64,8 @@ def fetch_enketo_links(data: dict) -> dict:
 
 def to_internal_or_external_url(url: str, openrosa: bool = True) -> str:
     """
-    Return `url` with its scheme and host swapped for `KOBOCAT_INTERNAL_URL`
-    (`openrosa=True`) or `KOBOFORM_INTERNAL_URL` (`openrosa=False`) when
-    `ENKETO_USE_INTERNAL_OPENROSA_URL` is enabled, `url` unchanged otherwise
+    Return the internal or external version of a url, depending on whether
+    config.ENKETO_USE_INTERNAL_OPENROSA_URL is set
     """
 
     use_internal = config.ENKETO_USE_INTERNAL_OPENROSA_URL
