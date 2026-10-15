@@ -443,9 +443,8 @@ class DataViewSet(
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
     def get_queryset(self):
-        # This method is needed when pagination is activated and renderer is
-        # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
-        # `retrieve()` don't need Django Queryset, we only need return `None`.
+        # Data comes from Mongo, so `list()` and `retrieve()` don't need a
+        # Django queryset, we only need to return `None`.
         return None
 
     def get_renderers(self):
