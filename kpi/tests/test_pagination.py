@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.db import connection, models
 from django.db.models.expressions import RawSQL
-from django.test import TestCase, override_settings
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
 from rest_framework import generics, serializers
@@ -207,3 +207,46 @@ class TestLimitedCountPagination(TestCase):
 
     def _queryset(self):
         return User.objects.filter(username__startswith='lcp_')
+
+
+class TestLimitedCountPaginationTimeoutScope(TransactionTestCase):
+    """
+    The scoped timeout must not outlive the count, or it would cancel the
+    page query that follows.
+
+    Real transactions are needed (hence `TransactionTestCase`): inside
+    `TestCase`'s wrapping transaction, `SET LOCAL` lasts until the test ends.
+    """
+
+    def setUp(self):
+        # Connection-wide timeout, like `kobo/settings/prod.py`
+        with connection.cursor() as cursor:
+            cursor.execute("SET statement_timeout = '30s'")
+        self.addCleanup(self._reset_statement_timeout)
+        for i in range(3):
+            baker.make(User, username=f'lcp_{i}')
+        self.queryset = User.objects.filter(username__startswith='lcp_')
+
+    @override_settings(LIMITED_COUNT_TIMEOUT_MS=1, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    def test_timeout_restored_after_canceled_count(self):
+        queryset = self.queryset.annotate(
+            slow=RawSQL('pg_sleep(0.5)', [], output_field=models.BooleanField())
+        ).filter(slow__isnull=False)
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == LIMITED_COUNT_UNKNOWN
+        assert self._statement_timeout() == '30s'
+
+    @override_settings(LIMITED_COUNT_TIMEOUT_MS=5000, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    def test_timeout_restored_after_count(self):
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(self.queryset) == 3
+        assert self._statement_timeout() == '30s'
+
+    def _reset_statement_timeout(self):
+        with connection.cursor() as cursor:
+            cursor.execute('RESET statement_timeout')
+
+    def _statement_timeout(self) -> str:
+        with connection.cursor() as cursor:
+            cursor.execute('SHOW statement_timeout')
+            return cursor.fetchone()[0]
