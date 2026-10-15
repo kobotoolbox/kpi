@@ -1,7 +1,7 @@
 from typing import Any
 
 from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import EmptyResultSet
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import connections, transaction
 from django.db.models import F, Field, JSONField, Lookup, QuerySet, TextField, sql
 from django.db.models.expressions import Func, Value
@@ -157,6 +157,75 @@ class RemoveJSONFieldAttribute(Func):
             Value('{' + attribute_dotted_path.replace('.', ',') + '}'),
             **extra,
         )
+
+
+def get_distinct_values(
+    queryset: QuerySet, field: str, last_value: Any = None, limit: int = 1000
+) -> list:
+    """
+    Return the next `limit` distinct values of `field` among the rows of
+    `queryset`, in increasing order, after `last_value` (from the start if
+    `None`). `NULL` values are left out. Values are returned as the database
+    returns them, without Django's field conversions.
+
+    `SELECT DISTINCT` reads every matching row to keep the distinct values.
+    This walks an index on `field` instead, with a recursive CTE that jumps
+    from one value to the next one (a "loose index scan"): it reads about one
+    entry per distinct value, which is much faster when values repeat a lot.
+    It needs an index starting with `field` and covering the filters, e.g. a
+    partial index with the same condition.
+
+    Only filters on the table itself are supported: joins are refused.
+    """
+
+    query = queryset.query.chain()
+    query.clear_ordering(force=True)
+    query.get_initial_alias()
+    if query.count_active_tables() > 1:
+        raise ValueError('`get_distinct_values()` cannot be used with joins')
+
+    connection = connections[queryset.db]
+    try:
+        where_sql, where_params = query.get_compiler(queryset.db).compile(query.where)
+    except EmptyResultSet:
+        # The filters can match nothing, e.g. `pk__in=[]`
+        return []
+    except FullResultSet:
+        # No filter at all
+        where_sql, where_params = '', []
+
+    meta = queryset.model._meta
+    table = connection.ops.quote_name(meta.db_table)
+    column = f'{table}.{connection.ops.quote_name(meta.get_field(field).column)}'
+    condition = f'({where_sql}) AND ' if where_sql else ''
+    first_value_condition = (
+        f'{column} > %s' if last_value is not None else f'{column} IS NOT NULL'
+    )
+    first_value_params = [last_value] if last_value is not None else []
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"""
+            WITH RECURSIVE walk AS (
+                (
+                    SELECT {column} AS value FROM {table}
+                    WHERE {condition}{first_value_condition}
+                    ORDER BY {column} LIMIT 1
+                )
+                UNION ALL
+                SELECT (
+                    SELECT {column} FROM {table}
+                    WHERE {condition}{column} > walk.value
+                    ORDER BY {column} LIMIT 1
+                )
+                FROM walk
+                WHERE walk.value IS NOT NULL
+            )
+            SELECT value FROM walk WHERE value IS NOT NULL LIMIT %s
+            """,
+            [*where_params, *first_value_params, *where_params, limit],
+        )
+        return [row[0] for row in cursor.fetchall()]
 
 
 class ReturningUpdateQuerySet(QuerySet):
