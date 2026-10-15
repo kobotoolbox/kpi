@@ -81,15 +81,13 @@ export default function FormLandingActions({
 
       <KoboMenu>
         <KoboMenu.Target>
-          <span>
-            <ActionIcon
-              variant='transparent'
-              size='md'
-              iconName='more'
-              tooltip={t('More actions')}
-              aria-label={t('More actions')}
-            />
-          </span>
+          <ActionIcon
+            variant='transparent'
+            size='md'
+            iconName='more'
+            tooltip={t('More actions')}
+            aria-label={t('More actions')}
+          />
         </KoboMenu.Target>
         <KoboMenu.Dropdown>
           {(asset.downloads || []).map((download) => (

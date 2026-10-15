@@ -203,7 +203,6 @@ export default function FormLanding() {
       { uidAsset: uid, data: { active: true } },
       {
         onSuccess: () => {
-          notify(t('Project unarchived successfully'))
           setPrompt(null)
         },
       },
