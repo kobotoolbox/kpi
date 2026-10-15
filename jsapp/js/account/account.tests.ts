@@ -101,7 +101,7 @@ describe('getAccountFieldsConfig', () => {
     chai.expect(result.userMetadataFields.map((field) => field.name)).to.deep.equal(['name'])
   })
 
-  it('keeps one entry for a name the instance lists twice, the last one given', () => {
+  it('keeps one entry for a name the instance lists twice, labelled by the last of them', () => {
     const result = getAccountFieldsConfig(
       environment({
         user_metadata_fields: [
@@ -116,6 +116,21 @@ describe('getAccountFieldsConfig', () => {
       { name: 'name', required: true, label: 'Your name' },
       { name: 'city', required: false, label: 'City' },
     ])
+  })
+
+  it('still requires a duplicated field that a later entry lists as optional, the way the server does', () => {
+    // Otherwise the field looks skippable: the blocker lets it through blank, and clearing it in account settings
+    // is rejected by an endpoint that never agreed it was optional.
+    const result = getAccountFieldsConfig(
+      environment({
+        user_metadata_fields: [
+          { name: 'name', label: 'Full name', required: true },
+          { name: 'name', label: 'Your name', required: false },
+        ],
+      }),
+    )
+
+    chai.expect(result.userMetadataFields).to.deep.equal([{ name: 'name', required: true, label: 'Your name' }])
   })
 
   it('turns the choice tuples into dropdown options', () => {

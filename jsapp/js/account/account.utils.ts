@@ -72,12 +72,17 @@ export function getEditableProfileFieldNames({
 /** The profile fields configuration built from `/environment` response. */
 export function getAccountFieldsConfig(environment: EnvironmentResponse): AccountFieldsConfig {
   // Keyed, because `USER_METADATA_FIELDS` accepts the same name twice - its uniqueness check compares whole entries,
-  // not names. One entry per name, the last one given, which is the rule the rest of the code already follows.
+  // not names. The last label wins, matching the dict the editor reads, but required is kept if any entry asks for
+  // it: that is what the server enforces, so a later optional entry must not make the field look skippable.
   const byName = new Map<UserFieldName, UserMetadataField>()
   for (const field of environment.user_metadata_fields) {
     if (field.name in USER_FIELD_NAMES) {
       const name = field.name as UserFieldName
-      byName.set(name, { name, required: Boolean(field.required), label: field.label })
+      byName.set(name, {
+        name,
+        required: Boolean(field.required) || Boolean(byName.get(name)?.required),
+        label: field.label,
+      })
     }
   }
 

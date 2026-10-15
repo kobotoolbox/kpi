@@ -55,6 +55,13 @@ export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
   })
   const organization = organizationQuery.data?.status === 200 ? organizationQuery.data.data : undefined
 
+  // Nobody to block, and nothing below is worth waiting or erroring over for them. Ahead of those checks because
+  // any other answer would stand in for the login redirect: `AppGuard` replaces the route, so the `RequireAuth`
+  // that would send a signed-out visitor to the login screen never gets to mount.
+  if (!account) {
+    return { status: 'inactive' }
+  }
+
   // `/environment` is what says which fields are required at all, so there is no answer before it lands. Waiting
   // beats answering `inactive`, which would show the app for a moment and then take it away again.
   if (fieldsConfigQuery.isPending) {
