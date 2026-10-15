@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  useAssetsPermissionAssignmentsBulkDestroy,
   useAssetsPermissionAssignmentsCreate,
   useAssetsPermissionAssignmentsDestroy,
 } from '#/api/react-query/manage-permissions'
@@ -80,6 +81,13 @@ export default function FormLanding() {
   })
   const destroyPermissionMutation = useAssetsPermissionAssignmentsDestroy({
     mutation: { onSettled: invalidateAssetQueries },
+  })
+  const bulkDestroyPermissionMutation = useAssetsPermissionAssignmentsBulkDestroy({
+    mutation: { onSettled: invalidateAssetQueries },
+    request: {
+      body: JSON.stringify({ username: profileStore.currentAccount.username }),
+      headers: { 'Content-Type': 'application/json' },
+    },
   })
   const deployMutation = useAssetsDeploymentCreate({
     mutation: { onSettled: invalidateAssetQueries },
@@ -208,35 +216,13 @@ export default function FormLanding() {
   }
 
   const removeSharedProject = (loadedAsset: AssetResponse) => {
-    const username = profileStore.currentAccount.username
-    const assignmentUids = loadedAsset.permissions
-      .filter((permission) => permission.user === buildUserUrl(username))
-      .map((permission) => permission.url.split('/').filter(Boolean).at(-1))
-      .filter((permissionUid): permissionUid is string => Boolean(permissionUid))
-    if (assignmentUids.length === 0) {
-      notify.error(t('Failed to remove permissions'))
-      return
-    }
-
-    let remaining = assignmentUids.length
-    let failed = false
-    const onFinished = () => {
-      remaining -= 1
-      if (remaining !== 0) return
-      if (!failed) navigate(ROUTES.FORMS)
-    }
-    assignmentUids.forEach((assignmentUid) => {
-      destroyPermissionMutation.mutate(
-        { uidAsset: loadedAsset.uid, uidPermissionAssignment: assignmentUid },
-        {
-          onSuccess: onFinished,
-          onError: () => {
-            failed = true
-            onFinished()
-          },
-        },
-      )
-    })
+    bulkDestroyPermissionMutation.mutate(
+      { uidAsset: loadedAsset.uid },
+      {
+        onSuccess: () => navigate(ROUTES.FORMS),
+        onError: () => notify.error(t('Failed to remove permissions')),
+      },
+    )
   }
 
   if (!asset) {
