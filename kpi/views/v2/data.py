@@ -1011,7 +1011,8 @@ class DataViewSet(
                     viewname='assetsnapshot-detail',
                     kwargs={'uid_asset_snapshot': snapshot.uid},
                     request=request,
-                )
+                ),
+                openrosa=False,
             ),
             'instance': xml_tostring(submission_xml_root),
             'instance_id': submission_json['_uuid'],
