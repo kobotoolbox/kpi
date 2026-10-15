@@ -445,7 +445,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
                         kwargs={'uid_asset_snapshot': snapshot.uid},
                         request=request,
                     ),
-                    openrosa=False
+                    openrosa=False,
                 ),
                 'form_id': snapshot.uid,
             }
