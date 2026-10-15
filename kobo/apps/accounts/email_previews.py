@@ -65,9 +65,7 @@ PREVIEWS = (
         'Activate account (admin-customized)',
         SIGNUP,
         email_content={
-            EmailContent.SectionOptions.SUBJECT: (
-                'Activate your Example Org account'
-            ),
+            EmailContent.SectionOptions.SUBJECT: ('Activate your Example Org account'),
             EmailContent.SectionOptions.SECTION_ONE: (
                 'Hi ##user##,\n\n'
                 'Activate your Example Org account by following this link:\n'
@@ -79,6 +77,7 @@ PREVIEWS = (
         },
     ),
 )
+
 
 def render_email(template_prefix, user, activate_url=ACTIVATE_URL):
     """Build the message allauth would send, with its own rendering"""
