@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
@@ -22,6 +23,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from pyxform.builder import create_survey_from_xls
+from redis import Redis
+from redis.client import Pipeline
 from rest_framework import exceptions, status
 
 from kobo.apps.data_collectors.utils import (
@@ -86,6 +89,7 @@ from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
 from .openrosa_utils import (
+    enketo_redis_transaction,
     fetch_enketo_links,
     generate_enketo_links,
     to_internal_or_external_url,
@@ -981,8 +985,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         remove_data_collector_enketo_links(token, [self.xform.id_string])
 
     def rename_enketo_id_key(
-        self, previous_owner_username: str, project_identifier: str = None
+        self,
+        previous_owner_username: str,
+        project_identifier: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
+        """
+        Rename the Enketo key of the project to match its new owner.
+
+        When `redis_client` is a pipeline, the command is only queued: it runs,
+        and may fail, when the pipeline is executed.
+        """
+
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
 
@@ -990,8 +1004,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             project_identifier = self.xform.id_string
 
         try:
-            enketo_redis_client = get_redis_connection('enketo_redis_main')
-            enketo_redis_client.rename(
+            redis_client = redis_client or get_redis_connection('enketo_redis_main')
+            redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{project_identifier}',
                 dst=f'or:{domain_name}/{self.asset.owner.username},{self.xform.id_string}',  # noqa E501
             )
@@ -1113,9 +1127,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         return True
 
     def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None, raise_on_error: bool = True
+        self,
+        require_auth: bool,
+        enketo_id: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
-        # Kobocat handles Open Rosa requests with different accesses.
+        # KoboCAT handles Open Rosa requests with different accesses.
         #  - Authenticated access, https://[kc]
         #  - Anonymous access, https://[kc]/username
         # Enketo generates its unique ID based on the server URL.
@@ -1129,14 +1146,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
         server_url = to_internal_or_external_url(server_url)
-        try:
-            enketo_redis_client = get_redis_connection('enketo_redis_main')
-            enketo_redis_client.hset(
-                f'id:{enketo_id}',
-                'openRosaServer',
-                server_url,
-            )
 
+        # Redis is not transactional, the DB is. Save the flag first so that it
+        # is rolled back if Redis fails. If already inside a transaction (e.g.
+        # project transfer), the whole outer transaction is rolled back.
+        with transaction.atomic(savepoint=False):
             # ENKETO_INTERNAL_URL_FLAG tells us whether we used internal URLs
             # the previous time we updated redis, ENKETO_USE_INTERNAL_OPENROSA_URL
             # tells us whether we used the internal URLs this time. If they don't match,
@@ -1148,10 +1162,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     {ENKETO_INTERNAL_URL_FLAG: config.ENKETO_USE_INTERNAL_OPENROSA_URL},
                     update_date_modified=False,
                 )
-        except redis.exceptions.ConnectionError as e:
-            if raise_on_error:
-                raise e
-            logging.error('Unable to connect to redis to update open rosa server')
+
+            redis_client = redis_client or get_redis_connection('enketo_redis_main')
+            redis_client.hset(
+                f'id:{enketo_id}',
+                'openRosaServer',
+                server_url,
+            )
 
     def set_mongo_uuid(self):
         """
@@ -1456,15 +1473,22 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             XForm.objects.filter(pk=self.xform_id).update(pending_transfer=False)
 
     def transfer_enketo_links(
-        self,
-        previous_owner_username: str,
-        project_identifier: str,
-        raise_on_error: bool = True,
+        self, previous_owner_username: str, project_identifier: str
     ):
-        self.rename_enketo_id_key(previous_owner_username, project_identifier)
-        self.set_enketo_open_rosa_server(
-            require_auth=self.xform.require_auth, raise_on_error=raise_on_error
-        )
+        """
+        Point the Enketo links of the project to its new owner.
+
+        Both Redis commands are sent in a single MULTI/EXEC block: if Redis is
+        unreachable, none of them is applied and the error is raised.
+        """
+
+        with enketo_redis_transaction() as pipeline:
+            self.rename_enketo_id_key(
+                previous_owner_username, project_identifier, redis_client=pipeline
+            )
+            self.set_enketo_open_rosa_server(
+                require_auth=self.xform.require_auth, redis_client=pipeline
+            )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 

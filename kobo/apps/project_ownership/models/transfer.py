@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from functools import partial
 from typing import Optional, Union
 
 from constance import config
@@ -161,17 +160,14 @@ class Transfer(AbstractTimeStampedModel):
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
-                            transaction.on_commit(
-                                partial(
-                                    deployment.transfer_enketo_links,
-                                    previous_owner_username,
-                                    old_id_string,
-                                    # keep going if redis connection fails
-                                    raise_on_error=False,
-                                )
-                            )
 
                         self._sent_in_app_messages()
+                        # Redis is not transactional: keep this last in the
+                        # KoboCAT transaction (committed first) so that a Redis
+                        # failure rolls back both databases.
+                        deployment.transfer_enketo_links(
+                            previous_owner_username, old_id_string
+                        )
 
                     # Update `is_excluded_from_projects_list` flag
                     self._update_project_exclusion_flag()

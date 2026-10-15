@@ -1,27 +1,43 @@
+from contextlib import contextmanager
+from typing import Generator
 from urllib.parse import urlparse
 
+import redis.exceptions
 import requests
 from constance import config
 from django.conf import settings
+from django_redis import get_redis_connection
+from redis.client import Pipeline
 
 from kpi.constants import ENKETO_URL_FORMATS
 from kpi.utils.log import logging
 
 
-# separated out for easier mocking/testing
-def generate_enketo_links(enketo_id: str, encoded_enketo_id: str) -> dict:
+@contextmanager
+def enketo_redis_transaction() -> Generator[Pipeline, None, None]:
     """
-    Generate links using Enketo's format
+    Queue Enketo Redis commands and send them all at once in a MULTI/EXEC
+    block when the context exits.
+
+    Commands only run on exit, so their errors are raised there, not when
+    they are queued.
     """
-    result = {}
-    for key, value in ENKETO_URL_FORMATS.items():
-        value = value.replace('#enketo_id#', enketo_id).replace(
-            '#encoded_enketo_id#', encoded_enketo_id
-        )
-        stripped = settings.ENKETO_URL.rstrip('/')
-        value = f'{stripped}/{value}'
-        result[key] = value
-    return result
+
+    pipeline = get_redis_connection('enketo_redis_main').pipeline(transaction=True)
+    try:
+        yield pipeline
+        results = pipeline.execute(raise_on_error=False)
+    finally:
+        pipeline.reset()
+
+    for result in results:
+        # Renaming a missing key is not an error, see `rename_enketo_id_key()`
+        if isinstance(result, redis.exceptions.ResponseError) and (
+            'no such key' in str(result)
+        ):
+            continue
+        if isinstance(result, Exception):
+            raise result
 
 
 # separated out for easier mocking/testing
@@ -32,6 +48,7 @@ def fetch_enketo_links(data: dict) -> dict:
 
     Return an empty dict if Enketo is unreachable or its response is invalid
     """
+
     try:
         response = requests.post(
             f'{settings.ENKETO_INTERNAL_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
@@ -60,6 +77,23 @@ def fetch_enketo_links(data: dict) -> dict:
         )
         for key, value in links.items()
     }
+
+
+# separated out for easier mocking/testing
+def generate_enketo_links(enketo_id: str, encoded_enketo_id: str) -> dict:
+    """
+    Generate links using Enketo's format
+    """
+
+    result = {}
+    for key, value in ENKETO_URL_FORMATS.items():
+        value = value.replace('#enketo_id#', enketo_id).replace(
+            '#encoded_enketo_id#', encoded_enketo_id
+        )
+        stripped = settings.ENKETO_URL.rstrip('/')
+        value = f'{stripped}/{value}'
+        result[key] = value
+    return result
 
 
 def to_internal_or_external_url(url: str, openrosa: bool = True) -> str:

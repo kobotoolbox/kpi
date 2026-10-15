@@ -16,6 +16,8 @@ from django.core.exceptions import PermissionDenied, SuspiciousFileOperation
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from redis import Redis
+from redis.client import Pipeline
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
@@ -461,7 +463,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def rename_enketo_id_key(
-        self, previous_owner_username: str, project_identifier: str = None
+        self,
+        previous_owner_username: str,
+        project_identifier: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
         pass
 
@@ -505,7 +510,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None, raise_on_error: bool = True
+        self,
+        require_auth: bool,
+        enketo_id: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
         pass
 
@@ -579,10 +587,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def transfer_enketo_links(
-        self,
-        previous_owner_username: str,
-        project_identifier: str,
-        raise_on_error: bool = True,
+        self, previous_owner_username: str, project_identifier: str
     ):
         pass
 
