@@ -143,46 +143,46 @@ class TestDataCollectorUtils(TestCase):
             assert log_message in log_context.output[0]
 
     @override_settings(
-        KOBOCAT_INTERNAL_URL='http://internal', KOBOCAT_URL='https:/external'
+        KOBOCAT_INTERNAL_URL='http://internal:80', KOBOCAT_URL='https://external:80'
     )
-    def toggle_internal_external_open_rosa_server_for_all_data_collectors(self):
+    def test_toggle_internal_external_open_rosa_server_for_all_data_collectors(self):
         with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=False):
             set_data_collector_enketo_links('1', ['a12345', 'b12345'])
             set_data_collector_enketo_links('2', ['a12345'])
 
             # check URLs are external to start with
             self._check_expected_redis_entries(
-                '1', 'a12345', expected_url='https://external/1'
+                '1', 'a12345', expected_url='https://external:80/collector/1'
             )
             self._check_expected_redis_entries(
-                '1', 'b12345', expected_url='https://external/1'
+                '1', 'b12345', expected_url='https://external:80/collector/1'
             )
             self._check_expected_redis_entries(
-                '2', 'a12345', expected_url='https://external/2'
+                '2', 'a12345', expected_url='https://external:80/collector/2'
             )
 
         with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=True):
             # switch to internal
             toggle_internal_external_open_rosa_server_for_all_data_collectors()
             self._check_expected_redis_entries(
-                '1', 'a12345', expected_url='http://internal/1'
+                '1', 'a12345', expected_url='http://internal:80/collector/1'
             )
             self._check_expected_redis_entries(
-                '1', 'b12345', expected_url='http://internal/1'
+                '1', 'b12345', expected_url='http://internal:80/collector/1'
             )
             self._check_expected_redis_entries(
-                '2', 'a12345', expected_url='http://internal/2'
+                '2', 'a12345', expected_url='http://internal:80/collector/2'
             )
 
-        with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=True):
+        with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=False):
             # back to external
             toggle_internal_external_open_rosa_server_for_all_data_collectors()
             self._check_expected_redis_entries(
-                '1', 'a12345', expected_url='https://external/1'
+                '1', 'a12345', expected_url='https://external:80/collector/1'
             )
             self._check_expected_redis_entries(
-                '1', 'b12345', expected_url='https://external/1'
+                '1', 'b12345', expected_url='https://external:80/collector/1'
             )
             self._check_expected_redis_entries(
-                '2', 'a12345', expected_url='https://external/2'
+                '2', 'a12345', expected_url='https://external:80/collector/2'
             )

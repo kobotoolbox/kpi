@@ -78,7 +78,6 @@ def to_internal_or_external_url(url: str, openrosa: bool = True) -> str:
         desired_url = settings.KOBOCAT_URL
     else:
         desired_url = settings.KOBOFORM_URL
-
     parsed_url = urlparse(desired_url)
 
     return (

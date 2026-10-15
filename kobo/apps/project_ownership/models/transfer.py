@@ -161,12 +161,12 @@ class Transfer(AbstractTimeStampedModel):
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
-                            # keep going if redis connection fails
                             transaction.on_commit(
                                 partial(
                                     deployment.transfer_enketo_links,
                                     previous_owner_username,
                                     old_id_string,
+                                    # keep going if redis connection fails
                                     raise_on_error=False,
                                 )
                             )
