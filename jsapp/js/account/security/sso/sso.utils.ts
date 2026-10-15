@@ -40,6 +40,35 @@ export function findAppForProviderAccount(
   return getSsoProviders(envStoreData).find((app) => app.provider_id === providerAccount.provider.id)
 }
 
+/**
+ * allauth's codes for a disconnect it refuses - both mean this is the only way left into the account. Its third,
+ * `disconnect_last`, needs `SOCIALACCOUNT_ONLY`, which KPI does not set.
+ */
+const DISCONNECT_ERROR_CODES = {
+  noPassword: 'no_password',
+  noVerifiedEmail: 'no_verified_email',
+} as const
+
+/**
+ * What to show when a disconnect is refused or fails. allauth's own message only states the problem, these say what
+ * to do about it.
+ */
+export function getSsoDisconnectErrorMessage(code: string | undefined): string {
+  if (code === DISCONNECT_ERROR_CODES.noPassword) {
+    return t(
+      'Set a password in the Password section above first.' +
+        ' Your account needs another way to log in before single-sign on (SSO) can be disabled.',
+    )
+  }
+  if (code === DISCONNECT_ERROR_CODES.noVerifiedEmail) {
+    return t(
+      'Confirm your email address in the Email address section above first,' +
+        ' so that you can still reset your password once single-sign on (SSO) is disabled.',
+    )
+  }
+  return t('We could not disable single-sign on (SSO) for your account. Please try again.')
+}
+
 /** What to show for the `?error=` a failed `connect` comes back with */
 export function getSsoConnectErrorMessage(code: string): string {
   if (code === PROVIDER_ERROR_CODES.connectedOther) {
