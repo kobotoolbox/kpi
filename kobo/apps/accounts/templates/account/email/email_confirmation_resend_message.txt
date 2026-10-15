@@ -1,18 +1,14 @@
 {% load i18n %}
 {% comment %}
-Interim copy. DEV-2296 replaces this with the final wording and adds the HTML
-body alongside it; this file stays as the plain-text alternative.
-
-Deliberately says nothing about how to get another link. The old pages send one
-automatically at login until DEV-2435 lands, and the screen that prompts for an
-address is still being built, so any instruction here would be wrong for some
-users today.
+Plain-text alternative to `email_confirmation_resend_message.html`.
 {% endcomment %}
-{% blocktrans trimmed %}Here is the new link you asked for to activate your KoboToolbox account.{% endblocktrans %}
+{% blocktrans trimmed with first_name=user.first_name|default:user.username %}Hi {{ first_name }},{% endblocktrans %}
+
+{% blocktrans trimmed %}Since you were unable to use your previous account activation link, here is a new link to activate your KoboToolbox account:{% endblocktrans %}
 
 {{ activate_url }}
 
-{% blocktrans trimmed %}This link will expire in 24 hours.{% endblocktrans %}
+{% blocktrans trimmed %}For security reasons, this link will expire in 24 hours.{% endblocktrans %}
 
-{% blocktrans trimmed %}Best,{% endblocktrans %}
-KoboToolbox
+{% blocktrans trimmed %}Thanks for being part of the KoboToolbox community!{% endblocktrans %}
+{% blocktrans trimmed %}The KoboToolbox Team{% endblocktrans %}

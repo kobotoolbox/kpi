@@ -1,0 +1,133 @@
+{% extends "account/email/base_message.html" %}
+{% load i18n %}
+{% load customize_email_content %}
+{% comment %}
+"Activate your account", sent once when an account is created.
+
+Both sections mirror the section_one / section_two branching in the `.txt` twin. Instance admins replace either one from
+Django admin, and this body has to honour that too, since most clients prefer HTML over plain text. A section row that
+exists but is blank means "say nothing here", leaving an empty section.
+
+Admin content is plain text, so `urlize` makes its `##activate_url##` clickable and `linebreaks` keeps its paragraphs.
+{% endcomment %}
+
+{% block title %}{% trans "Activate your KoboToolbox account" %}{% endblock %}
+
+{# Not overridable, unlike the two sections below: it describes what the email is #}
+{% block preheader %}{% blocktrans trimmed %}Welcome to KoboToolbox! Please activate your account to get started.{% endblocktrans %}{% endblock %}
+
+{% block message %}
+{% with content='email_confirmation_signup_message'|email_template %}
+{% if content.section_one or content.section_one == '' %}
+  {% convert_placeholders content.section_one activate_url user as section_one %}
+  <div class="text" style="font-size:16px;line-height:24px;color:#334155;">{{ section_one|urlize|linebreaks }}</div>
+{% else %}
+  <h1 class="h1" style="margin:0 0 16px;font-size:24px;line-height:32px;font-weight:600;color:#0f172a;">
+    {% blocktrans trimmed with first_name=user.first_name|default:user.username %}
+      Welcome to KoboToolbox, {{ first_name }}!
+    {% endblocktrans %}
+  </h1>
+
+  <p class="text" style="margin:0 0 28px;font-size:16px;line-height:24px;color:#334155;">
+    {% blocktrans trimmed %}
+      To get started, please activate your account by clicking the link below
+    {% endblocktrans %}
+  </p>
+
+  {% trans "Activate My Account" as button_label %}
+  {% include "account/email/_button.html" with url=activate_url label=button_label %}
+
+  <p class="text" style="margin:0 0 28px;font-size:16px;line-height:24px;color:#334155;">
+    {% blocktrans trimmed %}
+      <strong>This link expires in 24 hours</strong> for security reasons.
+    {% endblocktrans %}
+  </p>
+
+  <p class="text" style="margin:0;font-size:16px;line-height:24px;color:#334155;">
+    {% blocktrans trimmed %}
+      Thanks for signing up!<br><strong>The KoboToolbox Team</strong>
+    {% endblocktrans %}
+  </p>
+{% endif %}
+{% endwith %}
+{% endblock %}
+
+{% block extra_sections %}
+{% with content='email_confirmation_signup_message'|email_template %}
+<tr>
+  <td align="center" class="section-grey" style="background:#f6f7f9;padding:40px 0;">
+    <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+      <tr>
+        <td class="p-content" style="padding:0 36px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+          {% if content.section_two or content.section_two == '' %}
+            {% convert_placeholders content.section_two activate_url user as section_two %}
+            <div class="text" style="font-size:15px;line-height:22px;color:#334155;">{{ section_two|urlize|linebreaks }}</div>
+          {% else %}
+            <p class="muted" style="margin:0 0 20px;font-size:12px;line-height:18px;color:#64748b;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;">
+              {% blocktrans trimmed %}Get the most out of KoboToolbox{% endblocktrans %}
+            </p>
+
+            <p class="text" style="margin:0 0 2px;font-size:15px;line-height:22px;font-weight:600;color:#0f172a;">
+              {% blocktrans trimmed %}Help Center{% endblocktrans %}
+            </p>
+            <p class="text" style="margin:0 0 4px;font-size:14px;line-height:21px;color:#334155;">
+              {% blocktrans trimmed %}
+                Browse our extensive library of support articles to find answers to your questions.
+              {% endblocktrans %}
+            </p>
+            <p style="margin:0 0 20px;font-size:14px;line-height:21px;">
+              <a href="https://support.kobotoolbox.org/" target="_blank" style="color:#004D9B;">{% blocktrans trimmed %}Visit the Help Center &rarr;{% endblocktrans %}</a>
+            </p>
+
+            {% include "account/email/_divider.html" %}
+
+            <p class="text" style="margin:0 0 2px;font-size:15px;line-height:22px;font-weight:600;color:#0f172a;">
+              {% blocktrans trimmed %}KoboToolbox Essentials Course{% endblocktrans %}
+            </p>
+            <p class="text" style="margin:0 0 4px;font-size:14px;line-height:21px;color:#334155;">
+              {% blocktrans trimmed %}
+                New to KoboToolbox? Our free, self-paced online course offers a comprehensive
+                introduction to the platform, in English, French, and Spanish.
+              {% endblocktrans %}
+            </p>
+            <p style="margin:0 0 20px;font-size:14px;line-height:21px;">
+              <a href="https://academy.kobotoolbox.org/courses/essentials" target="_blank" style="color:#004D9B;">{% blocktrans trimmed %}Start the Essentials Course &rarr;{% endblocktrans %}</a>
+            </p>
+
+            {% include "account/email/_divider.html" %}
+
+            <p class="text" style="margin:0 0 2px;font-size:15px;line-height:22px;font-weight:600;color:#0f172a;">
+              {% blocktrans trimmed %}Community Forum{% endblocktrans %}
+            </p>
+            <p class="text" style="margin:0 0 4px;font-size:14px;line-height:21px;color:#334155;">
+              {% blocktrans trimmed %}
+                Connect with thousands of KoboToolbox users, ask questions,
+                and stay up to date on the latest software updates.
+              {% endblocktrans %}
+            </p>
+            <p style="margin:0 0 20px;font-size:14px;line-height:21px;">
+              <a href="https://community.kobotoolbox.org/" target="_blank" style="color:#004D9B;">{% blocktrans trimmed %}Explore the Community Forum &rarr;{% endblocktrans %}</a>
+            </p>
+
+            {% include "account/email/_divider.html" %}
+
+            <p class="text" style="margin:0 0 2px;font-size:15px;line-height:22px;font-weight:600;color:#0f172a;">
+              {% blocktrans trimmed %}Support Services{% endblocktrans %}
+            </p>
+            <p class="text" style="margin:0 0 4px;font-size:14px;line-height:21px;color:#334155;">
+              {% blocktrans trimmed %}
+                We offer tailored solutions for organizations, including
+                training, project support, and dashboard development.
+              {% endblocktrans %}
+            </p>
+            <p style="margin:0;font-size:14px;line-height:21px;">
+              <a href="https://www.kobotoolbox.org/services/" target="_blank" style="color:#004D9B;">{% blocktrans trimmed %}Learn about our services &rarr;{% endblocktrans %}</a>
+            </p>
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+{% endwith %}
+{% endblock %}
