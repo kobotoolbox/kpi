@@ -1719,20 +1719,19 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # To activate only at later time.
-    # 'recount-drifted-storage-counters': {
-    #     'task': (
-    #         'kobo.apps.openrosa.apps.logger.tasks.recount_drifted_storage_counters'
-    #     ),
-    #     # A run lasts about as long as the soft time limit, and a single one
-    #     # runs at a time: a short interval starts the next one soon after
-    #     'schedule': crontab(minute='*/15'),
-    #     'description': (
-    #         'Recount the storage counters of projects which may have drifted, in'
-    #         ' turns, until every one of them was checked, then start over'
-    #     ),
-    #     'options': {'queue': 'kpi_long_running_tasks_queue'},
-    # },
+    'recount-drifted-storage-counters': {
+        'task': (
+            'kobo.apps.openrosa.apps.logger.tasks.recount_drifted_storage_counters'
+        ),
+        # A run lasts about as long as the soft time limit, and a single one
+        # runs at a time: a short interval starts the next one soon after
+        'schedule': crontab(minute='*/15'),
+        'description': (
+            'Recount the storage counters of projects which may have drifted, in'
+            ' turns, until every one of them was checked, then start over'
+        ),
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
+    },
     'retry-stalled-submissions': {
         'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
