@@ -117,6 +117,9 @@ export function determineAuthChangeEvent(fromStatus: AuthStatus, toStatus: AuthS
     if (toStatus.isReauthenticationRequired) {
       return AuthChangeEvent.reauthenticationRequired
     }
+    // TODO: `GET /auth/session` answers 200 for any live session, so a refetch on window focus wipes a pending ask
+    // and arrives here as "credentials accepted". Alt-tabbing to a password manager and back would take somebody off
+    // the reauthentication screen without proving anything - will be fixed in DEV-3113.
     if (from.isReauthenticationRequired) {
       return AuthChangeEvent.reauthenticated
     }
