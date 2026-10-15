@@ -14,6 +14,19 @@ from ..models import LongRunningMigration, LongRunningMigrationStatus
 )
 class LongRunningMigrationSystemCheckTestCase(TestCase):
 
+    def setUp(self):
+        """
+        Do not rely on the rows inserted by the migrations: a
+        `TransactionTestCase` that ran earlier in the same database (e.g. in
+        parallel runs) flushes them.
+        """
+
+        for name in MUST_COMPLETE_LONG_RUNNING_MIGRATIONS:
+            LongRunningMigration.objects.update_or_create(
+                name=name,
+                defaults={'status': LongRunningMigrationStatus.CREATED},
+            )
+
     def test_system_check_fails_when_not_completed(self):
         # Create at least one asset to fake existing install
         someuser = User.objects.create_user(username='someuser', password='someuser')

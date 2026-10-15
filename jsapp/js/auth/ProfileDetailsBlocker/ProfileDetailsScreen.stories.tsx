@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { AccountFieldsConfig, AccountFieldsValues, UserMetadataField } from '#/account/account.constants'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import { meUpdateErrorsMock, meUpdateSuccessMock } from '#/endpoints/me.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import ProfileDetailsScreen from './ProfileDetailsScreen'
@@ -77,11 +78,6 @@ const meta: Meta<typeof ProfileDetailsScreen> = {
 
 export default meta
 type Story = StoryObj<typeof ProfileDetailsScreen>
-
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
 /** Resolves once the form is on screen. */
 const waitForForm = (canvas: Canvas) => canvas.findByRole('button', { name: 'Continue' })

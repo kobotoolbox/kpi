@@ -501,10 +501,12 @@ def get_bulk_actions_create_examples() -> list[OpenApiExample]:
                     'language': 'en',
                     'locale': 'en-US',
                 },
+                'auto_accept': True,
             },
             description=(
                 'Starts Google transcription for the selected audio question '
-                'across the listed submissions. `locale` is optional.'
+                'across the listed submissions. `locale` is optional. '
+                '`auto_accept` accepts each generated result on completion.'
             ),
             request_only=True,
         ),
@@ -539,9 +541,11 @@ def _bulk_action_response_value(
     if action_id == 'automatic_google_transcription':
         question_xpath = 'q1_audio'
         params = {'language': 'en', 'locale': 'en-US'}
+        auto_accept = True
     else:
         question_xpath = 'q1_transcript'
         params = {'language': 'fr'}
+        auto_accept = False
 
     submission_uuids = [
         '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
@@ -599,6 +603,7 @@ def _bulk_action_response_value(
         'submission_uuids': submission_uuids,
         'submission_statuses': submission_statuses,
         'params': params,
+        'auto_accept': auto_accept,
         'progress': progress,
         'created_by': {
             'username': 'someuser',

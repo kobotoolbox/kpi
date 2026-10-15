@@ -212,4 +212,9 @@ def test_transform_data_for_output_with_delete():
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
     retrieved_data = action.retrieve_data(mock_sup_det)
     result = action.transform_data_for_output(retrieved_data)
-    assert result == {}
+    assert result == {
+        'transcript': {
+            '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
+            '_deleted': True,
+        },
+    }

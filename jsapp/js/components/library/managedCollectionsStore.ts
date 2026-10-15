@@ -39,8 +39,9 @@ class ManagedCollectionsStore extends Reflux.Store {
 
     when(() => profileStore.isLoggedIn, this.startupStore.bind(this))
 
-    // HACK: We add this ugly `setTimeout` to ensure router exists.
-    setTimeout(() => router!.subscribe(this.startupStore.bind(this)))
+    // HACK: We add this ugly `setTimeout` to ensure router exists. It may still
+    // be null outside of the app (e.g. Storybook), so we need to check for it.
+    setTimeout(() => router?.subscribe(this.startupStore.bind(this)))
 
     this.startupStore()
   }
