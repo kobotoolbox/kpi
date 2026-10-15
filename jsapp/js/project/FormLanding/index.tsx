@@ -2,6 +2,7 @@ import { Box } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
+import toast from 'react-hot-toast'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useAssetsPermissionAssignmentsBulkDestroy,
@@ -153,14 +154,17 @@ export default function FormLanding() {
       return
     }
 
-    notify.warning(t('deploying to kobocat...'), { duration: 60 * 1000 })
+    // TODO: notify has no dismiss, so toast is imported directly
+    const deployingToast = notify.warning(t('deploying to kobocat...'), { duration: 60 * 1000 })
     deployMutation.mutate(
       { uidAsset: loadedAsset.uid, data: { active: true } },
       {
         onSuccess: () => {
+          toast.dismiss(deployingToast)
           notify(t('deployed form'))
           navigate(`/forms/${loadedAsset.uid}`)
         },
+        onError: () => toast.dismiss(deployingToast),
       },
     )
   }
