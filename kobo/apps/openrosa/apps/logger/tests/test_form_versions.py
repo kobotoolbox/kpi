@@ -244,15 +244,105 @@ class TestAddFormVersions(TestCase):
         xml = submission_xml(version_uid=None)
         assert add_form_versions(xml, xform) == xml
 
-    def test_tags_both_versions_when_the_submission_is_stale(self):
+    def test_a_new_submission_never_loads_the_asset_versions(self):
+        """
+        This runs on every submission received, and a recent one names its
+        version in `__version__` alone.
+        """
+
+        xform = XForm(json=xform_json(VERSION_2))
+
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools.load_deployed_version_ids',
+            side_effect=AssertionError('The versions should not be loaded'),
+        ):
+            xml = add_form_versions(submission_xml(version_uid=VERSION_1), xform)
+
+        assert get_form_versions(xml) == VERSION_1
+
+    def test_an_edit_of_a_recent_submission_never_loads_the_asset_versions(self):
+        """
+        Both the incoming XML and the record being edited name their version
+        in `__version__` alone, so there is nothing to look up.
+        """
+
+        xform = XForm(json=xform_json(VERSION_2))
+
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools.load_deployed_version_ids',
+            side_effect=AssertionError('The versions should not be loaded'),
+        ):
+            xml = add_form_versions(
+                submission_xml(version_uid=VERSION_2, deprecated_id='uuid:0'),
+                xform,
+                previous_xml=submission_xml(version_uid=VERSION_1),
+            )
+
+        assert get_form_versions(xml) == f'{VERSION_1} {VERSION_2}'
+
+    def test_an_old_submission_edited_today_keeps_the_version_it_was_collected_with(
+        self,
+    ):
+        """
+        An old submission may name its version under `_version_` only. A bulk
+        edit keeps it that way, so reading `__version__` alone would find no
+        trace of it and record nothing at all.
+        """
+
+        xform = XForm(json=xform_json(VERSION_2), kpi_asset_uid='anAsset')
+        legacy_xml = submission_xml(version_uid=None).replace(
+            '<meta>', f'<_version_>{VERSION_1}</_version_><meta>'
+        )
+        edit_xml = legacy_xml.replace('<q1>hello</q1>', '<q1>edited</q1>')
+
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools.load_deployed_version_ids',
+            return_value={VERSION_2: VERSION_2, VERSION_1: VERSION_1},
+        ) as load_version_ids:
+            xml = add_form_versions(edit_xml, xform, previous_xml=legacy_xml)
+
+        assert get_form_versions(xml) == f'{VERSION_1} {VERSION_2}'
+        # Once for the incoming XML and the record being edited together
+        load_version_ids.assert_called_once_with('anAsset')
+
+    def test_an_edit_reads_the_newest_of_several_version_nodes(self):
+        """
+        kobotoolbox/kpi#1465 left `__version__` holding the oldest version,
+        and the one that the submission was collected with in a suffixed node.
+        """
+
+        xform = XForm(json=xform_json(VERSION_3), kpi_asset_uid='anAsset')
+        legacy_xml = submission_xml(version_uid=VERSION_1).replace(
+            '<meta>', f'<_version__001>{VERSION_2}</_version__001><meta>'
+        )
+
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools.load_deployed_version_ids',
+            return_value={
+                VERSION_3: VERSION_3,
+                VERSION_2: VERSION_2,
+                VERSION_1: VERSION_1,
+            },
+        ):
+            xml = add_form_versions(
+                submission_xml(version_uid=VERSION_3, deprecated_id='uuid:0'),
+                xform,
+                previous_xml=legacy_xml,
+            )
+
+        assert get_form_versions(xml) == f'{VERSION_2} {VERSION_3}'
+
+    def test_tags_only_the_collected_version_when_the_submission_is_stale(self):
         """
         A device collecting offline with an older version, sending once a newer
-        one has been deployed.
+        one has been deployed. Every answer was given against the older one, so
+        it is recorded, since that is where the fields are looked up, and the
+        deployed one is not: it describes none of them.
         """
 
         xform = XForm(json=xform_json(VERSION_2))
         xml = add_form_versions(submission_xml(version_uid=VERSION_1), xform)
-        assert get_form_versions(xml) == f'{VERSION_1} {VERSION_2}'
+        assert get_form_versions(xml) == VERSION_1
 
     def test_extends_an_existing_lineage_without_reordering_it(self):
         xform = XForm(json=xform_json(VERSION_3))
@@ -358,7 +448,7 @@ class TestAddFormVersions(TestCase):
         xml_with_versions = add_form_versions(xml, xform)
 
         assert f'<{common_tags.FORM_VERSIONS}>an answer' in xml_with_versions
-        assert get_form_versions(xml_with_versions) == f'{VERSION_1} {VERSION_2}'
+        assert get_form_versions(xml_with_versions) == VERSION_1
         assert strip_form_versions(xml_with_versions) == xml
 
     def test_replaces_the_meta_node_when_a_question_shares_its_name(self):
@@ -420,9 +510,7 @@ class TestAddFormVersions(TestCase):
         xform = XForm(json=xform_json(VERSION_2))
         xml = submission_xml(version_uid=VERSION_1, form_versions=VERSION_2)
 
-        assert get_form_versions(add_form_versions(xml, xform)) == (
-            f'{VERSION_1} {VERSION_2}'
-        )
+        assert get_form_versions(add_form_versions(xml, xform)) == VERSION_1
 
     def test_discards_versions_carrying_markup(self):
         """
@@ -496,7 +584,7 @@ class TestAddFormVersions(TestCase):
         xml_with_versions = add_form_versions(xml, xform)
 
         assert xml_with_versions.count(f'<{common_tags.FORM_VERSIONS}>') == 1
-        assert get_form_versions(xml_with_versions) == f'{VERSION_1} {VERSION_2}'
+        assert get_form_versions(xml_with_versions) == VERSION_1
         assert '<rootUuid>uuid:0</rootUuid>' in xml_with_versions
 
     def test_replaces_a_node_whatever_shape_the_client_gave_it(self):
@@ -527,9 +615,7 @@ class TestAddFormVersions(TestCase):
             xml_with_versions = add_form_versions(xml, xform)
 
             assert xml_with_versions.count(f'<{common_tags.FORM_VERSIONS}') == 1, node
-            assert get_form_versions(xml_with_versions) == (
-                f'{VERSION_1} {VERSION_2}'
-            ), node
+            assert get_form_versions(xml_with_versions) == VERSION_1, node
 
     def test_leaves_the_document_alone_on_a_shape_it_cannot_remove(self):
         """
@@ -576,9 +662,7 @@ class TestAddFormVersions(TestCase):
             xml_with_versions = add_form_versions(xml, xform)
 
             # Read through the parser, which ignores comments and CDATA
-            assert get_form_versions(xml_with_versions) == (
-                f'{VERSION_1} {VERSION_2}'
-            ), decoy
+            assert get_form_versions(xml_with_versions) == VERSION_1, decoy
             assert decoy in xml_with_versions, decoy
             assert strip_form_versions(xml_with_versions) == xml, decoy
 
@@ -603,9 +687,7 @@ class TestAddFormVersions(TestCase):
 
             xml_with_versions = add_form_versions(xml, xform)
 
-            assert get_form_versions(xml_with_versions) == (
-                f'{VERSION_1} {VERSION_2}'
-            ), body
+            assert get_form_versions(xml_with_versions) == VERSION_1, body
             assert decoy in xml_with_versions, body
             assert strip_form_versions(xml_with_versions) == xml, body
 
@@ -663,13 +745,25 @@ class TestFormVersionsOnSubmission(TestCase):
         assert get_form_versions(instance.xml) is None
         assert META_FORM_VERSIONS not in instance.json
 
-    def test_stale_offline_submission_records_both_versions(self):
+    def test_stale_offline_submission_records_only_its_own_version(self):
         self._deploy(VERSION_2)
         instance = self._submit(submission_xml(version_uid=VERSION_1))
-        assert get_form_versions(instance.xml) == f'{VERSION_1} {VERSION_2}'
+        assert get_form_versions(instance.xml) == VERSION_1
         # The node is a plain leaf, so it reaches the JSON representation, and
         # therefore Mongo, without any extra plumbing
-        assert instance.json[META_FORM_VERSIONS] == f'{VERSION_1} {VERSION_2}'
+        assert instance.json[META_FORM_VERSIONS] == VERSION_1
+
+    def test_stale_offline_submission_edited_later_records_both_versions(self):
+        """
+        Only the edit brings the deployed version in, since the answers it
+        writes are the ones that the deployed form asks for.
+        """
+
+        self._deploy(VERSION_2)
+        instance = self._submit(submission_xml(version_uid=VERSION_1))
+        edited = self._submit(self._edit_xml(instance))
+        assert edited.pk == instance.pk
+        assert get_form_versions(edited.xml) == f'{VERSION_1} {VERSION_2}'
 
     def test_edit_with_a_newer_version_records_both_versions(self):
         instance = self._submit(submission_xml(version_uid=VERSION_1))
@@ -753,7 +847,7 @@ class TestFormVersionsOnSubmission(TestCase):
         self._deploy(VERSION_2)
         xml = submission_xml(version_uid=VERSION_1)
         instance = self._submit(xml)
-        assert get_form_versions(instance.xml) == f'{VERSION_1} {VERSION_2}'
+        assert get_form_versions(instance.xml) == VERSION_1
 
         self._deploy(VERSION_3)
         same_instance = self._submit(
@@ -767,7 +861,7 @@ class TestFormVersionsOnSubmission(TestCase):
         assert same_instance.attachments.count() == 1
         # The later POST attaches files, it never rewrites the stored XML
         same_instance.refresh_from_db()
-        assert get_form_versions(same_instance.xml) == f'{VERSION_1} {VERSION_2}'
+        assert get_form_versions(same_instance.xml) == VERSION_1
 
     def test_resubmission_after_a_redeploy_is_still_a_duplicate(self):
         self._deploy(VERSION_2)
@@ -910,10 +1004,10 @@ class TestAttachmentsAcrossFormVersions(TestCase):
         describes, so its file hangs on a name only that version knows.
         """
 
-        version_2 = self._redeploy_renaming_the_media_question()
+        self._redeploy_renaming_the_media_question()
         instance = self._submit_with_photo(MEDIA_QUESTION, 'photo.jpg')
 
-        assert get_form_versions(instance.xml) == f'{self.version_1} {version_2}'
+        assert get_form_versions(instance.xml) == self.version_1
         attachment = Attachment.all_objects.get(instance=instance)
         assert attachment.media_file_basename == 'photo.jpg'
         assert attachment.delete_status is None
