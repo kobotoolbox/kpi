@@ -292,6 +292,8 @@ function MembersRoute() {
             <MemberActionsDropdown
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
+              targetFullName={member.user__extra_details__name}
+              orgName={organization.name}
               currentUserRole={organization.request_user_role}
             />
           )
