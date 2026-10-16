@@ -17,7 +17,8 @@ Admin content is plain text, so `urlize` makes its `##activate_url##` clickable 
 {% block preheader %}{% blocktrans trimmed %}Welcome to KoboToolbox! Please activate your account to get started.{% endblocktrans %}{% endblock %}
 
 {% block message %}
-{% with content='email_confirmation_signup_message'|email_template %}
+{# Both blocks ask for the sections; the tag reads them from the database once #}
+{% email_sections 'email_confirmation_signup_message' as content %}
 {% if content.section_one or content.section_one == '' %}
   {% convert_placeholders content.section_one activate_url user as section_one %}
   <div class="text" style="font-size:16px;line-height:24px;color:#334155;">{{ section_one|urlize|linebreaks }}</div>
@@ -49,11 +50,10 @@ Admin content is plain text, so `urlize` makes its `##activate_url##` clickable 
     {% endblocktrans %}
   </p>
 {% endif %}
-{% endwith %}
 {% endblock %}
 
 {% block extra_sections %}
-{% with content='email_confirmation_signup_message'|email_template %}
+{% email_sections 'email_confirmation_signup_message' as content %}
 <tr>
   <td align="center" class="section-grey" style="background:#f6f7f9;padding:40px 0;">
     <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
@@ -129,5 +129,4 @@ Admin content is plain text, so `urlize` makes its `##activate_url##` clickable 
     </table>
   </td>
 </tr>
-{% endwith %}
 {% endblock %}

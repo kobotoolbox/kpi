@@ -1,6 +1,8 @@
 {% load i18n %}
 {% comment %}
 Plain-text alternative to `email_confirmation_resend_message.html`.
+
+Escaping off, since there is no markup here: a name like O'Connor would otherwise arrive as O&#x27;Connor.
 {% endcomment %}
 {% blocktrans trimmed with first_name=user.first_name|default:user.username %}Hi {{ first_name }},{% endblocktrans %}
 
@@ -12,3 +14,4 @@ Plain-text alternative to `email_confirmation_resend_message.html`.
 
 {% blocktrans trimmed %}Thanks for being part of the KoboToolbox community!{% endblocktrans %}
 {% blocktrans trimmed %}The KoboToolbox Team{% endblocktrans %}
+{% endautoescape %}

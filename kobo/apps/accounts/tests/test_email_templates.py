@@ -1,6 +1,9 @@
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.db import connection
+from django.template.loader import render_to_string
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
 
 from kobo.apps.accounts.email_previews import (
@@ -70,6 +73,18 @@ class ConfirmationEmailTemplateTestCase(TestCase):
 
     @data(*CONFIRMATION_EMAILS)
     @unpack
+    def test_plain_text_greeting_is_not_html_escaped(self, template_prefix, _phrase):
+        """
+        Nothing renders the plain-text body as HTML, so a name with punctuation
+        has to arrive as typed rather than as `O&#x27;Connor`
+        """
+        self.user.first_name = "O'Connor & Sons <Ltd>"
+        body = render_email(template_prefix, self.user).body
+
+        assert "Hi O'Connor & Sons <Ltd>," in body
+
+    @data(*CONFIRMATION_EMAILS)
+    @unpack
     def test_html_body_escapes_the_username(self, template_prefix, _phrase):
         """
         The greeting falls back to the username, which the account holder chose
@@ -134,6 +149,25 @@ class SignupEmailAdminOverrideTestCase(TestCase):
 
         assert '<script>' not in html
         assert '&lt;script&gt;' in html
+
+    def test_sections_are_read_once_per_render(self):
+        """
+        The admin sections are needed in two blocks, and both are served by a
+        single read; see the `email_sections` tag
+        """
+        self.override(section_one='Activate here: ##activate_url##')
+        with CaptureQueriesContext(connection) as captured:
+            render_to_string(
+                f'{self.template_prefix}_message.html',
+                {'user': self.user, 'activate_url': ACTIVATE_URL},
+            )
+
+        reads = [
+            query['sql']
+            for query in captured.captured_queries
+            if 'accounts_emailcontent' in query['sql']
+        ]
+        assert len(reads) == 1, reads
 
     def test_blank_sections_drop_the_text(self):
         """
