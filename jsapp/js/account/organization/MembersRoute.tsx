@@ -33,6 +33,7 @@ import SortableProjectColumnHeader, {
 import { formatDate, notify } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
+import { usePendingOwnerTransfers } from './useTransferOwnership'
 import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
 
@@ -129,6 +130,9 @@ function MembersRoute() {
     }
   }
 
+  // Mocked — returns [] when flag is off; has no impact on current behaviour
+  const pendingOwnerUsernames = usePendingOwnerTransfers(organization.id)
+
   const membersQuery = useOrganizationsMembersList(organization.id, queryParams, {
     query: {
       queryKey: getOrganizationsMembersListQueryKey(organization.id, queryParams),
@@ -193,12 +197,14 @@ function MembersRoute() {
       label: renderSortableHeader('status', t('Status')),
       size: 120,
       cellFormatter: (obj: MemberListResponse) => {
-        const { invite } = getMemberOrInviteDetails(obj)
+        const { invite, member } = getMemberOrInviteDetails(obj)
+        if (member?.user__username && pendingOwnerUsernames.includes(member.user__username)) {
+          return <Badge color='light-blue' size='s' label={t('Pending owner')} />
+        }
         if (invite) {
           return <Badge color='light-blue' size='s' label={t('Invited')} />
-        } else {
-          return <Badge color='light-green' size='s' label={t('Active')} />
         }
+        return <Badge color='light-green' size='s' label={t('Active')} />
       },
     },
     {
@@ -293,6 +299,7 @@ function MembersRoute() {
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
               targetFullName={member.user__extra_details__name}
+              orgId={organization.id}
               orgName={organization.name}
               currentUserRole={organization.request_user_role}
             />

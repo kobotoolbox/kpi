@@ -7,6 +7,7 @@ interface MemberTransferModalProps {
   targetFullName?: string | null
   orgName?: string
   isModalOpen: boolean
+  isLoading?: boolean
   onCancel: () => void
   onConfirm: () => void
 }
@@ -16,6 +17,7 @@ export default function TransferTeamOwnershipModal({
   targetFullName,
   orgName,
   isModalOpen,
+  isLoading,
   onCancel,
   onConfirm,
 }: MemberTransferModalProps) {
@@ -54,8 +56,8 @@ export default function TransferTeamOwnershipModal({
         </Stack>
 
         <Group justify='flex-end'>
-          <ButtonNew variant='light' onClick={onCancel}>{t('Cancel')}</ButtonNew>
-          <ButtonNew onClick={onConfirm}>{t('Continue')}</ButtonNew>
+          <ButtonNew variant='light' onClick={onCancel} disabled={isLoading}>{t('Cancel')}</ButtonNew>
+          <ButtonNew loading={isLoading} onClick={onConfirm}>{t('Continue')}</ButtonNew>
         </Group>
       </Stack>
     </Modal>

@@ -11,11 +11,13 @@ import { useProfile } from '#/stores/useProfile'
 import MemberRemoveModal from './MemberRemoveModal'
 import { getSimpleMMOLabel } from './organization.utils'
 import TransferTeamOwnershipModal from './TransferTeamOwnershipModal'
+import { useTransferOwnership } from './useTransferOwnership'
 
 interface MemberActionsDropdownProps {
   target: ReactNode
   targetUsername: string
   targetFullName?: string | null
+  orgId: string
   orgName?: string
   /**
    * The role of the currently logged in user, i.e. the role of the user that
@@ -27,9 +29,11 @@ interface MemberActionsDropdownProps {
 /**
  * A dropdown with all actions that can be taken towards an organization member.
  */
-export default function MemberActionsDropdown({ target, targetUsername, targetFullName, orgName, currentUserRole }: MemberActionsDropdownProps) {
+export default function MemberActionsDropdown({ target, targetUsername, targetFullName, orgId, orgName, currentUserRole }: MemberActionsDropdownProps) {
   const profile = useProfile()
   const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
+  // Mocked — no API call is made; safe to call unconditionally when flag is off
+  const { transferOwnership, isPending } = useTransferOwnership(orgId)
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
   const [isTransferOwnerVisible, setIsTransferOwnerVisible] = useState(false)
 
@@ -82,8 +86,11 @@ export default function MemberActionsDropdown({ target, targetUsername, targetFu
           targetFullName={targetFullName}
           orgName={orgName}
           isModalOpen={isTransferOwnerVisible}
+          isLoading={isPending}
           onCancel={() => setIsTransferOwnerVisible(false)}
-          onConfirm={() => setIsTransferOwnerVisible(false)}
+          onConfirm={() => {
+            transferOwnership(targetUsername, { onSuccess: () => setIsTransferOwnerVisible(false) })
+          }}
         />
       }
 
