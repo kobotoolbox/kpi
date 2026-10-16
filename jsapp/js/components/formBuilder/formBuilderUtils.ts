@@ -143,6 +143,20 @@ function rewriteTranslatedValues(
 }
 
 /**
+ * Copies the backend's generated name into `name` for rows that don't have one.
+ *
+ * `Row.finalize()` builds a missing name out of the default language's label, and an import can legitimately leave
+ * that slot blank. It throws on a blank one, halfway through `insertSurvey()`, so the rest of the block never lands.
+ */
+function preserveGeneratedNames(survey: FlatRow[]) {
+  for (const row of survey) {
+    if (!row.name && typeof row.$autoname === 'string' && row.$autoname !== '') {
+      row.name = row.$autoname
+    }
+  }
+}
+
+/**
  * A function that adjust the translations data to the Form Builder code.
  * Requires the sibling `unnullifyTranslations` function to be called before
  * saving the form.
@@ -214,6 +228,8 @@ export function nullifyTranslations(
       const assetIndexes = targetLanguages.map((language) => data.translations.indexOf(language))
 
       data.translations = targetLanguages
+      // Done before the rewrite, which is what can leave the label a row would be named after blank
+      preserveGeneratedNames(data.survey)
       // An empty slot beats a copy of another language, which would read like a real translation
       rewriteTranslatedValues(sheets, props, (values) =>
         assetIndexes.map((assetIndex) => (assetIndex === -1 ? null : (values[assetIndex] ?? null))),

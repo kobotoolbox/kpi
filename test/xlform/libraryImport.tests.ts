@@ -196,6 +196,22 @@ describe('importing a library item into a form', () => {
     chai.expect(getLabelsByLanguage(saved, 'apple')).to.deep.equal({ [LANG_FR]: 'fr', [LANG_EN]: 'en' })
   })
 
+  it('inserts an auto-named item that says nothing in the form default language', () => {
+    const saved = importIntoAndSave(openForm([LANG_FR]), {
+      survey: [
+        { type: QuestionTypeName.text, $autoname: 'pytanie', label: buildLabels([LANG_PL]) },
+        { type: QuestionTypeName.text, name: 'named_question', label: buildLabels([LANG_PL]) },
+      ],
+      translations: [LANG_PL],
+      translated: ['label'],
+      settings: { default_language: LANG_PL },
+    })
+
+    // A row with no `name` gets one from its label, and the French slot it leaves blank must not break that - the
+    // rows after it in the block are inserted by the same loop.
+    chai.expect(saved.survey.map((row) => row.name)).to.deep.equal(['pytanie', 'named_question', 'question'])
+  })
+
   it('names every translated column the item brings along', () => {
     const saved = importIntoAndSave(openForm([LANG_FR]), {
       survey: [
