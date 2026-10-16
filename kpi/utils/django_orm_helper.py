@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import connections, transaction
 from django.db.models import F, Field, JSONField, Lookup, QuerySet, TextField, sql
 from django.db.models.expressions import Func, Value
@@ -158,10 +159,111 @@ class RemoveJSONFieldAttribute(Func):
         )
 
 
+def get_distinct_values(
+    queryset: QuerySet, field: str, last_value: Any = None, limit: int = 1000
+) -> list:
+    """
+    Return the next `limit` distinct values of `field` among the rows of
+    `queryset`, in increasing order, after `last_value` (from the start if
+    `None`). `NULL` values are left out. Values are returned as the database
+    returns them, without Django's field conversions.
+
+    `SELECT DISTINCT` reads every matching row to keep the distinct values.
+    This walks an index on `field` instead, with a recursive CTE that jumps
+    from one value to the next one (a "loose index scan"): it reads about one
+    entry per distinct value, which is much faster when values repeat a lot.
+    It needs an index starting with `field` and covering the filters, e.g. a
+    partial index with the same condition.
+
+    Only filters on the table itself are supported: joins are refused.
+    """
+
+    query = queryset.query.chain()
+    query.clear_ordering(force=True)
+    query.get_initial_alias()
+    if query.count_active_tables() > 1:
+        raise ValueError('`get_distinct_values()` cannot be used with joins')
+
+    connection = connections[queryset.db]
+    try:
+        where_sql, where_params = query.get_compiler(queryset.db).compile(query.where)
+    except EmptyResultSet:
+        # The filters can match nothing, e.g. `pk__in=[]`
+        return []
+    except FullResultSet:
+        # No filter at all
+        where_sql, where_params = '', []
+
+    meta = queryset.model._meta
+    table = connection.ops.quote_name(meta.db_table)
+    column = f'{table}.{connection.ops.quote_name(meta.get_field(field).column)}'
+    condition = f'({where_sql}) AND ' if where_sql else ''
+    first_value_condition = (
+        f'{column} > %s' if last_value is not None else f'{column} IS NOT NULL'
+    )
+    first_value_params = [last_value] if last_value is not None else []
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"""
+            WITH RECURSIVE walk AS (
+                (
+                    SELECT {column} AS value FROM {table}
+                    WHERE {condition}{first_value_condition}
+                    ORDER BY {column} LIMIT 1
+                )
+                UNION ALL
+                SELECT (
+                    SELECT {column} FROM {table}
+                    WHERE {condition}{column} > walk.value
+                    ORDER BY {column} LIMIT 1
+                )
+                FROM walk
+                WHERE walk.value IS NOT NULL
+            )
+            SELECT value FROM walk WHERE value IS NOT NULL LIMIT %s
+            """,
+            [*where_params, *first_value_params, *where_params, limit],
+        )
+        return [row[0] for row in cursor.fetchall()]
+
+
 class ReturningUpdateQuerySet(QuerySet):
     """
-    QuerySet that can return the rows changed by an update.
+    QuerySet that can return the rows changed by an update or a delete.
     """
+
+    def delete_returning(self, fields: list[str]) -> list[dict]:
+        """
+        Delete the rows of the queryset with a single `DELETE`, and return the
+        rows this call deleted, as dicts holding `fields`, as they were just
+        before the delete.
+
+        Unlike `delete()`, it sends no signal and does not cascade: callers
+        delete related rows themselves. A row that a concurrent update has just
+        changed is checked again against the filters, and the values returned
+        are the ones that update committed, so a caller counting them never
+        works from a stale read. Joins are refused, for the same reason as in
+        `update_returning()`.
+        """
+
+        self._not_support_combined_queries('delete_returning')
+        if self.query.is_sliced:
+            raise TypeError("Cannot use 'limit' or 'offset' with delete.")
+
+        self._for_write = True
+        query = self.query.chain(sql.DeleteQuery)
+        query.get_initial_alias()
+        if query.count_active_tables() > 1:
+            raise ValueError('`delete_returning()` cannot be used with joins')
+
+        try:
+            delete_sql, params = query.get_compiler(self.db).as_sql()
+        except EmptyResultSet:
+            # The filters can match nothing, e.g. `pk__in=[]`. `delete()` deletes
+            # nothing then, and so does this
+            return []
+        return self._execute_returning(delete_sql, params, fields)
 
     def update_returning(self, fields: list[str], **kwargs) -> list[dict]:
         """
@@ -188,6 +290,26 @@ class ReturningUpdateQuerySet(QuerySet):
         if query.related_updates or query.count_active_tables() > 1:
             raise ValueError('`update_returning()` cannot be used with joins')
 
+        try:
+            update_sql, params = query.get_compiler(self.db).as_sql()
+        except EmptyResultSet:
+            # The filters can match nothing, e.g. `pk__in=[]`. `update()` updates
+            # nothing then, and so does this
+            return []
+        return self._execute_returning(update_sql, params, fields)
+
+    @staticmethod
+    def _convert(value, col, converters, connection):
+        for converter in converters:
+            value = converter(value, col, connection)
+        return value
+
+    def _execute_returning(self, statement: str, params, fields: list[str]):
+        """
+        Run `statement` with a `RETURNING` clause for `fields`, and convert the
+        values like Django does when it loads a model.
+        """
+
         connection = connections[self.db]
         meta = self.model._meta
         cols = [meta.get_field(name).get_col(meta.db_table) for name in fields]
@@ -199,10 +321,9 @@ class ReturningUpdateQuerySet(QuerySet):
             connection.ops.quote_name(col.target.column) for col in cols
         )
 
-        update_sql, params = query.get_compiler(self.db).as_sql()
         with transaction.mark_for_rollback_on_error(using=self.db):
             with connection.cursor() as cursor:
-                cursor.execute(f'{update_sql} RETURNING {columns}', params)
+                cursor.execute(f'{statement} RETURNING {columns}', params)
                 rows = cursor.fetchall()
 
         self._result_cache = None
@@ -215,12 +336,6 @@ class ReturningUpdateQuerySet(QuerySet):
             }
             for row in rows
         ]
-
-    @staticmethod
-    def _convert(value, col, converters, connection):
-        for converter in converters:
-            value = converter(value, col, connection)
-        return value
 
 
 class UpdateJSONFieldAttributes(Func):

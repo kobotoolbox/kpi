@@ -8,6 +8,7 @@ import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authenticat
 import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
+import { legalSentence } from '#/auth/legalAgreement'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
@@ -30,41 +31,6 @@ interface RegisterFormValues {
  * counterpart on the endpoint, so an error can never point at them.
  */
 const SERVER_KNOWN_FIELDS: ReadonlyArray<keyof RegisterFormValues> = ['email', 'username', 'password']
-
-/** Turns every `[...]` marker into a link, taking the URLs in the order they are given. */
-function withLegalLinks(sentence: string, urls: string[]) {
-  // Splitting on a capturing group alternates plain text and bracketed label, so the labels are the odd
-  // entries and take one URL each.
-  return sentence.split(/\[([^\]]+)\]/).map((part, index) =>
-    index % 2 ? (
-      <Anchor key={part} href={urls[Math.floor(index / 2)]} target='_blank' rel='noopener noreferrer' inherit>
-        {part}
-      </Anchor>
-    ) : (
-      part
-    ),
-  )
-}
-
-/**
- * The label for the Terms of Service checkbox, or `null` when the server configures neither - if nothing to agree
- * we don't display the checkbox.
- */
-function legalSentence(termsOfServiceUrl: string | null | undefined, privacyPolicyUrl: string | null | undefined) {
-  if (termsOfServiceUrl && privacyPolicyUrl) {
-    return withLegalLinks(t('I agree with the [Terms of Service] and [Privacy Policy]'), [
-      termsOfServiceUrl,
-      privacyPolicyUrl,
-    ])
-  }
-  if (termsOfServiceUrl) {
-    return withLegalLinks(t('I agree with the [Terms of Service]'), [termsOfServiceUrl])
-  }
-  if (privacyPolicyUrl) {
-    return withLegalLinks(t('I agree with the [Privacy Policy]'), [privacyPolicyUrl])
-  }
-  return null
-}
 
 export interface RegisterFormProps {
   /** From `/api/v2/environment/`. Used to spot an email domain that has to sign in through SSO. */

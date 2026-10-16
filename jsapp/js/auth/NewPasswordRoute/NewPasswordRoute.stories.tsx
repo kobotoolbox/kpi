@@ -115,7 +115,10 @@ export const PasswordChangedAndSignedIn: Story = {
 
     await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed' })
     // A plain `href`, so the click leaves `/auth` and loads the app with the session allauth just handed out.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute(
+      'href',
+      `${window.location.origin}/`,
+    )
   },
 }
 
@@ -186,6 +189,9 @@ export const AlreadyLoggedIn: Story = {
 
     await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
     // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute(
+      'href',
+      `${window.location.origin}/`,
+    )
   },
 }
