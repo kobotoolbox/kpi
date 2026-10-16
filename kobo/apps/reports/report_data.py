@@ -4,10 +4,11 @@ from copy import deepcopy
 
 from django.utils.translation import gettext as t
 from formpack import FormPack
-from formpack.constants import FUZZY_VERSION_ID_KEY, INFERRED_VERSION_ID_KEY
+from formpack.constants import FUZZY_VERSION_RE, INFERRED_VERSION_ID_KEY
 from rest_framework import serializers
 
 from kpi.utils.bugfix import repair_file_column_content_and_save
+from kpi.utils.form_versions import get_version_ids, infer_version_uid
 from kpi.utils.log import logging
 
 
@@ -33,7 +34,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         _versions = [asset.asset_versions.first()]
 
     schemas = []
-    version_ids_newest_first = []
+    versions_newest_first = []
     for v in _versions:
         try:
             fp_schema = v.to_formpack_schema()
@@ -48,9 +49,13 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         else:
             fp_schema['version_id_key'] = INFERRED_VERSION_ID_KEY
             schemas.append(fp_schema)
-            version_ids_newest_first.append(v.uid)
-            if v.uid_aliases:
-                version_ids_newest_first.extend(v.uid_aliases)
+            versions_newest_first.append(
+                {
+                    'uid': v.uid,
+                    'uid_aliases': v.uid_aliases,
+                    '_reversion_version': v._reversion_version,
+                }
+            )
 
     if not schemas:
         raise Exception('Cannot build formpack without any schemas')
@@ -58,11 +63,10 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     # FormPack() expects the versions to be ordered from oldest to newest
     pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
 
-    # Find the AssetVersion UID for each deprecated reversion ID
-    _reversion_ids = dict([
-        (str(v._reversion_version), v.uid)
-        for v in _versions if v._reversion_version
-    ])
+    # Every id each version is known by, its uid, its aliases and its
+    # deprecated reversion id, mapped to its uid
+    version_ids = get_version_ids(versions_newest_first)
+    newest_version_uid = versions_newest_first[0]['uid']
 
     # A submission often contains many version keys, e.g. `__version__`,
     # `_version_`, `_version__001`, `_version__002`, each with a different
@@ -71,29 +75,16 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     # submission is the proper one to use
     def _infer_version_id(submission):
         if not use_all_form_versions:
-            submission[INFERRED_VERSION_ID_KEY] = version_ids_newest_first[0]
+            submission[INFERRED_VERSION_ID_KEY] = newest_version_uid
             return submission
 
         submission_version_ids = [
-            val for key, val in submission.items()
-                if FUZZY_VERSION_ID_KEY in key
+            val for key, val in submission.items() if FUZZY_VERSION_RE.match(key)
         ]
-        # Replace any deprecated reversion IDs with the UIDs of their
-        # corresponding AssetVersions
-        submission_version_ids = [
-            _reversion_ids[x] if x in _reversion_ids
-                else x for x in submission_version_ids
-        ]
-        inferred_version_id = None
-        for extant_version_id in version_ids_newest_first:
-            if extant_version_id in submission_version_ids:
-                inferred_version_id = extant_version_id
-                break
-        if not inferred_version_id:
-            # Fall back on the latest version
-            # TODO: log a warning?
-            inferred_version_id = version_ids_newest_first[0]
-        submission[INFERRED_VERSION_ID_KEY] = inferred_version_id
+        # Fall back on the latest version
+        submission[INFERRED_VERSION_ID_KEY] = (
+            infer_version_uid(submission_version_ids, version_ids) or newest_version_uid
+        )
         return submission
 
     if submission_stream is None:
