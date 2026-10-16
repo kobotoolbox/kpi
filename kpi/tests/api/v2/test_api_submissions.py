@@ -7,6 +7,7 @@ import unittest
 import uuid
 from datetime import datetime
 from unittest import mock
+from urllib.parse import parse_qs, urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -16,9 +17,12 @@ from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import connection
+from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
+from mongomock.collection import Collection
+from pymongo.errors import ExecutionTimeout
 from rest_framework import status
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -810,6 +814,139 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         else:
             response_count = response.data.get('count')
         self.assertEqual(response_count, 1)
+
+    def test_list_submissions_count_is_capped(self):
+        """
+        Test that the count is exact up to `API_LIMITED_COUNT_MAX` and 'many'
+        past it, in JSON and in XML
+        """
+        xml_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'uid_asset': self.asset.uid, 'format': 'xml'},
+        )
+
+        with override_settings(API_LIMITED_COUNT_MAX=6):
+            response = self.client.get(self.submission_list_url, {'format': 'json'})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data['count'], 6)
+            response = self.client.get(xml_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn('<count>6</count>', response.content.decode())
+
+        with override_settings(API_LIMITED_COUNT_MAX=5):
+            response = self.client.get(self.submission_list_url, {'format': 'json'})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data['count'], 'many')
+            self.assertEqual(len(response.data['results']), 6)
+            response = self.client.get(xml_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn('<count>many</count>', response.content.decode())
+
+    def test_list_submissions_count_unknown_on_timeout(self):
+        """
+        Test that a count exceeding its time limit is reported as 'unknown'
+        instead of failing the request
+        """
+        timeout = ExecutionTimeout('operation exceeded time limit', 50)
+        with mock.patch.object(Collection, 'count_documents', side_effect=timeout):
+            response = self.client.get(self.submission_list_url, {'format': 'json'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 'unknown')
+        self.assertEqual(len(response.data['results']), 6)
+        self.assertIsNone(response.data['next'])
+
+    def test_list_submissions_ignores_skip_count(self):
+        """
+        Test that clients cannot turn off the count with `skip_count`
+        """
+        response = self.client.get(
+            self.submission_list_url, {'format': 'json', 'skip_count': 1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 6)
+
+    def test_list_submissions_count_uses_limited_count_settings(self):
+        """
+        Test that the count stops after `API_LIMITED_COUNT_MAX + 1` documents
+        and uses `API_LIMITED_COUNT_TIMEOUT` as its time limit when it is set
+        """
+        with mock.patch.object(
+            Collection,
+            'count_documents',
+            autospec=True,
+            side_effect=Collection.count_documents,
+        ) as count_documents:
+            with override_settings(API_LIMITED_COUNT_TIMEOUT=500):
+                response = self.client.get(self.submission_list_url, {'format': 'json'})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data['count'], 6)
+            count_documents.assert_called_once()
+            kwargs = count_documents.call_args.kwargs
+            self.assertEqual(kwargs['maxTimeMS'], 500)
+            self.assertEqual(kwargs['limit'], settings.API_LIMITED_COUNT_MAX + 1)
+
+            # Default (0) falls back to the regular query time limit
+            count_documents.reset_mock()
+            response = self.client.get(self.submission_list_url, {'format': 'json'})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            count_documents.assert_called_once()
+            self.assertEqual(
+                count_documents.call_args.kwargs['maxTimeMS'],
+                MongoHelper.get_max_time_ms(),
+            )
+
+    def test_list_submissions_next_link_does_not_depend_on_count(self):
+        """
+        Test that `next` is set on every page but the last one, whether the
+        count is 'many' or exact, and that the extra row fetched to detect a
+        next page is not returned
+        """
+
+        def get_page(start: int, limit: int) -> dict:
+            response = self.client.get(
+                self.submission_list_url,
+                {'format': 'json', 'start': start, 'limit': limit},
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            return response.data
+
+        def get_next_start(page: dict) -> int:
+            query_params = parse_qs(urlparse(page['next']).query)
+            return int(query_params['start'][0])
+
+        submission_ids = sorted(s['_id'] for s in self.submissions)
+
+        with override_settings(API_LIMITED_COUNT_MAX=1):
+            pages = [get_page(start, 2) for start in (0, 2, 4)]
+
+        self.assertEqual(pages[0]['count'], 'many')
+        self.assertEqual(get_next_start(pages[0]), 2)
+        self.assertEqual(get_next_start(pages[1]), 4)
+        self.assertIsNone(pages[2]['next'])
+        for page in pages:
+            self.assertEqual(len(page['results']), 2)
+        page_ids = sorted(r['_id'] for page in pages for r in page['results'])
+        self.assertEqual(page_ids, submission_ids)
+
+        pages = [get_page(start, 3) for start in (0, 3)]
+        self.assertEqual(pages[0]['count'], 6)
+        self.assertEqual(get_next_start(pages[0]), 3)
+        self.assertIsNone(pages[1]['next'])
+        page_ids = sorted(r['_id'] for page in pages for r in page['results'])
+        self.assertEqual(page_ids, submission_ids)
+
+    def test_list_submissions_xml_empty_page(self):
+        """
+        Test that an XML page without submissions still has a `results` node
+        """
+        xml_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'uid_asset': self.asset.uid, 'format': 'xml'},
+        )
+        response = self.client.get(xml_url, {'query': '{"_submitted_by": "nobody"}'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('<results></results>', response.content.decode())
 
     def test_retrieve_submission_as_owner(self):
         """

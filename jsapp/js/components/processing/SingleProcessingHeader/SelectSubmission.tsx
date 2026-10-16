@@ -17,7 +17,8 @@ const selectNeighborResults = (data: assetsDataListResponse) => {
   if (!data.data.results.length) return
   return {
     submission: data.data.results[0],
-    count: data.data.count,
+    // 'many'/'unknown' counts are not displayed yet (DEV-1707)
+    count: typeof data.data.count === 'number' ? data.data.count : 0,
   }
 }
 
