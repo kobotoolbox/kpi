@@ -16,6 +16,37 @@ from rest_framework.utils.urls import replace_query_param
 from kpi.constants import LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN
 
 
+class PeekNextPageMixin:
+    """
+    Detects a next page by fetching one row past the current one, so the
+    `next` link never needs a count.
+    """
+
+    has_next = False
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
+
+    def _get_page_with_peek(self, queryset):
+        """
+        Return the current page and set `has_next` from one extra row.
+        """
+        # Slice bounds are bound to locals so black keeps the colon un-spaced
+        # (flake8 E203)
+        start = self.offset
+        end = self.offset + self.limit + 1
+        items = list(queryset[start:end])
+        self.has_next = len(items) > self.limit
+        return items[: self.limit]
+
+
 class DefaultPagination(LimitOffsetPagination):
     """
     Default pagination class for API views, it can be customized via the
@@ -250,37 +281,6 @@ class FastPagination(DefaultPagination):
         if queryset.query.distinct:
             return queryset.only('pk').count()
         return super().get_count(queryset)
-
-
-class PeekNextPageMixin:
-    """
-    Detects a next page by fetching one row past the current one, so the
-    `next` link never needs a count.
-    """
-
-    has_next = False
-
-    def get_next_link(self):
-        if not self.has_next:
-            return None
-
-        url = self.request.build_absolute_uri()
-        url = replace_query_param(url, self.limit_query_param, self.limit)
-
-        offset = self.offset + self.limit
-        return replace_query_param(url, self.offset_query_param, offset)
-
-    def _get_page_with_peek(self, queryset):
-        """
-        Return the current page and set `has_next` from one extra row.
-        """
-        # Slice bounds are bound to locals so black keeps the colon un-spaced
-        # (flake8 E203)
-        start = self.offset
-        end = self.offset + self.limit + 1
-        items = list(queryset[start:end])
-        self.has_next = len(items) > self.limit
-        return items[: self.limit]
 
 
 class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
