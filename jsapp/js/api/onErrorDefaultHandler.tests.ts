@@ -8,7 +8,7 @@ jest.mock('#/utils', () => {
 
 import chai from 'chai'
 import { ServerError } from './ServerError'
-import { onErrorDefaultHandler } from './onErrorDefaultHandler'
+import { getFieldErrors, onErrorDefaultHandler } from './onErrorDefaultHandler'
 
 /** Mirrors how `ServerError.new()` derives `detail`: a string body is one that failed `JSON.parse()`. */
 function makeServerError(status: number, statusText: string, body: unknown) {
@@ -87,5 +87,34 @@ describe('onErrorDefaultHandler', () => {
     handleAsMutation(new DOMException('The user aborted a request.', 'AbortError'))
 
     chai.expect(mockedNotify.mock.calls.length).to.equal(0)
+  })
+})
+
+describe('getFieldErrors', () => {
+  it('reads the messages DRF filed under the field', () => {
+    const error = makeServerError(400, 'Bad Request', { email: ['Enter a valid email address.'] })
+
+    chai.expect(getFieldErrors(error, 'email')).to.deep.equal(['Enter a valid email address.'])
+  })
+
+  it('reads a single message that came through unwrapped', () => {
+    const error = makeServerError(400, 'Bad Request', { email: 'This action is not allowed.' })
+
+    chai.expect(getFieldErrors(error, 'email')).to.deep.equal(['This action is not allowed.'])
+  })
+
+  it('finds nothing in a body with no entry for the field', () => {
+    const forbidden = makeServerError(403, 'Forbidden', { detail: 'Re-authentication is required for this action.' })
+    const errorPage = makeServerError(500, 'Internal Server Error', DJANGO_500_PAGE)
+
+    chai.expect(getFieldErrors(forbidden, 'email')).to.deep.equal([])
+    chai.expect(getFieldErrors(errorPage, 'email')).to.deep.equal([])
+    chai.expect(getFieldErrors(new TypeError('Failed to fetch'), 'email')).to.deep.equal([])
+  })
+
+  it('drops entries that are not messages', () => {
+    const error = makeServerError(400, 'Bad Request', { email: [{ code: 'invalid' }, 'Enter a valid email address.'] })
+
+    chai.expect(getFieldErrors(error, 'email')).to.deep.equal(['Enter a valid email address.'])
   })
 })
