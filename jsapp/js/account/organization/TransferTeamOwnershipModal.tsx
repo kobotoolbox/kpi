@@ -11,7 +11,7 @@ interface MemberTransferModalProps {
   onConfirm: () => void
 }
 
-export default function MemberTransferModal({
+export default function TransferTeamOwnershipModal({
   username,
   targetFullName,
   orgName,

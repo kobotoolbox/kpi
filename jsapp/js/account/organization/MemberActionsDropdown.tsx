@@ -6,10 +6,11 @@ import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import envStore from '#/envStore'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { useProfile } from '#/stores/useProfile'
 import MemberRemoveModal from './MemberRemoveModal'
 import { getSimpleMMOLabel } from './organization.utils'
-import MemberTransferModal from './MemberTransferModal'
+import TransferTeamOwnershipModal from './TransferTeamOwnershipModal'
 
 interface MemberActionsDropdownProps {
   target: ReactNode
@@ -28,6 +29,7 @@ interface MemberActionsDropdownProps {
  */
 export default function MemberActionsDropdown({ target, targetUsername, targetFullName, orgName, currentUserRole }: MemberActionsDropdownProps) {
   const profile = useProfile()
+  const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
   const [isTransferOwnerVisible, setIsTransferOwnerVisible] = useState(false)
 
@@ -75,7 +77,7 @@ export default function MemberActionsDropdown({ target, targetUsername, targetFu
       )}
 
       {isTransferOwnerVisible &&
-        <MemberTransferModal
+        <TransferTeamOwnershipModal
           username={targetUsername}
           targetFullName={targetFullName}
           orgName={orgName}
@@ -89,9 +91,14 @@ export default function MemberActionsDropdown({ target, targetUsername, targetFu
         <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Item onClick={() => setIsTransferOwnerVisible(true)}>
-            {t('Make owner')}
-          </Menu.Item>
+          {isTransferOwnershipEnabled && (
+            <>
+              <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
+                {t('Make owner')}
+              </Menu.Item>
+              <Menu.Divider />
+            </>
+          )}
           <Menu.Item variant='danger' onClick={() => setIsRemoveModalVisible(true)}>
             {removeButtonLabel}
           </Menu.Item>
