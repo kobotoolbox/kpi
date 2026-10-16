@@ -40,7 +40,7 @@ export interface AuthStatus {
   flows: Flow[]
   pendingFlow: Flow | null
   user: User | null
-  /** Grows when a reauthentication lands, and after a page reload it is the only trace of that left */
+  /** Grows with every accepted reauthentication, which is the only reliable sign of one */
   methodCount: number
 }
 
@@ -117,11 +117,8 @@ export function determineAuthChangeEvent(fromStatus: AuthStatus, toStatus: AuthS
     if (toStatus.isReauthenticationRequired) {
       return AuthChangeEvent.reauthenticationRequired
     }
-    if (from.isReauthenticationRequired) {
-      return AuthChangeEvent.reauthenticated
-    }
-    // Reloading the reauthentication screen throws the flag above away. A method having been added is the other way to
-    // tell that credentials were just accepted.
+    // allauth adds a method on every accepted reauthentication. Unlike the reference client, a dropped flag alone is
+    // ignored: the session poll (e.g. on window focus) answers 200 while reauthentication is still pending.
     if (from.methodCount < toStatus.methodCount) {
       return AuthChangeEvent.reauthenticated
     }
