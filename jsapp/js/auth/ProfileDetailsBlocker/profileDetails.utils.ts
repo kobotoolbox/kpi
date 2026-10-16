@@ -1,10 +1,16 @@
-import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from '#/account/account.constants'
+import type {
+  AccountFieldsErrors,
+  AccountFieldsValues,
+  UserFieldName,
+  UserMetadataField,
+} from '#/account/account.constants'
 import {
   MMO_MANAGED_FIELD_NAMES,
   ORGANIZATION_DEPENDENT_FIELD_NAMES,
   USER_FIELD_NAMES,
 } from '#/account/account.constants'
-import { hasNoOrganizationAffiliation } from '#/account/account.utils'
+import { getProfileFieldsValues, hasNoOrganizationAffiliation } from '#/account/account.utils'
+import type { AccountResponse } from '#/dataInterface'
 
 /**
  * Fields `AccountFieldsEditor` renders without a slot for an error message. A message about one of these
@@ -20,6 +26,17 @@ export interface ProfileFieldsContext {
   requiredFieldNames: UserFieldName[]
   /** Whether the user belongs to an organization with more than one member. */
   isMmoMember: boolean
+}
+
+export function getProfileFieldsContext(
+  userMetadataFields: readonly UserMetadataField[],
+  isMmoMember: boolean,
+): ProfileFieldsContext {
+  return {
+    configuredFieldNames: userMetadataFields.map((field) => field.name),
+    requiredFieldNames: userMetadataFields.filter((field) => field.required).map((field) => field.name),
+    isMmoMember,
+  }
 }
 
 /**
@@ -47,6 +64,30 @@ export function getBlankRequiredProfileFieldNames(
     // required checkbox counts as blank there, so it has to count as blank here too.
     return !values[name]
   })
+}
+
+export interface BlankRequiredProfileFieldsQuestion {
+  /** `undefined` when nobody is signed in or the request is still pending */
+  account: AccountResponse | undefined
+  /** The fields the instance asks for, or `undefined` before `/environment` lands */
+  userMetadataFields: readonly UserMetadataField[] | undefined
+  isMmoMember?: boolean
+}
+
+/** {@link getBlankRequiredProfileFieldNames} for an account */
+export function getBlankRequiredProfileFieldNamesForAccount({
+  account,
+  userMetadataFields,
+  isMmoMember = false,
+}: BlankRequiredProfileFieldsQuestion): UserFieldName[] {
+  if (!account || !userMetadataFields) {
+    return []
+  }
+
+  return getBlankRequiredProfileFieldNames(
+    getProfileFieldsValues(account.extra_details),
+    getProfileFieldsContext(userMetadataFields, isMmoMember),
+  )
 }
 
 export function doBlankFieldsDependOnMmoStatus(blankFieldNames: readonly UserFieldName[]): boolean {
