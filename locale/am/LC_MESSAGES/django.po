@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:38+0000\n"
+"POT-Creation-Date: 2026-10-16 14:35+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2023,2025\n"
 "Language-Team: Amharic (http://app.transifex.com/kobotoolbox/kobotoolbox/language/am/)\n"
@@ -794,16 +794,16 @@ msgstr "ተጠቃሚ %(user)s ይህንን ቅፅ ለመቀየር ፈቃድ የ�
 msgid "You do not have permission to view data from this form."
 msgstr "ከዚህ ቅፅ የተገኘውን ውሂብ ለመመልከት ፈቃድ የለዎትም።"
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:34
 #, python-format
 msgid "Invalid formId %s."
 msgstr "ልክ ያልሆነ ቅፅ Id %s."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:151
 msgid "No submission key provided."
 msgstr "የማስረከቢያ ቍልፍ አልተሰጠም።"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:415
 msgid "Unable to create submission."
 msgstr "ታዛዥነትን ማምጣት አልተቻለም።"
 
@@ -2447,17 +2447,17 @@ msgstr "እርምጃ ያስፈልጋል፦ የካቦ ቱልቦክስ (KoboToolbo
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "የካቦ ቱልቦክስ (KoboToolbox) ፕሮጀክት የባለቤትነት ሽግግር አልተጠናቀቀም "
 
-#: kobo/apps/project_ownership/models/transfer.py:252
+#: kobo/apps/project_ownership/models/transfer.py:255
 msgid "Project ownership transferred"
 msgstr "የፕሮጀክቱ ባለቤትነት ለሌላ ተላልፏል"
 
-#: kobo/apps/project_ownership/models/transfer.py:254
+#: kobo/apps/project_ownership/models/transfer.py:257
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "የፕሮጀክቱ ባለቤትነት* *##project_name##* * ከ* *##previous_owner##* * ወደ* *##new_owner##* * እንደተላለፈ እባክዎ ልብ ይበሉ።"
 
-#: kobo/apps/project_ownership/models/transfer.py:258
+#: kobo/apps/project_ownership/models/transfer.py:261
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2745,7 +2745,7 @@ msgstr ""
 msgid "This action is not supported for this question type"
 msgstr ""
 
-#: kobo/settings/base.py:339
+#: kobo/settings/base.py:346
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2753,7 +2753,7 @@ msgid ""
 "email##)."
 msgstr "የማረጋገጫ መተግበሪያዎን መድረስ ካልቻሉ፣እባክዎ በምትኩ ከመጠባበቂያ ኮዶችዎ አንዱን ያስገቡ። እነዚያን ማግኘት ካልቻሉ [##support email##](mailto:##support email##) በማግኘት እርዳታ መጠየቅ ያስፈልግዎታል።"
 
-#: kobo/settings/base.py:627
+#: kobo/settings/base.py:634
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2936,53 +2936,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr "የተሳሳተ የተጠቃሚ ስም/የይለፍ ቃል"
 
-#: kpi/deployment_backends/base_backend.py:144
+#: kpi/deployment_backends/base_backend.py:148
 msgid "No submissions match the given `submission_ids`"
 msgstr "ምንም ግቤቶች ከተሰጠው ጋር አይዛመዱም `submission_ids`"
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:630
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "ይህ ፓራም አልተተገበረም። በምትኩ የምላሹን ንብረት `count` ይጠቀሙ።"
 
-#: kpi/deployment_backends/base_backend.py:625
+#: kpi/deployment_backends/base_backend.py:641
 msgid "This param is not supported in `XML` format"
 msgstr "ይህ ፓራም በቅርጸት `XML` አይደገፍም"
 
-#: kpi/deployment_backends/base_backend.py:630
+#: kpi/deployment_backends/base_backend.py:646
 msgid "This is not supported in `XML` format"
 msgstr "ይህ በቅርጸት `XML` አይደገፍም"
 
-#: kpi/deployment_backends/base_backend.py:650
-#: kpi/deployment_backends/base_backend.py:679
-#: kpi/deployment_backends/base_backend.py:701 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:666
+#: kpi/deployment_backends/base_backend.py:695
+#: kpi/deployment_backends/base_backend.py:717 kpi/views/v2/data.py:1128
 msgid "Value must be valid JSON."
 msgstr "እሴት የሚሰራ JSON መሆን አለበት።"
 
-#: kpi/deployment_backends/base_backend.py:655
+#: kpi/deployment_backends/base_backend.py:671
 msgid "Value must be a list."
 msgstr "እሴት ዝርዝር መሆን አለበት።"
 
-#: kpi/deployment_backends/base_backend.py:686
-#: kpi/deployment_backends/base_backend.py:693
+#: kpi/deployment_backends/base_backend.py:702
+#: kpi/deployment_backends/base_backend.py:709
 msgid "A positive integer is required."
 msgstr "አዎንታዊ ኢንቲጀር ያስፈልጋል።"
 
-#: kpi/deployment_backends/openrosa_backend.py:434
+#: kpi/deployment_backends/openrosa_backend.py:442
 msgid "Your submission XML is malformed."
 msgstr "ያስገቡት XML የተሳሳተ ነው።"
 
-#: kpi/deployment_backends/openrosa_backend.py:440
+#: kpi/deployment_backends/openrosa_backend.py:448
 msgid "Your submission XML is missing critical elements."
 msgstr "ያስገቡት XML ወሳኝ አካላት ይጎድለዋል።"
 
-#: kpi/deployment_backends/openrosa_backend.py:478
+#: kpi/deployment_backends/openrosa_backend.py:486
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "ለማርትዕ የሞከሩት ግቤት ሊገኝ አልቻለም ወይም መዳረሻ የለዎትም።"
 
-#: kpi/deployment_backends/openrosa_backend.py:1039
+#: kpi/deployment_backends/openrosa_backend.py:1061
 msgid "Successful submission"
 msgstr "የተሳካ ማስገባት"
 
@@ -3493,7 +3493,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:886
 msgid "The specified asset has not been deployed"
 msgstr "የተገለጸው ንብረት አልተሰማራም"
 
@@ -3741,10 +3741,10 @@ msgstr "ስህተቱ የተከሰተው በለውጥ ጊዜ ነው"
 msgid "Conversion is not supported for {}"
 msgstr "ልወጣ ለ{} አይደገፍም"
 
-#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+#: kpi/views/v2/data.py:758 kpi/views/v2/data.py:808
 msgid "One or more submission ids are invalid"
 msgstr ""
 
-#: kpi/views/v2/data.py:871
+#: kpi/views/v2/data.py:872
 msgid "A positive integer is required"
 msgstr "አዎንታዊ ኢንቲጀር ያስፈልጋል"

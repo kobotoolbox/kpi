@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:38+0000\n"
+"POT-Creation-Date: 2026-10-16 14:35+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
 "Language-Team: Persian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/fa/)\n"
@@ -799,16 +799,16 @@ msgstr "کاربر %(user)s مجاز به تغییر این فرم نمی باش
 msgid "You do not have permission to view data from this form."
 msgstr "شما مجاز به بازدید اطلاعات از این فرم نمی باشید."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:34
 #, python-format
 msgid "Invalid formId %s."
 msgstr "شناسه فرم '%s' نامعتبر است."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:151
 msgid "No submission key provided."
 msgstr "کلید ارسال ارایه نشده است."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:415
 msgid "Unable to create submission."
 msgstr "ایجاد ارسال امکان پذیر نمی باشد."
 
@@ -2452,17 +2452,17 @@ msgstr "اقدام لازم : درخواست انتقال مالکیت پروژ�
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "انتقال مالکیت پروژه KoboToolbox ناقص است"
 
-#: kobo/apps/project_ownership/models/transfer.py:252
+#: kobo/apps/project_ownership/models/transfer.py:255
 msgid "Project ownership transferred"
 msgstr "مالکیت پروژه منتقل شد"
 
-#: kobo/apps/project_ownership/models/transfer.py:254
+#: kobo/apps/project_ownership/models/transfer.py:257
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "لطفا توجه داشته باشید که مالکیت پروژه **##project_name##**از**##previous_owner##**به **##new_owner##** منتقل شده است ."
 
-#: kobo/apps/project_ownership/models/transfer.py:258
+#: kobo/apps/project_ownership/models/transfer.py:261
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2750,7 +2750,7 @@ msgstr ""
 msgid "This action is not supported for this question type"
 msgstr ""
 
-#: kobo/settings/base.py:339
+#: kobo/settings/base.py:346
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2758,7 +2758,7 @@ msgid ""
 "email##)."
 msgstr "اگر نمی توانید به برنامه احراز هویت خود دسترسی پیدا کنید، لطفاً به جای آن یکی از کدهای پشتیبان خود را وارد کنید. اگر نمی توانید به آنها نیز دسترسی داشته باشید، باید با تماس با [##support email##] (mailto:##support email##) درخواست کمک کنید."
 
-#: kobo/settings/base.py:627
+#: kobo/settings/base.py:634
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2941,53 +2941,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr "نام کاربری/رمز عبور نامعتبر است"
 
-#: kpi/deployment_backends/base_backend.py:144
+#: kpi/deployment_backends/base_backend.py:148
 msgid "No submissions match the given `submission_ids`"
 msgstr "هیچ ارسالی با `submission_ids` مطابقت ندارد"
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:630
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "این پارامتر اجرا نمی شود. به جای آن از ویژگی پاسخ `count` استفاده کنید."
 
-#: kpi/deployment_backends/base_backend.py:625
+#: kpi/deployment_backends/base_backend.py:641
 msgid "This param is not supported in `XML` format"
 msgstr "این پارامتر در قالب `XML` پذیرفته نمی شود"
 
-#: kpi/deployment_backends/base_backend.py:630
+#: kpi/deployment_backends/base_backend.py:646
 msgid "This is not supported in `XML` format"
 msgstr "این در قالب `XML` پذیرفته نمی شود"
 
-#: kpi/deployment_backends/base_backend.py:650
-#: kpi/deployment_backends/base_backend.py:679
-#: kpi/deployment_backends/base_backend.py:701 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:666
+#: kpi/deployment_backends/base_backend.py:695
+#: kpi/deployment_backends/base_backend.py:717 kpi/views/v2/data.py:1128
 msgid "Value must be valid JSON."
 msgstr "مقدار باید JSON معتبر باشد."
 
-#: kpi/deployment_backends/base_backend.py:655
+#: kpi/deployment_backends/base_backend.py:671
 msgid "Value must be a list."
 msgstr "ارزش باید یک لیست باشد."
 
-#: kpi/deployment_backends/base_backend.py:686
-#: kpi/deployment_backends/base_backend.py:693
+#: kpi/deployment_backends/base_backend.py:702
+#: kpi/deployment_backends/base_backend.py:709
 msgid "A positive integer is required."
 msgstr "یک عدد صحیح مثبت مورد نیاز است."
 
-#: kpi/deployment_backends/openrosa_backend.py:434
+#: kpi/deployment_backends/openrosa_backend.py:442
 msgid "Your submission XML is malformed."
 msgstr "XML ارسالی شما نادرست است."
 
-#: kpi/deployment_backends/openrosa_backend.py:440
+#: kpi/deployment_backends/openrosa_backend.py:448
 msgid "Your submission XML is missing critical elements."
 msgstr "XML ارسالی شما فاقد عناصر حیاتی است."
 
-#: kpi/deployment_backends/openrosa_backend.py:478
+#: kpi/deployment_backends/openrosa_backend.py:486
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "ارسالی که سعی کردید ویرایش کنید یافت نشد یا به آن دسترسی ندارید."
 
-#: kpi/deployment_backends/openrosa_backend.py:1039
+#: kpi/deployment_backends/openrosa_backend.py:1061
 msgid "Successful submission"
 msgstr "ارسال موفقیت آمیز"
 
@@ -3498,7 +3498,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:886
 msgid "The specified asset has not been deployed"
 msgstr "دارایی مشخص شده به کار گرفته نشده است"
 
@@ -3746,10 +3746,10 @@ msgstr "خطا در هنگام تبدیل رخ داد"
 msgid "Conversion is not supported for {}"
 msgstr "تبدیل برای {} پشتیبانی نمی شود"
 
-#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+#: kpi/views/v2/data.py:758 kpi/views/v2/data.py:808
 msgid "One or more submission ids are invalid"
 msgstr ""
 
-#: kpi/views/v2/data.py:871
+#: kpi/views/v2/data.py:872
 msgid "A positive integer is required"
 msgstr "یک عدد صحیح مثبت مورد نیاز است"
