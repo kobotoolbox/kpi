@@ -1005,9 +1005,10 @@ MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
 # this limit and report 'many' instead. The high default keeps the feature
 # inert until it is deliberately lowered (DEV-2781).
 LIMITED_COUNT_MAX_ROWS = env.int('LIMITED_COUNT_MAX_ROWS', 1_000_000)
-# Scoped statement_timeout (in milliseconds) applied to the capped count query
-# alone; on expiry the count is reported as 'unknown'. 0 disables the scoped
-# timeout, leaving only the connection-wide one (DEV-1705).
+# Timeout (in milliseconds) applied to the capped count query alone: the
+# Postgres statement_timeout, or the MongoDB maxTimeMS for submission counts.
+# On expiry the count is reported as 'unknown'. 0 disables it, leaving only
+# the connection-wide timeouts (DEV-1705).
 LIMITED_COUNT_TIMEOUT_MS = env.int('LIMITED_COUNT_TIMEOUT_MS', 0)
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.

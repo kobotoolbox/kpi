@@ -47,8 +47,10 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
     })
   const isLoading = results.some((result) => result.isLoading)
   // Get total count from first query (only if not currently refetching to avoid stale data)
-  const totalCount =
+  const firstPageCount =
     results[0]?.data?.status === 200 && !results[0]?.isFetching ? results[0].data.data.count : undefined
+  // 'many'/'unknown' counts are not displayed yet (DEV-1707)
+  const totalCount = typeof firstPageCount === 'number' ? firstPageCount : undefined
 
   return (
     <FormMap

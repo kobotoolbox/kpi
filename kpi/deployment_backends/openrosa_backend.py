@@ -111,7 +111,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     def calculated_submission_count(
         self, user: settings.AUTH_USER_MODEL, **kwargs
-    ) -> int:
+    ) -> int | str:
         params = self.validate_submission_list_params(
             user, validate_count=True, **kwargs
         )

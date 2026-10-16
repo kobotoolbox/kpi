@@ -59,6 +59,7 @@ from kpi.exceptions import (
     ObjectDeploymentDoesNotExist,
 )
 from kpi.models import Asset
+from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
@@ -267,6 +268,7 @@ class DataViewSet(
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
     )
+    pagination_class = DataPagination
     permission_classes = (SubmissionPermission,)
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
@@ -472,6 +474,10 @@ class DataViewSet(
                 )
             )
 
+        page_size = filters['limit']
+        # One row past the page tells `DataPagination` whether a next page
+        # exists, since `count` can be 'many' or 'unknown'
+        filters['limit'] = page_size + 1
         try:
             submissions = deployment.get_submissions(
                 request.user,
@@ -487,15 +493,10 @@ class DataViewSet(
                 raise serializers.ValidationError(message)
             logging.warning(message, exc_info=True)
             raise serializers.ValidationError('Unsupported query')
-        # Create a dummy list to let the Paginator do all the calculation
-        # for pagination because it does not need the list of real objects.
-        # It avoids retrieving all the objects from MongoDB
-        dummy_submissions_list = [None] * deployment.current_submission_count
-        page = self.paginate_queryset(dummy_submissions_list)
-        if page is not None:
-            return self.get_paginated_response(submissions)
-
-        return Response(list(submissions))
+        page = self.paginator.paginate_submissions(
+            submissions, deployment.current_submission_count, page_size, request
+        )
+        return self.get_paginated_response(page)
 
     def retrieve(self, request, pk, *args, **kwargs):
         """
