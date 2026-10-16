@@ -252,7 +252,38 @@ class FastPagination(DefaultPagination):
         return super().get_count(queryset)
 
 
-class LimitedCountPagination(DefaultPagination):
+class PeekNextPageMixin:
+    """
+    Detects a next page by fetching one row past the current one, so the
+    `next` link never needs a count.
+    """
+
+    has_next = False
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
+
+    def _get_page_with_peek(self, queryset):
+        """
+        Return the current page and set `has_next` from one extra row.
+        """
+        # Slice bounds are bound to locals so black keeps the colon un-spaced
+        # (flake8 E203)
+        start = self.offset
+        end = self.offset + self.limit + 1
+        items = list(queryset[start:end])
+        self.has_next = len(items) > self.limit
+        return items[: self.limit]
+
+
+class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
     """
     Reports a capped count: an exact integer up to
     `settings.LIMITED_COUNT_MAX_ROWS`, the string 'many' past it, and the
@@ -282,10 +313,10 @@ class LimitedCountPagination(DefaultPagination):
         # avoids detoasting wide columns (e.g. `Asset.content`).
         capped = queryset.order_by().values('pk')[: max_rows + 1]
 
-        try:
-            if settings.LIMITED_COUNT_TIMEOUT_MS:
-                # `set_config(..., true)` is `SET LOCAL` but accepts bind
-                # parameters; atomic() scopes it and reverts on rollback.
+        if settings.LIMITED_COUNT_TIMEOUT_MS:
+            # `set_config(..., true)` is `SET LOCAL` but accepts bind
+            # parameters; atomic() scopes it and reverts on rollback.
+            try:
                 with transaction.atomic(using=queryset.db):
                     with connections[queryset.db].cursor() as cursor:
                         cursor.execute(
@@ -293,26 +324,16 @@ class LimitedCountPagination(DefaultPagination):
                             [str(settings.LIMITED_COUNT_TIMEOUT_MS)],
                         )
                     count = capped.count()
-            else:
-                # Never set statement_timeout when disabled: a value of 0 would
-                # turn off the connection-wide guard too.
-                count = capped.count()
-        except OperationalError as e:
-            if isinstance(e.__cause__, QueryCanceled):
-                return LIMITED_COUNT_UNKNOWN
-            raise
+            except OperationalError as e:
+                if isinstance(e.__cause__, QueryCanceled):
+                    return LIMITED_COUNT_UNKNOWN
+                raise
+        else:
+            # Never set statement_timeout when disabled: a value of 0 would
+            # turn off the connection-wide guard too.
+            count = capped.count()
 
         return LIMITED_COUNT_MANY if count > max_rows else count
-
-    def get_next_link(self):
-        if not self.has_next:
-            return None
-
-        url = self.request.build_absolute_uri()
-        url = replace_query_param(url, self.limit_query_param, self.limit)
-
-        offset = self.offset + self.limit
-        return replace_query_param(url, self.offset_query_param, offset)
 
     def get_paginated_response_schema(self, schema):
         response_schema = super().get_paginated_response_schema(schema)
@@ -341,32 +362,15 @@ class LimitedCountPagination(DefaultPagination):
             self.offset = 0
 
         self.count = self.get_count(queryset)
-        # Default for the early-return paths below; the peek overwrites it
-        self.has_next = False
-        # `count` may be the string 'many'/'unknown'; only an int can drive the
-        # browsable-API page controls or the empty-page shortcut
-        if (
-            isinstance(self.count, int)
-            and self.count > self.limit
-            and self.template is not None
-        ):
-            self.display_page_controls = True
-
-        if isinstance(self.count, int) and (
-            self.count == 0 or self.offset > self.count
-        ):
+        # Only an exact count proves the page is empty without querying it;
+        # 'many' and 'unknown' fall through to the peek
+        if isinstance(self.count, int) and self.offset >= self.count:
             return []
 
-        # Peek one row past the page to detect a next page. Slice bounds are
-        # bound to locals so black keeps the colon un-spaced (flake8 E203).
-        start = self.offset
-        end = self.offset + self.limit + 1
-        items = list(queryset[start:end])
-        self.has_next = len(items) > self.limit
-        return items[: self.limit]
+        return self._get_page_with_peek(queryset)
 
 
-class NoCountPagination(DefaultPagination):
+class NoCountPagination(PeekNextPageMixin, DefaultPagination):
     """
     Omits the 'count' field to avoid expensive COUNT(*) queries.
     """
@@ -397,20 +401,7 @@ class NoCountPagination(DefaultPagination):
         if not self.offset:
             self.offset = 0
 
-        # Peek one item beyond the current page to see if a next page exists
-        items = list(queryset[self.offset:self.offset + self.limit + 1])
-        self.has_next = len(items) > self.limit
-        return items[:self.limit]
-
-    def get_next_link(self):
-        if not self.has_next:
-            return None
-
-        url = self.request.build_absolute_uri()
-        url = replace_query_param(url, self.limit_query_param, self.limit)
-
-        offset = self.offset + self.limit
-        return replace_query_param(url, self.offset_query_param, offset)
+        return self._get_page_with_peek(queryset)
 
 
 def custom_max_limit(cls, max_limit):

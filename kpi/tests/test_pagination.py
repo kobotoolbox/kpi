@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
-from django.db import connection, models
+from django.db import OperationalError, connection, models
 from django.db.models.expressions import RawSQL
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
 from rest_framework import generics, serializers
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -201,6 +202,17 @@ class TestLimitedCountPagination(TestCase):
         assert response.data['results'] == []
         assert response.data['next'] is None
 
+    @override_settings(LIMITED_COUNT_MAX_ROWS=1_000_000)
+    def test_offset_at_count_skips_page_query(self):
+        self._make_users(3)
+        paginator = LimitedCountPagination()
+        request = Request(self.request_factory.get('/', {'start': 3}))
+        with CaptureQueriesContext(connection) as ctx:
+            assert paginator.paginate_queryset(self._queryset(), request) == []
+        assert paginator.get_next_link() is None
+        # The exact count already proves the page is empty: no page query
+        assert len(ctx.captured_queries) == 1
+
     def _make_users(self, count):
         for i in range(count):
             baker.make(User, username=f'lcp_{i}')
@@ -212,7 +224,7 @@ class TestLimitedCountPagination(TestCase):
 class TestLimitedCountPaginationTimeoutScope(TransactionTestCase):
     """
     The scoped timeout must not outlive the count, or it would cancel the
-    page query that follows.
+    page query that follows, and only it is reported as 'unknown'.
 
     Real transactions are needed (hence `TransactionTestCase`): inside
     `TestCase`'s wrapping transaction, `SET LOCAL` lasts until the test ends.
@@ -227,13 +239,18 @@ class TestLimitedCountPaginationTimeoutScope(TransactionTestCase):
             baker.make(User, username=f'lcp_{i}')
         self.queryset = User.objects.filter(username__startswith='lcp_')
 
+    @override_settings(LIMITED_COUNT_TIMEOUT_MS=0, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    def test_connection_timeout_raises_when_scoped_timeout_disabled(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SET statement_timeout = '1ms'")
+        paginator = LimitedCountPagination()
+        with self.assertRaises(OperationalError):
+            paginator.get_count(self._slow_queryset())
+
     @override_settings(LIMITED_COUNT_TIMEOUT_MS=1, LIMITED_COUNT_MAX_ROWS=1_000_000)
     def test_timeout_restored_after_canceled_count(self):
-        queryset = self.queryset.annotate(
-            slow=RawSQL('pg_sleep(0.5)', [], output_field=models.BooleanField())
-        ).filter(slow__isnull=False)
         paginator = LimitedCountPagination()
-        assert paginator.get_count(queryset) == LIMITED_COUNT_UNKNOWN
+        assert paginator.get_count(self._slow_queryset()) == LIMITED_COUNT_UNKNOWN
         assert self._statement_timeout() == '30s'
 
     @override_settings(LIMITED_COUNT_TIMEOUT_MS=5000, LIMITED_COUNT_MAX_ROWS=1_000_000)
@@ -245,6 +262,11 @@ class TestLimitedCountPaginationTimeoutScope(TransactionTestCase):
     def _reset_statement_timeout(self):
         with connection.cursor() as cursor:
             cursor.execute('RESET statement_timeout')
+
+    def _slow_queryset(self):
+        return self.queryset.annotate(
+            slow=RawSQL('pg_sleep(0.5)', [], output_field=models.BooleanField())
+        ).filter(slow__isnull=False)
 
     def _statement_timeout(self) -> str:
         with connection.cursor() as cursor:
