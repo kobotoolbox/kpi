@@ -130,7 +130,6 @@ function MembersRoute() {
     }
   }
 
-  // Mocked — returns [] when flag is off; has no impact on current behaviour
   const pendingOwnerUsernames = usePendingOwnerTransfers(organization.id)
 
   const membersQuery = useOrganizationsMembersList(organization.id, queryParams, {
@@ -251,6 +250,7 @@ function MembersRoute() {
             username={member!.user__username!}
             role={member!.role!}
             currentUserRole={organization.request_user_role}
+            disabled={pendingOwnerUsernames.includes(member!.user__username!)}
           />
         )
       },

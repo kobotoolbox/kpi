@@ -32,7 +32,6 @@ interface MemberActionsDropdownProps {
 export default function MemberActionsDropdown({ target, targetUsername, targetFullName, orgId, orgName, currentUserRole }: MemberActionsDropdownProps) {
   const profile = useProfile()
   const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
-  // Mocked — no API call is made; safe to call unconditionally when flag is off
   const { transferOwnership, isPending } = useTransferOwnership(orgId)
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
   const [isTransferOwnerVisible, setIsTransferOwnerVisible] = useState(false)

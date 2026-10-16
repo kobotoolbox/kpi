@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
+import { FeatureFlag } from '#/featureFlags'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationMembersMock, { buildMember } from '#/endpoints/organizationMembers.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -216,5 +217,62 @@ export const SearchRecoversFromRejectedPhrase: Story = {
 
     await canvas.findByText('bob')
     expect(canvas.queryByText(/could not search the members list/i)).not.toBeInTheDocument()
+  },
+}
+
+/**
+ * Owner opens the transfer modal for a member. The play function will assert the loading state, toast, and
+ * "Pending owner" badge.
+ */
+export const TransferOwnership: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        organizationMock(),
+        organizationMembersMock([
+          buildMember('matt90', 'Matthew Sungur'),
+          buildMember('alice', 'Alice Alvarez'),
+        ]),
+        // Placeholder for when the setTimeout mock is replaced with a real fetchWithAuth call.
+        http.post('*/api/v2/organizations/*/transfer{/}?', () =>
+          new HttpResponse(null, { status: 200 }),
+        ),
+        helpBubbleMock,
+      ],
+    },
+  },
+  beforeEach: () => {
+    const existing = JSON.parse(sessionStorage.getItem('feature_flags') ?? '{}')
+    sessionStorage.setItem('feature_flags', JSON.stringify({ ...existing, [FeatureFlag.transferTeamOwnership]: true }))
+    return () => {
+      const flags = JSON.parse(sessionStorage.getItem('feature_flags') ?? '{}')
+      delete flags[FeatureFlag.transferTeamOwnership]
+      sessionStorage.setItem('feature_flags', JSON.stringify(flags))
+    }
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByText('Matthew Sungur')
+
+    const row = canvas.getByText('Matthew Sungur').closest('tr')!
+    await userEvent.click(within(row).getByRole('button'))
+    await userEvent.click(await canvas.findByText('Make owner'))
+
+    await canvas.findByRole('dialog')
+    expect(canvas.getByText(/Matthew Sungur/)).toBeInTheDocument()
+
+    await userEvent.click(canvas.getByRole('button', { name: /continue/i }))
+
+    // Button enters loading state while MSW delay resolves
+    await waitFor(() =>
+      expect(canvas.getByRole('button', { name: /continue/i })).toHaveAttribute('data-loading', 'true'),
+    )
+
+    // Modal closes and toast appears after MSW responds
+    await waitFor(() => expect(canvas.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 5000 })
+    await canvas.findByText('Transfer request sent')
+
+    // Badge updates to reflect pending state
+    await waitFor(() => expect(within(row).getByText('Pending owner')).toBeInTheDocument())
   },
 }
