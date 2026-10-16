@@ -106,14 +106,14 @@ class RestoreJobAdmin(admin.ModelAdmin):
 
             # The changelist is wrapped in a transaction too, and `partial`
             # rather than a closure, which would hand every callback the last
-            # row of the loop. It continues the row, so it resumes whatever the
-            # row asked of its first run
-            transaction.on_commit(partial(self.task.delay, job.pk, resume=True))
+            # row of the loop
+            transaction.on_commit(partial(self.task.delay, job.pk))
 
             self.message_user(
                 request,
-                f'"{job}" was queued again. It picks up where the project'
-                f' stopped, adding to its log.',
+                f'"{job}" was queued again, adding to its log. It picks up where'
+                f' the project stopped, unless the row asked to start over and'
+                f' never got to.',
                 level=messages.INFO,
             )
 

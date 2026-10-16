@@ -30,7 +30,7 @@ class ProjectRestorer:
     at the last committed batch; nothing restarts it on its own, but relaunching
     picks up from there.
 
-    Subclasses name their cache keys with `cache_key_prefix`, the rows they walk
+    Subclasses name their cache keys with `cache_key_prefix`, the rows that they walk
     with `item_label`, and implement `_fetch_batch()`, `_restore_batch()`,
     `_log_progress()` and `_log_summary()`. `_prepare()` lets them stop before
     the walk when the project has nothing to repair.
@@ -57,6 +57,10 @@ class ProjectRestorer:
 
         self.scanned = 0
         self.completed = False
+        # Once the walk has begun, i.e. the cursor that a start-over asked to throw
+        # away is gone. Until then, nothing tells a run apart from one never
+        # launched, a run turned away at the lock included
+        self.started = False
         self._lock = None
 
     @classmethod
@@ -208,6 +212,7 @@ class ProjectRestorer:
             return
 
         cursor = self._load_cursor()
+        self.started = True
         batches = 0
 
         while True:

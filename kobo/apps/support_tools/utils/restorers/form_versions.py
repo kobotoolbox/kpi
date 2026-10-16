@@ -253,7 +253,7 @@ class FormVersionsRestorer(ProjectRestorer):
         hashing, precisely so that the server-side node never alters it.
 
         One `UPDATE` per submission, conditioned on `xml_hash` still being the
-        one the history was rebuilt from. Every edit changes it, since the
+        one that the history was rebuilt from. Every edit changes it, since the
         `instanceID` changes, so an edit that came in since is never overwritten
         with the XML read before it: the submission is left for the next run.
         The condition and the write are one statement, so an edit committing

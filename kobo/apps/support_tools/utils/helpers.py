@@ -11,7 +11,7 @@ from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 def get_project_xform(asset_uid: str) -> XForm:
     """
-    Return the form a project is deployed as, or explain why it has none.
+    Return the form that a project is deployed as, or explain why it has none.
     """
 
     # Imported here because `kpi.models` reaches back into this app
@@ -40,14 +40,14 @@ def rebuild_form_versions(
     edit history, for submissions written before `add_form_versions()` existed.
 
     Each write is replayed the way `add_form_versions()` would have seen it:
-    the version the incoming XML was collected with, then, for an edit only,
+    the version that the incoming XML was collected with, then, for an edit only,
     the version deployed when it arrived. The first write is the submission
     itself, received at `date_created`. Each edit is known through its
     `InstanceHistory` row, which holds the XML as it was *before* that edit and
-    was created when the edit came in, so the XML an edit brought is the next
+    was created when the edit came in, so the XML that an edit brought is the next
     snapshot, or the current XML for the last one.
 
-    The version a write was collected with is read by
+    The version that a write was collected with is read by
     `get_collected_version_uid()`, the same way `add_form_versions()` and
     formpack do, since old submissions do not always declare it in
     `__version__` alone.
@@ -59,8 +59,8 @@ def rebuild_form_versions(
 
     Whatever the submission already records is kept: the result can only add
     versions, never drop one, although an alias it records is replaced by the
-    uid of the version it stands for. Versions are ordered oldest first by
-    deployment date; a uid the asset does not know keeps its place, ahead of
+    uid of the version that it stands for. Versions are ordered oldest first by
+    deployment date; a uid that the asset does not know keeps its place, ahead of
     the others.
 
     `None` means there is nothing to write: only the version deployed at the
@@ -88,14 +88,14 @@ def rebuild_form_versions(
         submission_version = get_collected_version_uid(xml_parsed, lambda: version_ids)
         # `__version__` alone is trusted without the asset's versions, which
         # are at hand here: an alias, the uid of a version merged into another
-        # one, is resolved to that one, and a uid the asset does not know is
+        # one, is resolved to that one, and a uid that the asset does not know is
         # kept as it is
         recorded = [version_ids.get(uid, uid) for uid in recorded]
         submission_version = version_ids.get(submission_version, submission_version)
         deployed_version = _get_deployed_version_at(deployed_versions, received_at)
 
         # The deployed version only comes in with an edit, whose answers are
-        # the ones the deployed form asks for. A submission collected offline
+        # the ones that the deployed form asks for. A submission collected offline
         # gave none of its answers against it
         brought_in = [*recorded, submission_version]
         if step:

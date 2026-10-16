@@ -41,7 +41,7 @@ class AttachmentRestorer(ProjectRestorer):
     a mistake at the time" but "should this file be visible today".
 
     Two runs overlapping would not credit the same bytes twice, since
-    `update_delete_status()` only counts the rows it changed itself. They would
+    `update_delete_status()` only counts the rows that it changed itself. They would
     still walk and rewrite the same submissions, hence the lock
     `ProjectRestorer` holds.
     """

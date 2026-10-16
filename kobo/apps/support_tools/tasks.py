@@ -24,7 +24,7 @@ from kobo.celery import celery_app
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
     queue='kpi_low_priority_queue',
 )
-def run_attachment_restore_job(job_id: int, resume: bool = None):
+def run_attachment_restore_job(job_id: int):
     """
     Restore the attachments of one project that were soft deleted by mistake.
 
@@ -33,7 +33,7 @@ def run_attachment_restore_job(job_id: int, resume: bool = None):
     """
 
     job = AttachmentRestoreJob.objects.get(pk=job_id)
-    _run_restore_job(job, AttachmentRestorer, run_attachment_restore_job, resume)
+    _run_restore_job(job, AttachmentRestorer, run_attachment_restore_job)
 
 
 @celery_app.task(
@@ -41,7 +41,7 @@ def run_attachment_restore_job(job_id: int, resume: bool = None):
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
     queue='kpi_low_priority_queue',
 )
-def run_form_versions_restore_job(job_id: int, resume: bool = None):
+def run_form_versions_restore_job(job_id: int):
     """
     Record `meta/formVersions` in the submissions of one project that spanned
     several form versions before the server recorded them.
@@ -53,12 +53,12 @@ def run_form_versions_restore_job(job_id: int, resume: bool = None):
     the attachment restore on its own row, the way `--restore-attachments`
     chains it in the shell. That one always walks the project from the start:
     a cursor that an earlier attachment run left behind was placed before the
-    versions were recorded, and would skip the files they now account for.
+    versions were recorded, and would skip the files that they now account for.
     """
 
     job = FormVersionsRestoreJob.objects.get(pk=job_id)
     restorer = _run_restore_job(
-        job, FormVersionsRestorer, run_form_versions_restore_job, resume
+        job, FormVersionsRestorer, run_form_versions_restore_job
     )
 
     if not (job.restore_attachments and restorer and restorer.completed):
@@ -87,10 +87,9 @@ def _run_restore_job(
     job: AbstractRestoreJob,
     restorer_class: type[ProjectRestorer],
     task: Task,
-    resume: bool = None,
 ) -> ProjectRestorer | None:
     """
-    Run the restore a row asks for, write back what it did, and return the
+    Run the restore that a row asks for, write back what it did, and return the
     restorer, or `None` when the project could not even be resolved.
 
     Everything the run is asked to do is read from the row, and everything it
@@ -102,14 +101,11 @@ def _run_restore_job(
     eviction, leaves the row in progress with nothing to pick it up, and the
     admin shows it as interrupted once the lock expires.
 
-    The row's `resume` only applies to its first run. `resume` overrides it,
-    and every continuation, re-queued here or launched again from the admin,
-    passes `True`: one that started over would throw away the cursor of the
-    run it continues, and never get past the part that run already walked.
+    A row asking to start over only does so until a run actually starts its
+    walk, see `_save_progress()`: a continuation, re-queued here or launched
+    again from the admin, reads the row, and one that started over again would
+    throw away the cursor of the run that it continues.
     """
-
-    if resume is None:
-        resume = job.resume
 
     # What a run does, without the detail `-v 2` and `-v 3` add in the shell:
     # the row is read by support, and it grows with every run of the job
@@ -123,7 +119,9 @@ def _run_restore_job(
 
     try:
         xform = get_project_xform(job.asset_uid)
-        restorer = restorer_class(xform, dry_run=job.dry_run, resume=resume, log=log)
+        restorer = restorer_class(
+            xform, dry_run=job.dry_run, resume=job.resume, log=log
+        )
         restorer.run()
     except ProjectAlreadyBeingRestoredError as e:
         # Somebody got there first, which is not a failure worth retrying, but
@@ -153,7 +151,7 @@ def _run_restore_job(
     # handler ran, so queueing any earlier lets the two of them overwrite each
     # other from copies neither has reread
     if requeue:
-        task.delay(job.pk, resume=True)
+        task.delay(job.pk)
 
     return restorer
 
@@ -167,7 +165,18 @@ def _save_progress(
     """
     Write back what this run did, adding to what earlier runs of the same row
     already reported rather than replacing it.
+
+    A row asking to start over switches to resuming once a run has started
+    its walk, i.e. thrown the old cursor away. A run turned away at the lock,
+    or failing before its walk, leaves the row as it is.
     """
+
+    if restorer and restorer.started and not job.resume:
+        job.resume = True
+        lines = [
+            *lines,
+            'Started over as asked. Later runs of this row resume where it stops.',
+        ]
 
     job.status = status
     job.log = '\n'.join(filter(None, [job.log, *lines]))
@@ -182,6 +191,7 @@ def _save_progress(
             'status',
             'log',
             'scanned',
+            'resume',
             *job.counter_fields,
             'date_modified',
         ]

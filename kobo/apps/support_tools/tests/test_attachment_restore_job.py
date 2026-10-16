@@ -104,7 +104,7 @@ class AttachmentRestoreJobTestCase(TestCase):
                 response = self._run_again(job)
 
         assert response.status_code == 302
-        delay.assert_called_once_with(job.pk, resume=True)
+        delay.assert_called_once_with(job.pk)
 
         job.refresh_from_db()
         assert job.status == RestoreJobStatus.PENDING
@@ -174,21 +174,41 @@ class AttachmentRestoreJobTestCase(TestCase):
         job.refresh_from_db()
         assert job.status == RestoreJobStatus.IN_PROGRESS
         assert 'has been re-queued' in job.log
-        delay.assert_called_once_with(job.pk, resume=True)
+        delay.assert_called_once_with(job.pk)
 
-    def test_only_the_first_run_of_a_row_may_start_over(self):
+    def test_a_row_starts_over_once_then_resumes(self):
         """
-        A continuation that started over would throw away the cursor of the
-        run it continues, and never get past the part that run walked.
+        A continuation that started over again would throw away the cursor of
+        the run that it continues, and never get past the part that the earlier
+        run walked.
         """
 
         job = self._job(resume=False)
         resumes = []
 
         self._run(job, resumes=resumes)
-        self._run(job, resumes=resumes, resume=True)
+        job.refresh_from_db()
+        self._run(job, resumes=resumes)
 
         assert resumes == [False, True]
+        job.refresh_from_db()
+        assert job.resume is True
+        assert 'Started over as asked' in job.log
+
+    def test_a_row_turned_away_at_the_lock_still_starts_over(self):
+        """
+        That run never threw the old cursor away, so the next one still has
+        to, or it would skip what the row asked to walk again.
+        """
+
+        job = self._job(resume=False)
+
+        self._run(
+            job,
+            raises=ProjectAlreadyBeingRestoredError('Another run already has it'),
+            started=False,
+        )
+
         job.refresh_from_db()
         assert job.resume is False
 
@@ -203,7 +223,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         job = self._job()
         seen = {}
 
-        def read_the_row(job_id, resume=None):
+        def read_the_row(job_id):
             seen.update(
                 AttachmentRestoreJob.objects.filter(pk=job_id)
                 .values('status', 'log', 'scanned')
@@ -312,7 +332,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         restored: int = 0,
         raises: Exception = None,
         resumes: list = None,
-        resume: bool = None,
+        started: bool = True,
     ):
         """
         Run the task against a restorer that reports what the test asks for,
@@ -322,7 +342,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         def restorer(xform, dry_run, resume, log):
             if resumes is not None:
                 resumes.append(resume)
-            fake = MagicMock(scanned=scanned, restored=restored)
+            fake = MagicMock(scanned=scanned, restored=restored, started=started)
 
             def run():
                 for line in lines or []:
@@ -339,4 +359,4 @@ class AttachmentRestoreJobTestCase(TestCase):
                 'kobo.apps.support_tools.tasks.AttachmentRestorer',
                 side_effect=restorer,
             ):
-                run_attachment_restore_job(job.pk, resume=resume)
+                run_attachment_restore_job(job.pk)

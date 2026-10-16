@@ -17,7 +17,7 @@ def get_collected_version_uid(
     xml_parsed: ET.Element, load_version_ids: Callable[[], dict[str, str]]
 ) -> str | None:
     """
-    Return the uid of the version a submission was collected with, or `None`
+    Return the uid of the version that a submission was collected with, or `None`
     when it names no version at all.
 
     A submission declares it in `__version__`, and that is all a recent one
@@ -58,7 +58,7 @@ def get_collected_version_uid(
 
 def get_version_ids(versions: Iterable[dict]) -> dict[str, str]:
     """
-    Map every id a version is known by, its `uid`, its `uid_aliases` and its
+    Map every id that a version is known by, its `uid`, its `uid_aliases` and its
     deprecated `_reversion_version`, to its uid, newest version first.
 
     `versions` holds those three keys for each version, newest first.
@@ -84,8 +84,8 @@ def infer_version_uid(named_ids: Iterable, version_ids: dict[str, str]) -> str |
     `version_ids`, see `get_version_ids()`.
 
     A submission often holds several version nodes with different ids
-    (kobotoolbox/kpi#1465), so the newest version it names is assumed to be the
-    one it was collected with.
+    (kobotoolbox/kpi#1465), so the newest version that it names is assumed to be the
+    one that it was collected with.
     """
 
     named = {str(named_id).strip() for named_id in named_ids}

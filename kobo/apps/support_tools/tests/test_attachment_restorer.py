@@ -33,7 +33,7 @@ from kpi.models.asset import Asset
 
 class AttachmentRestorerTestCase(TestCase):
     """
-    Bring back the files a submission still references, and only those.
+    Bring back the files that a submission still references, and only those.
     """
 
     def setUp(self):
@@ -70,7 +70,7 @@ class AttachmentRestorerTestCase(TestCase):
             **deployment_data['backend_response'],
             'formid': self.xform.pk,
             # `OpenRosaDeploymentBackend.xform` refuses a form whose `id_string`
-            # is not the one the deployment recorded
+            # is not the one that the deployment recorded
             'id_string': self.xform.id_string,
         }
         # Written straight to the column: `Asset.save()` refuses to run without

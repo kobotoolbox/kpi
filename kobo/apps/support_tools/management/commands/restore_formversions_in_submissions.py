@@ -84,7 +84,7 @@ class Command(BaseCommand):
             elif restorer.updated and not dry_run:
                 log(
                     'Run `restore_soft_deleted_attachments` on this project to'
-                    ' bring back files the recorded versions now account for.'
+                    ' bring back files that the recorded versions now account for.'
                 )
         except ProjectAlreadyBeingRestoredError as e:
             # Not a failure, so it is said plainly rather than as a traceback

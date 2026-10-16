@@ -63,7 +63,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     # FormPack() expects the versions to be ordered from oldest to newest
     pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
 
-    # Every id each version is known by, its uid, its aliases and its
+    # Every id that each version is known by, its uid, its aliases and its
     # deprecated reversion id, mapped to its uid
     version_ids = get_version_ids(versions_newest_first)
     newest_version_uid = versions_newest_first[0]['uid']

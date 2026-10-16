@@ -308,7 +308,7 @@ class TestAddFormVersions(TestCase):
     def test_an_edit_reads_the_newest_of_several_version_nodes(self):
         """
         kobotoolbox/kpi#1465 left `__version__` holding the oldest version,
-        and the one the submission was collected with in a suffixed node.
+        and the one that the submission was collected with in a suffixed node.
         """
 
         xform = XForm(json=xform_json(VERSION_3), kpi_asset_uid='anAsset')
@@ -756,7 +756,7 @@ class TestFormVersionsOnSubmission(TestCase):
     def test_stale_offline_submission_edited_later_records_both_versions(self):
         """
         Only the edit brings the deployed version in, since the answers it
-        writes are the ones the deployed form asks for.
+        writes are the ones that the deployed form asks for.
         """
 
         self._deploy(VERSION_2)

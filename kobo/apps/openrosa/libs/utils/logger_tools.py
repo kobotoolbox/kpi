@@ -130,14 +130,14 @@ def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -
     submission's answers belong to, oldest first, as a space-separated list.
     That is where the fields of a submission are looked up.
 
-    - A new submission records the version it was collected with, when that is
+    - A new submission records the version that it was collected with, when that is
       not the deployed one, i.e. it was collected offline and sent once a newer
       version was deployed. The deployed version is left out: none of the
       answers were given against it.
-    - An edit records the history of the record being edited, the version it
-      was collected with, the version the incoming XML declares, and the
+    - An edit records the history of the record being edited, the version that it
+      was collected with, the version that the incoming XML declares, and the
       deployed version, since a bulk edit keeps the old `__version__` while
-      writing answers the deployed form asks for.
+      writing answers that the deployed form asks for.
 
     `__version__` is left untouched. When the deployed version alone describes
     the submission, which is the case for the vast majority of them, the XML is
@@ -145,10 +145,10 @@ def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -
 
     `previous_xml` is the submission being edited, and it is the only source of
     history: what the incoming XML claims under `meta/formVersions` is
-    discarded, since a client could otherwise drop the versions it has really
+    discarded, since a client could otherwise drop the versions that it has really
     been through. A new submission passes `None` and starts from nothing.
 
-    The version a submission was collected with is read by
+    The version that a submission was collected with is read by
     `get_collected_version_uid()`. It is `__version__` for a recent one, and
     the asset's versions are only loaded for an old one, which may name its
     version under other nodes, by a reversion id or by an alias.
@@ -157,9 +157,7 @@ def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -
     `strip_form_versions()` gives the client payload back byte for byte and
     `xml_hash` keeps identifying what was actually submitted.
 
-    Note: new submissions collected offline used to record the deployed
-    version too. Those already written keep it, since a version is never
-    removed from the history.
+    A version already in the history is never removed.
     """
 
     deployed_version_uid = xform.deployed_version_uid
@@ -182,12 +180,12 @@ def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -
         )
         if previous_version and previous_version not in form_versions:
             # `meta/formVersions` is absent from a record that only ever knew
-            # one version, so the version it was collected with is the only
+            # one version, so the version that it was collected with is the only
             # trace of it
             form_versions.append(previous_version)
 
     if submission_version and submission_version not in form_versions:
-        # 2) … then, the version the client says it collected with
+        # 2) … then, the version that the client says it collected with
         form_versions.append(submission_version)
 
     if (
@@ -207,7 +205,7 @@ def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -
         not deployed_version_uid or form_versions in ([], [deployed_version_uid])
     ):
         # Only the deployed version, or no way to tell it apart, so nothing
-        # worth recording. Stripping also clears a node the client made up, or
+        # worth recording. Stripping also clears a node that the client made up, or
         # one inherited by `duplicate_submission()`
         return strip_form_versions(xml)
 

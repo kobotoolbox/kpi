@@ -87,7 +87,7 @@ class RebuildFormVersionsTestCase(SimpleTestCase):
     def test_a_submission_collected_offline_then_edited_records_both(self):
         """
         A bulk edit keeps the old `__version__`, but the answers it writes are
-        the ones the deployed form asks for.
+        the ones that the deployed form asks for.
         """
 
         histories = [(submission_xml(VERSION_1), days_after(FEB, 2))]
@@ -198,7 +198,7 @@ class RebuildFormVersionsTestCase(SimpleTestCase):
 
     def test_what_the_submission_already_records_is_kept(self):
         """
-        A version is only ever added. A history the server already wrote may
+        A version is only ever added. A history that the server already wrote may
         name a version nothing else here can account for anymore.
         """
 
@@ -508,8 +508,8 @@ class FormVersionsRestorerTestCase(TestCase):
 
     def test_the_command_restores_the_attachments_from_the_start(self):
         """
-        A cursor an earlier attachment run left behind was placed before the
-        versions were recorded, and would skip the files they now account for.
+        A cursor that an earlier attachment run left behind was placed before the
+        versions were recorded, and would skip the files that they now account for.
         """
 
         self._submit(self.version_1, received_at=days_after(FEB))
