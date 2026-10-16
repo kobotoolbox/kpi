@@ -93,13 +93,13 @@ class TestLimitedCountPagination(TestCase):
     def setUp(self):
         self.request_factory = APIRequestFactory()
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=100)
+    @override_settings(API_LIMITED_COUNT_MAX=100)
     def test_below_cap_returns_exact_int(self):
         self._make_users(5)
         paginator = LimitedCountPagination()
         assert paginator.get_count(self._queryset()) == 5
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=5)
+    @override_settings(API_LIMITED_COUNT_MAX=5)
     def test_exactly_at_cap_returns_exact_int(self):
         self._make_users(5)
         paginator = LimitedCountPagination()
@@ -107,13 +107,13 @@ class TestLimitedCountPagination(TestCase):
         assert count == 5
         assert count != LIMITED_COUNT_MANY
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=5)
+    @override_settings(API_LIMITED_COUNT_MAX=5)
     def test_above_cap_returns_many(self):
         self._make_users(6)
         paginator = LimitedCountPagination()
         assert paginator.get_count(self._queryset()) == LIMITED_COUNT_MANY
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=5)
+    @override_settings(API_LIMITED_COUNT_MAX=5)
     def test_above_cap_response_via_view(self):
         self._make_users(6)
         view = generics.ListAPIView.as_view(
@@ -128,7 +128,7 @@ class TestLimitedCountPagination(TestCase):
         assert response.data['next'] is not None
         assert response.data['previous'] is None
 
-    @override_settings(LIMITED_COUNT_TIMEOUT_MS=1, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=1, API_LIMITED_COUNT_MAX=1_000_000)
     def test_count_timeout_returns_unknown(self):
         self._make_users(3)
         # `pg_sleep(0) IS NULL` is false (void type), so `isnull=False` keeps
@@ -146,7 +146,7 @@ class TestLimitedCountPagination(TestCase):
         # connection usable for the next query
         assert User.objects.filter(username__startswith='lcp_').count() == 3
 
-    @override_settings(LIMITED_COUNT_TIMEOUT_MS=0, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=0, API_LIMITED_COUNT_MAX=1_000_000)
     def test_timeout_disabled_issues_count_only(self):
         self._make_users(2)
         paginator = LimitedCountPagination()
@@ -157,7 +157,7 @@ class TestLimitedCountPagination(TestCase):
         assert len(ctx.captured_queries) == 1
         assert 'set_config' not in ctx.captured_queries[0]['sql']
 
-    @override_settings(LIMITED_COUNT_TIMEOUT_MS=5000, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=5000, API_LIMITED_COUNT_MAX=1_000_000)
     def test_timeout_enabled_but_fast_returns_exact_int(self):
         self._make_users(3)
         paginator = LimitedCountPagination()
@@ -165,14 +165,14 @@ class TestLimitedCountPagination(TestCase):
             assert paginator.get_count(self._queryset()) == 3
         assert any('set_config' in q['sql'] for q in ctx.captured_queries)
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=10)
+    @override_settings(API_LIMITED_COUNT_MAX=10)
     def test_plain_sequence(self):
         paginator = LimitedCountPagination()
         assert paginator.get_count(range(10)) == 10
         assert paginator.get_count(range(11)) == LIMITED_COUNT_MANY
         assert paginator.get_count(list(range(3))) == 3
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_MAX=1_000_000)
     def test_empty_queryset_via_view(self):
         view = generics.ListAPIView.as_view(
             serializer_class=PassThroughSerializer,
@@ -187,7 +187,7 @@ class TestLimitedCountPagination(TestCase):
         assert response.data['next'] is None
         assert response.data['previous'] is None
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_MAX=1_000_000)
     def test_offset_beyond_count_via_view(self):
         self._make_users(3)
         view = generics.ListAPIView.as_view(
@@ -202,7 +202,7 @@ class TestLimitedCountPagination(TestCase):
         assert response.data['results'] == []
         assert response.data['next'] is None
 
-    @override_settings(LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_MAX=1_000_000)
     def test_offset_at_count_skips_page_query(self):
         self._make_users(3)
         paginator = LimitedCountPagination()
@@ -239,7 +239,7 @@ class TestLimitedCountPaginationTimeoutScope(TransactionTestCase):
             baker.make(User, username=f'lcp_{i}')
         self.queryset = User.objects.filter(username__startswith='lcp_')
 
-    @override_settings(LIMITED_COUNT_TIMEOUT_MS=0, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=0, API_LIMITED_COUNT_MAX=1_000_000)
     def test_connection_timeout_raises_when_scoped_timeout_disabled(self):
         with connection.cursor() as cursor:
             cursor.execute("SET statement_timeout = '1ms'")
@@ -247,13 +247,13 @@ class TestLimitedCountPaginationTimeoutScope(TransactionTestCase):
         with self.assertRaises(OperationalError):
             paginator.get_count(self._slow_queryset())
 
-    @override_settings(LIMITED_COUNT_TIMEOUT_MS=1, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=1, API_LIMITED_COUNT_MAX=1_000_000)
     def test_timeout_restored_after_canceled_count(self):
         paginator = LimitedCountPagination()
         assert paginator.get_count(self._slow_queryset()) == LIMITED_COUNT_UNKNOWN
         assert self._statement_timeout() == '30s'
 
-    @override_settings(LIMITED_COUNT_TIMEOUT_MS=5000, LIMITED_COUNT_MAX_ROWS=1_000_000)
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=5000, API_LIMITED_COUNT_MAX=1_000_000)
     def test_timeout_restored_after_count(self):
         paginator = LimitedCountPagination()
         assert paginator.get_count(self.queryset) == 3

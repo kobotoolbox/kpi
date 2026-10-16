@@ -1001,14 +1001,14 @@ DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
 # Maximum page size for API responses. Currently applies to submission lists only,
 # but will likely be extended to all endpoints in the future
 MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
-# Capped pagination counts (`LimitedCountPagination`): stop counting rows past
+# Capped API list counts (`LimitedCountPagination`): stop counting rows past
 # this limit and report 'many' instead. The high default keeps the feature
 # inert until it is deliberately lowered (DEV-2781).
-LIMITED_COUNT_MAX_ROWS = env.int('LIMITED_COUNT_MAX_ROWS', 1_000_000)
-# Scoped statement_timeout (in milliseconds) applied to the capped count query
-# alone; on expiry the count is reported as 'unknown'. 0 disables the scoped
-# timeout, leaving only the connection-wide one (DEV-1705).
-LIMITED_COUNT_TIMEOUT_MS = env.int('LIMITED_COUNT_TIMEOUT_MS', 0)
+API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 1_000_000)
+# Scoped statement_timeout applied to the capped count query alone (env var in
+# seconds, stored in milliseconds); on expiry the count is reported as
+# 'unknown'. 0 disables it, leaving only the connection-wide timeout (DEV-1705).
+API_LIMITED_COUNT_TIMEOUT = env.int('API_LIMITED_COUNT_TIMEOUT', 0) * 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits

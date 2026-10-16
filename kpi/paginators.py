@@ -286,11 +286,11 @@ class FastPagination(DefaultPagination):
 class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
     """
     Reports a capped count: an exact integer up to
-    `settings.LIMITED_COUNT_MAX_ROWS`, the string 'many' past it, and the
+    `settings.API_LIMITED_COUNT_MAX`, the string 'many' past it, and the
     string 'unknown' when the count query exceeds
-    `settings.LIMITED_COUNT_TIMEOUT_MS`.
+    `settings.API_LIMITED_COUNT_TIMEOUT`.
 
-    The count queries at most `LIMITED_COUNT_MAX_ROWS + 1` rows, so its cost
+    The count queries at most `API_LIMITED_COUNT_MAX + 1` rows, so its cost
     is bounded by the cap instead of the table size. Not meant to be called
     inside an outer transaction: the scoped `statement_timeout` would persist
     until that transaction ends. Querysets using `distinct(*fields)`
@@ -302,7 +302,7 @@ class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
         Count up to the configured cap, returning 'many' past it and
         'unknown' when the scoped count query times out.
         """
-        max_rows = settings.LIMITED_COUNT_MAX_ROWS
+        max_rows = settings.API_LIMITED_COUNT_MAX
 
         if not isinstance(queryset, QuerySet):
             count = len(queryset)
@@ -313,7 +313,7 @@ class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
         # avoids detoasting wide columns (e.g. `Asset.content`).
         capped = queryset.order_by().values('pk')[: max_rows + 1]
 
-        if settings.LIMITED_COUNT_TIMEOUT_MS:
+        if settings.API_LIMITED_COUNT_TIMEOUT:
             # `set_config(..., true)` is `SET LOCAL` but accepts bind
             # parameters; atomic() scopes it and reverts on rollback.
             try:
@@ -321,7 +321,7 @@ class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
                     with connections[queryset.db].cursor() as cursor:
                         cursor.execute(
                             "SELECT set_config('statement_timeout', %s, true)",
-                            [str(settings.LIMITED_COUNT_TIMEOUT_MS)],
+                            [str(settings.API_LIMITED_COUNT_TIMEOUT)],
                         )
                     count = capped.count()
             except OperationalError as e:
