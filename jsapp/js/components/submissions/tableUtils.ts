@@ -846,3 +846,24 @@ export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
   })
   return xpaths
 }
+
+/**
+ * How much of a response a one-line cell keeps. More than a column dragged across a 4K screen can fit (French prose
+ * measures about 6px a character at the Table's 13px), and well under the 10240 characters at which Safari gives up.
+ */
+export const CELL_PREVIEW_MAX_LENGTH = 1000
+
+/**
+ * Shortens a response to what a one-line, ellipsis-trimmed Data Table cell can show.
+ * Values that are not text pass through untouched.
+ */
+export function getCellPreviewText<T>(value: T): T {
+  if (typeof value !== 'string' || value.length <= CELL_PREVIEW_MAX_LENGTH) {
+    return value
+  }
+
+  const preview = value.slice(0, CELL_PREVIEW_MAX_LENGTH)
+  // Cutting a surrogate pair (how JavaScript stores a character that doesn't fit in 16 bits, e.g. an emoji) in half
+  // would leave a `�` as the last character.
+  return (/[\uD800-\uDBFF]$/.test(preview) ? preview.slice(0, -1) : preview) as T
+}

@@ -68,6 +68,23 @@ const supplementalSubmission = {
   },
 } as SubmissionResponse
 
+// Well past the 10240 characters at which Safari stops painting an ellipsis-trimmed line
+const longResponse = `Alors bonjour docteur, je vais vous expliquer la situation de notre communauté. ${"La collecte de données humanitaires est essentielle pour évaluer les besoins réels des populations touchées par des crises. Une analyse rigoureuse de ces statistiques permet d'optimiser la distribution de l'aide alimentaire et médicale. ".repeat(
+  60,
+)}`
+
+const longTranscriptSubmission = {
+  ...simpleSurveySubmission,
+  [SUPPLEMENTAL_DETAILS_PROP]: {
+    What_is_your_opinion: {
+      transcript: {
+        languageCode: 'fr',
+        value: longResponse,
+      },
+    },
+  },
+} as SubmissionResponse
+
 // Submission with unaccepted automatic transcript - shows Review button
 const unacceptedTranscriptSubmission = assetDataFactory(1, {
   [SUPPLEMENTAL_DETAILS_PROP]: {
@@ -371,6 +388,20 @@ export const SupplementalTranscript: Story = {
   args: {
     asset: simpleSurveyAsset,
     submissionData: supplementalSubmission,
+    columnKey: transcriptColumnKey,
+    columnValue: undefined,
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+}
+
+export const LongSupplementalTranscript: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    submissionData: longTranscriptSubmission,
     columnKey: transcriptColumnKey,
     columnValue: undefined,
     question: undefined,
