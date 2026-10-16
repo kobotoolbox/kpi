@@ -14,4 +14,3 @@ Escaping off, since there is no markup here: a name like O'Connor would otherwis
 
 {% blocktrans trimmed %}Thanks for being part of the KoboToolbox community!{% endblocktrans %}
 {% blocktrans trimmed %}The KoboToolbox Team{% endblocktrans %}
-{% endautoescape %}
