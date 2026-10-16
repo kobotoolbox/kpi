@@ -35,6 +35,7 @@ import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
+import { usePendingOwnerTransfers } from './useTransferOwnership'
 
 /** Shared look of the boolean "is this security feature on?" columns (2FA, SSO). */
 function renderStatusBadge(isEnabled: boolean | null | undefined) {
@@ -129,6 +130,8 @@ function MembersRoute() {
     }
   }
 
+  const pendingOwnerUsernames = usePendingOwnerTransfers(organization.id)
+
   const membersQuery = useOrganizationsMembersList(organization.id, queryParams, {
     query: {
       queryKey: getOrganizationsMembersListQueryKey(organization.id, queryParams),
@@ -193,12 +196,14 @@ function MembersRoute() {
       label: renderSortableHeader('status', t('Status')),
       size: 120,
       cellFormatter: (obj: MemberListResponse) => {
-        const { invite } = getMemberOrInviteDetails(obj)
+        const { invite, member } = getMemberOrInviteDetails(obj)
+        if (member?.user__username && pendingOwnerUsernames.includes(member.user__username)) {
+          return <Badge color='light-blue' size='s' label={t('Pending owner')} />
+        }
         if (invite) {
           return <Badge color='light-blue' size='s' label={t('Invited')} />
-        } else {
-          return <Badge color='light-green' size='s' label={t('Active')} />
         }
+        return <Badge color='light-green' size='s' label={t('Active')} />
       },
     },
     {
@@ -245,6 +250,7 @@ function MembersRoute() {
             username={member!.user__username!}
             role={member!.role!}
             currentUserRole={organization.request_user_role}
+            disabled={pendingOwnerUsernames.includes(member!.user__username!)}
           />
         )
       },
@@ -292,6 +298,9 @@ function MembersRoute() {
             <MemberActionsDropdown
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
+              targetFullName={member.user__extra_details__name}
+              orgId={organization.id}
+              orgName={organization.name}
               currentUserRole={organization.request_user_role}
             />
           )
