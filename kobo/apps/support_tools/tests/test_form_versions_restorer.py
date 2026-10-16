@@ -68,13 +68,79 @@ class RebuildFormVersionsTestCase(SimpleTestCase):
             is None
         )
 
-    def test_a_submission_collected_offline_with_an_older_version(self):
+    def test_a_submission_collected_offline_records_only_its_own_version(self):
+        """
+        Every answer was given against the older version, which is where its
+        fields are looked up. The version deployed on arrival describes none
+        of them.
+        """
+
         assert (
             rebuild_form_versions(
                 submission_xml(VERSION_1), days_after(FEB), [], DEPLOYED_VERSIONS
             )
+            == VERSION_1
+        )
+
+    def test_a_submission_collected_offline_then_edited_records_both(self):
+        """
+        A bulk edit keeps the old `__version__`, but the answers it writes are
+        the ones the deployed form asks for.
+        """
+
+        histories = [(submission_xml(VERSION_1), days_after(FEB, 2))]
+
+        assert (
+            rebuild_form_versions(
+                submission_xml(VERSION_1),
+                days_after(FEB),
+                histories,
+                DEPLOYED_VERSIONS,
+            )
             == f'{VERSION_1} {VERSION_2}'
         )
+
+    def test_an_old_submission_naming_its_version_under_another_key(self):
+        xml = submission_xml(None).replace(
+            '<meta>', f'<_version_>{VERSION_1}</_version_><meta>'
+        )
+
+        assert (
+            rebuild_form_versions(xml, days_after(FEB), [], DEPLOYED_VERSIONS)
+            == VERSION_1
+        )
+
+    def test_the_newest_version_named_by_any_key_wins(self):
+        """
+        Old submissions often carry several version keys with different ids,
+        kobotoolbox/kpi#1465. formpack reads the newest deployed one, so this
+        does too.
+        """
+
+        xml = submission_xml(VERSION_1).replace(
+            '<meta>', f'<_version__001>{VERSION_2}</_version__001><meta>'
+        )
+
+        assert (
+            rebuild_form_versions(xml, days_after(MAR), [], DEPLOYED_VERSIONS)
+            == VERSION_2
+        )
+
+    def test_a_reversion_id_or_an_alias_resolves_to_its_version(self):
+        deployed_versions = [
+            {**DEPLOYED_VERSIONS[0], '_reversion_version': 42},
+            {**DEPLOYED_VERSIONS[1], 'uid_aliases': ['anOldAlias']},
+            DEPLOYED_VERSIONS[2],
+        ]
+
+        for legacy_id, expected in (('42', VERSION_1), ('anOldAlias', VERSION_2)):
+            xml = submission_xml(None).replace(
+                '<meta>', f'<_version_>{legacy_id}</_version_><meta>'
+            )
+            assert (
+                rebuild_form_versions(xml, days_after(MAR), [], deployed_versions)
+                == expected
+            ), legacy_id
 
     def test_a_submission_edited_once_a_newer_version_was_deployed(self):
         """
@@ -149,12 +215,26 @@ class RebuildFormVersionsTestCase(SimpleTestCase):
             rebuild_form_versions(xml, days_after(FEB), [], DEPLOYED_VERSIONS) is None
         )
 
-    def test_a_version_the_asset_does_not_know_comes_first(self):
+    def test_a_recorded_version_the_asset_does_not_know_comes_first(self):
+        xml = submission_xml(VERSION_2, form_versions=f'{UNKNOWN_VERSION} {VERSION_1}')
+        histories = [(submission_xml(VERSION_1), days_after(FEB))]
+
+        assert (
+            rebuild_form_versions(xml, days_after(JAN), histories, DEPLOYED_VERSIONS)
+            == f'{UNKNOWN_VERSION} {VERSION_1} {VERSION_2}'
+        )
+
+    def test_a_declared_version_the_asset_does_not_know_is_kept(self):
+        """
+        `__version__` alone is trusted as `add_form_versions()` trusts it,
+        without checking it against the asset's versions.
+        """
+
         assert (
             rebuild_form_versions(
-                submission_xml(UNKNOWN_VERSION), days_after(JAN), [], DEPLOYED_VERSIONS
+                submission_xml(UNKNOWN_VERSION), days_after(FEB), [], DEPLOYED_VERSIONS
             )
-            == f'{UNKNOWN_VERSION} {VERSION_1}'
+            == UNKNOWN_VERSION
         )
 
     def test_a_submission_without_version_received_after_one_records_nothing(self):
@@ -248,15 +328,14 @@ class FormVersionsRestorerTestCase(TestCase):
         self.request.user = self.user
         self.request.user.has_perm = lambda *args, **kwargs: True
 
-    def test_an_offline_submission_gets_both_versions(self):
+    def test_an_offline_submission_gets_only_its_own_version(self):
         instance = self._submit(self.version_1, received_at=days_after(FEB))
 
         restorer = self._restore()
 
         assert restorer.updated == 1
-        expected = f'{self.version_1} {self.version_2}'
-        assert get_form_versions(self._xml(instance)) == expected
-        assert self._mongo_form_versions(instance) == expected
+        assert get_form_versions(self._xml(instance)) == self.version_1
+        assert self._mongo_form_versions(instance) == self.version_1
 
     def test_an_edited_submission_gets_both_versions(self):
         instance = self._submit(self.version_2, received_at=days_after(JAN))
@@ -336,9 +415,7 @@ class FormVersionsRestorerTestCase(TestCase):
 
         assert restorer.completed
         assert restorer.updated == 1
-        assert get_form_versions(self._xml(instance)) == (
-            f'{self.version_1} {self.version_2}'
-        )
+        assert get_form_versions(self._xml(instance)) == self.version_1
 
     def test_a_second_run_on_the_same_project_is_refused(self):
         instance = self._submit(self.version_1, received_at=days_after(FEB))
@@ -384,9 +461,7 @@ class FormVersionsRestorerTestCase(TestCase):
             verbosity=0,
         )
 
-        assert get_form_versions(self._xml(instance)) == (
-            f'{self.version_1} {self.version_2}'
-        )
+        assert get_form_versions(self._xml(instance)) == self.version_1
 
     def _add_history(self, instance: Instance, version_uid: str, edited_at: datetime):
         """

@@ -5,6 +5,7 @@ from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.openrosa.libs.utils.logger_tools import _get_form_versions
 from kobo.apps.support_tools.utils.logger import DEBUG
+from kpi.utils.form_versions import get_collected_version_uid, get_version_ids
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 
@@ -39,23 +40,32 @@ def rebuild_form_versions(
     edit history, for submissions written before `add_form_versions()` existed.
 
     Each write is replayed the way `add_form_versions()` would have seen it:
-    the version the incoming XML declares, then the version deployed when it
-    arrived. The first write is the submission itself, received at
-    `date_created`. Each edit is known through its `InstanceHistory` row, which
-    holds the XML as it was *before* that edit and was created when the edit
-    came in, so the XML an edit brought is the next snapshot, or the current
-    XML for the last one.
+    the version the incoming XML was collected with, then, for an edit only,
+    the version deployed when it arrived. The first write is the submission
+    itself, received at `date_created`. Each edit is known through its
+    `InstanceHistory` row, which holds the XML as it was *before* that edit and
+    was created when the edit came in, so the XML an edit brought is the next
+    snapshot, or the current XML for the last one.
+
+    The version a write was collected with is read by
+    `get_collected_version_uid()`, the same way `add_form_versions()` and
+    formpack do, since old submissions do not always declare it in
+    `__version__` alone.
 
     `histories` is the list of `(xml, date_created)` of those rows, oldest
-    first. `deployed_versions` holds the `uid` and `date_modified` of the
-    asset's deployed versions, oldest first.
+    first. `deployed_versions` holds the `uid`, `uid_aliases`,
+    `_reversion_version` and `date_modified` of the asset's deployed versions,
+    oldest first.
 
     Whatever the submission already records is kept: the result can only add
     versions, never drop one. Versions are ordered oldest first by deployment
     date; a uid the asset does not know keeps its place, ahead of the others.
 
-    `None` means there is nothing to write: fewer than two versions, or exactly
-    what the submission already records.
+    `None` means there is nothing to write: only the version deployed at the
+    last write, no way to tell it apart, or exactly what the submission
+    already records. A submission collected offline with an older version and
+    never edited gets that version alone, since its fields are looked up in
+    `meta/formVersions`.
 
     `log`, a `RestoreLogger`, is told every step at the `DEBUG` level.
     """
@@ -64,16 +74,26 @@ def rebuild_form_versions(
 
     snapshots = [history_xml for history_xml, _ in histories] + [xml]
     received_dates = [date_created] + [edited_at for _, edited_at in histories]
+    version_ids = get_version_ids(reversed(deployed_versions))
 
     form_versions = []
     xml_parsed = None
+    deployed_version = None
 
     for step, (snapshot, received_at) in enumerate(zip(snapshots, received_dates)):
         xml_parsed = fromstring_preserve_root_xmlns(snapshot)
-        recorded, submission_version = _get_form_versions(xml_parsed)
+        recorded, _ = _get_form_versions(xml_parsed)
+        submission_version = get_collected_version_uid(xml_parsed, lambda: version_ids)
         deployed_version = _get_deployed_version_at(deployed_versions, received_at)
 
-        for version_uid in [*recorded, submission_version, deployed_version]:
+        # The deployed version only comes in with an edit, whose answers are
+        # the ones the deployed form asks for. A submission collected offline
+        # gave none of its answers against it
+        brought_in = [*recorded, submission_version]
+        if step:
+            brought_in.append(deployed_version)
+
+        for version_uid in brought_in:
             if version_uid and version_uid not in form_versions:
                 form_versions.append(version_uid)
 
@@ -90,8 +110,10 @@ def rebuild_form_versions(
     recorded_element = xml_parsed.find(common_tags.META_FORM_VERSIONS)
     recorded_text = recorded_element.text if recorded_element is not None else None
 
-    if len(form_versions) < 2:
-        log('  nothing to record, a single version', DEBUG)
+    if len(form_versions) < 2 and (
+        not deployed_version or form_versions in ([], [deployed_version])
+    ):
+        log('  nothing to record, the deployed version alone', DEBUG)
         return None
 
     # `sort()` is stable, so unknown uids keep their relative order

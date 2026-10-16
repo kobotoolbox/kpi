@@ -112,8 +112,10 @@ class FormVersionsRestorer(ProjectRestorer):
 
     def _load_deployed_versions(self) -> list[dict]:
         """
-        Return the `uid` and `date_modified` of every deployed version of the
-        asset, oldest first.
+        Return the `uid`, `uid_aliases`, `_reversion_version` and
+        `date_modified` of every deployed version of the asset, oldest first.
+        The aliases and the reversion id are what old submissions may name
+        their version by.
         """
 
         # Imported here because `kpi.models` reaches back into this app
@@ -124,7 +126,7 @@ class FormVersionsRestorer(ProjectRestorer):
                 asset__uid=self.xform.kpi_asset_uid, deployed=True
             )
             .order_by('date_modified')
-            .values('uid', 'date_modified')
+            .values('uid', 'uid_aliases', '_reversion_version', 'date_modified')
         )
 
     def _log_progress(self, cursor: int):
