@@ -228,3 +228,8 @@ ENKETO_URL_FORMATS = {
 }
 
 ENKETO_INTERNAL_URL_FLAG = 'internal_url_in_use'
+
+# Sentinel `count` values reported by `LimitedCountPagination` (DEV-2626
+# contract): 'many' past the configured row limit, 'unknown' on count timeout
+LIMITED_COUNT_MANY = 'many'
+LIMITED_COUNT_UNKNOWN = 'unknown'

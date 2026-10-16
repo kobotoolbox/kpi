@@ -302,4 +302,7 @@ class EnvironmentView(APIView):
         return (line.strip('\r') for line in value.split('\n'))
 
     def static_configs(self, request):
-        return {'open_rosa_server': settings.KOBOCAT_URL}
+        return {
+            'open_rosa_server': settings.KOBOCAT_URL,
+            'limited_count_max_rows': settings.API_LIMITED_COUNT_MAX,
+        }
