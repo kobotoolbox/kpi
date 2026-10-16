@@ -3,9 +3,9 @@ import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
-import { FeatureFlag } from '#/featureFlags'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationMembersMock, { buildMember } from '#/endpoints/organizationMembers.mocks'
+import { FeatureFlag } from '#/featureFlags'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { RequireOrg } from '#/router/RequireOrg'
 import ToasterConfig from '#/toasterConfig'
@@ -229,14 +229,9 @@ export const TransferOwnership: Story = {
     msw: {
       handlers: [
         organizationMock(),
-        organizationMembersMock([
-          buildMember('matt90', 'Matthew Sungur'),
-          buildMember('alice', 'Alice Alvarez'),
-        ]),
+        organizationMembersMock([buildMember('matt90', 'Matthew Sungur'), buildMember('alice', 'Alice Alvarez')]),
         // Placeholder for when the setTimeout mock is replaced with a real fetchWithAuth call.
-        http.post('*/api/v2/organizations/*/transfer{/}?', () =>
-          new HttpResponse(null, { status: 200 }),
-        ),
+        http.post('*/api/v2/organizations/*/transfer{/}?', () => new HttpResponse(null, { status: 200 })),
         helpBubbleMock,
       ],
     },

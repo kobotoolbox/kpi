@@ -30,9 +30,10 @@ export default function TransferTeamOwnershipModal({
           <Text>
             {orgName
               ? t('This action will transfer ownership of ##orgName## to').replace('##orgName##', orgName)
-              : t('This action will transfer ownership to')}
-            {' '}
-            <Text span fw={600}>{recipientLabel}</Text>
+              : t('This action will transfer ownership to')}{' '}
+            <Text span fw={600}>
+              {recipientLabel}
+            </Text>
             {'.'}
           </Text>
 
@@ -44,11 +45,9 @@ export default function TransferTeamOwnershipModal({
 
           <Alert type='error' iconName='alert'>
             <Text>
-              {t('You will be the owner of the team until the transfer is accepted.')}
-              {' '}
+              {t('You will be the owner of the team until the transfer is accepted.')}{' '}
               <Text span fw={600}>
-                {t('Once the transfer is accepted, you will not be able to undo this action.')}
-                {' '}
+                {t('Once the transfer is accepted, you will not be able to undo this action.')}{' '}
                 <Anchor href='#'>{t('Learn more')}</Anchor>
               </Text>
             </Text>
@@ -56,8 +55,12 @@ export default function TransferTeamOwnershipModal({
         </Stack>
 
         <Group justify='flex-end'>
-          <ButtonNew variant='light' onClick={onCancel} disabled={isLoading}>{t('Cancel')}</ButtonNew>
-          <ButtonNew loading={isLoading} onClick={onConfirm}>{t('Continue')}</ButtonNew>
+          <ButtonNew variant='light' onClick={onCancel} disabled={isLoading}>
+            {t('Cancel')}
+          </ButtonNew>
+          <ButtonNew loading={isLoading} onClick={onConfirm}>
+            {t('Continue')}
+          </ButtonNew>
         </Group>
       </Stack>
     </Modal>

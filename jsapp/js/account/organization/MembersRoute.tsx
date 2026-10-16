@@ -33,9 +33,9 @@ import SortableProjectColumnHeader, {
 import { formatDate, notify } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
-import { usePendingOwnerTransfers } from './useTransferOwnership'
 import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
+import { usePendingOwnerTransfers } from './useTransferOwnership'
 
 /** Shared look of the boolean "is this security feature on?" columns (2FA, SSO). */
 function renderStatusBadge(isEnabled: boolean | null | undefined) {

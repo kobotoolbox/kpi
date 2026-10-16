@@ -4,13 +4,13 @@ import { Menu } from '@mantine/core'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import envStore from '#/envStore'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { useProfile } from '#/stores/useProfile'
 import MemberRemoveModal from './MemberRemoveModal'
-import { getSimpleMMOLabel } from './organization.utils'
 import TransferTeamOwnershipModal from './TransferTeamOwnershipModal'
+import { getSimpleMMOLabel } from './organization.utils'
 import { useTransferOwnership } from './useTransferOwnership'
 
 interface MemberActionsDropdownProps {
@@ -29,7 +29,14 @@ interface MemberActionsDropdownProps {
 /**
  * A dropdown with all actions that can be taken towards an organization member.
  */
-export default function MemberActionsDropdown({ target, targetUsername, targetFullName, orgId, orgName, currentUserRole }: MemberActionsDropdownProps) {
+export default function MemberActionsDropdown({
+  target,
+  targetUsername,
+  targetFullName,
+  orgId,
+  orgName,
+  currentUserRole,
+}: MemberActionsDropdownProps) {
   const profile = useProfile()
   const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
   const { transferOwnership, isPending } = useTransferOwnership(orgId)
@@ -79,7 +86,7 @@ export default function MemberActionsDropdown({ target, targetUsername, targetFu
         />
       )}
 
-      {isTransferOwnerVisible &&
+      {isTransferOwnerVisible && (
         <TransferTeamOwnershipModal
           username={targetUsername}
           targetFullName={targetFullName}
@@ -91,7 +98,7 @@ export default function MemberActionsDropdown({ target, targetUsername, targetFu
             transferOwnership(targetUsername, { onSuccess: () => setIsTransferOwnerVisible(false) })
           }}
         />
-      }
+      )}
 
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
