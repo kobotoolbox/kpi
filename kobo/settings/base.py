@@ -1001,9 +1001,10 @@ DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
 # Maximum page size for API responses. Currently applies to submission lists only,
 # but will likely be extended to all endpoints in the future
 MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
-# Capped pagination counts (`LimitedCountPagination`): stop counting rows past
-# this limit and report 'many' instead. The high default keeps the feature
-# inert until it is deliberately lowered (DEV-2781).
+# Capped pagination counts (`LimitedCountPagination` and the MongoDB submission
+# list count): stop counting rows past this limit and report 'many' instead.
+# The high default keeps the feature inert until it is deliberately lowered
+# (DEV-2781).
 LIMITED_COUNT_MAX_ROWS = env.int('LIMITED_COUNT_MAX_ROWS', 1_000_000)
 # Timeout (in milliseconds) applied to the capped count query alone: the
 # Postgres statement_timeout, or the MongoDB maxTimeMS for submission counts.

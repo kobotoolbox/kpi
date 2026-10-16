@@ -474,10 +474,10 @@ class DataViewSet(
                 )
             )
 
-        page_size = filters['limit']
+        limit = filters['limit']
         # One row past the page tells `DataPagination` whether a next page
         # exists, since `count` can be 'many' or 'unknown'
-        filters['limit'] = page_size + 1
+        filters['limit'] = limit + 1
         try:
             submissions = deployment.get_submissions(
                 request.user,
@@ -494,7 +494,7 @@ class DataViewSet(
             logging.warning(message, exc_info=True)
             raise serializers.ValidationError('Unsupported query')
         page = self.paginator.paginate_submissions(
-            submissions, deployment.current_submission_count, page_size, request
+            submissions, deployment.current_submission_count, limit, request
         )
         return self.get_paginated_response(page)
 
@@ -858,6 +858,8 @@ class DataViewSet(
 
         # Remove `format` from filters. No need to use it
         filters.pop('format', None)
+        # `skip_count` is internal: this endpoint must always return a count
+        filters.pop('skip_count', None)
         # Do not allow requests to retrieve more than `max_limit`
         # submissions at one time only if a limit is explicitly defined.
         if 'limit' in filters:

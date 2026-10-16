@@ -384,23 +384,24 @@ class DataPagination(LimitedCountPagination):
         self,
         submissions: Iterable[dict | str],
         count: int | str,
-        page_size: int,
+        limit: int,
         request: Request,
     ) -> list[dict | str]:
         """
         Return the page from `submissions`, fetched with one row past
-        `page_size`: that row sets `next`, so it never depends on `count`
+        `limit`: that row sets `next`, so it never depends on `count`
         """
         self.request = request
-        self.limit = self.get_limit(request)
-        self.offset = self.get_offset(request)
-        if not self.offset:
-            self.offset = 0
+        # Links follow the MongoDB window, which only reads `start` and `limit`
+        self.limit = limit
+        self.offset = _positive_int(
+            request.query_params.get(self.offset_query_param, 0)
+        )
         self.count = count
 
-        page = list(islice(submissions, page_size + 1))
-        self.has_next = len(page) > page_size
-        return page[:page_size]
+        page = list(islice(submissions, limit + 1))
+        self.has_next = len(page) > limit
+        return page[:limit]
 
 
 class NoCountPagination(PeekNextPageMixin, DefaultPagination):

@@ -857,6 +857,16 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         self.assertEqual(len(response.data['results']), 6)
         self.assertIsNone(response.data['next'])
 
+    def test_list_submissions_ignores_skip_count(self):
+        """
+        Test that clients cannot turn off the count with `skip_count`
+        """
+        response = self.client.get(
+            self.submission_list_url, {'format': 'json', 'skip_count': 1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 6)
+
     def test_list_submissions_count_uses_limited_count_settings(self):
         """
         Test that the count stops after `LIMITED_COUNT_MAX_ROWS + 1` documents
