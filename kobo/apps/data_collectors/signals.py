@@ -1,3 +1,4 @@
+from constance.signals import config_updated
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
@@ -6,6 +7,7 @@ from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
+    toggle_internal_external_open_rosa_server_for_all_data_collectors,
 )
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models import ObjectPermission
@@ -60,3 +62,10 @@ def remove_enketo_links_on_permission_removed(sender, instance, *args, **kwargs)
             update_fields=['data_collector_group'],
             adjust_content=False,
         )
+
+
+@receiver(config_updated)
+def constance_updated(sender, key, old_value, new_value, **kwargs):
+    if key != 'ENKETO_USE_INTERNAL_OPENROSA_URL':
+        return
+    toggle_internal_external_open_rosa_server_for_all_data_collectors()

@@ -198,6 +198,13 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `django.conf.settings.THE_SETTING`
 
 CONSTANCE_CONFIG = {
+    # Temporary?: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+    # server-side calls (form, manifest, media, submissions) stay inside the cluster
+    'ENKETO_USE_INTERNAL_OPENROSA_URL': (
+        env.bool('CONSTANCE_ENKETO_USE_INTERNAL_OPENROSA_URL', False),
+        'Save the internal domain name instead of the public one as the '
+        'OpenRosa server URL in Enketo',
+    ),
     'REGISTRATION_OPEN': (
         True,
         'Allow new users to register accounts for themselves',
@@ -813,6 +820,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
+        'ENKETO_USE_INTERNAL_OPENROSA_URL',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1437,6 +1445,7 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
+ENKETO_TIMEOUT = 5  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration

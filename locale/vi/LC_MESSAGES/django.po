@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:38+0000\n"
+"POT-Creation-Date: 2026-10-16 14:35+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Olivier Leger, 2025\n"
 "Language-Team: Vietnamese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/vi/)\n"
@@ -793,16 +793,16 @@ msgstr "Người dùng %(user)s không có quyền thay đổi biểu mẫu này
 msgid "You do not have permission to view data from this form."
 msgstr "Không có quyền xem dữ liệu từ biểu mẫu này."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:34
 #, python-format
 msgid "Invalid formId %s."
 msgstr "formId không hợp lệ %s."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:151
 msgid "No submission key provided."
 msgstr "Không có khóa xác thực được cung cấp."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:415
 msgid "Unable to create submission."
 msgstr "Không thể tạo bản dữ liệu."
 
@@ -2446,17 +2446,17 @@ msgstr "Thao tác bắt buộc: Yêu cầu chuyển quyền sở hữu dự án 
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Chuyển quyền sở hữu dự án KoboToolbox chưa hoàn tất"
 
-#: kobo/apps/project_ownership/models/transfer.py:252
+#: kobo/apps/project_ownership/models/transfer.py:255
 msgid "Project ownership transferred"
 msgstr "Đã chuyển quyền sở hữu dự án"
 
-#: kobo/apps/project_ownership/models/transfer.py:254
+#: kobo/apps/project_ownership/models/transfer.py:257
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "Xin lưu ý rằng quyền sở hữu dự án **##project_name##** đã được chuyển từ **##previous_owner##** sang **##new_owner##**."
 
-#: kobo/apps/project_ownership/models/transfer.py:258
+#: kobo/apps/project_ownership/models/transfer.py:261
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2743,7 +2743,7 @@ msgstr ""
 msgid "This action is not supported for this question type"
 msgstr ""
 
-#: kobo/settings/base.py:339
+#: kobo/settings/base.py:346
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2751,7 +2751,7 @@ msgid ""
 "email##)."
 msgstr "Nếu không thể truy cập ứng dụng xác thực, vui lòng nhập một trong các mã sao lưu thay thế. Nếu bạn cũng không thể truy cập các mã sao lưu đó, bạn sẽ cần gửi liên hệ đến [##support email##](mailto:##support email##) để được hỗ trợ."
 
-#: kobo/settings/base.py:627
+#: kobo/settings/base.py:634
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2934,53 +2934,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr "Tên người dùng/mật khẩu không hợp lệ"
 
-#: kpi/deployment_backends/base_backend.py:144
+#: kpi/deployment_backends/base_backend.py:148
 msgid "No submissions match the given `submission_ids`"
 msgstr "Không có bản dữ liệu nào phù hợp với `submission_ids` đã có"
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:630
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "Tham số này không được triển khai. Thay vào đó, hãy sử dụng thuộc tính `count` của phản hồi."
 
-#: kpi/deployment_backends/base_backend.py:625
+#: kpi/deployment_backends/base_backend.py:641
 msgid "This param is not supported in `XML` format"
 msgstr "Không hỗ trợ tham số này ở định dạng `XML`"
 
-#: kpi/deployment_backends/base_backend.py:630
+#: kpi/deployment_backends/base_backend.py:646
 msgid "This is not supported in `XML` format"
 msgstr "Yếu tố này không được hỗ trợ ở định dạng `XML`"
 
-#: kpi/deployment_backends/base_backend.py:650
-#: kpi/deployment_backends/base_backend.py:679
-#: kpi/deployment_backends/base_backend.py:701 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:666
+#: kpi/deployment_backends/base_backend.py:695
+#: kpi/deployment_backends/base_backend.py:717 kpi/views/v2/data.py:1128
 msgid "Value must be valid JSON."
 msgstr "Giá trị phải là JSON hợp lệ."
 
-#: kpi/deployment_backends/base_backend.py:655
+#: kpi/deployment_backends/base_backend.py:671
 msgid "Value must be a list."
 msgstr "Giá trị phải là một danh sách."
 
-#: kpi/deployment_backends/base_backend.py:686
-#: kpi/deployment_backends/base_backend.py:693
+#: kpi/deployment_backends/base_backend.py:702
+#: kpi/deployment_backends/base_backend.py:709
 msgid "A positive integer is required."
 msgstr "Bắt buộc phải có số nguyên dương."
 
-#: kpi/deployment_backends/openrosa_backend.py:434
+#: kpi/deployment_backends/openrosa_backend.py:442
 msgid "Your submission XML is malformed."
 msgstr "Tệp XML bạn gửi bị hỏng."
 
-#: kpi/deployment_backends/openrosa_backend.py:440
+#: kpi/deployment_backends/openrosa_backend.py:448
 msgid "Your submission XML is missing critical elements."
 msgstr "Tệp XML bạn gửi thiếu các yếu tố quan trọng."
 
-#: kpi/deployment_backends/openrosa_backend.py:478
+#: kpi/deployment_backends/openrosa_backend.py:486
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "Không tìm thấy bản dữ liệu bạn muốn chỉnh sửa hoặc bạn không có quyền truy cập."
 
-#: kpi/deployment_backends/openrosa_backend.py:1039
+#: kpi/deployment_backends/openrosa_backend.py:1061
 msgid "Successful submission"
 msgstr "Đã gửi thành công"
 
@@ -3491,7 +3491,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:886
 msgid "The specified asset has not been deployed"
 msgstr "Tài sản được chỉ định chưa được triển khai"
 
@@ -3739,10 +3739,10 @@ msgstr "Có lỗi xảy ra trong khi chuyển đổi"
 msgid "Conversion is not supported for {}"
 msgstr "Không hỗ trợ chuyển đổi cho {}"
 
-#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+#: kpi/views/v2/data.py:758 kpi/views/v2/data.py:808
 msgid "One or more submission ids are invalid"
 msgstr ""
 
-#: kpi/views/v2/data.py:871
+#: kpi/views/v2/data.py:872
 msgid "A positive integer is required"
 msgstr "Phải có số nguyên dương"
