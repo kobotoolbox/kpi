@@ -58,8 +58,10 @@ def rebuild_form_versions(
     oldest first.
 
     Whatever the submission already records is kept: the result can only add
-    versions, never drop one. Versions are ordered oldest first by deployment
-    date; a uid the asset does not know keeps its place, ahead of the others.
+    versions, never drop one, although an alias it records is replaced by the
+    uid of the version it stands for. Versions are ordered oldest first by
+    deployment date; a uid the asset does not know keeps its place, ahead of
+    the others.
 
     `None` means there is nothing to write: only the version deployed at the
     last write, no way to tell it apart, or exactly what the submission
@@ -84,6 +86,12 @@ def rebuild_form_versions(
         xml_parsed = fromstring_preserve_root_xmlns(snapshot)
         recorded, _ = _get_form_versions(xml_parsed)
         submission_version = get_collected_version_uid(xml_parsed, lambda: version_ids)
+        # `__version__` alone is trusted without the asset's versions, which
+        # are at hand here: an alias, the uid of a version merged into another
+        # one, is resolved to that one, and a uid the asset does not know is
+        # kept as it is
+        recorded = [version_ids.get(uid, uid) for uid in recorded]
+        submission_version = version_ids.get(submission_version, submission_version)
         deployed_version = _get_deployed_version_at(deployed_versions, received_at)
 
         # The deployed version only comes in with an edit, whose answers are

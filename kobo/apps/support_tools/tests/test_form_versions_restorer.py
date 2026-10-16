@@ -1,5 +1,6 @@
 import io
 from datetime import datetime, timedelta
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -31,6 +32,7 @@ from kobo.apps.support_tools.utils.helpers import (
     _get_deployed_version_at,
     rebuild_form_versions,
 )
+from kobo.apps.support_tools.utils.restorers import form_versions as restorer_module
 from kobo.apps.support_tools.utils.restorers.form_versions import (
     FormVersionsRestorer,
 )
@@ -222,6 +224,27 @@ class RebuildFormVersionsTestCase(SimpleTestCase):
         assert (
             rebuild_form_versions(xml, days_after(JAN), histories, DEPLOYED_VERSIONS)
             == f'{UNKNOWN_VERSION} {VERSION_1} {VERSION_2}'
+        )
+
+    def test_an_alias_in_version_resolves_to_the_version_it_stands_for(self):
+        """
+        An alias looks like any uid, the uid of a version merged into another
+        one, so `__version__` holding one is trusted as it is until resolved
+        here. Recording it would name a version nothing can be read against.
+        """
+
+        alias = 'v' + '8' * 21
+        deployed_versions = [
+            DEPLOYED_VERSIONS[0],
+            {**DEPLOYED_VERSIONS[1], 'uid_aliases': [alias]},
+            DEPLOYED_VERSIONS[2],
+        ]
+
+        assert (
+            rebuild_form_versions(
+                submission_xml(alias), days_after(MAR), [], deployed_versions
+            )
+            == VERSION_2
         )
 
     def test_a_declared_version_the_asset_does_not_know_is_kept(self):
@@ -443,6 +466,67 @@ class FormVersionsRestorerTestCase(TestCase):
         # Reaching the end clears the cursor, so the next run starts over
         assert cache.get(restorer.cursor_cache_key) is None
 
+    def test_a_submission_edited_before_its_xml_is_read_is_left_alone(self):
+        """
+        Its history was read before the edit, so it would be rebuilt from a
+        past that is no longer complete.
+        """
+
+        instance = self._submit(self.version_1, received_at=days_after(FEB))
+        get_histories = FormVersionsRestorer._get_histories
+
+        def edit_then_get_histories(restorer, instance_ids):
+            histories = get_histories(restorer, instance_ids)
+            self._edit(instance)
+            return histories
+
+        with patch.object(
+            FormVersionsRestorer, '_get_histories', edit_then_get_histories
+        ):
+            restorer = self._restore()
+
+        assert restorer.updated == 0
+        assert self._xml(instance) == 'edited'
+
+    def test_a_submission_edited_before_it_is_written_is_not_overwritten(self):
+        instance = self._submit(self.version_1, received_at=days_after(FEB))
+        rebuild = restorer_module.rebuild_form_versions
+
+        def rebuild_then_edit(*args, **kwargs):
+            form_versions = rebuild(*args, **kwargs)
+            self._edit(instance)
+            return form_versions
+
+        with patch.object(
+            restorer_module, 'rebuild_form_versions', side_effect=rebuild_then_edit
+        ):
+            restorer = self._restore()
+
+        assert restorer.updated == 0
+        assert self._xml(instance) == 'edited'
+        assert self._mongo_form_versions(instance) is None
+
+    def test_the_command_restores_the_attachments_from_the_start(self):
+        """
+        A cursor an earlier attachment run left behind was placed before the
+        versions were recorded, and would skip the files they now account for.
+        """
+
+        self._submit(self.version_1, received_at=days_after(FEB))
+
+        with patch(
+            'kobo.apps.support_tools.management.commands'
+            '.restore_formversions_in_submissions.AttachmentRestorer'
+        ) as attachment_restorer:
+            call_command(
+                'restore_formversions_in_submissions',
+                asset_uid=self.asset.uid,
+                restore_attachments=True,
+                verbosity=0,
+            )
+
+        assert attachment_restorer.call_args.kwargs['resume'] is False
+
     def test_the_command_writes_nothing_unless_it_is_asked_to(self):
         instance = self._submit(self.version_1, received_at=days_after(FEB))
 
@@ -475,6 +559,14 @@ class FormVersionsRestorerTestCase(TestCase):
             uuid=instance.uuid,
         )
         InstanceHistory.objects.filter(pk=history.pk).update(date_created=edited_at)
+
+    def _edit(self, instance: Instance):
+        """
+        Stand for an edit coming in during the run, which always changes the
+        hash since the `instanceID` changes.
+        """
+
+        Instance.objects.filter(pk=instance.pk).update(xml='edited', xml_hash='edited')
 
     def _mongo_form_versions(self, instance: Instance) -> str | None:
         document = settings.MONGO_DB.instances.find_one({'_id': instance.pk})

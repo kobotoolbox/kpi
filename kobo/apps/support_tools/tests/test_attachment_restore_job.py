@@ -104,7 +104,7 @@ class AttachmentRestoreJobTestCase(TestCase):
                 response = self._run_again(job)
 
         assert response.status_code == 302
-        delay.assert_called_once_with(job.pk)
+        delay.assert_called_once_with(job.pk, resume=True)
 
         job.refresh_from_db()
         assert job.status == RestoreJobStatus.PENDING
@@ -174,7 +174,23 @@ class AttachmentRestoreJobTestCase(TestCase):
         job.refresh_from_db()
         assert job.status == RestoreJobStatus.IN_PROGRESS
         assert 'has been re-queued' in job.log
-        delay.assert_called_once_with(job.pk)
+        delay.assert_called_once_with(job.pk, resume=True)
+
+    def test_only_the_first_run_of_a_row_may_start_over(self):
+        """
+        A continuation that started over would throw away the cursor of the
+        run it continues, and never get past the part that run walked.
+        """
+
+        job = self._job(resume=False)
+        resumes = []
+
+        self._run(job, resumes=resumes)
+        self._run(job, resumes=resumes, resume=True)
+
+        assert resumes == [False, True]
+        job.refresh_from_db()
+        assert job.resume is False
 
     def test_the_replacement_is_queued_only_once_this_run_is_written_down(self):
         """
@@ -187,7 +203,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         job = self._job()
         seen = {}
 
-        def read_the_row(job_id):
+        def read_the_row(job_id, resume=None):
             seen.update(
                 AttachmentRestoreJob.objects.filter(pk=job_id)
                 .values('status', 'log', 'scanned')
@@ -295,6 +311,8 @@ class AttachmentRestoreJobTestCase(TestCase):
         scanned: int = 0,
         restored: int = 0,
         raises: Exception = None,
+        resumes: list = None,
+        resume: bool = None,
     ):
         """
         Run the task against a restorer that reports what the test asks for,
@@ -302,6 +320,8 @@ class AttachmentRestoreJobTestCase(TestCase):
         """
 
         def restorer(xform, dry_run, resume, log):
+            if resumes is not None:
+                resumes.append(resume)
             fake = MagicMock(scanned=scanned, restored=restored)
 
             def run():
@@ -319,4 +339,4 @@ class AttachmentRestoreJobTestCase(TestCase):
                 'kobo.apps.support_tools.tasks.AttachmentRestorer',
                 side_effect=restorer,
             ):
-                run_attachment_restore_job(job.pk)
+                run_attachment_restore_job(job.pk, resume=resume)

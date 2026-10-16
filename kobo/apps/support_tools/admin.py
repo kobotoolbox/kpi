@@ -106,8 +106,9 @@ class RestoreJobAdmin(admin.ModelAdmin):
 
             # The changelist is wrapped in a transaction too, and `partial`
             # rather than a closure, which would hand every callback the last
-            # row of the loop
-            transaction.on_commit(partial(self.task.delay, job.pk))
+            # row of the loop. It continues the row, so it resumes whatever the
+            # row asked of its first run
+            transaction.on_commit(partial(self.task.delay, job.pk, resume=True))
 
             self.message_user(
                 request,

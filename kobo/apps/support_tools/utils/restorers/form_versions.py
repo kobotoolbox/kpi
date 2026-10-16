@@ -63,7 +63,11 @@ class FormVersionsRestorer(ProjectRestorer):
         if cursor:
             queryset = queryset.filter(pk__lt=cursor)
 
-        return list(queryset.only('pk', 'date_created').order_by('-pk')[:CHUNK_SIZE])
+        # `xml_hash` as it is before anything else is read, which is what an
+        # edit coming in during the run is caught by, see `_write_batch()`
+        return list(
+            queryset.only('pk', 'date_created', 'xml_hash').order_by('-pk')[:CHUNK_SIZE]
+        )
 
     def _get_candidates(self, instances: list, histories: dict) -> list:
         """
@@ -75,7 +79,13 @@ class FormVersionsRestorer(ProjectRestorer):
         had been deployed, which may have been collected with the first.
         Everything else was collected and received under a single version, so
         its XML is not even loaded.
+
+        A candidate edited since `_fetch_batch()` read it is left out: its
+        history was read before that edit, so it would be rebuilt from a past
+        that is no longer complete.
         """
+
+        hashes = {instance.pk: instance.xml_hash for instance in instances}
 
         candidate_ids = [
             instance.pk
@@ -87,11 +97,18 @@ class FormVersionsRestorer(ProjectRestorer):
         if not candidate_ids:
             return []
 
-        return list(
+        candidates = []
+        for instance in (
             Instance.objects.filter(pk__in=candidate_ids)
-            .only('pk', 'xml', 'date_created')
+            .only('pk', 'xml', 'date_created', 'xml_hash')
             .order_by('-pk')
-        )
+        ):
+            if instance.xml_hash != hashes[instance.pk]:
+                self._log_edited_meanwhile(instance)
+                continue
+            candidates.append(instance)
+
+        return candidates
 
     def _get_histories(self, instance_ids: list) -> dict:
         """
@@ -127,6 +144,12 @@ class FormVersionsRestorer(ProjectRestorer):
             )
             .order_by('date_modified')
             .values('uid', 'uid_aliases', '_reversion_version', 'date_modified')
+        )
+
+    def _log_edited_meanwhile(self, instance: Instance):
+        self.log(
+            f'Instance #{instance.pk} skipped, edited during the run. A run'
+            f' from the start, without resuming, updates it.'
         )
 
     def _log_progress(self, cursor: int):
@@ -213,34 +236,47 @@ class FormVersionsRestorer(ProjectRestorer):
             to_update.append((instance, form_versions))
 
         if to_update and not self.dry_run:
-            self._write_batch(to_update)
+            to_update = self._write_batch(to_update)
 
         # Only once written, so a batch that failed is not counted as updated
         self.updated += len(to_update)
 
-    def _write_batch(self, to_update: list[tuple[Instance, str]]):
+    def _write_batch(self, to_update: list[tuple[Instance, str]]) -> list[Instance]:
         """
-        Rewrite the XML of each submission and its Mongo document as one.
+        Rewrite the XML of each submission and its Mongo document as one, and
+        return the ones written.
 
-        `bulk_update()` rather than `save()`: this is not an edit, so no signal
-        should fire and `date_modified` should not move. Only `xml` is written.
-        `xml_hash` does not change, and recomputing it would write the same
-        value back: `Instance.get_hash()` strips `meta/formVersions` before
+        A queryset `update()` rather than `save()`: this is not an edit, so no
+        signal should fire and `date_modified` should not move. Only `xml` is
+        written. `xml_hash` does not change, and recomputing it would write the
+        same value back: `Instance.get_hash()` strips `meta/formVersions` before
         hashing, precisely so that the server-side node never alters it.
+
+        One `UPDATE` per submission, conditioned on `xml_hash` still being the
+        one the history was rebuilt from. Every edit changes it, since the
+        `instanceID` changes, so an edit that came in since is never overwritten
+        with the XML read before it: the submission is left for the next run.
+        The condition and the write are one statement, so an edit committing
+        at the same time either lands first and is kept, or waits for this one.
 
         Mongo gets one `update_many()` per distinct value rather than one update
         per document: submissions of a project mostly share the same few
         histories, e.g. every one collected offline with the same old version.
         """
 
+        written = []
         ids_per_form_versions = defaultdict(list)
-        for instance, form_versions in to_update:
-            ids_per_form_versions[form_versions].append(instance.pk)
 
         with kc_transaction_atomic():
-            Instance.objects.bulk_update(
-                [instance for instance, _ in to_update], ['xml']
-            )
+            for instance, form_versions in to_update:
+                if not Instance.objects.filter(
+                    pk=instance.pk, xml_hash=instance.xml_hash
+                ).update(xml=instance.xml):
+                    self._log_edited_meanwhile(instance)
+                    continue
+
+                written.append(instance)
+                ids_per_form_versions[form_versions].append(instance.pk)
 
             # Keep the Mongo update inside the PostgreSQL transaction, so that the
             # two stay in sync. If Mongo fails, PostgreSQL is rolled back and the
@@ -250,3 +286,5 @@ class FormVersionsRestorer(ProjectRestorer):
                     {'_id': {'$in': instance_ids}},
                     {common_tags.META_FORM_VERSIONS: form_versions},
                 )
+
+        return written

@@ -89,7 +89,7 @@ class FormVersionsRestoreJobTestCase(TestCase):
                     {'action': 'run_again', '_selected_action': [job.pk], 'index': 0},
                 )
 
-        delay.assert_called_once_with(job.pk)
+        delay.assert_called_once_with(job.pk, resume=True)
 
         job.refresh_from_db()
         assert job.status == RestoreJobStatus.PENDING
@@ -105,6 +105,12 @@ class FormVersionsRestoreJobTestCase(TestCase):
         assert (job.scanned, job.updated) == (4, 2)
 
     def test_a_completed_run_chains_the_attachment_restore_in_its_mode(self):
+        """
+        From the start, whatever the row asked: a cursor an earlier attachment
+        run left behind was placed before the versions were recorded, and
+        would skip the files they now account for.
+        """
+
         job = self._job(dry_run=False, restore_attachments=True)
 
         with patch(
@@ -115,7 +121,7 @@ class FormVersionsRestoreJobTestCase(TestCase):
         attachment_job = AttachmentRestoreJob.objects.get()
         assert attachment_job.asset_uid == ASSET_UID
         assert attachment_job.dry_run is False
-        assert attachment_job.resume is True
+        assert attachment_job.resume is False
         assert attachment_job.created_by == self.user
         delay.assert_called_once_with(attachment_job.pk)
 

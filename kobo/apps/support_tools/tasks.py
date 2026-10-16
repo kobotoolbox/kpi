@@ -24,7 +24,7 @@ from kobo.celery import celery_app
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
     queue='kpi_low_priority_queue',
 )
-def run_attachment_restore_job(job_id: int):
+def run_attachment_restore_job(job_id: int, resume: bool = None):
     """
     Restore the attachments of one project that were soft deleted by mistake.
 
@@ -33,7 +33,7 @@ def run_attachment_restore_job(job_id: int):
     """
 
     job = AttachmentRestoreJob.objects.get(pk=job_id)
-    _run_restore_job(job, AttachmentRestorer, run_attachment_restore_job)
+    _run_restore_job(job, AttachmentRestorer, run_attachment_restore_job, resume)
 
 
 @celery_app.task(
@@ -41,7 +41,7 @@ def run_attachment_restore_job(job_id: int):
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
     queue='kpi_low_priority_queue',
 )
-def run_form_versions_restore_job(job_id: int):
+def run_form_versions_restore_job(job_id: int, resume: bool = None):
     """
     Record `meta/formVersions` in the submissions of one project that spanned
     several form versions before the server recorded them.
@@ -51,12 +51,14 @@ def run_form_versions_restore_job(job_id: int):
 
     With `restore_attachments`, the run that walks the last submission queues
     the attachment restore on its own row, the way `--restore-attachments`
-    chains it in the shell.
+    chains it in the shell. That one always walks the project from the start:
+    a cursor that an earlier attachment run left behind was placed before the
+    versions were recorded, and would skip the files they now account for.
     """
 
     job = FormVersionsRestoreJob.objects.get(pk=job_id)
     restorer = _run_restore_job(
-        job, FormVersionsRestorer, run_form_versions_restore_job
+        job, FormVersionsRestorer, run_form_versions_restore_job, resume
     )
 
     if not (job.restore_attachments and restorer and restorer.completed):
@@ -65,7 +67,7 @@ def run_form_versions_restore_job(job_id: int):
     attachment_job = AttachmentRestoreJob.objects.create(
         asset_uid=job.asset_uid,
         dry_run=job.dry_run,
-        resume=job.resume,
+        resume=False,
         created_by=job.created_by,
     )
     lines = [f'Attachment restore queued, see its row #{attachment_job.pk}.']
@@ -85,6 +87,7 @@ def _run_restore_job(
     job: AbstractRestoreJob,
     restorer_class: type[ProjectRestorer],
     task: Task,
+    resume: bool = None,
 ) -> ProjectRestorer | None:
     """
     Run the restore a row asks for, write back what it did, and return the
@@ -98,7 +101,15 @@ def _run_restore_job(
     re-queues itself, leaving the row in progress. A hard kill, an OOM or a pod
     eviction, leaves the row in progress with nothing to pick it up, and the
     admin shows it as interrupted once the lock expires.
+
+    The row's `resume` only applies to its first run. `resume` overrides it,
+    and every continuation, re-queued here or launched again from the admin,
+    passes `True`: one that started over would throw away the cursor of the
+    run it continues, and never get past the part that run already walked.
     """
+
+    if resume is None:
+        resume = job.resume
 
     # What a run does, without the detail `-v 2` and `-v 3` add in the shell:
     # the row is read by support, and it grows with every run of the job
@@ -112,9 +123,7 @@ def _run_restore_job(
 
     try:
         xform = get_project_xform(job.asset_uid)
-        restorer = restorer_class(
-            xform, dry_run=job.dry_run, resume=job.resume, log=log
-        )
+        restorer = restorer_class(xform, dry_run=job.dry_run, resume=resume, log=log)
         restorer.run()
     except ProjectAlreadyBeingRestoredError as e:
         # Somebody got there first, which is not a failure worth retrying, but
@@ -144,7 +153,7 @@ def _run_restore_job(
     # handler ran, so queueing any earlier lets the two of them overwrite each
     # other from copies neither has reread
     if requeue:
-        task.delay(job.pk)
+        task.delay(job.pk, resume=True)
 
     return restorer
 

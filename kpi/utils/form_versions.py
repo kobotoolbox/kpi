@@ -33,6 +33,11 @@ def get_collected_version_uid(
 
     Only top-level nodes are read: KPI always appends the version row at the
     end of the survey, so a node of that name inside a group is a question.
+
+    Note: a `__version__` alone that holds an alias, the uid of a version
+    merged into another one in 2017, is returned as it is, since telling it
+    apart would mean loading the versions for every submission. A caller that
+    has them at hand resolves it, as `rebuild_form_versions()` does.
     """
 
     named = {}

@@ -50,8 +50,8 @@ class Command(BaseCommand):
             help=(
                 'Once every submission is updated, run the attachment restore '
                 '(`restore_soft_deleted_attachments`) on the same project, in the '
-                'same mode. It can then see files kept under a question name only '
-                'an intermediate form version had.'
+                'same mode and from the start. It can then see files kept under a '
+                'question name only an intermediate form version had.'
             ),
         )
 
@@ -77,9 +77,10 @@ class Command(BaseCommand):
                         ' may be low: files under a question only an intermediate'
                         ' version had are found once the versions are recorded.'
                     )
-                AttachmentRestorer(
-                    xform, dry_run=dry_run, resume=options['resume'], log=log
-                ).run()
+                # From the start: a cursor that an earlier attachment run left behind
+                # was placed before the versions were recorded, and would skip the files
+                # they now account for
+                AttachmentRestorer(xform, dry_run=dry_run, resume=False, log=log).run()
             elif restorer.updated and not dry_run:
                 log(
                     'Run `restore_soft_deleted_attachments` on this project to'
