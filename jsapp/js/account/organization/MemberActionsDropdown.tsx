@@ -98,7 +98,7 @@ export default function MemberActionsDropdown({ target, targetUsername, targetFu
         <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
-          {isTransferOwnershipEnabled && (
+          {isTransferOwnershipEnabled && currentUserRole === MemberRoleEnum.owner && (
             <>
               <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
                 {t('Make owner')}
