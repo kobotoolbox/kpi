@@ -49,8 +49,12 @@ describe('getSsoConnectErrorMessage', () => {
     chai.expect(getSsoConnectErrorMessage('cancelled')).to.contain('Connecting was cancelled')
   })
 
-  it("treats allauth's own refusal the same as the provider's", () => {
-    chai.expect(getSsoConnectErrorMessage('permission_denied')).to.equal(getSsoConnectErrorMessage('denied'))
+  it("words allauth's own refusal like a provider refusing the login", () => {
+    chai.expect(getSsoConnectErrorMessage('permission_denied')).to.contain('refused the request')
+  })
+
+  it('says to disable the current connection when KPI refuses a second one', () => {
+    chai.expect(getSsoConnectErrorMessage('multiple_sso_not_allowed')).to.contain('only connect one')
   })
 
   it('falls back to generic copy for a code it does not know, rather than showing it raw', () => {

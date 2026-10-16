@@ -69,6 +69,11 @@ export function getSsoDisconnectErrorMessage(code: string | undefined): string {
   return t('We could not disable single-sign on (SSO) for your account. Please try again.')
 }
 
+/** KPI's own connect refusal, from `SocialAccountAdapter.pre_social_login`: one SSO connection per account. */
+const CONNECT_ERROR_CODES = {
+  multipleSsoNotAllowed: 'multiple_sso_not_allowed',
+} as const
+
 /** What to show for the `?error=` a failed `connect` comes back with */
 export function getSsoConnectErrorMessage(code: string): string {
   if (code === PROVIDER_ERROR_CODES.connectedOther) {
@@ -80,8 +85,15 @@ export function getSsoConnectErrorMessage(code: string): string {
   if (code === PROVIDER_ERROR_CODES.cancelled) {
     return t('Connecting was cancelled before it finished. You can try again.')
   }
-  // A refusal reads the same whoever made it, so borrow the login wording instead of restating it.
-  if (code === PROVIDER_ERROR_CODES.denied || code === PROVIDER_ERROR_CODES.permissionDenied) {
+  if (code === CONNECT_ERROR_CODES.multipleSsoNotAllowed) {
+    return t(
+      'You can only connect one single-sign on (SSO) account at a time.' +
+        ' Disable the current one before connecting another.',
+    )
+  }
+  // A refusal reads the same whoever made it, so borrow the login wording instead of restating it. No `denied` here:
+  // only allauth's draugiem provider sends it, and a real provider refusal arrives as an unknown error.
+  if (code === PROVIDER_ERROR_CODES.permissionDenied) {
     return getProviderRedirectErrorMessage(PROVIDER_ERROR_CODES.denied)
   }
   // TODO: DEV-1971 send the user through a reauthentication instead of asking them to sign in again.
