@@ -3,6 +3,7 @@ import cx from 'classnames'
 import { useMemo } from 'react'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import StandaloneUILanguageSelector from '#/auth/StandaloneUILanguageSelector'
+import { ROOT_URL } from '#/constants'
 import defaultThemeLogoUrl from '../../../img/kobo-logo-gray.svg'
 import customThemeLogoUrl from '../../../img/kobologo.svg'
 import styles from './AuthPageFrame.module.scss'
@@ -47,7 +48,7 @@ export default function AuthPageFrame({ children }: AuthPageFrameProps) {
     >
       <header className={styles.header}>
         {authConfiguration?.show_kobotoolbox_logo && (
-          <a className={styles.logoLink} href='/'>
+          <a className={styles.logoLink} href={`${ROOT_URL}/`}>
             <img className={styles.logo} src={logoUrl} alt='KoboToolbox' />
           </a>
         )}

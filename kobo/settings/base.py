@@ -198,6 +198,13 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `django.conf.settings.THE_SETTING`
 
 CONSTANCE_CONFIG = {
+    # Temporary?: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+    # server-side calls (form, manifest, media, submissions) stay inside the cluster
+    'ENKETO_USE_INTERNAL_OPENROSA_URL': (
+        env.bool('CONSTANCE_ENKETO_USE_INTERNAL_OPENROSA_URL', False),
+        'Save the internal domain name instead of the public one as the '
+        'OpenRosa server URL in Enketo',
+    ),
     'REGISTRATION_OPEN': (
         True,
         'Allow new users to register accounts for themselves',
@@ -813,6 +820,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
+        'ENKETO_USE_INTERNAL_OPENROSA_URL',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1278,7 +1286,7 @@ OPENROSA_REST_FRAMEWORK = {
         # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
         'rest_framework.renderers.JSONRenderer',
         'rest_framework_jsonp.renderers.JSONPRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.OpenRosaBasicHTMLRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
         'rest_framework_csv.renderers.CSVRenderer',
     ],
@@ -1447,6 +1455,7 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
+ENKETO_TIMEOUT = 5  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1725,9 +1734,23 @@ CELERY_BEAT_SCHEDULE = {
         'task': (
             'kobo.apps.openrosa.apps.logger.tasks.fix_stale_submissions_suspended_flag'
         ),
-        'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
+        'schedule': crontab(minute='*/15'),
         'description': (
-            'Unlock accounts left suspended by a storage recount which died'
+            'Unlock accounts left suspended by a process which died before'
+            ' releasing them'
+        ),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'recount-drifted-storage-counters': {
+        'task': (
+            'kobo.apps.openrosa.apps.logger.tasks.recount_drifted_storage_counters'
+        ),
+        # A run lasts about as long as the soft time limit, and a single one
+        # runs at a time: a short interval starts the next one soon after
+        'schedule': crontab(minute='*/15'),
+        'description': (
+            'Recount the storage counters of projects which may have drifted, in'
+            ' turns, until every one of them was checked, then start over'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -2472,8 +2495,6 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
-# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
-SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100

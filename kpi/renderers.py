@@ -9,6 +9,7 @@ import formpack
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
+from django.urls import reverse
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail, ParseError
@@ -51,6 +52,7 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             pretty = str(data)
 
         context = {
+            'docs_url': self.get_docs_url(),
             'pretty': pretty,
             'q_param': url_pattern_clean or '',
             'root': resolver_match.url_name == 'api-root',
@@ -58,6 +60,9 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
 
         tpl = get_template(self.template_name)
         return tpl.render(context)
+
+    def get_docs_url(self) -> str:
+        return reverse('swagger-ui')
 
     @classmethod
     def _clean_route(cls, raw: str | None) -> str | None:

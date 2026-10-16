@@ -52,9 +52,15 @@ function renderStatusBadge(isEnabled: boolean | null | undefined) {
  * These must stay a subset of `OrganizationsMembersListOrdering`; building `ordering` below from them means an
  * invalid name here fails to typecheck. The 2FA column is absent because the endpoint cannot order by it.
  */
-type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role'
+type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role' | 'user__has_sso_enabled'
 
-const ORDERABLE_FIELDS: MembersTableOrderableField[] = ['user__username', 'status', 'date_joined', 'role']
+const ORDERABLE_FIELDS: MembersTableOrderableField[] = [
+  'user__username',
+  'status',
+  'date_joined',
+  'role',
+  'user__has_sso_enabled',
+]
 
 function MembersRoute() {
   const [organization] = useOrganizationAssumed()
@@ -245,7 +251,7 @@ function MembersRoute() {
     },
     {
       key: 'user__has_mfa_enabled',
-      label: t('2FA'),
+      label: <span className={styles.plainColumnHeader}>{t('2FA')}</span>,
       size: 90,
       cellFormatter: (obj: MemberListResponse) => {
         const { member } = getMemberOrInviteDetails(obj)
@@ -256,7 +262,7 @@ function MembersRoute() {
       // Every team gets this column, whether or not it has the SSO add-on. Without the add-on nobody can have an SSO
       // account, so it simply reads as inactive for everyone.
       key: 'user__has_sso_enabled',
-      label: t('SSO'),
+      label: renderSortableHeader('user__has_sso_enabled', t('SSO')),
       size: 90,
       cellFormatter: (obj: MemberListResponse) => {
         const { member } = getMemberOrInviteDetails(obj)

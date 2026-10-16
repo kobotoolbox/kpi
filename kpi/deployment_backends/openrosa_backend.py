@@ -10,12 +10,12 @@ from xml.etree.ElementTree import ParseError
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
-import requests
 from constance import config
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
@@ -23,6 +23,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from pyxform.builder import create_survey_from_xls
+from redis import Redis
+from redis.client import Pipeline
 from rest_framework import exceptions, status
 
 from kobo.apps.data_collectors.utils import (
@@ -55,6 +57,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
+    ENKETO_INTERNAL_URL_FLAG,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
@@ -85,7 +88,12 @@ from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
-from .openrosa_utils import create_enketo_links
+from .openrosa_utils import (
+    enketo_redis_transaction,
+    fetch_enketo_links,
+    generate_enketo_links,
+    to_internal_or_external_url,
+)
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -729,50 +737,54 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):
             return {}
-
-        data = {
-            'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
-            ),
-            'form_id': self.xform.id_string,
-        }
-
-        try:
-            response = create_enketo_links(data)
-            response.raise_for_status()
-        except requests.exceptions.RequestException:
-            # Don't 500 the entire asset view if Enketo is unreachable
-            logging.error('Failed to retrieve links from Enketo', exc_info=True)
-            return {}
-        try:
-            links = response.json()
-        except ValueError:
-            logging.error('Received invalid JSON from Enketo', exc_info=True)
-            return {}
-
-        try:
-            enketo_id = links.pop('enketo_id')
-        except KeyError:
-            logging.error(
-                'Invalid response from Enketo: `enketo_id` is not found',
-                exc_info=True,
-            )
-            return {}
-
-        stored_enketo_id = self.get_data('enketo_id')
-        if stored_enketo_id != enketo_id:
-            if stored_enketo_id:
-                logging.warning(
-                    f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
+        enketo_id = self.get_data('enketo_id')
+        encoded_enketo_id = self.get_data('encoded_enketo_id')
+        if enketo_id and encoded_enketo_id:
+            links = generate_enketo_links(enketo_id, encoded_enketo_id)
+        else:
+            data = {
+                'server_url': '{}/{}'.format(
+                    settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
+                ),
+                'form_id': self.xform.id_string,
+            }
+            if not (links := fetch_enketo_links(data)):
+                # Don't 500 the entire asset view if Enketo is unreachable
+                return {}
+            try:
+                enketo_id = links.pop('enketo_id')
+                single_once_url = links['single_once_url']
+                # extract encoded id from the url enketo sends back
+                *_, encoded_enketo_id = single_once_url.split('/')
+                self.save_to_db(
+                    {'encoded_enketo_id': encoded_enketo_id, 'enketo_id': enketo_id},
+                    update_date_modified=False,
                 )
-            self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
 
-        if self.xform.require_auth:
+            except (KeyError, ValueError) as e:
+                logging.error(
+                    f'Invalid response from Enketo: {e}',
+                    exc_info=True,
+                )
+                return {}
+
+        # we need to update the url in redis iff:
+        # 1. we are using internal urls and the internal url has not been set OR
+        # 2. we are not using internal urls but the internal url was set previously OR
+        # 3. we need to supply the url without a username (ie require_auth is True)
+        requires_internal_url_update = (
+            config.ENKETO_USE_INTERNAL_OPENROSA_URL
+            ^ self.get_data(ENKETO_INTERNAL_URL_FLAG, default=False)
+        )
+        if self.xform.require_auth or requires_internal_url_update:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
-            # Thus, we need to always generated the ID with the same URL
-            # (i.e.: with username) to be retro-compatible and then,
-            # overwrite the OpenRosa server URL again.
-            self.set_enketo_open_rosa_server(require_auth=True, enketo_id=enketo_id)
+            # Thus, we need to always generate the ID with the same URL
+            # (i.e. public, with username) to be retro-compatible and then,
+            # overwrite the OpenRosa server URL again (without username if
+            # authentication is required, internal domain name if enabled).
+            self.set_enketo_open_rosa_server(
+                require_auth=self.xform.require_auth, enketo_id=enketo_id
+            )
 
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
@@ -973,8 +985,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         remove_data_collector_enketo_links(token, [self.xform.id_string])
 
     def rename_enketo_id_key(
-        self, previous_owner_username: str, project_identifier: str = None
+        self,
+        previous_owner_username: str,
+        project_identifier: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
+        """
+        Rename the Enketo key of the project to match its new owner.
+
+        When `redis_client` is a pipeline, the command is only queued: it runs,
+        and may fail, when the pipeline is executed.
+        """
+
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
 
@@ -982,8 +1004,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             project_identifier = self.xform.id_string
 
         try:
-            enketo_redis_client = get_redis_connection('enketo_redis_main')
-            enketo_redis_client.rename(
+            redis_client = redis_client or get_redis_connection('enketo_redis_main')
+            redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{project_identifier}',
                 dst=f'or:{domain_name}/{self.asset.owner.username},{self.xform.id_string}',  # noqa E501
             )
@@ -1104,8 +1126,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self.store_data({'backend_response': self.backend_response})
         return True
 
-    def set_enketo_open_rosa_server(self, require_auth: bool, enketo_id: str = None):
-        # Kobocat handles Open Rosa requests with different accesses.
+    def set_enketo_open_rosa_server(
+        self,
+        require_auth: bool,
+        enketo_id: str = None,
+        redis_client: Redis | Pipeline | None = None,
+    ):
+        # KoboCAT handles Open Rosa requests with different accesses.
         #  - Authenticated access, https://[kc]
         #  - Anonymous access, https://[kc]/username
         # Enketo generates its unique ID based on the server URL.
@@ -1118,13 +1145,30 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         server_url = settings.KOBOCAT_URL.rstrip('/')
         if not require_auth:
             server_url = f'{server_url}/{self.asset.owner.username}'
+        server_url = to_internal_or_external_url(server_url)
 
-        enketo_redis_client = get_redis_connection('enketo_redis_main')
-        enketo_redis_client.hset(
-            f'id:{enketo_id}',
-            'openRosaServer',
-            server_url,
-        )
+        # Redis is not transactional, the DB is. Save the flag first so that it
+        # is rolled back if Redis fails. If already inside a transaction (e.g.
+        # project transfer), the whole outer transaction is rolled back.
+        with transaction.atomic(savepoint=False):
+            # ENKETO_INTERNAL_URL_FLAG tells us whether we used internal URLs
+            # the previous time we updated redis, ENKETO_USE_INTERNAL_OPENROSA_URL
+            # tells us whether we used the internal URLs this time. If they don't match,
+            # update the stored data to match the constance config
+            if config.ENKETO_USE_INTERNAL_OPENROSA_URL ^ self.get_data(
+                ENKETO_INTERNAL_URL_FLAG, default=False
+            ):
+                self.save_to_db(
+                    {ENKETO_INTERNAL_URL_FLAG: config.ENKETO_USE_INTERNAL_OPENROSA_URL},
+                    update_date_modified=False,
+                )
+
+            redis_client = redis_client or get_redis_connection('enketo_redis_main')
+            redis_client.hset(
+                f'id:{enketo_id}',
+                'openRosaServer',
+                server_url,
+            )
 
     def set_mongo_uuid(self):
         """
@@ -1427,6 +1471,24 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             yield
         finally:
             XForm.objects.filter(pk=self.xform_id).update(pending_transfer=False)
+
+    def transfer_enketo_links(
+        self, previous_owner_username: str, project_identifier: str
+    ):
+        """
+        Point the Enketo links of the project to its new owner.
+
+        Both Redis commands are sent in a single MULTI/EXEC block: if Redis is
+        unreachable, none of them is applied and the error is raised.
+        """
+
+        with enketo_redis_transaction() as pipeline:
+            self.rename_enketo_id_key(
+                previous_owner_username, project_identifier, redis_client=pipeline
+            )
+            self.set_enketo_open_rosa_server(
+                require_auth=self.xform.require_auth, redis_client=pipeline
+            )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
