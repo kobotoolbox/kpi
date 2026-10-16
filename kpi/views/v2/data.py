@@ -53,6 +53,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
+from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -88,6 +89,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
+from kpi.utils.enketo_utils import rewrite_internal_url_to_external
 from kpi.utils.log import logging
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -1003,29 +1005,34 @@ class DataViewSet(
         )
 
         data = {
-            'server_url': reverse(
-                viewname='assetsnapshot-detail',
-                kwargs={'uid_asset_snapshot': snapshot.uid},
-                request=request,
+            'server_url': to_internal_or_external_url(
+                reverse(
+                    viewname='assetsnapshot-detail',
+                    kwargs={'uid_asset_snapshot': snapshot.uid},
+                    request=request,
+                ),
+                openrosa=False,
             ),
             'instance': xml_tostring(submission_xml_root),
             'instance_id': submission_json['_uuid'],
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
         }
-
         # Add attachments if any.
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
         for attachment in attachments:
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
-            data[key_] = reverse(
-                'attachment-detail',
-                args=(self.asset.uid, submission_id, attachment.uid),
-                request=request,
+            data[key_] = to_internal_or_external_url(
+                reverse(
+                    'attachment-detail',
+                    args=(self.asset.uid, submission_id, attachment.uid),
+                    request=request,
+                ),
+                openrosa=False,
             )
 
         response = requests.post(
-            f'{settings.ENKETO_URL}/{enketo_endpoint}',
+            f'{settings.ENKETO_INTERNAL_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
             auth=(settings.ENKETO_API_KEY, ''),
             data=data
@@ -1049,6 +1056,7 @@ class DataViewSet(
 
         json_response = response.json()
         enketo_url = json_response.get(f'{action_}_url')
+        enketo_url = rewrite_internal_url_to_external(enketo_url)
 
         return Response(
             {
