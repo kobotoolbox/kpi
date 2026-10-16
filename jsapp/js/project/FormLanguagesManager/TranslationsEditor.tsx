@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useMemo } from 'react'
 
 import { Box, Group, Stack } from '@mantine/core'
 import type { UseQueryResult } from '@tanstack/react-query'
@@ -7,7 +7,6 @@ import UniversalTable from '#/UniversalTable'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { LangObject } from '#/utils'
 import LanguageForm from './LanguageForm'
-import SaveChangesButton from './SaveChangesButton'
 import TranslationsEditorCell from './TranslationsEditorCell'
 import type { TranslationRowItem } from './types'
 
@@ -27,24 +26,11 @@ interface TranslationsEditorProps {
   onSave: () => void | Promise<void>
   onToggleInlineLanguageForm: () => void
   onLanguageChange: (lang: LangObject, index: number) => void | Promise<void>
-  onStartEditing: () => void
-  /** Fires on every keystroke; must not trigger a re-render (see FormLanguagesManager). */
-  onEditCell: (absoluteIndex: number, value: string) => void
   onChangeCell: (absoluteIndex: number, value: string) => void
 }
 
 export default function TranslationsEditor(props: TranslationsEditorProps) {
   const selectedLanguageLabel = props.translations[props.selectedLangIndex] || ''
-
-  // Stable ref that SaveChangesButton hooks into so we can flip its local dirty
-  // state without re-rendering TranslationsEditor (and therefore without
-  // tearing down the active textarea).
-  const markDirtyRef = useRef<() => void>(() => {})
-
-  const handleStartEditing = useCallback(() => {
-    markDirtyRef.current()
-    props.onStartEditing()
-  }, [props.onStartEditing])
 
   const tableColumns: Array<UniversalTableColumn<TranslationRowItem>> = useMemo(
     () => [
@@ -78,15 +64,11 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
         cellFormatter: (row, rowIndex) => {
           const absoluteIndex = props.pagination.start + rowIndex
           return (
-            // Give the cell a stable identity so React keeps the textarea instance
-            // mounted while its draft value changes locally.
             <TranslationsEditorCell
               key={`${row.name}-${row.listName || ''}-${absoluteIndex}`}
               initialValue={row.value || ''}
               disabled={row.isLabelLocked}
               absoluteIndex={absoluteIndex}
-              onStartEditing={handleStartEditing}
-              onEditCell={props.onEditCell}
               onChangeCell={props.onChangeCell}
             />
           )
@@ -96,8 +78,6 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
     [
       props.canEditLanguages,
       props.onChangeCell,
-      props.onEditCell,
-      handleStartEditing,
       props.onToggleInlineLanguageForm,
       props.pagination.start,
       props.selectedLangIndex,
@@ -136,12 +116,9 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
         <ButtonNew variant='light' size='lg' onClick={props.onBack}>
           {t('Back')}
         </ButtonNew>
-        <SaveChangesButton
-          saveButtonText={props.saveButtonText}
-          isSavingTable={props.isSavingTable}
-          onSave={props.onSave}
-          markDirtyRef={markDirtyRef}
-        />
+        <ButtonNew variant='filled' size='lg' onClick={props.onSave} disabled={props.isSavingTable}>
+          {props.saveButtonText}
+        </ButtonNew>
       </Group>
     </Stack>
   )

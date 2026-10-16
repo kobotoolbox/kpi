@@ -182,24 +182,14 @@ export const BasicFlow: Story = {
     })
 
     await step('Translate a question and save', async () => {
-      // `UniversalTable` renders null until its query key has data, so the table remounts
-      // right after the rows appear. Typing into a detached textarea is silently dropped,
-      // so re-query the row on every attempt.
-      await waitFor(
-        async () => {
-          const row = page.getByText('Question 1').closest('tr')
-          const textarea = within(row as HTMLElement).getByRole('textbox')
+      // Scope to the row so we don't type into another question's textarea.
+      const row = page.getByText('Question 1').closest('tr')
+      const textarea = within(row as HTMLElement).getByRole('textbox')
 
-          await userEvent.clear(textarea)
-          await userEvent.type(textarea, 'Nom')
-          await expect(textarea).toHaveValue('Nom')
-        },
-        // Only needs to outlast a couple of remount retries. Stay well under the 30s test
-        // timeout, or a real failure here shows up as a timeout instead of an assertion.
-        { timeout: 5000 },
-      )
+      await userEvent.type(textarea, 'Nom')
+      await expect(textarea).toHaveValue('Nom')
 
-      await userEvent.click(page.getByRole('button', { name: /Save Changes/ }))
+      await userEvent.click(page.getByRole('button', { name: '* Save Changes' }))
 
       // The PATCH goes through the MSW service worker, which can outlast the 1s
       // `waitFor` default on a loaded CI machine.

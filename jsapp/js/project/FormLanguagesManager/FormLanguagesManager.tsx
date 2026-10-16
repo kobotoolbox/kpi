@@ -1,7 +1,7 @@
 import { Box, Group, Text } from '@mantine/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -43,11 +43,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [pendingDefaultLanguageIndex, setPendingDefaultLanguageIndex] = useState<number | null>(null)
   const [pendingUnsavedConfirm, setPendingUnsavedConfirm] = useState<'close' | 'back' | null>(null)
   const [isTranslationTableUnsaved, setIsTranslationTableUnsaved] = useState(false)
-  // Track if any cell has been edited without committing to state (to avoid first-keystroke parent re-render)
-  const tableHasUnsavedEditsRef = useRef(false)
-  // Latest draft of every edited cell, keyed by absolute row index. Saving reads it on top
-  // of `tableRows`, which only catches up once the blur commit flushes.
-  const pendingCellEditsRef = useRef(new Map<number, string>())
 
   const translations = asset.content?.translations || []
   const canAddLanguages = !(translations.length === 1 && translations[0] === null)
@@ -61,8 +56,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       setSaveButtonText(SAVE_BUTTON_LABEL.idle)
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(false)
-      tableHasUnsavedEditsRef.current = false
-      pendingCellEditsRef.current.clear()
       setPagination({ limit: 10, start: 0 })
     }
   }, [activeView, asset, selectedLangIndex])
@@ -141,9 +134,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   const requestClose = useCallback(() => {
-    // Check both state and ref: ref catches unsaved edits before they commit to state,
-    // state catches them after blur.
-    if (activeView === 'translations' && (isTranslationTableUnsaved || tableHasUnsavedEditsRef.current)) {
+    if (activeView === 'translations' && isTranslationTableUnsaved) {
       setPendingUnsavedConfirm('close')
       return
     }
@@ -188,7 +179,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   function onBackFromTranslations() {
-    if (isTranslationTableUnsaved || tableHasUnsavedEditsRef.current) {
+    if (isTranslationTableUnsaved) {
       setPendingUnsavedConfirm('back')
       return
     }
@@ -202,12 +193,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       return
     }
 
-    const pendingCellEdits = pendingCellEditsRef.current
-
     for (let i = 0; i < tableRows.length; i++) {
       const row = tableRows[i]
-      // The cell's own draft is always at least as fresh as the row.
-      const rowValue = pendingCellEdits.get(i) ?? row.value
       const contentSection = content[row.contentProp]
       if (!contentSection) {
         continue
@@ -221,8 +208,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       const itemRecord = item as Record<string, Array<string | null> | undefined> | undefined
       const itemProperty = itemRecord?.[row.itemProp]
 
-      if (itemProperty && itemProperty[selectedLangIndex] !== rowValue) {
-        itemProperty[selectedLangIndex] = rowValue
+      if (itemProperty && itemProperty[selectedLangIndex] !== row.value) {
+        itemProperty[selectedLangIndex] = row.value
       }
     }
 
@@ -234,8 +221,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       setSaveButtonText(SAVE_BUTTON_LABEL.idle)
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(false)
-      tableHasUnsavedEditsRef.current = false
-      pendingCellEditsRef.current.clear()
     } else {
       setSaveButtonText(SAVE_BUTTON_LABEL.dirty)
       setIsSavingTable(false)
@@ -299,26 +284,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     }
   }
 
-  const onStartEditingCell = useCallback(() => {
-    // Only flip the ref here — never call a setState. Triggering a parent
-    // re-render mid-keystroke (the first keystroke in particular) makes the
-    // Mantine autosize Textarea lose focus, so the asterisk in the save button
-    // is handled locally inside TranslationsEditor instead. The close/back
-    // guards read this ref to catch unsaved edits before onBlur commits them.
-    tableHasUnsavedEditsRef.current = true
-  }, [])
-
-  const onEditTranslationCell = useCallback((absoluteIndex: number, value: string) => {
-    // Runs on every keystroke, so ref writes only — a setState here would steal
-    // the textarea's focus, same as in `onStartEditingCell` above.
-    pendingCellEditsRef.current.set(absoluteIndex, value)
-    tableHasUnsavedEditsRef.current = true
-  }, [])
-
   const onChangeTranslationCell = useCallback((absoluteIndex: number, value: string) => {
-    // Commit the edited value only after blur, when the textarea is no longer
-    // focused and a parent render can safely happen. This is where we update the
-    // state to show the * in the save button and fully mark the table as dirty.
     setTableRows((prev) =>
       prev.map((row, idx) => {
         if (idx !== absoluteIndex) {
@@ -330,7 +296,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         }
       }),
     )
-    tableHasUnsavedEditsRef.current = true
     setIsTranslationTableUnsaved(true)
     setSaveButtonText(SAVE_BUTTON_LABEL.dirty)
   }, [])
@@ -398,8 +363,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
               const action = pendingUnsavedConfirm
               setPendingUnsavedConfirm(null)
               setIsTranslationTableUnsaved(false)
-              tableHasUnsavedEditsRef.current = false
-              pendingCellEditsRef.current.clear()
 
               if (action === 'close') {
                 props.onRequestClose()
@@ -520,8 +483,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
           onSave={saveTableChanges}
           onToggleInlineLanguageForm={toggleInlineLanguageForm}
           onLanguageChange={onLanguageChange}
-          onStartEditing={onStartEditingCell}
-          onEditCell={onEditTranslationCell}
           onChangeCell={onChangeTranslationCell}
         />
       )}
