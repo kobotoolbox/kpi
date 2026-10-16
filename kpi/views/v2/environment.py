@@ -304,5 +304,5 @@ class EnvironmentView(APIView):
     def static_configs(self, request):
         return {
             'open_rosa_server': settings.KOBOCAT_URL,
-            'limited_count_max_rows': settings.LIMITED_COUNT_MAX_ROWS,
+            'limited_count_max_rows': settings.API_LIMITED_COUNT_MAX,
         }

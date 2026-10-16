@@ -456,17 +456,17 @@ class MongoHelper:
         """
         Count the submissions matching `query` the same way as
         `LimitedCountPagination`: an exact number up to
-        `settings.LIMITED_COUNT_MAX_ROWS`, 'many' past it and 'unknown' when
+        `settings.API_LIMITED_COUNT_MAX`, 'many' past it and 'unknown' when
         the count times out
         """
-        max_rows = settings.LIMITED_COUNT_MAX_ROWS
+        max_rows = settings.API_LIMITED_COUNT_MAX
         try:
             # `limit` adds a `$limit` stage after `$match`, so the count stops
             # after `max_rows + 1` documents
             count = settings.MONGO_DB.instances.count_documents(
                 query,
                 limit=max_rows + 1,
-                maxTimeMS=settings.LIMITED_COUNT_TIMEOUT_MS or cls.get_max_time_ms(),
+                maxTimeMS=settings.API_LIMITED_COUNT_TIMEOUT or cls.get_max_time_ms(),
             )
         except ExecutionTimeout:
             return LIMITED_COUNT_UNKNOWN

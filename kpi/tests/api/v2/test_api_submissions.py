@@ -818,7 +818,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
     def test_list_submissions_count_is_capped(self):
         """
-        Test that the count is exact up to `LIMITED_COUNT_MAX_ROWS` and 'many'
+        Test that the count is exact up to `API_LIMITED_COUNT_MAX` and 'many'
         past it, in JSON and in XML
         """
         xml_url = reverse(
@@ -826,7 +826,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             kwargs={'uid_asset': self.asset.uid, 'format': 'xml'},
         )
 
-        with override_settings(LIMITED_COUNT_MAX_ROWS=6):
+        with override_settings(API_LIMITED_COUNT_MAX=6):
             response = self.client.get(self.submission_list_url, {'format': 'json'})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data['count'], 6)
@@ -834,7 +834,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertIn('<count>6</count>', response.content.decode())
 
-        with override_settings(LIMITED_COUNT_MAX_ROWS=5):
+        with override_settings(API_LIMITED_COUNT_MAX=5):
             response = self.client.get(self.submission_list_url, {'format': 'json'})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data['count'], 'many')
@@ -869,8 +869,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
     def test_list_submissions_count_uses_limited_count_settings(self):
         """
-        Test that the count stops after `LIMITED_COUNT_MAX_ROWS + 1` documents
-        and uses `LIMITED_COUNT_TIMEOUT_MS` as its time limit when it is set
+        Test that the count stops after `API_LIMITED_COUNT_MAX + 1` documents
+        and uses `API_LIMITED_COUNT_TIMEOUT` as its time limit when it is set
         """
         with mock.patch.object(
             Collection,
@@ -878,14 +878,14 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             autospec=True,
             side_effect=Collection.count_documents,
         ) as count_documents:
-            with override_settings(LIMITED_COUNT_TIMEOUT_MS=500):
+            with override_settings(API_LIMITED_COUNT_TIMEOUT=500):
                 response = self.client.get(self.submission_list_url, {'format': 'json'})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data['count'], 6)
             count_documents.assert_called_once()
             kwargs = count_documents.call_args.kwargs
             self.assertEqual(kwargs['maxTimeMS'], 500)
-            self.assertEqual(kwargs['limit'], settings.LIMITED_COUNT_MAX_ROWS + 1)
+            self.assertEqual(kwargs['limit'], settings.API_LIMITED_COUNT_MAX + 1)
 
             # Default (0) falls back to the regular query time limit
             count_documents.reset_mock()
@@ -918,7 +918,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
         submission_ids = sorted(s['_id'] for s in self.submissions)
 
-        with override_settings(LIMITED_COUNT_MAX_ROWS=1):
+        with override_settings(API_LIMITED_COUNT_MAX=1):
             pages = [get_page(start, 2) for start in (0, 2, 4)]
 
         self.assertEqual(pages[0]['count'], 'many')
