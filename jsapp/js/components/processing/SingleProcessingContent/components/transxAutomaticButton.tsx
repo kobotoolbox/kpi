@@ -11,6 +11,8 @@ interface TransxAutomaticButtonProps {
   /** Which type of service the button should check availability for. */
   type: 'transcript' | 'translation'
   disabled?: boolean
+  /** Shows the button as pending on top of its own availability check */
+  isPending?: boolean
 }
 
 interface TransxAutomaticButtonState {
@@ -91,7 +93,7 @@ export default class TransxAutomaticButton extends React.Component<
           label={t('automatic')}
           onClick={this.props.onClick}
           isDisabled={this.props.disabled || !this.state.isAvailable}
-          isPending={this.state.isLoading}
+          isPending={this.state.isLoading || this.props.isPending}
         />
       )
     } else {
