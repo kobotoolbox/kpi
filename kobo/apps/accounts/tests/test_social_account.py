@@ -604,6 +604,7 @@ class SocialAccountLogoutTestCase(TestCase):
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
             end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+            post_logout_redirect_uri='https://kpi.example.com/login/',
         )
 
         request = self._get_authenticated_request()
