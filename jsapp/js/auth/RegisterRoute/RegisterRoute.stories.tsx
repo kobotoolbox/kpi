@@ -51,7 +51,10 @@ const supportingEnvironmentMock = makeAuthConfigurationMock(
   { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
 )
 
-/** An instance that asks for every profile field it can and requires most of them */
+/**
+ * An instance that asks for every profile field it can and requires most of them, the newsletter opt in
+ * included, under a label of its own.
+ */
 const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
   terms_of_service_url: TERMS_OF_SERVICE_URL,
   privacy_policy_url: PRIVACY_POLICY_URL,
@@ -65,11 +68,7 @@ const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
     { name: 'gender', required: false, label: 'Gender' },
     { name: 'bio', required: true, label: 'Bio' },
     { name: 'city', required: true, label: 'City' },
-    {
-      name: 'newsletter_subscription',
-      required: false,
-      label: 'I want to receive occasional updates about KoboToolbox',
-    },
+    { name: 'newsletter_subscription', required: true, label: 'Send me the Example Organization digest' },
   ],
 })
 
@@ -80,15 +79,6 @@ const newsletterOffEnvironmentMock = makeEnvironmentMock({
   user_metadata_fields: environmentResponse.user_metadata_fields.filter(
     (metadataField) => metadataField.name !== 'newsletter_subscription',
   ),
-})
-
-/** An instance that renamed the newsletter field and made ticking it mandatory. */
-const newsletterRequiredEnvironmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-  user_metadata_fields: [
-    { name: 'newsletter_subscription', required: true, label: 'Send me the Example Organization digest' },
-  ],
 })
 
 /** An organization that signs in through SSO and owns `kbtdev.org` addresses. */
@@ -218,7 +208,8 @@ export const ClientValidation: Story = {
 
 /**
  * The profile fields this instance requires through `USER_METADATA_FIELDS` are not asked for here: signup
- * stays short and they are collected after logging in.
+ * stays short and they are collected after logging in. The newsletter opt in is the exception, and it
+ * takes the instance's label and rule.
  */
 export const RequiredProfileFieldsOmitted: Story = {
   parameters: { msw: { handlers: storyHandlers({ environment: requiredProfileFieldsEnvironmentMock }) } },
@@ -239,10 +230,11 @@ export const RequiredProfileFieldsOmitted: Story = {
     ]) {
       expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
     }
+    expect(canvas.getByRole('checkbox', { name: 'Send me the Example Organization digest' })).toBeInTheDocument()
 
     await submit(canvas)
-    // The same five as `ClientValidation`: what the instance configures makes no difference to this form.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
+    // One more than `ClientValidation`, for the newsletter.
+    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
   },
 }
 
@@ -256,21 +248,6 @@ export const NewsletterNotConfigured: Story = {
 
     // The Terms of Service checkbox is the only one left.
     expect(canvas.getAllByRole('checkbox')).toHaveLength(1)
-  },
-}
-
-/** Newsletter field renamed and made mandatory - the checkbox takes the label and the rule */
-export const NewsletterRequired: Story = {
-  parameters: { msw: { handlers: storyHandlers({ environment: newsletterRequiredEnvironmentMock }) } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    await waitForEnvironment(canvas)
-    expect(canvas.getByRole('checkbox', { name: 'Send me the Example Organization digest' })).toBeInTheDocument()
-
-    await submit(canvas)
-    // One more than `ClientValidation`.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
   },
 }
 
