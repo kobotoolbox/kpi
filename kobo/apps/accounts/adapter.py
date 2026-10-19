@@ -4,9 +4,7 @@ import requests
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_KEY
-from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
-from allauth.core.internal.httpkit import is_headless_request
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.helpers import render_authentication_error
@@ -109,19 +107,15 @@ class AccountAdapter(DefaultAccountAdapter):
         active_uid = None
 
         if hasattr(request, 'session'):
-            auth_methods = request.session.get(
-                AUTHENTICATION_METHODS_SESSION_KEY, []
-            )
+            auth_methods = request.session.get(AUTHENTICATION_METHODS_SESSION_KEY, [])
             if auth_methods:
                 latest_auth = auth_methods[-1]
                 if latest_auth.get('method') == 'socialaccount':
-                    active_provider = (
-                        latest_auth.get('provider')
-                        or request.session.get('socialaccount_provider')
-                    )
-                    active_uid = (
-                        latest_auth.get('uid')
-                        or request.session.get('socialaccount_uid')
+                    active_provider = latest_auth.get(
+                        'provider'
+                    ) or request.session.get('socialaccount_provider')
+                    active_uid = latest_auth.get('uid') or request.session.get(
+                        'socialaccount_uid'
                     )
                 else:
                     # User authenticated via password or non-social method;
@@ -178,10 +172,7 @@ class AccountAdapter(DefaultAccountAdapter):
 
         end_session_endpoint = (
             custom_data.end_session_endpoint
-            or (
-                social_app.settings
-                and social_app.settings.get('end_session_endpoint')
-            )
+            or (social_app.settings and social_app.settings.get('end_session_endpoint'))
             or self._discover_end_session_endpoint(social_app)
         )
         if not end_session_endpoint:
