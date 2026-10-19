@@ -561,6 +561,32 @@ class SocialAccountLogoutTestCase(TestCase):
         url = self.adapter.get_logout_redirect_url(request)
         self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
+    def test_password_session_with_stale_session_provider_returns_default_url(
+        self,
+    ):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+
+        request = self._get_authenticated_request()
+        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
+            {'method': 'password', 'at': 1700000000}
+        ]
+        request.session['socialaccount_provider'] = 'keycloak'
+        request.session['socialaccount_uid'] = '12345'
+        request.session['oidc_id_token'] = 'stale-token'
+
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
     def test_pre_social_login_stashes_login_metadata_in_session(self):
         adapter = SocialAccountAdapter()
         account = SocialAccount(
@@ -576,6 +602,55 @@ class SocialAccountLogoutTestCase(TestCase):
         self.assertEqual(request.session.get('oidc_id_token'), 'stashed-id-token')
         self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
         self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')
+
+    def test_pre_social_login_does_not_stash_metadata_during_connect_flow(self):
+        adapter = SocialAccountAdapter()
+        account = SocialAccount(
+            provider='keycloak',
+            uid='kc-uid-1',
+            extra_data={'id_token': 'stashed-id-token'},
+        )
+        sociallogin = SocialLogin(user=self.user, account=account)
+        sociallogin.state = {'process': AuthProcess.CONNECT}
+        request = self._get_authenticated_request()
+
+        adapter.pre_social_login(request, sociallogin)
+
+        self.assertNotIn('oidc_id_token', request.session)
+        self.assertNotIn('socialaccount_provider', request.session)
+        self.assertNotIn('socialaccount_uid', request.session)
+
+    def test_password_user_connects_sso_account_and_logs_out_returns_default_url(
+        self,
+    ):
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+        request = self._get_authenticated_request()
+        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
+            {'method': 'password', 'at': 1700000000}
+        ]
+
+        account = SocialAccount(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        sociallogin = SocialLogin(user=self.user, account=account)
+        sociallogin.state = {'process': AuthProcess.CONNECT}
+
+        social_adapter = SocialAccountAdapter()
+        social_adapter.pre_social_login(request, sociallogin)
+        account.save()
+
+        self.assertNotIn('socialaccount_provider', request.session)
+        self.assertNotIn('oidc_id_token', request.session)
+
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     def test_pre_social_login_ignores_non_string_id_token(self):
         adapter = SocialAccountAdapter()

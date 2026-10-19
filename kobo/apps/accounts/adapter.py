@@ -89,21 +89,27 @@ class AccountAdapter(DefaultAccountAdapter):
             active_uid = None
 
             if hasattr(request, 'session'):
-                active_provider = request.session.get('socialaccount_provider')
-                active_uid = request.session.get('socialaccount_uid')
-                if not active_provider:
-                    auth_methods = request.session.get(
-                        AUTHENTICATION_METHODS_SESSION_KEY, []
-                    )
-                    if auth_methods:
-                        latest_auth = auth_methods[-1]
-                        if latest_auth.get('method') == 'socialaccount':
-                            active_provider = latest_auth.get('provider')
-                            active_uid = latest_auth.get('uid')
-                        else:
-                            # User authenticated via password or non-social method;
-                            # do not trigger RP-initiated logout.
-                            return default_url
+                auth_methods = request.session.get(
+                    AUTHENTICATION_METHODS_SESSION_KEY, []
+                )
+                if auth_methods:
+                    latest_auth = auth_methods[-1]
+                    if latest_auth.get('method') == 'socialaccount':
+                        active_provider = (
+                            latest_auth.get('provider')
+                            or request.session.get('socialaccount_provider')
+                        )
+                        active_uid = (
+                            latest_auth.get('uid')
+                            or request.session.get('socialaccount_uid')
+                        )
+                    else:
+                        # User authenticated via password or non-social method;
+                        # do not trigger RP-initiated logout.
+                        return default_url
+                else:
+                    active_provider = request.session.get('socialaccount_provider')
+                    active_uid = request.session.get('socialaccount_uid')
 
             if active_provider:
                 accounts = SocialAccount.objects.filter(
@@ -254,7 +260,49 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
-        # Stash login metadata and id_token in session for deterministic logout handling
+        # Allow only one linked SSO account per user.
+        # Only the connect flow links a new provider; login/signup are exempt.
+        if sociallogin.state.get('process') == AuthProcess.CONNECT:
+            user = request.user
+            if not user.is_authenticated:
+                return
+
+            incoming = sociallogin.account
+            # Block only if a *different* account is already linked; reconnecting
+            # the same one is fine.
+            blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
+                provider=incoming.provider, uid=incoming.uid
+            )
+            if not blocking_accounts.exists():
+                return
+
+            # Reuse allauth's own error-rendering helper instead of a bespoke
+            # response. Passing `state` through makes this forward-compatible:
+            # once headless mode is enabled it'll redirect SPA callers with
+            # `?error=...` instead of rendering HTML, with no change needed here
+            raise ImmediateHttpResponse(
+                render_authentication_error(
+                    request,
+                    incoming.provider,
+                    error='multiple_sso_not_allowed',
+                    extra_context={
+                        'state': sociallogin.state,
+                        'error_title': t('SSO account already linked'),
+                        'error_message': t(
+                            'You can only link one SSO account at a time. '
+                            'Disconnect your existing SSO account before linking '
+                            'a new one.'
+                        ),
+                        # Already validated against ALLOWED_HOSTS by allauth when
+                        # it stashed the `next` parameter into the session state
+                        'back_url': sociallogin.get_redirect_url(request)
+                        or resolve_url(settings.LOGIN_REDIRECT_URL),
+                    },
+                )
+            )
+
+        # Stash login metadata and id_token in session for deterministic logout handling.
+        # Only login/signup flows establish an active social session; account connection does not.
         account = getattr(sociallogin, 'account', None)
         extra_data = getattr(account, 'extra_data', None)
         id_token = extra_data.get('id_token') if isinstance(extra_data, dict) else None
@@ -264,46 +312,3 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             if account:
                 request.session['socialaccount_provider'] = account.provider
                 request.session['socialaccount_uid'] = account.uid
-
-        """Allow only one linked SSO account per user."""
-        # Only the connect flow links a new provider; login/signup are exempt.
-        if sociallogin.state.get('process') != AuthProcess.CONNECT:
-            return
-
-        user = request.user
-        if not user.is_authenticated:
-            return
-
-        incoming = sociallogin.account
-        # Block only if a *different* account is already linked; reconnecting
-        # the same one is fine.
-        blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
-            provider=incoming.provider, uid=incoming.uid
-        )
-        if not blocking_accounts.exists():
-            return
-
-        # Reuse allauth's own error-rendering helper instead of a bespoke
-        # response. Passing `state` through makes this forward-compatible:
-        # once headless mode is enabled it'll redirect SPA callers with
-        # `?error=...` instead of rendering HTML, with no change needed here
-        raise ImmediateHttpResponse(
-            render_authentication_error(
-                request,
-                incoming.provider,
-                error='multiple_sso_not_allowed',
-                extra_context={
-                    'state': sociallogin.state,
-                    'error_title': t('SSO account already linked'),
-                    'error_message': t(
-                        'You can only link one SSO account at a time. '
-                        'Disconnect your existing SSO account before linking '
-                        'a new one.'
-                    ),
-                    # Already validated against ALLOWED_HOSTS by allauth when
-                    # it stashed the `next` parameter into the session state
-                    'back_url': sociallogin.get_redirect_url(request)
-                    or resolve_url(settings.LOGIN_REDIRECT_URL),
-                },
-            )
-        )
