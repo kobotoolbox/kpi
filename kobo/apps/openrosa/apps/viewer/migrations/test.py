@@ -43,6 +43,7 @@ def run():
                 while instance_pks := get_instances_queryset(
                     xform.pk, format_updated_date, last_instance_id_for_form
                 ):
+                    logging.info(f'{instance_pks=}')
                     try:
                         settings.MONGO_DB.instances.update_many(
                             {
@@ -62,6 +63,7 @@ def run():
                     except PyMongoError:
                         error = True
                     last_instance_id_for_form = instance_pks[-1]
+                    logging.info(f'{last_instance_id_for_form=}')
                     cache.set(
                         f'{LAST_XFORM_ID_CACHE_KEY}:{xform.id}',
                         last_instance_id_for_form,
@@ -76,6 +78,7 @@ def run():
                     f'[LRM 0033] - XForm #{xform.pk} ({xform.id_string}) - Done'
                 )
                 last_xform_id = xform.pk
+                logging.info(f'{last_xform_id=}')
                 cache.set(LAST_XFORM_ID_CACHE_KEY, last_xform_id, timeout=None)
 
 
