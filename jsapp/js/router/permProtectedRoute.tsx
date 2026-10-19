@@ -12,6 +12,7 @@ import { userCan, userCanPartially } from '#/components/permissions/utils'
 import { decodeURLParamWithSlash } from '#/components/processing/routes.utils'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
+import RouteGuardSpinner from '#/router/RouteGuardSpinner'
 import AccessDenied from '#/router/accessDenied'
 import type { WithRouterProps } from '#/router/legacy'
 import profileStore from '#/stores/profile'
@@ -86,7 +87,7 @@ const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, err
 
   // Navigation happens in an effect, so the spinner also covers the render that starts it.
   if (shouldGoToLogin || decision === 'wait') {
-    return <LoadingSpinner />
+    return <RouteGuardSpinner />
   }
 
   return <AccessDenied errorMessage={errorMessage} />
@@ -258,7 +259,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
 
   render() {
     if (!this.state.isLoadAssetFinished) {
-      return <LoadingSpinner />
+      return <RouteGuardSpinner />
     } else if (this.state.userHasRequiredPermissions) {
       const filteredProps = this.filterProps(this.props)
       return (
