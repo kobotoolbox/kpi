@@ -103,27 +103,38 @@ class AccountAdapter(DefaultAccountAdapter):
         Returns None if authenticated via a non-social method (e.g. password)
         or if the active account cannot be uniquely resolved.
         """
-        active_provider = None
-        active_uid = None
+        if not hasattr(request, 'session'):
+            return None
 
-        if hasattr(request, 'session'):
-            auth_methods = request.session.get(AUTHENTICATION_METHODS_SESSION_KEY, [])
-            if auth_methods:
-                latest_auth = auth_methods[-1]
-                if latest_auth.get('method') == 'socialaccount':
-                    active_provider = latest_auth.get(
-                        'provider'
-                    ) or request.session.get('socialaccount_provider')
-                    active_uid = latest_auth.get('uid') or request.session.get(
-                        'socialaccount_uid'
-                    )
-                else:
-                    # User authenticated via password or non-social method;
-                    # do not trigger RP-initiated logout.
-                    return None
-            else:
-                active_provider = request.session.get('socialaccount_provider')
-                active_uid = request.session.get('socialaccount_uid')
+        auth_methods = request.session.get(AUTHENTICATION_METHODS_SESSION_KEY, [])
+        login_records = [
+            record for record in auth_methods if not record.get('reauthenticated')
+        ]
+        if login_records:
+            social_record = next(
+                (
+                    record
+                    for record in login_records
+                    if record.get('method') == 'socialaccount'
+                ),
+                None,
+            )
+            if not social_record:
+                # Session started via password or other non-social method;
+                # do not trigger RP-initiated logout.
+                return None
+
+            active_provider = (
+                social_record.get('provider')
+                or request.session.get('socialaccount_provider')
+            )
+            active_uid = (
+                social_record.get('uid')
+                or request.session.get('socialaccount_uid')
+            )
+        else:
+            active_provider = request.session.get('socialaccount_provider')
+            active_uid = request.session.get('socialaccount_uid')
 
         if active_provider:
             accounts = SocialAccount.objects.filter(
