@@ -587,6 +587,75 @@ class SocialAccountLogoutTestCase(TestCase):
         url = self.adapter.get_logout_redirect_url(request)
         self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
+    def test_sso_session_with_password_reauthentication_still_triggers_rp_logout(
+        self,
+    ):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+            post_logout_redirect_uri='https://kpi.example.com/login/',
+        )
+
+        request = self._get_authenticated_request()
+        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
+            {
+                'method': 'socialaccount',
+                'provider': 'keycloak',
+                'uid': '12345',
+                'at': 1700000000,
+            },
+            {
+                'method': 'password',
+                'at': 1700000500,
+                'reauthenticated': True,
+            },
+        ]
+
+        url = self.adapter.get_logout_redirect_url(request)
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+
+        self.assertEqual(
+            f'{parsed.scheme}://{parsed.netloc}{parsed.path}',
+            'https://idp.com/protocol/openid-connect/logout',
+        )
+        self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
+        self.assertEqual(
+            query.get('post_logout_redirect_uri'),
+            ['https://kpi.example.com/login/'],
+        )
+
+    def test_password_session_with_password_reauthentication_returns_default_url(
+        self,
+    ):
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+            extra_data={'id_token': 'my-id-token'},
+        )
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+        )
+
+        request = self._get_authenticated_request()
+        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
+            {'method': 'password', 'at': 1700000000},
+            {'method': 'password', 'at': 1700000500, 'reauthenticated': True},
+        ]
+
+        url = self.adapter.get_logout_redirect_url(request)
+        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+
     def test_pre_social_login_stashes_login_metadata_in_session(self):
         adapter = SocialAccountAdapter()
         account = SocialAccount(
