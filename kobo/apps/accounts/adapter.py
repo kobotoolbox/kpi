@@ -201,15 +201,20 @@ class AccountAdapter(DefaultAccountAdapter):
 
         try:
             resp = requests.get(well_known_url, timeout=5)
-            if resp.status_code == 200:
-                endpoint = resp.json().get('end_session_endpoint')
-                cache.set(cache_key, endpoint or '', timeout=3600)
-                return endpoint
-        except Exception:
-            pass
+            resp.raise_for_status()
+            endpoint = resp.json().get('end_session_endpoint')
+            value = endpoint or ''
+        except (requests.exceptions.RequestException, ValueError):
+            logging.error(
+                'Failed to retrieve OIDC discovery metadata from %s',
+                well_known_url,
+                exc_info=True,
+            )
+            value = ''
 
-        cache.set(cache_key, '', timeout=300)
-        return None
+        timeout = 3600 if value else 300
+        cache.set(cache_key, value, timeout=timeout)
+        return value or None
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
