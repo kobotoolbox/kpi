@@ -8532,6 +8532,7 @@ paths:
         - Features configurations (MFA, password entropy meter, custom guidance text).
         - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
         - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+        - Pagination behaviour (row limit past which list counts are capped).
       tags:
       - Configuration
       security:
@@ -18527,6 +18528,10 @@ components:
           type: string
           format: uri
           description: The OpenRosa server URL (KC)
+        limited_count_max_rows:
+          type: integer
+          description: 'Row limit past which paginated endpoints using capped counting
+            report `count: ''many''`. Clients can label such counts as "{limit}+"'
       required:
       - academy_url
       - allow_self_account_deletion
@@ -18541,6 +18546,7 @@ components:
       - frontend_max_retry_time
       - frontend_min_retry_time
       - interface_languages
+      - limited_count_max_rows
       - mfa_code_length
       - mfa_enabled
       - mfa_localized_help_text
