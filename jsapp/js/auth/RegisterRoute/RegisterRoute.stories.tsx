@@ -116,7 +116,6 @@ export default meta
 type Story = StoryObj<typeof AuthContainer>
 
 const VALID_INPUT = {
-  name: 'Caroline Herschel',
   email: 'caroline.herschel@kbtdev.org',
   username: 'caroline_herschel',
   password: 'correct horse battery staple',
@@ -135,7 +134,6 @@ async function fillForm(canvas: Canvas, overrides: Partial<typeof VALID_INPUT> =
 
   await waitForEnvironment(canvas)
 
-  await userEvent.type(field(canvas, 'Full name'), values.name)
   await userEvent.type(field(canvas, 'Email'), values.email)
   await userEvent.type(field(canvas, 'Username'), values.username)
   await userEvent.type(field(canvas, 'Password'), values.password)
@@ -195,7 +193,7 @@ export const ClientValidation: Story = {
     await submit(canvas)
 
     // The rules themselves are unit tested in `registerValidation.tests`
-    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
   },
 }
 
@@ -210,13 +208,22 @@ export const RequiredProfileFieldsOmitted: Story = {
 
     await waitForEnvironment(canvas)
 
-    for (const label of ['Country', 'Sector', 'Organization type', 'Organization name', 'Gender', 'Bio', 'City']) {
+    for (const label of [
+      'Full name',
+      'Country',
+      'Sector',
+      'Organization type',
+      'Organization name',
+      'Gender',
+      'Bio',
+      'City',
+    ]) {
       expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
     }
 
     await submit(canvas)
-    // The same six as `ClientValidation`: what the instance configures makes no difference to this form.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+    // The same five as `ClientValidation`: what the instance configures makes no difference to this form.
+    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
   },
 }
 
@@ -242,9 +249,9 @@ export const NoLegalDocuments: Story = {
     await canvas.findByRole('img', { name: 'KoboToolbox' })
     await submit(canvas)
 
-    // Five where `ClientValidation` gets six: the rule has to go away with the checkbox, or nobody could
+    // Four where `ClientValidation` gets five: the rule has to go away with the checkbox, or nobody could
     // ever submit this form.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
+    expect(await canvas.findAllByText('Required field')).toHaveLength(4)
   },
 }
 

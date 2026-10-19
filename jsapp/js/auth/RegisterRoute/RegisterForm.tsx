@@ -14,10 +14,9 @@ import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { AUTH_ROUTES } from '#/router/routerConstants'
-import { validateEmail, validateFullName, validateTermsOfService, validateUsername } from './registerValidation'
+import { validateEmail, validateTermsOfService, validateUsername } from './registerValidation'
 
 interface RegisterFormValues {
-  name: string
   email: string
   username: string
   password: string
@@ -48,7 +47,8 @@ export interface RegisterFormProps {
 /**
  * Signup asks for the least it can: the credentials, the newsletter opt in and the legal agreement. The
  * rest of the profile fields an instance configures through `USER_METADATA_FIELDS` are collected after
- * logging in, so nobody has to fill in a page of details before they have an account.
+ * logging in, so nobody has to fill in a page of details before they have an account. That includes the
+ * full name: the headless endpoint has no field for it, so asking here would only mean asking twice.
  */
 export default function RegisterForm({
   socialApps,
@@ -64,7 +64,6 @@ export default function RegisterForm({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
     initialValues: {
-      name: '',
       email: '',
       username: '',
       password: '',
@@ -73,7 +72,6 @@ export default function RegisterForm({
       termsOfService: false,
     },
     validate: {
-      name: validateFullName,
       email: (value) => validateEmail(value, socialApps),
       username: validateUsername,
       password: validatePassword,
@@ -123,14 +121,12 @@ export default function RegisterForm({
 
     setFormErrors([])
 
-    // TODO: the headless signup endpoint only reads `{email, username, password}` - allauth's `SignupInput`
-    // never runs our `SignupForm`, so everything below it is accepted and quietly dropped, and the
-    // generated `SignupBody` has no room for it either. The cast goes with that fix, in DEV-2807.
+    // TODO: the endpoint takes the two checkboxes since DEV-2807, but the generated `SignupBody` predates
+    // that. The cast goes once the Orval types are regenerated.
     const body = {
       email: values.email.trim(),
       username: values.username.trim(),
       password: values.password,
-      name: values.name.trim(),
       newsletter_subscription: values.newsletterSubscription,
       terms_of_service: values.termsOfService,
     } as SignupBody
@@ -160,13 +156,6 @@ export default function RegisterForm({
       <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
         <Stack gap='xl'>
           <Stack gap='sm'>
-            <TextInput
-              label={t('Full name')}
-              autoComplete='name'
-              key={form.key('name')}
-              {...withAuthFieldError(form.getInputProps('name'))}
-              required
-            />
             <TextInput
               label={t('Email')}
               type='email'
