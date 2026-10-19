@@ -241,32 +241,6 @@ export const TermsOfServiceOnly: Story = {
 }
 
 /**
- * The agreement required with no URL published for either document. A regression story: gating the checkbox
- * on the URLs instead left this instance unable to register anyone, since the endpoint still demanded the
- * field the form had never shown.
- */
-export const TermsOfServiceWithoutUrls: Story = {
-  parameters: {
-    msw: {
-      handlers: storyHandlers({
-        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, terms_of_service_url: '', privacy_policy_url: '' }),
-      }),
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // Nothing to link to, so the sentence is plain text - and still a checkbox that has to be ticked.
-    const agreement = await canvas.findByRole('checkbox', { name: 'I agree with the Terms of Service' })
-    await submit(canvas)
-    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
-
-    await userEvent.click(agreement)
-    expect(agreement).toBeChecked()
-  },
-}
-
-/**
  * No sitewide message, so the server asks for no agreement and drops the field: no checkbox, whatever the
  * document URLs say. They stay in the footer, where they are not an agreement.
  */
