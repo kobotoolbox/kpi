@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             field=models.URLField(
                 blank=True,
                 help_text=(
-                    'Custom OIDC end session endpoint (optional; auto-discovered'
+                    'Custom OIDC end session endpoint (optional; auto-discovered '
                     'if left blank)'
                 ),
                 null=True,
