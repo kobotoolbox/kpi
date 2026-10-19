@@ -85,111 +85,134 @@ class AccountAdapter(DefaultAccountAdapter):
             return default_url
 
         try:
-            active_provider = None
-            active_uid = None
-
-            if hasattr(request, 'session'):
-                auth_methods = request.session.get(
-                    AUTHENTICATION_METHODS_SESSION_KEY, []
-                )
-                if auth_methods:
-                    latest_auth = auth_methods[-1]
-                    if latest_auth.get('method') == 'socialaccount':
-                        active_provider = (
-                            latest_auth.get('provider')
-                            or request.session.get('socialaccount_provider')
-                        )
-                        active_uid = (
-                            latest_auth.get('uid')
-                            or request.session.get('socialaccount_uid')
-                        )
-                    else:
-                        # User authenticated via password or non-social method;
-                        # do not trigger RP-initiated logout.
-                        return default_url
-                else:
-                    active_provider = request.session.get('socialaccount_provider')
-                    active_uid = request.session.get('socialaccount_uid')
-
-            if active_provider:
-                accounts = SocialAccount.objects.filter(
-                    user=request.user, provider=active_provider
-                )
-                if active_uid:
-                    accounts = accounts.filter(uid=active_uid)
-                if accounts.count() != 1:
-                    return default_url
-                social_account = accounts.first()
-            else:
-                # When session has no provider metadata (e.g. legacy sessions or
-                # direct calls), resolve only if the user has exactly one linked
-                # social account. Multiple accounts without session context are
-                # ambiguous and unresolvable.
-                accounts = SocialAccount.objects.filter(user=request.user)
-                if accounts.count() != 1:
-                    return default_url
-                social_account = accounts.first()
-                active_provider = social_account.provider
-
-            try:
-                social_app = get_socialaccount_adapter().get_app(
-                    request, active_provider
-                )
-            except SocialApp.DoesNotExist:
+            social_account = self._resolve_active_social_account(request)
+            if not social_account:
                 return default_url
-            except MultipleObjectsReturned:
-                logging.error(
-                    'Multiple social applications match provider "%s"', active_provider
-                )
-                return default_url
-
-            custom_data = getattr(social_app, 'custom_data', None)
-            if (
-                not custom_data
-                or custom_data.logout_behavior
-                != SocialAppCustomData.LogoutBehavior.RP_INITIATED
-            ):
-                return default_url
-
-            end_session_endpoint = (
-                custom_data.end_session_endpoint
-                or (
-                    social_app.settings
-                    and social_app.settings.get('end_session_endpoint')
-                )
-                or self._discover_end_session_endpoint(social_app)
+            return (
+                self._get_rp_initiated_logout_url(request, social_account)
+                or default_url
             )
-            if not end_session_endpoint:
-                return default_url
-
-            parsed = urlparse(end_session_endpoint)
-            query_params = dict(parse_qsl(parsed.query))
-
-            id_token = (
-                social_account.extra_data.get('id_token')
-                if isinstance(social_account.extra_data, dict)
-                else None
-            ) or (hasattr(request, 'session') and request.session.get('oidc_id_token'))
-            if isinstance(id_token, str) and id_token.strip():
-                query_params['id_token_hint'] = id_token
-
-            post_logout_redirect_uri = (
-                custom_data.post_logout_redirect_uri
-                or (
-                    social_app.settings
-                    and social_app.settings.get('post_logout_redirect_uri')
-                )
-                or request.build_absolute_uri(settings.LOGIN_URL or '/')
-            )
-            if post_logout_redirect_uri:
-                query_params['post_logout_redirect_uri'] = post_logout_redirect_uri
-
-            if social_app.client_id:
-                query_params['client_id'] = social_app.client_id
-
-            return urlunparse(parsed._replace(query=urlencode(query_params)))
         except Exception:
+            logging.error(
+                'Unexpected error resolving RP-initiated logout URL',
+                exc_info=True,
+            )
             return default_url
+
+    def _resolve_active_social_account(self, request):
+        """
+        Identify the SocialAccount associated with the user's active session.
+        Returns None if authenticated via a non-social method (e.g. password)
+        or if the active account cannot be uniquely resolved.
+        """
+        active_provider = None
+        active_uid = None
+
+        if hasattr(request, 'session'):
+            auth_methods = request.session.get(
+                AUTHENTICATION_METHODS_SESSION_KEY, []
+            )
+            if auth_methods:
+                latest_auth = auth_methods[-1]
+                if latest_auth.get('method') == 'socialaccount':
+                    active_provider = (
+                        latest_auth.get('provider')
+                        or request.session.get('socialaccount_provider')
+                    )
+                    active_uid = (
+                        latest_auth.get('uid')
+                        or request.session.get('socialaccount_uid')
+                    )
+                else:
+                    # User authenticated via password or non-social method;
+                    # do not trigger RP-initiated logout.
+                    return None
+            else:
+                active_provider = request.session.get('socialaccount_provider')
+                active_uid = request.session.get('socialaccount_uid')
+
+        if active_provider:
+            accounts = SocialAccount.objects.filter(
+                user=request.user, provider=active_provider
+            )
+            if active_uid:
+                accounts = accounts.filter(uid=active_uid)
+            if accounts.count() != 1:
+                return None
+            return accounts.first()
+
+        # When session has no provider metadata (e.g. legacy sessions or
+        # direct calls), resolve only if the user has exactly one linked
+        # social account. Multiple accounts without session context are
+        # ambiguous and unresolvable.
+        accounts = SocialAccount.objects.filter(user=request.user)
+        if accounts.count() != 1:
+            return None
+        return accounts.first()
+
+    def _get_rp_initiated_logout_url(self, request, social_account):
+        """
+        Build the RP-initiated logout redirect URL for a given SocialAccount,
+        or None if RP logout is not configured or cannot be resolved.
+        """
+        try:
+            social_app = get_socialaccount_adapter().get_app(
+                request, social_account.provider
+            )
+        except SocialApp.DoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            logging.error(
+                'Multiple social applications match provider "%s"',
+                social_account.provider,
+            )
+            return None
+
+        custom_data = getattr(social_app, 'custom_data', None)
+        if (
+            not custom_data
+            or custom_data.logout_behavior
+            != SocialAppCustomData.LogoutBehavior.RP_INITIATED
+        ):
+            return None
+
+        end_session_endpoint = (
+            custom_data.end_session_endpoint
+            or (
+                social_app.settings
+                and social_app.settings.get('end_session_endpoint')
+            )
+            or self._discover_end_session_endpoint(social_app)
+        )
+        if not end_session_endpoint:
+            return None
+
+        parsed = urlparse(end_session_endpoint)
+        query_params = dict(parse_qsl(parsed.query))
+
+        id_token = (
+            social_account.extra_data.get('id_token')
+            if isinstance(social_account.extra_data, dict)
+            else None
+        ) or (hasattr(request, 'session') and request.session.get('oidc_id_token'))
+        if isinstance(id_token, str) and id_token.strip():
+            query_params['id_token_hint'] = id_token
+
+        post_logout_redirect_uri = (
+            custom_data.post_logout_redirect_uri
+            or (
+                social_app.settings
+                and social_app.settings.get('post_logout_redirect_uri')
+            )
+            or request.build_absolute_uri(settings.LOGIN_URL or '/')
+        )
+        if post_logout_redirect_uri:
+            query_params['post_logout_redirect_uri'] = post_logout_redirect_uri
+
+        if social_app.client_id:
+            query_params['client_id'] = social_app.client_id
+
+        return urlunparse(parsed._replace(query=urlencode(query_params)))
 
     def _discover_end_session_endpoint(self, social_app):
         server_url = (social_app.settings or {}).get('server_url')
