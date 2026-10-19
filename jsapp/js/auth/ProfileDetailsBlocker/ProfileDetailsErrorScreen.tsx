@@ -13,8 +13,8 @@ export interface ProfileDetailsErrorScreenProps {
 }
 
 /**
- * What goes up when we cannot tell whether the profile details have to be filled in, because the organization request
- * failed - see {@link useProfileDetailsBlockerState}.
+ * What goes up when we cannot tell whether the profile details have to be filled in, because `/environment` or the
+ * organization request failed - see {@link useProfileDetailsBlockerState}.
  */
 export default function ProfileDetailsErrorScreen({ onRetry }: ProfileDetailsErrorScreenProps) {
   const logout = useLogout()
