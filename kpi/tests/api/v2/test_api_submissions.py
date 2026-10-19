@@ -815,6 +815,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             response_count = response.data.get('count')
         self.assertEqual(response_count, 1)
 
+    @override_settings(API_LIMITED_COUNT_SUBMISSIONS=True)
     def test_list_submissions_count_is_capped(self):
         """
         Test that the count is exact up to `API_LIMITED_COUNT_MAX` and 'many'
@@ -842,6 +843,32 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertIn('<count>many</count>', response.content.decode())
 
+    @override_settings(
+        API_LIMITED_COUNT_SUBMISSIONS=False,
+        API_LIMITED_COUNT_MAX=5,
+        API_LIMITED_COUNT_TIMEOUT=500,
+    )
+    def test_list_submissions_count_is_exact_when_cap_is_off(self):
+        """
+        Test that with `API_LIMITED_COUNT_SUBMISSIONS` off, the count stays
+        exact past `API_LIMITED_COUNT_MAX` and ignores `API_LIMITED_COUNT_TIMEOUT`
+        """
+        with mock.patch.object(
+            Collection,
+            'count_documents',
+            autospec=True,
+            side_effect=Collection.count_documents,
+        ) as count_documents:
+            response = self.client.get(self.submission_list_url, {'format': 'json'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 6)
+        count_documents.assert_called_once()
+        kwargs = count_documents.call_args.kwargs
+        self.assertNotIn('limit', kwargs)
+        self.assertEqual(kwargs['maxTimeMS'], MongoHelper.get_max_time_ms())
+
+    @override_settings(API_LIMITED_COUNT_SUBMISSIONS=True)
     def test_list_submissions_count_unknown_on_timeout(self):
         """
         Test that a count exceeding its time limit is reported as 'unknown'
@@ -866,6 +893,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 6)
 
+    @override_settings(API_LIMITED_COUNT_SUBMISSIONS=True)
     def test_list_submissions_count_uses_limited_count_settings(self):
         """
         Test that the count stops after `API_LIMITED_COUNT_MAX + 1` documents
@@ -896,6 +924,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 MongoHelper.get_max_time_ms(),
             )
 
+    @override_settings(API_LIMITED_COUNT_SUBMISSIONS=True)
     def test_list_submissions_next_link_does_not_depend_on_count(self):
         """
         Test that `next` is set on every page but the last one, whether the

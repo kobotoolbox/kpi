@@ -446,9 +446,16 @@ class MongoHelper:
         cursor = settings.MONGO_DB.instances.find(
             query, fields_to_select, max_time_ms=cls.get_max_time_ms()
         )
-        count = None
-        if not skip_count:
-            count = cls._get_limited_count(query)
+        if skip_count:
+            return cursor, None
+
+        if settings.API_LIMITED_COUNT_SUBMISSIONS:
+            return cursor, cls._get_limited_count(query)
+
+        # Exact count, as before the cap existed
+        count = settings.MONGO_DB.instances.count_documents(
+            query, maxTimeMS=cls.get_max_time_ms()
+        )
         return cursor, count
 
     @classmethod
