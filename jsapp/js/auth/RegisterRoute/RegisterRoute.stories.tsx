@@ -18,6 +18,7 @@ import {
   signupServerErrorMock,
 } from '#/endpoints/allauth.mocks'
 import {
+  environmentResponse,
   environmentServerErrorMock,
   makeAuthConfigurationMock,
   makeEnvironmentMock,
@@ -69,6 +70,24 @@ const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
       required: false,
       label: 'I want to receive occasional updates about KoboToolbox',
     },
+  ],
+})
+
+/** An instance that has switched the newsletter field off, so signup has nowhere to store the opt in. */
+const newsletterOffEnvironmentMock = makeEnvironmentMock({
+  terms_of_service_url: TERMS_OF_SERVICE_URL,
+  privacy_policy_url: PRIVACY_POLICY_URL,
+  user_metadata_fields: environmentResponse.user_metadata_fields.filter(
+    (metadataField) => metadataField.name !== 'newsletter_subscription',
+  ),
+})
+
+/** An instance that renamed the newsletter field and made ticking it mandatory. */
+const newsletterRequiredEnvironmentMock = makeEnvironmentMock({
+  terms_of_service_url: TERMS_OF_SERVICE_URL,
+  privacy_policy_url: PRIVACY_POLICY_URL,
+  user_metadata_fields: [
+    { name: 'newsletter_subscription', required: true, label: 'Send me the Example Organization digest' },
   ],
 })
 
@@ -224,6 +243,34 @@ export const RequiredProfileFieldsOmitted: Story = {
     await submit(canvas)
     // The same five as `ClientValidation`: what the instance configures makes no difference to this form.
     expect(await canvas.findAllByText('Required field')).toHaveLength(5)
+  },
+}
+
+/** Newsletter field switched off by the administrator - no opt in to offer */
+export const NewsletterNotConfigured: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: newsletterOffEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+
+    // The Terms of Service checkbox is the only one left.
+    expect(canvas.getAllByRole('checkbox')).toHaveLength(1)
+  },
+}
+
+/** Newsletter field renamed and made mandatory - the checkbox takes the label and the rule */
+export const NewsletterRequired: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: newsletterRequiredEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+    expect(canvas.getByRole('checkbox', { name: 'Send me the Example Organization digest' })).toBeInTheDocument()
+
+    await submit(canvas)
+    // One more than `ClientValidation`.
+    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
   },
 }
 

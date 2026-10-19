@@ -22,7 +22,8 @@ export function validateUsername(value: string): string | null {
   return null
 }
 
-export function validateTermsOfService(value: boolean): string | null {
+/** For the checkboxes that have to be ticked: the legal agreement, and a newsletter opt in made mandatory. */
+export function validateRequiredCheckbox(value: boolean): string | null {
   return value ? null : getRequiredFieldMessage()
 }
 

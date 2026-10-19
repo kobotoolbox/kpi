@@ -2,6 +2,7 @@ import { Anchor, Checkbox, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { MetadataField } from '#/api/models/metadataField'
 import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
@@ -14,7 +15,7 @@ import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { AUTH_ROUTES } from '#/router/routerConstants'
-import { validateEmail, validateTermsOfService, validateUsername } from './registerValidation'
+import { validateEmail, validateRequiredCheckbox, validateUsername } from './registerValidation'
 
 interface RegisterFormValues {
   email: string
@@ -34,6 +35,11 @@ const SERVER_KNOWN_FIELDS: ReadonlyArray<keyof RegisterFormValues> = ['email', '
 export interface RegisterFormProps {
   /** From `/api/v2/environment/`. Used to spot an email domain that has to sign in through SSO. */
   socialApps: SocialApp[] | undefined
+  /**
+   * The newsletter entry of `USER_METADATA_FIELDS`, from `/api/v2/environment/`. Without one the server
+   * drops the field from signup, so there is no checkbox to show.
+   */
+  newsletterField: MetadataField | undefined
   termsOfServiceUrl: string | null | undefined
   privacyPolicyUrl: string | null | undefined
   /** Blocks submitting until `/environment` loads */
@@ -52,6 +58,7 @@ export interface RegisterFormProps {
  */
 export default function RegisterForm({
   socialApps,
+  newsletterField,
   termsOfServiceUrl,
   privacyPolicyUrl,
   isConfigurationPending,
@@ -78,7 +85,9 @@ export default function RegisterForm({
       passwordConfirm: (value, values) => validatePasswordConfirm(value, values.password),
       // No checkbox to tick when there is no legal document, so nothing to require. Mantine reads these
       // rules fresh on every render, so this follows the label once `/environment` lands.
-      termsOfService: legalLabel ? validateTermsOfService : undefined,
+      termsOfService: legalLabel ? validateRequiredCheckbox : undefined,
+      // An administrator can make the opt in mandatory, odd as that is, and the server then enforces it.
+      newsletterSubscription: newsletterField?.required ? validateRequiredCheckbox : undefined,
     },
   })
 
@@ -188,11 +197,13 @@ export default function RegisterForm({
           </Stack>
 
           <Stack gap='sm'>
-            <Checkbox
-              label={t('I want to receive occasional updates about KoboToolbox')}
-              key={form.key('newsletterSubscription')}
-              {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
-            />
+            {newsletterField && (
+              <Checkbox
+                label={newsletterField.label}
+                key={form.key('newsletterSubscription')}
+                {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
+              />
+            )}
             {legalLabel && (
               <Checkbox
                 label={legalLabel}
