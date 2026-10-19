@@ -1,7 +1,7 @@
 import { Text } from '@mantine/core'
 import { isInRepeatGroup } from '#/components/processing/common/questionType'
 import { isNlpSupported } from '#/components/processing/common/utils'
-import { getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
+import { getCellPreviewText, getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   META_QUESTION_TYPES,
@@ -17,6 +17,7 @@ import {
 } from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
+import styles from './DataTableCell.module.scss'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'
 import SupplementalDetailsCell from './SupplementalDetailsCell'
@@ -207,9 +208,21 @@ export default function DataTableCell(props: DataTableCellProps) {
     )
   }
 
+  // Responses of any length land here, and there is no dialog to read one in full, so a response too long for the
+  // line gets a second, print-only copy. Printing un-trims these cells, and Safari only loses text on a trimmed line.
+  const preview = getCellPreviewText(props.columnValue)
+  const isTrimmed = preview !== props.columnValue
+
   return (
     <span className='trimmed-text' dir='auto'>
-      {props.columnValue}
+      {isTrimmed ? (
+        <>
+          <span className={styles.screenOnly}>{preview}</span>
+          <span className={styles.printOnly}>{props.columnValue}</span>
+        </>
+      ) : (
+        preview
+      )}
     </span>
   )
 }

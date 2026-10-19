@@ -472,6 +472,12 @@ export const accountProvidersMock = (accounts: ProviderAccount[]) =>
 export const accountProvidersServerErrorMock = () =>
   http.get(ACCOUNT_PROVIDERS_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
+/** allauth refusing to remove a connection. The section writes its own copy from `code`, so `message` is filler. */
+export const accountProvidersDisconnectRefusedMock = (code: string, message = 'allauth refused.') =>
+  http.delete(ACCOUNT_PROVIDERS_URL, () =>
+    HttpResponse.json({ status: 400, errors: [{ code, message }] }, { status: 400 }),
+  )
+
 /** A connection lookup that never answers, so the section stays in its loading state. */
 export const accountProvidersNeverAnswersMock = () =>
   http.get(ACCOUNT_PROVIDERS_URL, async () => {
