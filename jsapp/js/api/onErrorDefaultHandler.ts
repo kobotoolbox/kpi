@@ -39,6 +39,24 @@ export function getApiErrorMessage(error: OrvalFetchError): string | null {
 }
 
 /**
+ * Returns messages from rejection filed under `field`, for displaying next to that input. Empty when the failure
+ * belongs to no field, so callers can pass those on to {@link onErrorDefaultHandler}.
+ *
+ * Accepts both shapes seen in the wild: `{field: [message]}` and `{field: message}`.
+ */
+export function getFieldErrors(error: OrvalFetchError, field: string): string[] {
+  if (!(error instanceof ServerError)) {
+    return []
+  }
+
+  const messages = (error.parsedResponse as Record<string, unknown> | undefined)?.[field]
+  if (typeof messages === 'string') {
+    return [messages]
+  }
+  return Array.isArray(messages) ? messages.filter((message): message is string => typeof message === 'string') : []
+}
+
+/**
  * By default, every Orval request handles error with this routine, and the default can be overriden on per-hook basis.
  *
  * Error handling policy:
