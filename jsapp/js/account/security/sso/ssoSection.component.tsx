@@ -88,7 +88,19 @@ export default function SsoSection() {
   const connectedApp = connectedAccount ? findAppForProviderAccount(envStore.data, connectedAccount) : undefined
   const isManaged = connectedApp?.managed ?? false
 
-  const disconnectProvider = useAllauthBrowserV1AccountProvidersDelete()
+  const disconnectProvider = useAllauthBrowserV1AccountProvidersDelete({
+    mutation: {
+      // Here rather than in `mutate()`, whose callbacks are dropped if the user leaves the screen mid-request.
+      onSuccess: async (response) => {
+        if (response.status !== 200) {
+          return
+        }
+        // `/me/` keeps its own copy of the connections, which the password and email sections read, so refresh both
+        await queryClient.invalidateQueries({ queryKey: getAllauthBrowserV1AccountProvidersGetQueryKey() })
+        refreshAccount()
+      },
+    },
+  })
   const [disconnectErrorMessage, setDisconnectErrorMessage] = useState<string | null>(null)
 
   function disconnectSocialAccount(account: ProviderAccount) {
@@ -97,18 +109,13 @@ export default function SsoSection() {
     disconnectProvider.mutate(
       { data: { provider: account.provider.id, account: account.uid } },
       {
-        onSuccess: async (response) => {
+        onSuccess: (response) => {
           // `fetchAllauth` hands 4xx back as data, so a refusal lands here, not in `onError`. allauth refuses
           // when disconnecting would leave no way into the account.
           // TODO: DEV-1971 a 401 here is a reauthentication ask, not a refusal
           if (response.status !== 200) {
             setDisconnectErrorMessage(getSsoDisconnectErrorMessage(getFirstAllauthErrorCode(response)))
-            return
           }
-
-          // `/me/` keeps its own copy of the connections, which the password and email sections read, so refresh both
-          await queryClient.invalidateQueries({ queryKey: getAllauthBrowserV1AccountProvidersGetQueryKey() })
-          refreshAccount()
         },
         // Only a 5xx gets here, and it says nothing useful.
         onError: () => setDisconnectErrorMessage(getSsoDisconnectErrorMessage(undefined)),
