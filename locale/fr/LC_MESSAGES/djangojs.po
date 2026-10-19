@@ -38,7 +38,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 15:50+0000\n"
+"POT-Creation-Date: 2026-10-09 16:39+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Salomé Garnier, 2026\n"
 "Language-Team: French (http://app.transifex.com/kobotoolbox/kobotoolbox/language/fr/)\n"
@@ -48,11 +48,15 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
-#: jsapp/js/UniversalTable/UniversalTableCore.tsx:410
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:371
+msgid "There is no data to display."
+msgstr ""
+
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:422
 msgid "Page ##current_page## of ##total_pages##"
 msgstr ""
 
-#: jsapp/js/UniversalTable/UniversalTableCore.tsx:441
+#: jsapp/js/UniversalTable/UniversalTableCore.tsx:453
 msgid "##number## rows"
 msgstr ""
 
@@ -109,37 +113,37 @@ msgstr "Pour terminer cette action, veuillez saisir votre nom d'utilisateur ci-d
 #: jsapp/js/account/DeleteAccountModal.tsx:66
 #: jsapp/js/account/organization/InviteeActionsDropdown.tsx:69
 #: jsapp/js/account/organization/MemberRemoveModal.tsx:87
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:119
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:110
-#: jsapp/js/alertify.ts:170 jsapp/js/assetQuickActions.tsx:80
-#: jsapp/js/assetQuickActions.tsx:112 jsapp/js/assetQuickActions.tsx:154
-#: jsapp/js/assetQuickActions.tsx:223 jsapp/js/assetQuickActions.tsx:297
-#: jsapp/js/assetQuickActions.tsx:348
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:122
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:132
+#: jsapp/js/alertify.ts:170 jsapp/js/assetQuickActions.tsx:81
+#: jsapp/js/assetQuickActions.tsx:113 jsapp/js/assetQuickActions.tsx:155
+#: jsapp/js/assetQuickActions.tsx:224 jsapp/js/assetQuickActions.tsx:298
+#: jsapp/js/assetQuickActions.tsx:349
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:125
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:98
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:96
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:103
 #: jsapp/js/components/common/openKoboConfirmModal.tsx:13
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:287
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:76
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:77
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:162
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:248
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:247
 #: jsapp/js/components/permissions/userPermissionRow.component.tsx:159
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:159
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:158
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ConfirmEditModal.tsx:26
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:149
 #: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:16
 #: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:65
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/BulkApproveModal.tsx:171
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkProcessingWarningModal.tsx:25
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:313
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:237
-#: jsapp/js/components/submissions/submissionModal.tsx:268
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:100
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:161
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:361
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:563
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:584 jsapp/js/mixins.tsx:119
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:307
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:221
+#: jsapp/js/components/submissions/submissionModal.tsx:273
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:99
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:160
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:360
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:562
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:583 jsapp/js/mixins.tsx:119
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:376
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:424
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:464
@@ -148,23 +152,23 @@ msgstr "Pour terminer cette action, veuillez saisir votre nom d'utilisateur ci-d
 msgid "Cancel"
 msgstr "Annuler"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:22
+#: jsapp/js/account/accountFieldsEditor.component.tsx:24
 msgid "Male"
 msgstr "Homme"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:23
+#: jsapp/js/account/accountFieldsEditor.component.tsx:25
 msgid "Female"
 msgstr "Femme"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:24
+#: jsapp/js/account/accountFieldsEditor.component.tsx:26
 msgid "Other"
 msgstr "Autre"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:206
+#: jsapp/js/account/accountFieldsEditor.component.tsx:209
 msgid "Use this to display your real name to other users"
 msgstr "Utilisez cette option pour afficher votre vrai nom aux autres utilisateurs"
 
-#: jsapp/js/account/accountFieldsEditor.component.tsx:426
+#: jsapp/js/account/accountFieldsEditor.component.tsx:437
 msgid "Newsletter"
 msgstr "Newsletter"
 
@@ -178,7 +182,7 @@ msgstr "Profil mis à jour avec succès"
 
 #: jsapp/js/account/accountSettingsRoute.tsx:138
 #: jsapp/js/project/FormLanguagesManager/utils.ts:10
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:94
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:93
 msgid "Save Changes"
 msgstr "Sauvegarder les modifications"
 
@@ -189,8 +193,8 @@ msgstr "Profil"
 
 #: jsapp/js/account/accountSidebar.tsx:44
 #: jsapp/js/account/accountSidebar.tsx:70
-#: jsapp/js/account/security/securityRoute.component.tsx:15
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:277
+#: jsapp/js/account/security/securityRoute.component.tsx:22
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:278
 msgid "Security"
 msgstr "Sécurité"
 
@@ -214,7 +218,7 @@ msgid "ACCOUNT"
 msgstr "COMPTE"
 
 #: jsapp/js/account/accountSidebar.tsx:74
-#: jsapp/js/account/organization/MembersRoute.tsx:202
+#: jsapp/js/account/organization/MembersRoute.tsx:331
 msgid "Members"
 msgstr "Membres"
 
@@ -278,7 +282,7 @@ msgid "Increase your transcription minutes and translations characters."
 msgstr ""
 
 #: jsapp/js/account/addOns/addOns.component.tsx:187
-#: jsapp/js/account/usage/usage.component.tsx:216
+#: jsapp/js/account/usage/usage.component.tsx:228
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:132
 msgid "Automatic analysis requests"
 msgstr ""
@@ -292,7 +296,7 @@ msgid "your active add-ons"
 msgstr ""
 
 #: jsapp/js/account/addOns/addOns.component.tsx:201
-#: jsapp/js/account/organization/MembersRoute.tsx:97
+#: jsapp/js/account/organization/MembersRoute.tsx:205
 msgid "Active"
 msgstr "Actif"
 
@@ -328,13 +332,13 @@ msgstr "Saisir nom d'utilisateur ou adresse e-mail"
 
 #: jsapp/js/account/organization/InviteModal.tsx:99
 #: jsapp/js/account/organization/MemberRoleSelector.tsx:51
-#: jsapp/js/account/organization/MembersRoute.tsx:123
+#: jsapp/js/account/organization/MembersRoute.tsx:231
 msgid "Admin"
 msgstr "Admin"
 
 #: jsapp/js/account/organization/InviteModal.tsx:103
 #: jsapp/js/account/organization/MemberRoleSelector.tsx:55
-#: jsapp/js/account/organization/MembersRoute.tsx:125
+#: jsapp/js/account/organization/MembersRoute.tsx:233
 msgid "Member"
 msgstr "Membre"
 
@@ -369,7 +373,8 @@ msgid "Resend invitation"
 msgstr "Invitation renvoyée"
 
 #: jsapp/js/account/organization/MemberActionsDropdown.tsx:48
-#: jsapp/js/assetQuickActions.tsx:297
+#: jsapp/js/account/security/email/emailSection.component.tsx:191
+#: jsapp/js/assetQuickActions.tsx:298
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:117
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:155
 #: jsapp/js/components/permissions/userPermissionRow.component.tsx:163
@@ -416,61 +421,98 @@ msgid ""
 "##TEAM_OR_ORGANIZATION##. This action cannot be undone."
 msgstr "Vous perdrez immédiatement l'accès à tous les projets appartenant à cette équipe. Cette action ne peut pas être annulée."
 
-#: jsapp/js/account/organization/MembersRoute.tsx:71
+#: jsapp/js/account/organization/MembersRoute.tsx:65
+msgid "Type at least ##CHARACTER_COUNT## characters to search"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:179
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:83
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:239
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:240
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:59
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:266
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:269
 msgid "Name"
 msgstr "Nom"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:90
+#: jsapp/js/account/organization/MembersRoute.tsx:198
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:194
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:90
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:90
 #: jsapp/js/projects/projectViews/constants.ts:166
 msgid "Status"
 msgstr "Statut"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:95
+#: jsapp/js/account/organization/MembersRoute.tsx:203
 msgid "Invited"
 msgstr "Invité(e)"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:103
+#: jsapp/js/account/organization/MembersRoute.tsx:211
 msgid "Date added"
 msgstr "Date ajouté(e)"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:112
+#: jsapp/js/account/organization/MembersRoute.tsx:220
 msgid "Role"
 msgstr "Rôle"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:121
+#: jsapp/js/account/organization/MembersRoute.tsx:229
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:73
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:102
 #: jsapp/js/components/library/assetInfoBox.tsx:89
 #: jsapp/js/components/templatesList.js:65
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:102
 #: jsapp/js/projects/projectViews/constants.ts:173
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:127
+#: jsapp/js/account/organization/MembersRoute.tsx:235
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:169
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:151
+#: jsapp/js/account/organization/MembersRoute.tsx:259
 msgid "2FA"
 msgstr "A2F"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:212
-#: jsapp/js/account/organization/MembersRoute.tsx:223
+#: jsapp/js/account/organization/MembersRoute.tsx:273
+msgid "Activate SSO add-on to enable"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:273
+msgid "SSO status"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:274
+msgid "SSO"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:325
+msgid "No members match \"##SEARCH_PHRASE##\""
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:326
+msgid "There are no members to display."
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:337
+#: jsapp/js/account/organization/MembersRoute.tsx:340
+msgid "Search members"
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:352
+#: jsapp/js/account/organization/MembersRoute.tsx:363
 msgid "Invite members"
 msgstr "Inviter membres"
 
-#: jsapp/js/account/organization/MembersRoute.tsx:216
+#: jsapp/js/account/organization/MembersRoute.tsx:356
 msgid ""
 "Invite more people to join your ##TEAM_OR_ORGANIZATION## or change their "
 "role permissions below."
 msgstr "Invitez plus de personnes à rejoindre votre ##TEAM_OR_ORGANIZATION## ou modifiez leurs droits d'accès ci-dessous."
+
+#: jsapp/js/account/organization/MembersRoute.tsx:380
+msgid "Could not search the members list. Try a different phrase."
+msgstr ""
+
+#: jsapp/js/account/organization/MembersRoute.tsx:381
+msgid "Could not load the members list."
+msgstr ""
 
 #: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:24
 msgid "Non-profit organization"
@@ -518,23 +560,23 @@ msgstr "Nom de l'équipe"
 msgid "##TEAM_OR_ORGANIZATION## website"
 msgstr "Site web de l'équipe"
 
-#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:159
+#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:158
 msgid "##TEAM_OR_ORGANIZATION## type"
 msgstr "Type d'équipe"
 
-#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:176
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:330
+#: jsapp/js/account/organization/OrganizationSettingsRoute.tsx:175
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:331
 #: jsapp/js/components/map/MapSettings.tsx:417
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:250
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:418
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:157
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:201
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:200
-#: jsapp/js/components/reports/customReportEditor.component.tsx:142
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:253
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:406
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:156
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:198
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:197
+#: jsapp/js/components/reports/customReportEditor.component.tsx:141
 #: jsapp/js/components/reports/reportStyleSettings.component.tsx:240
 #: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx:198
 #: jsapp/js/components/submissions/TableSettings.tsx:176
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:219
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:213
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -546,62 +588,62 @@ msgid ""
 "minutes to complete."
 msgstr "Ce compte est dorénavant géré par ##TEAM_OR_ORGANIZATION_NAME##. Tous les projets appartenant à votre compte précédemment sont en cours de transfert et appartiendront à ##TEAM_OR_ORGANIZATION_NAME##. Ce processus peut prendre quelques minutes."
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:49
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:51
 msgid "Invitation successfully accepted"
 msgstr "Invitation acceptée avec succès"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:51
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:53
 msgid "Invitation successfully declined"
 msgstr "Invitation refusée avec succès"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:92
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:95
 msgid "Invitation not found"
 msgstr "Invitation non trouvée"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:96
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:99
 msgid "Could not find invitation ##invite_id## from organization ##org_id##"
 msgstr "Invitation ##invite_id## de l'organisation ##org_id## non trouvée"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:104
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:178
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:107
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:181
 msgid "Unable to join ##TEAM_OR_ORGANIZATION_NAME##"
 msgstr " Échec de la fusion avec ##TEAM_OR_ORGANIZATION_NAME##"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:108
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:111
 msgid "Failed to respond to invitation"
 msgstr "Échec de réponse à l'invitation"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:123
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:126
 msgid "Sign out"
 msgstr "Se déconnecter"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:135
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:138
 msgid "Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##"
 msgstr "Accepter l'invitation pour rejoindre ##TEAM_OR_ORGANIZATION_NAME##"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:143
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:146
 msgid ""
 "When you accept this invitation, all of the submissions, data storage, and "
 "transcription and translation usage for all projects will be transferred to "
 "the ##TEAM_OR_ORGANIZATION##."
 msgstr "Lorsque vous acceptez cette invitation, toutes les soumissions, les fichiers stockés, ainsi que l'utilisation des transcriptions et traductions pour tous les projets seront transférés à l'équipe."
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:149
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:152
 msgid "Note: Once you accept, transfer might take a few minutes to complete."
 msgstr "Remarque : une fois que vous avez accepté, le transfert peut prendre quelques minutes."
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:159
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:162
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:130
 msgid "Decline"
 msgstr "Refuser"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:170
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:239
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:173
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:237
 #: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx:138
 msgid "Accept"
 msgstr "Accepter"
 
-#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:179
+#: jsapp/js/account/organization/invites/OrgInviteModal.tsx:182
 msgid "This invitation is no longer available for a response"
 msgstr "Cette invitation n'est plus valide."
 
@@ -631,7 +673,7 @@ msgstr "organisations"
 
 #: jsapp/js/account/organization/organization.utils.tsx:39
 #: jsapp/js/components/library/assetInfoBox.tsx:127
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:284
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:287
 #: jsapp/js/projects/projectViews/viewSwitcher.tsx:53
 msgid "Organization"
 msgstr "Organisation"
@@ -711,96 +753,100 @@ msgstr "$##price##"
 msgid "$##price## USD/month"
 msgstr "##price##$ USD/mois"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:64
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:66
 msgid "Recent account activity"
 msgstr "Activité récente du compte"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:70
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:72
 msgid "Log out of all devices"
 msgstr "Se déconnecter de tous les appareils"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:74
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:76
 msgid "Export log data"
 msgstr "Exporter les données de suivi"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:87
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:361
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:548
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:349
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:536
 msgid "Action"
 msgstr "Action"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:91
 #: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:41
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:123
 msgid "Failed"
 msgstr "Échoué"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:89
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:91
 #: jsapp/js/components/RESTServices/RESTServiceLogStatus.tsx:29
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:121
 msgid "Success"
 msgstr "Succès"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:94
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:96
 #: jsapp/js/components/Drawer.tsx:95
 msgid "Source"
 msgstr "Source"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:97
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:99
 msgid "Data Submissions (##count##)"
 msgstr "Soumissions de données (##count##)"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:105
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:107
 msgid "Last activity"
 msgstr "Dernière activité"
 
-#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:108
+#: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx:110
 msgid "IP Address"
 msgstr "Adresse IP"
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:40
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:47
 msgid "Failed to get API token"
 msgstr "Échec de l'obtention du jeton API"
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:64
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:74
 msgid "API key regenerated successfully"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:67
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:77
 msgid "Failed to regenerate API key"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:79
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:89
 msgid "API Key"
 msgstr "Clé API"
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:92
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:101
+msgid "Hide API key"
+msgstr ""
+
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:101
+msgid "Display API key"
+msgstr ""
+
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:115
 msgid "Regenerate key"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:94
-msgid "Display"
-msgstr "Afficher"
-
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:100
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:122
 msgid "Regenerate API key"
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:105
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:127
 msgid ""
 "All access through your existing API key will be revoked, and a new key will"
 " be generated randomly."
 msgstr ""
 
-#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:114
+#: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx:136
 msgid "Regenerate"
 msgstr ""
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:150
+#: jsapp/js/account/security/email/emailSection.component.tsx:149
 msgid "Email address"
 msgstr "Adresse email"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:162
+#: jsapp/js/account/security/email/emailSection.component.tsx:161
 msgid "Type new email address"
 msgstr "Renseignez votre nouvelle adresse email"
 
@@ -814,7 +860,11 @@ msgid ""
 " this address will replace ##UNVERIFIED_EMAIL##"
 msgstr "Un lien de vérification vous a été envoyé pour confirmer que vous êtes le propriétaire. Une fois confirmé, cette adresse remplacera ##UNVERIFIED_EMAIL##"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:198
+#: jsapp/js/account/security/email/emailSection.component.tsx:188
+msgid "Resend"
+msgstr ""
+
+#: jsapp/js/account/security/email/emailSection.component.tsx:197
 msgid "Email was sent again: ##TIMESTAMP##"
 msgstr "L’email a été renvoyé : ##TIMESTAMP##"
 
@@ -822,21 +872,21 @@ msgstr "L’email a été renvoyé : ##TIMESTAMP##"
 msgid "Change"
 msgstr "Changer"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:122
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:158
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:121
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:153
 msgid "Two-factor authentication"
 msgstr "Authentification à deux facteurs"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:139
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:260
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:138
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:261
 msgid "Enabled"
 msgstr "Activé"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:139
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:138
 msgid "Disabled"
 msgstr "Désactivé"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:165
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:160
 #: jsapp/js/components/bigModal/mfaModals.tsx:214
 msgid ""
 "Two-factor authentication (2FA) verifies your identity using an "
@@ -844,40 +894,44 @@ msgid ""
 "enabling two-factor authentication for an additional layer of protection."
 msgstr "L’authentification à deux facteurs (2FA) vérifie votre identité à l’aide d’une application d’authentification en plus de votre mot de passe habituel. Nous recommandons d’activer l’authentification à deux facteurs pour une couche de protection supplémentaire."
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:173
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:168
 msgid "Authenticator app"
 msgstr "Application d'authentification"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:179
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:174
 msgid "Reconfigure"
 msgstr "Reconfigurer"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:188
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:183
 msgid "Recovery codes"
 msgstr "Codes de récupération"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:192
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:187
 msgid "Generate new"
 msgstr "Générer de nouveau"
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:206
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:201
 msgid "Superusers cannot deactivate their MFA"
 msgstr ""
 
-#: jsapp/js/account/security/mfa/mfaSection.component.tsx:207
+#: jsapp/js/account/security/mfa/mfaSection.component.tsx:202
 msgid "MFA restriction explanation"
 msgstr ""
 
-#: jsapp/js/account/security/password/passwordSection.component.tsx:16
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:293
+#: jsapp/js/account/security/password/passwordSection.component.tsx:24
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:294
 msgid "Password"
 msgstr "Mot de passe"
 
-#: jsapp/js/account/security/password/passwordSection.component.tsx:25
+#: jsapp/js/account/security/password/passwordSection.component.tsx:29
+msgid "Basic authentication not permitted"
+msgstr ""
+
+#: jsapp/js/account/security/password/passwordSection.component.tsx:39
 msgid "Forgot password"
 msgstr "Mot de passe oublié"
 
-#: jsapp/js/account/security/password/passwordSection.component.tsx:30
+#: jsapp/js/account/security/password/passwordSection.component.tsx:44
 #: jsapp/js/components/AssetTagsModal/AssetTagsModal.tsx:86
 #: jsapp/js/project/FormLanguagesManager/LanguageForm.tsx:78
 msgid "Update"
@@ -905,27 +959,61 @@ msgstr "la mise à jour du mot de passe a échoué"
 msgid "Current Password"
 msgstr "Mot de passe actuel"
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:142
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:141
 msgid "Forgot Password?"
 msgstr ""
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:148
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:147
 msgid "New Password"
 msgstr ""
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:162
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:160
 msgid "Verify Password"
 msgstr ""
 
-#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:171
+#: jsapp/js/account/security/password/updatePasswordForm.component.tsx:169
 msgid "Save Password"
 msgstr ""
 
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:46
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:18
+msgid "Connecting with ##provider##"
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:26
+msgid ""
+"Your organization has restricted the use of passwords for single-sign on "
+"(SSO) accounts. Once enabled, SSO cannot be disabled again without direct "
+"support from your system administrator."
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:32
+msgid ""
+"Please note that your password will be deleted and you will only be able to "
+"log in using single-sign on (SSO)."
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:38
+msgid "Go back"
+msgstr ""
+
+#: jsapp/js/account/security/sso/ManagedSsoConfirmModal.tsx:42
+#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:166
+msgid "Proceed"
+msgstr "Procéder"
+
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:50
 msgid "Single-Sign On"
 msgstr "Authentification unique"
 
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:52
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:56
+msgid "Connected to ##app_name##"
+msgstr ""
+
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:57
+msgid "Already connected"
+msgstr "Déjà connecté"
+
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:62
 msgid ""
 "Connect your KoboToolbox account with your organization's identity provider "
 "for single-sign on (SSO). Afterwards, you will only be able to sign in via "
@@ -933,11 +1021,7 @@ msgid ""
 "address in case your current address is different."
 msgstr "Connectez votre compte KoboToolbox au fournisseur d’identité de votre organisation pour une authentification unique (SSO). Ensuite, vous pourrez uniquement vous connecter via SSO, sauf si vous désactivez ce paramètre ici. Cela mettra également à jour votre adresse email au cas où votre adresse actuelle serait différente."
 
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:58
-msgid "Already connected"
-msgstr "Déjà connecté"
-
-#: jsapp/js/account/security/sso/ssoSection.component.tsx:78
+#: jsapp/js/account/security/sso/ssoSection.component.tsx:71
 msgid "Disable"
 msgstr "Désactiver"
 
@@ -1005,40 +1089,44 @@ msgstr "Total disponible"
 msgid "Purchased add-ons"
 msgstr "Suppléments achetés"
 
-#: jsapp/js/account/usage/usage.component.tsx:68
+#: jsapp/js/account/usage/usage.component.tsx:70
 msgid "##start_date## to ##end_date##"
 msgstr "##start_date## au ##end_date##"
 
-#: jsapp/js/account/usage/usage.component.tsx:164
+#: jsapp/js/account/usage/usage.component.tsx:166
 msgid "Your usage"
 msgstr "Votre utilisation"
 
-#: jsapp/js/account/usage/usage.component.tsx:175
+#: jsapp/js/account/usage/usage.component.tsx:174
+msgid "Learn more about account usage"
+msgstr ""
+
+#: jsapp/js/account/usage/usage.component.tsx:187
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:107
-#: jsapp/js/components/formSummary/formSummary.js:194
+#: jsapp/js/project/FormSummary/index.tsx:201
 #: jsapp/js/projects/projectViews/constants.ts:271
 msgid "Submissions"
 msgstr "Soumissions"
 
-#: jsapp/js/account/usage/usage.component.tsx:184
+#: jsapp/js/account/usage/usage.component.tsx:196
 #: jsapp/js/project/submissionsCountGraph.component.tsx:303
 msgid "Total"
 msgstr "Total"
 
-#: jsapp/js/account/usage/usage.component.tsx:186
+#: jsapp/js/account/usage/usage.component.tsx:198
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:113
 msgid "File storage"
 msgstr "Stockage de fichiers"
 
-#: jsapp/js/account/usage/usage.component.tsx:187
+#: jsapp/js/account/usage/usage.component.tsx:199
 msgid "per account"
 msgstr "par compte"
 
-#: jsapp/js/account/usage/usage.component.tsx:196
+#: jsapp/js/account/usage/usage.component.tsx:208
 msgid "Transcription minutes"
 msgstr "Minutes de transcription"
 
-#: jsapp/js/account/usage/usage.component.tsx:206
+#: jsapp/js/account/usage/usage.component.tsx:218
 #: jsapp/js/account/usage/usageProjectBreakdown.tsx:126
 msgid "Translation characters"
 msgstr "Caractères de traduction"
@@ -1143,8 +1231,8 @@ msgid "Failed to remove permissions"
 msgstr "La suppression des droits d’accès a échoué"
 
 #: jsapp/js/actions.js:124
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:148
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:148
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:145
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:145
 msgid "successfully updated"
 msgstr "Mise à jour réussie"
 
@@ -1300,21 +1388,21 @@ msgstr "Supprimer ?"
 #: jsapp/js/alertify.ts:161
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:98
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:135
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:107
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:105
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:112
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:147
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:147
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:149
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/ResponseForm.tsx:153
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:91
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:119
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:89
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:117
 #: jsapp/js/components/projectDownloads/DeleteExportModal.tsx:19
 #: jsapp/js/components/projectDownloads/DeleteExportSettingModal.tsx:68
-#: jsapp/js/components/reports/customReportEditor.component.tsx:131
-#: jsapp/js/components/submissions/submissionModal.tsx:268
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:269
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:563
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:584
+#: jsapp/js/components/reports/customReportEditor.component.tsx:130
+#: jsapp/js/components/submissions/submissionModal.tsx:273
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:267
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:562
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:583
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:428
 #: jsapp/js/projects/projectsTable/bulkActions/BulkDeleteModal.tsx:102
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:41
@@ -1326,7 +1414,7 @@ msgid "This action is not reversible"
 msgstr "Cette action n’est pas réversible"
 
 #: jsapp/js/api.ts:65 jsapp/js/api/onErrorDefaultHandler.ts:20
-#: jsapp/js/components/reports/reports.tsx:512
+#: jsapp/js/components/reports/reports.tsx:517
 msgid "An error occurred"
 msgstr "Une erreur est survenue"
 
@@ -1334,137 +1422,137 @@ msgstr "Une erreur est survenue"
 msgid "Your connection is offline"
 msgstr "Votre connexion est actuellement indisponible"
 
-#: jsapp/js/assetQuickActions.tsx:57
+#: jsapp/js/assetQuickActions.tsx:58
 msgid "##ASSET_TYPE## deleted permanently"
 msgstr "##ASSET_TYPE## a été supprimé de façon permanente"
 
-#: jsapp/js/assetQuickActions.tsx:77
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:234
+#: jsapp/js/assetQuickActions.tsx:78
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:228
 msgid "Archive Project"
 msgstr "Archiver le projet"
 
-#: jsapp/js/assetQuickActions.tsx:78
+#: jsapp/js/assetQuickActions.tsx:79
 msgid "Are you sure you want to archive this project?"
 msgstr "Voulez-vous vraiment archiver ce projet ?"
 
-#: jsapp/js/assetQuickActions.tsx:79
+#: jsapp/js/assetQuickActions.tsx:80
 msgid "Your form will not accept submissions while it is archived."
 msgstr "Votre formulaire n’acceptera pas de soumissions tant qu’il est archivé."
 
-#: jsapp/js/assetQuickActions.tsx:80
+#: jsapp/js/assetQuickActions.tsx:81
 msgid "Archive"
 msgstr "Archiver"
 
-#: jsapp/js/assetQuickActions.tsx:110
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:230
+#: jsapp/js/assetQuickActions.tsx:111
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:224
 msgid "Unarchive Project"
 msgstr "Désarchiver le projet"
 
-#: jsapp/js/assetQuickActions.tsx:111
+#: jsapp/js/assetQuickActions.tsx:112
 msgid "Are you sure you want to unarchive this project?"
 msgstr "Voulez-vous vraiment désarchiver ce projet ?"
 
-#: jsapp/js/assetQuickActions.tsx:112
+#: jsapp/js/assetQuickActions.tsx:113
 msgid "Unarchive"
 msgstr "Désarchiver"
 
-#: jsapp/js/assetQuickActions.tsx:142 jsapp/js/mixins.tsx:109
+#: jsapp/js/assetQuickActions.tsx:143 jsapp/js/mixins.tsx:109
 msgid "Clone of"
 msgstr "Clone de"
 
-#: jsapp/js/assetQuickActions.tsx:148
+#: jsapp/js/assetQuickActions.tsx:149
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:278
 #: jsapp/js/components/formLanding/FormHistory.tsx:154 jsapp/js/mixins.tsx:113
 msgid "Clone"
 msgstr "Cloner"
 
-#: jsapp/js/assetQuickActions.tsx:149 jsapp/js/mixins.tsx:114
+#: jsapp/js/assetQuickActions.tsx:150 jsapp/js/mixins.tsx:114
 msgid ""
 "Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the "
 "original name."
 msgstr "Saisissez le nom du ##ASSET_TYPE## cloné. Laissez vide pour conserver le nom d'origine."
 
-#: jsapp/js/assetQuickActions.tsx:154 jsapp/js/assetQuickActions.tsx:348
+#: jsapp/js/assetQuickActions.tsx:155 jsapp/js/assetQuickActions.tsx:349
 #: jsapp/js/mixins.tsx:119
 msgid "Ok"
 msgstr "Ok"
 
-#: jsapp/js/assetQuickActions.tsx:157
+#: jsapp/js/assetQuickActions.tsx:158
 msgid "Cloning..."
 msgstr "Clonage en cours..."
 
-#: jsapp/js/assetQuickActions.tsx:192
+#: jsapp/js/assetQuickActions.tsx:193
 msgid "cloned ##ASSET_TYPE## created"
 msgstr "Le clone ##ASSET_TYPE## a été créé"
 
-#: jsapp/js/assetQuickActions.tsx:223
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:330
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:252
+#: jsapp/js/assetQuickActions.tsx:224
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:331
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:255
 msgid "Create"
 msgstr "Créer"
 
-#: jsapp/js/assetQuickActions.tsx:229
+#: jsapp/js/assetQuickActions.tsx:230
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:483
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:531
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:217
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:211
 msgid "Please wait…"
 msgstr "Veuillez patienter…"
 
-#: jsapp/js/assetQuickActions.tsx:255
+#: jsapp/js/assetQuickActions.tsx:256
 msgid "Failed to create new asset!"
 msgstr "La création du projet a échoué !"
 
-#: jsapp/js/assetQuickActions.tsx:276
+#: jsapp/js/assetQuickActions.tsx:277
 msgid "Create new template from this project"
 msgstr "Créer un nouveau modèle à partir de ce projet"
 
-#: jsapp/js/assetQuickActions.tsx:277
+#: jsapp/js/assetQuickActions.tsx:278
 msgid "Enter the name of the new template."
 msgstr "Veuillez saisir le nom du nouveau modèle."
 
-#: jsapp/js/assetQuickActions.tsx:295
+#: jsapp/js/assetQuickActions.tsx:296
 msgid "Remove shared form"
 msgstr "Supprimer le formulaire partagé"
 
-#: jsapp/js/assetQuickActions.tsx:296
+#: jsapp/js/assetQuickActions.tsx:297
 msgid "Are you sure you want to remove this shared form?"
 msgstr "Êtes-vous sûr de vouloir supprimer ce formulaire partagé ?"
 
-#: jsapp/js/assetQuickActions.tsx:315
+#: jsapp/js/assetQuickActions.tsx:316
 msgid "deploying to kobocat..."
 msgstr "déploiement vers kobocat..."
 
-#: jsapp/js/assetQuickActions.tsx:320
+#: jsapp/js/assetQuickActions.tsx:321
 msgid "deployed form"
 msgstr "formulaire déployé"
 
-#: jsapp/js/assetQuickActions.tsx:337
+#: jsapp/js/assetQuickActions.tsx:338
 msgid "Overwrite existing deployment"
 msgstr "Remplacer un déploiement existant"
 
-#: jsapp/js/assetQuickActions.tsx:342
+#: jsapp/js/assetQuickActions.tsx:343
 msgid ""
 "This form has already been deployed. Are you sure you want overwrite the "
 "existing deployment?"
 msgstr "Ce formulaire a déjà été déployé. Êtes-vous sûr de vouloir écraser le déploiement existant ?"
 
-#: jsapp/js/assetQuickActions.tsx:345
+#: jsapp/js/assetQuickActions.tsx:346
 #: jsapp/js/components/map/MapSettings.tsx:252
 #: jsapp/xlform/src/view.surveyApp.coffee:683
 msgid "This action cannot be undone."
 msgstr "Cette action ne peut pas être annulée."
 
-#: jsapp/js/assetQuickActions.tsx:352
+#: jsapp/js/assetQuickActions.tsx:353
 msgid "Deploying..."
 msgstr "En cours de déploiement..."
 
-#: jsapp/js/assetQuickActions.tsx:355
+#: jsapp/js/assetQuickActions.tsx:356
 msgid "redeployed form"
 msgstr "formulaire redéployé"
 
 #: jsapp/js/assetUtils.ts:78
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:104
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:113
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:104
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:113
 #: jsapp/js/projects/projectsTable/projectsTableRow.tsx:48
 #: jsapp/js/projects/projectsTable/projectsTableRow.tsx:62
 msgid "me"
@@ -1478,20 +1566,20 @@ msgstr "sans titre"
 msgid "Unlabelled"
 msgstr "Sans libellé"
 
-#: jsapp/js/assetUtils.ts:431 jsapp/js/components/metadataEditor.js:146
+#: jsapp/js/assetUtils.ts:431 jsapp/js/components/metadataEditor.tsx:155
 #: jsapp/js/components/submissions/tableUtils.ts:118
 msgid "Background audio"
 msgstr "Audio d'arrière-plan"
 
-#: jsapp/js/assetUtils.ts:677
+#: jsapp/js/assetUtils.ts:681
 msgid "Name, organization and sector are required to make collection public."
 msgstr "Le nom, l'organisation et le secteur sont nécessaires pour rendre la collection publique."
 
-#: jsapp/js/assetUtils.ts:680
+#: jsapp/js/assetUtils.ts:684
 msgid "Empty collection is not allowed to be made public."
 msgstr "Une collection vide ne peut être rendue publique."
 
-#: jsapp/js/assetUtils.ts:683
+#: jsapp/js/assetUtils.ts:687
 msgid "Only collections are allowed to be made public!"
 msgstr "Seules les collections peuvent être rendues publiques !"
 
@@ -1512,7 +1600,7 @@ msgid "video recording"
 msgstr "enregistrement vidéo"
 
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:69
-#: jsapp/js/components/submissions/submissionUtils.tsx:778
+#: jsapp/js/components/submissions/submissionUtils.tsx:776
 msgid "image"
 msgstr "image"
 
@@ -1521,7 +1609,7 @@ msgid "background audio recording"
 msgstr "enregistrement audio d'arrière-plan"
 
 #: jsapp/js/attachments/AttachmentActionsDropdown.tsx:88
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:108
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:110
 #: jsapp/js/components/formLanding/formLanding.js:451
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:200
 msgid "Download"
@@ -1535,39 +1623,73 @@ msgstr "Supprimer ##attachment_type##"
 msgid "Are you sure you want to delete this ##attachment_type##?"
 msgstr "Etes-vous sûr(e) de vouloir supprimer cette pièce jointe ?"
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:45
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:43
 msgid ""
 "Media files from ##number_of_selected_submissions## submission(s) have been "
 "deleted"
 msgstr " Les fichiers média de ##number_of_selected_submissions## soumissions ont été supprimés."
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:65
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:63
 msgid "Delete media files only"
 msgstr "Supprimer seulement les fichier médias"
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:68
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:66
 msgid "Delete media files"
 msgstr "Supprimer fichier médias"
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:75
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:73
 msgid ""
 "You do not have sufficient permissions to delete attachments from the "
 "selected submissions."
 msgstr "Vous n’avez pas les autorisations nécessaires pour réaliser cette action."
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:85
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:83
 msgid ""
 "You are about to permanently remove the following media files from the "
 "selected submissions:"
 msgstr "Vous êtes sur le point de supprimer définitivement les fichiers média suivants des soumissions sélectionnées :"
 
-#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:94
+#: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:92
 msgid "Careful - it is not possible to recover deleted media files"
 msgstr "Attention, il n'est pas possible de récupérer des fichiers média supprimés"
 
 #: jsapp/js/attachments/deletedAttachment.component.tsx:16
 msgid "Deleted"
 msgstr "Supprimé"
+
+#: jsapp/js/auth/AuthContainer/AuthContainer.tsx:67
+#: jsapp/js/components/header/accountMenu.tsx:117
+#: jsapp/js/errorApp/ErrorPage.tsx:70
+msgid "Terms of Service"
+msgstr "Conditions d'utilisation"
+
+#: jsapp/js/auth/AuthContainer/AuthContainer.tsx:75
+#: jsapp/js/components/header/accountMenu.tsx:122
+#: jsapp/js/errorApp/ErrorPage.tsx:78
+msgid "Privacy Policy"
+msgstr "Politique de confidentialité"
+
+#: jsapp/js/auth/AuthTestRoute/AuthTestRoute.tsx:13
+msgid "Authentication container"
+msgstr ""
+
+#: jsapp/js/auth/AuthTestRoute/AuthTestRoute.tsx:15
+msgid ""
+"This placeholder screen exists to check the page frame. A real sign-in form "
+"will replace it."
+msgstr ""
+
+#: jsapp/js/auth/StandaloneUILanguageSelector/index.tsx:85
+msgid "Could not change the language. Please try again."
+msgstr ""
+
+#: jsapp/js/auth/StandaloneUILanguageSelector/index.tsx:127
+msgid "Interface language: ##language##"
+msgstr ""
+
+#: jsapp/js/auth/StandaloneUILanguageSelector/useSetUILanguage.ts:28
+msgid "Could not set language to ##language_code##"
+msgstr ""
 
 #: jsapp/js/components/AssetTagsModal/AssetTagsModal.stories.tsx:45
 msgid "Open AssetTagsModal"
@@ -1633,8 +1755,8 @@ msgid "Projects that cannot be deleted"
 msgstr ""
 
 #: jsapp/js/components/DeleteAssetModal/DeleteBlockerModal.tsx:80
-#: jsapp/js/components/bigModal/mfaModals.tsx:539
-#: jsapp/js/editorMixins/EditableForm.tsx:1186
+#: jsapp/js/components/bigModal/mfaModals.tsx:548
+#: jsapp/js/editorMixins/EditableForm.tsx:1180
 msgid "OK"
 msgstr "Ok"
 
@@ -1653,7 +1775,7 @@ msgstr "Bibliothèque"
 
 #: jsapp/js/components/Drawer.tsx:82
 #: jsapp/js/components/library/librarySidebar.tsx:63
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:98
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:96
 msgid "new"
 msgstr "nouveau"
 
@@ -1680,7 +1802,7 @@ msgid "More info"
 msgstr ""
 
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:70
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:147
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:148
 msgid "Could not load REST Service"
 msgstr "Impossible de charger les Services REST"
 
@@ -1698,7 +1820,7 @@ msgid "Retry all submissions"
 msgstr ""
 
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:218
-#: jsapp/js/components/activity/FormActivity.tsx:97 jsapp/js/constants.ts:292
+#: jsapp/js/components/activity/FormActivity.tsx:92 jsapp/js/constants.ts:289
 msgid "Date"
 msgstr "Date"
 
@@ -1711,7 +1833,7 @@ msgid "There are no logs yet"
 msgstr ""
 
 #: jsapp/js/components/RESTServices/RESTServiceLogs.tsx:253
-#: jsapp/js/components/formGallery/formGallery.component.tsx:207
+#: jsapp/js/components/formGallery/formGallery.component.tsx:214
 msgid "Load more"
 msgstr "Afficher plus"
 
@@ -1721,7 +1843,7 @@ msgstr "Entêtes HTTP personnalisés"
 
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:99
 #: jsapp/js/components/reports/reportTable.component.tsx:75
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:130
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:124
 msgid "Value"
 msgstr "Valeur"
 
@@ -1729,79 +1851,79 @@ msgstr "Valeur"
 msgid "Add header"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:24
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:25
 msgid "JSON"
 msgstr "JSON"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:28
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:29
 msgid "XML"
 msgstr "XML"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:42
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:43
 msgid "No Authorization"
 msgstr "Non autorisé"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:46
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:47
 msgid "Basic Authorization"
 msgstr "Autorisation de base"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:178
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:179
 msgid "Name required"
 msgstr "Nom obligatoire"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:182
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:183
 msgid "URL required"
 msgstr "URL obligatoire"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:192
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:193
 msgid "Please enter both name and url of your service."
 msgstr "Veuillez saisir le nom et l'URL de votre service."
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:240
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:241
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:108
 msgid "Service Name"
 msgstr "Nom du service"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:250
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:251
 msgid "Endpoint URL"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:251
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:252
 msgid "https://"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:265
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:266
 msgid "Receive emails notifications"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:268
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:269
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:47
 #: jsapp/js/components/formLanding/FormHistory.tsx:136
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:357
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:345
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:253
-#: jsapp/js/components/submissions/submissionDataTable.tsx:75
+#: jsapp/js/components/submissions/submissionDataTable.tsx:77
 msgid "Type"
 msgstr "Type"
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:287
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:288
 msgid "Username"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:303
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:304
 msgid "Add field(s)"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:304
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:305
 msgid "Select fields subset"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:313
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:314
 msgid ""
 "Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by "
 "JSON)"
 msgstr ""
 
-#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:317
+#: jsapp/js/components/RESTServices/RESTServicesForm.tsx:318
 msgid "Add Custom Wrapper"
 msgstr ""
 
@@ -1818,12 +1940,12 @@ msgid "Are you sure you want to delete ##target?"
 msgstr "Êtes-vous sûr de vouloir effacer ##target ?"
 
 #: jsapp/js/components/RESTServices/RESTServicesList.tsx:134
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:316
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:82
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:110
-#: jsapp/js/components/submissions/submissionModal.tsx:654
-#: jsapp/js/components/submissions/table.tsx:704
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:256
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:304
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:80
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:108
+#: jsapp/js/components/submissions/submissionModal.tsx:647
+#: jsapp/js/components/submissions/table.tsx:695
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:254
 msgid "Edit"
 msgstr "Modifier"
 
@@ -1841,8 +1963,8 @@ msgstr "Vous pouvez utiliser les Services REST pour envoyer automatiquement les 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:316
 #: jsapp/js/components/newFeatureDialog.component.tsx:90
 #: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:226
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:307
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:231
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:301
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:215
 msgid "Learn more"
 msgstr "En savoir plus"
 
@@ -1862,15 +1984,15 @@ msgstr "Enregistrer un nouveau service"
 #: jsapp/js/components/formLanding/formLanding.js:526
 #: jsapp/js/components/formSubScreens.js:94
 #: jsapp/js/components/formSubScreens.js:107
-#: jsapp/js/components/formSummary/formSummary.js:180
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:107
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:151
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:154
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:182
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:191
 #: jsapp/js/components/projectDownloads/ProjectDownloads.tsx:59
-#: jsapp/js/components/reports/reports.tsx:536
-#: jsapp/js/editorMixins/EditableForm.tsx:1220
+#: jsapp/js/components/reports/reports.tsx:541
+#: jsapp/js/editorMixins/EditableForm.tsx:1214
+#: jsapp/js/project/FormSummary/index.tsx:189
 msgid "Untitled"
 msgstr "Sans titre"
 
@@ -1906,20 +2028,20 @@ msgstr ""
 msgid "Cancel process"
 msgstr ""
 
-#: jsapp/js/components/activity/FormActivity.tsx:90
+#: jsapp/js/components/activity/FormActivity.tsx:85
 msgid "Event description"
 msgstr "Description de l’évènement"
 
-#: jsapp/js/components/activity/FormActivity.tsx:106
+#: jsapp/js/components/activity/FormActivity.tsx:101
 msgid "Recent project activity"
 msgstr "Activité récente du projet"
 
-#: jsapp/js/components/activity/FormActivity.tsx:116
+#: jsapp/js/components/activity/FormActivity.tsx:109
 #: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:96
 msgid "Filter by"
 msgstr "Filtrer par"
 
-#: jsapp/js/components/activity/FormActivity.tsx:120
+#: jsapp/js/components/activity/FormActivity.tsx:113
 #: jsapp/js/projects/universalProjectsRoute.tsx:158
 msgid "Export all data"
 msgstr "Exporter les données"
@@ -2288,20 +2410,20 @@ msgstr "Voir les détails"
 msgid "Allow submissions to this form without a username and password"
 msgstr "Autoriser les soumissions sans nom d'utilisateur ni mot de passe pour ce formulaire"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:89
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:91
 #: jsapp/js/components/formLanding/formLanding.js:441
 msgid "More actions"
 msgstr "Plus d'actions"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:96
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:98
 msgid "Manage translations"
 msgstr "Gérer les traductions"
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:115
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:117
 msgid "Remove from collection"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:123
+#: jsapp/js/components/assetsTable/AssetMoreActions.tsx:125
 msgid "Move to"
 msgstr ""
 
@@ -2337,7 +2459,7 @@ msgstr ""
 
 #: jsapp/js/components/assetsTable/assetActionButtons.tsx:289
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:148
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:218
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:212
 msgid "Create project"
 msgstr "Créer un projet"
 
@@ -2345,37 +2467,37 @@ msgstr "Créer un projet"
 msgid "View containing Collection"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:181
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:96
+#: jsapp/js/components/assetsTable/assetsTable.tsx:179
 #: jsapp/js/components/library/assetInfoBox.tsx:119
 #: jsapp/js/components/templatesList.js:67
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:96
 msgid "Questions"
 msgstr "Questions"
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:307
-#: jsapp/js/components/submissions/submissionModal.tsx:570
+#: jsapp/js/components/assetsTable/assetsTable.tsx:305
+#: jsapp/js/components/submissions/submissionModal.tsx:563
 msgid "Previous"
 msgstr "Précédent"
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:321
-#: jsapp/js/components/bigModal/mfaModals.tsx:276
-#: jsapp/js/components/bigModal/mfaModals.tsx:396
-#: jsapp/js/components/bigModal/mfaModals.tsx:451
-#: jsapp/js/components/bigModal/mfaModals.tsx:499
-#: jsapp/js/components/submissions/submissionModal.tsx:585
-#: jsapp/js/components/submissions/table.tsx:1515
+#: jsapp/js/components/assetsTable/assetsTable.tsx:319
+#: jsapp/js/components/bigModal/mfaModals.tsx:279
+#: jsapp/js/components/bigModal/mfaModals.tsx:402
+#: jsapp/js/components/bigModal/mfaModals.tsx:460
+#: jsapp/js/components/bigModal/mfaModals.tsx:508
+#: jsapp/js/components/submissions/submissionModal.tsx:578
+#: jsapp/js/components/submissions/table.tsx:1401
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:74
 msgid "Next"
 msgstr "Suivant"
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:336
+#: jsapp/js/components/assetsTable/assetsTable.tsx:334
 msgid "##count## items"
 msgstr ""
 
-#: jsapp/js/components/assetsTable/assetsTable.tsx:346
-#: jsapp/js/components/formGallery/formGallery.component.tsx:157
-#: jsapp/js/components/reports/reports.tsx:463
-#: jsapp/js/components/submissions/table.tsx:1477
+#: jsapp/js/components/assetsTable/assetsTable.tsx:344
+#: jsapp/js/components/formGallery/formGallery.component.tsx:156
+#: jsapp/js/components/reports/reports.tsx:468
+#: jsapp/js/components/submissions/table.tsx:1363
 msgid "Toggle fullscreen"
 msgstr "Basculer en plein écran"
 
@@ -2400,48 +2522,40 @@ msgid "Subscribers"
 msgstr "Abonnés"
 
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:85
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:180
 #: jsapp/js/components/library/assetInfoBox.tsx:148
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:180
 #: jsapp/js/projects/projectViews/constants.ts:264
 msgid "Languages"
 msgstr "Langues"
 
 #: jsapp/js/components/assetsTable/assetsTableConstants.ts:92
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:289
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:292
 msgid "Primary Sector"
 msgstr "Secteur primaire"
 
-#: jsapp/js/components/bigModal/bigModal.js:22
+#: jsapp/js/components/bigModal/bigModal.js:19
 msgid "Success!"
 msgstr "Succès !"
 
+#: jsapp/js/components/bigModal/bigModal.js:24
 #: jsapp/js/components/bigModal/bigModal.js:27
-#: jsapp/js/components/bigModal/bigModal.js:30
-#: jsapp/js/components/bigModal/bigModal.js:34
-#: jsapp/js/components/bigModal/bigModal.js:36
+#: jsapp/js/components/bigModal/bigModal.js:31
+#: jsapp/js/components/bigModal/bigModal.js:33
 msgid "Submission Record"
 msgstr "Enregistrement de la soumission"
 
-#: jsapp/js/components/bigModal/bigModal.js:30
-#: jsapp/js/components/bigModal/bigModal.js:36
-#: jsapp/js/components/submissions/table.tsx:1522
+#: jsapp/js/components/bigModal/bigModal.js:27
+#: jsapp/js/components/bigModal/bigModal.js:33
+#: jsapp/js/components/submissions/table.tsx:1408
 msgid "of"
 msgstr ""
 
-#: jsapp/js/components/bigModal/bigModal.js:83
+#: jsapp/js/components/bigModal/bigModal.js:80
 msgid "Create Library Item"
 msgstr "Créer un élément de Bibliothèque"
 
-#: jsapp/js/components/bigModal/bigModal.js:87
-msgid "Template details"
-msgstr "Détails du modèle"
-
-#: jsapp/js/components/bigModal/bigModal.js:91
-msgid "Collection details"
-msgstr "Détails de la collection"
-
-#: jsapp/js/components/bigModal/bigModal.js:101
-#: jsapp/js/editorMixins/EditableForm.tsx:1251
+#: jsapp/js/components/bigModal/bigModal.js:90
+#: jsapp/js/editorMixins/EditableForm.tsx:1245
 msgid "Form Preview"
 msgstr "Aperçu du formulaire"
 
@@ -2463,15 +2577,15 @@ msgid ""
 "##number##-digit code that you can enter below."
 msgstr "Après avoir scanné l'image du code QR, l'application d'authentification affichera un code à ##number##-chiffres que vous pouvez saisir ci-dessous."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:258
+#: jsapp/js/components/bigModal/mfaModals.tsx:261
 msgid "No QR code?"
 msgstr "Pas de code QR ?"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:265
+#: jsapp/js/components/bigModal/mfaModals.tsx:268
 msgid "Enter key manually"
 msgstr "Saisir la clé manuellement"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:294
+#: jsapp/js/components/bigModal/mfaModals.tsx:297
 msgid ""
 "The following recovery codes will help you access your account in case your "
 "authenticator app fails. These codes are unique and will not be stored in "
@@ -2479,60 +2593,60 @@ msgid ""
 "download the file and keep it somewhere safe."
 msgstr "Les codes de récupération suivants vous aideront à accéder à votre compte si votre application d’authentification échoue. Ces codes sont uniques et ne seront pas stockés dans votre compte Kobo. C’est votre seule occasion de les enregistrer. Veuillez télécharger le fichier et le conserver en lieu sûr."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:322
+#: jsapp/js/components/bigModal/mfaModals.tsx:325
 msgid "Download codes"
 msgstr "Codes de téléchargement"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:332
+#: jsapp/js/components/bigModal/mfaModals.tsx:335
 msgid "I saved my codes"
 msgstr "J'ai enregistré mes codes"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:350
+#: jsapp/js/components/bigModal/mfaModals.tsx:353
 msgid ""
 "Enter this key into your authenticator app to generate a ##number##-digit "
 "token"
 msgstr "Saisir cette clé dans l'application d'authentification pour générer un jeton à ##number##-chiffres"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:365
+#: jsapp/js/components/bigModal/mfaModals.tsx:368
 msgid ""
 "Once your authenticator app is set up, generate a ##number##-digit token and"
 " enter it in the field below."
 msgstr "Une fois votre application d'authentification configurée, générez un jeton à ##number##-chiffres et saisissez-le dans le champ ci-dessous."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:385
+#: jsapp/js/components/bigModal/mfaModals.tsx:391
 msgid "Take me back to QR code"
 msgstr "Ramenez-moi au code QR"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:415
+#: jsapp/js/components/bigModal/mfaModals.tsx:421
 msgid ""
 "Please enter your ##number##-digit authenticator token or one of your "
 "recovery codes to regenerate your backup codes."
 msgstr ""
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:419
+#: jsapp/js/components/bigModal/mfaModals.tsx:425
 msgid ""
 "Please enter your ##number##-digit authenticator token or one of your "
 "recovery codes to deactivate two-factor authentication."
 msgstr ""
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:440
+#: jsapp/js/components/bigModal/mfaModals.tsx:449
 msgid "Problems with your token?"
 msgstr "Des problèmes avec votre jeton ?"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:474
+#: jsapp/js/components/bigModal/mfaModals.tsx:483
 msgid ""
 "Please note that generating new recovery codes will invalidate any "
 "previously generated codes."
 msgstr "Veuillez noter que la génération de nouveaux codes de récupération invalidera tous les codes générés précédemment."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:478
+#: jsapp/js/components/bigModal/mfaModals.tsx:487
 msgid ""
 "Please note that in order to reconfigure two-factor authentication (2FA), "
 "the previous set up will first be deleted. Tokens or recovery codes from the"
 " previous set up will not be valid anymore."
 msgstr "Veuillez noter que pour reconfigurer l'authentification à deux facteurs (2FA), la configuration précédente sera d'abord supprimée. Les jetons ou les codes de récupération de la configuration précédente ne seront plus valides."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:486
+#: jsapp/js/components/bigModal/mfaModals.tsx:495
 msgid ""
 "Once your current 2FA has been deactivated, you'll be prompted to configure "
 "it again. If you cannot complete the process, 2FA will remain disabled for "
@@ -2540,16 +2654,16 @@ msgid ""
 "usual process."
 msgstr "Une fois votre 2FA actuel désactivé, vous serez invité à le configurer à nouveau. Si vous ne pouvez pas terminer le processus, 2FA restera désactivé pour votre compte. Dans ce cas, vous pouvez l’activer à nouveau à tout moment par le processus habituel."
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:515
+#: jsapp/js/components/bigModal/mfaModals.tsx:524
 msgid "Issues with the token"
 msgstr "Questions relatives au jeton"
 
-#: jsapp/js/components/bigModal/mfaModals.tsx:531
+#: jsapp/js/components/bigModal/mfaModals.tsx:540
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:260
-#: jsapp/js/components/modalForms/ModalBackButton.tsx:18
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:414
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:193
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:192
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:349
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:402
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:190
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:189
 #: jsapp/js/project/FormLanguagesManager/TranslationsEditor.tsx:133
 #: jsapp/js/project/ProjectSettings/components/BackButton.tsx:16
 msgid "Back"
@@ -2561,6 +2675,10 @@ msgstr ""
 
 #: jsapp/js/components/common/InfiniteScrollTrigger.tsx:59
 msgid "You've reached the end of the list"
+msgstr ""
+
+#: jsapp/js/components/common/ProcessingPromptModal.tsx:37
+msgid "Translate & analyze"
 msgstr ""
 
 #: jsapp/js/components/common/TagsInput.tsx:5
@@ -2588,19 +2706,9 @@ msgid "draft"
 msgstr "brouillon"
 
 #: jsapp/js/components/common/audioPlayer.tsx:189
-#: jsapp/js/components/common/miniAudioPlayer.tsx:214
+#: jsapp/js/components/common/miniAudioPlayer.tsx:220
 msgid "Could not load media file"
 msgstr "Impossible de charger le fichier média"
-
-#: jsapp/js/components/common/koboSelect.tsx:122
-#: jsapp/js/components/common/wrappedSelect.tsx:37
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:525
-msgid "Select…"
-msgstr "Sélectionner…"
-
-#: jsapp/js/components/common/koboSelect.tsx:284
-msgid "No options found"
-msgstr "Aucune option trouvée"
 
 #: jsapp/js/components/common/loadingSpinner.tsx:26
 msgid "loading…"
@@ -2608,7 +2716,7 @@ msgstr "chargement…"
 
 #: jsapp/js/components/common/modal.tsx:96
 #: jsapp/js/components/processing/SingleProcessingHeader/ButtonReturn.tsx:37
-#: jsapp/js/editorMixins/EditableForm.tsx:1213
+#: jsapp/js/editorMixins/EditableForm.tsx:1207
 msgid "DONE"
 msgstr "TERMINÉ"
 
@@ -2622,36 +2730,36 @@ msgstr "Confirmer"
 msgid "Deleted project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:185
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:183
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:6
 msgid "No project selected"
 msgstr "Aucun projet sélectionné"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:188
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:186
 msgid "Field is empty"
 msgstr "Le champ est vide"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:201
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:199
 msgid "Could not remove import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:249
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:261
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:118
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:139
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:247
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:259
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:111
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:132
 msgid "Failed to attach to source"
 msgstr "Échec de l'attachement à la source"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:250
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:119
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:248
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:112
 msgid "Some fields are invalid:"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:281
 msgid "Privacy Notice"
 msgstr "Avis de confidentialité"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
 msgid ""
 "This will attach the full dataset from \"##ASSET_NAME##\" as a background "
 "XML file to this form. While not easily visible, it is technically possible "
@@ -2659,31 +2767,31 @@ msgid ""
 "not use this feature if \"##ASSET_NAME##\" includes sensitive data."
 msgstr "Cette action joindra l’intégralité des données du projet « ##ASSET_NAME## » au formulaire sous la forme d’un fichier XML en arrière-plan. Bien que ce fichier ne soit pas facilement accessible, toute personne saisissant des données dans ce formulaire peut techniquement le récupérer et en consulter le contenu. Cette fonctionnalité ne doit pas être utilisée si «##ASSET_NAME## » contient des données sensibles."
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:287
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
 msgid "Acknowledge and continue"
 msgstr "Consentir et poursuivre"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:341
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:339
 msgid "Share data with other project forms"
 msgstr " Autoriser le partage des données avec d’autres projets"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:348
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:346
 msgid ""
 "Enable data sharing to allow other forms to import and use dynamic data from"
 " this project. Learn more about dynamic data attachments"
 msgstr "Activer le partage des données afin de permettre à d’autres formulaires d’importer et d’utiliser des données via la liaison dynamique de projets depuis ce projet. En savoir plus sur la liaison dynamique de projets"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:356
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:385
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:354
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:383
 #: jsapp/js/components/processing/SingleProcessingContent/components/nlpUsageLimitBlockModal/index.tsx:43
 msgid "here"
 msgstr "ici"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:374
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:372
 msgid "Import other project data"
 msgstr " Importer les données d’un autre projet"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:381
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:379
 msgid ""
 "Connect with other project(s) to import dynamic data from them into this "
 "project. Learn more about dynamic data attachments"
@@ -2709,19 +2817,19 @@ msgstr "Mise à jour des questions partagées"
 msgid "Data sharing disabled"
 msgstr "Partage de données désactivé"
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:72
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:73
 msgid "Remove project?"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:73
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:74
 msgid "Are you sure you want to remove the imported project?"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:79
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:80
 msgid "Remove project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:90
+#: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:91
 msgid "Give a unique name to the import"
 msgstr "Donner un nom unique à l'importation"
 
@@ -2753,53 +2861,53 @@ msgstr ""
 msgid "Configure"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:35
+#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:33
 msgid "Select a different project to import data from"
 msgstr "Sélectionner un autre projet pour importer des données"
 
-#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:41
+#: jsapp/js/components/dataAttachments/connectProjectsSelect.tsx:42
 msgid "No projects to connect"
 msgstr "Aucun projet à connecter"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:71
-msgid "Import data from ##SOURCE_NAME##"
-msgstr "Importer des données à partir de ##SOURCE_NAME##"
-
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:147
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:140
 msgid "Could not update import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:203
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:193
 msgid ""
 "You are about to import ##SOURCE_NAME##. Select or deselect in the list "
 "below to narrow down the number of questions to import."
 msgstr "Vous êtes sur le point d'importer ##SOURCE_NAME##. Sélectionnez ou désélectionnez dans la liste ci-dessous pour réduire le nombre de questions à importer."
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:208
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:198
 msgid "Select below the questions you want to import"
 msgstr "Sélectionnez ci-dessous les questions que vous souhaitez importer"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:211
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:687
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:202
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:696
 msgid "Select all"
 msgstr "Tout sélectionner"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:213
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:205
 msgid "|"
 msgstr "|"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:215
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:697
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:208
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:706
 msgid "Deselect all"
 msgstr "Tout désélectionner"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:220
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:215
 msgid "Loading imported questions"
 msgstr "Chargement des questions importées"
 
-#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:230
+#: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:231
 msgid "Updating imported questions"
 msgstr "Mise à jour des questions importées"
+
+#: jsapp/js/components/dataAttachments/openDataAttachmentColumnsModal.tsx:7
+msgid "Import data from ##SOURCE_NAME##"
+msgstr "Importer des données à partir de ##SOURCE_NAME##"
 
 #: jsapp/js/components/exportToEmailButton/exportToEmailButton.component.tsx:26
 msgid "Export is being generated, you will receive an email once it's done"
@@ -2809,35 +2917,35 @@ msgstr ""
 msgid "All questions"
 msgstr "Toutes les questions"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:150
+#: jsapp/js/components/formGallery/formGallery.component.tsx:149
 msgid "Image Gallery"
 msgstr "Galerie photo"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:162
+#: jsapp/js/components/formGallery/formGallery.component.tsx:161
 msgid "From"
 msgstr "De"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:172
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:646
+#: jsapp/js/components/formGallery/formGallery.component.tsx:179
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:655
 msgid "Between"
 msgstr "Entre"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:176
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:657
+#: jsapp/js/components/formGallery/formGallery.component.tsx:183
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:666
 #: jsapp/js/components/usageLimits/limitNotificationUtils.tsx:14
 msgid "and"
 msgstr "et"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:199
+#: jsapp/js/components/formGallery/formGallery.component.tsx:206
 #: jsapp/js/components/submissions/columnsHideForm.tsx:193
 msgid "No results"
 msgstr "Pas de résultats"
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:249
+#: jsapp/js/components/formGallery/formGallery.component.tsx:256
 msgid "Loading next page"
 msgstr ""
 
-#: jsapp/js/components/formGallery/formGallery.component.tsx:249
+#: jsapp/js/components/formGallery/formGallery.component.tsx:256
 msgid "Next image"
 msgstr ""
 
@@ -2860,6 +2968,10 @@ msgstr ""
 #: jsapp/js/components/formLanding/FormHistory.tsx:159
 msgid "Clone this version as a new project"
 msgstr "Cloner cette version en tant que nouveau projet"
+
+#: jsapp/js/components/formLanding/FormHistory.tsx:194
+msgid "Could not load the form history."
+msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:98
 msgid "undeployed"
@@ -2894,7 +3006,7 @@ msgid "Show full history"
 msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:236
-#: jsapp/js/components/formSummary/formSummary.js:68
+#: jsapp/js/project/FormSummary/index.tsx:75
 msgid "Collect data"
 msgstr ""
 
@@ -2953,8 +3065,9 @@ msgid "Copy"
 msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:359
-#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:57
-#: jsapp/js/components/submissions/submissionDataTable.tsx:253
+#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:72
+#: jsapp/js/components/submissions/DataTableCell/TextCell.tsx:70
+#: jsapp/js/components/submissions/submissionDataTable.tsx:255
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -2997,8 +3110,9 @@ msgstr ""
 
 #: jsapp/js/components/formLanding/formLanding.js:504
 #: jsapp/js/components/reports/reportStyleSettings.component.tsx:185
-#: jsapp/js/components/submissions/submissionModal.tsx:96
+#: jsapp/js/components/submissions/submissionModal.tsx:101
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:453
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:184
 msgid "Unnamed language"
 msgstr "Langue sans nom"
 
@@ -3022,91 +3136,12 @@ msgstr ""
 msgid "path not found / recognized"
 msgstr "Chemin non trouvé/non reconnu"
 
-#: jsapp/js/components/formSummary/formSummary.js:76
-#: jsapp/js/projects/projectsTable/projectQuickActions.tsx:111
-#: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:31
-msgid "Share project"
-msgstr "Partager le projet"
-
-#: jsapp/js/components/formSummary/formSummary.js:89
-#: jsapp/js/components/permissions/permConstants.ts:228
-msgid "Edit form"
-msgstr "Éditer le formulaire"
-
-#: jsapp/js/components/formSummary/formSummary.js:96
-#: jsapp/js/editorMixins/EditableForm.tsx:828
-msgid "Preview form"
-msgstr "Aperçu du formulaire"
-
-#: jsapp/js/components/formSummary/formSummary.js:116
-#: jsapp/js/project/projectTopTabs.component.tsx:85
-#: jsapp/js/project/projectTopTabs.component.tsx:93
-msgid "Data"
-msgstr "Données"
-
-#: jsapp/js/components/formSummary/formSummary.js:164
-msgid "Team members"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummary.js:204
-msgid "Quick Links"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:74
-msgid "Project information"
-msgstr "Informations sur le projet"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:81
-#: jsapp/js/components/library/assetInfoBox.tsx:96
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:276
-#: jsapp/js/projects/projectViews/constants.ts:150
-msgid "Description"
-msgstr "Description"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:112
-#: jsapp/js/projects/projectViews/constants.ts:229
-msgid "Last edited"
-msgstr "Dernière modification"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:124
-#: jsapp/js/components/templatesList.js:66
-msgid "Last modified"
-msgstr "Dernière modification"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:130
-msgid "Last deployed"
-msgstr "Dernier déploiement"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:138
-msgid "Latest submission"
-msgstr "Dernière soumission"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:149
-#: jsapp/js/components/library/assetInfoBox.tsx:134
-#: jsapp/js/projects/projectViews/constants.ts:250
-msgid "Sector"
-msgstr "Secteur"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:157
-#: jsapp/js/projects/projectViews/constants.ts:257
-msgid "Countries"
-msgstr "Pays"
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:196
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:311
-msgid "Operational purpose of data"
-msgstr ""
-
-#: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx:204
-msgid "Collects personally identifiable information"
-msgstr ""
-
 #: jsapp/js/components/formViewSideTabs.js:18
 msgid "Table"
 msgstr "Tableau"
 
 #: jsapp/js/components/formViewSideTabs.js:23
-#: jsapp/js/components/reports/reports.tsx:574
+#: jsapp/js/components/reports/reports.tsx:579
 msgid "Reports"
 msgstr "Rapports"
 
@@ -3151,30 +3186,22 @@ msgstr "Activité"
 msgid "XForm is loading"
 msgstr "XForm est en cours de chargement"
 
-#: jsapp/js/components/header/accountMenu.tsx:52
+#: jsapp/js/components/header/accountMenu.tsx:61
 msgid "Please refresh the page"
 msgstr "Veuillez actualiser la page"
 
-#: jsapp/js/components/header/accountMenu.tsx:98
+#: jsapp/js/components/header/accountMenu.tsx:107
 msgid "Account Settings"
 msgstr "Paramètres du compte"
 
-#: jsapp/js/components/header/accountMenu.tsx:108
-msgid "Terms of Service"
-msgstr "Conditions d'utilisation"
-
-#: jsapp/js/components/header/accountMenu.tsx:113
-msgid "Privacy Policy"
-msgstr "Politique de confidentialité"
-
-#: jsapp/js/components/header/accountMenu.tsx:127
-#: jsapp/js/components/map/index.tsx:1285
+#: jsapp/js/components/header/accountMenu.tsx:136
+#: jsapp/js/components/map/index.tsx:1322
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:255
-#: jsapp/js/components/submissions/submissionModal.tsx:432
+#: jsapp/js/components/submissions/submissionModal.tsx:431
 msgid "Language"
 msgstr "Langue"
 
-#: jsapp/js/components/header/accountMenu.tsx:152
+#: jsapp/js/components/header/accountMenu.tsx:161
 msgid "Logout"
 msgstr "Déconnexion"
 
@@ -3266,19 +3293,19 @@ msgid "Upload file"
 msgstr "Importation du fichier"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:169
-#: jsapp/js/dropzone.utils.tsx:266
+#: jsapp/js/dropzone.utils.tsx:264
 msgid "XLS Import completed"
 msgstr "Importation XLS terminée"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:176
-#: jsapp/js/dropzone.utils.tsx:240
+#: jsapp/js/dropzone.utils.tsx:238
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:594
 #: jsapp/js/project/ProjectSettings/ProjectSettings.tsx:611
 msgid "Import Failed!"
 msgstr "L'importation a échoué !"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:202
-#: jsapp/js/dropzone.utils.tsx:196
+#: jsapp/js/dropzone.utils.tsx:194
 msgid "Import failed"
 msgstr "Échec de l’importation"
 
@@ -3294,18 +3321,18 @@ msgid "Uploading file…"
 msgstr "Importation du fichier…"
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:231
-#: jsapp/js/dropzone.utils.tsx:170
+#: jsapp/js/dropzone.utils.tsx:168
 msgid "Failed to read file."
 msgstr ""
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:252
-#: jsapp/js/dropzone.utils.tsx:259 jsapp/js/dropzone.utils.tsx:321
+#: jsapp/js/dropzone.utils.tsx:257 jsapp/js/dropzone.utils.tsx:319
 msgid "Failed to create import."
 msgstr "Échec de la création de l'importation."
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:260
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:164
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:219
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:162
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:217
 #: jsapp/js/project/FormLanguagesManager/FormLanguagesManager.tsx:394
 #: jsapp/js/project/FormLanguagesManager/openFormLanguagesModal.tsx:20
 msgid "Close"
@@ -3339,7 +3366,7 @@ msgstr "Veuillez noter que cela sera ignoré lors de l’importation du fichier 
 
 #: jsapp/js/components/library/LibraryUploadModal/LibraryUploadModal.tsx:338
 #: jsapp/js/components/map/MapSettings.tsx:364
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:98
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:87
 msgid "Upload"
 msgstr "Importer"
 
@@ -3367,15 +3394,28 @@ msgstr "Impossible d'obtenir les données du propriétaire."
 msgid "Date Created"
 msgstr "Date créée"
 
+#: jsapp/js/components/library/assetInfoBox.tsx:96
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:279
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:81
+#: jsapp/js/projects/projectViews/constants.ts:150
+msgid "Description"
+msgstr "Description"
+
 #: jsapp/js/components/library/assetInfoBox.tsx:103
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:340
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:113
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:343
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:131
 msgid "Tags"
 msgstr "Tags"
 
+#: jsapp/js/components/library/assetInfoBox.tsx:134
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:149
+#: jsapp/js/projects/projectViews/constants.ts:250
+msgid "Sector"
+msgstr "Secteur"
+
 #: jsapp/js/components/library/assetInfoBox.tsx:141
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:300
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:150
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:303
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:141
 msgid "Country"
 msgstr "Pays"
 
@@ -3656,7 +3696,7 @@ msgid ""
 msgstr ""
 
 #: jsapp/js/components/map/MapSettings.tsx:414
-#: jsapp/js/components/map/index.tsx:1363
+#: jsapp/js/components/map/index.tsx:1400
 #: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx:189
 #: jsapp/js/components/submissions/TableSettings.tsx:170
 #: jsapp/js/components/submissions/columnsHideForm.tsx:203
@@ -3665,154 +3705,158 @@ msgstr ""
 msgid "Reset"
 msgstr "Réinitialiser"
 
-#: jsapp/js/components/map/index.tsx:114
+#: jsapp/js/components/map/index.tsx:122
 msgid "Could not parse KML file"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:118
+#: jsapp/js/components/map/index.tsx:126
 msgid "KML contained no features"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:132
+#: jsapp/js/components/map/index.tsx:140
 msgid "Error loading overlay layer \"##name##\""
 msgstr "Erreur lors du chargement de la couche superposée \"##name##\""
 
-#: jsapp/js/components/map/index.tsx:286
+#: jsapp/js/components/map/index.tsx:299
 msgid ""
 "By default map is limited to the ##number##  most recent submissions for "
 "performance reasons. Go to map settings to increase this limit."
 msgstr "Par défaut, la carte est limitée aux soumissions les##number## plus récentes pour des raisons de performance. Allez dans les paramètres de la carte pour augmenter cette limite."
 
-#: jsapp/js/components/map/index.tsx:384
+#: jsapp/js/components/map/index.tsx:397
 msgid "No latitude/longitude columns found"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:411
+#: jsapp/js/components/map/index.tsx:424
 msgid "Invalid GeoJSON"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:428
+#: jsapp/js/components/map/index.tsx:441
 msgid "No KML file found in KMZ archive"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:765
-#: jsapp/js/components/submissions/submissionModal.tsx:232
-#: jsapp/js/components/submissions/table.tsx:464
+#: jsapp/js/components/map/index.tsx:783
+#: jsapp/js/components/submissions/submissionModal.tsx:237
+#: jsapp/js/components/submissions/table.tsx:456
 msgid "Error: could not load data."
 msgstr "Erreur : impossible de charger les données."
 
-#: jsapp/js/components/map/index.tsx:1070
+#: jsapp/js/components/map/index.tsx:1107
 msgid "Disaggregate by survey responses"
 msgstr "Désagréger les données"
 
-#: jsapp/js/components/map/index.tsx:1075
+#: jsapp/js/components/map/index.tsx:1112
 msgid "Disaggregated using:"
 msgstr "Désagrégé en utilisant :"
 
-#: jsapp/js/components/map/index.tsx:1079
+#: jsapp/js/components/map/index.tsx:1116
 msgid "No \"geopoint\" responses have been received"
 msgstr "Aucune réponse « geopoint » n'a été reçue"
 
-#: jsapp/js/components/map/index.tsx:1081
+#: jsapp/js/components/map/index.tsx:1118
 msgid ""
 "The map does not show data because this form does not have a \"geopoint\" "
 "field."
 msgstr " La carte n'affiche pas de données, car ce formulaire ne possède pas de questions « geopoint »."
 
-#: jsapp/js/components/map/index.tsx:1186
-#: jsapp/js/components/map/index.tsx:1192
+#: jsapp/js/components/map/index.tsx:1223
+#: jsapp/js/components/map/index.tsx:1229
 msgid "Map display settings"
 msgstr "Paramètres d'affichage de la carte"
 
-#: jsapp/js/components/map/index.tsx:1200
-#: jsapp/js/components/map/index.tsx:1206
+#: jsapp/js/components/map/index.tsx:1237
+#: jsapp/js/components/map/index.tsx:1243
 msgid "Toggle layers"
 msgstr "Afficher/Masquer les couches"
 
-#: jsapp/js/components/map/index.tsx:1212
-#: jsapp/js/components/map/index.tsx:1218
+#: jsapp/js/components/map/index.tsx:1249
+#: jsapp/js/components/map/index.tsx:1255
 msgid "Toggle Fullscreen"
 msgstr "Basculer en plein écran"
 
-#: jsapp/js/components/map/index.tsx:1224
-#: jsapp/js/components/map/index.tsx:1230
+#: jsapp/js/components/map/index.tsx:1261
+#: jsapp/js/components/map/index.tsx:1267
 msgid "Show as points"
 msgstr "Afficher avec des points"
 
-#: jsapp/js/components/map/index.tsx:1237
-#: jsapp/js/components/map/index.tsx:1243
+#: jsapp/js/components/map/index.tsx:1274
+#: jsapp/js/components/map/index.tsx:1280
 msgid "Show as heatmap"
 msgstr "Afficher comme carte thermique"
 
-#: jsapp/js/components/map/index.tsx:1292
+#: jsapp/js/components/map/index.tsx:1329
 msgid "Default"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1303
+#: jsapp/js/components/map/index.tsx:1340
 msgid "-- See all data --"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1311
+#: jsapp/js/components/map/index.tsx:1348
 msgid "untranslated: "
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1314
+#: jsapp/js/components/map/index.tsx:1351
 msgid "Question label not set"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1340
+#: jsapp/js/components/map/index.tsx:1377
 msgid "Legend"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1375
+#: jsapp/js/components/map/index.tsx:1412
 msgid "not set"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1413
+#: jsapp/js/components/map/index.tsx:1450
 msgid "This project does not include geographical data."
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1414
+#: jsapp/js/components/map/index.tsx:1451
 msgid "To visualize data in the map, create a \"geopoint\" question."
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1423
+#: jsapp/js/components/map/index.tsx:1460
 msgid "No \"geopoint\" responses have been received for the selected question."
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1432
+#: jsapp/js/components/map/index.tsx:1469
 msgid "Fetching points…"
 msgstr ""
 
-#: jsapp/js/components/map/index.tsx:1438
+#: jsapp/js/components/map/index.tsx:1475
 msgid "Map Settings"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:26
+#: jsapp/js/components/metadataEditor.tsx:28
 msgid "Low"
 msgstr "Basse"
 
-#: jsapp/js/components/metadataEditor.js:27
+#: jsapp/js/components/metadataEditor.tsx:29
 msgid "Normal"
 msgstr "Normale"
 
-#: jsapp/js/components/metadataEditor.js:28
+#: jsapp/js/components/metadataEditor.tsx:30
 msgid "Voice only"
 msgstr "Voix seule"
 
-#: jsapp/js/components/metadataEditor.js:132
+#: jsapp/js/components/metadataEditor.tsx:141
 msgid "Audit settings"
 msgstr "Paramètres d'audit"
 
-#: jsapp/js/components/metadataEditor.js:235
+#: jsapp/js/components/metadataEditor.tsx:227
+msgid "Enter audit settings here"
+msgstr ""
+
+#: jsapp/js/components/metadataEditor.tsx:242
 msgid "This survey will be recorded"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:236
+#: jsapp/js/components/metadataEditor.tsx:243
 msgid "Enable audio recording in the background"
 msgstr ""
 
-#: jsapp/js/components/metadataEditor.js:246
+#: jsapp/js/components/metadataEditor.tsx:256
 msgid "Audio quality"
 msgstr ""
 
@@ -3821,135 +3865,144 @@ msgstr ""
 msgid "Please select an option"
 msgstr ""
 
-#: jsapp/js/components/modalForms/ExtraProjectMetadataFields.tsx:89
+#: jsapp/js/components/modalForms/ExtraProjectMetadataFields.tsx:90
 msgid "This field is required"
 msgstr ""
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:100
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:103
 msgid "##type## ##name## created"
 msgstr "##type## ##name## créé"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:114
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:117
 msgid "Failed to create ##type##"
 msgstr "Échec de la création de ##type##"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:124
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:127
 msgid "Failed to update ##type##"
 msgstr "Échec de la mise à jour de ##type##"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:250
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:253
 #: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisHeader.tsx:101
 #: jsapp/js/project/FormLanguagesManager/utils.ts:12
 msgid "Saving…"
 msgstr "Sauvegarde en cours…"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:252
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:255
 msgid "Creating…"
 msgstr "En cours de création…"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:267
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:270
 msgid "Enter title of ##type## here"
 msgstr ""
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:277
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:118
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:280
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:117
 msgid "Enter short description here"
 msgstr "Veuillez saisir une courte description ici"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:323
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:314
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:197
+msgid "Operational purpose of data"
+msgstr ""
+
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:326
 msgid "Does this project collect personally identifiable information?"
 msgstr ""
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:328
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:331
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:155
-#: jsapp/js/components/submissions/submissionUtils.tsx:645
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:183
+#: jsapp/js/components/submissions/submissionUtils.tsx:643
+#: jsapp/js/project/ProjectSettings/constants.ts:39
 #: jsapp/xlform/src/view.row.templates.coffee:364
 #: jsapp/xlform/src/view.rowDetail.coffee:120
 msgid "Yes"
 msgstr "Oui"
 
-#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:329
+#: jsapp/js/components/modalForms/LibraryAssetForm.tsx:332
 #: jsapp/js/components/projectDownloads/ProjectExportsList.tsx:157
-#: jsapp/js/components/submissions/submissionUtils.tsx:645
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:184
+#: jsapp/js/components/submissions/submissionUtils.tsx:643
+#: jsapp/js/project/ProjectSettings/constants.ts:40
 #: jsapp/xlform/src/view.row.templates.coffee:373
 msgid "No"
 msgstr "Non"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:18
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:73
+msgid "Question Block"
+msgstr "Bloc de questions"
+
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:80
+msgid "Template"
+msgstr "Modèle"
+
+#: jsapp/js/components/modalForms/LibraryNewItemForm.tsx:94
+msgid "Collection"
+msgstr "Collection"
+
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:20
 msgid "n/d"
 msgstr "s/o"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:22
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:24
 msgid "Multiple responses"
 msgstr "Réponses multiples"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:88
-msgid "Editing ##count## submission(s)"
-msgstr ""
-
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:94
-msgid "Editing \"##question##\" for ##count## submissions"
-msgstr "Modification « ##question## » pour ##count## soumissions"
-
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:203
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:191
 msgid "help article"
 msgstr ""
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:266
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:272
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:254
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:260
 msgid "Type to filter"
 msgstr "Saisir pour filtrer"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:291
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:700
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:279
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:701
 msgid "Required"
 msgstr "Obligatoire"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:297
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:285
 msgid "Editing responses from repeat group questions is not possible yet."
 msgstr "Il n'est pas encore possible de modifier les réponses aux questions de groupe répétées."
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:341
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:329
 msgid ""
 "Bulk edit mode: Select questions to edit or delete responses across all "
 "selected submissions."
 msgstr "Mode de modification en masse : modifiez ou supprimez des réponses dans toutes les soumissions sélectionnées."
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:345
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:333
 msgid ""
 "Note: Changes made here bypass form logic and validation rules and may "
 "affect data integrity."
 msgstr "Remarque : les modifications apportées ici contournent la logique du formulaire et les règles de validation et peuvent nuire à l'intégrité des données."
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:347
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:335
 msgid "Learn more in our"
 msgstr ""
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:352
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:340
 msgid "Updated responses"
 msgstr "Réponses actualisées"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:358
-#: jsapp/js/components/submissions/submissionDataTable.tsx:77
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:346
+#: jsapp/js/components/submissions/submissionDataTable.tsx:79
 msgid "Question"
 msgstr "Question"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:359
-#: jsapp/js/components/submissions/submissionDataTable.tsx:79
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:347
+#: jsapp/js/components/submissions/submissionDataTable.tsx:81
 msgid "Response"
 msgstr "Réponse"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:374
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:362
 msgid "Discard Changes"
 msgstr "Annuler les Changements"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:383
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:371
 msgid "Confirm & close"
 msgstr "Confirmer et fermer"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:395
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:383
 msgid ""
 "You are about to edit responses for one or multiple submissions at once. Use"
 " the XML syntax in the text box below. You can also select one of the "
@@ -3957,39 +4010,43 @@ msgid ""
 " specific responses for one or multiple submissions"
 msgstr "Vous êtes sur le point de modifier les réponses d'une ou plusieurs soumissions à la fois. Utilisez la syntaxe XML dans la zone de texte ci-dessous. Vous pouvez également sélectionner l'une des réponses existantes dans le tableau des réponses. En savoir plus sur la façon de modifier des réponses spécifiques pour une ou plusieurs soumissions"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:461
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:449
 msgid "Type new response for selected submissions"
 msgstr "Saisir une nouvelle réponse pour les soumissions sélectionnées"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:510
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:498
 msgid "Select"
 msgstr "Sélectionner"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:544
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:532
 msgid "Response value"
 msgstr "Valeur de réponse"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:545
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:533
 #: jsapp/js/components/reports/reportTable.component.tsx:75
 msgid "Frequency"
 msgstr "Fréquence"
 
-#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:546
+#: jsapp/js/components/modalForms/bulkEditSubmissionsForm.js:534
 #: jsapp/js/components/reports/reportTable.component.tsx:75
 msgid "Percentage"
 msgstr "Pourcentage"
 
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:88
-msgid "Question Block"
-msgstr "Bloc de questions"
+#: jsapp/js/components/modalForms/openBulkEditSubmissionsFormModal.tsx:37
+msgid "Editing ##count## submission(s)"
+msgstr ""
 
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:93
-msgid "Template"
-msgstr "Modèle"
+#: jsapp/js/components/modalForms/openBulkEditSubmissionsFormModal.tsx:41
+msgid "Editing \"##question##\" for ##count## submission(s)"
+msgstr ""
 
-#: jsapp/js/components/modalForms/libraryNewItemForm.js:103
-msgid "Collection"
-msgstr "Collection"
+#: jsapp/js/components/modalForms/openLibraryAssetModal.tsx:19
+msgid "Collection details"
+msgstr "Détails de la collection"
+
+#: jsapp/js/components/modalForms/openLibraryAssetModal.tsx:19
+msgid "Template details"
+msgstr "Détails du modèle"
 
 #: jsapp/js/components/newFeatureDialog.component.tsx:80
 msgid "New feature"
@@ -4125,10 +4182,6 @@ msgstr "Vous êtes sur le point de copier les droits d’accès de ##source vers
 msgid "Are you sure you want to copy permissions?"
 msgstr "Êtes-vous sûr de vouloir copier ces droits d’accès ?"
 
-#: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:166
-msgid "Proceed"
-msgstr "Procéder"
-
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:201
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:250
 msgid "Loading…"
@@ -4167,6 +4220,11 @@ msgstr ""
 #: jsapp/js/components/permissions/permConstants.ts:227
 msgid "View form"
 msgstr "Voir le formulaire"
+
+#: jsapp/js/components/permissions/permConstants.ts:228
+#: jsapp/js/project/FormSummary/index.tsx:91
+msgid "Edit form"
+msgstr "Éditer le formulaire"
 
 #: jsapp/js/components/permissions/permConstants.ts:229
 msgid "Manage project"
@@ -4422,11 +4480,11 @@ msgstr ""
 msgid "To complete the transfer, enter the username of the new project owner"
 msgstr ""
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:239
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:238
 msgid "Enter username here"
 msgstr ""
 
-#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:250
+#: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx:249
 msgid "Transfer project"
 msgstr ""
 
@@ -4461,32 +4519,32 @@ msgid ""
 "change user permissions in the project sharing settings."
 msgstr "Note : le propriétaire précédent détient des droits d’accès pour gérer le projet. Vous pouvez ajuster les droits d’accès des utilisateurs dans les paramètres de partage du projet."
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:43
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:42
 msgid "Enter usernames separated by comma"
 msgstr "Entrez les noms d'utilisateur séparés par des virgules"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:221
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:220
 msgid "User not found:"
 msgstr "Utilisateur non trouvé :"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:407
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:404
 msgid "equals"
 msgstr "équivaut à"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:437
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:434
 msgid "Reset changes"
 msgstr "Réinitialiser les changements"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:461
-#: jsapp/js/components/submissions/submissionDataTable.tsx:329
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:457
+#: jsapp/js/components/submissions/tableConstants.ts:64
 msgid "username"
 msgstr "nom d'utilisateur"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:499
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:495
 msgid "Grant permissions"
 msgstr "Autoriser l’accès"
 
-#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:499
+#: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx:495
 msgid "Update permissions"
 msgstr "Actualiser les droits d’accès"
 
@@ -4545,13 +4603,13 @@ msgstr "Les droits d’accès enregistrés ne sont pas valides. Veuillez les ré
 msgid "Type option name"
 msgstr "Saisir le nom de l'option"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:97
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:169
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:96
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/index.tsx:168
 msgid "Add a hint (optional)"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:112
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:751
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/AnalysisQuestionEditor/SelectXFieldsEditor.tsx:111
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:752
 msgid "Add new option"
 msgstr "Ajouter une nouvelle option"
 
@@ -4629,15 +4687,15 @@ msgstr ""
 msgid "Failed to get tag suggestions"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/index.tsx:484
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/AnalysisQuestionListItem/index.tsx:483
 msgid "Unknown question type ##type_name##"
 msgstr "Type de question inconnu ##type_name##"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:83
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:80
 msgid "Failed to generate AI response. Please try again later."
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:96
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/AnalysisContent/AnalysisQuestionsList/index.tsx:93
 msgid ""
 "No transcription found. If there is an existing transcription it may need to"
 " be saved."
@@ -4687,26 +4745,26 @@ msgstr "Modifications non sauvegardées"
 msgid "Saved"
 msgstr "Sauvegardé"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:125
-#: jsapp/js/constants.ts:352 jsapp/js/formbuild/containers/KoboMatrix.tsx:129
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:143
+#: jsapp/js/constants.ts:349 jsapp/js/formbuild/containers/KoboMatrix.tsx:129
 msgid "Text"
 msgstr "Texte"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:137
-#: jsapp/js/constants.ts:319 jsapp/js/formbuild/containers/KoboMatrix.tsx:133
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:155
+#: jsapp/js/constants.ts:316 jsapp/js/formbuild/containers/KoboMatrix.tsx:133
 msgid "Number"
 msgstr "Chiffre"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:149
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:167
 msgid "Single choice"
 msgstr "Choix unique"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:163
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:181
 msgid "Multiple choice"
 msgstr "Choix multiple"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:177
-#: jsapp/js/constants.ts:328
+#: jsapp/js/components/processing/SingleProcessingContent/TabAnalysis/common/constants.ts:195
+#: jsapp/js/constants.ts:325
 msgid "Note"
 msgstr "Note"
 
@@ -4719,15 +4777,15 @@ msgstr "Ce ##type## n’a pas encore de transcription"
 msgid "begin"
 msgstr "commencer"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:151
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:149
 msgid "Automatic transcription of audio file from"
 msgstr "Transcription automatique du fichier audio à partir de"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:184
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:182
 msgid "Transcription provider"
 msgstr "Fournisseur de transcription"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:188
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:186
 msgid ""
 "Automated transcription is provided by Google Cloud Platform. By using this "
 "service you agree that your audio file will be sent to Google's servers for "
@@ -4737,44 +4795,44 @@ msgid ""
 "service."
 msgstr "La transcription automatisée est fournie par Google Cloud Platform. En utilisant ce service, vous acceptez que votre fichier audio soit envoyé aux serveurs de Google à des fins de transcription. Cependant, il ne sera pas stocké sur les serveurs de Google au-delà de la courte période nécessaire pour terminer la transcription, et nous ne permettons pas à Google d’utiliser l’audio pour améliorer son service de transcription."
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:201
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:254
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:199
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:252
 msgid "cancel"
 msgstr "annuler"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:206
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/StepCreateAutomated.tsx:204
 msgid "create transcript"
 msgstr "créer une transcription"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:49
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:47
 msgid "Please select the original language of the ##type##"
 msgstr "Veuillez sélectionner la langue d’origine du ##type##"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:93
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptCreate/index.tsx:91
 msgid "transcribe"
 msgstr "transcrire"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:193
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:192
-#: jsapp/js/components/submissions/submissionModal.tsx:510
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Editor.tsx:190
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Editor.tsx:189
+#: jsapp/js/components/submissions/submissionModal.tsx:503
 msgid "Discard"
 msgstr "Éliminer"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:68
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptEdit/Viewer.tsx:66
 msgid "Delete transcription?"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:72
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:68
 msgid "Automatic transcription in progress"
 msgstr "Transcription automatique en cours"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:74
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:199
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:70
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:197
 msgid "Estimated time for completion: ##estimate##"
 msgstr "Temps estimé pour l'achèvement : ##estimate##"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:78
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:79
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/TranscriptPoll.tsx:74
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:76
 msgid "This submission is part of an ongoing bulk processing job."
 msgstr ""
 
@@ -4783,7 +4841,7 @@ msgid "source file"
 msgstr "fichier source"
 
 #: jsapp/js/components/processing/SingleProcessingContent/TabTranscript/transcript.utils.ts:33
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:199
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:197
 msgid "less than a minute"
 msgstr "moins d'une minute"
 
@@ -4803,24 +4861,24 @@ msgstr "environ ##number## minute (s)"
 msgid "This transcript does not have any translations yet"
 msgstr "Cette transcription n’a pas encore de traduction"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:77
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:75
 msgid "Failed to create automatic translation. Please try again later."
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:193
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:72
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:191
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:69
 msgid "Automatic translation in progress"
 msgstr "Traduction automatique en cours"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:206
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:204
 msgid "Automatic translation of transcript to"
 msgstr "Traduction automatique de la transcription vers"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:230
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:228
 msgid "Translation provider"
 msgstr "Fournisseur de traduction"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:234
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:232
 msgid ""
 "Automated translation is provided by Google Cloud Platform. By using this "
 "service you agree that your transcript text will be sent to Google's servers"
@@ -4828,31 +4886,31 @@ msgid ""
 "servers beyond the very short period needed for completing the translation."
 msgstr "La traduction automatisée est assurée par Google Cloud Platform. En utilisant ce service, vous acceptez que votre texte de transcription soit envoyé aux serveurs de Google à des fins de traduction. Cependant, il ne sera pas stocké sur les serveurs de Google au-delà de la très courte période nécessaire pour terminer la traduction."
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:259
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/StepCreateAutomated.tsx:257
 msgid "create translation"
 msgstr "créer une traduction"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:113
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:111
 msgid "Please select the language you want to translate to"
 msgstr "Veuillez sélectionner la langue vers laquelle vous souhaitez traduire"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:114
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationAdd/index.tsx:112
 msgid "translate"
 msgstr "traduire"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:76
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:74
 msgid "Delete translation?"
 msgstr "Supprimer la traduction ?"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:97
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationEdit/Viewer.tsx:95
 msgid "new translation"
 msgstr "nouvelle traduction"
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:74
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:71
 msgid "Language: ##language##"
 msgstr ""
 
-#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:75
+#: jsapp/js/components/processing/SingleProcessingContent/TabTranslations/TranslationPoll.tsx:72
 msgid "This may take up to a couple of minutes."
 msgstr ""
 
@@ -4940,42 +4998,42 @@ msgstr "Libellés"
 msgid "XML values"
 msgstr "Valeurs XML"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:90
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:92
 msgid "Original transcript"
 msgstr "Transcription originale"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:101
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:103
 msgid "Submission data"
 msgstr "Soumission des données"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:107
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:109
 msgid "Original file (Audio)"
 msgstr "Fichier original (Audio)"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:152
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:154
 msgid "Display settings"
 msgstr "Paramètres d'affichage"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:159
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:161
 msgid "Customize display settings"
 msgstr "Personnaliser les paramètres d'affichage"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:166
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:168
 msgid ""
 "Select the information you want to display in the side menu to support your "
 "analysis."
 msgstr "Sélectionnez les informations que vous souhaitez afficher dans le menu latéral pour faciliter votre analyse."
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:172
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:174
 #: jsapp/js/components/submissions/TableSettings.tsx:143
 msgid "Display labels or XML values?"
 msgstr " Afficher les libellés ou les valeurs XML ?"
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:209
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:210
 msgid "Select the submission data to display."
 msgstr "Sélectionnez les données de soumission à afficher."
 
-#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:237
+#: jsapp/js/components/processing/SingleProcessingSidebar/sidebarDisplaySettings.tsx:238
 #: jsapp/js/components/reports/reportsModalTabs.component.tsx:51
 msgid "Translation"
 msgstr "Traduction"
@@ -4989,12 +5047,12 @@ msgid "There is no data for this question for the current submission"
 msgstr "Il n’existe pas de données concernant cette question dans la soumission actuelle"
 
 #: jsapp/js/components/projectDownloads/AnonymousExports.tsx:128
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:257
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:264
 msgid "Failed to create export"
 msgstr "Échec de la création de l'export"
 
 #: jsapp/js/components/projectDownloads/AnonymousExports.tsx:153
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:858
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:864
 msgid "Export"
 msgstr "Exporter"
 
@@ -5013,7 +5071,7 @@ msgid ""
 "action is not reversible."
 msgstr ""
 
-#: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx:44
+#: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx:36
 msgid "Select export type"
 msgstr "Sélectionner le type d'export"
 
@@ -5023,85 +5081,85 @@ msgid ""
 "using one of the other export types available."
 msgstr "Ce format d'export ne sera pas pris en charge à l'avenir. Veuillez envisager l'utilisation d'un des autres types d'export disponibles."
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:42
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:44
 msgid "Latest unsaved settings"
 msgstr "Derniers paramètres non sauvegardés"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:290
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:300
 #: jsapp/js/components/submissions/tableBulkCheckbox.tsx:56
 msgid "None"
 msgstr "Aucun"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:400
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:410
 msgid "Failed to update export setting"
 msgstr "Échec de la mise à jour des paramètres d'export"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:413
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:423
 msgid "Failed to create export setting"
 msgstr "Échec de la création d'un paramètre d'export"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:488
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:498
 msgid "Include fields from all ##count## versions"
 msgstr "Inclure les champs des ##count## versions"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:500
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:510
 msgid "Export ##SELECT_MANY## questions as…"
 msgstr "Exporter ##SELECT_MANY## questions comme…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:509
-#: jsapp/js/constants.ts:333 jsapp/js/formbuild/containers/KoboMatrix.tsx:125
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:519
+#: jsapp/js/constants.ts:330 jsapp/js/formbuild/containers/KoboMatrix.tsx:125
 msgid "Select Many"
 msgstr "Choix multiple"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:548
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:555
 msgid "Include groups in headers"
 msgstr "Inclure les groupes dans les en-têtes"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:557
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:564
 msgid "Group separator"
 msgstr "Séparateur de groupe"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:579
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:587
 msgid "Flatten GeoJSON"
 msgstr "Aplatir GeoJSON"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:592
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:600
 msgid "Store date and number responses as text"
 msgstr "Enregistrer les réponses date et nombre sous forme de texte"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:607
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:615
 msgid "Include media URLs"
 msgstr "Inclure les URL des médias"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:619
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:627
 msgid "Save selection as…"
 msgstr "Enregistrer la sélection sous…"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:629
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:637
 msgid "Name your export settings"
 msgstr "Nommer vos paramètres d'export"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:641
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:650
 msgid "Date range"
 msgstr "Intervalle de dates"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:679
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:688
 msgid "Select questions to be exported"
 msgstr "Sélectionner les questions à exporter"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:782
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:791
 msgid "Value and header format"
 msgstr "Format pour les valeurs et l'en-tête"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:805
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:813
 msgid "Advanced options"
 msgstr "Options avancées"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:819
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:827
 msgid "Apply saved export settings"
 msgstr "Appliquer les paramètres d'export enregistrés"
 
-#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:829
+#: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx:834
 msgid "No export settings selected"
 msgstr "Aucun paramètre d'export sélectionné"
 
@@ -5193,11 +5251,11 @@ msgstr "Supprimer l'export ?"
 msgid "Delete export settings?"
 msgstr "Supprimer les paramètres d'export ?"
 
-#: jsapp/js/components/reports/customReportEditor.component.tsx:100
+#: jsapp/js/components/reports/customReportEditor.component.tsx:99
 msgid "Untitled Report"
 msgstr "Rapport sans nom"
 
-#: jsapp/js/components/reports/customReportEditor.component.tsx:105
+#: jsapp/js/components/reports/customReportEditor.component.tsx:104
 msgid "Include the following questions:"
 msgstr "Inclure les questions suivantes :"
 
@@ -5254,78 +5312,78 @@ msgstr "(# étaient sans données.)"
 msgid "Override Graph Style"
 msgstr "Remplacer le style de graphique"
 
-#: jsapp/js/components/reports/reports.tsx:190
+#: jsapp/js/components/reports/reports.tsx:197
 msgid ""
 "Could not load grouped results via \"##\". Will attempt to load the "
 "ungrouped report."
 msgstr "Impossible de charger les résultats groupés via « ## ». Chargement du rapport non groupé en cours."
 
-#: jsapp/js/components/reports/reports.tsx:243
+#: jsapp/js/components/reports/reports.tsx:250
 msgid "Could not refresh report."
 msgstr "Impossible de rafraîchir le rapport."
 
-#: jsapp/js/components/reports/reports.tsx:394
+#: jsapp/js/components/reports/reports.tsx:401
 msgid "Untitled report"
 msgstr "Rapport sans titre"
 
-#: jsapp/js/components/reports/reports.tsx:399
+#: jsapp/js/components/reports/reports.tsx:406
 msgid "Default Report"
 msgstr "Rapport par défaut"
 
-#: jsapp/js/components/reports/reports.tsx:425
+#: jsapp/js/components/reports/reports.tsx:430
 msgid "Create New Report"
 msgstr "Créer un nouveau rapport"
 
-#: jsapp/js/components/reports/reports.tsx:434
+#: jsapp/js/components/reports/reports.tsx:439
 msgid "Edit Report Questions"
 msgstr "Modification des questions du rapport"
 
-#: jsapp/js/components/reports/reports.tsx:443
+#: jsapp/js/components/reports/reports.tsx:448
 msgid "Configure Report Style"
 msgstr "Configurer le style du rapport"
 
-#: jsapp/js/components/reports/reports.tsx:454
-#: jsapp/js/components/submissions/submissionModal.tsx:625
+#: jsapp/js/components/reports/reports.tsx:459
+#: jsapp/js/components/submissions/submissionModal.tsx:618
 msgid "Print"
 msgstr "Imprimer"
 
-#: jsapp/js/components/reports/reports.tsx:508
+#: jsapp/js/components/reports/reports.tsx:513
 msgid "This report cannot be loaded."
 msgstr "Ce rapport ne peut pas être chargé."
 
-#: jsapp/js/components/reports/reports.tsx:564
+#: jsapp/js/components/reports/reports.tsx:569
 msgid "This report has no data."
 msgstr "Ce rapport n'a pas de données."
 
-#: jsapp/js/components/reports/reports.tsx:567
+#: jsapp/js/components/reports/reports.tsx:572
 msgid "Try changing Report Style to \"No grouping\"."
 msgstr "Essayez de changer le style de rapport en « Aucun groupement »."
 
-#: jsapp/js/components/reports/reports.tsx:599
+#: jsapp/js/components/reports/reports.tsx:604
 msgid ""
 "For performance reasons, this report only includes the first ## questions."
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:609
+#: jsapp/js/components/reports/reports.tsx:614
 msgid "Show all (##)"
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:620
+#: jsapp/js/components/reports/reports.tsx:625
 msgid ""
 "This is an automated report based on raw data submitted to this project. "
 "Please conduct proper data cleaning prior to using the graphs and figures "
 "used on this page."
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:634
+#: jsapp/js/components/reports/reports.tsx:639
 msgid "Edit Report Style"
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:640
+#: jsapp/js/components/reports/reports.tsx:645
 msgid "Custom Report"
 msgstr ""
 
-#: jsapp/js/components/reports/reports.tsx:652
+#: jsapp/js/components/reports/reports.tsx:657
 msgid "Question Style"
 msgstr ""
 
@@ -5342,7 +5400,7 @@ msgid "Horizontal"
 msgstr "Barres horizontales"
 
 #: jsapp/js/components/reports/reportsConstants.ts:173
-#: jsapp/js/constants.ts:315
+#: jsapp/js/constants.ts:312
 msgid "Line"
 msgstr "Ligne"
 
@@ -5355,7 +5413,7 @@ msgid "Donut"
 msgstr "Anneaux"
 
 #: jsapp/js/components/reports/reportsConstants.ts:201
-#: jsapp/js/constants.ts:314
+#: jsapp/js/constants.ts:311
 msgid "Area"
 msgstr "Zone"
 
@@ -5447,7 +5505,7 @@ msgid "Approve"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkApproveModal/openBulkApproveModal.tsx:9
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:186
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:183
 msgid "Approve all selected"
 msgstr ""
 
@@ -5464,79 +5522,79 @@ msgid ""
 "displayed in the table"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:39
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:40
 #: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:109
 msgid ""
 "1 audio file totaling ##duration## already transcribed and will be ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:40
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:41
 #: jsapp/js/components/submissions/BulkProcessingModals/alerts/alertDefinitions.ts:110
 msgid ""
 "##count## audio files totaling ##duration## already transcribed and will be "
 "ignored"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:72
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:67
 msgid "Bulk transcription request submitted successfully"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:94
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:89
 msgid "Failed to start transcription. Please try again."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:272
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:266
 msgid ""
 "Your ##total_files## audio files are a total of ##total_length##. This may "
 "take longer to complete than the total duration of your files."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:289
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:217
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:283
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:201
 msgid "I cannot find my language"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:297
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:291
 msgid "Select a region"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:304
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:298
 msgid "Automatic transcription is provided by Google Cloud Platform."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:321
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:315
 msgid "Start transcription"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:333
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:257
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/BulkTranscriptionModal.tsx:327
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:241
 msgid "Purchase add-on"
 msgstr ""
 
 #: jsapp/js/components/submissions/BulkProcessingModals/BulkTranscriptionModal/openBulkTranscriptionModal.tsx:9
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:160
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:157
 msgid "Transcribe selected audio files"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:53
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:54
 msgid "Bulk translation request submitted successfully"
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:77
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:78
 msgid "Failed to start translation. Please try again."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:203
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:187
 msgid ""
 "Your ##total_selected## transcripts are a total of ##total_characters## "
 "characters."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:224
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:208
 msgid "Automatic translation is provided by Google Cloud Platform."
 msgstr ""
 
-#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:245
+#: jsapp/js/components/submissions/BulkProcessingModals/BulkTranslationModal/BulkTranslationModal.tsx:229
 msgid "Create translations"
 msgstr ""
 
@@ -5625,7 +5683,12 @@ msgstr ""
 msgid "There are no eligible submissions to process."
 msgstr ""
 
-#: jsapp/js/components/submissions/DataTableCell/SupplementalDetailsCell.tsx:55
+#: jsapp/js/components/submissions/DataTableCell/AudioCell.tsx:64
+#: jsapp/js/components/submissions/DataTableCell/TextCell.tsx:62
+msgid "View details"
+msgstr ""
+
+#: jsapp/js/components/submissions/DataTableCell/SupplementalDetailsCell.tsx:53
 msgid "Review"
 msgstr ""
 
@@ -5700,227 +5763,183 @@ msgstr "Options d'affichage du tableau"
 msgid "Deleted attachment"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
-#: jsapp/js/constants.ts:310
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
+#: jsapp/js/constants.ts:307
 msgid "Point"
 msgstr "Position"
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "latitude (x.y °):"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "longitude (x.y °):"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "altitude (m):"
 msgstr ""
 
-#: jsapp/js/components/submissions/submissionDataTable.tsx:210
+#: jsapp/js/components/submissions/submissionDataTable.tsx:212
 msgid "accuracy (m):"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:326
-msgid "start"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:327
-msgid "end"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:328
-msgid "today"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:330
-msgid "device ID"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:331
-msgid "phone number"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:332
-msgid "audit"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:333
-msgid "__version__"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:334
-msgid "_id"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:335
-msgid "instanceID"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:336
-msgid "Submitted by"
-msgstr ""
-
-#: jsapp/js/components/submissions/submissionDataTable.tsx:337
-msgid "rootUuid"
 msgstr ""
 
 #: jsapp/js/components/submissions/submissionMediaUtils.ts:13
 msgid "Could not find ##fileName##"
 msgstr "Impossible de trouver##fileName##"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:224
+#: jsapp/js/components/submissions/submissionModal.tsx:229
 msgid ""
 "The submission could not be found. It may have been deleted. Submission ID: "
 "##id##"
 msgstr "La soumission est introuvable. Elle a peut-être été supprimée. Identifiant de soumission : ##id##"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:266
+#: jsapp/js/components/submissions/submissionModal.tsx:271
 msgid "Delete submission?"
 msgstr "Supprimer la soumission ?"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:267
+#: jsapp/js/components/submissions/submissionModal.tsx:272
 msgid "Are you sure you want to delete this submission?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette soumission ?"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:267
+#: jsapp/js/components/submissions/submissionModal.tsx:272
 msgid "This action cannot be undone"
 msgstr "Cette action ne peut pas être annulée"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:445
+#: jsapp/js/components/submissions/submissionModal.tsx:443
 msgid "Validation status:"
 msgstr "Statut de validation :"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:487
+#: jsapp/js/components/submissions/submissionModal.tsx:480
 msgid "Duplicate created"
 msgstr "Duplicata créé"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:491
+#: jsapp/js/components/submissions/submissionModal.tsx:484
 msgid ""
 "A duplicate of the submission record was successfully created. You can view "
 "the new instance below and make changes using the action buttons below."
 msgstr "Un duplicata de la soumission a été créé avec succès. Vous pouvez voir la nouvelle soumission ci-dessous et apporter des modifications à l'aide des boutons d'action ci-dessous."
 
-#: jsapp/js/components/submissions/submissionModal.tsx:496
+#: jsapp/js/components/submissions/submissionModal.tsx:489
 msgid "Source submission uuid: "
 msgstr "Soumission de source uuid : "
 
-#: jsapp/js/components/submissions/submissionModal.tsx:511
+#: jsapp/js/components/submissions/submissionModal.tsx:504
 msgid "Discard duplicated submission"
 msgstr "Élimination de la soumission dupliquée"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:532
+#: jsapp/js/components/submissions/submissionModal.tsx:525
 msgid ""
 "Click on the button below to load the most recent data for this submission. "
 msgstr "Cliquez sur le bouton ci-dessous pour charger les données les plus récentes de cette soumission. "
 
-#: jsapp/js/components/submissions/submissionModal.tsx:534
+#: jsapp/js/components/submissions/submissionModal.tsx:527
 msgid "Refresh submission"
 msgstr "Actualiser la soumission"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:594
+#: jsapp/js/components/submissions/submissionModal.tsx:587
 msgid "Display XML names"
 msgstr "Afficher les noms XML"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:608
-#: jsapp/js/components/submissions/table.tsx:693
+#: jsapp/js/components/submissions/submissionModal.tsx:601
+#: jsapp/js/components/submissions/table.tsx:684
 msgid "View"
 msgstr "Afficher"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:616
+#: jsapp/js/components/submissions/submissionModal.tsx:609
 msgid "Duplicate"
 msgstr "Dupliquer"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:634
+#: jsapp/js/components/submissions/submissionModal.tsx:627
 msgid "Delete submission"
 msgstr "Supprimer la soumission"
 
-#: jsapp/js/components/submissions/submissionModal.tsx:670
+#: jsapp/js/components/submissions/submissionModal.tsx:663
 msgid "Unknown error"
 msgstr "Erreur inconnue"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:778
+#: jsapp/js/components/submissions/submissionUtils.tsx:776
 msgid "images"
 msgstr "images"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:779
+#: jsapp/js/components/submissions/submissionUtils.tsx:777
 msgid "video"
 msgstr "vidéo"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:779
+#: jsapp/js/components/submissions/submissionUtils.tsx:777
 msgid "videos"
 msgstr "vidéos"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:780
+#: jsapp/js/components/submissions/submissionUtils.tsx:778
 msgid "audio"
 msgstr "audio"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:780
+#: jsapp/js/components/submissions/submissionUtils.tsx:778
 msgid "audios"
 msgstr "audios"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:781
+#: jsapp/js/components/submissions/submissionUtils.tsx:779
 msgid "file"
 msgstr "fichier"
 
-#: jsapp/js/components/submissions/submissionUtils.tsx:781
+#: jsapp/js/components/submissions/submissionUtils.tsx:779
 msgid "files"
 msgstr "fichiers"
 
-#: jsapp/js/components/submissions/table.tsx:321
+#: jsapp/js/components/submissions/table.tsx:314
 msgid ""
 "Could not refresh some processing rows. Table data may be temporarily out of"
 " date."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:323
+#: jsapp/js/components/submissions/table.tsx:316
 msgid "Bulk processing row refresh failed."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:431
+#: jsapp/js/components/submissions/table.tsx:423
 msgid "This project has no submitted data. Please collect some and try again."
 msgstr "Ce projet n'a pas de données soumises. Veuillez en collecter quelques-unes et réessayer."
 
-#: jsapp/js/components/submissions/table.tsx:636
+#: jsapp/js/components/submissions/table.tsx:628
 msgid "results"
 msgstr "résultats"
 
-#: jsapp/js/components/submissions/table.tsx:739
+#: jsapp/js/components/submissions/table.tsx:730
 #: jsapp/js/components/submissions/tableUtils.ts:125
 msgid "Validation"
 msgstr "Validation"
 
-#: jsapp/js/components/submissions/table.tsx:1403
+#: jsapp/js/components/submissions/table.tsx:1289
 msgid ""
 "Please try again later, or [contact the support team](##SUPPORT_URL##) if "
 "this happens repeatedly."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1410
+#: jsapp/js/components/submissions/table.tsx:1296
 msgid "Oops! Something went wrong on our end."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1416
+#: jsapp/js/components/submissions/table.tsx:1302
 msgid "Response details:"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1486
+#: jsapp/js/components/submissions/table.tsx:1372
 msgid "Display options"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1510
+#: jsapp/js/components/submissions/table.tsx:1396
 msgid "Prev"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1520
+#: jsapp/js/components/submissions/table.tsx:1406
 msgid "Your filters returned no submissions."
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1521
+#: jsapp/js/components/submissions/table.tsx:1407
 msgid "Page"
 msgstr ""
 
-#: jsapp/js/components/submissions/table.tsx:1523
+#: jsapp/js/components/submissions/table.tsx:1409
 msgid "rows"
 msgstr ""
 
@@ -5932,76 +5951,108 @@ msgstr "Sélectionner tous les résultats (##count##)"
 msgid "Select visible results (##count##)"
 msgstr "Sélectionner les résultats visibles (##count##)"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:96
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:95
 msgid "Update status of selected submissions"
 msgstr "Mettre à jour le statut des soumissions sélectionnées"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:98
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:97
 msgid ""
 "You have selected ## submissions. Are you sure you would like to update "
 "their status? This action is irreversible."
 msgstr "Vous avez sélectionné ## soumissions. Êtes-vous sûr de vouloir mettre à jour leur statut ? Cette action est irréversible."
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:100
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:99
 msgid "Update validation status"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:133
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:132
 msgid ""
 "You are about to permanently delete ##count## submissions. It is not "
 "possible to recover deleted submissions."
 msgstr "Vous êtes sur le point de supprimer ##count## soumissions. Il n'est pas possible de récupérer les soumissions supprimées."
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:159
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:158
 msgid "Delete selected submissions"
 msgstr "Supprimer les soumissions sélectionnées"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:161
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:160
 msgid "Delete selected"
 msgstr "Supprimer la sélection"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:202
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:200
 msgid "##count## selected"
 msgstr "##count## sélectionné"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:231
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:229
 msgid "Change status"
 msgstr "Changer le statut"
 
-#: jsapp/js/components/submissions/tableBulkOptions.tsx:239
+#: jsapp/js/components/submissions/tableBulkOptions.tsx:237
 msgid "Set status: ##status##"
 msgstr "Définir le statut : ##status##"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:114
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:111
 #: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:105
 msgid "Sort A→Z"
 msgstr "Trier A→Z"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:115
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:112
 #: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:117
 msgid "Sort Z→A"
 msgstr "Trier Z→A"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:124
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:121
 msgid "Clear sort"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:173
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:170
 msgid "Translate selected transcriptions"
 msgstr ""
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:203
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:200
 #: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx:129
 msgid "Hide field"
 msgstr "Masquer le champ"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:215
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:212
 msgid "Unfreeze field"
 msgstr "Libérer le champ"
 
-#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:216
+#: jsapp/js/components/submissions/tableColumnSortDropdown.tsx:213
 msgid "Freeze field"
 msgstr "Figer le champ"
+
+#: jsapp/js/components/submissions/tableConstants.ts:61
+msgid "start"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:62
+msgid "end"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:63
+msgid "today"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:65
+msgid "device ID"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:66
+msgid "phone number"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:67
+msgid "audit"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:68
+msgid "Submitted by"
+msgstr ""
+
+#: jsapp/js/components/submissions/tableConstants.ts:69
+msgid "rootUuid"
+msgstr ""
 
 #: jsapp/js/components/submissions/tableUtils.ts:86
 msgid "transcript"
@@ -6088,6 +6139,11 @@ msgstr "Vous n'avez pas de modèle. Vous pouvez aller dans la bibliothèque pour
 #: jsapp/js/components/templatesList.js:64
 msgid "Template name"
 msgstr "Nom du modèle"
+
+#: jsapp/js/components/templatesList.js:66
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:124
+msgid "Last modified"
+msgstr "Dernière modification"
 
 #: jsapp/js/components/usageLimits/limitNotificationUtils.tsx:22
 msgid "limits"
@@ -6216,333 +6272,338 @@ msgstr "Vous avez atteint la limite de votre plan"
 msgid "remind me later"
 msgstr "me rappeler plus tard"
 
-#: jsapp/js/constants.ts:126
+#: jsapp/js/constants.ts:123
 msgid "Default - single page"
 msgstr "Par défaut - page simple"
 
-#: jsapp/js/constants.ts:127
+#: jsapp/js/constants.ts:124
 msgid "Grid theme"
 msgstr "Thème de grille"
 
-#: jsapp/js/constants.ts:128
+#: jsapp/js/constants.ts:125
 msgid "Grid theme with headings in ALL CAPS"
 msgstr "Thème de grille avec les titres en lettres MAJUSCULES"
 
-#: jsapp/js/constants.ts:129
+#: jsapp/js/constants.ts:126
 msgid "Multiple pages"
 msgstr "Pages multiples"
 
-#: jsapp/js/constants.ts:132
+#: jsapp/js/constants.ts:129
 msgid "Grid theme + Multiple pages"
 msgstr "Thème de grille + pages multiples"
 
-#: jsapp/js/constants.ts:136
+#: jsapp/js/constants.ts:133
 msgid "Grid theme + Multiple pages + headings in ALL CAPS"
 msgstr "Thème de grille + pages multiples + titres en lettres MAJUSCULES"
 
-#: jsapp/js/constants.ts:165
+#: jsapp/js/constants.ts:162
 msgid "question"
 msgstr "question"
 
-#: jsapp/js/constants.ts:169
+#: jsapp/js/constants.ts:166
 msgid "block"
 msgstr "bloc"
 
-#: jsapp/js/constants.ts:173
+#: jsapp/js/constants.ts:170
 msgid "template"
 msgstr "modèle"
 
-#: jsapp/js/constants.ts:177
+#: jsapp/js/constants.ts:174
 msgid "project"
 msgstr "projet"
 
-#: jsapp/js/constants.ts:181
+#: jsapp/js/constants.ts:178
 msgid "collection"
 msgstr "collection"
 
-#: jsapp/js/constants.ts:192
+#: jsapp/js/constants.ts:189
 msgid "map layer"
 msgstr "couche de carte"
 
-#: jsapp/js/constants.ts:196
+#: jsapp/js/constants.ts:193
 msgid "form media"
 msgstr "médias au sein du formulaire"
 
-#: jsapp/js/constants.ts:267
+#: jsapp/js/constants.ts:264
 msgid "Acknowledge"
 msgstr "Consentement"
 
-#: jsapp/js/constants.ts:271
+#: jsapp/js/constants.ts:268
 msgid "Audio"
 msgstr "Audio"
 
-#: jsapp/js/constants.ts:273
+#: jsapp/js/constants.ts:270
 msgid "Background Audio"
 msgstr "Audio d’arrière-plan"
 
-#: jsapp/js/constants.ts:278
+#: jsapp/js/constants.ts:275
 msgid "Background Geopoint"
 msgstr "Position GPS en arrière-plan"
 
-#: jsapp/js/constants.ts:283
+#: jsapp/js/constants.ts:280
 msgid "Barcode / QR Code"
 msgstr "Code-barres / code QR"
 
-#: jsapp/js/constants.ts:288
+#: jsapp/js/constants.ts:285
 msgid "Calculate"
 msgstr "Calcul"
 
-#: jsapp/js/constants.ts:294
+#: jsapp/js/constants.ts:291
 msgid "Date & time"
 msgstr "Date et heure"
 
-#: jsapp/js/constants.ts:299
+#: jsapp/js/constants.ts:296
 msgid "Decimal"
 msgstr "Décimale"
 
-#: jsapp/js/constants.ts:304
+#: jsapp/js/constants.ts:301
 msgid "External XML"
 msgstr "XML externe"
 
-#: jsapp/js/constants.ts:308
+#: jsapp/js/constants.ts:305
 msgid "File"
 msgstr "Fichier"
 
-#: jsapp/js/constants.ts:316
+#: jsapp/js/constants.ts:313
 msgid "Hidden"
 msgstr "Caché"
 
-#: jsapp/js/constants.ts:317
+#: jsapp/js/constants.ts:314
 msgid "Photo"
 msgstr "Photographie"
 
-#: jsapp/js/constants.ts:324
+#: jsapp/js/constants.ts:321
 msgid "Question Matrix"
 msgstr "Tableau de questions"
 
-#: jsapp/js/constants.ts:329
+#: jsapp/js/constants.ts:326
 msgid "Range"
 msgstr "Intervalle"
 
-#: jsapp/js/constants.ts:330
+#: jsapp/js/constants.ts:327
 msgid "Ranking"
 msgstr "Classement"
 
-#: jsapp/js/constants.ts:331
+#: jsapp/js/constants.ts:328
 msgid "Rating"
 msgstr "Notation"
 
-#: jsapp/js/constants.ts:338
+#: jsapp/js/constants.ts:335
 msgid "Select Many from File"
 msgstr "Sélectionner plusieurs dans le fichier"
 
-#: jsapp/js/constants.ts:343 jsapp/js/formbuild/containers/KoboMatrix.tsx:121
+#: jsapp/js/constants.ts:340 jsapp/js/formbuild/containers/KoboMatrix.tsx:121
 msgid "Select One"
 msgstr "Choix unique"
 
-#: jsapp/js/constants.ts:348
+#: jsapp/js/constants.ts:345
 msgid "Select One from File"
 msgstr "Choix unique à partir d'un fichier"
 
-#: jsapp/js/constants.ts:353
+#: jsapp/js/constants.ts:350
 msgid "Time"
 msgstr "Heure"
 
-#: jsapp/js/constants.ts:354
+#: jsapp/js/constants.ts:351
 msgid "Video"
 msgstr "Vidéo"
 
-#: jsapp/js/constants.ts:548
+#: jsapp/js/constants.ts:545
 msgid "Online-Offline (multiple submission)"
 msgstr "Avec ou sans connexion (soumissions multiples)"
 
-#: jsapp/js/constants.ts:549
+#: jsapp/js/constants.ts:546
 msgid ""
 "This allows online and offline submissions and is the best option for "
 "collecting data in the field."
 msgstr "Ceci permet des soumissions en ligne et hors ligne et constitue la meilleure option pour collecter des données sur le terrain."
 
-#: jsapp/js/constants.ts:553
+#: jsapp/js/constants.ts:550
 msgid "Online-Only (multiple submissions)"
 msgstr "Avec connexion internet uniquement (soumissions multiples)"
 
-#: jsapp/js/constants.ts:555
+#: jsapp/js/constants.ts:552
 msgid ""
 "This is the best option when entering many records at once on a computer, "
 "e.g. for transcribing paper records."
 msgstr "C'est la meilleure option lorsque vous entrez plusieurs soumissions à la fois sur un ordinateur, par exemple, pour la transcription des soumissions papier."
 
-#: jsapp/js/constants.ts:560
+#: jsapp/js/constants.ts:557
 msgid "Online-Only (single submission)"
 msgstr "Avec connexion internet uniquement (soumission unique)"
 
-#: jsapp/js/constants.ts:562
+#: jsapp/js/constants.ts:559
 msgid ""
 "This allows a single submission, and can be paired with the \"return_url\" "
 "parameter to redirect the user to a URL of your choice after the form has "
 "been submitted."
 msgstr "Il permet une soumission unique et peut être associé au paramètre « return_url » pour rediriger l'utilisateur vers une URL de votre choix après l’envoi du formulaire."
 
-#: jsapp/js/constants.ts:567
+#: jsapp/js/constants.ts:564
 msgid "Online-only (once per respondent)"
 msgstr "Avec connexion internet uniquement (une soumission autorisée par répondant)"
 
-#: jsapp/js/constants.ts:569
+#: jsapp/js/constants.ts:566
 msgid ""
 "This allows your web form to only be submitted once per user, using basic "
 "protection to prevent the same user (on the same browser & device) from "
 "submitting more than once."
 msgstr "Ceci permet à votre formulaire web d'être envoyé une seule fois par utilisateur, en utilisant une protection de base pour empêcher le même utilisateur (sur le même navigateur et appareil) de soumettre plus d'une fois."
 
-#: jsapp/js/constants.ts:574
+#: jsapp/js/constants.ts:571
 msgid "Embeddable web form code"
 msgstr "Code de formulaire web"
 
-#: jsapp/js/constants.ts:575
+#: jsapp/js/constants.ts:572
 msgid ""
 "Use this html5 code snippet to integrate your form on your own website using"
 " smaller margins."
 msgstr "Utilisez cet extrait de code html5 pour intégrer votre formulaire sur votre propre site web en utilisant des marges plus petites."
 
-#: jsapp/js/constants.ts:579
+#: jsapp/js/constants.ts:576
 msgid "View only"
 msgstr "Afficher seulement"
 
-#: jsapp/js/constants.ts:580
+#: jsapp/js/constants.ts:577
 msgid ""
 "Use this version for testing, getting feedback. Does not allow submitting "
 "data."
 msgstr "Utilisez cette version pour tester et obtenir un retour d'information. Ne permet pas d’envoyer des données."
 
-#: jsapp/js/constants.ts:584
+#: jsapp/js/constants.ts:581
 msgid "Android application"
 msgstr "Application Android"
 
-#: jsapp/js/constants.ts:585
+#: jsapp/js/constants.ts:582
 msgid "Use this option to collect data in the field with your Android device."
 msgstr "Utilisez cette option pour obtenir des données sur le terrain avec votre appareil Android."
 
-#: jsapp/js/dropzone.utils.tsx:222
+#: jsapp/js/dropzone.utils.tsx:220
 msgid "Your upload is being processed. This may take a few moments."
 msgstr "Votre importation est en cours de traitement. Cela peut prendre quelques minutes."
 
-#: jsapp/js/dropzone.utils.tsx:230
+#: jsapp/js/dropzone.utils.tsx:228
 msgid ""
 "Your upload is taking longer than usual. Please check back in a few minutes."
 msgstr ""
 
-#: jsapp/js/dropzone.utils.tsx:305
+#: jsapp/js/dropzone.utils.tsx:303
 msgid "## files"
 msgstr "## fichiers"
 
-#: jsapp/js/dropzone.utils.tsx:334
+#: jsapp/js/dropzone.utils.tsx:332
 msgid ""
 "Your uploads are being processed. This may take a few moments. You will need"
 " to refresh the page to see them on the list."
 msgstr "Vos importations sont en cours de traitement. Cela peut prendre quelques instants. Vous devrez rafraîchir la page pour les voir apparaître dans la liste."
 
-#: jsapp/js/dropzone.utils.tsx:371
+#: jsapp/js/dropzone.utils.tsx:369
 msgid "Upload error: could not recognize Excel file."
 msgstr "Erreur d’importation : impossible de reconnaître le fichier Excel."
 
-#: jsapp/js/dropzone.utils.tsx:372
+#: jsapp/js/dropzone.utils.tsx:370
 msgid "Uploaded file name: "
 msgstr "Nom du fichier importé : "
 
-#: jsapp/js/dropzone.utils.tsx:376
+#: jsapp/js/dropzone.utils.tsx:374
 msgid "Could not recognize the dropped item(s)."
 msgstr ""
 
-#: jsapp/js/editorMixins/AssetNavigator.tsx:66
+#: jsapp/js/editorMixins/AssetNavigator.tsx:69
 msgid "Unnamed collection"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:79
+#: jsapp/js/editorMixins/EditableForm.tsx:78
 msgid "You have unsaved changes. Leave form without saving?"
 msgstr "Vous avez effectué des changements non sauvegardés. Voulez-vous quitter le formulaire sans sauvegarder ?"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:421
+#: jsapp/js/editorMixins/EditableForm.tsx:419
 msgid "Unknown Enketo preview error"
 msgstr "Erreur d'aperçu Enketo inconnue"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:495
+#: jsapp/js/editorMixins/EditableForm.tsx:493
 msgid ""
 "Your changes could not be saved, likely because of a lost internet "
 "connection."
 msgstr "Vos modifications ne peuvent pas être sauvegardées, car votre accès à Internet ne fonctionne plus."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:495
+#: jsapp/js/editorMixins/EditableForm.tsx:493
 msgid ""
 "Keep this window open and try saving again while using a better connection."
 msgstr "Veuillez garder cette fenêtre ouverte et essayer de sauvegarder à nouveau lorsque vous aurez une meilleure connexion."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:503
+#: jsapp/js/editorMixins/EditableForm.tsx:501
 msgid "Error saving form"
 msgstr "Erreur pendant la sauvegarde du formulaire"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:505
-#: jsapp/js/editorMixins/EditableForm.tsx:931
+#: jsapp/js/editorMixins/EditableForm.tsx:503
+#: jsapp/js/editorMixins/EditableForm.tsx:929
 msgid "Dismiss"
 msgstr "Rejeter"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:546
+#: jsapp/js/editorMixins/EditableForm.tsx:544
 msgid "create"
 msgstr "créer"
 
+#: jsapp/js/editorMixins/EditableForm.tsx:546
 #: jsapp/js/editorMixins/EditableForm.tsx:548
-#: jsapp/js/editorMixins/EditableForm.tsx:550
 msgid "save"
 msgstr "Sauvegarder"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:548
+#: jsapp/js/editorMixins/EditableForm.tsx:546
 msgid "retry"
 msgstr "réessayer"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:778
+#: jsapp/js/editorMixins/EditableForm.tsx:776
 msgid "Return to list"
 msgstr "Retourner à la liste"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:838
+#: jsapp/js/editorMixins/EditableForm.tsx:826
+#: jsapp/js/project/FormSummary/index.tsx:98
+msgid "Preview form"
+msgstr "Aperçu du formulaire"
+
+#: jsapp/js/editorMixins/EditableForm.tsx:836
 msgid "Expand / collapse questions"
 msgstr "Étendre/réduire les questions"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:850
+#: jsapp/js/editorMixins/EditableForm.tsx:848
 msgid "Create group with selected questions"
 msgstr "Créer un groupe avec les questions sélectionnées"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:851
+#: jsapp/js/editorMixins/EditableForm.tsx:849
 msgid "Grouping disabled. Please select at least one question."
 msgstr "Groupement désactivé. Veuillez sélectionner au moins une question."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:865
+#: jsapp/js/editorMixins/EditableForm.tsx:863
 msgid "Insert cascading select"
 msgstr "Insérer sélection en cascade"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:885
+#: jsapp/js/editorMixins/EditableForm.tsx:883
 msgid "Add an item from the library"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:888
+#: jsapp/js/editorMixins/EditableForm.tsx:886
 msgid "Add from Library"
 msgstr "Ajouter à partir de la bibliothèque"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:899
+#: jsapp/js/editorMixins/EditableForm.tsx:897
 msgid "Change form layout and settings"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:899
+#: jsapp/js/editorMixins/EditableForm.tsx:897
 msgid "Change form layout"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:902
+#: jsapp/js/editorMixins/EditableForm.tsx:900
 msgid "Layout & Settings"
 msgstr "Mise en page & paramètres"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:902
+#: jsapp/js/editorMixins/EditableForm.tsx:900
 msgid "Layout"
 msgstr "Mise en page"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:913
+#: jsapp/js/editorMixins/EditableForm.tsx:911
 msgid ""
 "This form will automatically [record audio in the "
 "background](##SUPPORT_LINK##). Consider adding with a meaningful consent "
@@ -6550,69 +6611,69 @@ msgid ""
 " while completing this survey."
 msgstr " Ce formulaire enregistrera automatiquement de l’audio [en arrière-plan](##SUPPORT_LINK##). Nous vous recommandons d’ajouter une question de consentement claire afin d’informer les répondants ou les agents de collecte qu’ils seront enregistrés pendant qu’ils remplissent ce questionnaire."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:973
+#: jsapp/js/editorMixins/EditableForm.tsx:971
 msgid "Form style"
 msgstr "Style du formulaire"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:979
+#: jsapp/js/editorMixins/EditableForm.tsx:977
 msgid "Read more about form styles"
 msgstr "En savoir plus sur les styles de formulaires"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:988
+#: jsapp/js/editorMixins/EditableForm.tsx:989
 msgid ""
 "Select the form style that you would like to use. This will only affect web "
 "forms."
 msgstr "Choisir le style de formulaire que vous souhaiteriez utiliser. Ceci affectera seulement les formulaires web."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:990
+#: jsapp/js/editorMixins/EditableForm.tsx:991
 msgid ""
 "Select the form style. This will only affect the Enketo preview, and it will"
 " not be saved with the question or block."
 msgstr "Choisir le style de formulaire. Ceci affectera uniquement l'aperçu Enketo et ne sera pas sauvegardé avec la question ou le bloc."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1011
+#: jsapp/js/editorMixins/EditableForm.tsx:1005
 msgid "Metadata"
 msgstr "Métadonnées"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1029
+#: jsapp/js/editorMixins/EditableForm.tsx:1023
 msgid "Search Library"
 msgstr "Parcourir la bibliothèque"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1045
+#: jsapp/js/editorMixins/EditableForm.tsx:1039
 msgid "Error loading survey:"
 msgstr "Erreur de chargement de fiche :"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1066
+#: jsapp/js/editorMixins/EditableForm.tsx:1060
 msgid "Partially locked ##type##"
 msgstr "Partiellement verrouillé ##type##"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1068
+#: jsapp/js/editorMixins/EditableForm.tsx:1062
 msgid "Fully locked ##type##"
 msgstr "Entièrement verrouillé ##type##"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1080
+#: jsapp/js/editorMixins/EditableForm.tsx:1074
 msgid "Read more about Locking"
 msgstr "En savoir plus sur le verrouillage"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1136
-#: jsapp/js/editorMixins/EditableForm.tsx:1150
-#: jsapp/js/editorMixins/EditableForm.tsx:1182
+#: jsapp/js/editorMixins/EditableForm.tsx:1130
+#: jsapp/js/editorMixins/EditableForm.tsx:1144
+#: jsapp/js/editorMixins/EditableForm.tsx:1176
 msgid "Paste your formatted table from excel in the box below."
 msgstr "Collez votre table formatée dans Excel dans la zone ci-dessous."
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1157
+#: jsapp/js/editorMixins/EditableForm.tsx:1151
 msgid "add cascade with # questions"
 msgstr "ajouter cascade avec # questions"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1195
+#: jsapp/js/editorMixins/EditableForm.tsx:1189
 msgid "Learn more about importing cascading lists from Excel"
 msgstr "En savoir plus sur l'importation de listes en cascade à partir d'Excel"
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1263
+#: jsapp/js/editorMixins/EditableForm.tsx:1257
 msgid "Error generating preview"
 msgstr ""
 
-#: jsapp/js/editorMixins/EditableForm.tsx:1269
+#: jsapp/js/editorMixins/EditableForm.tsx:1263
 msgid "Import Cascading Select Questions"
 msgstr ""
 
@@ -6624,97 +6685,115 @@ msgstr "Impossible d'ouvrir la fenêtre pour «##url##»."
 msgid "There was an error loading Enketo."
 msgstr "Il y a eu une erreur lors du chargement d'Enketo."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:357
+#: jsapp/js/errorApp/ErrorPage.tsx:13
+msgid "Server error (500)"
+msgstr ""
+
+#: jsapp/js/errorApp/ErrorPage.tsx:14
+msgid "Something went wrong when trying to process your request."
+msgstr ""
+
+#: jsapp/js/errorApp/ErrorPage.tsx:19
+msgid "Page not found (404)"
+msgstr ""
+
+#: jsapp/js/errorApp/ErrorPage.tsx:20
+msgid ""
+"This page does not exist on the server. Please check the URL or link that "
+"sent you here."
+msgstr ""
+
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:356
 msgid "Change column type?"
 msgstr "Changer de type de colonne ?"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:359
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:358
 msgid ""
 "Are you sure you want to change the type? This action is irreversible, your "
 "existing option choices will be erased."
 msgstr "Êtes-vous sûr de vouloir changer le type ? Cette action est irréversible, vos options existantes seront effacées."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:361
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:360
 msgid "Change type"
 msgstr "Changer de type"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:391
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:394
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:390
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:393
 msgid "Option 1"
 msgstr "Option 1"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:403
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:406
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:402
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:405
 msgid "Option 2"
 msgstr "Option 2"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:504
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:503
 #: kpi/static/js/swagger/swagger-ui-standalone-preset.js:2
 msgid "Row"
 msgstr "Ligne"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:507
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:506
 msgid "Option"
 msgstr "Option"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:532
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:541
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:531
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:540
 msgid "Column"
 msgstr "Colonne"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:561
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:560
 msgid "Delete row?"
 msgstr "Supprimer la ligne ?"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:562
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:561
 msgid ""
 "Are you sure you want to delete this row? This action cannot be undone."
 msgstr "Êtes-vous sûr de vouloir supprimer cette ligne ? Cette action est irréversible."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:582
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:581
 msgid "Delete column?"
 msgstr "Supprimer la colonne ?"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:583
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:582
 msgid ""
 "Are you sure you want to delete this column? This action cannot be undone."
 msgstr "Êtes-vous sûr de vouloir supprimer cette colonne? Cette action est irréversible."
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:666
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:665
 msgid "Response Type"
 msgstr "Type de réponse"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:679
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:710
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:809
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:680
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:711
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:810
 msgid "Label"
 msgstr "Libellé"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:690
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:691
 msgid "Data Column Suffix"
 msgstr "Suffixe du champ"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:711
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:712
 msgid "Data Column Name"
 msgstr "Nom du champ"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:760
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:761
 msgid "Delete column"
 msgstr "Supprimer la colonne"
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:819
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:820
 msgid "Data Column Prefix"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:829
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:830
 msgid "Delete row"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:839
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:840
 msgid "Add new row"
 msgstr ""
 
-#: jsapp/js/formbuild/containers/KoboMatrix.tsx:847
+#: jsapp/js/formbuild/containers/KoboMatrix.tsx:848
 msgid "Add new column"
 msgstr ""
 
@@ -6792,7 +6871,7 @@ msgid "Set"
 msgstr "Définir"
 
 #: jsapp/js/project/FormLanguagesManager/LanguageForm.tsx:78
-#: jsapp/js/project/FormMedia/index.tsx:282
+#: jsapp/js/project/FormMedia/index.tsx:283
 msgid "Add"
 msgstr "Ajouter"
 
@@ -6944,24 +7023,70 @@ msgstr "cliquez ici pour naviguer"
 msgid "You can also add files using a URL"
 msgstr "Vous pouvez également ajouter des fichiers à l'aide d'une URL"
 
-#: jsapp/js/project/FormMedia/index.tsx:269
+#: jsapp/js/project/FormMedia/index.tsx:270
 msgid "Paste URL here"
 msgstr "Collez l'URL ici"
 
-#: jsapp/js/project/FormMedia/index.tsx:289
+#: jsapp/js/project/FormMedia/index.tsx:290
 msgid "Attached files"
 msgstr "Fichiers attachés"
 
-#: jsapp/js/project/FormMedia/index.tsx:295
+#: jsapp/js/project/FormMedia/index.tsx:296
 msgid "loading media"
 msgstr "chargement des médias"
 
-#: jsapp/js/project/FormMedia/index.tsx:300
+#: jsapp/js/project/FormMedia/index.tsx:301
 msgid "No files uploaded yet"
 msgstr "Aucun fichier n'a encore été importé"
 
-#: jsapp/js/project/FormMedia/index.tsx:326
+#: jsapp/js/project/FormMedia/index.tsx:327
 msgid "Delete file"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:74
+msgid "Project information"
+msgstr "Informations sur le projet"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:112
+#: jsapp/js/projects/projectViews/constants.ts:229
+msgid "Last edited"
+msgstr "Dernière modification"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:130
+msgid "Last deployed"
+msgstr "Dernier déploiement"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:138
+msgid "Latest submission"
+msgstr "Dernière soumission"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:157
+#: jsapp/js/projects/projectViews/constants.ts:257
+msgid "Countries"
+msgstr "Pays"
+
+#: jsapp/js/project/FormSummary/FormSummaryProjectInfo.tsx:205
+msgid "Collects personally identifiable information"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/index.tsx:83
+#: jsapp/js/projects/projectsTable/projectQuickActions.tsx:111
+#: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:31
+msgid "Share project"
+msgstr "Partager le projet"
+
+#: jsapp/js/project/FormSummary/index.tsx:120
+#: jsapp/js/project/projectTopTabs.component.tsx:85
+#: jsapp/js/project/projectTopTabs.component.tsx:93
+msgid "Data"
+msgstr "Données"
+
+#: jsapp/js/project/FormSummary/index.tsx:172
+msgid "Team members"
+msgstr ""
+
+#: jsapp/js/project/FormSummary/index.tsx:211
+msgid "Quick Links"
 msgstr ""
 
 #: jsapp/js/project/ProjectSettings/ProjectSettings.stories.tsx:195
@@ -7014,23 +7139,23 @@ msgid ""
 "Form replacing is not available due to form's Locking Profile restrictions."
 msgstr "Le remplacement du formulaire n'est pas disponible en raison des restrictions du profil de verrouillage du formulaire."
 
-#: jsapp/js/project/ProjectSettings/constants.ts:20
+#: jsapp/js/project/ProjectSettings/constants.ts:22
 msgid "Choose a source"
 msgstr "Choisir une source"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:21
+#: jsapp/js/project/ProjectSettings/constants.ts:23
 msgid "Choose template"
 msgstr "Choisir un modèle"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:22
+#: jsapp/js/project/ProjectSettings/constants.ts:24
 msgid "Upload XLSForm"
 msgstr "Importer un XLSForm"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:23
+#: jsapp/js/project/ProjectSettings/constants.ts:25
 msgid "Import XLSForm"
 msgstr "Importer XLSForm"
 
-#: jsapp/js/project/ProjectSettings/constants.ts:24
+#: jsapp/js/project/ProjectSettings/constants.ts:26
 msgid "Project details"
 msgstr "Détails du projet"
 
@@ -7065,53 +7190,60 @@ msgstr "Veuillez saisir une URL XLSForm valide dans le champ ci-dessous."
 msgid "Having issues? See this help article."
 msgstr "Vous rencontrez des problèmes ? Consultez cet article d'aide."
 
-#: jsapp/js/project/ProjectSettings/steps/StepImportUrl.tsx:48
+#: jsapp/js/project/ProjectSettings/steps/StepImportUrl.tsx:50
 msgid "URL"
 msgstr "URL"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:103
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:102
 msgid "Please enter a title for your project!"
 msgstr "Veuillez saisir un titre pour votre projet !"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:105
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:104
 msgid "Enter title of project here"
 msgstr "Veuillez saisir un titre pour votre projet"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:116
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:115
 msgid "Please enter a description for your project"
 msgstr "Veuillez entrer une description pour votre projet"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:134
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:130
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:145
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:160
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:179
+msgid "Select…"
+msgstr "Sélectionner…"
+
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:132
 msgid "Please choose a sector"
 msgstr "Veuillez choisir un secteur"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:151
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:147
 msgid "Please select at least one country"
 msgstr "Veuillez sélectionner au moins un pays"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:168
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:164
 msgid "Please specify the operational purpose of your project"
 msgstr "Veuillez préciser la finalité opérationnelle de votre projet"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:189
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:183
 msgid ""
 "Please indicate whether or not your project collects personally identifiable"
 " information"
 msgstr "Veuillez indiquer si votre projet collecte ou non des informations permettant d'identifier les personnes"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:240
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:234
 msgid "Archive project to stop accepting submissions."
 msgstr "Archiver le projet pour empêcher de nouvelles soumissions."
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:245
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:239
 msgid "Unarchive project to resume accepting submissions."
 msgstr "Désarchiver le projet pour accepter à nouveau les soumissions."
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:256
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:250
 msgid "Delete Project and Data"
 msgstr "Supprimer le projet et les données"
 
-#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:256
+#: jsapp/js/project/ProjectSettings/steps/StepProjectDetails.tsx:250
 msgid "Delete Project"
 msgstr "Supprimer le projet"
 
@@ -7124,11 +7256,11 @@ msgstr " Faites glisser et déposez le fichier XLSForm ici ou cliquez pour parco
 msgid " Only XLSForm files are supported"
 msgstr ""
 
-#: jsapp/js/project/ProjectSettings/utils.ts:93
+#: jsapp/js/project/ProjectSettings/utils.ts:107
 msgid "Project Name"
 msgstr "Nom du projet"
 
-#: jsapp/js/project/ProjectSettings/utils.ts:95
+#: jsapp/js/project/ProjectSettings/utils.ts:109
 msgid "##count## characters left"
 msgstr "##count## caractères restants"
 
@@ -7255,19 +7387,19 @@ msgstr "Aucun filtre n’est appliqué, vous pouvez en ajouter un ci-dessous"
 msgid "Add filter"
 msgstr "Ajouter filtre"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:106
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:103
 msgid "Select field"
 msgstr "Sélectionner le champ"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:112
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:109
 msgid "Condition"
 msgstr "Condition"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:122
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:116
 msgid "Select condition"
 msgstr "Sélectionner la condition"
 
-#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:137
+#: jsapp/js/projects/projectViews/projectsFilterEditor.tsx:131
 msgid "Enter value"
 msgstr "Entrer la valeur"
 
@@ -7430,39 +7562,43 @@ msgstr "Archivés"
 msgid "##field_label## (required)"
 msgstr "##field_label## (requis)"
 
-#: jsapp/js/tos/tosForm.component.tsx:76
+#: jsapp/js/theme/kobo/PasswordInput.ts:17
+msgid "Toggle password visibility"
+msgstr ""
+
+#: jsapp/js/tos/tosForm.component.tsx:90
 msgid "TOS Update Message not found"
 msgstr "Message de mise à jour des Conditions d’utilisation introuvable"
 
-#: jsapp/js/tos/tosForm.component.tsx:200
+#: jsapp/js/tos/tosForm.component.tsx:219
 msgid "Please make sure the following details are filled out correctly:"
 msgstr "Veuillez vous assurer que les renseignements suivants sont remplis correctement :"
 
-#: jsapp/js/tos/tosForm.component.tsx:219
+#: jsapp/js/tos/tosForm.component.tsx:238
 msgid "I agree, let's go"
 msgstr "Je suis d’accord, allons-y"
 
-#: jsapp/js/tos/tosForm.component.tsx:227
+#: jsapp/js/tos/tosForm.component.tsx:246
 msgid "I don't agree, log me out"
 msgstr "Je ne suis pas d’accord, déconnectez-moi"
 
-#: jsapp/js/utils.ts:197
+#: jsapp/js/utils.ts:198
 msgid "##hours## hours"
 msgstr ""
 
-#: jsapp/js/utils.ts:199
+#: jsapp/js/utils.ts:200
 msgid "##hours## hours, ##minutes## minutes"
 msgstr ""
 
-#: jsapp/js/utils.ts:203
+#: jsapp/js/utils.ts:204
 msgid "##minutes## minutes"
 msgstr ""
 
-#: jsapp/js/utils.ts:205
+#: jsapp/js/utils.ts:206
 msgid "##seconds## seconds"
 msgstr ""
 
-#: jsapp/js/utils.ts:691
+#: jsapp/js/utils.ts:718
 msgid "please check your connection and try again."
 msgstr ""
 

@@ -4,7 +4,7 @@ from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.cache import cache
 from django.core.management import call_command
-from django.db import IntegrityError, connections
+from django.db import IntegrityError
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from pymongo import UpdateOne
@@ -16,6 +16,7 @@ from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.utils.database import use_db
+from kpi.utils.django_orm_helper import get_distinct_values
 from kpi.utils.log import logging
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
@@ -157,40 +158,17 @@ def _get_next_distinct_xform_ids(xform_id: int) -> list[int]:
     matching index entry in order, including duplicates, before it can move
     on to the next distinct value. When a single XForm has millions of
     null-`root_uuid` instances, that forces the scan to read all of them just
-    to advance past it, which can exceed `statement_timeout`. This recursive
-    CTE instead seeks directly to the next distinct `xform_id` at each step.
+    to advance past it, which can exceed `statement_timeout`.
+    `get_distinct_values()` seeks directly to the next distinct `xform_id` at
+    each step instead, through the partial index on null `root_uuid`.
     """
 
-    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
-        cursor.execute(
-            """
-            WITH RECURSIVE cursor_walk AS (
-                (
-                    SELECT xform_id
-                    FROM logger_instance
-                    WHERE root_uuid IS NULL AND xform_id > %(xform_id)s
-                    ORDER BY xform_id
-                    LIMIT 1
-                )
-                UNION ALL
-                SELECT (
-                    SELECT xform_id
-                    FROM logger_instance
-                    WHERE root_uuid IS NULL AND xform_id > cursor_walk.xform_id
-                    ORDER BY xform_id
-                    LIMIT 1
-                )
-                FROM cursor_walk
-                WHERE cursor_walk.xform_id IS NOT NULL
-            )
-            SELECT xform_id
-            FROM cursor_walk
-            WHERE xform_id IS NOT NULL
-            LIMIT %(chunk_size)s
-            """,
-            {'xform_id': xform_id, 'chunk_size': CHUNK_SIZE},
-        )
-        return [row[0] for row in cursor.fetchall()]
+    return get_distinct_values(
+        Instance.objects.filter(root_uuid__isnull=True),
+        'xform_id',
+        last_value=xform_id,
+        limit=CHUNK_SIZE,
+    )
 
 
 def _process_instances_batch(
