@@ -222,12 +222,12 @@ class TestLimitedCountPagination(TestCase):
         assert paginator.get_count(queryset) == 1
 
     @override_settings(API_LIMITED_COUNT_MAX=1)
-    def test_grouped_values_queryset_above_cap_returns_many(self):
-        baker.make(User, username='lcp_active')
-        baker.make(User, username='lcp_inactive', is_active=False)
+    def test_grouped_values_queryset_capped_by_groups_not_rows(self):
+        # Three rows but one group: the cap applies to the groups listed
+        self._make_users(3)
         queryset = self._queryset().values('is_active').annotate(n=Count('pk'))
         paginator = LimitedCountPagination()
-        assert paginator.get_count(queryset) == LIMITED_COUNT_MANY
+        assert paginator.get_count(queryset) == 1
 
     def _make_users(self, count):
         for i in range(count):
