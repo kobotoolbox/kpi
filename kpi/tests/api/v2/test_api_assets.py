@@ -585,18 +585,18 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
 
     def test_query_counts(self):
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
     def test_list_can_load_with_desynchronized_assets(self):
