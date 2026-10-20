@@ -79,8 +79,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        xform = XForm.objects.get(id_string=options['xform_id'])
+        # technically more than one xform could have the same id_string.
+        # follow the pattern of "clean_duplicated_submissions", which will act
+        # on any form with the correct xform_id
+        xforms = XForm.objects.filter(id_string=options['xform_id'])
         format_updated_date = MigrationRecorder.Migration.objects.get(
             app='viewer', name='0008_update_submission_time_format'
         ).applied
-        process_xform(xform, format_updated_date)
+        for xform in xforms:
+            process_xform(xform, format_updated_date)
