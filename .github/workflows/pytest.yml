@@ -27,12 +27,18 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.12']
+        # Groups are balanced by run time. `--ignore` also skips paths passed
+        # explicitly, so test_api_exports.py is listed in a group that does
+        # not ignore any of its parent directories.
         test-path:
-          - kobo/apps/openrosa/apps/api/
-          - kpi/tests/api/v2/
+          - kpi/tests/api/ --ignore=kpi/tests/api/v2/test_api_exports.py
           - kpi/tests/ --ignore=kpi/tests/api/
-          - hub/ kobo/apps/ --ignore=kobo/apps/openrosa/
-          - kobo/apps/openrosa/ --ignore=kobo/apps/openrosa/apps/api/
+          - kobo/apps/openrosa/
+          - kobo/apps/subsequences/ kobo/apps/organizations/ kobo/apps/trash_bin/
+          - >-
+            hub/ kobo/apps/ kpi/tests/api/v2/test_api_exports.py
+            --ignore=kobo/apps/openrosa/ --ignore=kobo/apps/subsequences/
+            --ignore=kobo/apps/organizations/ --ignore=kobo/apps/trash_bin/
         extra-pytest-options:
           - --ds kobo.settings.testing
           - --ds kobo.settings.testing_no_stripe --ignore kobo/apps/stripe
