@@ -52,7 +52,9 @@ export default function TransferTeamOwnershipModal({
               <Text span fw={600}>
                 {t('Once the transfer is accepted, you will not be able to undo this action.')}{' '}
                 {envStore.isReady && envStore.data.support_url && (
-                  <Anchor href={envStore.data.support_url} target='_blank'>{t('Learn more')}</Anchor>
+                  <Anchor href={envStore.data.support_url} target='_blank'>
+                    {t('Learn more')}
+                  </Anchor>
                 )}
               </Text>
             </Text>
