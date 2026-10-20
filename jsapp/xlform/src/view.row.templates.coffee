@@ -209,7 +209,7 @@ module.exports = do ->
             <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="k-icon k-icon-trash"></i></span>
           </div>
         </div>
-        <p class="kobomatrix-warning">#{t("Note: The Matrix question type only works in Enketo web forms using the 'grid' style.")}</p>
+        <p class="kobomatrix-warning">#{t("Note: The Matrix question type only works in web forms using the 'grid' style.")}</p>
 
         <div class="card__kobomatrix">
       """

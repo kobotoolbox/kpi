@@ -662,7 +662,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
           {expandedCol && (
             <bem.MatrixCols__settings_inner>
               <label>
-                <span>{t('Response Type')}</span>
+                <span>{t('Question Type')}</span>
                 <Select
                   value={this.getSelectTypeVal(expandedCol)}
                   clearable={false}
@@ -677,7 +677,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 />
               </label>
               <label>
-                <span>{t('Label')}</span>
+                <span>{t('Choice label')}</span>
                 <input
                   type='text'
                   value={this.getCol(expandedCol, 'label')}
@@ -698,7 +698,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 />
               </label>
               <label>
-                <span>{t('Required')}</span>
+                <span>{t('Mandatory response')}</span>
                 <Checkbox
                   checked={this.getRequiredStatus(expandedCol)}
                   onChange={this.requiredChange.bind(this)}
@@ -708,8 +708,8 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
               {this.getCol(expandedCol, 'select_from_list_name') && (
                 <div className='matrix-cols__options'>
                   <div className='matrix-cols__options--row-head'>
-                    <span>{t('Label')}</span>
-                    <span>{t('Choice Name')}</span>
+                    <span>{t('Choice label')}</span>
+                    <span>{t('Choice name')}</span>
                   </div>
                   {orderedChoices.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
@@ -807,7 +807,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                 {expandedRow && (
                   <bem.MatrixCols__settings_inner>
                     <label>
-                      <span>{t('Label')}</span>
+                      <span>{t('Choice label')}</span>
                       <input
                         type='text'
                         value={item.label}
