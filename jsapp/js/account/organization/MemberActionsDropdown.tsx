@@ -17,6 +17,7 @@ interface MemberActionsDropdownProps {
   targetUsername: string
   targetFullName?: string | null
   orgName?: string
+  isPendingTransfer?: boolean
   /**
    * The role of the currently logged in user, i.e. the role of the user that
    * wants to do the actions (not the role of the target member).
@@ -33,6 +34,7 @@ export default function MemberActionsDropdown({
   targetFullName,
   orgName,
   currentUserRole,
+  isPendingTransfer,
 }: MemberActionsDropdownProps) {
   const profile = useProfile()
   const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
@@ -97,13 +99,20 @@ export default function MemberActionsDropdown({
         <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
-          {isTransferOwnershipEnabled && currentUserRole === MemberRoleEnum.owner && (
+          {isPendingTransfer ? (
             <>
-              <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
-                {t('Make owner')}
-              </Menu.Item>
-              <Menu.Divider />
+              <Menu.Item variant='light'>{t('Resend invitation')}</Menu.Item>
+              <Menu.Item variant='danger'>{t('Cancel invitation')}</Menu.Item>
             </>
+          ) : (
+            isTransferOwnershipEnabled && currentUserRole === MemberRoleEnum.owner && (
+              <>
+                <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
+                  {t('Make owner')}
+                </Menu.Item>
+                <Menu.Divider />
+              </>
+            )
           )}
           <Menu.Item variant='danger' onClick={() => setIsRemoveModalVisible(true)}>
             {removeButtonLabel}
