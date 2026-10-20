@@ -232,7 +232,7 @@ export const PendingOwnerTransfer: Story = {
     expect(within(mattRow).getByText('Pending owner')).toBeInTheDocument()
 
     // Role selector is disabled
-    expect(within(mattRow).getByRole('combobox')).toBeDisabled()
+    expect(within(mattRow).getByDisplayValue('Member')).toBeDisabled()
 
     // Actions menu shows transfer-specific items
     await userEvent.click(within(mattRow).getByRole('button'))
