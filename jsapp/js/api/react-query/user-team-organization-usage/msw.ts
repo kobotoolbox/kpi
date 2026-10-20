@@ -40,6 +40,8 @@ import type { MemberListResponse } from '../../models/memberListResponse'
 
 import { MemberRoleEnum } from '../../models/memberRoleEnum'
 
+import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
+
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -869,6 +871,8 @@ export const getApiV2OrganizationsMembersListResponseMock = (
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
     invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
+    pending_transfer: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   })),
   ...overrideResponse,
 })
@@ -903,6 +907,8 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
+  pending_transfer: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   ...overrideResponse,
 })
 
@@ -939,6 +945,24 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
     { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
     null,
   ]),
+  pending_transfer: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersCreateResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   ...overrideResponse,
 })
 
@@ -1938,6 +1962,32 @@ export const getApiV2OrganizationsMembersDestroyMockHandler = (
   )
 }
 
+export const getApiV2OrganizationsOwnershipTransfersCreateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersCreateResponseMock(),
+        ),
+        { status: 201, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
 export const getApiV2OrganizationsServiceUsageRetrieveMockHandler = (
   overrideResponse?:
     | OrganizationServiceUsageResponse
@@ -2444,6 +2494,7 @@ export const getUserTeamOrganizationUsageMock = () => [
   getApiV2OrganizationsMembersRetrieveMockHandler(),
   getApiV2OrganizationsMembersPartialUpdateMockHandler(),
   getApiV2OrganizationsMembersDestroyMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersCreateMockHandler(),
   getApiV2OrganizationsServiceUsageRetrieveMockHandler(),
   getApiV2ProjectViewsListMockHandler(),
   getApiV2ProjectViewsRetrieveMockHandler(),

@@ -2,6 +2,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from django.urls import reverse
+from django.utils import timezone
 from djstripe.models import Customer, Price, Product, Subscription
 from model_bakery import baker
 from rest_framework import status
@@ -41,12 +42,16 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
             product=self.product,
         )
         if create_subscription:
+            now = timezone.now()
             self.subscription = baker.make(
                 Subscription,
                 status='active',
                 customer=self.customer,
                 items__price=self.price,
                 livemode=False,
+                billing_cycle_anchor=now,
+                current_period_start=now,
+                current_period_end=now + timezone.timedelta(days=30),
             )
 
     def _get_url_for_expected_request(self, create_subscription=True, product_type='plan'):
