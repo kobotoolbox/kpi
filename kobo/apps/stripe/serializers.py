@@ -121,6 +121,44 @@ class CustomerPortalSerializer(serializers.Serializer):
         fields = ('id',)
 
 
+class CustomerPortalGetQuerySerializer(serializers.Serializer):
+    organization_id = serializers.CharField(required=True)
+
+    def validate_organization_id(self, organization_id):
+        if organization_id.startswith('org'):
+            return organization_id
+        raise ValidationError('Invalid organization ID')
+
+
+class CustomerAddressSerializer(serializers.Serializer):
+    city = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    country = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    line1 = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    line2 = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    postal_code = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    state = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+
+
+class BillingCycleInfoSerializer(serializers.Serializer):
+    billing_cycle_anchor = serializers.DateTimeField(allow_null=True, required=False)
+    current_period_start = serializers.DateTimeField(allow_null=True, required=False)
+    current_period_end = serializers.DateTimeField(allow_null=True, required=False)
+    interval = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    status = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+
+
+class CustomerBillingDetailsResponseSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    email = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    phone = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    address = CustomerAddressSerializer(allow_null=True, required=False)
+    balance = serializers.IntegerField(allow_null=True, required=False)
+    currency = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    billing_cycle_info = BillingCycleInfoSerializer(allow_null=True, required=False)
+    url = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+
+
 class CheckoutLinkSerializer(PriceIdSerializer):
     organization_id = serializers.CharField(required=False)
     quantity = serializers.IntegerField(required=False, default=1, min_value=1)
