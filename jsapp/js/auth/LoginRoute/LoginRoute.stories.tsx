@@ -3,9 +3,8 @@ import { http, HttpResponse } from 'msw'
 import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
-import type { SocialApp } from '#/api/models/socialApp'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
-import { type Canvas, field } from '#/auth/authStoryHelpers'
+import { type Canvas, field, findProviderButtons } from '#/auth/authStoryHelpers'
 import { ROOT_URL } from '#/constants'
 import {
   LOGIN_URL,
@@ -17,7 +16,7 @@ import {
   sessionAuthenticatedMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
-import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
@@ -30,26 +29,6 @@ const CREDENTIALS = {
 }
 
 const environmentMock = makeEnvironmentMock()
-
-/** Two public providers, as `/environment` lists them, with `provider_id` set as an instance would set it. */
-const socialApps: SocialApp[] = [
-  {
-    provider: 'gitlab',
-    name: 'GitLab',
-    client_id: 'gitlab-client-id',
-    provider_id: 'gitlab-dev',
-    managed: false,
-    domains: [],
-  },
-  {
-    provider: 'openid_connect',
-    name: 'Example Organization',
-    client_id: 'example-client-id',
-    provider_id: 'example-org',
-    managed: true,
-    domains: ['kbtdev.org'],
-  },
-]
 
 /** Where {@link loginRecordingMock} leaves the body it saw, for a story to check the keys of. */
 let postedCredentials: unknown = null
@@ -153,24 +132,32 @@ export const Default: Story = {
 
     // No `social_apps`, so no single sign-on section at all - not an empty divider with nothing under it.
     expect(canvas.queryByText('or')).not.toBeInTheDocument()
+    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'filled')
 
     expect(canvas.queryByText(/You are logged in as/)).not.toBeInTheDocument()
   },
 }
 
-/** A server with single sign-on configured: one button per public provider, under the credentials. */
+/** A server with single sign-on configured: up to three provider buttons, above the credentials. */
 export const SingleSignOnProviders: Story = {
-  parameters: { msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialApps }) }) } },
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialAppsMock }) }) },
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // `findBy`, not `getBy`: the buttons arrive with `/environment` rather than with the form.
-    const gitlabButton = await canvas.findByRole('button', { name: 'Log in with GitLab' })
-    await canvas.findByRole('button', { name: 'Log in with Example Organization' })
-    // Separated from the credentials, which still work. Waited for rather than asserted: the providers come
-    // from `/environment` and the credential from allauth's settings, so either request may land first.
-    await canvas.findByText('or')
+    const gitlabButton = await findProviderButtons(canvas)
+
+    // Buttons, then the divider, then the form
+    const divider = canvas.getByText('or')
+    const heading = canvas.getByRole('heading', { level: 1, name: 'Log in or create an account' })
+    expect(gitlabButton.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(divider.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // The form still works. allauth's settings may land after `/environment`, so wait for them
     await waitForConfiguration(canvas)
+    // SSO is primary here, so the form's button steps down
+    expect(gitlabButton).toHaveAttribute('data-variant', 'filled')
+    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'light')
 
     // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
     // `provider_id`, not its `provider` kind.

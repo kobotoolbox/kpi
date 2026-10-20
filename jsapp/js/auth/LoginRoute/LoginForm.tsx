@@ -64,12 +64,12 @@ export interface LoginFormProps {
   isConfigurationPending: boolean
   /** Drops the signup link: with signup closed there is only a dead end behind it */
   isRegistrationClosed?: boolean
-  /** Shown under the heading */
+  /** Shown at the top, since it applies to the SSO buttons too */
   notice?: ReactNode
   onOutcome: (outcome: LoginOutcome) => void
 }
 
-/** Credentials, and the single sign-on providers next to them. Password recovery etc. live elsewhere */
+/** The single sign-on providers, then the credentials. Password recovery etc. live elsewhere */
 export default function LoginForm({
   credential,
   socialApps,
@@ -79,6 +79,8 @@ export default function LoginForm({
   onOutcome,
 }: LoginFormProps) {
   const credentialParam = getLoginCredentialParam(credential)
+  // SSO buttons take the primary look when there are any
+  const hasProviders = Boolean(socialApps?.length)
 
   const form = useForm<LoginFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
@@ -152,11 +154,13 @@ export default function LoginForm({
 
   return (
     <Stack gap='xl'>
-      <Title order={1} size='h3'>
-        {t('Log into your account')}
-      </Title>
-
       {notice}
+
+      <ProviderLoginButtons socialApps={socialApps} variant='filled' />
+
+      <Title order={1} size='h3'>
+        {t('Log in or create an account')}
+      </Title>
 
       {formErrors.length > 0 && (
         <Alert type='error' iconName='alert'>
@@ -196,13 +200,17 @@ export default function LoginForm({
             </div>
           </Stack>
 
-          <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || login.isPending}>
+          <ButtonNew
+            variant={hasProviders ? 'light' : 'filled'}
+            type='submit'
+            size='lg'
+            fullWidth
+            loading={isConfigurationPending || login.isPending}
+          >
             {t('Log in')}
           </ButtonNew>
         </Stack>
       </form>
-
-      <ProviderLoginButtons socialApps={socialApps} />
 
       {!isRegistrationClosed && (
         <Text size='sm' ta='center'>

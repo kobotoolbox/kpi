@@ -7,6 +7,7 @@ import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
 import { legalSentence } from '#/auth/legalAgreement'
@@ -33,7 +34,7 @@ interface RegisterFormValues {
 const SERVER_KNOWN_FIELDS: ReadonlyArray<keyof RegisterFormValues> = ['email', 'username', 'password']
 
 export interface RegisterFormProps {
-  /** From `/api/v2/environment/`. Used to spot an email domain that has to sign in through SSO. */
+  /** From `/api/v2/environment/`. SSO providers to offer, and the email domains that must use them. */
   socialApps: SocialApp[] | undefined
   /**
    * The newsletter entry of `USER_METADATA_FIELDS`, from `/api/v2/environment/`. Without one the server
@@ -146,8 +147,10 @@ export default function RegisterForm({
   return (
     <Stack gap='xl'>
       <Title order={1} size='h3'>
-        {t('Create an account')}
+        {t('Create your account')}
       </Title>
+
+      <ProviderLoginButtons socialApps={socialApps} variant='light' />
 
       {formErrors.length > 0 && (
         <Alert type='error' iconName='alert'>
