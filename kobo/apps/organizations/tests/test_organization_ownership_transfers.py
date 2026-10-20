@@ -21,9 +21,7 @@ from kpi.exceptions import MailerError
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 
-class BaseOrganizationOwnershipTransferTestCase(
-    BaseOrganizationAssetApiTestCase
-):
+class BaseOrganizationOwnershipTransferTestCase(BaseOrganizationAssetApiTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -55,9 +53,7 @@ class BaseOrganizationOwnershipTransferTestCase(
 
 
 @ddt
-class OrganizationOwnershipTransferTestCase(
-    BaseOrganizationOwnershipTransferTestCase
-):
+class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTestCase):
 
     @data(
         ('owner', status.HTTP_201_CREATED),
@@ -66,9 +62,7 @@ class OrganizationOwnershipTransferTestCase(
         ('external', status.HTTP_404_NOT_FOUND),
     )
     @unpack
-    def test_user_can_initiate_transfer_permission(
-        self, user_role, expected_status
-    ):
+    def test_user_can_initiate_transfer_permission(self, user_role, expected_status):
         """
         Only the current organization owner can initiate ownership transfer.
         Admins and members receive 403, external users receive 404.
@@ -78,16 +72,12 @@ class OrganizationOwnershipTransferTestCase(
         self.assertEqual(response.status_code, expected_status)
 
         if expected_status == status.HTTP_201_CREATED:
-            self.assertEqual(
-                OrganizationOwnershipTransfer.objects.count(), 1
-            )
+            self.assertEqual(OrganizationOwnershipTransfer.objects.count(), 1)
             transfer = OrganizationOwnershipTransfer.objects.first()
             self.assertEqual(transfer.organization, self.organization)
             self.assertEqual(transfer.sender, self.owner_user)
             self.assertEqual(transfer.recipient, self.admin_user)
-            self.assertEqual(
-                transfer.status, OrganizationInviteStatusChoices.PENDING
-            )
+            self.assertEqual(transfer.status, OrganizationInviteStatusChoices.PENDING)
             self.assertFalse(transfer.billing_review_requested)
 
     def test_recipient_must_be_active_admin_in_same_team(self):
@@ -95,9 +85,7 @@ class OrganizationOwnershipTransferTestCase(
         Recipient must be an active admin within the same organization.
         """
         # Regular member in same organization
-        response = self._create_transfer(
-            self.owner_user, self.member_user.username
-        )
+        response = self._create_transfer(self.owner_user, self.member_user.username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
         self.assertEqual(
@@ -106,9 +94,7 @@ class OrganizationOwnershipTransferTestCase(
         )
 
         # Owner themselves
-        response = self._create_transfer(
-            self.owner_user, self.owner_user.username
-        )
+        response = self._create_transfer(self.owner_user, self.owner_user.username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
         self.assertEqual(
@@ -117,16 +103,12 @@ class OrganizationOwnershipTransferTestCase(
         )
 
         # External user
-        response = self._create_transfer(
-            self.owner_user, self.external_user.username
-        )
+        response = self._create_transfer(self.owner_user, self.external_user.username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
 
         # Non-existent user
-        response = self._create_transfer(
-            self.owner_user, 'non_existent_username'
-        )
+        response = self._create_transfer(self.owner_user, 'non_existent_username')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
 
@@ -137,9 +119,7 @@ class OrganizationOwnershipTransferTestCase(
         self.admin_user.is_active = False
         self.admin_user.save(update_fields=['is_active'])
 
-        response = self._create_transfer(
-            self.owner_user, self.admin_user.username
-        )
+        response = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
 
@@ -147,9 +127,7 @@ class OrganizationOwnershipTransferTestCase(
         """
         Recipient can be specified by email address of the active admin.
         """
-        response = self._create_transfer(
-            self.owner_user, self.admin_user.email
-        )
+        response = self._create_transfer(self.owner_user, self.admin_user.email)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         transfer = OrganizationOwnershipTransfer.objects.first()
         self.assertEqual(transfer.recipient, self.admin_user)
@@ -159,15 +137,11 @@ class OrganizationOwnershipTransferTestCase(
         Enforce business rule: only one pending ownership transfer per team.
         """
         # First transfer succeeds
-        response1 = self._create_transfer(
-            self.owner_user, self.admin_user.username
-        )
+        response1 = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
 
         # Second transfer fails while first is pending
-        response2 = self._create_transfer(
-            self.owner_user, self.admin_user.username
-        )
+        response2 = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('detail', response2.data)
         self.assertEqual(
@@ -180,9 +154,7 @@ class OrganizationOwnershipTransferTestCase(
         transfer.status = OrganizationInviteStatusChoices.DECLINED
         transfer.save(update_fields=['status'])
 
-        response3 = self._create_transfer(
-            self.owner_user, self.admin_user.username
-        )
+        response3 = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response3.status_code, status.HTTP_201_CREATED)
 
     def test_billing_review_requested_flag(self):
@@ -204,9 +176,7 @@ class OrganizationOwnershipTransferTestCase(
         """
         Email is dispatched to recipient with correct template variables and accept link.
         """
-        response = self._create_transfer(
-            self.owner_user, self.admin_user.username
-        )
+        response = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(len(mail.outbox), 1)
@@ -242,13 +212,9 @@ class OrganizationOwnershipTransferTestCase(
             'kobo.apps.organizations.models.Mailer.send',
             side_effect=MailerError('SMTP connection error'),
         ):
-            response = self._create_transfer(
-                self.owner_user, self.admin_user.username
-            )
+            response = self._create_transfer(self.owner_user, self.admin_user.username)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            self.assertEqual(
-                OrganizationOwnershipTransfer.objects.count(), 1
-            )
+            self.assertEqual(OrganizationOwnershipTransfer.objects.count(), 1)
 
     def test_members_list_includes_pending_transfer_flags(self):
         """
@@ -298,4 +264,3 @@ class OrganizationOwnershipTransferTestCase(
         )
         self.assertFalse(owner_row['pending_transfer'])
         self.assertFalse(owner_row['billing_review_requested'])
-

@@ -580,4 +580,3 @@ class OrganizationOwnershipTransfer(models.Model):
             logging.warning(
                 f'Failed to send organization ownership transfer request email: {e}'
             )
-

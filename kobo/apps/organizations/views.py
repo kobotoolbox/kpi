@@ -634,9 +634,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 pending_transfer=Exists(pending_transfer_subquery.values('pk')),
                 billing_review_requested=Coalesce(
                     Subquery(
-                        pending_transfer_subquery.values(
-                            'billing_review_requested'
-                        )[:1],
+                        pending_transfer_subquery.values('billing_review_requested')[
+                            :1
+                        ],
                         output_field=BooleanField(),
                     ),
                     Value(False, output_field=BooleanField()),
@@ -1014,4 +1014,3 @@ class OrganizationOwnershipTransferViewSet(
         transfer = serializer.save()
         response_serializer = self.get_serializer(transfer)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-

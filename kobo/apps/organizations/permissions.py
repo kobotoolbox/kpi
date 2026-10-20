@@ -149,4 +149,3 @@ class IsOrgOwnerPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
             raise Http404
 
         return user_role == ORG_OWNER_ROLE
-

@@ -82,9 +82,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         source='has_sso_enabled', read_only=True
     )
     pending_transfer = serializers.BooleanField(read_only=True, default=False)
-    billing_review_requested = serializers.BooleanField(
-        read_only=True, default=False
-    )
+    billing_review_requested = serializers.BooleanField(read_only=True, default=False)
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
@@ -656,18 +654,12 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient_username = serializers.CharField(
         source='recipient.username', read_only=True
     )
-    organization_id = serializers.CharField(
-        source='organization.id', read_only=True
-    )
+    organization_id = serializers.CharField(source='organization.id', read_only=True)
     organization_name = serializers.CharField(
         source='organization.name', read_only=True
     )
-    created = serializers.DateTimeField(
-        format='%Y-%m-%dT%H:%M:%SZ', read_only=True
-    )
-    modified = serializers.DateTimeField(
-        format='%Y-%m-%dT%H:%M:%SZ', read_only=True
-    )
+    created = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    modified = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
 
     class Meta:
         model = OrganizationOwnershipTransfer
@@ -724,9 +716,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
 
         # 1. Validates that the requester is the current Team Owner
         if not organization.is_owner(request_user):
-            raise serializers.ValidationError(
-                {'detail': NOT_ENOUGH_PERMISSIONS_ERROR}
-            )
+            raise serializers.ValidationError({'detail': NOT_ENOUGH_PERMISSIONS_ERROR})
 
         # 2. Enforces the business rule that only one ownership transfer can be pending per team
         if organization.ownership_transfers.filter(
@@ -783,4 +773,3 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         )
         transfer.send_invite_email()
         return transfer
-

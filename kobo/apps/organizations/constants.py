@@ -68,4 +68,3 @@ RECIPIENT_CANNOT_BE_OWNER_ERROR = t(
 RECIPIENT_MUST_BE_ADMIN_ERROR = t(
     'The recipient must be an active administrator in this organization.'
 )
-
