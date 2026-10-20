@@ -122,3 +122,31 @@ class OrgMembershipCreateOrDeleteInvitePermission(OrgMembershipInvitePermission)
             raise Http404
 
         return False
+
+
+class IsOrgOwnerPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
+    """
+    Permission to only allow the owner of an organization to initiate ownership transfer.
+    """
+
+    def has_permission(self, request, view):
+        self.validate_password(request)
+        if not super().has_permission(request=request, view=view):
+            return False
+
+        organization_id = view.kwargs.get(view.parent_lookup_field)
+        try:
+            organization = Organization.objects.get(id=organization_id)
+        except Organization.DoesNotExist:
+            raise Http404
+
+        user = get_database_user(request.user)
+        user_role = organization.get_user_role(user)
+        view.user_role = user_role
+        view.organization = organization
+
+        if user_role == ORG_EXTERNAL_ROLE:
+            raise Http404
+
+        return user_role == ORG_OWNER_ROLE
+

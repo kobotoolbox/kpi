@@ -19,6 +19,7 @@ from kobo.apps.organizations.models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
+    OrganizationOwnershipTransfer,
     OrganizationType,
     OrganizationUser,
     create_organization,
@@ -57,6 +58,9 @@ from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
     ORG_MEMBER_ROLE,
+    OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    RECIPIENT_CANNOT_BE_OWNER_ERROR,
+    RECIPIENT_MUST_BE_ADMIN_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
 )
 from .exceptions import InvalidMembershipRequest
@@ -76,6 +80,10 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     )
     user__has_sso_enabled = serializers.BooleanField(
         source='has_sso_enabled', read_only=True
+    )
+    pending_transfer = serializers.BooleanField(read_only=True, default=False)
+    billing_review_requested = serializers.BooleanField(
+        read_only=True, default=False
     )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
@@ -102,6 +110,8 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'user__is_active',
             'invite',
+            'pending_transfer',
+            'billing_review_requested',
         ]
 
     @extend_schema_field(OpenApiTypes.URI)
@@ -638,3 +648,139 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         org_user.organization = instance.invited_by.organization
         org_user.is_admin = instance.invitee_role == ORG_ADMIN_ROLE
         org_user.save()
+
+
+class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
+    recipient = serializers.CharField(write_only=True, required=True)
+    sender = serializers.CharField(source='sender.username', read_only=True)
+    recipient_username = serializers.CharField(
+        source='recipient.username', read_only=True
+    )
+    organization_id = serializers.CharField(
+        source='organization.id', read_only=True
+    )
+    organization_name = serializers.CharField(
+        source='organization.name', read_only=True
+    )
+    created = serializers.DateTimeField(
+        format='%Y-%m-%dT%H:%M:%SZ', read_only=True
+    )
+    modified = serializers.DateTimeField(
+        format='%Y-%m-%dT%H:%M:%SZ', read_only=True
+    )
+
+    class Meta:
+        model = OrganizationOwnershipTransfer
+        fields = [
+            'guid',
+            'organization_id',
+            'organization_name',
+            'sender',
+            'recipient',
+            'recipient_username',
+            'status',
+            'billing_review_requested',
+            'created',
+            'modified',
+        ]
+        read_only_fields = [
+            'guid',
+            'organization_id',
+            'organization_name',
+            'sender',
+            'recipient_username',
+            'status',
+            'created',
+            'modified',
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['recipient'] = instance.recipient.username
+        return representation
+
+    def _get_organization(self):
+        view = self.context.get('view')
+        if view and hasattr(view, 'organization') and view.organization:
+            return view.organization
+
+        organization_id = (
+            view.kwargs.get(view.parent_lookup_field)
+            if view and hasattr(view, 'parent_lookup_field')
+            else None
+        )
+        if organization_id:
+            try:
+                return Organization.objects.get(id=organization_id)
+            except Organization.DoesNotExist:
+                raise NotFound({'detail': 'Organization not found.'})
+
+        user = self.context['request'].user
+        return user.organization
+
+    def validate(self, attrs):
+        organization = self._get_organization()
+        request_user = get_database_user(self.context['request'].user)
+
+        # 1. Validates that the requester is the current Team Owner
+        if not organization.is_owner(request_user):
+            raise serializers.ValidationError(
+                {'detail': NOT_ENOUGH_PERMISSIONS_ERROR}
+            )
+
+        # 2. Enforces the business rule that only one ownership transfer can be pending per team
+        if organization.ownership_transfers.filter(
+            status=OrganizationInviteStatusChoices.PENDING
+        ).exists():
+            raise serializers.ValidationError(
+                {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
+            )
+
+        # 3. Validates that the recipient is an active Admin within the same team
+        recipient_identifier = attrs.get('recipient')
+        recipient_user = User.objects.filter(
+            username=recipient_identifier, is_active=True
+        ).first()
+        if not recipient_user and '@' in str(recipient_identifier):
+            recipient_user = User.objects.filter(
+                email=recipient_identifier, is_active=True
+            ).first()
+
+        if not recipient_user:
+            raise serializers.ValidationError(
+                {
+                    'recipient': replace_placeholders(
+                        USER_DOES_NOT_EXIST_ERROR,
+                        invitee=recipient_identifier,
+                    )
+                }
+            )
+
+        if organization.is_owner(recipient_user):
+            raise serializers.ValidationError(
+                {'recipient': RECIPIENT_CANNOT_BE_OWNER_ERROR}
+            )
+
+        if not organization.is_admin_only(recipient_user):
+            raise serializers.ValidationError(
+                {'recipient': RECIPIENT_MUST_BE_ADMIN_ERROR}
+            )
+
+        attrs['organization'] = organization
+        attrs['sender'] = request_user
+        attrs['recipient_user'] = recipient_user
+        return attrs
+
+    def create(self, validated_data):
+        transfer = OrganizationOwnershipTransfer.objects.create(
+            organization=validated_data['organization'],
+            sender=validated_data['sender'],
+            recipient=validated_data['recipient_user'],
+            billing_review_requested=validated_data.get(
+                'billing_review_requested', False
+            ),
+            status=OrganizationInviteStatusChoices.PENDING,
+        )
+        transfer.send_invite_email()
+        return transfer
+

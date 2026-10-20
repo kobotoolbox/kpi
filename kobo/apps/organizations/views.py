@@ -3,7 +3,18 @@ from operator import attrgetter
 from allauth.socialaccount.models import SocialAccount
 from django.core.exceptions import FieldError
 from django.db import transaction
-from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
+from django.db.models import (
+    BooleanField,
+    Case,
+    CharField,
+    F,
+    OuterRef,
+    Q,
+    QuerySet,
+    Subquery,
+    Value,
+    When,
+)
 from django.db.models.expressions import Exists
 from django.db.models.functions import Coalesce, Lower
 from django.utils.http import http_date
@@ -14,7 +25,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -72,16 +83,19 @@ from .models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
+    OrganizationOwnershipTransfer,
     OrganizationUser,
 )
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
+    IsOrgOwnerPermission,
     OrganizationNestedHasOrgRolePermission,
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
 from .serializers import (
+    OrganizationOwnershipTransferSerializer,
     OrganizationResponseSerializer,
     OrganizationSerializer,
     OrganizationUserSerializer,
@@ -594,6 +608,12 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             organization_user=OuterRef('pk')
         ).values('pk')
 
+        pending_transfer_subquery = OrganizationOwnershipTransfer.objects.filter(
+            organization_id=OuterRef('organization_id'),
+            recipient_id=OuterRef('user_id'),
+            status=OrganizationInviteStatusChoices.PENDING,
+        )
+
         role_annotation = Case(
             When(Exists(owner_subquery), then=Value('owner')),
             When(is_admin=True, then=Value('admin')),
@@ -611,6 +631,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 role=role_annotation,
                 has_mfa_enabled=Exists(mfa_subquery),
                 has_sso_enabled=Exists(sso_subquery),
+                pending_transfer=Exists(pending_transfer_subquery.values('pk')),
+                billing_review_requested=Coalesce(
+                    Subquery(
+                        pending_transfer_subquery.values(
+                            'billing_review_requested'
+                        )[:1],
+                        output_field=BooleanField(),
+                    ),
+                    Value(False, output_field=BooleanField()),
+                ),
                 invite=Value(None, output_field=CharField()),
                 ordering_date=F('created'),
                 model_type=Value('0_organization_user', output_field=CharField()),
@@ -732,6 +762,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             ).annotate(
                 role=Lower(F('invitee_role')),
                 has_sso_enabled=Value(False),
+                pending_transfer=Value(False, output_field=BooleanField()),
+                billing_review_requested=Value(False, output_field=BooleanField()),
                 ordering_date=F('created'),
                 model_type=Value('1_organization_invitation', output_field=CharField()),
                 username_sort=Lower(
@@ -941,3 +973,45 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
             return [OrgMembershipCreateOrDeleteInvitePermission()]
 
         return [OrgMembershipInvitePermission()]
+
+
+@extend_schema(
+    tags=['User / team / organization / usage'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_organization',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the organization',
+        )
+    ],
+)
+class OrganizationOwnershipTransferViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    ViewSet for initiating organization ownership transfers.
+
+    Available actions:
+    - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+    """
+
+    serializer_class = OrganizationOwnershipTransferSerializer
+    permission_classes = [IsOrgOwnerPermission]
+    http_method_names = ['post']
+    parent_lookup_field = 'uid_organization'
+
+    def get_queryset(self):
+        organization_id = self.kwargs.get(self.parent_lookup_field)
+        return OrganizationOwnershipTransfer.objects.filter(
+            organization_id=organization_id
+        ).select_related('sender', 'recipient', 'organization')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        transfer = serializer.save()
+        response_serializer = self.get_serializer(transfer)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
