@@ -105,7 +105,8 @@ export default function MemberActionsDropdown({
               <Menu.Item variant='danger'>{t('Cancel invitation')}</Menu.Item>
             </>
           ) : (
-            isTransferOwnershipEnabled && currentUserRole === MemberRoleEnum.owner && (
+            isTransferOwnershipEnabled &&
+            currentUserRole === MemberRoleEnum.owner && (
               <>
                 <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
                   {t('Make owner')}
