@@ -13,7 +13,6 @@ from kpi.utils.log import logging
 
 LAST_USER_ID_CACHE_KEY = 'lrm_0033_last_user_id'
 LAST_XFORM_ID_CACHE_KEY = 'lrm_0033_last_xform_pk'
-FAILED_TAG = 'bad'
 
 
 def run():
