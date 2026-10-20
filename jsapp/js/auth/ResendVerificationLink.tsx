@@ -1,9 +1,7 @@
 import { Stack, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
-import { ServerError } from '#/api/ServerError'
-import type { ErrorValidation } from '#/api/models/errorValidation'
-import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
+import { type OrvalFetchError, getApiErrorMessage, getFieldErrors } from '#/api/onErrorDefaultHandler'
 import { useEmailConfirmationsCreate } from '#/api/react-query/user-team-organization-usage'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { validateEmail } from '#/auth/RegisterRoute/registerValidation'
@@ -25,15 +23,6 @@ export interface ResendVerificationLinkProps {
    * and then nothing is rendered here; without it the server's confirmation appears in place.
    */
   onSent?: () => void
-}
-
-/** Pulls the field error out of a 400, which the serializer reports as `{email: [message]}`. */
-function getEmailFieldMessage(error: OrvalFetchError): string | null {
-  if (!(error instanceof ServerError)) {
-    return null
-  }
-  const message = (error.parsedResponse as ErrorValidation | undefined)?.email?.[0]
-  return typeof message === 'string' ? message : null
 }
 
 /**
@@ -61,7 +50,7 @@ export default function ResendVerificationLink({ label, email, onSent }: ResendV
       onSuccess: () => (onSent ? onSent() : setSent(true)),
       // Handled here rather than by the default toast, so the message sits next to the button that failed.
       onError: (error) => {
-        const fieldMessage = getEmailFieldMessage(error)
+        const [fieldMessage] = getFieldErrors(error, 'email')
         // With no field on screen there is nowhere to put a field error, so it goes in the banner.
         if (fieldMessage && email === undefined) {
           form.setErrors({ email: fieldMessage })
