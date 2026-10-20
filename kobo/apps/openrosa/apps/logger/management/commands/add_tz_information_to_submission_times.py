@@ -4,13 +4,11 @@ from datetime import datetime
 from django.conf import settings
 from django.core.cache import cache
 from django.core.management import CommandParser
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db.migrations.recorder import MigrationRecorder
 from django.db.models import QuerySet
-from pymongo.errors import PyMongoError
 
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 
 lock = threading.Lock()
@@ -42,7 +40,6 @@ def process_xform(xform, format_updated_date):
         last_instance_id_for_form = cache.get(
             f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}', 0
         )
-        logging.info(f'{last_instance_id_for_form=}')
         while instance_pks := get_instances_queryset(
             xform.pk, format_updated_date, last_instance_id_for_form
         ):

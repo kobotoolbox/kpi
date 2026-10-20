@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.db.migrations.recorder import MigrationRecorder
 from django.test import TestCase, override_settings
 
-from kobo.apps.openrosa.apps.logger.management.commands.add_tz_information_to_submission_times import (
+from kobo.apps.openrosa.apps.logger.management.commands.add_tz_information_to_submission_times import (  # noqa
     execute_mongo_query,
 )
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
