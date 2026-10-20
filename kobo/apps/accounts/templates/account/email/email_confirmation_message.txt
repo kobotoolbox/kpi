@@ -11,7 +11,7 @@ Escaping off, since there is no markup here: a name like O'Connor would otherwis
 
 {{ activate_url }}
 
-{% blocktrans trimmed %}This link will expire in 24 hours.{% endblocktrans %}
+{% blocktrans trimmed count hours=expire_hours %}This link will expire in {{ hours }} hour.{% plural %}This link will expire in {{ hours }} hours.{% endblocktrans %}
 
 {% blocktrans trimmed %}Thanks for being part of the KoboToolbox community!{% endblocktrans %}
 {% blocktrans trimmed %}The KoboToolbox Team{% endblocktrans %}

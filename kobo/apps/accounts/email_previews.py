@@ -81,10 +81,16 @@ PREVIEWS = (
 
 def render_email(template_prefix, user, activate_url=ACTIVATE_URL):
     """Build the message allauth would send, with its own rendering"""
-    return get_adapter().render_mail(
+    adapter = get_adapter()
+    return adapter.render_mail(
         template_prefix,
         user.email,
-        {'user': user, 'activate_url': activate_url, 'key': 'TOKEN'},
+        {
+            'user': user,
+            'activate_url': activate_url,
+            'key': 'TOKEN',
+            'expire_hours': adapter.get_confirmation_expire_hours(),
+        },
     )
 
 

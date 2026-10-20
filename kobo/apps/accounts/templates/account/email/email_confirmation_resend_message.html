@@ -30,8 +30,10 @@ Signing in no longer sends one, and whoever gets this email asked for it through
   {% include "account/email/_button.html" with url=activate_url label=button_label %}
 
   <p class="text" style="margin:0 0 28px;font-size:16px;line-height:24px;color:#334155;">
-    {% blocktrans trimmed %}
-      <strong>This link expires in 24 hours</strong> for security reasons.
+    {% blocktrans trimmed count hours=expire_hours %}
+      <strong>This link expires in {{ hours }} hour</strong> for security reasons.
+    {% plural %}
+      <strong>This link expires in {{ hours }} hours</strong> for security reasons.
     {% endblocktrans %}
   </p>
 

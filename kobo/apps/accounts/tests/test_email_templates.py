@@ -1,8 +1,11 @@
+from allauth.account.models import EmailAddress, EmailConfirmationHMAC
+from allauth.core.context import request_context
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.core import mail
 from django.db import connection
 from django.template.loader import render_to_string
-from django.test import TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
 
@@ -70,6 +73,39 @@ class ConfirmationEmailTemplateTestCase(TestCase):
         assert '<!doctype html>' in html
         assert 'KoboToolbox-CleanLogo.png' in html
         assert 'kobotoolbox.org/privacy/' in html
+
+    @data(*CONFIRMATION_EMAILS)
+    @unpack
+    def test_default_expiry_reads_24_hours(self, template_prefix, _phrase):
+        message = render_email(template_prefix, self.user)
+
+        assert 'expire in 24 hours' in message.body
+        assert 'expires in 24 hours' in html_body(message)
+
+    @data(*CONFIRMATION_EMAILS)
+    @unpack
+    @override_settings(ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS=3)
+    def test_expiry_follows_the_setting(self, template_prefix, _phrase):
+        message = render_email(template_prefix, self.user)
+
+        assert 'expire in 72 hours' in message.body
+        assert 'expires in 72 hours' in html_body(message)
+        assert '24 hours' not in message.body + html_body(message)
+
+    @override_settings(ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS=2)
+    def test_sent_email_states_the_expiry(self):
+        """The real send path, so the adapter's context is covered too"""
+        address = EmailAddress.objects.create(
+            user=self.user, email=self.user.email, primary=True, verified=False
+        )
+        request = RequestFactory().post('/')
+        # allauth reads the request from its own context, not from the argument
+        with request_context(request):
+            EmailConfirmationHMAC(address).send(request=request, signup=True)
+
+        (message,) = mail.outbox
+        assert 'expire in 48 hours' in message.body
+        assert 'expires in 48 hours' in html_body(message)
 
     @data(*CONFIRMATION_EMAILS)
     @unpack

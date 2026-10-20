@@ -16,7 +16,7 @@ overrides to instance admins, and clients pick whichever they prefer.
 
 {{ activate_url }}
 
-{% blocktrans trimmed %}For security reasons, this link will expire in 24 hours.{% endblocktrans %}
+{% blocktrans trimmed count hours=expire_hours %}For security reasons, this link will expire in {{ hours }} hour.{% plural %}For security reasons, this link will expire in {{ hours }} hours.{% endblocktrans %}
 
 {% endif %}
 {% endspaceless %}
