@@ -15,11 +15,7 @@ from djstripe.models import (
     SubscriptionSchedule,
 )
 from djstripe.settings import djstripe_settings
-from drf_spectacular.utils import (
-    OpenApiParameter,
-    extend_schema,
-    extend_schema_view,
-)
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
@@ -557,7 +553,9 @@ class CustomerPortalView(APIView):
 
         if not customer:
             return Response(
-                {'detail': f"Couldn't find customer with organization id {organization_id}"},
+                {
+                    'detail': f"Couldn't find customer with organization id {organization_id}"
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 

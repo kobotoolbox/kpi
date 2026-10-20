@@ -135,7 +135,9 @@ class CustomerAddressSerializer(serializers.Serializer):
     country = serializers.CharField(allow_null=True, required=False, allow_blank=True)
     line1 = serializers.CharField(allow_null=True, required=False, allow_blank=True)
     line2 = serializers.CharField(allow_null=True, required=False, allow_blank=True)
-    postal_code = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    postal_code = serializers.CharField(
+        allow_null=True, required=False, allow_blank=True
+    )
     state = serializers.CharField(allow_null=True, required=False, allow_blank=True)
 
 

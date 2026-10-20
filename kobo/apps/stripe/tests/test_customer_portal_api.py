@@ -167,8 +167,12 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         response = self.client.post(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_get_billing_details_success(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
+    def test_get_billing_details_success(
+        self, create_config, list_config, session_create, get_customer
+    ):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
         self._create_stripe_data(create_subscription=True)
         self.customer.name = 'Test Org Customer'
         self.customer.email = 'billing@example.com'
@@ -209,8 +213,12 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         assert data['billing_cycle_info']['status'] == 'active'
         assert data['billing_cycle_info']['billing_cycle_anchor'] is not None
 
-    def test_get_billing_details_for_canceled_subscription(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
+    def test_get_billing_details_for_canceled_subscription(
+        self, create_config, list_config, session_create, get_customer
+    ):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
         self._create_stripe_data(create_subscription=False)
         self.subscription = baker.make(
             Subscription,
@@ -226,21 +234,31 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['billing_cycle_info']['status'] == 'canceled'
-        assert response.data['url'] == 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        assert (
+            response.data['url'] == 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        )
 
-    def test_get_billing_details_forbidden_for_non_owner(self, create_config, list_config, session_create, get_customer):
-        session_create.return_value = {'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'}
+    def test_get_billing_details_forbidden_for_non_owner(
+        self, create_config, list_config, session_create, get_customer
+    ):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
         self._create_stripe_data()
         other_user = User.objects.get(username='anotheruser')
         self.organization.add_user(other_user)  # other_user becomes the owner
-        self.organization.add_user(self.some_user, is_admin=True)  # some_user is admin, not owner
+        self.organization.add_user(
+            self.some_user, is_admin=True
+        )  # some_user is admin, not owner
 
         url = self._get_url({'organization_id': self.organization.id})
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_get_billing_details_unauthenticated(self, create_config, list_config, session_create, get_customer):
+    def test_get_billing_details_unauthenticated(
+        self, create_config, list_config, session_create, get_customer
+    ):
         self._create_stripe_data()
         self.organization.add_user(self.some_user)
         self.client.logout()
@@ -250,7 +268,9 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_get_billing_details_missing_customer(self, create_config, list_config, session_create, get_customer):
+    def test_get_billing_details_missing_customer(
+        self, create_config, list_config, session_create, get_customer
+    ):
         organization = baker.make(
             Organization, id='orgNOMATCHCUST1234567890', mmo_override=True
         )
@@ -261,13 +281,17 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_get_billing_details_invalid_organization_id(self, create_config, list_config, session_create, get_customer):
+    def test_get_billing_details_invalid_organization_id(
+        self, create_config, list_config, session_create, get_customer
+    ):
         url = self._get_url({'organization_id': 'invalid_id_not_starting_with_org'})
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_get_billing_details_organization_not_found(self, create_config, list_config, session_create, get_customer):
+    def test_get_billing_details_organization_not_found(
+        self, create_config, list_config, session_create, get_customer
+    ):
         url = self._get_url({'organization_id': 'orgNONEXISTENT123456789'})
         response = self.client.get(url)
 
