@@ -328,7 +328,7 @@ class MongoHelper:
         return cls._raw_update(query, update, many=False)
 
     @classmethod
-    def update_many(cls, query: dict, update: dict) -> dict[str, int]:
+    def update_many(cls, query: dict, update: dict | list) -> dict[str, int]:
         return cls._raw_update(query, update, many=True)
 
     @classmethod
@@ -469,7 +469,7 @@ class MongoHelper:
         return False
 
     @classmethod
-    def _normalize_update(cls, update: dict) -> dict:
+    def _normalize_update(cls, update: dict | list) -> dict | list:
         """
         Normalize a MongoDB update to ensure it uses update operators like $set.
 
@@ -477,9 +477,12 @@ class MongoHelper:
         returned as-is.
         If not, it wraps the update inside a $set operator.
         """
-        # Check if the first key is an operator (starts with "$")
+        if isinstance(update, list):
+            return [cls._normalize_update(item) for item in update]
+
         first_key = next(iter(update), None)
 
+        # Check if the first key is an operator (starts with "$")
         if first_key is not None and first_key.startswith('$'):
             # Update already uses an operator, return as-is
             return update
@@ -520,7 +523,7 @@ class MongoHelper:
 
     @classmethod
     def _raw_update(
-        cls, query: dict, update: dict, many: bool = True
+        cls, query: dict, update: dict | list, many: bool = True
     ) -> dict[str, int]:
         """
         PyMongo's update_one and update_many methods do not support maxTimeMS queries.
@@ -530,14 +533,14 @@ class MongoHelper:
         yet.
         """
         if settings.TESTING:
-            if many:
-                result = settings.MONGO_DB.instances.update_many(
-                    query, {'$set': update}
-                )
+            if isinstance(update, list):
+                update = [{'$set': item} for item in update]
             else:
-                result = settings.MONGO_DB.instances.update_one(
-                    query, {'$set': update}
-                )
+                update = {'$set': update}
+            if many:
+                result = settings.MONGO_DB.instances.update_many(query, update)
+            else:
+                result = settings.MONGO_DB.instances.update_one(query, update)
 
             return {
                 'matched_count': result.matched_count,
