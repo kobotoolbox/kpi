@@ -9,6 +9,7 @@ from rest_framework.reverse import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
 from kpi.models.asset import Asset
+from kpi.paginators import LimitedCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.users.serializers import (
     UserListResponse,
@@ -68,6 +69,7 @@ class UserViewSet(
     serializer_class = UserSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated,)
+    pagination_class = LimitedCountPagination
     search_default_field_lookups = [
         'username__icontains',
     ]

@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import AssetVersion
+from kpi.paginators import LimitedCountPagination
 from kpi.permissions import AssetVersionReadOnlyPermission
 from kpi.schema_extensions.v2.versions.serializers import (
     VersionListResponse,
@@ -80,6 +81,7 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
     lookup_field = 'uid'
     lookup_url_kwarg = 'uid_version'
     permission_classes = (AssetVersionReadOnlyPermission,)
+    pagination_class = LimitedCountPagination
 
     def get_serializer_class(self):
         if self.action == 'list':

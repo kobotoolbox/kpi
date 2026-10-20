@@ -187,102 +187,6 @@ class DefaultPagination(LimitOffsetPagination):
         return schema
 
 
-class AssetPagination(DefaultPagination):
-
-    def get_paginated_response(self, data, metadata):
-
-        response = OrderedDict([
-            ('count', self.count),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ])
-        if metadata is not None:
-            response['metadata'] = metadata
-
-        return Response(response)
-
-    @staticmethod
-    @cache_for_request
-    def get_all_asset_ids_from_queryset(queryset: Union[QuerySet, list]):
-        # Micro optimization, coerce `asset_ids` as a list to force the query
-        # to be processed right now. Otherwise, because queryset is a lazy query,
-        # it creates (left) joins on tables when queryset is interpreted
-        # and it is way slower than running this extra query.
-        #
-        # `AssetPagination.get_count()` and `AssetViewSet.get_serializer_context()`
-        # use the same query base. So use it here to retrieve `asset_ids`
-        # and cache them.
-        if isinstance(queryset, list):
-            asset_ids = [a.pk for a in queryset]
-        else:
-            asset_ids = list(queryset.values_list('id', flat=True).distinct().order_by())
-        return asset_ids
-
-    def get_count(self, queryset):
-        """
-        Determine total number of assets.
-        Use `len()` instead of `queryset.count()`.
-
-        See cls.get_all_asset_ids_from_queryset())
-        """
-        return len(AssetPagination.get_all_asset_ids_from_queryset(queryset))
-
-    def get_paginated_response_schema(self, schema):
-        response_schema = super().get_paginated_response_schema(schema)
-        response_schema['metadata'] = {
-            'type': 'object',
-            'properties': {
-                'languages': {
-                    'type': 'array',
-                    'items': {'type': 'string'},
-                    'example': ['English (en)'],
-                },
-                'countries': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'array',
-                        'items': {
-                            'type': 'string',
-                        },
-                    },
-                    'example': [['FRA', 'France']],
-                },
-                'sectors': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'array',
-                        'items': {
-                            'type': 'string',
-                        },
-                    },
-                    'example': [['Public Administration', 'Public Administration']],
-                },
-                'organizations': {
-                    'type': 'array',
-                    'items': {'type': 'string'},
-                    'example': ['Kobotoolbox'],
-                },
-            },
-        }
-        return response_schema
-
-
-class FastPagination(DefaultPagination):
-    """
-    Pagination class optimized for faster counting for DISTINCT queries on large tables.
-
-    This class overrides the get_count() method to only look at the primary key field,
-    avoiding expensive DISTINCTs comparing several fields. This may not work for queries
-    with lots of joins, especially with one-to-many or many-to-many type relationships.
-    """
-
-    def get_count(self, queryset):
-        if queryset.query.distinct:
-            return queryset.only('pk').count()
-        return super().get_count(queryset)
-
-
 class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
     """
     Reports a capped count: an exact integer up to
@@ -373,6 +277,81 @@ class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
             return []
 
         return self._get_page_with_peek(queryset)
+
+
+class AssetPagination(LimitedCountPagination):
+
+    def get_paginated_response(self, data, metadata):
+
+        response = OrderedDict(
+            [
+                ('count', self.count),
+                ('next', self.get_next_link()),
+                ('previous', self.get_previous_link()),
+                ('results', data),
+            ]
+        )
+        if metadata is not None:
+            response['metadata'] = metadata
+
+        return Response(response)
+
+    @staticmethod
+    @cache_for_request
+    def get_all_asset_ids_from_queryset(queryset: Union[QuerySet, list]):
+        # Micro optimization, coerce `asset_ids` as a list to force the query
+        # to be processed right now. Otherwise, because queryset is a lazy query,
+        # it creates (left) joins on tables when queryset is interpreted
+        # and it is way slower than running this extra query.
+        #
+        # Only `AssetViewSet.get_serializer_context()` uses it, to retrieve
+        # `asset_ids` and cache them.
+        if isinstance(queryset, list):
+            asset_ids = [a.pk for a in queryset]
+        else:
+            asset_ids = list(
+                queryset.values_list('id', flat=True).distinct().order_by()
+            )
+        return asset_ids
+
+    def get_paginated_response_schema(self, schema):
+        response_schema = super().get_paginated_response_schema(schema)
+        response_schema['metadata'] = {
+            'type': 'object',
+            'properties': {
+                'languages': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['English (en)'],
+                },
+                'countries': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
+                        },
+                    },
+                    'example': [['FRA', 'France']],
+                },
+                'sectors': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
+                        },
+                    },
+                    'example': [['Public Administration', 'Public Administration']],
+                },
+                'organizations': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['Kobotoolbox'],
+                },
+            },
+        }
+        return response_schema
 
 
 class NoCountPagination(PeekNextPageMixin, DefaultPagination):

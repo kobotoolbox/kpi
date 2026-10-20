@@ -1,5 +1,6 @@
 from allauth.socialaccount.models import SocialAccount
 from ddt import data, ddt, unpack
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -11,7 +12,7 @@ from kobo.apps.organizations.models import (
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
-from kpi.constants import PERM_MANAGE_ASSET
+from kpi.constants import LIMITED_COUNT_MANY, PERM_MANAGE_ASSET
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
@@ -177,6 +178,14 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         assert response.data['count'] == 2
         usernames = [m['user__username'] for m in response.data['results']]
         assert 'alice' not in usernames
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
 
     @data(
         ('owner', status.HTTP_200_OK),

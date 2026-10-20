@@ -28,7 +28,7 @@ from kpi.exceptions import (
 )
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import NoCountPagination
+from kpi.paginators import AssetPagination, LimitedCountPagination, NoCountPagination
 from kpi.schema_extensions.v2.invites.schema import (
     INVITE_ROLE_SCHEMA,
     INVITE_STATUS_SCHEMA,
@@ -311,7 +311,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     search_default_field_lookups = ['name__icontains']
 
     @action(
-        detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdminPermission],
+        pagination_class=AssetPagination,
     )
     def assets(self, request: Request, *args, **kwargs):
 
@@ -378,7 +381,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
+    @action(
+        detail=True,
+        methods=['get'],
+        permission_classes=[IsOrgAdminPermission],
+        pagination_class=LimitedCountPagination,
+    )
     def asset_usage(self, request, pk=None, *args, **kwargs):
 
         # `get_object()` checks permissions
@@ -553,6 +561,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     serializer_class = OrganizationUserSerializer
     permission_classes = [OrganizationNestedHasOrgRolePermission]
+    pagination_class = LimitedCountPagination
     http_method_names = ['get', 'patch', 'delete']
     parent_lookup_field = 'uid_organization'
     lookup_field = 'user__username'
