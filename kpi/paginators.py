@@ -308,10 +308,15 @@ class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
             count = len(queryset)
             return LIMITED_COUNT_MANY if count > max_rows else count
 
+        # A values() queryset defines its own rows (its GROUP BY or DISTINCT
+        # runs on the selected columns), so re-selecting `pk` would count the
+        # underlying rows instead. Other querysets are narrowed to `pk` to
+        # avoid detoasting wide columns (e.g. `Asset.content`).
+        if queryset._fields is None:
+            queryset = queryset.values('pk')
         # Clearing ordering is safe: any L+1 rows already prove 'many', and an
-        # ORDER BY inside a LIMIT subquery forces a full sort. `values('pk')`
-        # avoids detoasting wide columns (e.g. `Asset.content`).
-        capped = queryset.order_by().values('pk')[: max_rows + 1]
+        # ORDER BY inside a LIMIT subquery forces a full sort
+        capped = queryset.order_by()[: max_rows + 1]
 
         if settings.API_LIMITED_COUNT_TIMEOUT:
             # `set_config(..., true)` is `SET LOCAL` but accepts bind
