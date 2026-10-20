@@ -1,6 +1,6 @@
 import { Anchor, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FlowId } from '#/api/models/flowId'
 import type { LoginBody } from '#/api/models/loginBody'
@@ -40,8 +40,6 @@ function getCredentialFieldProps(credential: LoginCredential) {
 export type LoginOutcome =
   /** Credentials accepted and the session exists. */
   | { kind: 'authenticated' }
-  /** A session was already there, so there was nothing to sign in to. */
-  | { kind: 'alreadyAuthenticated' }
   /**
    * Right credentials, unconfirmed address. `email` is only known on a server that signs in by address - with
    * a username there is nothing to prefill the resend with.
@@ -66,6 +64,8 @@ export interface LoginFormProps {
   isConfigurationPending: boolean
   /** Drops the signup link: with signup closed there is only a dead end behind it */
   isRegistrationClosed?: boolean
+  /** Shown under the heading */
+  notice?: ReactNode
   onOutcome: (outcome: LoginOutcome) => void
 }
 
@@ -75,6 +75,7 @@ export default function LoginForm({
   socialApps,
   isConfigurationPending,
   isRegistrationClosed = false,
+  notice,
   onOutcome,
 }: LoginFormProps) {
   const credentialParam = getLoginCredentialParam(credential)
@@ -100,11 +101,6 @@ export default function LoginForm({
       onSuccess: (response, variables) => {
         if (response.status === 200 && response.data.meta.is_authenticated) {
           onOutcome({ kind: 'authenticated' })
-          return
-        }
-        // A 409 means a session was already in place
-        if (response.status === 409) {
-          onOutcome({ kind: 'alreadyAuthenticated' })
           return
         }
         // The credentials were right, and allauth is asking for one more thing before it hands out a session
@@ -159,6 +155,8 @@ export default function LoginForm({
       <Title order={1} size='h3'>
         {t('Log into your account')}
       </Title>
+
+      {notice}
 
       {formErrors.length > 0 && (
         <Alert type='error' iconName='alert'>
