@@ -9,7 +9,7 @@ import { openLibraryAssetModal } from '#/components/modalForms/openLibraryAssetM
 import { ASSET_TYPES } from '#/constants'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import KoboIcon from '../common/KoboIcon'
 
 export interface LibraryNewItemFormProps {
@@ -23,7 +23,7 @@ export interface LibraryNewItemFormProps {
 }
 
 export default function LibraryNewItemForm({ onRequestClose, reopenHomeModal }: LibraryNewItemFormProps) {
-  const session = useSession()
+  const profile = useProfile()
   const navigate = useNavigate()
 
   function goToAssetCreator() {
@@ -64,7 +64,7 @@ export default function LibraryNewItemForm({ onRequestClose, reopenHomeModal }: 
     openLibraryUploadModal({ onBack: reopenHomeModal })
   }
 
-  if (!session.currentLoggedAccount) {
+  if (!profile.currentLoggedAccount) {
     return <LoadingSpinner />
   }
 

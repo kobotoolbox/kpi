@@ -1,0 +1,409 @@
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { RequestHandler } from 'msw'
+import { getWorker } from 'msw-storybook-addon'
+import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { AuthThemeEnum } from '#/api/models/authThemeEnum'
+import type { SocialApp } from '#/api/models/socialApp'
+import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { setLoginBackgroundMetaForStories } from '#/auth/AuthContainer/authContainer.mocks'
+// The same stand-in photo the container's own stories use, so the custom theme stays offline.
+import backgroundImageUrl from '#/auth/AuthContainer/salah-darwish-story-bg.webp'
+import { type Canvas, field, narrowViewportDecorator } from '#/auth/authStoryHelpers'
+import {
+  signupAuthenticatedMock,
+  signupErrorsMock,
+  signupNeverAnswersMock,
+  signupPendingVerificationMock,
+  signupServerErrorMock,
+} from '#/endpoints/allauth.mocks'
+import {
+  environmentServerErrorMock,
+  makeAuthConfigurationMock,
+  makeEnvironmentMock,
+} from '#/endpoints/environment.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
+import RegisterRoute from './RegisterRoute'
+
+/**
+ * The registration screen in `AuthContainer`'s outlet, where it really lives - hence the container, not
+ * the route, as the story component.
+ */
+
+/**
+ * The KoboToolbox default: terms published as a sitewide message, which is what requires the agreement, and
+ * a URL for each document, which is what makes the checkbox label clickable.
+ */
+const LEGAL_AGREEMENT = {
+  terms_of_service__sitewidemessage__exists: true,
+  terms_of_service_url: 'https://kbtdev.org/terms',
+  privacy_policy_url: 'https://kbtdev.org/privacy',
+}
+
+const environmentMock = makeEnvironmentMock(LEGAL_AGREEMENT)
+
+/** Both supporting fields filled in: a `login_supporting_image` upload and a `welcome_message`, as HTML. */
+const supportingEnvironmentMock = makeAuthConfigurationMock(
+  {
+    supporting_image_url: backgroundImageUrl,
+    supporting_text: '<h2>Welcome to the Example Organization server</h2>\n<p>Accounts here are for staff.</p>',
+  },
+  LEGAL_AGREEMENT,
+)
+
+/** An instance that asks for every profile field it can and requires most of them */
+const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
+  ...LEGAL_AGREEMENT,
+  user_metadata_fields: [
+    { name: 'name', required: true, label: 'Full name' },
+    { name: 'country', required: true, label: 'Country' },
+    { name: 'sector', required: true, label: 'Sector' },
+    { name: 'organization_type', required: true, label: 'Organization type' },
+    { name: 'organization', required: true, label: 'Organization name' },
+    { name: 'organization_website', required: true, label: 'Organization website' },
+    { name: 'gender', required: false, label: 'Gender' },
+    { name: 'bio', required: true, label: 'Bio' },
+    { name: 'city', required: true, label: 'City' },
+    {
+      name: 'newsletter_subscription',
+      required: false,
+      label: 'I want to receive occasional updates about KoboToolbox',
+    },
+  ],
+})
+
+/** An organization that signs in through SSO and owns `kbtdev.org` addresses. */
+const managedSsoApp: SocialApp = {
+  provider: 'openid_connect',
+  name: 'Example Organization',
+  client_id: 'example-client-id',
+  provider_id: 'example-org',
+  managed: true,
+  domains: ['kbtdev.org'],
+}
+
+/**
+ * Storybook replaces the handler array rather than merging it, so a story overriding the signup handler
+ * still has to restate `/environment`.
+ */
+const storyHandlers = (options?: { environment?: RequestHandler; signup?: RequestHandler }): RequestHandler[] =>
+  [options?.environment ?? environmentMock, options?.signup].filter((handler): handler is RequestHandler =>
+    Boolean(handler),
+  )
+
+/** Renders the story as `/auth/signup`, so what you see is the routed screen inside its frame. */
+const registerRouting = reactRouterParameters({
+  location: { path: AUTH_ROUTES.SIGNUP },
+  routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'signup', element: <RegisterRoute /> }),
+})
+
+const meta: Meta<typeof AuthContainer> = {
+  title: 'Features/RegisterRoute',
+  component: AuthContainer,
+  // Docs view can't render a full page frame usefully
+  tags: ['!autodocs'],
+  parameters: {
+    layout: 'fullscreen',
+    msw: { handlers: storyHandlers() },
+    reactRouter: registerRouting,
+  },
+  // Nobody is logged in on a registration screen.
+  beforeEach: setAnonymousProfileForStories,
+  decorators: [withRouter, queryClientDecorator],
+}
+
+export default meta
+type Story = StoryObj<typeof AuthContainer>
+
+const VALID_INPUT = {
+  name: 'Caroline Herschel',
+  email: 'caroline.herschel@kbtdev.org',
+  username: 'caroline_herschel',
+  password: 'correct horse battery staple',
+}
+
+/**
+ * Waits until `/environment` has landed, which the managed SSO check depends on. Two matches, not one:
+ * the frame's footer and the Terms of Service checkbox both build a link from that same response.
+ */
+const waitForEnvironment = (canvas: Canvas) =>
+  waitFor(() => expect(canvas.getAllByRole('link', { name: 'Terms of Service' })).toHaveLength(2))
+
+/** Fills every field with something the client accepts. */
+async function fillForm(canvas: Canvas, overrides: Partial<typeof VALID_INPUT> = {}) {
+  const values = { ...VALID_INPUT, ...overrides }
+
+  await waitForEnvironment(canvas)
+
+  await userEvent.type(field(canvas, 'Full name'), values.name)
+  await userEvent.type(field(canvas, 'Email'), values.email)
+  await userEvent.type(field(canvas, 'Username'), values.username)
+  await userEvent.type(field(canvas, 'Password'), values.password)
+  await userEvent.type(field(canvas, 'Confirm password'), values.password)
+  await userEvent.click(canvas.getByRole('checkbox', { name: /I agree with the/ }))
+}
+
+const submit = (canvas: Canvas) => userEvent.click(canvas.getByRole('button', { name: 'Continue' }))
+
+/** No supporting content configured - one column */
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    await waitForEnvironment(within(canvasElement))
+  },
+}
+
+/** Supporting content - custom image and text - second column appears */
+export const WithSupportingContent: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: supportingEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    await within(canvasElement).findByRole('heading', { level: 2, name: /Example Organization/ })
+  },
+}
+
+/** Same as above, but on narrow screen */
+export const WithSupportingContentStacked: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: supportingEnvironmentMock }) } },
+  decorators: [narrowViewportDecorator],
+  play: async ({ canvasElement }) => {
+    await within(canvasElement).findByRole('heading', { level: 2, name: /Example Organization/ })
+  },
+}
+
+export const CustomTheme: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeAuthConfigurationMock(
+          { theme: AuthThemeEnum.custom, background_image_url: backgroundImageUrl },
+          LEGAL_AGREEMENT,
+        ),
+      }),
+    },
+  },
+  beforeEach: setLoginBackgroundMetaForStories(backgroundImageUrl),
+  play: async ({ canvasElement }) => {
+    await waitForEnvironment(within(canvasElement))
+  },
+}
+
+/** Nothing filled in, form submitted - fields show errors */
+export const ClientValidation: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+    await submit(canvas)
+
+    // The rules themselves are unit tested in `registerValidation.tests`
+    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+  },
+}
+
+/**
+ * The profile fields this instance requires through `USER_METADATA_FIELDS` are not asked for here: signup
+ * stays short and they are collected after logging in.
+ */
+export const RequiredProfileFieldsOmitted: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: requiredProfileFieldsEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+
+    for (const label of ['Country', 'Sector', 'Organization type', 'Organization name', 'Gender', 'Bio', 'City']) {
+      expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
+    }
+
+    await submit(canvas)
+    // The same six as `ClientValidation`: what the instance configures makes no difference to this form.
+    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+  },
+}
+
+/** No Privacy Policy URL, so there is no second document to name: the sentence is about the terms alone. */
+export const TermsOfServiceOnly: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, privacy_policy_url: '' }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+    expect(canvas.getByRole('checkbox', { name: 'I agree with the Terms of Service' })).toBeInTheDocument()
+    expect(canvas.queryByRole('link', { name: 'Privacy Policy' })).not.toBeInTheDocument()
+  },
+}
+
+/**
+ * No sitewide message, so the server asks for no agreement and drops the field: no checkbox, whatever the
+ * document URLs say. They stay in the footer, where they are not an agreement.
+ */
+export const NoAgreementRequired: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, terms_of_service__sitewidemessage__exists: false }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The footer link comes from the same response, so the missing checkbox is a real absence rather than a
+    // request still in flight. `findBy` also fails on a second match, which a checkbox label would be.
+    await canvas.findByRole('link', { name: 'Terms of Service' })
+    expect(canvas.queryByRole('checkbox', { name: /I agree with the/ })).not.toBeInTheDocument()
+    await submit(canvas)
+
+    // Five where `ClientValidation` gets six: the rule has to go away with the checkbox, or nobody could
+    // ever submit this form.
+    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
+  },
+}
+
+/** An address whose domain has to sign in through SSO instead. */
+export const ManagedSsoDomain: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, social_apps: [managedSsoApp] }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await fillForm(canvas, { email: 'caroline.herschel@kbtdev.org' })
+    await submit(canvas)
+    await canvas.findByText('Your organization has restricted the use of passwords. Please sign up using SSO instead.')
+  },
+}
+
+/** The submit button holds a spinner until the server answers. */
+export const SubmitForm: Story = {
+  parameters: { msw: { handlers: storyHandlers({ signup: signupNeverAnswersMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await fillForm(canvas)
+    await submit(canvas)
+    expect(canvas.getByRole('button', { name: 'Continue' })).toBeDisabled()
+  },
+}
+
+/** The happy path on default configuration: a 401 with a pending `verify_email` flow, treated as success. */
+export const SubmitPendingVerification: Story = {
+  parameters: { msw: { handlers: storyHandlers({ signup: signupPendingVerificationMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    // A 401 is the success on a KPI default, so getting this far is the point of the story.
+    await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
+  },
+}
+
+/**
+ * A deployment that does not verify addresses: the account comes back already signed in, so there is
+ * nothing to confirm and the card offers the way in instead.
+ */
+export const SubmitSignedIn: Story = {
+  parameters: { msw: { handlers: storyHandlers({ signup: signupAuthenticatedMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Your account is ready' })
+    // A plain `href`, so the click leaves `/auth` and loads the app with the new session.
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute(
+      'href',
+      `${window.location.origin}/`,
+    )
+  },
+}
+
+/** Both kinds of server error at once: one attributed to a field, one that belongs to no field. */
+export const ServerErrors: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        signup: signupErrorsMock([
+          { code: 'username_taken', param: 'username', message: 'A user with that username already exists.' },
+          { code: 'invalid', message: 'Sign up is temporarily unavailable. Please try again in a few minutes.' },
+        ]),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    // Field error - under input
+    await canvas.findByText('A user with that username already exists.')
+    // General error - above the form
+    await canvas.findByText('Sign up is temporarily unavailable. Please try again in a few minutes.')
+    // The form stays put with what was typed: a rejection is not the "check your inbox" ending.
+    expect(canvas.getByLabelText(/^Username/)).toHaveValue(VALID_INPUT.username)
+  },
+}
+
+/** A 500 leaves us nothing to quote, so the banner gets our own wording and the form stays fillable. */
+export const ServerUnavailable: Story = {
+  parameters: { msw: { handlers: storyHandlers({ signup: signupServerErrorMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByText('Something went wrong. Please try again later.')
+  },
+}
+
+/**
+ * `/environment` fails, so every rule the form depends on - the legal documents, the domains that have to
+ * use SSO, whether sign up is open at all - is unknown. The card asks for a retry, and a retry that reaches
+ * a server in a better mood brings the form back.
+ */
+export const ConfigurationError: Story = {
+  parameters: { msw: { handlers: [environmentServerErrorMock()] } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Sign up is temporarily unavailable' })
+    // Not a form sitting behind the panel with its Terms of Service checkbox quietly missing.
+    expect(canvas.queryByLabelText(/^Username/)).not.toBeInTheDocument()
+
+    // Put the endpoint back on its feet first, so the click has something to succeed with. The addon resets
+    // runtime handlers between stories, so this stays inside this one.
+    getWorker().use(environmentMock)
+    await userEvent.click(canvas.getByRole('button', { name: 'Retry' }))
+
+    await waitForEnvironment(canvas)
+  },
+}
+
+/** `registration_open` off: there is nothing to fill in. */
+export const RegistrationClosed: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, registration_open: false }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    // `findBy`, not `getBy`: the form shows first and swaps once `/environment` lands.
+    await within(canvasElement).findByRole('heading', { level: 1, name: 'Sign up closed' })
+  },
+}

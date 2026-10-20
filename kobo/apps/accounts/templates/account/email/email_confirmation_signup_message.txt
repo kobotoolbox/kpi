@@ -26,7 +26,7 @@
 
 {% blocktrans trimmed %}• Help Center: Find answers to your questions in our Help Center’s extensive library of support articles. Visit the Help Center: https://support.kobotoolbox.org/{% endblocktrans %}
 
-{% blocktrans trimmed %}• Online Learning: For a comprehensive introduction to KoboToolbox, we offer the online self-paced KoboToolbox Essentials Course. Get started with the Essentials Course: https://academy.kobotoolbox.org/courses/essentials{% endblocktrans %}
+{% blocktrans trimmed %}• Online Learning: For a comprehensive introduction to KoboToolbox, we offer the online self-paced KoboToolbox Essentials Course. Get started with the free Essentials Course: https://academy.kobotoolbox.org/courses/essentials{% endblocktrans %}
 
 {% blocktrans trimmed %}• Community Forum: Visit our Community Forum to chat with thousands of KoboToolbox users, ask questions, and find information about software updates. Explore the Community Forum: https://community.kobotoolbox.org/{% endblocktrans %}
 

@@ -6,7 +6,7 @@ import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import envStore from '#/envStore'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import MemberRemoveModal from './MemberRemoveModal'
 import { getSimpleMMOLabel } from './organization.utils'
 
@@ -24,11 +24,11 @@ interface MemberActionsDropdownProps {
  * A dropdown with all actions that can be taken towards an organization member.
  */
 export default function MemberActionsDropdown({ target, targetUsername, currentUserRole }: MemberActionsDropdownProps) {
-  const session = useSession()
+  const profile = useProfile()
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
 
   // Wait for session
-  if (!session.currentLoggedAccount?.username) {
+  if (!profile.currentLoggedAccount?.username) {
     return null
   }
 
@@ -41,7 +41,7 @@ export default function MemberActionsDropdown({ target, targetUsername, currentU
   // If logged in user is an admin and tries to remove themselves, we need
   // different UI - thus we check it here.
   const isAdminRemovingSelf = Boolean(
-    targetUsername === session.currentLoggedAccount?.username && currentUserRole === MemberRoleEnum.admin,
+    targetUsername === profile.currentLoggedAccount?.username && currentUserRole === MemberRoleEnum.admin,
   )
 
   // Different button label when user is removing themselves

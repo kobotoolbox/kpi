@@ -1,8 +1,10 @@
 from allauth.account.models import EmailAddress
+from allauth.headless.account.views import LoginView as BaseHeadlessLoginView
+from allauth.headless.base.response import AuthenticationResponse
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.contrib.auth import logout
 from django.core.exceptions import MultipleObjectsReturned
-from django.db.models import Exists, OuterRef
 from django.http import Http404
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -236,14 +238,7 @@ class EmailConfirmationView(APIView):
         for address in self._get_unverified_addresses(
             serializer.validated_data['email']
         ):
-            # An account with nothing verified yet is being activated; one that
-            # already has a verified address is changing it. Different moments in
-            # a user's life, so they get different emails
-            self._send_confirmation(
-                request,
-                address,
-                activation=not address.user_has_verified_address,
-            )
+            self._send_confirmation(request, address)
 
         return Response(
             {'detail': EMAIL_CONFIRMATION_REQUESTED_DETAIL},
@@ -255,34 +250,23 @@ class EmailConfirmationView(APIView):
         Get every unverified row for this address whose owner is still active
 
         One address can belong to several accounts, and each owner is entitled to
-        their own link. The annotation says whether that owner already has a
-        verified address, which is what tells an activation apart from a pending
-        email change.
+        their own link.
 
         Matched on the lowercased address, the way allauth looks this table up,
         because `iexact` compiles to `UPPER(email) = UPPER(%s)`, which no index
         covers and which turns into a sequential scan over a row per user.
         """
-        return (
-            EmailAddress.objects.filter(
-                email=email.strip().lower(), verified=False, user__is_active=True
-            )
-            .annotate(
-                user_has_verified_address=Exists(
-                    EmailAddress.objects.filter(
-                        user_id=OuterRef('user_id'), verified=True
-                    )
-                )
-            )
-            .select_related('user')
-        )
+        return EmailAddress.objects.filter(
+            email=email.strip().lower(), verified=False, user__is_active=True
+        ).select_related('user')
 
-    def _send_confirmation(self, request, address, activation):
+    def _send_confirmation(self, request, address):
         """
-        `activation` picks the template. allauth exposes that choice as its
-        `signup` flag, which in the send path selects the "activate your account"
-        email over the "verify your address" one and does nothing else, so a
-        resent activation link belongs on it even though no signup is happening
+        Send one confirmation link
+
+        `signup=False` because no signup is happening here. Which of the three
+        emails that becomes is decided by `AccountAdapter`, from whether the
+        account already has a verified address.
 
         Delivery failures are logged rather than raised: mail is only ever
         attempted for a registered address, so a 5xx would confirm the address is
@@ -292,7 +276,7 @@ class EmailConfirmationView(APIView):
             # Not allauth's `send_verification_email_to_address()`: that also
             # queues a Django message, which an anonymous caller receives as a
             # cookie reading "Confirmation email sent to <address>."
-            address.send_confirmation(request, signup=activation)
+            address.send_confirmation(request, signup=False)
         except Exception:
             logging.exception(
                 'Failed to send a requested confirmation email for EmailAddress %s',
@@ -433,3 +417,24 @@ class SocialAppView(generics.RetrieveAPIView):
         # object-level checks. Kept so tightening `permission_classes` is enough
         self.check_object_permissions(self.request, social_app)
         return social_app
+
+
+class HeadlessLoginView(BaseHeadlessLoginView):
+    """
+    Lets an authenticated user log in as another account, which allauth would
+    refuse with a 409. Mirrors `MfaLoginView` for the templated login page
+    """
+
+    def post(self, request, *args, **kwargs):
+        # The credentials were already checked in `handle_input()`: a wrong
+        # password returned 400 before reaching here, so a failed attempt never
+        # drops the current session
+        user = request.user
+        if user.is_authenticated:
+            # Same account: already logged in, so answer like a successful login
+            if user.pk == self.input.login.user.pk:
+                return AuthenticationResponse(request)
+            # Log out before the login runs, not after: the MFA and email
+            # verification stages refuse authenticated requests
+            logout(request)
+        return super().post(request, *args, **kwargs)

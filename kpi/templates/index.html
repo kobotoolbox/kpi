@@ -9,6 +9,10 @@
   {% if csrf_token %}
     <meta name="csrf-token" content="{{csrf_token}}">
   {% endif %}
+  {# The same `login_background` file `/environment` reports, so the auth screens can paint it instead of flashing ours while that request is in flight #}
+  {% if config.login_background %}
+    <meta name="login-background-url" content="{{ config.login_background }}">
+  {% endif %}
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}

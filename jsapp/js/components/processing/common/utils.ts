@@ -1,5 +1,6 @@
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
 import type { SupplementalDataAutomaticTranslation } from '#/api/models/supplementalDataAutomaticTranslation'
@@ -12,7 +13,6 @@ import type { LanguageCode, LocaleCode } from '#/components/languages/languagesS
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
 import type {
   DisplaysList,
   QualVersionItem,
@@ -364,27 +364,46 @@ export const isAudioQuestionType = (questionType: AnyRowTypeName | undefined): b
 export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
   questionType === QUESTION_TYPES.text.id
 
-/**
- * Whether a question type is one NLP processing supports. Audio is always
- * supported; text is gated behind the `nlpTextActionsEnabled` feature flag.
- */
+/** Whether a question type is one NLP processing supports (audio or text). */
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
-  isAudioQuestionType(questionType) ||
-  (checkFeatureFlag(FeatureFlag.nlpTextActionsEnabled) && isTextQuestionType(questionType))
+  isAudioQuestionType(questionType) || isTextQuestionType(questionType)
+
+/**
+ * Whether there is a source the automatic qualitative analysis can run on. Text
+ * questions are analyzed straight from the submission answer (mirroring the back
+ * end's `RequiresTranscriptionMixin.attach_action_dependency`), so they need a
+ * non-empty answer; every other type needs a transcript first.
+ */
+export const hasAnalysisSource = (
+  questionType: AnyRowTypeName | undefined,
+  submission: DataResponse,
+  supplementData: DataSupplementResponse,
+  xpath: string,
+): boolean => {
+  if (isTextQuestionType(questionType)) {
+    const answer = submission[xpath]
+    return typeof answer === 'string' && answer.trim() !== ''
+  }
+  return getLatestTranscriptVersionItem(supplementData, xpath) !== undefined
+}
 
 // Displays
 
 export enum StaticDisplays {
   // Keep the enum ordering, since it controls the order of display options in the UI
   Audio = 'Audio',
+  Text = 'Text',
   Data = 'Data',
   Transcript = 'Transcript',
 }
 
 export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
-  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
-  [ProcessingTab.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data]],
+  [
+    ProcessingTab.Translations,
+    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
 
 /**
@@ -400,16 +419,28 @@ export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | u
 }
 
 /**
- * Gets the default displays for a given processing tab.
+ * Gets the default displays for a given processing tab, dropping whichever of
+ * Audio/Text can't apply to the given question type (they're mutually
+ * exclusive, and the baked-in defaults above include both).
  *
  * @param tabName - The processing tab name
+ * @param questionType - The current question's type, if known
  * @returns Array of default displays for the tab, or empty array if undefined
  */
-export const getDefaultDisplaysForTab = (tabName: ProcessingTab | undefined): DisplaysList => {
+export const getDefaultDisplaysForTab = (
+  tabName: ProcessingTab | undefined,
+  questionType?: AnyRowTypeName,
+): DisplaysList => {
   if (tabName === undefined) {
     return []
   }
-  return DefaultDisplays.get(tabName) || []
+  const defaults = DefaultDisplays.get(tabName) || []
+
+  return defaults.filter((display) => {
+    if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
+    if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
+    return true
+  })
 }
 
 /**

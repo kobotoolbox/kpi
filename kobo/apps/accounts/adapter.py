@@ -1,18 +1,25 @@
+import dataclasses
+
+from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.account.forms import SignupForm
+from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
+from allauth.core.internal.httpkit import is_headless_request
+from allauth.headless.adapter import DefaultHeadlessAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from .models import SocialAppManagedDomain
+from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -25,9 +32,15 @@ class AccountAdapter(DefaultAccountAdapter):
         super().login(request, user)
 
     def save_user(self, request, user, form, commit=True):
-        # Compare allauth SignupForm with our custom field
-        standard_fields = set(SignupForm().fields.keys())
-        extra_fields = set(form.fields.keys()).difference(standard_fields)
+        # Which extra fields a form carries depends on the flow: the API form has
+        # only newsletter/ToS, the HTML and SSO ones add profile metadata, and
+        # `USER_METADATA_FIELDS` may drop some per server. So take the full list
+        # and keep whatever was actually submitted
+        extra_fields = [
+            field_name
+            for field_name in SIGNUP_EXTRA_FIELD_NAMES
+            if field_name in form.cleaned_data
+        ]
         with transaction.atomic():
             user = super().save_user(request, user, form, commit)
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
@@ -57,6 +70,65 @@ class AccountAdapter(DefaultAccountAdapter):
             )
             user.set_password(password)
             user.save()
+
+    def should_send_confirmation_mail(self, request, email_address, signup):
+        """
+        Don't resend a confirmation link when an unverified user logs in through
+        the headless API
+
+        allauth consults this only on its implicit send: a login, or a signup,
+        with an unverified address. The SPA asks for another link explicitly
+        through `/api/v2/email-confirmations/` instead. Signup still sends the
+        first activation email, and the templated pages keep the old behaviour
+        until they are retired.
+        """
+        if is_headless_request(request) and not signup:
+            return False
+        return super().should_send_confirmation_mail(request, email_address, signup)
+
+    def send_confirmation_mail(self, request, emailconfirmation, signup):
+        """
+        Send one of three confirmation emails, rather than allauth's two
+
+        allauth picks between "activate your account" and "verify your address"
+        with the `signup` flag alone, which leaves a resent activation link
+        arriving as an address verification. Splitting them needs a third
+        template and a rule to reach it; see `get_confirmation_email_template()`.
+
+        Overriding means rebuilding the context allauth would have built, since
+        its own version hardcodes the template prefix.
+        """
+        address = emailconfirmation.email_address
+        ctx = {'user': address.user}
+        if allauth_account_settings.EMAIL_VERIFICATION_BY_CODE_ENABLED:
+            ctx['code'] = emailconfirmation.key
+        else:
+            ctx['key'] = emailconfirmation.key
+            ctx['activate_url'] = self.get_email_confirmation_url(
+                request, emailconfirmation
+            )
+
+        template = self.get_confirmation_email_template(address, signup)
+        self.send_mail(template, address.email, ctx)
+
+    def get_confirmation_email_template(self, address, signup):
+        """
+        Which of the three confirmation emails this send is
+
+        Decided by what the account looks like rather than by which endpoint
+        asked: an account with nothing verified yet is being activated, one that
+        already has a verified address is changing it. The resend endpoint
+        (`/api/v2/email-confirmations/`) serves both kinds of user, so the
+        trigger cannot tell them apart on its own.
+        """
+        prefix = 'account/email/email_confirmation'
+        if signup:
+            return f'{prefix}_signup'
+
+        has_verified_address = EmailAddress.objects.filter(
+            user_id=address.user_id, verified=True
+        ).exists()
+        return prefix if has_verified_address else f'{prefix}_resend'
 
     def get_email_confirmation_url(self, request, emailconfirmation):
         url = super().get_email_confirmation_url(request, emailconfirmation)
@@ -125,3 +197,72 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 },
             )
         )
+
+
+class HeadlessAdapter(DefaultHeadlessAdapter):
+    """
+    Adds `has_validated_password` to the user payload returned by the allauth
+    session endpoint, so the frontend can read it there instead of `/me`
+    """
+
+    # allauth asks for the dataclass on every serialization, so build it once
+    # rather than on each authentication response
+    _user_dataclass = None
+
+    def get_user_dataclass(self):
+        # Override `get_user_dataclass()` and `user_as_dataclass()` rather than
+        # `serialize_user()`: allauth only reflects the extra field in the
+        # published OpenAPI schema when it is declared on the dataclass
+        if HeadlessAdapter._user_dataclass is None:
+            HeadlessAdapter._user_dataclass = dataclasses.make_dataclass(
+                'User',
+                [
+                    (
+                        'has_validated_password',
+                        bool,
+                        dataclasses.field(
+                            # A default is required: allauth's
+                            # `user_as_dataclass()` instantiates this class
+                            # without knowing about the field.
+                            # `user_as_dataclass()` below fills in the real value
+                            default=True,
+                            metadata={
+                                'description': (
+                                    'Whether the account password is valid. '
+                                    'An administrator can invalidate it, '
+                                    'setting this to false and restricting '
+                                    'the account.'
+                                ),
+                                'example': True,
+                            },
+                        ),
+                    )
+                ],
+                bases=(super().get_user_dataclass(),),
+            )
+
+        return HeadlessAdapter._user_dataclass
+
+    def user_as_dataclass(self, user):
+        user_dataclass = super().user_as_dataclass(user)
+        return dataclasses.replace(
+            user_dataclass,
+            has_validated_password=self._has_validated_password(user),
+        )
+
+    def _has_validated_password(self, user) -> bool:
+        """
+        `ExtraUserDetail.validated_password` is the source of truth; the KoboCAT
+        copy on `UserProfile` is synced from it. It defaults to True and only an
+        administrator sets it to False, so an account without `extra_details`
+        was never invalidated
+        """
+        if not user.pk:
+            return True
+
+        try:
+            extra_details = user.extra_details
+        except get_user_model().extra_details.RelatedObjectDoesNotExist:
+            return True
+
+        return extra_details.validated_password

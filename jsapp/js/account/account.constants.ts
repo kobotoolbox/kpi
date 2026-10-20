@@ -39,3 +39,22 @@ export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
   sector: 'sector',
   twitter: 'twitter',
 }
+
+/**
+ * Organization details belong to the organization once it has more than one member, so its members cannot
+ * write them through `/me/`
+ */
+export const MMO_MANAGED_FIELD_NAMES: readonly UserFieldName[] = [
+  USER_FIELD_NAMES.organization,
+  USER_FIELD_NAMES.organization_website,
+  USER_FIELD_NAMES.organization_type,
+]
+
+/**
+ * The fields that only mean anything for somebody who is with an organization, so `organization_type: 'none'`
+ * takes them out of play - see `areOrganizationFieldsSkipped` in `account.utils`.
+ */
+export const ORGANIZATION_DEPENDENT_FIELD_NAMES: readonly UserFieldName[] = [
+  USER_FIELD_NAMES.organization,
+  USER_FIELD_NAMES.organization_website,
+]

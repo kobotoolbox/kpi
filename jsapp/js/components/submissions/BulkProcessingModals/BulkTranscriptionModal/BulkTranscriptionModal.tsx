@@ -23,7 +23,7 @@ import { hasTranscriptInAnyLanguage } from '#/components/submissions/bulkProcess
 import { useCalculateAudioDuration } from '#/components/submissions/useCalculateAudioDuration.hook'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { formatTimeFromSeconds, getSubmissionRootUuid, notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
@@ -95,8 +95,8 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const serviceCode = 'goog'
 
   // Get organization ID to check ASR limits
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),

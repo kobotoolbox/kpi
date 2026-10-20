@@ -37,6 +37,7 @@ from kobo.apps.stripe.utils.billing_dates import (
 )
 from kobo.apps.stripe.utils.limit_enforcement import (
     check_exceeded_limit,
+    check_exceeded_limits,
     update_or_remove_limit_counter,
 )
 from kobo.apps.stripe.utils.manual_subscription import (
@@ -211,6 +212,16 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         (UsageType.STORAGE_BYTES, '1000', '500', '60', True, 1000),
         # no plan, addon, or default plan, use inf
         (UsageType.ASR_SECONDS, None, None, None, False, inf),
+        # parseable subscription, no addon
+        (UsageType.ASR_SECONDS, 'unparseable', None, None, False, inf),
+        # parseable subscription, missing addon
+        (UsageType.STORAGE_BYTES, 'unparseable', None, None, True, inf),
+        # parseable subscription, unparseable addon
+        (UsageType.STORAGE_BYTES, '100', 'unparseable', None, True, 100),
+        # unparseable subscription, parseable addon
+        (UsageType.STORAGE_BYTES, 'unparseable', '100', None, True, 100),
+        # both unparseable
+        (UsageType.STORAGE_BYTES, 'unparseable', 'unparseable', None, True, inf),
     )
     @unpack
     def test_determine_limit_for_org(
@@ -752,8 +763,8 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # it is called on submission to avoid cache restrictions
         with patch(
-            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
-            return_value=None,
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limits',
+            return_value={},
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
@@ -780,8 +791,8 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # is called on submission to avoid cache restrictions
         with patch(
-            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
-            return_value=None,
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limits',
+            return_value={},
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
@@ -856,3 +867,28 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             update_or_remove_limit_counter(counter)
             assert ExceededLimitCounter.objects.count() == 0
+
+    def test_check_exceeded_limits_computes_balances_once(self):
+        mock_balances = {
+            UsageType.ASR_SECONDS: None,
+            UsageType.MT_CHARACTERS: None,
+            UsageType.STORAGE_BYTES: {'exceeded': True},
+            UsageType.SUBMISSION: {'exceeded': True},
+        }
+        with patch(
+            'kpi.utils.usage_calculator.ServiceUsageCalculator.get_usage_balances',
+            return_value=mock_balances,
+        ) as patched:
+            check_exceeded_limits(
+                self.someuser,
+                [UsageType.SUBMISSION, UsageType.STORAGE_BYTES],
+            )
+            patched.assert_called_once()
+
+        for usage_type in [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]:
+            assert (
+                ExceededLimitCounter.objects.filter(
+                    user_id=self.anotheruser.id, limit_type=usage_type
+                ).count()
+                == 1
+            )

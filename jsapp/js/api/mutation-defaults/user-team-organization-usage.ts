@@ -1,5 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import {
+  getMeEmailsCreateMutationOptions,
+  getMeEmailsListQueryKey,
   getOrganizationsInvitesCreateMutationOptions,
   getOrganizationsInvitesDestroyMutationOptions,
   getOrganizationsInvitesListQueryKey,
@@ -16,7 +18,7 @@ import {
   type organizationsMembersListResponse,
   type organizationsMembersRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
-import session from '#/stores/session'
+import profile from '#/stores/profile'
 import { getAssetUIDFromUrl } from '#/utils'
 import {
   invalidateItem,
@@ -222,7 +224,7 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
         },
         onSuccess: (_data, { username }) => {
           // If user is removing themselves, we need to clear the session
-          if (username === session.currentAccount?.username) session.refreshAccount()
+          if (username === profile.currentAccount?.username) profile.refreshAccount()
         },
       },
     }),
@@ -273,6 +275,19 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
           return {
             snapshots: [...listSnapshots, memberSnapshot],
           }
+        },
+      },
+    }),
+  )
+
+  client.setMutationDefaults(
+    getMeEmailsCreateMutationOptions().mutationKey!,
+    getMeEmailsCreateMutationOptions({
+      // This POST drops any other unverified address while adding the new one, so a refetch is simpler than keeping a
+      // snapshot in step with it. `onSettled` for the reason in `useRemoveUnverifiedEmails`.
+      mutation: {
+        onSettled: () => {
+          client.invalidateQueries({ queryKey: getMeEmailsListQueryKey() })
         },
       },
     }),

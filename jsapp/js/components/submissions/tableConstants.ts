@@ -26,7 +26,22 @@ export const EXCLUDED_COLUMNS = [
   // Internal only: the list of form versions a submission has been through
   'meta/formVersions',
   '_validation_status',
+  // The audit log, which a submission carries in its `meta` block per the ODK
+  // spec: https://getodk.github.io/xforms-spec/#metadata. The survey's own audit
+  // question is excluded by row type instead, see `EXCLUDED_ROW_TYPES`.
+  `meta/${META_QUESTION_TYPES.audit}`,
 ]
+
+/**
+ * Rows of these types never become columns, as neither carries a response: a
+ * `note` is just text on the screen, and `audit` delivers a log of how enumerators
+ * moved through the form as an attached CSV, leaving the cell a file name that no
+ * view here can open.
+ *
+ * NOTE: row types, not column keys, on purpose - nothing reserves these names, so
+ * an ordinary question called `audit` is data like any other.
+ */
+export const EXCLUDED_ROW_TYPES: AnyRowTypeName[] = [QuestionTypeName.note, META_QUESTION_TYPES.audit]
 
 /**
  * These columns go at the very end of the list of columns, in this exact order.
@@ -35,13 +50,16 @@ export const EXCLUDED_COLUMNS = [
  *
  * NOTE: this is part of the single source of truth for the order of columns,
  * see `orderColumns` in `tableUtils.ts`. Anything listed here is also treated
- * as metadata by `getMetadataColumns`, so don't add form questions.
+ * as metadata by `getMetadataColumns`, so don't add form questions. A key only
+ * counts when the form has no ordinary question by that name - nothing reserves
+ * these names, so `today` may well be somebody's own question.
  */
 export const LAST_COLUMNS_ORDER: string[] = [
   META_QUESTION_TYPES.username,
   META_QUESTION_TYPES.deviceid,
   META_QUESTION_TYPES.phonenumber,
   META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES['start-geopoint'],
   // Both the current and the legacy name of the form version column
   '__version__',
   '_version_',
@@ -64,7 +82,6 @@ export const METADATA_COLUMN_LABELS: { [key: string]: string } = {
   [META_QUESTION_TYPES.username]: t('username'),
   [META_QUESTION_TYPES.deviceid]: t('device ID'),
   [META_QUESTION_TYPES.phonenumber]: t('phone number'),
-  [META_QUESTION_TYPES.audit]: t('audit'),
   [ADDITIONAL_SUBMISSION_PROPS._submitted_by]: t('Submitted by'),
   [ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']]: t('rootUuid'),
 }

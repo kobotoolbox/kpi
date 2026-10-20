@@ -5384,6 +5384,12 @@
                     },
                     "username": {
                         "$ref": "#/components/schemas/Username"
+                    },
+                    "newsletter_subscription": {
+                        "type": "boolean"
+                    },
+                    "terms_of_service": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -5768,12 +5774,18 @@
                         "description": "The username.",
                         "example": "wizard",
                         "type": "string"
+                    },
+                    "has_validated_password": {
+                        "description": "Whether the account password is valid. An administrator can invalidate it, setting this to false and restricting the account.",
+                        "example": true,
+                        "type": "boolean"
                     }
                 },
                 "required": [
                     "display",
                     "has_usable_password",
-                    "username"
+                    "username",
+                    "has_validated_password"
                 ]
             },
             "EmailAddress": {
@@ -6132,7 +6144,8 @@
                     "display": "Magic Wizard",
                     "email": "email@domain.org",
                     "has_usable_password": true,
-                    "username": "wizard"
+                    "username": "wizard",
+                    "has_validated_password": true
                 }
             },
             "AuthenticatedByPassword": {
@@ -6145,7 +6158,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -6172,7 +6186,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -6199,7 +6214,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -6550,7 +6566,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -7384,7 +7401,8 @@
                                             "display": "Magic Wizard",
                                             "email": "email@domain.org",
                                             "has_usable_password": true,
-                                            "username": "wizard"
+                                            "username": "wizard",
+                                            "has_validated_password": true
                                         },
                                         "methods": [
                                             {

@@ -30,7 +30,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
-    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
     def test_status_transition_pending_to_processing_to_success(self, mock_post):
         """
         Test the normal success flow: PENDING -> PROCESSING -> SUCCESS
@@ -74,7 +74,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
-    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
     def test_status_transition_pending_to_processing_to_failed(self, mock_post):
         """
         Test the failure flow: PENDING -> PROCESSING -> FAILED
@@ -116,7 +116,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == 400
         assert 'Bad request' in log.message
 
-    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
     def test_oom_killed_before_processing_update(self, mock_post):
         """
         Simulate OOM kill BEFORE the task updates status to PROCESSING
@@ -151,7 +151,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
-    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
     def test_process_terminated(self, mock_post):
         """
         Simulate pod termination during HTTP request, but the finally block successfully
@@ -159,7 +159,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
 
         1. call_services() creates log with status=PENDING
         2. Task starts and updates status to PROCESSING
-        3. requests.post is called and raises SystemExit (pod terminated by K8s)
+        3. the POST is made and raises SystemExit (pod terminated by K8s)
         4. finally block successfully saves the error status
         5. Log is properly updated to status=FAILED
 
@@ -193,7 +193,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert 'Process terminated during HTTP request' in log.message
 
-    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
     def test_oom_killed(self, mock_post):
         """
         Simulate OOM kill during or after the HTTP request, preventing the finally
@@ -201,7 +201,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
 
         1. call_services() creates log with status=PENDING
         2. Task starts and updates status to PROCESSING
-        3. requests.post is called but pod is killed (during or after request)
+        3. the POST is made but pod is killed (during or after request)
         4. finally block tries to save but is prevented (simulated by mock)
         5. Log remains at status=PROCESSING
 
@@ -256,7 +256,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
-    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
     @override_config(HOOK_MAX_RETRIES=3)
     def test_retry_logic_respects_max_retries(self, mock_post):
         """

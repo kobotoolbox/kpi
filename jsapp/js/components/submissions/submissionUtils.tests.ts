@@ -1,16 +1,17 @@
-import { getRowName } from '#/assetUtils'
 import { QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   DisplayGroup,
   DisplayResponse,
   getMediaAttachment,
+  getRowData,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
   hasAnyUnacceptedAutomaticContent,
   hasUnacceptedAutomaticContent,
   removeEmptyFromSupplementalDetails,
   removeEmptyObjects,
+  stripRepeatIndices,
 } from './submissionUtils'
 import {
   allQualSurveyDisplayData,
@@ -46,6 +47,9 @@ import {
   submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
   supplementalDetailsSurveyDisplayData,
+  withAnswerMovedIntoGroup,
+  withRenamedRow,
+  withRowMovedIntoNewGroup,
 } from './submissionUtils.mocks'
 
 // getSubmissionDisplayData() returns objects that have prototype chains, while
@@ -62,7 +66,7 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
-import type { AssetResponse, SubmissionSupplementalDetails } from '#/dataInterface'
+import type { SubmissionSupplementalDetails } from '#/dataInterface'
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {
@@ -136,30 +140,6 @@ describe('getSubmissionDisplayData', () => {
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 })
-
-/**
- * Renames one row of a copy of the asset, the way deploying a new form version
- * would - leaving earlier submissions with keys the form no longer accounts for.
- */
-function withRenamedRow(asset: AssetResponse, oldName: string, newName: string): AssetResponse {
-  // Fixtures are plain JSON, and this test environment has no `structuredClone`.
-  const renamedAsset: AssetResponse = JSON.parse(JSON.stringify(asset))
-  const row = renamedAsset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === oldName)
-  if (!row) {
-    throw new Error(`There is no row named "${oldName}" to rename`)
-  }
-
-  if (row.name !== undefined) {
-    row.name = newName
-  }
-  if (row.$autoname !== undefined) {
-    row.$autoname = newName
-  }
-  if (row.$xpath !== undefined) {
-    row.$xpath = [...row.$xpath.split('/').slice(0, -1), newName].join('/')
-  }
-  return renamedAsset
-}
 
 /** The responses displayed directly in a group, i.e. without its subgroups. */
 function getResponses(group: DisplayGroup) {
@@ -297,6 +277,15 @@ describe('getSubmissionDisplayData for answers the current form does not account
     chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
   })
 
+  it('should not add a row for the audit file, which is no answer either', () => {
+    // A submission carries the audit log under `meta`, where nothing marks it as
+    // Back end's own property the way a leading underscore does.
+    const submission = { ...simpleSurveySubmission, 'meta/audit': 'audit-1.csv' }
+    const responses = getResponses(getSubmissionDisplayData(simpleSurveyAsset, 0, submission))
+
+    chai.expect(responses.map((response) => response.name)).to.deep.equal(['First_name'])
+  })
+
   it('should display an answer of zero, rather than take it for no answer at all', () => {
     // A zero is falsy, so it used to read as nothing answered - which blanked the row
     // and had this pass append the answer a second time.
@@ -306,6 +295,86 @@ describe('getSubmissionDisplayData for answers the current form does not account
 
     chai.expect(groupResponses.map((response) => response.name)).to.deep.equal(['Favourite_color', 'Favourite_number'])
     chai.expect(groupResponses[1].data).to.equal(0)
+  })
+})
+
+const movedRowName = 'Secret_password_as_an_audio_file'
+const movedGroupName = 'audio_group'
+const movedAsset = withRowMovedIntoNewGroup(assetWithSupplementalDetails, movedRowName, movedGroupName)
+const movedAnswer = '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3'
+
+describe('getSubmissionDisplayData for a question that moved between groups', () => {
+  it('should show the answer and the NLP content of a submission made before the move', () => {
+    const responses = getGroupResponses(
+      getSubmissionDisplayData(movedAsset, 0, submissionWithSupplementalDetails),
+      movedGroupName,
+    )
+
+    chai
+      .expect(responses.map((response) => response.name))
+      .to.deep.equal([
+        movedRowName,
+        `_supplementalDetails/${movedRowName}/transcript_fr`,
+        `_supplementalDetails/${movedRowName}/translation_pl`,
+        `_supplementalDetails/${movedRowName}/translation_de`,
+      ])
+    chai
+      .expect(responses.map((response) => response.data))
+      .to.deep.equal([
+        movedAnswer,
+        'This is french transcript text.',
+        'This is polish translation text.',
+        'This is german translation text.',
+      ])
+
+    chai.expect(responses[0].xpath).to.equal(movedRowName)
+    chai
+      .expect(getMediaAttachment(submissionWithSupplementalDetails, movedAnswer, responses[0].xpath))
+      .to.deep.include({ question_xpath: movedRowName })
+  })
+
+  it('should show the answer and the NLP content of a submission made after the move', () => {
+    const movedSubmission = withAnswerMovedIntoGroup(submissionWithSupplementalDetails, movedRowName, movedGroupName)
+    const movedPath = `${movedGroupName}/${movedRowName}`
+    const responses = getGroupResponses(getSubmissionDisplayData(movedAsset, 0, movedSubmission), movedGroupName)
+
+    chai
+      .expect(responses.map((response) => response.name))
+      .to.deep.equal([
+        movedRowName,
+        `_supplementalDetails/${movedPath}/transcript_fr`,
+        `_supplementalDetails/${movedPath}/translation_pl`,
+        `_supplementalDetails/${movedPath}/translation_de`,
+      ])
+    chai
+      .expect(responses.map((response) => response.data))
+      .to.deep.equal([
+        movedAnswer,
+        'This is french transcript text.',
+        'This is polish translation text.',
+        'This is german translation text.',
+      ])
+
+    chai.expect(responses[0].xpath).to.equal(movedPath)
+    chai
+      .expect(getMediaAttachment(movedSubmission, movedAnswer, responses[0].xpath))
+      .to.deep.include({ question_xpath: movedPath })
+  })
+})
+
+describe('getRowData for a question that moved between groups', () => {
+  const survey = movedAsset.content?.survey || []
+  const movedPath = `${movedGroupName}/${movedRowName}`
+
+  it('should read the answer of a submission made after the move', () => {
+    const movedSubmission = withAnswerMovedIntoGroup(submissionWithSupplementalDetails, movedRowName, movedGroupName)
+    chai.expect(movedSubmission[movedPath]).to.equal(movedAnswer)
+    chai.expect(getRowData(movedRowName, survey, movedSubmission)).to.equal(movedAnswer)
+  })
+
+  it('should not read the answer a submission made before the move holds under the old path', () => {
+    chai.expect(submissionWithSupplementalDetails[movedRowName]).to.equal(movedAnswer)
+    chai.expect(getRowData(movedRowName, survey, submissionWithSupplementalDetails)).to.equal(null)
   })
 })
 
@@ -961,5 +1030,23 @@ describe('hasAnyUnacceptedAutomaticContent', () => {
     )
 
     chai.expect(result).to.be.false
+  })
+})
+
+describe('stripRepeatIndices', () => {
+  it('should leave a static xpath unchanged', () => {
+    chai.expect(stripRepeatIndices('outer_group/inner_group/question')).to.equal('outer_group/inner_group/question')
+  })
+
+  it('should strip a single repeat-instance index', () => {
+    chai.expect(stripRepeatIndices('children[1]/audio')).to.equal('children/audio')
+  })
+
+  it('should strip multiple repeat-instance indices from nested repeats', () => {
+    chai.expect(stripRepeatIndices('outer[2]/inner[10]/question')).to.equal('outer/inner/question')
+  })
+
+  it('should leave a bare question name unchanged', () => {
+    chai.expect(stripRepeatIndices('question')).to.equal('question')
   })
 })

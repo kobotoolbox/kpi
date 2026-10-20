@@ -115,13 +115,24 @@ module.exports = do ->
   inputParser.parse = (o, baseSurvey)->
     translations = o.translations
 
-    nullified = formBuilderUtils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
+    nullified = formBuilderUtils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey, o.choices)
 
     # we edit the received object directly, which is totally a case of BAD CODE™
     # but in fact is a necessary part of the nullify hack
     o.survey = nullified.survey;
+    # Choice labels are indexed by the same language list as the survey rows, so they have to be
+    # rewritten alongside them or they end up under the wrong language
+    o.choices = nullified.choices  if nullified.choices
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
+
+    # On save, only the columns listed in the form's `translated` get a language appended
+    # (`guidance_hint` -> `guidance_hint::English (en)`). An imported asset can translate a column the form does not,
+    # so we add those columns to the form's list - one left without a language would stop the form from opening.
+    if baseSurvey?._initialParams.translations_0 and o.translated
+      formTranslated = (baseSurvey._initialParams.translated ?= [])
+      for prop in o.translated when prop not in formTranslated
+        formTranslated.push(prop)
 
     if o.survey
       o.survey = normalizeRequiredValues(o.survey)

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from constance.test import override_config
 from django.conf import settings
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -266,6 +266,57 @@ class CurrentUserTestCase(BaseTestCase):
             'last_login': None,
             'extra_details__uid': self.user.extra_details.uid,
         }
+
+    @override_config(EXPOSE_GIT_REV=True)
+    @override_settings(
+        GIT_REV={
+            'short': 'abc1234',
+            'long': 'abc1234def5678abc1234def5678abc1234def56',
+            'branch': 'main',
+            'tag': False,
+        }
+    )
+    def test_git_rev_returned_when_exposed(self):
+        """
+        `git_rev` is exposed to any user when EXPOSE_GIT_REV is on.
+        """
+        self.client.force_authenticate(self.user)
+        response = self.client.get(self.url)
+        assert response.data['git_rev'] == {
+            'short': 'abc1234',
+            'long': 'abc1234def5678abc1234def5678abc1234def56',
+            'branch': 'main',
+            'tag': False,
+        }
+
+    @override_settings(
+        GIT_REV={
+            'short': 'abc1234',
+            'long': 'abc1234def5678abc1234def5678abc1234def56',
+            'branch': 'main',
+            'tag': False,
+        }
+    )
+    def test_git_rev_returned_to_superuser_without_flag(self):
+        """
+        `git_rev` is exposed to superusers even when EXPOSE_GIT_REV is off.
+        """
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(self.user)
+        response = self.client.get(self.url)
+        assert response.data['git_rev'] == {
+            'short': 'abc1234',
+            'long': 'abc1234def5678abc1234def5678abc1234def56',
+            'branch': 'main',
+            'tag': False,
+        }
+
+    def test_git_rev_values_are_json_native(self):
+        """
+        `GIT_REV` values must be JSON-native (str or bool), never bytes.
+        """
+        assert all(isinstance(v, (str, bool)) for v in settings.GIT_REV.values())
 
     def test_cannot_update_uid(self):
         self.client.force_authenticate(self.user)

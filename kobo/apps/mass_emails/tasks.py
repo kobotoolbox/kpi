@@ -51,22 +51,15 @@ TASK_TIMEOUT = (
 SEND_EMAILS_SOFT_LIMIT_BUFFER = 10
 
 
-def enqueue_mass_email_records(email_config):
+def enqueue_mass_email_records(email_config, user_ids):
     """
-    Creates a email job and enqueues email records for users based on query
+    Creates an email job if there are recipients for the email config, and enqueues
+    the email records for users based on the users query
     """
-    job = MassEmailJob.objects.create(email_config=email_config)
-    user_ids = get_users_for_config(email_config)
-    # edge case: if a one-off email has no recipients, store a warning and turn
-    # it off
-    if len(user_ids) == 0 and email_config.type == EmailType.ONE_TIME:
-        logging.warning(
-            f'No recipients found for one-time email config'
-            f' {email_config.uid}: {email_config.name}. Turning it off.'
-        )
-        email_config.live = False
-        email_config.save()
+    if len(user_ids) == 0:
+        return
 
+    job = MassEmailJob.objects.create(email_config=email_config)
     # Instantiating millions of unsaved MassEmailRecord objects at once is ~1 GB,
     # so build and insert them in batches instead.
     batch_size = max(1, settings.USAGE_QUERY_USER_ID_BATCH_SIZE)
@@ -166,9 +159,6 @@ class MassEmailSender:
                 filter=Q(jobs__records__status=EmailStatus.ENQUEUED),
             )
         ).filter(enqueued_records_count__gt=0)
-        # store separately so we know which config ids we looked at even though the
-        # self.configs will mutate after the fact as emails are sent
-        self.config_ids = list(self.configs.values_list('id', flat=True))
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
 
@@ -487,9 +477,7 @@ def send_emails():
             'enqueued records will be sent on the next run'
         )
     finished_one_offs = (
-        MassEmailConfig.objects.filter(
-            pk__in=sender.config_ids, frequency=-1, live=True
-        )
+        MassEmailConfig.objects.filter(frequency=-1, live=True, jobs__isnull=False)
         .values('id')
         .annotate(
             enqueued_count=Count(
@@ -514,6 +502,19 @@ def get_users_for_config(email_config):
     # `get_users_queryset()` returns a QuerySet for real queries but a plain list
     # (e.g. `[]`) from the default fallback; normalize to a list of ids without
     # materializing full User instances.
+    if email_config.frequency == -1 and isinstance(users, QuerySet):
+        users = users.exclude(
+            pk__in=MassEmailRecord.objects.filter(
+                email_job__email_config=email_config,
+                status__in=[
+                    EmailStatus.SENT,
+                    EmailStatus.FAILED,
+                    EmailStatus.STALE,
+                ],
+                user__isnull=False,
+            ).values('user_id')
+        )
+
     if isinstance(users, QuerySet):
         user_ids = list(users.values_list('id', flat=True))
     else:
@@ -521,6 +522,7 @@ def get_users_for_config(email_config):
 
     if email_config.frequency == -1:
         return user_ids
+
     day_boundary = MassEmailSender.get_cache_key_date(now)
 
     cutoff_date = day_boundary - timedelta(days=email_config.frequency - 1)
@@ -569,16 +571,34 @@ def generate_mass_email_user_lists():
                 f'enqueued records.'
             )
             processed_configs.add(email_config.id)
+            continue
 
-        else:
-            try:
-                with transaction.atomic():
-                    enqueue_mass_email_records(email_config)
-            except IntegrityError:
-                logging.warning(
-                    f'Skipping duplicate record for config: {email_config.id}'
+        user_ids = get_users_for_config(email_config)
+
+        if not user_ids:
+            if email_config.frequency == -1:
+                logging.info(
+                    f'Completing one-time email config {email_config.id} '
+                    f'({email_config.name}) as there are no remaining recipients.'
                 )
-                continue
+                email_config.live = False
+                email_config.save(update_fields=['live', 'date_modified'])
+            else:
+                logging.info(
+                    f'No recipients found today for recurring email config '
+                    f'{email_config.id} ({email_config.name}).'
+                )
             processed_configs.add(email_config.id)
-    cache.set(cache_key, list(processed_configs), timeout=60*60*24)
+            continue
+
+        try:
+            with transaction.atomic():
+                enqueue_mass_email_records(email_config, user_ids=user_ids)
+        except IntegrityError:
+            logging.warning(f'Skipping duplicate record for config: {email_config.id}')
+            continue
+
+        processed_configs.add(email_config.id)
+
+    cache.set(cache_key, list(processed_configs), timeout=60 * 60 * 24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')

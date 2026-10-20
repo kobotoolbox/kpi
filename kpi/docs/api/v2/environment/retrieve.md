@@ -8,3 +8,4 @@ This endpoint provides a wide range of configuration details required by the fro
 - Features configurations (MFA, password entropy meter, custom guidance text).
 - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
 - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+- Pagination behaviour (row limit past which list counts are capped).

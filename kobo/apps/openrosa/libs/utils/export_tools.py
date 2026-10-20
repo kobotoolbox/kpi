@@ -32,7 +32,10 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     UUID,
     XFORM_ID_STRING,
 )
-from kobo.apps.openrosa.libs.utils.viewer_tools import create_attachments_zipfile
+from kobo.apps.openrosa.libs.utils.viewer_tools import (
+    create_attachments_zipfile,
+    get_mongo_userform_id,
+)
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -569,7 +572,7 @@ def generate_export(export_type, extension, username, id_string,
         user__username__iexact=username, id_string__exact=id_string)
 
     # query mongo for the cursor
-    records = query_mongo(username, id_string, filter_query)
+    records = query_mongo(xform, username, filter_query)
 
     export_builder = ExportBuilder()
     export_builder.GROUP_DELIMITER = group_delimiter
@@ -624,12 +627,12 @@ def generate_export(export_type, extension, username, id_string,
     return export
 
 
-def query_mongo(username, id_string, query=None):
+def query_mongo(xform, username, query=None):
     query = (
         json.loads(query, object_hook=json_util.object_hook) if query else {}
     )
     query = MongoHelper.to_safe_dict(query)
-    query[USERFORM_ID] = '{0}_{1}'.format(username, id_string)
+    query[USERFORM_ID] = get_mongo_userform_id(xform, username)
     return xform_instances.find(
         query, max_time_ms=MongoHelper.get_max_time_ms()
     )

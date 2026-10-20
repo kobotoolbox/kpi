@@ -197,6 +197,7 @@ export default class UserAssetPermsEditor extends React.Component<
     if (this.checkedUsernames.has(usernameToCheck) && this.checkedUsernames.get(usernameToCheck) === false) {
       this.notifyUnknownUser(usernameToCheck)
       this.setState({ username: '' })
+      return
     }
 
     // If we didn't check for user, we do it here (and cache result).

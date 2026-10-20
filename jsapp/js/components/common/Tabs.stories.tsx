@@ -58,8 +58,8 @@ export const Primary: Story = {}
 export const PreviewAllVariants = () => (
   <>
     {tabsVariants.map((variant) => (
-      <Box key={variant} mb='xl'>
-        <Group gap='xl' align='top'>
+      <Box key={variant} mb='xxl'>
+        <Group gap='xxl' align='top'>
           {tabsSizes.map((size) => (
             <Stack key={size} gap='sm'>
               <SampleTabs variant={variant} size={size} />

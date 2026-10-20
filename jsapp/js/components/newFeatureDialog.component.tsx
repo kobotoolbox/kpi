@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import cx from 'classnames'
 import Icon from '#/components/common/icon'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { useSafeUsernameStorageKey } from '../hooks/useSafeUsernameStorageKey'
 import styles from './newFeatureDialog.module.scss'
 
@@ -50,7 +50,7 @@ export default function NewFeatureDialog({
   disabled = false,
 }: NewFeatureDialogProps) {
   const [showDialog, setShowDialog] = useState<boolean>(false)
-  const username = sessionStore.currentAccount.username
+  const username = profileStore.currentAccount.username
   const localStorageKey = useSafeUsernameStorageKey(`kpiDialogStatus-${featureKey}`, username)
 
   /*

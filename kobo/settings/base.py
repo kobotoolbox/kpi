@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import warnings
 from datetime import timedelta
 from mimetypes import add_type
@@ -17,7 +16,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-from .utils import constance_env, dj_stripe_request_callback_method
+from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
 env = environ.Env()
 
@@ -153,6 +152,7 @@ INSTALLED_APPS = (
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
     'kobo.apps.user_reports.apps.UserReportsConfig',
+    'kobo.apps.support_tools.apps.SupportToolsConfig',
     'drf_spectacular',
     'csp',
 )
@@ -176,6 +176,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
+    'kobo.apps.openapi_validator.middleware.OpenAPIValidationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -197,6 +198,13 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `django.conf.settings.THE_SETTING`
 
 CONSTANCE_CONFIG = {
+    # Temporary?: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+    # server-side calls (form, manifest, media, submissions) stay inside the cluster
+    'ENKETO_USE_INTERNAL_OPENROSA_URL': (
+        env.bool('CONSTANCE_ENKETO_USE_INTERNAL_OPENROSA_URL', False),
+        'Save the internal domain name instead of the public one as the '
+        'OpenRosa server URL in Enketo',
+    ),
     'REGISTRATION_OPEN': (
         True,
         'Allow new users to register accounts for themselves',
@@ -812,6 +820,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
+        'ENKETO_USE_INTERNAL_OPENROSA_URL',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1000,6 +1009,14 @@ DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
 # Maximum page size for API responses. Currently applies to submission lists only,
 # but will likely be extended to all endpoints in the future
 MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
+# Capped API list counts (`LimitedCountPagination`): stop counting rows past
+# this limit and report 'many' instead. The high default keeps the feature
+# inert until it is deliberately lowered (DEV-2781).
+API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 100_000_000)
+# Scoped statement_timeout applied to the capped count query alone (env var in
+# seconds, stored in milliseconds); on expiry the count is reported as
+# 'unknown'. 0 disables it, leaving only the connection-wide timeout (DEV-1705).
+API_LIMITED_COUNT_TIMEOUT = env.int('API_LIMITED_COUNT_TIMEOUT', 0) * 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1267,7 +1284,7 @@ OPENROSA_REST_FRAMEWORK = {
         # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
         'rest_framework.renderers.JSONRenderer',
         'rest_framework_jsonp.renderers.JSONPRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.OpenRosaBasicHTMLRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
         'rest_framework_csv.renderers.CSVRenderer',
     ],
@@ -1436,9 +1453,7 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
-ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
-# How long to wait before flushing an individual preview from Enketo's cache
-ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
+ENKETO_TIMEOUT = 5  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1717,18 +1732,23 @@ CELERY_BEAT_SCHEDULE = {
         'task': (
             'kobo.apps.openrosa.apps.logger.tasks.fix_stale_submissions_suspended_flag'
         ),
-        'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
+        'schedule': crontab(minute='*/15'),
         'description': (
-            'Unlock accounts left suspended by a storage recount or a trash bin'
-            ' deletion which died'
+            'Unlock accounts left suspended by a process which died before'
+            ' releasing them'
         ),
-        'options': {'queue': 'kpi_long_running_tasks_queue'},
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
-    'sync-storage-counters': {
-        'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
-        'schedule': crontab(minute=30, hour=0, day_of_week=0),
+    'recount-drifted-storage-counters': {
+        'task': (
+            'kobo.apps.openrosa.apps.logger.tasks.recount_drifted_storage_counters'
+        ),
+        # A run lasts about as long as the soft time limit, and a single one
+        # runs at a time: a short interval starts the next one soon after
+        'schedule': crontab(minute='*/15'),
         'description': (
-            'Synchronize out of sync attachment storage bytes of profile and projects'
+            'Recount the storage counters of projects which may have drifted, in'
+            ' turns, until every one of them was checked, then start over'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -1765,9 +1785,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    # Small and frequent runs: each one queues at most
+    # `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN` users, and each user gets at most
+    # `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER` attachments trashed per run
     CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -1845,6 +1868,9 @@ CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 s
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+# Adds our extra fields to every signup form, including the headless API's;
+# must point to a module that does not import `allauth.account.forms`
+ACCOUNT_SIGNUP_FORM_CLASS = 'kobo.apps.accounts.signup_fields.SignupExtraFieldsForm'
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
@@ -1891,6 +1917,8 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 # Enable serving django-allauth Headless OpenAPI specs (we ingest these into
 # DRF-Spectacular)
 HEADLESS_SERVE_SPECIFICATION = True
+# Adds `has_validated_password` to the user payload on the session endpoint
+HEADLESS_ADAPTER = 'kobo.apps.accounts.adapter.HeadlessAdapter'
 
 
 EMAIL_BACKEND = os.environ.get(
@@ -2122,22 +2150,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-""" Try to identify the running codebase for informational purposes """
-# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
-GIT_REV = {}
-for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
-):
-    try:
-        GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
-        GIT_REV[git_rev_key] = False
-if GIT_REV['branch'] == 'HEAD':
-    GIT_REV['branch'] = False
+GIT_REV = get_git_rev(BASE_DIR)
 
 
 """
@@ -2459,6 +2472,20 @@ MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
 MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
 
+# Number of attachments `auto_delete_excess_attachments` moves to trash per user
+# and per run. A user still over their limit gets the next ones on a later run
+AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
+    'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
+)
+# Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
+# Users take turns, the next run continues with the following ones.
+# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
+# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
+# on every schedule reload, so raising this grows Beat's work too.
+AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
+    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
+)
+
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
 TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
@@ -2466,8 +2493,6 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
-# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
-SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
@@ -2509,3 +2534,13 @@ ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
 LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
     'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
 )
+
+# OpenAPI schema validation runs under the test settings only: the middleware
+# refuses to load anywhere else, whatever these say. See
+# kobo/apps/openapi_validator/README.md
+OPENAPI_VALIDATION = False
+OPENAPI_SCHEMA_PATH = 'static/openapi/schema_v2.json'
+
+# Do not change these variables here. Override them in `testing.py`
+OPENAPI_VALIDATION_STRICT = False
+OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False

@@ -8,6 +8,7 @@ import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
+import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
@@ -53,8 +54,9 @@ import {
 import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
+  buildColumnRowFinder,
   buildFilterQuery,
-  getAllDataColumns,
+  getAllDataColumnsWithAliases,
   getColumnHXLTags,
   getColumnLabel,
   getVisibleAudioXpaths,
@@ -427,8 +429,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   // The table view needs to handle the following errors differently:
-  // - 500 response from the backend will give a raw html response, so we display something else instead
-  // - non-500 response which contains some "detail" attribute after parsing the JSON response text, so we pluck it out
+  // - a 500 gets its own panel in `render()`, built from the status alone
+  // - anything else shows the backend's message in the middle of the table, when there is one to show
   onGetSubmissionsFailed(error: FailResponse) {
     if (error?.status) {
       this.setState({ errorNumber: error.status })
@@ -437,23 +439,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         handleApiFail(error)
       }
 
-      // If the error is not a 500 we parse the response and pluck out the "detail" to display
-      if (error.status !== 500 && error?.responseText) {
-        let displayedError
-
-        try {
-          displayedError = JSON.parse(error.responseText)
-        } catch {
-          displayedError = error.responseText
-        }
-
-        if (displayedError.detail) {
-          this.setState({ error: displayedError.detail, loading: false })
-        } else {
-          this.setState({ error: displayedError, loading: false })
-        }
-      } else if (error.status !== 500 && !error?.responseText) {
-        this.setState({ error: t('Error: could not load data.'), loading: false })
+      if (error.status !== 500) {
+        // `render()` only prints a string, so the old `responseJSON.detail` read left the table blank whenever the body
+        // was keyed by field instead.
+        this.setState({
+          error: flattenErrorBody(error.responseJSON) || t('Error: could not load data.'),
+          loading: false,
+        })
       }
     }
 
@@ -774,7 +766,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Builds and gathers all necessary react-table data and stores in state.
    */
   _prepColumns(data: SubmissionResponse[]) {
-    const allColumns = getAllDataColumns(this.props.asset, data, this.props.activeBulkActions)
+    const { columns: allColumns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+      this.props.asset,
+      data,
+      this.props.activeBulkActions,
+    )
 
     let showLabels = this.state.showLabels
     let showGroupName = this.state.showGroupName
@@ -819,18 +815,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // so it's quite the task :)
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
 
+    const findRowForColumn = buildColumnRowFinder(survey ?? [])
+
     allColumns.forEach((key: string) => {
-      let q: SurveyRow | undefined
-      let rootParentGroup: string | undefined
-      if (key.includes('/')) {
-        const qParentG = key.split('/')
-        rootParentGroup = qParentG[0]
-        q = survey?.find(
-          (o) => o.name === qParentG[qParentG.length - 1] || o.$autoname === qParentG[qParentG.length - 1],
-        )
-      } else {
-        q = survey?.find((o) => o.name === key || o.$autoname === key)
-      }
+      const q: SurveyRow | undefined = findRowForColumn(key)
+      const rootParentGroup: string | undefined = key.includes('/') ? key.split('/')[0] : undefined
 
       if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {
         return false
@@ -913,8 +902,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         Cell: (row: CellInfo) => (
           <DataTableCell
             asset={this.props.asset}
-            reactTableRow={row}
+            submissionData={row.original}
             columnKey={key}
+            columnValue={row.value}
+            submissionIndex={row.index}
+            legacyAttachmentPaths={legacyAttachmentPathsByColumn.get(key)}
             question={q}
             choices={choices}
             showGroupName={this.state.showGroupName}

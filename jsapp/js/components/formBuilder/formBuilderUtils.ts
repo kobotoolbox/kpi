@@ -3,7 +3,7 @@ import { ASSET_TYPES, type AssetTypeName, GroupTypeBeginName, GroupTypeEndName }
 import type { AssetContent } from '#/dataInterface'
 import type { KoboMatrixPlainData } from '#/formbuild/containers/KoboMatrix'
 import { recordKeys } from '#/utils'
-import type { FlatRow, FlatSurvey, Survey } from '../../../xlform/src/model.survey'
+import type { FlatChoice, FlatRow, FlatSurvey, Survey } from '../../../xlform/src/model.survey'
 
 /**
  * Asset type could be either the loaded asset type (editing an existing form)
@@ -102,13 +102,40 @@ export function unnullifyTranslations(surveyDataJSON: string, surveyInitialParam
 /**
  * @typedef NullifiedTranslations
  * @property {object} survey - Modified survey.
+ * @property {object} [choices] - Modified choices (only when they were passed in).
  * @property {Array<string|null>} translations - Modified translations.
  * @property {Array<string|null>} translations_0 - The original default language name.
  */
 interface NullifiedTranslations {
   survey: FlatRow[]
+  choices?: FlatChoice[]
   translations: Array<string | null>
   translations_0?: string | null
+}
+
+/**
+ * Applies `rewrite` to every translated value of every row, in place.
+ *
+ * Both `survey` and `choices` index translated values by the form's `translations`, so any change to that list has to
+ * be mirrored in both sheets or choice labels end up under the wrong language. Assets with a single language store a
+ * plain string, which is normalized to an array first.
+ */
+function rewriteTranslatedValues(
+  sheets: Array<Array<FlatRow | FlatChoice>>,
+  translatedProps: string[],
+  rewrite: (values: Array<string | null>, row: FlatRow | FlatChoice) => Array<string | null>,
+) {
+  for (const rows of sheets) {
+    for (const row of rows) {
+      for (const translatedProp of translatedProps) {
+        const value = row[translatedProp]
+        if (!value) {
+          continue
+        }
+        row[translatedProp] = rewrite(Array.isArray(value) ? value : [value], row)
+      }
+    }
+  }
 }
 
 /**
@@ -119,6 +146,7 @@ interface NullifiedTranslations {
  * @param {Array<string>} translatedProps
  * @param {Array<object>} survey
  * @param {object} baseSurvey
+ * @param {Array<object>} [choices]
  * @return {NullifiedTranslations}
  */
 export function nullifyTranslations(
@@ -126,11 +154,19 @@ export function nullifyTranslations(
   translatedProps: string[],
   survey: FlatRow[],
   baseSurvey: FlatSurvey,
+  choices?: FlatChoice[],
 ): NullifiedTranslations {
   const data: NullifiedTranslations = {
     survey: clonedeep(survey) as FlatRow[],
     translations: clonedeep(translations),
   }
+  if (choices) {
+    data.choices = clonedeep(choices) as FlatChoice[]
+  }
+
+  const sheets: Array<Array<FlatRow | FlatChoice>> = [data.survey ?? [], data.choices ?? []]
+  // An asset with nothing translated arrives without `translated` at all
+  const props = translatedProps ?? []
 
   if (typeof translations === 'undefined') {
     data.translations = [null]
@@ -153,53 +189,45 @@ export function nullifyTranslations(
   */
   if (baseSurvey) {
     const formDefaultLang = baseSurvey._initialParams.translations_0 || null
-    if (data.translations[0] === formDefaultLang) {
-      // case 1: nothing to do - same default language in both
+    const hasOwnLanguage = data.translations.length > 1 || data.translations[0] !== null
+
+    if (!hasOwnLanguage) {
+      // case 1: imported asset has no language of its own, so its values
+      // already sit in the single slot the form's default language uses
+    } else if (formDefaultLang === null) {
+      // case 2: the form has no named language, so there is nowhere to put one
+      // (mixing unnamed with named is what the throw above rejects). Keep the
+      // asset's default language values and drop its other translations.
+      // TODO: adopt the asset's languages instead of dropping them, once we settle
+      // on how the form's default language gets named.
+      data.translations = [null]
+      rewriteTranslatedValues(sheets, props, (values) => [values[0]])
+    } else if (data.translations[0] === formDefaultLang) {
+      // case 3: nothing to do - same default language in both
     } else if (data.translations.includes(formDefaultLang)) {
-      // case 2: imported asset has form default language but not as first, so
+      // case 4: imported asset has form default language but not as first, so
       // we need to reorder things
       const defaultLangIndex = data.translations.indexOf(formDefaultLang)
 
       // Remove default lang, then place it at the beginning
-      data.translations.splice(data.translations.indexOf(formDefaultLang), 1)
+      data.translations.splice(defaultLangIndex, 1)
       data.translations.unshift(formDefaultLang)
 
-      data.survey.forEach((row: FlatRow) => {
-        translatedProps.forEach((translatedProp) => {
-          const transletedPropArr = row[translatedProp] as string[]
-          if (transletedPropArr) {
-            // Pick the default lang translation, then place it at the beginning
-            const defaultLangTranslation = transletedPropArr.splice(defaultLangIndex, 1)[0]
-            transletedPropArr.unshift(defaultLangTranslation)
-          }
-        })
+      rewriteTranslatedValues(sheets, props, (values) => {
+        // Pick the default lang translation, then place it at the beginning
+        const defaultLangTranslation = values.splice(defaultLangIndex, 1)[0]
+        values.unshift(defaultLangTranslation)
+        return values
       })
-    }
-
-    if (!data.translations.includes(formDefaultLang)) {
-      // case 3: imported asset doesn't have form default language, so we
-      // force it onto the asset as the first language and try setting some
-      // meaningful property value
+    } else {
+      // case 5: imported asset doesn't have form default language, so we force
+      // it onto the asset as the first language. Formbuilder renders that first
+      // slot, so it gets the asset's own default label - the question name only
+      // stands in when there is no label at all.
       data.translations.unshift(formDefaultLang)
-      data.survey.forEach((row: FlatRow) => {
-        translatedProps.forEach((translatedProp) => {
-          const translatedValue = row[translatedProp]
-          if (translatedValue) {
-            let propVal = null
-            if (row.name) {
-              propVal = row.name
-            } else if (row.$autoname) {
-              propVal = row.$autoname
-            }
-            if (Array.isArray(translatedValue)) {
-              translatedValue.unshift(propVal)
-            } else {
-              // Keep shape consistent for downstream code that expects
-              // translated props to be arrays indexed by language.
-              row[translatedProp] = [propVal, translatedValue]
-            }
-          }
-        })
+      rewriteTranslatedValues(sheets, props, (values, row) => {
+        values.unshift(values[0] || row.name || row.$autoname || null)
+        return values
       })
     }
   }

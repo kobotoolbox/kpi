@@ -1,10 +1,10 @@
 import React, { type ReactNode } from 'react'
 import { ProductsContext, useProducts } from '#/account/useProducts.hook'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { OneTimeAddOnsContext, useOneTimeAddOns } from './useOneTimeAddonList.hook'
 
 export const BillingContextProvider = (props: { children: ReactNode }) => {
-  if (!sessionStore.isLoggedIn) {
+  if (!profileStore.isLoggedIn) {
     return <>{props.children}</>
   }
 

@@ -114,6 +114,11 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
         if not config.ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION:
             return
 
+        # Nothing to compare against. Django's own validator returns early
+        # here too; without this, callers passing no user crash below
+        if user is None:
+            return
+
         # needs to set `self.min_length` here because if it is set in the
         # constructor, it won't be refresh if constance value is changed.
         self.user_attributes = config.PASSWORD_USER_ATTRIBUTES.splitlines()

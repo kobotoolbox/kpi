@@ -14,8 +14,10 @@ export class ServerError extends Error implements ErrorDetail {
           ? parsedResponse.detail
           : undefined
     } catch {
+      // Not JSON, so this is an error page or a traceback rather than a message. Keep the body for logging, but leave
+      // `detail` empty - several components render it straight into the UI.
       parsedResponse = text
-      detail = text
+      detail = undefined
     }
     return new ServerError(response, detail, parsedResponse)
   }

@@ -5,6 +5,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
+import { getProcessingQuestionType } from '../common/questionType'
 import type { DisplaysList } from '../common/types'
 import {
   StaticDisplays,
@@ -17,6 +18,7 @@ import styles from './index.module.scss'
 import SidebarDisplaySettings from './sidebarDisplaySettings'
 import SidebarSubmissionData from './sidebarSubmissionData'
 import SidebarSubmissionMedia from './sidebarSubmissionMedia'
+import SidebarSubmissionText from './sidebarSubmissionText'
 import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
@@ -46,6 +48,11 @@ export default function ProcessingSidebar({
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>([])
   const [hiddenQuestions, setHiddenQuestions] = useState<string[]>([])
 
+  const questionType = useMemo(
+    () => getProcessingQuestionType(asset, questionXpath, submission),
+    [asset, questionXpath, submission],
+  )
+
   const transcript = useMemo(() => {
     return getLatestTranscriptVersionItem(supplement, questionXpath)
   }, [supplement, questionXpath])
@@ -54,22 +61,24 @@ export default function ProcessingSidebar({
     return getAllTranslationsFromSupplementData(supplement, questionXpath)
   }, [supplement, questionXpath])
 
-  // Every time user changes the tab, we need to load the default static displays list
-  // for that tab, keeping the dynamically selected translations.
+  // Every time user changes the tab or switches to a question of a different
+  // type, we need to reload the default static displays list, keeping the
+  // dynamically selected translations.
   useEffect(() => {
-    const defaultDisplays = getDefaultDisplaysForTab(activeTab)
+    const defaultDisplays = getDefaultDisplaysForTab(activeTab, questionType)
     const allStaticDisplays = recordValues(StaticDisplays)
     const selectedTranslationDisplays = selectedDisplays.filter(
       (display) => !allStaticDisplays.includes(display as StaticDisplays),
     )
     const newSelectedDisplays = [...defaultDisplays, ...selectedTranslationDisplays]
     setSelectedDisplays(newSelectedDisplays)
-  }, [activeTab])
+  }, [activeTab, questionType])
 
   return (
     <div className={styles.root}>
       <SidebarDisplaySettings
         asset={asset}
+        questionType={questionType}
         selectedDisplays={selectedDisplays}
         setSelectedDisplays={setSelectedDisplays}
         hiddenQuestions={hiddenQuestions}
@@ -78,6 +87,7 @@ export default function ProcessingSidebar({
         setQuestionLabelLanguage={setQuestionLabelLanguage}
         transcript={transcript}
         translations={translations}
+        submission={submission}
       />
       <div className={styles.displays}>
         {translations.map((translation) => {
@@ -101,6 +111,10 @@ export default function ProcessingSidebar({
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (
           <SidebarSubmissionMedia asset={asset} xpath={questionXpath} submission={submission} />
+        )}
+
+        {selectedDisplays.includes(StaticDisplays.Text) && (
+          <SidebarSubmissionText xpath={questionXpath} submission={submission} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Data) && (

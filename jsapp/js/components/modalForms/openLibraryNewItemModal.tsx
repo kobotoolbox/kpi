@@ -8,6 +8,7 @@ export function openLibraryNewItemModal() {
   const modalId = modals.open({
     title: t('Create Library Item'),
     size: 'lg',
+    closeOnClickOutside: false,
     children: <LibraryNewItemForm onRequestClose={close} reopenHomeModal={openLibraryNewItemModal} />,
   })
 

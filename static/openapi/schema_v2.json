@@ -2950,6 +2950,7 @@
                                                         "language": "en",
                                                         "locale": "en-US"
                                                     },
+                                                    "auto_accept": true,
                                                     "progress": 66,
                                                     "created_by": {
                                                         "username": "someuser"
@@ -2998,6 +2999,7 @@
                                                     "params": {
                                                         "language": "fr"
                                                     },
+                                                    "auto_accept": false,
                                                     "progress": 66,
                                                     "created_by": {
                                                         "username": "someuser"
@@ -3037,7 +3039,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_create",
-                "description": "## Create a bulk processing job\n\nCreates and starts a bulk processing job for one question across multiple\nsubmissions.\n\nSupported actions:\n\n* `automatic_google_transcription`\n* `automatic_google_translation`\n\nThe request must include the target `question_xpath`, the submission root UUIDs\nto process, and deterministic `params`. `params.language` is required. For\ntranscription, `params.locale` may also be supplied when a more specific Google\nSpeech locale is needed.\n\nCreation is atomic. If any selected submission is unknown, already has matching\nresults, or already has an active matching bulk action, no job or child items are\ncreated.\n\nThe response is the created job. Its initial status is `in_progress` because\ncreation immediately starts background processing.\n",
+                "description": "## Create a bulk processing job\n\nCreates and starts a bulk processing job for one question across multiple\nsubmissions.\n\nSupported actions:\n\n* `automatic_google_transcription`\n* `automatic_google_translation`\n\nThe request must include the target `question_xpath`, the submission root UUIDs\nto process, and deterministic `params`. `params.language` is required. For\ntranscription, `params.locale` may also be supplied when a more specific Google\nSpeech locale is needed.\n\n`auto_accept` (boolean, optional, default `false`) controls review. When true,\neach generated transcript or translation is accepted immediately upon\ncompletion and needs no manual review.\n\nCreation is atomic. If any selected submission is unknown, already has matching\nresults, or already has an active matching bulk action, no job or child items are\ncreated.\n\nThe response is the created job. Its initial status is `in_progress` because\ncreation immediately starts background processing.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3070,10 +3072,11 @@
                                         "params": {
                                             "language": "en",
                                             "locale": "en-US"
-                                        }
+                                        },
+                                        "auto_accept": true
                                     },
                                     "summary": "Bulk transcription job",
-                                    "description": "Starts Google transcription for the selected audio question across the listed submissions. `locale` is optional."
+                                    "description": "Starts Google transcription for the selected audio question across the listed submissions. `locale` is optional. `auto_accept` accepts each generated result on completion."
                                 },
                                 "BulkTranslationJob": {
                                     "value": {
@@ -3143,6 +3146,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3186,6 +3190,7 @@
                                             "params": {
                                                 "language": "fr"
                                             },
+                                            "auto_accept": false,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3229,6 +3234,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3364,6 +3370,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3405,6 +3412,7 @@
                                             "params": {
                                                 "language": "fr"
                                             },
+                                            "auto_accept": false,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3531,6 +3539,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3575,6 +3584,7 @@
                                             "params": {
                                                 "language": "fr"
                                             },
+                                            "auto_accept": false,
                                             "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
@@ -11470,7 +11480,7 @@
         "/api/v2/environment/": {
             "get": {
                 "operationId": "api_v2_environment_retrieve",
-                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
+                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n- Pagination behaviour (row limit past which list counts are capped).\n",
                 "tags": [
                     "Configuration"
                 ],
@@ -21492,7 +21502,11 @@
                             "languages": {
                                 "type": "array",
                                 "items": {
-                                    "type": "string"
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
                                 }
                             },
                             "row_count": {
@@ -22473,7 +22487,19 @@
                         "readOnly": true
                     },
                     "data_sharing": {
-                        "type": "object"
+                        "type": "object",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean"
+                            },
+                            "fields": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "additionalProperties": false
                     },
                     "paired_data": {
                         "type": "string",
@@ -23803,6 +23829,11 @@
                     },
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsRequest"
+                    },
+                    "auto_accept": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Automatically accept generated results upon completion."
                     }
                 },
                 "required": [
@@ -23842,6 +23873,9 @@
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsResponse"
                     },
+                    "auto_accept": {
+                        "type": "boolean"
+                    },
                     "progress": {
                         "type": "integer",
                         "maximum": 100,
@@ -23877,6 +23911,7 @@
                 },
                 "required": [
                     "action_id",
+                    "auto_accept",
                     "created_by",
                     "date_created",
                     "date_modified",
@@ -23985,6 +24020,9 @@
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsResponse"
                     },
+                    "auto_accept": {
+                        "type": "boolean"
+                    },
                     "progress": {
                         "type": "integer",
                         "maximum": 100,
@@ -24014,6 +24052,7 @@
                 },
                 "required": [
                     "action_id",
+                    "auto_accept",
                     "created_by",
                     "date_created",
                     "date_modified",
@@ -25654,6 +25693,10 @@
                         "type": "string",
                         "format": "uri",
                         "description": "The OpenRosa server URL (KC)"
+                    },
+                    "limited_count_max_rows": {
+                        "type": "integer",
+                        "description": "Row limit past which paginated endpoints using capped counting report `count: 'many'`. Clients can label such counts as \"{limit}+\""
                     }
                 },
                 "required": [
@@ -25670,6 +25713,7 @@
                     "frontend_max_retry_time",
                     "frontend_min_retry_time",
                     "interface_languages",
+                    "limited_count_max_rows",
                     "mfa_code_length",
                     "mfa_enabled",
                     "mfa_localized_help_text",
@@ -27250,6 +27294,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "gender": {
+                                "type": "string"
+                            },
                             "sector": {
                                 "type": "string"
                             },
@@ -27284,7 +27331,7 @@
                                 "type": "boolean"
                             },
                             "newsletter_subscription": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         }
                     },
@@ -27926,7 +27973,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27935,7 +27982,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -27963,7 +28010,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -27972,7 +28019,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28000,7 +28047,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28009,7 +28056,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28085,7 +28132,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28094,7 +28141,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28122,7 +28169,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28131,7 +28178,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28159,7 +28206,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28168,7 +28215,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28196,7 +28243,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28205,7 +28252,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28228,7 +28275,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28237,7 +28284,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28265,7 +28312,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28274,7 +28321,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28302,7 +28349,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28311,7 +28358,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28339,7 +28386,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28348,7 +28395,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28376,7 +28423,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28385,7 +28432,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28413,7 +28460,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28422,7 +28469,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28450,7 +28497,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28459,7 +28506,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28487,7 +28534,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28496,7 +28543,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28524,7 +28571,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28533,7 +28580,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28561,7 +28608,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28570,7 +28617,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28598,7 +28645,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28607,7 +28654,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28635,7 +28682,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28644,7 +28691,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28672,7 +28719,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28681,7 +28728,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28709,7 +28756,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28718,7 +28765,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28746,7 +28793,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28755,7 +28802,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28783,7 +28830,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28792,7 +28839,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28820,7 +28867,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28829,7 +28876,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28857,7 +28904,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28866,7 +28913,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28894,7 +28941,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28903,7 +28950,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28931,7 +28978,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28940,7 +28987,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -28963,7 +29010,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -28972,7 +29019,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29000,7 +29047,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29009,7 +29056,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29037,7 +29084,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29046,7 +29093,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29074,7 +29121,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29083,7 +29130,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29111,7 +29158,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29120,7 +29167,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29226,7 +29273,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29235,7 +29282,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29263,7 +29310,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29272,7 +29319,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29295,7 +29342,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29304,7 +29351,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29332,7 +29379,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29341,7 +29388,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29369,7 +29416,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29378,7 +29425,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29406,7 +29453,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29415,7 +29462,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29443,7 +29490,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29452,7 +29499,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29475,7 +29522,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29484,7 +29531,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29512,7 +29559,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
                     },
                     "previous": {
                         "type": [
@@ -29521,7 +29568,7 @@
                         ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -29738,6 +29785,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "gender": {
+                                "type": "string"
+                            },
                             "sector": {
                                 "type": "string"
                             },
@@ -29772,7 +29822,7 @@
                                 "type": "boolean"
                             },
                             "newsletter_subscription": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         }
                     },
@@ -35277,6 +35327,12 @@
                     },
                     "username": {
                         "$ref": "#/components/schemas/Username"
+                    },
+                    "newsletter_subscription": {
+                        "type": "boolean"
+                    },
+                    "terms_of_service": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -35661,12 +35717,18 @@
                         "description": "The username.",
                         "example": "wizard",
                         "type": "string"
+                    },
+                    "has_validated_password": {
+                        "description": "Whether the account password is valid. An administrator can invalidate it, setting this to false and restricting the account.",
+                        "example": true,
+                        "type": "boolean"
                     }
                 },
                 "required": [
                     "display",
                     "has_usable_password",
-                    "username"
+                    "username",
+                    "has_validated_password"
                 ]
             },
             "BaseAuthenticator": {
@@ -36009,7 +36071,8 @@
                     "display": "Magic Wizard",
                     "email": "email@domain.org",
                     "has_usable_password": true,
-                    "username": "wizard"
+                    "username": "wizard",
+                    "has_validated_password": true
                 }
             },
             "AuthenticatedByPassword": {
@@ -36022,7 +36085,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -36049,7 +36113,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -36076,7 +36141,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -36427,7 +36493,8 @@
                             "display": "Magic Wizard",
                             "email": "email@domain.org",
                             "has_usable_password": true,
-                            "username": "wizard"
+                            "username": "wizard",
+                            "has_validated_password": true
                         },
                         "methods": [
                             {
@@ -37261,7 +37328,8 @@
                                             "display": "Magic Wizard",
                                             "email": "email@domain.org",
                                             "has_usable_password": true,
-                                            "username": "wizard"
+                                            "username": "wizard",
+                                            "has_validated_password": true
                                         },
                                         "methods": [
                                             {

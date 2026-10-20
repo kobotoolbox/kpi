@@ -41,7 +41,9 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
   const menuRef = React.useRef<HTMLDivElement>(null)
   const assetType = props.asset.asset_type
   const userCanEdit = userCan('change_asset', props.asset)
-  const userCanDelete = userCan('delete_submissions', props.asset)
+  // Creators hold an explicit `manage_asset` row and org admins get it through
+  // effective permissions; the backend enforces the rest.
+  const userCanDelete = userCan('manage_asset', props.asset)
 
   // In the table row context, close the menu when the mouse leaves the row
   React.useEffect(() => {
@@ -61,13 +63,13 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
     downloads = props.asset.downloads
   }
 
-  // Don't render menu if user has no edit permissions and no downloads
-  if (!userCanEdit && downloads.length === 0) {
+  // Don't render menu if user has no edit permissions, no downloads and no delete rights
+  if (!userCanEdit && downloads.length === 0 && !userCanDelete) {
     return null
   }
 
   // For collections, only action is Delete, so don't render menu unless user can delete
-  if (assetType === ASSET_TYPES.collection.id && (!userCanEdit || !userCanDelete)) {
+  if (assetType === ASSET_TYPES.collection.id && !userCanDelete) {
     return null
   }
 
@@ -142,7 +144,7 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
           )}
 
           {/* Delete */}
-          {userCanEdit && userCanDelete && (
+          {userCanDelete && (
             <Menu.Item onClick={props.onDelete} leftSection={<KoboIcon icon={IconTrashFilled} />} color='red'>
               {t('Delete')}
             </Menu.Item>

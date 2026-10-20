@@ -12,7 +12,7 @@ import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
 import { ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { formatTime, recordValues } from '#/utils'
 import styles from './projectsTableRow.module.scss'
 
@@ -44,7 +44,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'status':
         return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />
       case 'ownerUsername':
-        return props.asset.owner_label === sessionStore.currentAccount.username ? (
+        return props.asset.owner_label === profileStore.currentAccount.username ? (
           t('me')
         ) : (
           <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
@@ -58,7 +58,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'lastModifiedBy':
         if (props.asset.last_modified_by === null) {
           return null
-        } else if (props.asset.last_modified_by === sessionStore.currentAccount.username) {
+        } else if (props.asset.last_modified_by === profileStore.currentAccount.username) {
           return t('me')
         } else {
           return <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />

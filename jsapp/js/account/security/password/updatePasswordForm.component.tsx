@@ -10,7 +10,7 @@ import PasswordStrength from '#/components/passwordStrength.component'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { notify } from '#/utils'
 import styles from './updatePasswordForm.module.scss'
 
@@ -114,7 +114,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
     savePassword()
   }
 
-  if (!sessionStore.isLoggedIn || !isEnvStoreReady) {
+  if (!profileStore.isLoggedIn || !isEnvStoreReady) {
     return null
   }
 

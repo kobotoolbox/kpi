@@ -4,7 +4,7 @@ import {
   useOrganizationsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 
 /**
  * Organization object is used globally.
@@ -13,8 +13,8 @@ import { useSession } from '#/stores/useSession'
  * @see also `useOrganizationQuery`
  */
 export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
 
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
@@ -33,7 +33,7 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
         // DEBT: don't throw toast within `fetchGetUrl`.
         // DEBT: don't retry the failing url 3-4 times before switching to the new url.
         if (query.state.data?.status === 404) {
-          session.refreshAccount()
+          profile.refreshAccount()
         }
         return false
       },

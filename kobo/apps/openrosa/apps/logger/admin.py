@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.contrib import admin
 
 from kobo.apps.openrosa.apps.logger.models import XForm
@@ -6,7 +5,6 @@ from kobo.apps.openrosa.apps.logger.models import XForm
 
 @admin.register(XForm)
 class FormAdmin(admin.ModelAdmin):
-
     exclude = ('user',)
     list_display = ('id_string', 'downloadable', 'shared')
 
@@ -16,5 +14,3 @@ class FormAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         return qs.filter(user=request.user)
-
-

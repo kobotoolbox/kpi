@@ -10,7 +10,7 @@ import Avatar from '#/components/common/avatar'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { KOBO_MODAL_OVERLAY_PROPS } from '#/theme/kobo/Modal'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { permissionsActions } from '../../actions/permissions'
@@ -68,7 +68,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
   removeAllPermissions() {
     this.setState({ isRemovePermissionsPromptVisible: false, isBeingDeleted: true })
 
-    const isCurrentUser = this.props.username === sessionStore.currentAccount.username
+    const isCurrentUser = this.props.username === profileStore.currentAccount.username
 
     actions.permissions.removeAssetPermission(this.props.asset.uid, undefined, true, undefined, this.props.username)
 

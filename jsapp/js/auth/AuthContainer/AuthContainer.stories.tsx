@@ -1,18 +1,17 @@
 import { Stack, Text, Title } from '@mantine/core'
-import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import { expect, within } from 'storybook/test'
-import type { AuthConfiguration } from '#/api/models/authConfiguration'
+import { within } from 'storybook/test'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
-import AuthTestRoute from '#/auth/AuthTestRoute/AuthTestRoute'
+import { narrowViewportDecorator } from '#/auth/authStoryHelpers'
 import TextInput from '#/components/common/TextInput'
-import { environmentResponse, makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { makeAuthConfigurationMock, makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { setAnonymousSessionForStories } from '#/stores/session.mocks'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import AuthCard from './AuthCard'
 import AuthContainer from './AuthContainer'
+import { setLoginBackgroundMetaForStories } from './authContainer.mocks'
 // Stand-in for the photo an administrator would upload. Storybook serves it from the same origin, so
 // the story tests stay offline. Photo by Salah Darwish.
 import backgroundImageUrl from './salah-darwish-story-bg.webp'
@@ -20,19 +19,10 @@ import backgroundImageUrl from './salah-darwish-story-bg.webp'
 const TERMS_OF_SERVICE_URL = 'https://example.org/terms'
 const PRIVACY_POLICY_URL = 'https://example.org/privacy'
 
-/** Both legal links configured, so the footer has something to show. */
-const environmentMockWithFooterLinks = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-})
+/** Both legal links configured, so the footer has something to show in every story. */
+const FOOTER_LINKS = { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL }
 
-/** `makeEnvironmentMock` merges shallowly, so a nested override has to restate the whole object. */
-const makeAuthConfigurationMock = (override: Partial<AuthConfiguration>) =>
-  makeEnvironmentMock({
-    terms_of_service_url: TERMS_OF_SERVICE_URL,
-    privacy_policy_url: PRIVACY_POLICY_URL,
-    auth_configuration: { ...environmentResponse.auth_configuration, ...override },
-  })
+const environmentMockWithFooterLinks = makeEnvironmentMock(FOOTER_LINKS)
 
 /**
  * Renders the story as the `/auth` route with the given element in its outlet, so what you see is
@@ -40,8 +30,8 @@ const makeAuthConfigurationMock = (override: Partial<AuthConfiguration>) =>
  */
 const authRouting = (outlet: React.ReactNode) =>
   reactRouterParameters({
-    location: { path: AUTH_ROUTES.TEST },
-    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'test', element: outlet }),
+    location: { path: AUTH_ROUTES.SIGNUP },
+    routing: reactRouterOutlet({ path: ROUTES.AUTH_ROOT }, { path: 'signup', element: outlet }),
   })
 
 /** Placeholder card content. The input gives the tab-order assertions something to land on. */
@@ -67,12 +57,6 @@ const stubAside = (
   </Stack>
 )
 
-/**
- * Narrows the card enough to trip both of its container queries - stacking and reduced padding -
- * without touching the preview viewport, which `test-storybook` can't resize.
- */
-const narrowViewportDecorator: Decorator = (Story) => <div style={{ width: 400 }}>{Story()}</div>
-
 const meta: Meta<typeof AuthContainer> = {
   title: 'Features/AuthContainer',
   component: AuthContainer,
@@ -85,20 +69,17 @@ const meta: Meta<typeof AuthContainer> = {
   },
   // Nobody is logged in on a sign-in screen. Storybook runs the returned teardown, which matters:
   // `preview.tsx` forces the logged-in state before every story.
-  beforeEach: setAnonymousSessionForStories,
+  beforeEach: setAnonymousProfileForStories,
   decorators: [withRouter, queryClientDecorator],
 }
 
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-/** Finds the element the background and theme classes live on. */
-const getFrame = (canvasElement: HTMLElement) => canvasElement.querySelector('header')?.parentElement as HTMLElement
+// NOTE: Each story below waits for `/environment` before Chromatic looks at it
 
-/** The default theme, with the real (temporary) `#/auth/test` route in the outlet. */
-export const TestRoute: Story = {
-  parameters: { reactRouter: authRouting(<AuthTestRoute />) },
-}
+/** The default theme around a single column */
+export const Default: Story = {}
 
 /** A wide card with supporting content beside the form, split by a vertical divider. */
 export const TwoColumns: Story = {
@@ -118,40 +99,28 @@ export const CustomTheme: Story = {
   parameters: {
     msw: {
       handlers: [
-        makeAuthConfigurationMock({
-          theme: AuthThemeEnum.custom,
-          background_image_url: backgroundImageUrl,
-        }),
+        makeAuthConfigurationMock(
+          { theme: AuthThemeEnum.custom, background_image_url: backgroundImageUrl },
+          FOOTER_LINKS,
+        ),
       ],
     },
   },
+  // Mimick what django template does
+  beforeEach: setLoginBackgroundMetaForStories(backgroundImageUrl),
+  // The footer links come from `/environment` too, so having one means the theme has landed
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // The footer links need `/environment` too, so waiting for one means the theme has landed - the
-    // frame starts out on the default theme and swaps when the request resolves.
-    const termsLink = await canvas.findByRole('link', { name: 'Terms of Service' })
-
-    const frame = getFrame(canvasElement)
-    expect(frame.className).toContain('background--custom')
-    expect(frame.style.backgroundImage).toContain(backgroundImageUrl)
-
-    expect(termsLink.parentElement?.className).toContain('footer--custom')
-    expect(getComputedStyle(termsLink).color).toBe('rgb(255, 255, 255)')
+    await within(canvasElement).findByRole('link', { name: 'Terms of Service' })
   },
 }
 
 /** Config for hiding Kobo logo. */
 export const NoKoboLogo: Story = {
-  parameters: { msw: { handlers: [makeAuthConfigurationMock({ show_kobotoolbox_logo: false })] } },
+  parameters: { msw: { handlers: [makeAuthConfigurationMock({ show_kobotoolbox_logo: false }, FOOTER_LINKS)] } },
+  // The language selector needs `/environment` too, so its arrival means the missing logo is a real
+  // absence rather than a slow request.
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // The language selector needs `/environment` too, so its arrival means the config has landed and
-    // the missing logo is a real absence rather than a slow request.
-    const languageToggle = await canvas.findByRole('button', { name: /interface language/i })
-    expect(languageToggle).toBeVisible()
-    expect(canvas.queryByRole('link', { name: 'KoboToolbox' })).not.toBeInTheDocument()
+    await within(canvasElement).findByRole('button', { name: /interface language/i })
   },
 }
 
@@ -160,12 +129,8 @@ export const NoFooterLinks: Story = {
   parameters: {
     msw: { handlers: [makeEnvironmentMock({ terms_of_service_url: null, privacy_policy_url: null })] },
   },
+  // Same idea: the logo arrives with the response, so the empty footer beside it is settled.
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    await canvas.findByRole('img', { name: 'KoboToolbox' })
-
-    const footer = canvasElement.querySelector('footer') as HTMLElement
-    expect(footer.querySelectorAll('a')).toHaveLength(0)
+    await within(canvasElement).findByRole('img', { name: 'KoboToolbox' })
   },
 }

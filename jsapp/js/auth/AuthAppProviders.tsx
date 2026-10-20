@@ -8,13 +8,13 @@ import { Tracking } from '../router/useTracking'
 import ToasterConfig from '../toasterConfig'
 
 /**
- * Context the authentication screens need, mirroring what `#/router/basicLayout.component` sets up for
- * the logged in app. They can't reuse that layout - it also renders the main header, the drawer and the
- * route blockers, none of which belong on a sign-in page.
+ * Context the authentication screens need, mirroring what `#/app` sets up for the logged in app. They
+ * can't reuse that tree - it also renders the main header, the drawer and the route blockers, none of
+ * which belong on a sign-in page.
  */
 export default function AuthAppProviders({ children }: { children: React.ReactNode }) {
   return (
-    // TODO: give each auth screen its own title once there is more than one of them.
+    // Fallback title: react-document-title lets a screen's own nested `DocumentTitle` win.
     <DocumentTitle title='KoboToolbox'>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>

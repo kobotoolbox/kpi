@@ -2,8 +2,8 @@
 
 .root {
   width: auto;
-  padding-bottom: 40px;
-  padding-top: 15px;
+  // Added padding to ensure no highlight clipping of the search input
+  padding: 15px 10px 40px 10px;
   height: 100%;
   overflow-x: auto;
 }

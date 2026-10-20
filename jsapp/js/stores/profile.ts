@@ -1,0 +1,101 @@
+import { action, makeAutoObservable } from 'mobx'
+import type { Json } from '#/components/common/common.interfaces'
+import { dataInterface } from '#/dataInterface'
+import type { AccountResponse, FailResponse } from '#/dataInterface'
+import type { ProjectViewsSettings } from '#/projects/customViewStore'
+import { ANON_USERNAME } from '#/users/utils'
+import { currentLang, log } from '#/utils'
+
+class ProfileStore {
+  currentAccount: AccountResponse | { username: string; date_joined: string } = {
+    username: ANON_USERNAME,
+    date_joined: '',
+  }
+  isAuthStateKnown = false
+  /** Set when `/me/` could not be read at all, which is a different thing from reading it and finding nobody. */
+  isAuthStateCheckFailed = false
+  /** @deprecated Auth status will be provided by the allauth /session endpoint. Use that instead. */
+  isLoggedIn = false
+  isValidatedPassword = false
+  isInitialLoadComplete = false
+  isPending = false
+  isInitialRoute = true
+
+  constructor() {
+    makeAutoObservable(this)
+    this.verifyLogin()
+    // TODO make this not awful
+    //
+    // HACK FIX: avoid double calls to `/me` endpoint.
+    // Context: when this store is being initialized, a call to `/me/` endpoint
+    // is being made (to get all the user info). When `AccountSettingsRoute` is
+    // being initialized (either by any navigation to the route or visiting it
+    // via a direct url) it also makes a call. We want to avoid double calls
+    // (happens in some cases), so we've introduced that `isInitialRoute` flag.
+    setTimeout(() => (this.isInitialRoute = false), 1000)
+  }
+
+  private verifyLogin() {
+    this.isPending = true
+    dataInterface.getProfile().then(
+      action('verifyLoginSuccess', (account: AccountResponse | { message: string }) => {
+        this.isPending = false
+        this.isInitialLoadComplete = true
+        if ('email' in account) {
+          this.currentAccount = account
+          this.isLoggedIn = true
+          this.isValidatedPassword = account.validated_password
+          // Save UI language to Back-end for language usage statistics.
+          // Logging in causes the whole page to be reloaded, so we don't need
+          // to do it more than once.
+          this.saveUiLanguage()
+        }
+        this.isAuthStateKnown = true
+      }),
+      action('verifyLoginFailure', (xhr: FailResponse) => {
+        this.isPending = false
+        // `isAuthStateKnown` deliberately stays false: a failed check is not the anonymous answer it would
+        // otherwise look like, and treating it as one would send a signed-in account to the login page. This
+        // is what `AllRoutes` shows a way to retry on, instead of spinning for good.
+        this.isAuthStateCheckFailed = true
+        log('login not verified', xhr.status, xhr.statusText)
+      }),
+    )
+  }
+
+  public refreshAccount() {
+    this.isPending = true
+    dataInterface.getProfile().then(
+      action('refreshSuccess', (account: AccountResponse | { message: string }) => {
+        this.isPending = false
+        if ('email' in account) {
+          this.currentAccount = account
+        }
+      }),
+    )
+  }
+
+  /** Updates one of the `extra_details`. */
+  public setDetail(detailName: string, value: Json | ProjectViewsSettings) {
+    dataInterface.patchProfile({ extra_details: { [detailName]: value } }).then(
+      action('setDetailSuccess', (account: AccountResponse) => {
+        if ('email' in account) {
+          this.currentAccount = account
+        }
+      }),
+    )
+  }
+
+  private saveUiLanguage() {
+    // We want to save the language if it differs from the one we saved or if
+    // none is saved yet.
+    if (
+      'extra_details' in this.currentAccount &&
+      this.currentAccount.extra_details.last_ui_language !== currentLang()
+    ) {
+      this.setDetail('last_ui_language', currentLang())
+    }
+  }
+}
+
+export default new ProfileStore()

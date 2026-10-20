@@ -15,4 +15,6 @@ import type { Username } from './username'
 export interface BaseSignup {
   email: Email
   username: Username
+  newsletter_subscription?: boolean
+  terms_of_service?: boolean
 }

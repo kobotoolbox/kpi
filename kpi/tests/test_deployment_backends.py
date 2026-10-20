@@ -1,17 +1,29 @@
+import random
+import string
+from contextlib import ExitStack
+from functools import partial
+from unittest.mock import patch
+
+import fakeredis
 import pytest
+from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import MetaData
+from kpi.constants import ENKETO_INTERNAL_URL_FLAG
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage,
 )
+from kpi.deployment_backends.openrosa_utils import generate_enketo_links
 from kpi.exceptions import DeploymentDataException
 from kpi.models.asset import Asset, AssetFile
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.storage import is_filesystem_storage
+from kpi.utils.submission import get_attachment_filenames_and_xpaths
 
 
 class CreateDeployment(TestCase):
@@ -211,3 +223,376 @@ class MockDeployment(TestCase):
                 meta_data.delete()
                 if default_kobocat_storage.exists(data_file_path):
                     default_kobocat_storage.delete(data_file_path)
+
+
+class QuestionXPathLookup(TestCase):
+    """
+    Which name an attachment is hung on its question by.
+    """
+
+    def setUp(self):
+        someuser = User.objects.create(username='someuser')
+        self.asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1', 'label': 'Q1.'}]},
+            owner=someuser,
+        )
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+
+        # What `get_attachment_filenames_and_xpaths()` builds out of the
+        # submission: the names it carries at its media questions
+        self.filenames_and_xpaths = {'holiday.jpg': 'q1'}
+
+    def test_a_suffixed_path_resolves_through_the_name_the_client_sent(self):
+        """
+        Django appends a suffix to avoid a collision on the storage, so the
+        stored path is not the name the submission carries. Around a million
+        rows on production are in that state.
+        """
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': 'holiday.jpg',
+            },
+            self.filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_a_name_ending_in_a_suffix_is_not_mistaken_for_its_neighbour(self):
+        """
+        `_without_suffix()` cannot tell a suffix Django added from a name that
+        legitimately ends in one, and would hand this file to `holiday.jpg`.
+        The exact match on the name the client sent is tried first, so the
+        heuristic is only ever reached once it has failed.
+        """
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': 'holiday.jpg', 'q2': 'holiday_MtYT6pg.jpg'}, ['q1', 'q2']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': 'holiday_MtYT6pg.jpg',
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q2'
+
+    def test_an_unsanitized_name_resolves_without_a_round_trip(self):
+        """
+        The column holds the name before Django touched it, spaces included,
+        while the sanitized keys turn those into underscores. Keying the raw
+        form is what lets the two meet without both sides throwing the same
+        detail away first.
+        """
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': 'Screenshot 2024 at 18.31.jpg'}, ['q1']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': (
+                    'someuser/attachments/uuid/uuid/Screenshot_2024_at_18.31.jpg'
+                ),
+                'media_file_basename': 'Screenshot 2024 at 18.31.jpg',
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_two_names_sanitizing_alike_stay_on_their_own_questions(self):
+        """
+        The shape this change exists for. `get_valid_name()` turns both of
+        these into `photo_A.jpg`, so a single key was left for two questions
+        and the file of whichever was read first followed the other one.
+
+        Both reading orders are tried, because keying the raw name is only half
+        of it: the raw and sanitized families have to be merged with the raw
+        one winning, or the question read last takes the shared key and one
+        file goes with it.
+        """
+
+        for values in (
+            {'q1': 'photo A.jpg', 'q2': 'photo_A.jpg'},
+            {'q2': 'photo_A.jpg', 'q1': 'photo A.jpg'},
+        ):
+            filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+                values, ['q1', 'q2']
+            )
+
+            assert (
+                self.asset.deployment._get_question_xpath(
+                    {
+                        'filename': 'someuser/attachments/uuid/uuid/photo_A.jpg',
+                        'media_file_basename': 'photo A.jpg',
+                    },
+                    filenames_and_xpaths,
+                )
+                == 'q1'
+            )
+
+            # Its own name was taken on the storage by the file above, hence
+            # the collision suffix on the path
+            assert (
+                self.asset.deployment._get_question_xpath(
+                    {
+                        'filename': (
+                            'someuser/attachments/uuid/uuid/photo_A_XyZ1234.jpg'
+                        ),
+                        'media_file_basename': 'photo_A.jpg',
+                    },
+                    filenames_and_xpaths,
+                )
+                == 'q2'
+            )
+
+            # And the shape that cannot be told apart from the one above: a row
+            # `populate_media_file_basename` backfilled from the stored path,
+            # answering `photo A.jpg` but holding the sanitized spelling of it.
+            # Same string, two right answers, and nothing on the row to choose
+            # by, so it is read as the raw name. That is what the column has
+            # held on every write since DEV-897, while the rows needing the
+            # other reading predate the column existing at all.
+            assert (
+                self.asset.deployment._get_question_xpath(
+                    {
+                        'filename': 'someuser/attachments/uuid/uuid/photo_A.jpg',
+                        'media_file_basename': 'photo_A.jpg',
+                    },
+                    filenames_and_xpaths,
+                )
+                == 'q2'
+            )
+
+    def test_a_backfilled_row_carrying_a_suffix_still_resolves(self):
+        """
+        `populate_media_file_basename` copied the stored path's last segment
+        into the column, collision suffix included, so those rows need the same
+        `_without_suffix()` fallback as the ones holding nothing at all.
+        """
+
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': 'holiday.jpg'}, ['q1']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': 'holiday_MtYT6pg.jpg',
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_a_row_predating_the_column_still_resolves_on_its_path(self):
+        """
+        2,395,614 rows hold no `media_file_basename`, a set that cannot grow
+        since `save_attachments()` always populates it.
+        """
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': 'someuser/attachments/uuid/uuid/holiday_MtYT6pg.jpg',
+                'media_file_basename': None,
+            },
+            self.filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+    def test_a_decomposed_name_resolves_against_the_real_keys(self):
+        """
+        `get_valid_name()` drops combining marks, so a decomposed name survives
+        only in the forms `get_attachment_filenames_and_xpaths()` keys beside
+        the sanitized ones. Build the keys with it rather than by hand, so
+        dropping one of them shows up here.
+        """
+
+        decomposed = 'Guérisseur.jpg'
+        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
+            {'q1': decomposed}, ['q1']
+        )
+
+        question_xpath = self.asset.deployment._get_question_xpath(
+            {
+                'filename': f'someuser/attachments/uuid/uuid/{decomposed}',
+                'media_file_basename': decomposed,
+            },
+            filenames_and_xpaths,
+        )
+
+        assert question_xpath == 'q1'
+
+
+@ddt
+class TestOpenRosaDeploymentBackend(TestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        self.redis_server = fakeredis.FakeServer()
+        self.redis_client = fakeredis.FakeStrictRedis(server=self.redis_server)
+        self.asset = Asset.objects.create(
+            name='new', owner=User.objects.get(username='someuser')
+        )
+        self.asset.deploy(backend='openrosa')
+
+    def fake_enketo_redis_actions(self, data, enketo_id=None, encoded_enketo_id=None):
+        server_url = data['server_url']
+        server_url_stripped = server_url.lstrip('/')
+        form_id = data['form_id']
+        fake_enketo_id = enketo_id or ''.join(random.choices(string.ascii_letters, k=8))
+        fake_encoded_id = encoded_enketo_id or ''.join(
+            random.choices(string.ascii_letters, k=24)
+        )
+        url_key = f'or:{server_url},{form_id}'
+        id_key = f'id:{fake_enketo_id}'
+        self.redis_client.set(url_key, fake_enketo_id)
+        self.redis_client.hset(id_key, 'openRosaServer', server_url)
+        return {
+            'enketo_id': fake_enketo_id,
+            'single_once_url': f'{server_url_stripped}/single/{fake_encoded_id}',
+        }
+
+    def _add_common_patched_methods_to_context(
+        self, stack, enketo_id=None, encoded_enketo_id=None
+    ):
+        partial_kwargs = {}
+        if enketo_id is not None:
+            partial_kwargs['enketo_id'] = enketo_id
+        if encoded_enketo_id is not None:
+            partial_kwargs['encoded_enketo_id'] = encoded_enketo_id
+        side_effect = partial(self.fake_enketo_redis_actions, **partial_kwargs)
+        patched_redis = stack.enter_context(
+            patch(
+                'kpi.deployment_backends.openrosa_backend.get_redis_connection',
+                return_value=self.redis_client,
+            )
+        )
+        patched_enketo = stack.enter_context(
+            patch(
+                'kpi.deployment_backends.openrosa_backend.fetch_enketo_links',
+                side_effect=side_effect,
+            )
+        )
+        return patched_redis, patched_enketo
+
+    def _get_url_from_redis(self, enketo_id=None):
+        return self.redis_client.hget(f'id:{enketo_id}', 'openRosaServer').decode(
+            'utf-8'
+        )
+
+    def test_get_enketo_survey_links_caches_fetch_results(self):
+        with patch(
+            'kpi.deployment_backends.openrosa_backend.fetch_enketo_links',
+            side_effect=self.fake_enketo_redis_actions,
+        ) as patched_enketo:
+            self.asset.deployment.get_enketo_survey_links()
+            self.asset.deployment.get_enketo_survey_links()
+        patched_enketo.assert_called_once()
+
+    @override_settings(
+        KOBOCAT_URL='http://external_url/', KOBOCAT_INTERNAL_URL='https://internal_url/'
+    )
+    @data(
+        # require internal url, internal_url already set, requires auth, update redis?
+        (True, True, True, True),
+        (True, True, False, False),
+        (True, False, True, True),
+        (True, False, False, True),
+        (True, False, True, True),
+        (False, True, True, True),
+        (False, True, False, True),
+        (False, False, True, True),
+        (False, False, False, False),
+    )
+    @unpack
+    def test_get_enketo_survey_links_sets_internal_url_if_necessary(
+        self,
+        use_internal_url,
+        internal_url_already_set,
+        requires_auth,
+        expect_extra_redis_calls,
+    ):
+        xform = self.asset.deployment.xform
+        if internal_url_already_set:
+            self.asset.deployment.save_to_db({ENKETO_INTERNAL_URL_FLAG: True})
+        xform.require_auth = requires_auth
+        xform.save()
+        fake_enketo_id = '12345'
+        with ExitStack() as stack:
+            stack.enter_context(
+                override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=use_internal_url)
+            )
+            patched_redis, patched_enketo = self._add_common_patched_methods_to_context(
+                stack, enketo_id=fake_enketo_id
+            )
+            self.asset.deployment.get_enketo_survey_links()
+
+        if expect_extra_redis_calls:
+            expected_url_base = (
+                'https://internal_url' if use_internal_url else 'http://external_url'
+            )
+            expected_url_suffix = '' if requires_auth else '/someuser'
+            url = self._get_url_from_redis(enketo_id=fake_enketo_id)
+            assert url == f'{expected_url_base}{expected_url_suffix}'
+        else:
+            patched_redis.assert_not_called()
+
+    @override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=True)
+    @override_settings(
+        KOBOCAT_URL='http://external_url/', KOBOCAT_INTERNAL_URL='https://internal_url/'
+    )
+    def test_get_enketo_survey_links_logs_internal_urls_as_set(self):
+        self.asset.deployment.xform.require_auth = False
+        self.asset.deployment.xform.save()
+        fake_enketo_id = '12345'
+        with ExitStack() as stack:
+            self._add_common_patched_methods_to_context(stack, enketo_id=fake_enketo_id)
+            self.asset.deployment.get_enketo_survey_links()
+        url = self._get_url_from_redis(enketo_id=fake_enketo_id)
+        assert url == 'https://internal_url/someuser'
+        assert self.asset.deployment.get_data(ENKETO_INTERNAL_URL_FLAG) is True
+
+        with ExitStack() as stack:
+            patched_redis, _ = self._add_common_patched_methods_to_context(
+                stack, enketo_id=fake_enketo_id
+            )
+            self.asset.deployment.get_enketo_survey_links()
+        # next time we get links, we will not try to update the internal url
+        patched_redis.assert_not_called()
+
+    def test_get_enketo_survey_links_saves_encoded_id(self):
+        fake_enketo_id = '12345'
+        fake_encoded_enketo_id = 'LongEncodedId'
+        with ExitStack() as stack:
+            self._add_common_patched_methods_to_context(
+                stack,
+                enketo_id=fake_enketo_id,
+                encoded_enketo_id=fake_encoded_enketo_id,
+            )
+            self.asset.deployment.get_enketo_survey_links()
+        saved_enketo_id = self.asset.deployment.get_data('enketo_id')
+        saved_encoded_enketo_id = self.asset.deployment.get_data('encoded_enketo_id')
+        assert saved_enketo_id == fake_enketo_id
+        assert saved_encoded_enketo_id == fake_encoded_enketo_id
+
+    @override_settings(ENKETO_URL='http://enketo/')
+    def test_generate_enketo_links(self):
+        result = generate_enketo_links(enketo_id='12345', encoded_enketo_id='LongerId')
+        assert result['url'] == 'http://enketo/12345'
+        assert result['single_url'] == 'http://enketo/single/12345'
+        assert result['single_once_url'] == 'http://enketo/single/LongerId'
+        assert result['offline_url'] == 'http://enketo/x/12345'
+        assert result['preview_url'] == 'http://enketo/preview/12345'
+        assert result['iframe_url'] == 'http://enketo/i/12345'
+        assert result['single_iframe_url'] == 'http://enketo/single/i/12345'
+        assert result['single_once_iframe_url'] == 'http://enketo/single/i/LongerId'
+        assert result['preview_iframe_url'] == 'http://enketo/preview/i/12345'

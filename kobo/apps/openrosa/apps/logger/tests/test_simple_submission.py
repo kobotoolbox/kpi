@@ -153,12 +153,13 @@ class TestSimpleSubmission(TestCase):
     )
     def test_check_exceeded_limit_on_submission(self):
         with patch(
-            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
-            return_value=None,
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limits',
+            return_value={},
         ) as patched:
             self._submit_simple_yes()
-            patched.assert_any_call(self.user, UsageType.SUBMISSION)
-            patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
+            patched.assert_called_once_with(
+                self.user, [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]
+            )
 
     def test_parsed_instance_submitted_by_value(self):
         class MockRequest:

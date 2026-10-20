@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import transaction
@@ -9,7 +7,6 @@ from django.db.models import F, Q
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
-from kobo.apps.openrosa.apps.logger.utils.suspension import suspend_submissions
 from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.models import Asset, ImportTask, SubmissionExportTask
 from kpi.utils.log import logging
@@ -26,9 +23,8 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
     project_exports = []
 
     if asset.has_deployment:
-        with suspend_submissions(asset.owner) as heartbeat:
-            _delete_submissions(request_author, asset, heartbeat)
-            asset.deployment.delete()
+        _delete_submissions(request_author, asset)
+        asset.deployment.delete()
         project_exports = SubmissionExportTask.objects.filter(
             Q(data__source=f'{host}/api/v2/assets/{asset.uid}/')
             | Q(data__source=f'{host}/assets/{asset.uid}/')
@@ -66,7 +62,6 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
 def _delete_submissions(
     request_author: settings.AUTH_USER_MODEL,
     asset: 'kpi.Asset',
-    heartbeat: Callable[[], None],
 ):
 
     # Test if XForm is still valid
@@ -108,8 +103,6 @@ def _delete_submissions(
         # ^^^ End of dead code ^^^
 
     while True:
-        # Keep the owner's submissions suspended for as long as this loop runs
-        heartbeat()
         audit_logs = []
         submissions = list(
             asset.deployment.get_submissions(

@@ -2,7 +2,6 @@ import React from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { findRowByXpathOrLeafName } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
@@ -19,8 +18,7 @@ interface SidebarSubmissionMediaProps {
 }
 
 export default function SidebarSubmissionMedia({ asset, xpath, submission }: SidebarSubmissionMediaProps) {
-  // We need `asset` to proceed.
-  if (!asset?.content) {
+  if (!asset) {
     return null
   }
 
@@ -36,8 +34,9 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
     )
   }
 
-  // Attachment mimetype as fallback for questions the form no longer has.
-  const questionType = findRowByXpathOrLeafName(asset.content, xpath)?.type ?? inferAttachmentQuestionType(attachment)
+  // The file in hand decides how to show it; a question the form no longer has would
+  // otherwise get no player at all.
+  const questionType = inferAttachmentQuestionType(attachment)
 
   switch (questionType) {
     case QUESTION_TYPES.audio.id:

@@ -10,6 +10,7 @@ import { getSupplementalPathParts } from '#/components/processing/processingUtil
 import {
   DROPDOWN_FILTER_QUESTION_TYPES,
   EXCLUDED_COLUMNS,
+  EXCLUDED_ROW_TYPES,
   FILTER_EXACT_TYPES,
   LAST_COLUMNS_ORDER,
   SUBMISSION_ACTIONS_ID,
@@ -37,6 +38,42 @@ const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
   QUESTION_TYPES.video.id,
   QUESTION_TYPES.file.id,
 ])
+
+/**
+ * Builds a lookup from a Data Table column key to the survey row its cells take the question type,
+ * the choice labels and the media rendering from. Whole paths first; a column left from before its
+ * question moved falls back to a single namesake question.
+ */
+export function buildColumnRowFinder(survey: SurveyRow[]) {
+  // A fallback for rows too old to carry `$xpath`: keyed by name, so namesakes collide here.
+  const flatPaths = getSurveyFlatPaths(survey, true, true)
+  const rowsByPath = new Map<string, SurveyRow>()
+  // `undefined` marks a name several questions share, i.e. one to give up on.
+  const rowsByUniqueName = new Map<string, SurveyRow | undefined>()
+
+  for (const row of survey) {
+    const rowName = getRowName(row)
+    const rowPath = row.$xpath ?? flatPaths[rowName]
+    if (rowPath) {
+      rowsByPath.set(rowPath, row)
+    }
+    rowsByUniqueName.set(rowName, rowsByUniqueName.has(rowName) ? undefined : row)
+  }
+
+  return (columnKey: string): SurveyRow | undefined => {
+    const exactMatch = rowsByPath.get(columnKey)
+    if (exactMatch) {
+      return exactMatch
+    }
+
+    // No question sits at a supplemental path, so its leaf must not match one by name.
+    if (getSupplementalPathParts(columnKey).type !== null) {
+      return undefined
+    }
+
+    return rowsByUniqueName.get(columnKey.split('/').at(-1) ?? columnKey)
+  }
+}
 
 /**
  * Builds a human-readable Data Table column label
@@ -237,34 +274,34 @@ function hasNonEmptyValue(value: unknown): boolean {
 }
 
 /**
- * Checks which path(s) attachment metadata links a basename to.
+ * Checks which of the two paths this submission has an attachment filed under.
  *
- * Filename/value matches alone are unsafe for dedupe. We use
- * `_attachments.question_xpath` to confirm whether evidence points to no path,
- * one path, or both paths.
+ * Only `question_xpath` counts, as the back end recorded it. File names are no evidence:
+ * two questions can hold files of the same name, and a stored name need not match the
+ * response that named it.
  */
 function getAttachmentPathEvidence(
   submission: SubmissionResponse,
   legacyKey: string,
   currentPath: string,
-  basename: string,
-): 'none' | 'single' | 'both' {
+): 'none' | 'legacy-only' | 'both' {
   const matchingAttachments = (submission._attachments || []).filter(
     (attachment) =>
-      !attachment.is_deleted &&
-      attachment.media_file_basename === basename &&
-      (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
+      !attachment.is_deleted && (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
   )
 
   const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
   const hasCurrentPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === currentPath)
 
+  // A file on each path means two files, however alike the responses naming them look.
   if (hasLegacyPathAttachment && hasCurrentPathAttachment) {
     return 'both'
   }
 
-  if (hasLegacyPathAttachment || hasCurrentPathAttachment) {
-    return 'single'
+  // A file on the current path alone belongs to the current question and says nothing
+  // about the legacy response, which may well name a different file of the same name.
+  if (hasLegacyPathAttachment) {
+    return 'legacy-only'
   }
 
   return 'none'
@@ -276,6 +313,10 @@ function getAttachmentPathEvidence(
  * We only collapse stale/current columns when metadata strongly suggests they
  * are the same field. Any conflict (different values or evidence on both
  * paths) keeps the legacy column.
+ *
+ * The one file has to be filed under the legacy path, as that is the file the surviving
+ * column then renders in its place. Anything weaker risks dropping a column whose
+ * response names a file of its own.
  */
 export function shouldDropLegacyAttachmentColumn(
   submissions: SubmissionResponse[],
@@ -311,12 +352,12 @@ export function shouldDropLegacyAttachmentColumn(
         return false
       }
 
-      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath, String(legacyValue))
+      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath)
       if (evidence === 'both') {
         return false
       }
 
-      if (evidence === 'single') {
+      if (evidence === 'legacy-only') {
         hasMirroredAttachmentEvidence = true
       }
     }
@@ -343,7 +384,10 @@ function buildCurrentAttachmentPathsByLeaf(
     }
 
     const rowName = getRowName(row)
-    const currentPath = flatPaths[rowName]
+    // `flatPaths` is keyed by name, so namesake questions leave only one path there. Reading
+    // `$xpath` keeps them apart - without it, the dedupe below takes one namesake for the
+    // other's legacy leftover and drops its column.
+    const currentPath = row.$xpath ?? flatPaths[rowName]
     if (!currentPath) {
       return
     }
@@ -358,31 +402,34 @@ function buildCurrentAttachmentPathsByLeaf(
 }
 
 /**
- * Decides if a column should stay after stale attachment dedupe checks.
- *
- * Keeps `getAllDataColumns` readable by isolating the keep/drop decision for
- * one column, including safety checks for missing submissions and no matches.
+ * The columns that take over a legacy attachment column's data, or `undefined` when the
+ * column has to stay. Returns paths rather than a boolean so the table can tell a cell
+ * which other paths its column now stands for.
  */
-function shouldKeepColumnAfterAttachmentDedupe(
+function findColumnsReplacingLegacyAttachmentColumn(
   key: string,
   allColumns: string[],
   currentAttachmentPathsByLeaf: Map<string, string[]>,
   submissions?: SubmissionResponse[],
-): boolean {
+): string[] | undefined {
   const keyParts = key.split('/')
   const leafName = keyParts[keyParts.length - 1]
   const currentPaths = currentAttachmentPathsByLeaf.get(leafName)
 
   if (!currentPaths || currentPaths.includes(key)) {
-    return true
+    return undefined
   }
 
   const matchingCurrentPaths = currentPaths.filter((currentPath) => allColumns.includes(currentPath))
   if (matchingCurrentPaths.length === 0 || !submissions || submissions.length === 0) {
-    return true
+    return undefined
   }
 
-  return !shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)
+  if (!shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)) {
+    return undefined
+  }
+
+  return matchingCurrentPaths
 }
 
 /**
@@ -419,6 +466,21 @@ function moveBlockToFront(blocks: ColumnsBlock[], key: string) {
 }
 
 /**
+ * Whether this key's column holds metadata rather than a response to a form
+ * question. The name alone doesn't settle it - nothing reserves the meta question
+ * names, so an ordinary question called `today` is a form question like any other.
+ */
+function isMetadataKey(asset: AssetResponse, key: string): boolean {
+  const row = asset.content?.survey?.find((surveyRow) => getRowName(surveyRow) === key)
+
+  // No row leaves nothing to judge by, as the asset only carries its latest
+  // survey. Assume metadata, which such a key nearly always is: Back end's own
+  // property (e.g. `_id`), or a meta question switched off after some submissions
+  // came in. It does mis-file a deleted question named after a meta question.
+  return row === undefined || Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type)
+}
+
+/**
  * This is the single source of truth for the order of columns. Takes a list of
  * columns (keys) and returns a new list ordered as:
  *
@@ -442,14 +504,20 @@ export function orderColumns(asset: AssetResponse, columns: string[]): string[] 
   // Split off the tail columns, then sort them by their position in
   // `LAST_COLUMNS_ORDER` - whatever order they arrived in doesn't matter, which
   // is what lets us feed this function columns discovered from submission data.
-  const lastBlocks = allBlocks.filter((block) => LAST_COLUMNS_ORDER.includes(block[0]))
-  const blocks = allBlocks.filter((block) => !LAST_COLUMNS_ORDER.includes(block[0]))
+  const isTailBlock = (block: ColumnsBlock) => LAST_COLUMNS_ORDER.includes(block[0]) && isMetadataKey(asset, block[0])
+  const lastBlocks = allBlocks.filter(isTailBlock)
+  const blocks = allBlocks.filter((block) => !isTailBlock(block))
   lastBlocks.sort((blockA, blockB) => LAST_COLUMNS_ORDER.indexOf(blockA[0]) - LAST_COLUMNS_ORDER.indexOf(blockB[0]))
 
   // Each of these moves to the front, so the order of the calls is reversed:
   // `background-audio` goes last to end up first, then `start`, then `end`.
-  moveBlockToFront(blocks, META_QUESTION_TYPES.end)
-  moveBlockToFront(blocks, META_QUESTION_TYPES.start)
+  // `start` and `end` only move when they really are the meta questions.
+  if (isMetadataKey(asset, META_QUESTION_TYPES.end)) {
+    moveBlockToFront(blocks, META_QUESTION_TYPES.end)
+  }
+  if (isMetadataKey(asset, META_QUESTION_TYPES.start)) {
+    moveBlockToFront(blocks, META_QUESTION_TYPES.start)
+  }
   const backgroundAudioName = getBackgroundAudioQuestionName(asset)
   if (backgroundAudioName !== null) {
     moveBlockToFront(blocks, backgroundAudioName)
@@ -458,9 +526,21 @@ export function orderColumns(asset: AssetResponse, columns: string[]): string[] 
   return [...blocks, ...lastBlocks].flat()
 }
 
+export interface DataColumns {
+  /** The column keys, in the order Data Table shows them (see `orderColumns`). */
+  columns: string[]
+  /**
+   * The legacy xpaths each column absorbed, keyed by the column that survived the dedupe
+   * below. A question moved between groups gets one column, but a pre-move submission keeps
+   * its file under the old path, so a cell has to look under both. Empty for most columns.
+   */
+  legacyAttachmentPathsByColumn: Map<string, string[]>
+}
+
 /**
  * Returns a complete and unique list of columns (keys) that contain displayable
- * data that is useful for users.
+ * data that is useful for users, plus the legacy attachment paths the dedupe
+ * collapsed into them (see `DataColumns`).
  *
  * Gathers all possible columns based on asset survey definition and optionally
  * all the columns from provided submissions. Passing submissions is useful for
@@ -468,11 +548,11 @@ export function orderColumns(asset: AssetResponse, columns: string[]): string[] 
  *
  * NOTE: includes supplemental details columns (AKA processing columns).
  */
-export function getAllDataColumns(
+export function getAllDataColumnsWithAliases(
   asset: AssetResponse,
   submissions?: SubmissionResponse[],
   bulkActions?: BulkActionResponse[],
-) {
+): DataColumns {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -497,30 +577,41 @@ export function getAllDataColumns(
   // a non-empty overlapping value in at least one submission.
   const currentAttachmentPathsByLeaf = buildCurrentAttachmentPathsByLeaf(asset, flatPaths)
 
-  output = output.filter((key) =>
-    shouldKeepColumnAfterAttachmentDedupe(key, output, currentAttachmentPathsByLeaf, submissions),
-  )
+  const legacyAttachmentPathsByColumn = new Map<string, string[]>()
+  output = output.filter((key) => {
+    const replacingColumns = findColumnsReplacingLegacyAttachmentColumn(
+      key,
+      output,
+      currentAttachmentPathsByLeaf,
+      submissions,
+    )
+    if (replacingColumns === undefined) {
+      return true
+    }
 
-  // exclude notes
+    // This column is about to disappear, and the columns taking over have to find its files.
+    for (const replacingColumn of replacingColumns) {
+      legacyAttachmentPathsByColumn.set(replacingColumn, [
+        ...(legacyAttachmentPathsByColumn.get(replacingColumn) ?? []),
+        key,
+      ])
+    }
+    return false
+  })
+
+  // Drop the rows whose type never carries a response, by type rather than name,
+  // so an ordinary question named `audit` survives (see `EXCLUDED_ROW_TYPES`).
   output = output.filter((key) => {
     const foundPathKey = recordKeys(flatPaths).find((pathKey) => flatPaths[pathKey] === key)
 
-    // no path means this definitely is not a note type
+    // No path means this key is not a survey row, so it has no type to judge
     if (!foundPathKey) {
       return true
     }
 
-    const foundNoteRow = asset?.content?.survey?.find(
-      (row) =>
-        typeof foundPathKey !== 'undefined' && foundPathKey === getRowName(row) && row.type === QUESTION_TYPES.note.id,
-    )
+    const foundRow = asset?.content?.survey?.find((row) => foundPathKey === getRowName(row))
 
-    if (typeof foundNoteRow !== 'undefined') {
-      // filter out this row as this is a note type
-      return false
-    }
-
-    return true
+    return foundRow === undefined || !EXCLUDED_ROW_TYPES.includes(foundRow.type)
   })
 
   // exclude kobomatrix rows as data is not directly tied to them, but
@@ -560,15 +651,25 @@ export function getAllDataColumns(
   // Ordering happens here, at the very end, rather than in each consumer - that
   // way everything built on top of this function agrees on the order for free
   // (see `orderColumns`).
-  return orderColumns(asset, output)
+  return { columns: orderColumns(asset, output), legacyAttachmentPathsByColumn }
+}
+
+/** The column keys alone, for callers that list columns and render no cells. */
+export function getAllDataColumns(
+  asset: AssetResponse,
+  submissions?: SubmissionResponse[],
+  bulkActions?: BulkActionResponse[],
+): string[] {
+  return getAllDataColumnsWithAliases(asset, submissions, bulkActions).columns
 }
 
 /**
  * Returns a list of the metadata columns (keys) - i.e. the columns that are not
  * responses to the form questions:
  *
- * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `audit`) - only
- *    the ones that the form actually defines,
+ * 1. meta questions (the Form Builder checkboxes, e.g. `start`, `today`) - only
+ *    the ones that the form actually defines, and that carry a response worth
+ *    showing (`audit` doesn't, see `EXCLUDED_ROW_TYPES`),
  * 2. additional submission properties added by Back end (e.g. `_id`).
  *
  * We filter `getAllDataColumns` down instead of building a list of our own, so
@@ -589,7 +690,7 @@ export function getMetadataColumns(asset: AssetResponse, submissions?: Submissio
   // places: meta questions come from the form definition, while the additional
   // submission properties only ever show up in submission data.
   return getAllDataColumns(asset, submissions).filter(
-    (key) => metaRowNames.has(key) || LAST_COLUMNS_ORDER.includes(key),
+    (key) => metaRowNames.has(key) || (LAST_COLUMNS_ORDER.includes(key) && isMetadataKey(asset, key)),
   )
 }
 
@@ -668,8 +769,8 @@ export interface SelectResponseLabelOptions {
   /** All of the form's choices, not just the ones of this question's list. */
   choices: SurveyChoice[]
   /**
-   * Index into a choice `label` array. A negative one (the "Display XML Values"
-   * setting) matches no label, so every value comes back raw — but
+   * Index into a choice `label` array. A negative one (the "Question & choice
+   * names" setting) matches no label, so every value comes back raw — but
    * `select_multiple` values still get re-joined with commas, so callers that
    * need the response exactly as stored don't come here.
    */
@@ -744,4 +845,25 @@ export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
     }
   })
   return xpaths
+}
+
+/**
+ * How much of a response a one-line cell keeps. More than a column dragged across a 4K screen can fit (French prose
+ * measures about 6px a character at the Table's 13px), and well under the 10240 characters at which Safari gives up.
+ */
+export const CELL_PREVIEW_MAX_LENGTH = 1000
+
+/**
+ * Shortens a response to what a one-line, ellipsis-trimmed Data Table cell can show.
+ * Values that are not text pass through untouched.
+ */
+export function getCellPreviewText<T>(value: T): T {
+  if (typeof value !== 'string' || value.length <= CELL_PREVIEW_MAX_LENGTH) {
+    return value
+  }
+
+  const preview = value.slice(0, CELL_PREVIEW_MAX_LENGTH)
+  // Cutting a surrogate pair (how JavaScript stores a character that doesn't fit in 16 bits, e.g. an emoji) in half
+  // would leave a `�` as the last character.
+  return (/[\uD800-\uDBFF]$/.test(preview) ? preview.slice(0, -1) : preview) as T
 }

@@ -2053,6 +2053,7 @@ paths:
                       params:
                         language: en
                         locale: en-US
+                      auto_accept: true
                       progress: 66
                       created_by:
                         username: someuser
@@ -2086,6 +2087,7 @@ paths:
                         error: Google quota exceeded
                       params:
                         language: fr
+                      auto_accept: false
                       progress: 66
                       created_by:
                         username: someuser
@@ -2123,6 +2125,10 @@ paths:
         transcription, `params.locale` may also be supplied when a more specific Google
         Speech locale is needed.
 
+        `auto_accept` (boolean, optional, default `false`) controls review. When true,
+        each generated transcript or translation is accepted immediately upon
+        completion and needs no manual review.
+
         Creation is atomic. If any selected submission is unknown, already has matching
         results, or already has an active matching bulk action, no job or child items are
         created.
@@ -2154,9 +2160,11 @@ paths:
                   params:
                     language: en
                     locale: en-US
+                  auto_accept: true
                 summary: Bulk transcription job
                 description: Starts Google transcription for the selected audio question
-                  across the listed submissions. `locale` is optional.
+                  across the listed submissions. `locale` is optional. `auto_accept`
+                  accepts each generated result on completion.
               BulkTranslationJob:
                 value:
                   action_id: automatic_google_translation
@@ -2203,6 +2211,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 66
                     created_by:
                       username: someuser
@@ -2235,6 +2244,7 @@ paths:
                       error: Google quota exceeded
                     params:
                       language: fr
+                    auto_accept: false
                     progress: 66
                     created_by:
                       username: someuser
@@ -2266,6 +2276,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 66
                     created_by:
                       username: someuser
@@ -2363,6 +2374,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 66
                     created_by:
                       username: someuser
@@ -2392,6 +2404,7 @@ paths:
                       error: Google quota exceeded
                     params:
                       language: fr
+                    auto_accept: false
                     progress: 66
                     created_by:
                       username: someuser
@@ -2491,6 +2504,7 @@ paths:
                     params:
                       language: en
                       locale: en-US
+                    auto_accept: true
                     progress: 100
                     created_by:
                       username: someuser
@@ -2523,6 +2537,7 @@ paths:
                       error: Google quota exceeded
                     params:
                       language: fr
+                    auto_accept: false
                     progress: 100
                     created_by:
                       username: someuser
@@ -8517,6 +8532,7 @@ paths:
         - Features configurations (MFA, password entropy meter, custom guidance text).
         - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
         - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+        - Pagination behaviour (row limit past which list counts are capped).
       tags:
       - Configuration
       security:
@@ -15598,7 +15614,10 @@ components:
             languages:
               type: array
               items:
-                type: string
+                type:
+                - string
+                - 'null'
+                nullable: true
             row_count:
               type: integer
             name_quality:
@@ -16266,6 +16285,14 @@ components:
           readOnly: true
         data_sharing:
           type: object
+          properties:
+            enabled:
+              type: boolean
+            fields:
+              type: array
+              items:
+                type: string
+          additionalProperties: false
         paired_data:
           type: string
           format: uri
@@ -17215,6 +17242,10 @@ components:
             type: string
         params:
           $ref: '#/components/schemas/BulkActionParamsRequest'
+        auto_accept:
+          type: boolean
+          default: false
+          description: Automatically accept generated results upon completion.
       required:
       - action_id
       - params
@@ -17241,6 +17272,8 @@ components:
             $ref: '#/components/schemas/BulkActionSubmissionStatusResponse'
         params:
           $ref: '#/components/schemas/BulkActionParamsResponse'
+        auto_accept:
+          type: boolean
         progress:
           type: integer
           maximum: 100
@@ -17263,6 +17296,7 @@ components:
             type: string
       required:
       - action_id
+      - auto_accept
       - created_by
       - date_created
       - date_modified
@@ -17338,6 +17372,8 @@ components:
             $ref: '#/components/schemas/BulkActionSubmissionStatusResponse'
         params:
           $ref: '#/components/schemas/BulkActionParamsResponse'
+        auto_accept:
+          type: boolean
         progress:
           type: integer
           maximum: 100
@@ -17356,6 +17392,7 @@ components:
           - type: 'null'
       required:
       - action_id
+      - auto_accept
       - created_by
       - date_created
       - date_modified
@@ -18496,6 +18533,10 @@ components:
           type: string
           format: uri
           description: The OpenRosa server URL (KC)
+        limited_count_max_rows:
+          type: integer
+          description: 'Row limit past which paginated endpoints using capped counting
+            report `count: ''many''`. Clients can label such counts as "{limit}+"'
       required:
       - academy_url
       - allow_self_account_deletion
@@ -18510,6 +18551,7 @@ components:
       - frontend_max_retry_time
       - frontend_min_retry_time
       - interface_languages
+      - limited_count_max_rows
       - mfa_code_length
       - mfa_enabled
       - mfa_localized_help_text
@@ -19634,6 +19676,8 @@ components:
               type: string
             name:
               type: string
+            gender:
+              type: string
             sector:
               type: string
             country:
@@ -19657,7 +19701,7 @@ components:
             require_auth:
               type: boolean
             newsletter_subscription:
-              type: string
+              type: boolean
         git_rev:
           oneOf:
           - type: boolean
@@ -20104,14 +20148,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20131,14 +20175,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20158,14 +20202,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20214,14 +20258,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20241,14 +20285,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20268,14 +20312,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20295,14 +20339,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20318,14 +20362,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20345,14 +20389,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20372,14 +20416,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20399,14 +20443,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20426,14 +20470,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20453,14 +20497,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20480,14 +20524,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20507,14 +20551,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20534,14 +20578,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20561,14 +20605,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20588,14 +20632,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20615,14 +20659,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20642,14 +20686,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20669,14 +20713,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20696,14 +20740,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20723,14 +20767,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20750,14 +20794,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20777,14 +20821,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20804,14 +20848,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20831,14 +20875,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20854,14 +20898,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20881,14 +20925,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20908,14 +20952,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20935,14 +20979,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -20962,14 +21006,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21045,14 +21089,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21072,14 +21116,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21095,14 +21139,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21122,14 +21166,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21149,14 +21193,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21176,14 +21220,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21203,14 +21247,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21226,14 +21270,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21253,14 +21297,14 @@ components:
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
         previous:
           type:
           - string
           - 'null'
           nullable: true
           format: uri
-          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
         results:
           type: array
           items:
@@ -21409,6 +21453,8 @@ components:
               type: string
             name:
               type: string
+            gender:
+              type: string
             sector:
               type: string
             country:
@@ -21432,7 +21478,7 @@ components:
             require_auth:
               type: boolean
             newsletter_subscription:
-              type: string
+              type: boolean
         current_password:
           type: string
           writeOnly: true
@@ -25357,6 +25403,10 @@ components:
           $ref: '#/components/schemas/Email'
         username:
           $ref: '#/components/schemas/Username'
+        newsletter_subscription:
+          type: boolean
+        terms_of_service:
+          type: boolean
       required:
       - email
       - username
@@ -25646,10 +25696,16 @@ components:
           description: The username.
           example: wizard
           type: string
+        has_validated_password:
+          description: Whether the account password is valid. An administrator can
+            invalidate it, setting this to false and restricting the account.
+          example: true
+          type: boolean
       required:
       - display
       - has_usable_password
       - username
+      - has_validated_password
     BaseAuthenticator:
       type: object
       properties:
@@ -25888,6 +25944,7 @@ components:
         email: email@domain.org
         has_usable_password: true
         username: wizard
+        has_validated_password: true
     AuthenticatedByPassword:
       summary: |
         Authenticated by password.
@@ -25900,6 +25957,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: password
             at: 1711555057.065702
@@ -25920,6 +25978,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: code
             at: 1711555057.065702
@@ -25940,6 +25999,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: password
             at: 1711555057.065702
@@ -26157,6 +26217,7 @@ components:
             email: email@domain.org
             has_usable_password: true
             username: wizard
+            has_validated_password: true
           methods:
           - method: password
             at: 1711555057.065702
@@ -26704,6 +26765,7 @@ components:
                     email: email@domain.org
                     has_usable_password: true
                     username: wizard
+                    has_validated_password: true
                   methods:
                   - method: password
                     at: 1711555057.065702

@@ -125,10 +125,12 @@ describe('translations hack', () => {
         translations: ['Francais (fr)', 'Polski (pl)'],
         translated: ['label'],
       }
+      // Formbuilder renders the first slot, so the imported default label stands in for the
+      // language the survey doesn't have. It used to get the question name instead.
       const target = {
         survey: [
           {
-            label: ['welcome_message', 'Allo', 'Cześć'],
+            label: ['Allo', 'Allo', 'Cześć'],
             name: 'welcome_message',
           },
         ],
@@ -140,12 +142,12 @@ describe('translations hack', () => {
       )
     })
 
-    it('should add null language if base survey has no translations but survey does', () => {
+    it('should fall back to the row name when the imported default language value is empty', () => {
       const test = {
-        baseSurvey: { _initialParams: {} },
+        baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
         survey: [
           {
-            label: ['Allo', 'Cześć'],
+            label: [null, 'Cześć'],
             name: 'welcome_message',
           },
         ],
@@ -155,15 +157,123 @@ describe('translations hack', () => {
       const target = {
         survey: [
           {
-            label: ['welcome_message', 'Allo', 'Cześć'],
+            label: ['welcome_message', null, 'Cześć'],
             name: 'welcome_message',
           },
         ],
         translations: [null, 'Francais (fr)', 'Polski (pl)'],
+        translations_0: 'English (en)',
       }
       expect(nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)).to.deep.equal(
         target,
       )
+    })
+
+    it('should drop translations the base survey cannot hold when it has no language of its own', () => {
+      // A form with no named language keeps its labels in the unprefixed `label` column.
+      // Adding named ones beside it would leave an unnamed language among named ones,
+      // which this function refuses to load, so only the imported default stays.
+      const test = {
+        baseSurvey: { _initialParams: {} },
+        survey: [
+          {
+            label: ['Allo', 'Cześć'],
+            name: 'welcome_message',
+          },
+        ],
+        choices: [{ list_name: 'greetings', name: 'hi', label: ['Salut', 'Cześć'] }],
+        translations: ['Francais (fr)', 'Polski (pl)'],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [
+          {
+            label: ['Allo'],
+            name: 'welcome_message',
+          },
+        ],
+        choices: [{ list_name: 'greetings', name: 'hi', label: ['Salut'] }],
+        translations: [null],
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey, test.choices),
+      ).to.deep.equal(target)
+    })
+
+    it('should drop translations for a single named language too when base survey has none', () => {
+      const test = {
+        baseSurvey: { _initialParams: {} },
+        survey: [{ label: ['Allo'], name: 'welcome_message' }],
+        translations: ['Francais (fr)'],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [{ label: ['Allo'], name: 'welcome_message' }],
+        translations: [null],
+      }
+      expect(nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)).to.deep.equal(
+        target,
+      )
+    })
+
+    it("should leave a survey without its own language alone, whatever the base survey's default is", () => {
+      const test = {
+        baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
+        survey: [{ label: ['Hello'], name: 'welcome_message' }],
+        translations: [null],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [{ label: ['Hello'], name: 'welcome_message' }],
+        translations: [null],
+      }
+      expect(nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)).to.deep.equal(
+        target,
+      )
+    })
+
+    it('should reorder choices alongside the survey', () => {
+      const test = {
+        baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
+        survey: [{ label: ['Allo', 'Hello'], name: 'welcome_message' }],
+        choices: [
+          { list_name: 'fruits', name: 'apple', label: ['Pomme', 'Apple'] },
+          { list_name: 'fruits', name: 'pear', label: ['Poire', 'Pear'] },
+        ],
+        translations: ['Francais (fr)', 'English (en)'],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [{ label: ['Hello', 'Allo'], name: 'welcome_message' }],
+        choices: [
+          { list_name: 'fruits', name: 'apple', label: ['Apple', 'Pomme'] },
+          { list_name: 'fruits', name: 'pear', label: ['Pear', 'Poire'] },
+        ],
+        translations: [null, 'Francais (fr)'],
+        translations_0: 'English (en)',
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey, test.choices),
+      ).to.deep.equal(target)
+    })
+
+    it("should pad choices alongside the survey when the base survey's default language is missing", () => {
+      const test = {
+        baseSurvey: { _initialParams: { translations_0: 'Deutsch (de)' } },
+        survey: [{ label: ['Allo', 'Cześć'], name: 'welcome_message' }],
+        choices: [{ list_name: 'fruits', name: 'apple', label: ['Pomme', 'Jabłko'] }],
+        translations: ['Francais (fr)', 'Polski (pl)'],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [{ label: ['Allo', 'Allo', 'Cześć'], name: 'welcome_message' }],
+        choices: [{ list_name: 'fruits', name: 'apple', label: ['Pomme', 'Pomme', 'Jabłko'] }],
+        translations: [null, 'Francais (fr)', 'Polski (pl)'],
+        translations_0: 'Deutsch (de)',
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey, test.choices),
+      ).to.deep.equal(target)
     })
 
     it('should do nothing if neither base survey nor survey have translations', () => {
