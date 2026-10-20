@@ -9687,6 +9687,45 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/:
+    post:
+      operationId: api_v2_organizations_ownership_transfers_create
+      description: |-
+        ViewSet for initiating organization ownership transfers.
+
+        Available actions:
+        - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+      parameters:
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:
       operationId: api_v2_organizations_service_usage_retrieve
@@ -19826,9 +19865,19 @@ components:
           oneOf:
           - $ref: '#/components/schemas/InviteResponse'
           - type: 'null'
+        pending_transfer:
+          type:
+          - boolean
+          - 'null'
+        billing_review_requested:
+          type:
+          - boolean
+          - 'null'
       required:
+      - billing_review_requested
       - date_joined
       - invite
+      - pending_transfer
       - role
       - url
       - user
@@ -19982,6 +20031,52 @@ components:
       - accept
       type: string
       description: '* `accept` - accept'
+    OrganizationOwnershipTransfer:
+      type: object
+      properties:
+        guid:
+          type: string
+          format: uuid
+          readOnly: true
+        organization_id:
+          type: string
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        sender:
+          type: string
+          readOnly: true
+        recipient:
+          type: string
+          writeOnly: true
+        recipient_username:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/InviteStatusChoicesEnum'
+          readOnly: true
+        billing_review_requested:
+          type: boolean
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created
+      - guid
+      - modified
+      - organization_id
+      - organization_name
+      - recipient
+      - recipient_username
+      - sender
+      - status
     OrganizationResponse:
       type: object
       properties:
