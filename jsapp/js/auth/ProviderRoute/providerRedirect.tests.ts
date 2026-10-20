@@ -1,9 +1,22 @@
 import chai from 'chai'
-import { getProviderCallbackUrl, getProviderRedirectErrorMessage, readProviderRedirectError } from './providerRedirect'
+import {
+  getAbsoluteHashUrl,
+  getProviderCallbackUrl,
+  getProviderRedirectErrorMessage,
+  readProviderRedirectError,
+} from './providerRedirect'
 
 /** What `ROOT_URL` looks like on an instance behind `KPI_PREFIX`, which is the case worth pinning down. */
 const PREFIXED_ROOT = 'https://kf.example.org/kpi'
 const NEXT_ENCODED = '%2F%23%2Fprojects%2Fhome'
+
+describe('getAbsoluteHashUrl', () => {
+  it('keeps the deployment prefix, which the bare origin would drop', () => {
+    chai
+      .expect(getAbsoluteHashUrl('/account/security', '', PREFIXED_ROOT))
+      .to.equal('https://kf.example.org/kpi/#/account/security')
+  })
+})
 
 describe('getProviderCallbackUrl', () => {
   it('keeps the deployment prefix, which the bare origin would drop', () => {

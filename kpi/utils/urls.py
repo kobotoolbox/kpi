@@ -61,15 +61,38 @@ def versioned_reverse(
     request=None,
     **extra,
 ) -> str:
+    """
+    Reverse a URL of the API and always return an absolute URL.
+
+    DRF `reverse()` only returns an absolute URL when it receives a request,
+    and it prepends `request.version` to the view name. That fails in two
+    cases this function handles:
+
+    - No request (Celery tasks, exports): the view name is resolved in the
+      default API namespace and prefixed with `KOBOFORM_URL`.
+    - `url_namespace` is given: the namespace is forced, whatever the version
+      of the request is. Some endpoints (e.g. OpenRosa ones, whose version is
+      `openrosa`) would otherwise build `openrosa:api_v2:...`, which does not
+      exist. The request is not passed to `reverse()`, but its host is still
+      used, so a caller that reaches KPI through the internal network (e.g.
+      Enketo) gets internal URLs back. Without a request, `KOBOFORM_URL` is
+      used.
+
+    Otherwise, DRF `reverse()` is called with the request as usual.
+    """
 
     if 'url_namespace' in extra:
         url_namespace = extra.pop('url_namespace', None)
         *_, viewname = viewname.split(':')
         url_namespace = f'{url_namespace}:' if url_namespace else ''
         viewname = f'{url_namespace}{viewname}'
-        return settings.KOBOFORM_URL + reverse(
-            viewname, args=args, kwargs=kwargs, **extra
-        )
+        # Do not pass `request` to `reverse()`, its version would be prepended
+        # to the namespace. Use its host instead, so that a call made through
+        # the internal network gets internal URLs back.
+        path = reverse(viewname, args=args, kwargs=kwargs, **extra)
+        if request:
+            return request.build_absolute_uri(path)
+        return settings.KOBOFORM_URL + path
 
     if not request or not getattr(request, 'version', None):
         viewname = f"{API_NAMESPACES['default']}:{viewname}"
