@@ -236,8 +236,9 @@ export const PendingOwnerTransfer: Story = {
 
     // Actions menu shows transfer-specific items
     await userEvent.click(within(mattRow).getByRole('button'))
-    await canvas.findByText('Resend invitation')
-    expect(canvas.getByText('Cancel invitation')).toBeInTheDocument()
+    const page = within(canvasElement.ownerDocument.body)
+    await page.findByText('Resend invitation')
+    expect(page.getByText('Cancel invitation')).toBeInTheDocument()
   },
 }
 
