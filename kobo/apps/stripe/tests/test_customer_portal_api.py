@@ -1,9 +1,11 @@
 from unittest.mock import patch
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product, Subscription
+from djstripe.settings import djstripe_settings
 from model_bakery import baker
 from rest_framework import status
 
@@ -217,6 +219,11 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         assert data['url'] == 'https://billing.stripe.com/p/session/test_YWNjdF8x'
         assert data['billing_cycle_info']['status'] == 'active'
         assert data['billing_cycle_info']['billing_cycle_anchor'] is not None
+        session_create.assert_called_once_with(
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            customer=self.customer.id,
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
+        )
 
     def test_get_billing_details_for_canceled_subscription(
         self, create_config, list_config, session_create, get_customer
@@ -241,6 +248,11 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         assert response.data['billing_cycle_info']['status'] == 'canceled'
         assert (
             response.data['url'] == 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        )
+        session_create.assert_called_once_with(
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            customer=self.customer.id,
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
         )
 
     def test_get_billing_details_forbidden_for_non_owner(
