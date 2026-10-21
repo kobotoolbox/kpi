@@ -142,8 +142,8 @@ class TestInstanceCreation(TestCase):
                 increase_num_of_submissions=True,
             )
 
-        # Increase only attachment storage bytes
-        with self.assertNumQueries(2):
+        # Increase only attachment storage bytes. Only the XForm counts storage
+        with self.assertNumQueries(1):
             update_user_counters(instance, self.user.pk, attachment_storage_bytes=1)
 
         # Increase only the number of submissions

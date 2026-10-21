@@ -2950,6 +2950,7 @@
                                                         "language": "en",
                                                         "locale": "en-US"
                                                     },
+                                                    "auto_accept": true,
                                                     "progress": 66,
                                                     "created_by": {
                                                         "username": "someuser"
@@ -2998,6 +2999,7 @@
                                                     "params": {
                                                         "language": "fr"
                                                     },
+                                                    "auto_accept": false,
                                                     "progress": 66,
                                                     "created_by": {
                                                         "username": "someuser"
@@ -3037,7 +3039,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_create",
-                "description": "## Create a bulk processing job\n\nCreates and starts a bulk processing job for one question across multiple\nsubmissions.\n\nSupported actions:\n\n* `automatic_google_transcription`\n* `automatic_google_translation`\n\nThe request must include the target `question_xpath`, the submission root UUIDs\nto process, and deterministic `params`. `params.language` is required. For\ntranscription, `params.locale` may also be supplied when a more specific Google\nSpeech locale is needed.\n\nCreation is atomic. If any selected submission is unknown, already has matching\nresults, or already has an active matching bulk action, no job or child items are\ncreated.\n\nThe response is the created job. Its initial status is `in_progress` because\ncreation immediately starts background processing.\n",
+                "description": "## Create a bulk processing job\n\nCreates and starts a bulk processing job for one question across multiple\nsubmissions.\n\nSupported actions:\n\n* `automatic_google_transcription`\n* `automatic_google_translation`\n\nThe request must include the target `question_xpath`, the submission root UUIDs\nto process, and deterministic `params`. `params.language` is required. For\ntranscription, `params.locale` may also be supplied when a more specific Google\nSpeech locale is needed.\n\n`auto_accept` (boolean, optional, default `false`) controls review. When true,\neach generated transcript or translation is accepted immediately upon\ncompletion and needs no manual review.\n\nCreation is atomic. If any selected submission is unknown, already has matching\nresults, or already has an active matching bulk action, no job or child items are\ncreated.\n\nThe response is the created job. Its initial status is `in_progress` because\ncreation immediately starts background processing.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3070,10 +3072,11 @@
                                         "params": {
                                             "language": "en",
                                             "locale": "en-US"
-                                        }
+                                        },
+                                        "auto_accept": true
                                     },
                                     "summary": "Bulk transcription job",
-                                    "description": "Starts Google transcription for the selected audio question across the listed submissions. `locale` is optional."
+                                    "description": "Starts Google transcription for the selected audio question across the listed submissions. `locale` is optional. `auto_accept` accepts each generated result on completion."
                                 },
                                 "BulkTranslationJob": {
                                     "value": {
@@ -3143,6 +3146,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3186,6 +3190,7 @@
                                             "params": {
                                                 "language": "fr"
                                             },
+                                            "auto_accept": false,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3229,6 +3234,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3364,6 +3370,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3405,6 +3412,7 @@
                                             "params": {
                                                 "language": "fr"
                                             },
+                                            "auto_accept": false,
                                             "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3531,6 +3539,7 @@
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "auto_accept": true,
                                             "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
@@ -3575,6 +3584,7 @@
                                             "params": {
                                                 "language": "fr"
                                             },
+                                            "auto_accept": false,
                                             "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
@@ -11470,7 +11480,7 @@
         "/api/v2/environment/": {
             "get": {
                 "operationId": "api_v2_environment_retrieve",
-                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
+                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n- Pagination behaviour (row limit past which list counts are capped).\n",
                 "tags": [
                     "Configuration"
                 ],
@@ -23819,6 +23829,11 @@
                     },
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsRequest"
+                    },
+                    "auto_accept": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Automatically accept generated results upon completion."
                     }
                 },
                 "required": [
@@ -23858,6 +23873,9 @@
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsResponse"
                     },
+                    "auto_accept": {
+                        "type": "boolean"
+                    },
                     "progress": {
                         "type": "integer",
                         "maximum": 100,
@@ -23893,6 +23911,7 @@
                 },
                 "required": [
                     "action_id",
+                    "auto_accept",
                     "created_by",
                     "date_created",
                     "date_modified",
@@ -24001,6 +24020,9 @@
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsResponse"
                     },
+                    "auto_accept": {
+                        "type": "boolean"
+                    },
                     "progress": {
                         "type": "integer",
                         "maximum": 100,
@@ -24030,6 +24052,7 @@
                 },
                 "required": [
                     "action_id",
+                    "auto_accept",
                     "created_by",
                     "date_created",
                     "date_modified",
@@ -25664,6 +25687,10 @@
                         "type": "string",
                         "format": "uri",
                         "description": "The OpenRosa server URL (KC)"
+                    },
+                    "limited_count_max_rows": {
+                        "type": "integer",
+                        "description": "Row limit past which paginated endpoints using capped counting report `count: 'many'`. Clients can label such counts as \"{limit}+\""
                     }
                 },
                 "required": [
@@ -25680,6 +25707,7 @@
                     "frontend_max_retry_time",
                     "frontend_min_retry_time",
                     "interface_languages",
+                    "limited_count_max_rows",
                     "mfa_code_length",
                     "mfa_enabled",
                     "mfa_localized_help_text",

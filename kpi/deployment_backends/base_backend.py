@@ -16,6 +16,8 @@ from django.core.exceptions import PermissionDenied, SuspiciousFileOperation
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from redis import Redis
+from redis.client import Pipeline
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
@@ -39,7 +41,9 @@ from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.django_orm_helper import (
+    UpdateJSONFieldAttributes,
+)
 from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
@@ -459,7 +463,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def rename_enketo_id_key(
-        self, previous_owner_username: str, project_identifier: str = None
+        self,
+        previous_owner_username: str,
+        project_identifier: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
         pass
 
@@ -503,7 +510,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None
+        self,
+        require_auth: bool,
+        enketo_id: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
         pass
 
@@ -573,6 +583,12 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
+        pass
+
+    @abc.abstractmethod
+    def transfer_enketo_links(
+        self, previous_owner_username: str, project_identifier: str
+    ):
         pass
 
     @abc.abstractmethod

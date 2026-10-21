@@ -3,7 +3,10 @@ import { http, HttpResponse } from 'msw'
 import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import type { SocialApp } from '#/api/models/socialApp'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
+import { ROOT_URL } from '#/constants'
 import {
   LOGIN_URL,
   allauthConfigurationMock,
@@ -15,7 +18,7 @@ import {
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import { AUTH_ROUTES, PATHS, ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
 import LoginRoute from './LoginRoute'
 
@@ -26,6 +29,26 @@ const CREDENTIALS = {
 }
 
 const environmentMock = makeEnvironmentMock()
+
+/** Two public providers, as `/environment` lists them, with `provider_id` set as an instance would set it. */
+const socialApps: SocialApp[] = [
+  {
+    provider: 'gitlab',
+    name: 'GitLab',
+    client_id: 'gitlab-client-id',
+    provider_id: 'gitlab-dev',
+    managed: false,
+    domains: [],
+  },
+  {
+    provider: 'openid_connect',
+    name: 'Example Organization',
+    client_id: 'example-client-id',
+    provider_id: 'example-org',
+    managed: true,
+    domains: ['kbtdev.org'],
+  },
+]
 
 /** Where {@link loginRecordingMock} leaves the body it saw, for a story to check the keys of. */
 let postedCredentials: unknown = null
@@ -95,12 +118,10 @@ const meta: Meta<typeof AuthContainer> = {
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
-
-/** Resolves once allauth's settings have settled one way or the other: the button spins until they have. */
+/**
+ * Resolves once allauth's settings have settled one way or the other: the button spins until they have, so
+ * nobody posts a credential under a key the server does not read.
+ */
 const waitForConfiguration = (canvas: Canvas) =>
   waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
 
@@ -123,10 +144,34 @@ export const Default: Story = {
     expect(field(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
     expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
 
-    // Still the Django screen: the redesign lands in DEV-1852.
-    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', PATHS.RESET)
-    // A router link, so signing up does not reload the page.
-    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.REGISTER)
+    // Both router links, so neither recovery nor signing up reloads the page.
+    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
+    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.SIGNUP)
+
+    // No `social_apps`, so no single sign-on section at all - not an empty divider with nothing under it.
+    expect(canvas.queryByText('or')).not.toBeInTheDocument()
+  },
+}
+
+/** A server with single sign-on configured: one button per public provider, under the credentials. */
+export const SingleSignOnProviders: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialApps }) }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // `findBy`, not `getBy`: the buttons arrive with `/environment` rather than with the form.
+    const gitlabButton = await canvas.findByRole('button', { name: 'Log in with GitLab' })
+    await canvas.findByRole('button', { name: 'Log in with Example Organization' })
+    // Separated from the credentials, which still work. Waited for rather than asserted: the providers come
+    // from `/environment` and the credential from allauth's settings, so either request may land first.
+    await canvas.findByText('or')
+    await waitForConfiguration(canvas)
+
+    // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
+    // `provider_id`, not its `provider` kind.
+    const form = gitlabButton.closest('form')
+    expect(form).toHaveAttribute('action', `${ROOT_URL}/api/v2/allauth/browser/v1/auth/provider/redirect`)
+    expect(form?.querySelector('input[name="provider"]')).toHaveValue('gitlab-dev')
   },
 }
 
@@ -331,6 +376,7 @@ export const AlreadyLoggedIn: Story = {
 
     await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
     // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', '/')
+    const appRoot = `${window.location.origin}/`
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', appRoot)
   },
 }

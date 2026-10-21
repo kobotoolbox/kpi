@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
@@ -441,6 +442,7 @@ export const environmentResponse = {
   stripe_public_key: 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM',
   terms_of_service__sitewidemessage__exists: false,
   open_rosa_server: 'http://kc.kobo.local',
+  limited_count_max_rows: 100000000,
   allow_self_account_deletion: true,
   // `satisfies` rather than a type annotation: still fails the build when the generated model gains
   // or renames a field, but keeps the literal's exact types for anyone reading values off it.
@@ -456,6 +458,15 @@ export const environmentResponse = {
  */
 export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
   getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
+
+export const makeAuthConfigurationMock = (
+  authConfiguration: Partial<AuthConfiguration>,
+  override?: Partial<EnvironmentResponse>,
+) =>
+  makeEnvironmentMock({
+    ...override,
+    auth_configuration: { ...environmentResponse.auth_configuration, ...authConfiguration },
+  })
 
 /**
  * A `/environment` that fails every time, for screens that have to cope without it. The URL pattern is the

@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { runInAction } from 'mobx'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { AccountFieldsValues } from '#/account/account.constants'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'
+import { type Canvas, field } from '#/auth/authStoryHelpers'
 import { meUpdateErrorsMock, meUpdateSuccessMock } from '#/endpoints/me.mocks'
-import envStore, { type UserMetadataField } from '#/envStore'
+import type { UserMetadataField } from '#/envStore'
+import { seedEnvStore } from '#/envStore.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import ProfileDetailsScreen from './ProfileDetailsScreen'
 import type { ProfileFieldsContext } from './profileDetails.utils'
@@ -42,29 +43,10 @@ const EVERY_FIELD: UserMetadataField[] = [
 ]
 
 /**
- * `envStore` is what `AccountFieldsEditor` reads its labels and required markers out of, so a story's
- * configuration has to be seeded there as well as passed in through `fieldsContext`.
- *
- * The wait is not optional: `envStore` fires a one-shot `fetchData()` on import that resolves against the
- * globally registered `/environment` mock and overwrites `user_metadata_fields`. Seeding before that lands
- * gets clobbered mid-render.
+ * `AccountFieldsEditor` reads its labels and required markers out of `envStore`, so a story's configuration
+ * goes there as well as into `fieldsContext`.
  */
-const seedUserMetadataFields = (fields: UserMetadataField[]) => async () => {
-  await waitFor(() => expect(envStore.isReady).toBe(true)).catch(() => {})
-
-  const original = { isReady: envStore.isReady, fields: envStore.data.user_metadata_fields }
-  runInAction(() => {
-    envStore.isReady = true
-    envStore.data.user_metadata_fields = fields
-  })
-
-  return () => {
-    runInAction(() => {
-      envStore.isReady = original.isReady
-      envStore.data.user_metadata_fields = original.fields
-    })
-  }
-}
+const seedUserMetadataFields = (user_metadata_fields: UserMetadataField[]) => seedEnvStore({ user_metadata_fields })
 
 /** Keeps `fieldsContext` and the seeded store from drifting apart, which would show up as missing labels. */
 const fieldsContextFor = (fields: UserMetadataField[], isMmoMember = false): ProfileFieldsContext => ({
@@ -99,11 +81,6 @@ const meta: Meta<typeof ProfileDetailsScreen> = {
 
 export default meta
 type Story = StoryObj<typeof ProfileDetailsScreen>
-
-type Canvas = ReturnType<typeof within>
-
-/** Finds an input by its label, which carries a required marker we don't want to spell out every time. */
-const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
 /** Resolves once the form is on screen, which needs both `envStore` and the first render. */
 const waitForForm = (canvas: Canvas) => canvas.findByRole('button', { name: 'Continue' })

@@ -17,4 +17,6 @@ export interface BulkActionCreateRequest {
   question_xpath: string
   submission_uuids: string[]
   params: BulkActionParamsRequest
+  /** Automatically accept generated results upon completion. */
+  auto_accept?: boolean
 }

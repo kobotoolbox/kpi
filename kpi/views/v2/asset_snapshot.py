@@ -19,6 +19,7 @@ from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
+from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -48,7 +49,7 @@ from kpi.schema_extensions.v2.openrosa.serializers import (
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
-from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.enketo_utils import rewrite_internal_url_to_external
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -437,10 +438,13 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             data = {
-                'server_url': reverse(
-                    viewname='assetsnapshot-detail',
-                    kwargs={'uid_asset_snapshot': snapshot.uid},
-                    request=request,
+                'server_url': to_internal_or_external_url(
+                    reverse(
+                        viewname='assetsnapshot-detail',
+                        kwargs={'uid_asset_snapshot': snapshot.uid},
+                        request=request,
+                    ),
+                    openrosa=False,
                 ),
                 'form_id': snapshot.uid,
             }
@@ -448,23 +452,17 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
             # Use Enketo API to create preview instead of `preview?form=`,
             # which does not load any form media files.
             response = requests.post(
-                f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
+                f'{settings.ENKETO_INTERNAL_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
 
-            # Ask Celery to remove the preview from its XSLT cache after some
-            # reasonable delay; see
-            # https://github.com/enketo/enketo-express/issues/357
-            enketo_flush_cached_preview.apply_async(
-                kwargs=data,  # server_url and form_id
-                countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
-            )
-
+            # enketo will return the internal preview URL, change to external
             json_response = response.json()
             preview_url = json_response.get('preview_url')
+            preview_url = rewrite_internal_url_to_external(preview_url)
 
             return HttpResponseRedirect(preview_url)
         else:
