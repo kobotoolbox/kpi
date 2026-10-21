@@ -1013,7 +1013,7 @@ MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
 # list count): stop counting rows past this limit and report 'many' instead.
 # The high default keeps the feature inert until it is deliberately lowered
 # (DEV-2781).
-API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 1_000_000)
+API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 100_000_000)
 # Timeout applied to the capped count query alone (env var in seconds, stored
 # in milliseconds): the Postgres statement_timeout, or the MongoDB maxTimeMS
 # for submission counts. On expiry the count is reported as 'unknown'. 0
