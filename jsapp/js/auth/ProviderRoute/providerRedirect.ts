@@ -10,14 +10,23 @@ import { AUTH_ROUTES } from '#/router/routerConstants'
  */
 
 /**
- * The codes from `allauth.socialaccount.providers.base.AuthError` that get their own wording. Its remaining
- * one, `unknown`, falls through to the generic message like anything unrecognised.
+ * The `?error=` codes worth their own wording. `cancelled` and `denied` come from the provider, the rest
+ * from allauth's own checks once the handshake is back.
+ *
+ * The copy lives on this side because only the code survives the redirect - allauth's own message goes to
+ * the Django messages framework, which the SPA never sees.
  */
-const PROVIDER_ERROR_CODES = {
+export const PROVIDER_ERROR_CODES = {
   /** The provider's own screen was cancelled - usually the "no thanks" button on the consent page. */
   cancelled: 'cancelled',
   /** The provider refused the request, e.g. the account is not entitled to this application. */
   denied: 'denied',
+  /** The provider account is attached to somebody else's KoboToolbox account already. */
+  connectedOther: 'connected_other',
+  /** The session is too old for a change this sensitive. */
+  reauthenticationRequired: 'reauthentication_required',
+  /** allauth itself refused the connection, rather than the provider having done so. */
+  permissionDenied: 'permission_denied',
 } as const
 
 /**
@@ -42,21 +51,24 @@ function readSearchParam(name: string, windowSearch: string, routeSearch: string
 }
 
 /**
- * Where allauth sends the browser once the provider is done with it. Absolute, since allauth redirects to it
- * rather than resolving it, and built from {@link ROOT_URL} so an instance served under a prefix comes back
- * to its own app.
+ * An absolute URL for one of our hash routes, which is what a `callback_url` has to be - allauth redirects
+ * to it rather than resolving it
  *
- * Any `next` rides along inside the fragment: the round trip leaves the site, so a destination held anywhere
- * but the URL is gone by the time we are back. Carried verbatim - whatever reads it has to decide whether it
- * is safe.
+ * @param appRootUrl is a parameter so the prefixed case can be tested
+ */
+export function getAbsoluteHashUrl(route: string, search = '', appRootUrl = ROOT_URL): string {
+  return `${appRootUrl}/#${route}${search}`
+}
+
+/**
+ * Where allauth sends the browser once the provider is done with a `login`.
  *
- * @param appRootUrl a parameter only so the prefixed case can be tested - `ROOT_URL` is fixed at import and
- * equals the origin on an unprefixed instance.
+ * Any `next` rides along in the fragment, since the round trip leaves the site and nothing but the URL survives it.
  */
 export function getProviderCallbackUrl(windowSearch: string, routeSearch: string, appRootUrl = ROOT_URL): string {
   const next = readSearchParam('next', windowSearch, routeSearch)
   const search = next ? `?${new URLSearchParams({ next })}` : ''
-  return `${appRootUrl}/#${AUTH_ROUTES.PROVIDER_SIGNUP}${search}`
+  return getAbsoluteHashUrl(AUTH_ROUTES.PROVIDER_SIGNUP, search, appRootUrl)
 }
 
 /** allauth's `?error=` code for a handshake that did not finish, or `null` for one that did. */

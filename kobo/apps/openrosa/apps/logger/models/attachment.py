@@ -115,6 +115,11 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
                 name='attachment_active_user_id_idx',
                 condition=models.Q(delete_status__isnull=True, deleted_at__isnull=True),
             ),
+            models.Index(
+                fields=['xform'],
+                name='attach_inactive_xform_id_idx',
+                condition=models.Q(delete_status__isnull=False),
+            ),
         ]
 
     @property

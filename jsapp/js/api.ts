@@ -4,6 +4,7 @@
 
 import * as Sentry from '@sentry/react'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
+import { recordApiResponse } from '#/auth/authChangeWatcher'
 import type { FailResponse } from '#/dataInterface'
 import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
@@ -194,14 +195,17 @@ export const fetchDataRaw = async <T>(
     }
 
     if (contentType && contentType.indexOf('application/json') !== -1) {
-      failResponse.responseText = await response.text()
       try {
+        failResponse.responseText = await response.text()
         failResponse.responseJSON = JSON.parse(failResponse.responseText)
       } catch {
-        // If the response text is not a proper JSON, we simply don't add it to
-        // the rejection object.
+        // Either the body never finished arriving, or it is not proper JSON. We simply don't add it to the rejection
+        // object - the status is what matters below, and a read that failed must not hide it.
       }
     }
+
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    recordApiResponse({ url, status: response.status, body: failResponse.responseJSON })
 
     // For these codes we might display a toast with HTTP status (through
     // `handleApiFail` helper)
