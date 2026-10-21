@@ -85,6 +85,7 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
 
     DEFAULT_ORDERING_FIELDS = [
         'asset_type',
+        'date_created',
         'date_modified',
         'date_deployed',
         'date_modified__date',
@@ -134,6 +135,9 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
                     subscribers_count=Count('userassetsubscription__user')
                 )
 
+            # `pk` is a unique final key: without it, rows tied on the sort field
+            # can swap between LIMIT/OFFSET queries and duplicate/skip across pages.
+            ordering = list(ordering) + ['pk']
             return queryset.order_by(*ordering)
         else:
             # Default ordering
@@ -143,6 +147,7 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
                     self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
                 ),
                 '-date_modified',
+                'pk',
             )
 
         return queryset
