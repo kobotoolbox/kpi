@@ -718,7 +718,8 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         if not organization.is_owner(request_user):
             raise serializers.ValidationError({'detail': NOT_ENOUGH_PERMISSIONS_ERROR})
 
-        # 2. Enforces the business rule that only one ownership transfer can be pending per team
+        # 2. Enforces the business rule that only one ownership transfer can
+        # be pending per team
         if organization.ownership_transfers.filter(
             status=OrganizationInviteStatusChoices.PENDING
         ).exists():

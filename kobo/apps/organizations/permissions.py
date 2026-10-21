@@ -126,7 +126,8 @@ class OrgMembershipCreateOrDeleteInvitePermission(OrgMembershipInvitePermission)
 
 class IsOrgOwnerPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
     """
-    Permission to only allow the owner of an organization to initiate ownership transfer.
+    Permission to only allow the owner of an organization to initiate
+    ownership transfer.
     """
 
     def has_permission(self, request, view):

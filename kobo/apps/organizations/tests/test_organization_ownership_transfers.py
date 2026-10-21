@@ -174,7 +174,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
     def test_email_notification_dispatched(self):
         """
-        Email is dispatched to recipient with correct template variables and accept link.
+        Email is dispatched to recipient with correct template variables
+        and accept link.
         """
         response = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

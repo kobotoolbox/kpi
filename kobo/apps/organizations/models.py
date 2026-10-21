@@ -554,7 +554,8 @@ class OrganizationOwnershipTransfer(models.Model):
 
         accept_url = (
             f'{settings.KOBOFORM_URL}/#/projects/home'
-            f'?organization_ownership_transfer={self.guid}&organization_id={self.organization.id}'
+            f'?organization_ownership_transfer={self.guid}'
+            f'&organization_id={self.organization.id}'
         )
 
         template_variables = {
@@ -568,9 +569,13 @@ class OrganizationOwnershipTransfer(models.Model):
         email_message = EmailMessage(
             to=self.recipient.email,
             subject=t('Action required: KoboToolbox team ownership transfer request'),
-            plain_text_content_or_template='emails/organization_ownership_transfer_request.txt',
+            plain_text_content_or_template=(
+                'emails/organization_ownership_transfer_request.txt'
+            ),
             template_variables=template_variables,
-            html_content_or_template='emails/organization_ownership_transfer_request.html',
+            html_content_or_template=(
+                'emails/organization_ownership_transfer_request.html'
+            ),
             language=recipient_language,
         )
 
