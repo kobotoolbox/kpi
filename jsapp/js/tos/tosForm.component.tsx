@@ -1,9 +1,12 @@
 import type React from 'react'
 import { useEffect, useState } from 'react'
 
+import { Stack, Text } from '@mantine/core'
 import { fetchGet, fetchPost, handleApiFail } from '#/api'
-import { useLogout } from '#/auth/useLogout'
-import Button from '#/components/common/button'
+import InjectedHtml from '#/auth/AuthContainer/InjectedHtml'
+import { useLogoutAndReload } from '#/auth/useLogout'
+import ButtonNew from '#/components/common/ButtonNew'
+import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
 import { currentLang, notify } from '#/utils'
@@ -37,8 +40,9 @@ export default function TOSForm() {
   // After "Accept" button is clicked, this will be true until the call resolves
   const [isFormPending, setIsFormPending] = useState(false)
   const [announcementMessage, setAnnouncementMessage] = useState<string | undefined>()
+  const [acceptError, setAcceptError] = useState<string>()
 
-  const logout = useLogout()
+  const logout = useLogoutAndReload()
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -75,64 +79,62 @@ export default function TOSForm() {
   async function submitForm(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault()
     setIsFormPending(true)
+    setAcceptError(undefined)
 
     try {
-      await fetchPost(TOS_ACCEPT_ENDPOINT, {})
+      // Shown on the card rather than as a toast, like the other blocker errors.
+      await fetchPost(TOS_ACCEPT_ENDPOINT, {}, { notifyAboutError: false })
       // TODO ideally we could make the profileStore fetch new account data
       // or even override the `accepted_tos` flag without fetching. But this
       // requires the `app.js` file to be reworked in a bit different fashion,
       // so that it could react to `profileStore.accepted_tos` change. For now
       // we do ugly and simple forced reload :)
       window.location.replace('')
-    } catch (err) {
-      const failResult = err as FailResponse
-      handleApiFail(failResult)
+    } catch {
+      setAcceptError(t('Something went wrong. Please try again later.'))
       setIsFormPending(false)
     }
   }
 
-  async function leaveForm() {
-    setIsFormPending(true)
-    try {
-      await logout.mutateAsync()
-      window.location.replace('')
-    } catch {
-      setIsFormPending(false)
-    }
-  }
+  const errors = [acceptError, logout.error].filter((error) => error !== undefined)
 
   if (!announcementMessage) {
     return <LoadingSpinner message={false} />
   }
 
   return (
-    <form className={styles.root} onSubmit={submitForm}>
-      <section
-        className={styles.message}
-        dangerouslySetInnerHTML={{
-          __html: announcementMessage,
-        }}
-      />
+    <form onSubmit={submitForm}>
+      <Stack gap='xl'>
+        <InjectedHtml className={styles.message} html={announcementMessage} />
 
-      <footer className={styles.footer}>
-        <Button
-          type='primary'
-          size={'l'}
-          isSubmit
-          isFullWidth
-          isPending={isFormPending}
-          label={t("I agree, let's go")}
-        />
+        {errors.length > 0 && (
+          <Alert type='error' iconName='alert'>
+            <Stack gap='xxs'>
+              {errors.map((error) => (
+                <Text key={error} inherit>
+                  {error}
+                </Text>
+              ))}
+            </Stack>
+          </Alert>
+        )}
 
-        <Button
-          type='secondary'
-          size={'l'}
-          isFullWidth
-          isDisabled={isFormPending}
-          label={t("I don't agree, log me out")}
-          onClick={leaveForm}
-        />
-      </footer>
+        <Stack gap='xs'>
+          <ButtonNew type='submit' size='lg' fullWidth loading={isFormPending} disabled={logout.isPending}>
+            {t("I agree, let's go")}
+          </ButtonNew>
+          <ButtonNew
+            variant='transparent'
+            size='lg'
+            fullWidth
+            loading={logout.isPending}
+            disabled={isFormPending}
+            onClick={logout.logOut}
+          >
+            {t("I don't agree, log me out")}
+          </ButtonNew>
+        </Stack>
+      </Stack>
     </form>
   )
 }
