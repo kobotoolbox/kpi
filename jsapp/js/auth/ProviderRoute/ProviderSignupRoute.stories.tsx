@@ -50,8 +50,8 @@ const environmentMock = makeEnvironmentMock({
  * restate the rest. The session lookup is only reached with nothing pending; answering "nobody" keeps it off
  * the real server.
  */
-const storyHandlers = (submit?: RequestHandler): RequestHandler[] =>
-  [environmentMock, providerSignupPendingMock(PROVIDER_ACCOUNT), sessionAnonymousMock(), submit].filter(
+const storyHandlers = (submit?: RequestHandler, account = PROVIDER_ACCOUNT): RequestHandler[] =>
+  [environmentMock, providerSignupPendingMock(account), sessionAnonymousMock(), submit].filter(
     (handler): handler is RequestHandler => Boolean(handler),
   )
 
@@ -109,17 +109,31 @@ async function agreeAndSubmit(canvas: Canvas) {
 }
 
 /** The main flow: what the provider knew is already filled in, leaving only the gaps. */
-export const Default: Story = {}
-
-/** Emptied fields, then a malformed address - neither reaches the server. */
-export const ClientValidation: Story = {
-  parameters: { msw: { handlers: storyHandlers(providerSignupNeverAnswersMock()) } },
+export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
     await waitForForm(canvas)
-    // The provider filled these in, so there is something to clear before anything can be missing.
-    await userEvent.clear(field(canvas, 'Email'))
+    // Locked, because the server only accepts the provider's address.
+    expect(field(canvas, 'Email')).toHaveValue(PROVIDER_ACCOUNT.email)
+    expect(field(canvas, 'Email')).toBeDisabled()
+    expect(field(canvas, 'Username')).toBeEnabled()
+  },
+}
+
+/**
+ * Emptied fields, then a malformed address - neither reaches the server. The provider sent no address, so
+ * the email is editable.
+ */
+export const ClientValidation: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers(providerSignupNeverAnswersMock(), { ...PROVIDER_ACCOUNT, email: '' }) },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForForm(canvas)
+    // The provider filled this in, so it needs clearing first.
     await userEvent.clear(field(canvas, 'Username'))
     await submit(canvas)
 

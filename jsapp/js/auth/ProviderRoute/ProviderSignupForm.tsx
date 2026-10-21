@@ -63,6 +63,8 @@ export default function ProviderSignupForm({
   onOutcome,
 }: ProviderSignupFormProps) {
   const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
+  // The server rejects any address but the provider's, so only a missing one can be typed in.
+  const isEmailLocked = initialValues.email !== ''
 
   const form = useForm<ProviderSignupFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
@@ -171,6 +173,7 @@ export default function ProviderSignupForm({
               autoComplete='email'
               key={form.key('email')}
               {...withAuthFieldError(form.getInputProps('email'))}
+              disabled={isEmailLocked}
               required
             />
             <TextInput
