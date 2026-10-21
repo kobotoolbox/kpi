@@ -21,8 +21,7 @@ interface AnonymousSubmissionSettingsProps {
 const AnonymousSubmissionSettings = (props: AnonymousSubmissionSettingsProps) => {
   const queryClient = useQueryClient()
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(props.assetUid) })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(props.assetUid) })
 
   const createPermission = useAssetsPermissionAssignmentsCreate({ mutation: { onSettled: invalidate } })
   const destroyPermission = useAssetsPermissionAssignmentsDestroy({ mutation: { onSettled: invalidate } })
@@ -46,7 +45,10 @@ const AnonymousSubmissionSettings = (props: AnonymousSubmissionSettingsProps) =>
         notify.error(t('Failed to update permissions'))
         return
       }
-      createPermission.mutate({ uidAsset: props.assetUid, data: { user: ANON_USERNAME_URL, permission: permissionUrl } })
+      createPermission.mutate({
+        uidAsset: props.assetUid,
+        data: { user: ANON_USERNAME_URL, permission: permissionUrl },
+      })
     }
   }
 
