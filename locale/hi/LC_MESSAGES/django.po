@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:38+0000\n"
+"POT-Creation-Date: 2026-10-16 14:35+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: zeeshan azmi <zishan.azmi@webaccessglobal.com>, 2017\n"
 "Language-Team: Hindi (http://app.transifex.com/kobotoolbox/kobotoolbox/language/hi/)\n"
@@ -797,16 +797,16 @@ msgstr "उपयोगकर्ता %(user)s के पास फ़ॉर्
 msgid "You do not have permission to view data from this form."
 msgstr "आपको इस फ़ॉर्म से डेटा देखने की अनुमति नहीं है।"
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:34
 #, python-format
 msgid "Invalid formId %s."
 msgstr "अमान्य फॉर्म आईडी %s।"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:151
 msgid "No submission key provided."
 msgstr "कोई प्रविष्टि कुंजी नहीं दी गई है।"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:415
 msgid "Unable to create submission."
 msgstr "प्रविष्टि बनाने में असमर्थ।"
 
@@ -2450,17 +2450,17 @@ msgstr "आवश्यक कार्यवाही: कोबोटूलब
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "कोबोटूलबॉक्स परियोजना स्वामित्व स्थानांतरण अधूरा है"
 
-#: kobo/apps/project_ownership/models/transfer.py:252
+#: kobo/apps/project_ownership/models/transfer.py:255
 msgid "Project ownership transferred"
 msgstr "परियोजना का स्वामित्व स्थानांतरण"
 
-#: kobo/apps/project_ownership/models/transfer.py:254
+#: kobo/apps/project_ownership/models/transfer.py:257
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "कृपया ध्यान दें कि परियोजना **##project_name##** का स्वामित्व **##previous_owner##** से **##new_owner##** को स्थानांतरित कर दिया गया है।"
 
-#: kobo/apps/project_ownership/models/transfer.py:258
+#: kobo/apps/project_ownership/models/transfer.py:261
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2748,7 +2748,7 @@ msgstr ""
 msgid "This action is not supported for this question type"
 msgstr ""
 
-#: kobo/settings/base.py:339
+#: kobo/settings/base.py:346
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2756,7 +2756,7 @@ msgid ""
 "email##)."
 msgstr "यदि आप अपने प्रमाणक ऐप तक नहीं पहुंच सकते हैं, तो कृपया इसकी जगह अपना कोई एक बैकअप कोड दर्ज करें। यदि आप उन तक भी नहीं पहुंच सकते हैं, तो आपको [##support email##](mailto: ##support email##) से संपर्क करके सहायता का अनुरोध करना होगा।"
 
-#: kobo/settings/base.py:627
+#: kobo/settings/base.py:634
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2939,53 +2939,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr "अमान्य उपयोगकर्ता नाम/ पासवर्ड"
 
-#: kpi/deployment_backends/base_backend.py:144
+#: kpi/deployment_backends/base_backend.py:148
 msgid "No submissions match the given `submission_ids`"
 msgstr "कोई भी प्रविष्टियां (सबमिशन) दिए गए `submission_ids` से मेल नहीं खातीं"
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:630
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "यह पैरामीटर लागू नहीं किया गया है। इसकी जगह प्रतिक्रिया की `count` संपत्ति का उपयोग करें।"
 
-#: kpi/deployment_backends/base_backend.py:625
+#: kpi/deployment_backends/base_backend.py:641
 msgid "This param is not supported in `XML` format"
 msgstr "यह पैरामीटर `XML` प्रारूप में समर्थित नहीं है"
 
-#: kpi/deployment_backends/base_backend.py:630
+#: kpi/deployment_backends/base_backend.py:646
 msgid "This is not supported in `XML` format"
 msgstr "यह `XML` प्रारूप में समर्थित नहीं है"
 
-#: kpi/deployment_backends/base_backend.py:650
-#: kpi/deployment_backends/base_backend.py:679
-#: kpi/deployment_backends/base_backend.py:701 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:666
+#: kpi/deployment_backends/base_backend.py:695
+#: kpi/deployment_backends/base_backend.py:717 kpi/views/v2/data.py:1128
 msgid "Value must be valid JSON."
 msgstr "मान (वैल्यू) एक मान्य JSON होना चाहिए।"
 
-#: kpi/deployment_backends/base_backend.py:655
+#: kpi/deployment_backends/base_backend.py:671
 msgid "Value must be a list."
 msgstr "मान एक सूची होनी चाहिए।"
 
-#: kpi/deployment_backends/base_backend.py:686
-#: kpi/deployment_backends/base_backend.py:693
+#: kpi/deployment_backends/base_backend.py:702
+#: kpi/deployment_backends/base_backend.py:709
 msgid "A positive integer is required."
 msgstr "एक धनात्मक पूर्णांक (पॉज़िटिव इंटीजर) आवश्यक है।"
 
-#: kpi/deployment_backends/openrosa_backend.py:434
+#: kpi/deployment_backends/openrosa_backend.py:442
 msgid "Your submission XML is malformed."
 msgstr "आपका प्रविष्टि एक्सएम्एल (XML) ग़लत है।"
 
-#: kpi/deployment_backends/openrosa_backend.py:440
+#: kpi/deployment_backends/openrosa_backend.py:448
 msgid "Your submission XML is missing critical elements."
 msgstr "आपके प्रविष्टि एक्सएम्एल (XML) में महत्वपूर्ण तत्व ग़ायब हैं।"
 
-#: kpi/deployment_backends/openrosa_backend.py:478
+#: kpi/deployment_backends/openrosa_backend.py:486
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "आपने जिस प्रविष्टि को संपादित करने का प्रयास किया, वह नहीं मिल सका, या आपके पास उस तक पहुंच नहीं है।"
 
-#: kpi/deployment_backends/openrosa_backend.py:1039
+#: kpi/deployment_backends/openrosa_backend.py:1061
 msgid "Successful submission"
 msgstr "सफलतापूर्वक जमा किया गया"
 
@@ -3496,7 +3496,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:886
 msgid "The specified asset has not been deployed"
 msgstr "निर्दिष्ट एसेट परिनियोजित नहीं किया गया है"
 
@@ -3744,10 +3744,10 @@ msgstr "रूपांतरण के दौरान त्रुटि ह�
 msgid "Conversion is not supported for {}"
 msgstr "{} के लिए रूपांतरण समर्थित नहीं है"
 
-#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+#: kpi/views/v2/data.py:758 kpi/views/v2/data.py:808
 msgid "One or more submission ids are invalid"
 msgstr ""
 
-#: kpi/views/v2/data.py:871
+#: kpi/views/v2/data.py:872
 msgid "A positive integer is required"
 msgstr "एक धनात्मक पूर्णांक (पॉज़िटिव इंटीजर) आवश्यक है"
