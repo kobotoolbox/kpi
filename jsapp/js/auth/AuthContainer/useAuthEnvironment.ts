@@ -26,6 +26,11 @@ export function useAuthEnvironment() {
          * rather than from allauth's own configuration, which never mentions the length.
          */
         mfaCodeLength: response.data.mfa_code_length,
+        /**
+         * The `MFA_LOCALIZED_HELP_TEXT` constance setting in the user's language, as HTML rendered from markdown,
+         * with `SUPPORT_EMAIL` already filled in.
+         */
+        mfaHelpText: response.data.mfa_localized_help_text,
       }
     },
   })
