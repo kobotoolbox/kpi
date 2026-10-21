@@ -6,7 +6,7 @@ concurrency:
   cancel-in-progress: false
 
 
-# Pipeline: determine version → pull-transifex → tag → build-image → bump → [linear-release, deploy-issue] → notify
+# Pipeline: determine version → pull-transifex → tag → build-image → bump → [linear-release, deploy-issue, retarget-prs] → notify
 on:
   workflow_dispatch:
     inputs:
@@ -406,6 +406,33 @@ jobs:
         fi
 
 
+  # Retarget any still-open PRs against the now-tagged branch to the next
+  # release branch (or main, if this was the latest release branch), since
+  # the tagged branch is closing out and shouldn't receive further merges.
+  retarget-prs:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - build-image
+    if: ${{ !cancelled() && !failure() }}
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+      NEXT_BRANCH: ${{ needs.version.outputs.next_branch }}
+    steps:
+    - uses: actions/checkout@v7
+    - name: Retarget open PRs to the next release branch
+      run: |
+        set -xe
+        gh pr list --base "$CURRENT_BRANCH" --state open --json number --jq '.[].number' | \
+        while read -r pr; do
+          echo "Retargeting #$pr from $CURRENT_BRANCH to $NEXT_BRANCH"
+          gh pr edit "$pr" --base "$NEXT_BRANCH"
+        done
+
+
   linear-release:
     runs-on: ubuntu-24.04
     needs:
@@ -540,6 +567,7 @@ jobs:
       - changelog
       - linear-release
       - deploy-issue
+      - retarget-prs
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -558,9 +586,10 @@ jobs:
       - changelog
       - build-image
       - bump
+      - retarget-prs
       - linear-release
       - deploy-issue
-    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.validate.result == 'failure' || needs.pull-transifex.result == 'failure' || needs.tag.result == 'failure' || needs.changelog.result == 'failure' || needs.build-image.result == 'failure' || needs.bump.result == 'failure' || needs.linear-release.result == 'failure' || needs.deploy-issue.result == 'failure') }}
+    if: ${{ !cancelled() && (needs.version.result == 'failure' || needs.validate.result == 'failure' || needs.pull-transifex.result == 'failure' || needs.tag.result == 'failure' || needs.changelog.result == 'failure' || needs.build-image.result == 'failure' || needs.bump.result == 'failure' || needs.retarget-prs.result == 'failure' || needs.linear-release.result == 'failure' || needs.deploy-issue.result == 'failure') }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
