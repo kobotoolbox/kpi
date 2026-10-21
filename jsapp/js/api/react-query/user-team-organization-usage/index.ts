@@ -51,8 +51,6 @@ import type { MeSocialAccountsListParams } from '../../models/meSocialAccountsLi
 
 import type { MemberListResponse } from '../../models/memberListResponse'
 
-import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
-
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -2113,98 +2111,6 @@ export const useOrganizationsMembersDestroy = <TError = ErrorDetail, TContext = 
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getOrganizationsMembersDestroyMutationOptions(options)
-
-  return useMutation(mutationOptions)
-}
-/**
- * ViewSet for initiating organization ownership transfers.
-
-Available actions:
-- create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
- */
-export type organizationsOwnershipTransfersCreateResponse201 = {
-  data: OrganizationOwnershipTransfer
-  status: 201
-}
-
-export type organizationsOwnershipTransfersCreateResponseSuccess = organizationsOwnershipTransfersCreateResponse201 & {
-  headers: Headers
-}
-
-export type organizationsOwnershipTransfersCreateResponse = organizationsOwnershipTransfersCreateResponseSuccess
-
-export const getOrganizationsOwnershipTransfersCreateUrl = (uidOrganization: string) => {
-  return `/api/v2/organizations/${uidOrganization}/ownership-transfers/`
-}
-
-export const organizationsOwnershipTransfersCreate = async (
-  uidOrganization: string,
-  organizationOwnershipTransfer: NonReadonly<OrganizationOwnershipTransfer>,
-  options?: RequestInit,
-): Promise<organizationsOwnershipTransfersCreateResponse> => {
-  return fetchWithAuth<organizationsOwnershipTransfersCreateResponse>(
-    getOrganizationsOwnershipTransfersCreateUrl(uidOrganization),
-    {
-      ...options,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      body: JSON.stringify(organizationOwnershipTransfer),
-    },
-  )
-}
-
-export const getOrganizationsOwnershipTransfersCreateMutationOptions = <
-  TError = unknown,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
-    TError,
-    { uidOrganization: string; data: NonReadonly<OrganizationOwnershipTransfer> },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
-  TError,
-  { uidOrganization: string; data: NonReadonly<OrganizationOwnershipTransfer> },
-  TContext
-> => {
-  const mutationKey = ['organizationsOwnershipTransfersCreate']
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
-    { uidOrganization: string; data: NonReadonly<OrganizationOwnershipTransfer> }
-  > = (props) => {
-    const { uidOrganization, data } = props ?? {}
-
-    return organizationsOwnershipTransfersCreate(uidOrganization, data, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type OrganizationsOwnershipTransfersCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>
->
-export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer>
-export type OrganizationsOwnershipTransfersCreateMutationError = unknown
-
-export const useOrganizationsOwnershipTransfersCreate = <TError = unknown, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
-    TError,
-    { uidOrganization: string; data: NonReadonly<OrganizationOwnershipTransfer> },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const mutationOptions = getOrganizationsOwnershipTransfersCreateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }
