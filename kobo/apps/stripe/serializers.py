@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Any, Dict
 
-from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as t
 from djstripe.models import (
     Price,
     Product,
@@ -114,7 +114,7 @@ class CustomerPortalSerializer(serializers.Serializer):
     def validate_organization_id(self, organization_id):
         if organization_id.startswith('org'):
             return organization_id
-        raise ValidationError('Invalid organization ID')
+        raise serializers.ValidationError(t('Invalid organization ID'))
 
     class Meta:
         model = Price
@@ -127,7 +127,7 @@ class CustomerPortalGetQuerySerializer(serializers.Serializer):
     def validate_organization_id(self, organization_id):
         if organization_id.startswith('org'):
             return organization_id
-        raise ValidationError('Invalid organization ID')
+        raise serializers.ValidationError(t('Invalid organization ID'))
 
 
 class CustomerAddressSerializer(serializers.Serializer):
