@@ -1,9 +1,10 @@
 import { Box } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import toast from 'react-hot-toast'
 import { useNavigate, useParams } from 'react-router-dom'
+import { actions } from '#/actions'
 import {
   useAssetsPermissionAssignmentsBulkDestroy,
   useAssetsPermissionAssignmentsCreate,
@@ -68,6 +69,32 @@ export default function FormLanding() {
     queryClient.invalidateQueries({ queryKey: getAssetsListQueryKey() })
   }
   const assetQuery = useAssetsRetrieve(uid)
+
+  useEffect(() => {
+    const invalidateCurrentAsset = (assetUid: string) => {
+      if (assetUid === uid) {
+        void queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(uid) })
+      }
+    }
+
+    // EditableForm (template replacement) still saves via the legacy actions.resources.updateAsset path and doesn't
+    // invalidate the query. We have to contend with a listener until EditableForm is migrated to React Query.
+    const unlistenUpdate = actions.resources.updateAsset.completed.listen((updatedAsset) => {
+      invalidateCurrentAsset(updatedAsset.uid)
+    })
+
+    // publicShareSettings.component and userPermissionRow.component still go through these legacy actions and don't
+    // invalidate the query. Same situation as above until those are migrated.
+    const unlistenAssign = actions.permissions.assignAssetPermission.completed.listen(invalidateCurrentAsset)
+    const unlistenRemove = actions.permissions.removeAssetPermission.completed.listen(invalidateCurrentAsset)
+
+    return () => {
+      unlistenUpdate()
+      unlistenAssign()
+      unlistenRemove()
+    }
+  }, [queryClient, uid])
+
   const asset = assetQuery.data?.status === 200 ? parsed({ ...assetQuery.data.data }) : undefined
   const anonymousPermissionUrl = getAnonCanAddSubmissionsPermUrl()
   const anonymousSubmissionPermission = asset?.permissions.find(
