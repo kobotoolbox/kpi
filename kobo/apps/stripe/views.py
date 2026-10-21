@@ -552,9 +552,10 @@ class CustomerPortalView(APIView):
         ).first()
 
         if not customer:
+            detail = f"Couldn't find customer with organization id {organization_id}"
             return Response(
                 {
-                    'detail': f"Couldn't find customer with organization id {organization_id}"
+                    'detail': detail
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
