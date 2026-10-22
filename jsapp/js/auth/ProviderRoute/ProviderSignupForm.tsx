@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useAllauthBrowserV1AuthProviderSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import { validateTermsOfService, validateUsername } from '#/auth/RegisterRoute/registerValidation'
+import { validateRequiredCheckbox, validateUsername } from '#/auth/RegisterRoute/registerValidation'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateEmailFormat } from '#/auth/authValidation'
 import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
@@ -77,7 +77,7 @@ export default function ProviderSignupForm({
       username: validateUsername,
       // No checkbox to tick where the server asks for no agreement. Mantine reads these rules fresh on every
       // render, so this follows the checkbox once `/environment` lands.
-      termsOfService: isTermsOfServiceRequired ? validateTermsOfService : undefined,
+      termsOfService: isTermsOfServiceRequired ? validateRequiredCheckbox : undefined,
     },
   })
 

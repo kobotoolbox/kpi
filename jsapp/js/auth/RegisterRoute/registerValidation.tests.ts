@@ -1,6 +1,6 @@
 import chai from 'chai'
 import type { SocialApp } from '#/api/models/socialApp'
-import { findManagedSsoProvider, validateEmail, validateFullName, validateUsername } from './registerValidation'
+import { findManagedSsoProvider, validateEmail, validateUsername } from './registerValidation'
 
 const USERNAME_MESSAGE =
   'Usernames must be between 2 and 30 characters in length, and may only consist of lowercase letters, numbers, and underscores, where the first character must be a letter.'
@@ -69,15 +69,5 @@ describe('findManagedSsoProvider', () => {
   it('returns undefined for an address with no domain, and when there are no social apps', () => {
     chai.expect(findManagedSsoProvider('someone', [managedApp])).to.equal(undefined)
     chai.expect(findManagedSsoProvider('someone@example.org', undefined)).to.equal(undefined)
-  })
-})
-
-describe('validateFullName', () => {
-  it('accepts any non-blank name', () => {
-    chai.expect(validateFullName('Caroline Herschel')).to.equal(null)
-  })
-
-  it('rejects an empty value as a required field, whitespace included', () => {
-    chai.expect(validateFullName('   ')).to.equal('Required field')
   })
 })
