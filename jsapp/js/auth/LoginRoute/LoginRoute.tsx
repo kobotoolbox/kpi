@@ -1,4 +1,4 @@
-import { Anchor, Image, Stack, Text, Title } from '@mantine/core'
+import { Image, Stack, Text, Title } from '@mantine/core'
 import { type ReactNode, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
@@ -8,10 +8,8 @@ import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
 import { useAllauthConfiguration } from '#/auth/useAllauthConfiguration'
-import { useAuthStatus } from '#/auth/useAuthStatus'
 import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
-import Alert from '#/components/common/alert'
 import { PATHS } from '#/router/routerConstants'
 import { isPlainClick } from '#/utils'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
@@ -30,38 +28,31 @@ function SigningInPanel() {
   )
 }
 
-interface SignedInNoticeProps {
-  username: string
-  continueUrl: string
-}
-
-/** Logging in as someone else switches accounts, so say whose session that ends */
-function SignedInNotice({ username, continueUrl }: SignedInNoticeProps) {
+/** A session was there all along - another tab signed in, or the back button landed here. */
+function AlreadyLoggedInPanel({ continueUrl }: { continueUrl: string }) {
   return (
-    <Alert type='info' iconName='information'>
-      <Stack gap='xxs'>
-        <Text inherit>
-          {t('You are logged in as ##username##. Logging in with another account will log you out.').replace(
-            '##username##',
-            () => username,
-          )}
-        </Text>
-        {/* A plain link, not a router one: leaving `/auth` has to load the app - see `goToPage` */}
-        <Anchor
-          href={continueUrl}
-          onClick={(event) => {
-            // `isPlainClick` ensures we don't override default behaviour of "open new tab with middle click" etc.
-            if (isPlainClick(event)) {
-              event.preventDefault()
-              goToPage(continueUrl)
-            }
-          }}
-          inherit
-        >
-          {t('Continue as ##username##').replace('##username##', () => username)}
-        </Anchor>
-      </Stack>
-    </Alert>
+    <Stack gap='md' ta='center'>
+      <Title order={1} size='h3'>
+        {t('You are already logged in')}
+      </Title>
+      <Text>{t('There is nothing to sign in to - your session is still good.')}</Text>
+      {/* A plain link, not a router one: leaving `/auth` means loading the logged in app, which the `href` alone would
+          not do here - see `goToPage`. Modified clicks are left alone, since those open a document of their own. */}
+      <ButtonNew
+        component='a'
+        href={continueUrl}
+        onClick={(event) => {
+          if (isPlainClick(event)) {
+            event.preventDefault()
+            goToPage(continueUrl)
+          }
+        }}
+        size='lg'
+        fullWidth
+      >
+        {t('Continue to KoboToolbox')}
+      </ButtonNew>
+    </Stack>
   )
 }
 
@@ -208,8 +199,6 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
   const allauth = useAllauthConfiguration()
   const [outcome, setOutcome] = useState<LoginOutcome | MfaOutcome | null>(null)
   const credential = getLoginCredential(allauth.data?.login_methods)
-  // Set when a signed in user opens this screen to switch accounts
-  const signedInUsername = useAuthStatus().data?.user?.username
 
   // Where signing in leads
   const destinationUrl = getUrlForNextRoute(useNextRoute())
@@ -247,6 +236,7 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
       return (
         <AuthCard>
           {outcome.kind === 'authenticated' && <SigningInPanel />}
+          {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel continueUrl={destinationUrl} />}
           {/* allauth names the address only when it was the credential. */}
           {outcome.kind === 'emailVerificationRequired' &&
             (outcome.email ? (
@@ -278,7 +268,6 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
           // Only a definite "no" hides the signup link - the same setting the signup screen itself goes by, so
           // nothing is hidden over a `/environment` that is slow or broken.
           isRegistrationClosed={environment?.registrationOpen === false}
-          notice={signedInUsername && <SignedInNotice username={signedInUsername} continueUrl={destinationUrl} />}
           onOutcome={handleOutcome}
         />
       </AuthCard>
