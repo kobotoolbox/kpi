@@ -936,6 +936,36 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         page_ids = sorted(r['_id'] for page in pages for r in page['results'])
         self.assertEqual(page_ids, submission_ids)
 
+    def test_list_submissions_page_and_offset_params(self):
+        """
+        Test that `page`/`page_size` and the `offset` alias return the rows
+        their links describe, and that an invalid `start` is still rejected
+        """
+        submission_ids = sorted(s['_id'] for s in self.submissions)
+
+        def get(params: dict) -> dict:
+            response = self.client.get(
+                self.submission_list_url, {'format': 'json', **params}
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            return response.data
+
+        page = get({'page': 2, 'page_size': 2})
+        self.assertEqual([s['_id'] for s in page['results']], submission_ids[2:4])
+        self.assertIn('start=4', page['next'])
+
+        page = get({'page': 3, 'page_size': 2})
+        self.assertEqual([s['_id'] for s in page['results']], submission_ids[4:6])
+        self.assertIsNone(page['next'])
+
+        page = get({'offset': 2, 'limit': 2})
+        self.assertEqual([s['_id'] for s in page['results']], submission_ids[2:4])
+
+        response = self.client.get(
+            self.submission_list_url, {'format': 'json', 'start': 'abc'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_list_submissions_xml_empty_page(self):
         """
         Test that an XML page without submissions still has a `results` node

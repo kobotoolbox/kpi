@@ -475,8 +475,13 @@ class DataViewSet(
                 )
             )
 
-        # The page size comes from the paginator, plus one row that tells
-        # `DataPagination` whether a next page exists
+        # The paginator owns the window, so `page` and `offset` reach MongoDB
+        # too. One extra row tells `DataPagination` whether a next page exists
+        offset = self.paginator.get_offset(request)
+        if offset is not None:
+            # `None` (no offset, 0 or invalid) keeps the back end's `start`
+            # validation
+            filters['start'] = offset
         filters['limit'] = self.paginator.get_limit(request) + 1
         try:
             submissions = deployment.get_submissions(
