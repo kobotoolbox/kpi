@@ -84,10 +84,14 @@ export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.j
 export const signupServerErrorMock = () =>
   http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
-/** A sign-in allauth was happy with: the session exists, and the form may leave `/auth`. */
-export const loginAuthenticatedMock = () =>
-  http.post(LOGIN_URL, () =>
-    HttpResponse.json({
+/**
+ * A sign-in allauth was happy with: the session exists, and the form may leave `/auth`. `onBody` gets the posted
+ * JSON, since the field names never show on screen.
+ */
+export const loginAuthenticatedMock = (onBody?: (body: unknown) => void) =>
+  http.post(LOGIN_URL, async ({ request }) => {
+    onBody?.(await request.json())
+    return HttpResponse.json({
       status: 200,
       data: {
         user: {
@@ -100,8 +104,8 @@ export const loginAuthenticatedMock = () =>
         methods: [{ method: 'password', at: 1700000000, username: 'sallyride' }],
       },
       meta: { is_authenticated: true },
-    }),
-  )
+    })
+  })
 
 /** A rejected sign-in */
 export const loginErrorsMock = (errors: ErrorResponseErrorsItem[]) =>

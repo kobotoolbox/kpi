@@ -100,6 +100,33 @@ export const Default: Story = {
   },
 }
 
+let postedCredentials: unknown = null
+
+/** The happy path. allauth reads only `username` and `password`, and a stray space would fail the lookup. */
+export const LoggedIn: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        login: loginAuthenticatedMock((body) => {
+          postedCredentials = body
+        }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+    postedCredentials = null
+
+    await userEvent.type(await findField(canvas, 'Username'), `  ${CREDENTIALS.username}  `)
+    await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
+    await submit(canvas)
+
+    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
+    expect(postedCredentials).toEqual({ username: CREDENTIALS.username, password: CREDENTIALS.password })
+  },
+}
+
 /** A server with single sign-on configured: up to three provider buttons, above the credentials. */
 export const SingleSignOnProviders: Story = {
   parameters: {
