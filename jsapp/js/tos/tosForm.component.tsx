@@ -2,7 +2,7 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 
 import { Stack, Text } from '@mantine/core'
-import { fetchGet, fetchPost, handleApiFail } from '#/api'
+import { fetchGet, fetchPost, handleApiFail, reportApiFail } from '#/api'
 import InjectedHtml from '#/auth/AuthContainer/InjectedHtml'
 import { useLogoutAndReload } from '#/auth/useLogout'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -82,7 +82,7 @@ export default function TOSForm() {
     setAcceptError(undefined)
 
     try {
-      // Shown on the card rather than as a toast, like the other blocker errors.
+      // No toast: the error shows on the card, like the other blocker errors.
       await fetchPost(TOS_ACCEPT_ENDPOINT, {}, { notifyAboutError: false })
       // TODO ideally we could make the profileStore fetch new account data
       // or even override the `accepted_tos` flag without fetching. But this
@@ -90,7 +90,8 @@ export default function TOSForm() {
       // so that it could react to `profileStore.accepted_tos` change. For now
       // we do ugly and simple forced reload :)
       window.location.replace('')
-    } catch {
+    } catch (err) {
+      reportApiFail(err as FailResponse)
       setAcceptError(t('Something went wrong. Please try again later.'))
       setIsFormPending(false)
     }
@@ -98,14 +99,14 @@ export default function TOSForm() {
 
   const errors = [acceptError, logout.error].filter((error) => error !== undefined)
 
-  if (!announcementMessage) {
-    return <LoadingSpinner message={false} />
-  }
-
   return (
     <form onSubmit={submitForm}>
       <Stack gap='xl'>
-        <InjectedHtml className={styles.message} html={announcementMessage} />
+        {announcementMessage ? (
+          <InjectedHtml className={styles.message} html={announcementMessage} />
+        ) : (
+          <LoadingSpinner message={false} />
+        )}
 
         {errors.length > 0 && (
           <Alert type='error' iconName='alert'>
@@ -120,9 +121,12 @@ export default function TOSForm() {
         )}
 
         <Stack gap='xs'>
-          <ButtonNew type='submit' size='lg' fullWidth loading={isFormPending} disabled={logout.isPending}>
-            {t("I agree, let's go")}
-          </ButtonNew>
+          {announcementMessage && (
+            <ButtonNew type='submit' size='lg' fullWidth loading={isFormPending} disabled={logout.isPending}>
+              {t("I agree, let's go")}
+            </ButtonNew>
+          )}
+          {/* Shown even if the terms never load: the frame has no account menu, so this is the only way out */}
           <ButtonNew
             variant='transparent'
             size='lg'
@@ -131,7 +135,7 @@ export default function TOSForm() {
             disabled={isFormPending}
             onClick={logout.logOut}
           >
-            {t("I don't agree, log me out")}
+            {announcementMessage ? t("I don't agree, log me out") : t('Logout')}
           </ButtonNew>
         </Stack>
       </Stack>
