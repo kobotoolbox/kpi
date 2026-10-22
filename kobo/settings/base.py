@@ -111,6 +111,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
     'allauth.mfa',
+    'allauth.headless',
     'hub.HubAppConfig',
     'import_export',
     'import_export_celery',
