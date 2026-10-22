@@ -50,6 +50,7 @@ function SignedInNotice({ username, continueUrl }: SignedInNoticeProps) {
         <Anchor
           href={continueUrl}
           onClick={(event) => {
+            // `isPlainClick` ensures we don't override default behaviour of "open new tab with middle click" etc.
             if (isPlainClick(event)) {
               event.preventDefault()
               goToPage(continueUrl)
