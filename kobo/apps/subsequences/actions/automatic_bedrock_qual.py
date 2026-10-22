@@ -1,3 +1,4 @@
+import base64
 import json
 from copy import deepcopy
 from dataclasses import dataclass
@@ -9,9 +10,11 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 
+from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
@@ -24,7 +27,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TAGS,
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
-    SOURCE_TYPE_AUTOMATIC,
+    SOURCE_TYPE_AUTOMATIC, TEXT_SOURCE_TYPE, IMAGE_SOURCE_TYPE,
 )
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
@@ -87,6 +90,12 @@ ClaudeSonnet = LLModel(
 OSS120 = LLModel(
     model_id='openai.gpt-oss-120b-1:0',
     model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
+    path_to_response='choices.0.message.content',
+    supports_reasoning=True,
+)
+Gemma = LLModel(
+    model_id='google.gemma-3-27b-it',
+    model_arn='google.gemma-3-27b-it',
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
 )
@@ -259,10 +268,19 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         # The source text is either the transcript from a dependency or, for a
         # direct-text source question, read straight from the submission.
+        breakpoint()
         if action_data['_dependency'].get(self.ACTION_ID_FIELD) == (
             DEPENDENCY_SOURCE_SUBMISSION
-        ):
+        ) and action_data['_dependency']['_question_type'] == TEXT_SOURCE_TYPE:
+            breakpoint()
             source_text = escape(str(submission.get(self.source_question_xpath) or ''))
+        elif action_data['_dependency'].get(self.ACTION_ID_FIELD) == (
+            DEPENDENCY_SOURCE_SUBMISSION
+        ) and action_data['_dependency']['_question_type'] == IMAGE_SOURCE_TYPE:
+            attachments = submission.get('_attachments')
+            attachment_dict = [a for a in attachments if a.get('question_xpath') == self.source_question_xpath][0]
+            with default_storage.open(attachment_dict.get('filename')) as fp:
+                source_text = base64.b64encode(fp.read()).decode()
         else:
             source_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']

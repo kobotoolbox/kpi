@@ -8,7 +8,7 @@ from ..constants import (
     DEPENDENCY_SOURCE_SUBMISSION,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
-    TEXT_SOURCE_TYPE,
+    TEXT_SOURCE_TYPE, IMAGE_SOURCE_TYPE,
 )
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
@@ -34,8 +34,8 @@ class RequiresTranscriptionMixin:
         """
         Attach the source this action depends on.
 
-        For a `text` source question, attach a synthetic dependency pointing at
-        the submission itself; the source text is read straight from the
+        For a `text` or `image` source question, attach a synthetic dependency pointing
+        at the submission itself; the source text is read straight from the
         submission later. Otherwise, attach the latest *accepted* transcript.
 
         Transcript selection logic:
@@ -61,14 +61,14 @@ class RequiresTranscriptionMixin:
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        if self.get_source_question_type() == TEXT_SOURCE_TYPE:
+        if (source_question_type := self.get_source_question_type()) in [TEXT_SOURCE_TYPE, IMAGE_SOURCE_TYPE]:
             # Direct-text source: point the dependency at the submission. The
             # `_question_type` key is in-flight only; the sanitizer in
             # `revise_data` strips it before persistence.
             action_data[self.DEPENDENCY_FIELD] = {
                 self.UUID_FIELD: remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD]),
                 self.ACTION_ID_FIELD: DEPENDENCY_SOURCE_SUBMISSION,
-                '_question_type': TEXT_SOURCE_TYPE,
+                '_question_type': source_question_type,
             }
             return action_data
 
