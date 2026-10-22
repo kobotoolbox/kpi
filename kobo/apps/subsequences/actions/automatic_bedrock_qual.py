@@ -10,24 +10,24 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 
-from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
     DEPENDENCY_SOURCE_SUBMISSION,
+    IMAGE_SOURCE_TYPE,
     QUAL_SOURCE_TYPES,
     QUESTION_TYPE_INTEGER,
     QUESTION_TYPE_NOTE,
     QUESTION_TYPE_TAGS,
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
-    SOURCE_TYPE_AUTOMATIC, TEXT_SOURCE_TYPE, IMAGE_SOURCE_TYPE,
+    SOURCE_TYPE_AUTOMATIC,
+    TEXT_SOURCE_TYPE,
 )
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
@@ -53,6 +53,9 @@ from kobo.apps.subsequences.prompts import (
     response_placeholder,
 )
 from kobo.apps.trackers.utils import update_nlp_counter
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from kpi.utils.log import logging
 
 
@@ -268,19 +271,14 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         # The source text is either the transcript from a dependency or, for a
         # direct-text source question, read straight from the submission.
-        breakpoint()
         if action_data['_dependency'].get(self.ACTION_ID_FIELD) == (
             DEPENDENCY_SOURCE_SUBMISSION
         ) and action_data['_dependency']['_question_type'] == TEXT_SOURCE_TYPE:
-            breakpoint()
             source_text = escape(str(submission.get(self.source_question_xpath) or ''))
         elif action_data['_dependency'].get(self.ACTION_ID_FIELD) == (
             DEPENDENCY_SOURCE_SUBMISSION
         ) and action_data['_dependency']['_question_type'] == IMAGE_SOURCE_TYPE:
-            attachments = submission.get('_attachments')
-            attachment_dict = [a for a in attachments if a.get('question_xpath') == self.source_question_xpath][0]
-            with default_storage.open(attachment_dict.get('filename')) as fp:
-                source_text = base64.b64encode(fp.read()).decode()
+            source_text = ''
         else:
             source_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']
@@ -337,7 +335,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
         ]
 
-    def get_response_from_llm(self, prompt: str, model: LLModel) -> str:
+    def get_response_from_llm(
+        self, prompt: str, model: LLModel, image_bytes, image_mimetype
+    ) -> str:
         request = {
             'anthropic_version': 'bedrock-2023-05-31',
             'max_tokens': MAX_TOKENS,
@@ -346,12 +346,31 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 {'role': 'user', 'content': prompt},
             ],
         }
+        if image_bytes is not None:
+            request = {
+                'anthropic_version': 'bedrock-2023-05-31',
+                'max_tokens': MAX_TOKENS,
+                'temperature': MODEL_TEMPERATURE,  # keep model from getting too creative
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {'type': 'text', 'text': prompt},
+                            {
+                                'type': 'image_url',
+                                'image_url': {
+                                    'url': f'data:{image_mimetype};base64,{image_bytes}'
+                                },
+                            },
+                        ],
+                    },
+                ],
+            }
 
         if model.supports_reasoning:
             # invoke_model raises an error if you try to disable reasoning
             # on a model that doesn't support it in the first place
             request['include_reasoning'] = False
-
         response = self.client.invoke_model(
             modelId=model.model_arn,
             body=json.dumps(request),
@@ -467,8 +486,11 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question_uuid = action_data['uuid']
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']
+        survey_question_type = action_data['_dependency']['_question_type']
         prompt = self.generate_llm_prompt(action_data, submission)
         error = ''
+        image_bytes = None
+        image_mimetype = None
         self.client = self.create_bedrock_client()
         update_nlp_counter(
             'bedrock_llm_requests',
@@ -476,11 +498,27 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             self.asset.owner_id,
             self.asset.id,
         )
+        models = [OSS120, ClaudeSonnet]
+        if survey_question_type == IMAGE_SOURCE_TYPE:
+            models = [Gemma]
+            attachments = submission.get('_attachments', [])
+            attachment_dict = [
+                a
+                for a in attachments
+                if a.get('question_xpath') == self.source_question_xpath
+            ][0]
+            logging.info(f'{attachment_dict}')
+            with default_storage.open(attachment_dict.get('filename')) as fp:
+                image_bytes = base64.b64encode(fp.read()).decode()
+                image_mimetype = attachment_dict.get('mimetype')
+
         # for now, hardcode OSS to be primary and Claude to be backup
         # eventually this will be configurable
-        for index, model in enumerate([OSS120, ClaudeSonnet]):
+        for index, model in enumerate(models):
             try:
-                full_response_text = self.get_response_from_llm(prompt, model)
+                full_response_text = self.get_response_from_llm(
+                    prompt, model, image_bytes, image_mimetype
+                )
                 # edge case: sometimes the LLM returns None
                 if full_response_text is None:
                     raise InvalidResponseFromLLMException('LLM returned empty response')
