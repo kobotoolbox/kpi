@@ -543,6 +543,78 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         })
         assert expected_order_by_name_collections_first == uids
 
+    @data(None, 'date_modified', '-date_modified')
+    def test_assets_ordering_stable_with_tied_date_modified(self, ordering):
+        """
+        Ensure assets tied on `date_modified` are neither duplicated nor
+        skipped across pages, and come back in ascending `pk` order, with the
+        default sort and with an explicit `ordering`
+        """
+        someuser = User.objects.get(username='someuser')
+        tied_assets = [
+            Asset.objects.create(
+                owner=someuser,
+                name=f'Tied survey {i}',
+                asset_type=ASSET_TYPE_SURVEY,
+            )
+            for i in range(6)
+        ]
+        tied_date_modified = timezone.make_aware(datetime(2024, 1, 1, 12, 0))
+        # Queryset updates bypass `save()`, which would stamp a new timestamp.
+        # Updating in reverse `pk` order also reverses their physical row order.
+        for asset in reversed(tied_assets):
+            Asset.objects.filter(pk=asset.pk).update(date_modified=tied_date_modified)
+
+        def crawl_uids() -> list[str]:
+            uids = []
+            offset = 0
+            while True:
+                params = {'limit': 2, 'offset': offset}
+                if ordering:
+                    params['ordering'] = ordering
+                response = self.client.get(self.list_url, data=params)
+                assert response.status_code == status.HTTP_200_OK
+                results = response.data['results']
+                if not results:
+                    return uids
+                uids.extend(r['uid'] for r in results)
+                offset += 2
+
+        uids = crawl_uids()
+        assert len(uids) == len(set(uids))
+        assert len(uids) == self.client.get(self.list_url).data['count']
+        tied_uids = [asset.uid for asset in tied_assets]
+        assert set(tied_uids).issubset(uids)
+        assert crawl_uids() == uids
+        assert [uid for uid in uids if uid in tied_uids] == tied_uids
+
+    def test_assets_ordering_by_date_created(self):
+        """
+        Ensure assets can be sorted by `date_created`
+        """
+        someuser = User.objects.get(username='someuser')
+        assets = [
+            Asset.objects.create(
+                owner=someuser,
+                name=f'Survey {i}',
+                asset_type=ASSET_TYPE_SURVEY,
+            )
+            for i in range(3)
+        ]
+        # Make `date_modified` order differ from `date_created` order
+        assets[0].save()
+        created_uids = [asset.uid for asset in assets]
+
+        def created_uids_from_results(ordering: str) -> list[str]:
+            response = self.client.get(self.list_url, data={'ordering': ordering})
+            assert response.status_code == status.HTTP_200_OK
+            return [
+                r['uid'] for r in response.data['results'] if r['uid'] in created_uids
+            ]
+
+        assert created_uids_from_results('date_created') == created_uids
+        assert created_uids_from_results('-date_created') == created_uids[::-1]
+
     def test_creator_permissions_on_import(self):
         someuser = User.objects.get(username='someuser')
         anotheruser = User.objects.get(username='anotheruser')
@@ -1467,6 +1539,28 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         results_desc = regional_res_desc.json()['results']
         assert results_desc[0]['name'] == 'fixture asset with translations'
         assert results_asc[0]['name'] == 'fixture asset'
+
+    def test_project_views_ordering_by_date_created(self):
+        """
+        Ensure project view assets can be sorted by `date_created`
+        """
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        assets_url = results[0]['assets']
+        regional_res_asc = self.client.get(
+            f'{assets_url}?ordering=date_created',
+            headers={'accept': 'application/json'},
+        )
+        regional_res_desc = self.client.get(
+            f'{assets_url}?ordering=-date_created',
+            headers={'accept': 'application/json'},
+        )
+        names_asc = [r['name'] for r in regional_res_asc.json()['results']]
+        names_desc = [r['name'] for r in regional_res_desc.json()['results']]
+        assert names_asc == ['fixture asset', 'fixture asset with translations']
+        assert names_desc == ['fixture asset with translations', 'fixture asset']
 
     def test_project_views_for_anotheruser_can_view_reports(self):
         someuser = User.objects.get(username='someuser')
