@@ -1,0 +1,45 @@
+{% extends "account/email/base_message.html" %}
+{% load i18n %}
+{% comment %}
+"Activate your account (resent)", for someone whose first activation link did not work.
+Chosen by `AccountAdapter.get_confirmation_email_template()` when the account has no verified address yet.
+
+Says nothing about how to request another link.
+Signing in no longer sends one, and whoever gets this email asked for it through `ResendVerificationLink`.
+{% endcomment %}
+
+{% block title %}{% trans "New activation link for your KoboToolbox account" %}{% endblock %}
+
+{% block preheader %}{% blocktrans trimmed %}Here is a new link to activate your KoboToolbox account.{% endblocktrans %}{% endblock %}
+
+{% block message %}
+  <h1 class="h1" style="margin:0 0 16px;font-size:24px;line-height:32px;font-weight:600;color:#0f172a;">
+    {% blocktrans trimmed with first_name=user.first_name|default:user.username %}
+      Hi {{ first_name }},
+    {% endblocktrans %}
+  </h1>
+
+  <p class="text" style="margin:0 0 28px;font-size:16px;line-height:24px;color:#334155;">
+    {% blocktrans trimmed %}
+      Since you were unable to use your previous account activation link,
+      here is a new link to activate your KoboToolbox account.
+    {% endblocktrans %}
+  </p>
+
+  {% trans "Activate My Account" as button_label %}
+  {% include "account/email/_button.html" with url=activate_url label=button_label %}
+
+  <p class="text" style="margin:0 0 28px;font-size:16px;line-height:24px;color:#334155;">
+    {% blocktrans trimmed count hours=expire_hours %}
+      <strong>This link expires in {{ hours }} hour</strong> for security reasons.
+    {% plural %}
+      <strong>This link expires in {{ hours }} hours</strong> for security reasons.
+    {% endblocktrans %}
+  </p>
+
+  <p class="text" style="margin:0;font-size:16px;line-height:24px;color:#334155;">
+    {% blocktrans trimmed %}
+      Thanks for being part of the KoboToolbox community!<br><strong>The KoboToolbox Team</strong>
+    {% endblocktrans %}
+  </p>
+{% endblock %}
