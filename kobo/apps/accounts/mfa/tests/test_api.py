@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from allauth.mfa.models import Authenticator
 from allauth.mfa.totp.internal.auth import SECRET_SESSION_KEY
 from constance.test import override_config
@@ -146,13 +148,42 @@ class MfaApiTestCase(BaseTestCase):
         self.assertTrue(profile.is_mfa_active)
 
         code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+            )
         assert response.status_code == status.HTTP_200_OK
 
         profile.refresh_from_db()
         self.assertFalse(profile.is_mfa_active)
+
+    @override_config(MFA_ENABLED=True)
+    def test_failed_activation_does_not_sync_user_profile(self):
+        """
+        If activation fails after the TOTP authenticator was created, the KPI
+        transaction is rolled back and the KoboCAT profile must not be touched
+        (in production it lives in another database, which would keep the flag)
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        self.client.force_login(anotheruser)
+        self.client.post(reverse('mfa-activate', args=(METHOD,)))
+        code = get_pending_mfa_code(self.client)
+
+        with (
+            patch(
+                'kobo.apps.accounts.mfa.flows.auto_generate_recovery_codes',
+                side_effect=RuntimeError('boom'),
+            ),
+            patch.object(UserProfile, 'set_mfa_status') as set_mfa_status,
+            self.captureOnCommitCallbacks(execute=True),
+            self.assertRaises(RuntimeError),
+        ):
+            self.client.post(
+                reverse('mfa-confirm', args=(METHOD,)), data={'code': code}
+            )
+
+        assert get_totp_authenticator(anotheruser) is None
+        set_mfa_status.assert_not_called()
 
     @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
     def test_superuser_deactivation_prohibited_when_enforced(self):

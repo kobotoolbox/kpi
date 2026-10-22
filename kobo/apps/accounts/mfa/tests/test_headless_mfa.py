@@ -79,11 +79,12 @@ class HeadlessMfaTestCase(BaseTestCase):
         assert self._login().status_code == status.HTTP_200_OK
         response = self.client.get(f'{HEADLESS_URL}/account/authenticators/totp')
         secret = response.json()['meta']['secret']
-        response = self.client.post(
-            f'{HEADLESS_URL}/account/authenticators/totp',
-            data={'code': pyotp.TOTP(secret).now()},
-            content_type='application/json',
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                f'{HEADLESS_URL}/account/authenticators/totp',
+                data={'code': pyotp.TOTP(secret).now()},
+                content_type='application/json',
+            )
         assert response.status_code == status.HTTP_200_OK
 
         assert get_adapter().is_mfa_enabled(self.someuser)
@@ -100,9 +101,13 @@ class HeadlessMfaTestCase(BaseTestCase):
 
     def test_mfa_deactivated_with_headless_is_released(self):
         activate_mfa_for_user(self.client, self.someuser)
+        assert UserProfile.objects.get(user=self.someuser).is_mfa_active
         self._login_with_mfa(self.someuser, 'someuser')
 
-        response = self.client.delete(f'{HEADLESS_URL}/account/authenticators/totp')
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.delete(
+                f'{HEADLESS_URL}/account/authenticators/totp'
+            )
         assert response.status_code == status.HTTP_200_OK
 
         assert not user_has_active_mfa(self.someuser)
