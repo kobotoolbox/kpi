@@ -11,7 +11,7 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kobo.apps.accounts.views import HeadlessLoginView, HeadlessManageTOTPView
+from kobo.apps.accounts.views import HeadlessManageTOTPView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -94,14 +94,6 @@ urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
-    # Must be before `allauth.headless.urls`, whose login endpoint it replaces
-    *[
-        path(
-            f'api/v2/allauth/{client}/v1/auth/login',
-            HeadlessLoginView.as_api_view(client=Client(client)),
-        )
-        for client in headless_settings.CLIENTS
-    ],
     # Must be before `allauth.headless.urls`, whose TOTP endpoint it replaces
     *[
         path(
