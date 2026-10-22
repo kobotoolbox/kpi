@@ -25,6 +25,15 @@ function announcesItsOwnSignIn(routePath: string): boolean {
   return SELF_ANNOUNCED_SIGN_IN_ROUTES.some((pattern) => matchPath(pattern, routePath) !== null)
 }
 
+/** What moved, as `AuthChangeRedirector` read it. */
+export interface AuthChange {
+  event: AuthChangeEvent
+  /** The new reading */
+  status: AuthStatus
+  /** Whether it came back from one of our own calls rather than the session poll - see `#/auth/authChangeWatcher` */
+  isReadingFromOwnCall: boolean
+}
+
 /** Where the browser is, gathered up so the effect can read it in one go. */
 export interface RedirectContext {
   navigate: NavigateFunction
@@ -34,13 +43,11 @@ export interface RedirectContext {
   nextRoute: string | null
   /** A page load, where `null` means this page again, but now with session it missed */
   goToPage: (url: string | null) => void
-  /** Whether this change came from one of our own calls rather than the poll - see `#/auth/authChangeWatcher` */
-  isReadingFromOwnCall: boolean
 }
 
-/** `status` is the new reading. */
-export function redirectForAuthChange(event: AuthChangeEvent, status: AuthStatus, context: RedirectContext) {
-  const { navigate, routePath, routeWithSearch, nextRoute, goToPage, isReadingFromOwnCall } = context
+export function redirectForAuthChange(change: AuthChange, context: RedirectContext) {
+  const { event, status, isReadingFromOwnCall } = change
+  const { navigate, routePath, routeWithSearch, nextRoute, goToPage } = context
 
   /** Skips a navigation that would land where the browser already is */
   function goToRoute(pathWithSearch: string, { replace = false } = {}) {

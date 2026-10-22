@@ -10,7 +10,7 @@ import { withAuthFieldError } from '#/auth/AuthFieldError'
 import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
-import { legalSentence } from '#/auth/legalAgreement'
+import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
@@ -41,6 +41,8 @@ export interface RegisterFormProps {
    * drops the field from signup, so there is no checkbox to show.
    */
   newsletterField: MetadataField | undefined
+  /** Whether the server requires the legal agreement, and so whether there is a checkbox at all. */
+  isTermsOfServiceRequired: boolean | undefined
   termsOfServiceUrl: string | null | undefined
   privacyPolicyUrl: string | null | undefined
   /** Blocks submitting until `/environment` loads */
@@ -60,14 +62,13 @@ export interface RegisterFormProps {
 export default function RegisterForm({
   socialApps,
   newsletterField,
+  isTermsOfServiceRequired,
   termsOfServiceUrl,
   privacyPolicyUrl,
   isConfigurationPending,
   onVerificationPending,
   onSignedIn,
 }: RegisterFormProps) {
-  const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
-
   const form = useForm<RegisterFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
@@ -84,9 +85,9 @@ export default function RegisterForm({
       username: validateUsername,
       password: validatePassword,
       passwordConfirm: (value, values) => validatePasswordConfirm(value, values.password),
-      // No checkbox to tick when there is no legal document, so nothing to require. Mantine reads these
-      // rules fresh on every render, so this follows the label once `/environment` lands.
-      termsOfService: legalLabel ? validateRequiredCheckbox : undefined,
+      // No checkbox to tick where the server asks for no agreement, so nothing to require. Mantine reads
+      // these rules fresh on every render, so this follows the checkbox once `/environment` lands.
+      termsOfService: isTermsOfServiceRequired ? validateRequiredCheckbox : undefined,
       // An administrator can make the opt in mandatory, odd as that is, and the server then enforces it.
       newsletterSubscription: newsletterField?.required ? validateRequiredCheckbox : undefined,
     },
@@ -207,13 +208,13 @@ export default function RegisterForm({
                 {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
               />
             )}
-            {legalLabel && (
-              <Checkbox
-                label={legalLabel}
-                key={form.key('termsOfService')}
-                {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
-              />
-            )}
+            <TermsOfServiceCheckbox
+              isRequired={isTermsOfServiceRequired}
+              termsOfServiceUrl={termsOfServiceUrl}
+              privacyPolicyUrl={privacyPolicyUrl}
+              key={form.key('termsOfService')}
+              {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
+            />
           </Stack>
 
           <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || signup.isPending}>

@@ -68,4 +68,6 @@ export interface EnvironmentResponse {
   terms_of_service__sitewidemessage__exists: boolean
   /** The OpenRosa server URL (KC) */
   open_rosa_server: string
+  /** Row limit past which paginated endpoints using capped counting report `count: 'many'`. Clients can label such counts as "{limit}+" */
+  limited_count_max_rows: number
 }
