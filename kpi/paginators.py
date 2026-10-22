@@ -380,26 +380,23 @@ class DataPagination(LimitedCountPagination):
     as `LimitedCountPagination`, so this class only builds the response.
     """
 
-    def paginate_submissions(
-        self,
-        submissions: Iterable[dict | str],
-        count: int | str,
-        limit: int,
-        request: Request,
+    def paginate_queryset(
+        self, queryset: Iterable[dict | str], request: Request, view=None
     ) -> list[dict | str]:
         """
-        Return the page from `submissions`, fetched with one row past
-        `limit`: that row sets `next`, so it never depends on `count`
+        Return the page from `queryset`, the submissions `view` fetched with one
+        row past `get_limit()`: that row sets `next`, so it never depends on
+        the count
         """
         self.request = request
-        # Links follow the MongoDB window, which only reads `start` and `limit`
-        self.limit = limit
-        self.offset = _positive_int(
-            request.query_params.get(self.offset_query_param, 0)
-        )
-        self.count = count
+        self.limit = self.get_limit(request)
+        self.offset = self.get_offset(request)
+        if not self.offset:
+            self.offset = 0
+        self.count = view.asset.deployment.current_submission_count
 
-        page = list(islice(submissions, limit + 1))
+        limit = self.limit
+        page = list(islice(queryset, limit + 1))
         self.has_next = len(page) > limit
         return page[:limit]
 

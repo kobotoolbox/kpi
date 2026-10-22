@@ -475,10 +475,9 @@ class DataViewSet(
                 )
             )
 
-        limit = filters['limit']
-        # One row past the page tells `DataPagination` whether a next page
-        # exists, since `count` can be 'many' or 'unknown'
-        filters['limit'] = limit + 1
+        # The page size comes from the paginator, plus one row that tells
+        # `DataPagination` whether a next page exists
+        filters['limit'] = self.paginator.get_limit(request) + 1
         try:
             submissions = deployment.get_submissions(
                 request.user,
@@ -494,10 +493,11 @@ class DataViewSet(
                 raise serializers.ValidationError(message)
             logging.warning(message, exc_info=True)
             raise serializers.ValidationError('Unsupported query')
-        page = self.paginator.paginate_submissions(
-            submissions, deployment.current_submission_count, limit, request
-        )
-        return self.get_paginated_response(page)
+        page = self.paginate_queryset(submissions)
+        if page is not None:
+            return self.get_paginated_response(page)
+
+        return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
         """
