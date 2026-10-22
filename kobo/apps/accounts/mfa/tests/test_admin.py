@@ -39,9 +39,7 @@ class MfaAdminTestCase(BaseTestCase):
 
     def test_lists_totp_authenticators_only(self):
         queryset = self.model_admin.get_queryset(self.request)
-        self.assertEqual(
-            list(queryset), [get_totp_authenticator(self.someuser)]
-        )
+        self.assertEqual(list(queryset), [get_totp_authenticator(self.someuser)])
 
     def test_admin_deactivation_cleans_up_authenticators(self):
         totp = get_totp_authenticator(self.someuser)
