@@ -1,5 +1,4 @@
 import { http, HttpResponse, delay } from 'msw'
-import type { AccountConfigurationLoginMethodsItem } from '#/api/models/accountConfigurationLoginMethodsItem'
 import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsItem'
 import type { ProviderAccount } from '#/api/models/providerAccount'
 
@@ -10,7 +9,6 @@ import type { ProviderAccount } from '#/api/models/providerAccount'
 
 const SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/signup'
 const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
-const CONFIG_URL = '*/api/v2/allauth/browser/v1/config'
 /** `GET` asks who is signed in, `DELETE` logs them out */
 export const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
 /** Exported so a story can put its own handler here and inspect the credentials the form posted. */
@@ -25,27 +23,6 @@ export const PASSWORD_RESET_URL = '*/api/v2/allauth/browser/v1/auth/password/res
 export const PROVIDER_SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/provider/signup'
 /** `GET` lists the provider accounts connected to this user, `DELETE` disconnects one */
 const ACCOUNT_PROVIDERS_URL = '*/api/v2/allauth/browser/v1/account/providers'
-
-/** allauth's own settings. The default `loginMethods` matches an instance that left `ACCOUNT_LOGIN_METHODS` alone. */
-export const allauthConfigurationMock = (loginMethods: AccountConfigurationLoginMethodsItem[] = ['username']) =>
-  http.get(CONFIG_URL, () =>
-    HttpResponse.json({
-      status: 200,
-      data: {
-        account: {
-          login_methods: loginMethods,
-          is_open_for_signup: true,
-          email_verification_by_code_enabled: false,
-          login_by_code_enabled: false,
-          password_reset_by_code_enabled: false,
-        },
-      },
-    }),
-  )
-
-/** The settings never arriving, so the form has no credential it can safely ask for. */
-export const allauthConfigurationServerErrorMock = () =>
-  http.get(CONFIG_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
 /**
  * A successful signup under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since the  new account

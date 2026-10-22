@@ -353,7 +353,6 @@ export const environmentResponse = {
     logo_url: null,
     supporting_image_url: null,
     supporting_text: '',
-    allow_login_with_username: true,
   },
   project_metadata_fields: [
     {

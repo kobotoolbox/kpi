@@ -1853,6 +1853,8 @@ ACCOUNT_FORMS = {
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+# Accounts can share an email, so login stays username-only: allauth rejects
+# `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True

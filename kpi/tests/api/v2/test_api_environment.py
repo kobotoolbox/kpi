@@ -114,8 +114,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 'logo_url': None,
                 'supporting_image_url': None,
                 'supporting_text': markdownify(I18nUtils.get_sitewide_message()),
-                # Derived from allauth, which accepts only a username by default
-                'allow_login_with_username': True,
             },
         }
         if settings.STRIPE_ENABLED:
@@ -284,23 +282,12 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         assert auth_configuration['logo_url'] is None
         assert auth_configuration['supporting_image_url'] is None
         assert auth_configuration['show_kobotoolbox_logo'] is True
-        assert auth_configuration['allow_login_with_username'] is True
 
     @override_config(SHOW_KOBOTOOLBOX_LOGO=False)
     def test_auth_configuration_logo_toggle_is_configurable(self):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['auth_configuration']['show_kobotoolbox_logo'] is False
-
-    @override_settings(ACCOUNT_LOGIN_METHODS={'email'}, ACCOUNT_UNIQUE_EMAIL=True)
-    def test_auth_configuration_reports_accepted_login_methods(self):
-        """
-        The flag follows allauth rather than a preference of its own, so the
-        sign-in form never offers a credential the server would reject
-        """
-        response = self.client.get(self.url, format='json')
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['auth_configuration']['allow_login_with_username'] is False
 
     def test_auth_configuration_supporting_text_is_rendered_html(self):
         SitewideMessage.objects.filter(slug='welcome_message').update(
