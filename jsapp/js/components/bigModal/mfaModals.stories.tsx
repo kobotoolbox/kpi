@@ -55,6 +55,28 @@ export const EnterKeyManually: Story = {
   },
 }
 
+/** Deletes the old setup, then walks on to a new one without closing */
+export const ReconfigureContinuesToNewSetup: Story = {
+  args: { modalType: 'reconfigure' },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.click(await canvas.findByRole('button', { name: 'Next' }))
+    await submitCode(canvas, VALID_CODE)
+
+    // The modal opened without a QR code, so this secret can only come from the new setup
+    await userEvent.click(await canvas.findByText('Enter key manually'))
+    expect(await canvas.findByText('MFADEMOSECRET234')).toBeInTheDocument()
+
+    await submitCode(canvas, VALID_CODE)
+
+    for (const code of BACKUP_CODES) {
+      expect(await canvas.findByText(code)).toBeInTheDocument()
+    }
+    expect(args.onModalClose).not.toHaveBeenCalled()
+  },
+}
+
 export const DeactivateRejectsBadCode: Story = {
   args: { modalType: 'deactivate' },
   play: async ({ canvasElement, args }) => {

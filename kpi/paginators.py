@@ -3,13 +3,48 @@ from typing import Union
 
 from constance import config
 from django.conf import settings
+from django.db import OperationalError, connections, transaction
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
+from psycopg.errors import QueryCanceled
 from rest_framework.pagination import LimitOffsetPagination, _positive_int
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
 from rest_framework.utils.urls import replace_query_param
+
+from kpi.constants import LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN
+
+
+class PeekNextPageMixin:
+    """
+    Detects a next page by fetching one row past the current one, so the
+    `next` link never needs a count.
+    """
+
+    has_next = False
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
+
+    def _get_page_with_peek(self, queryset):
+        """
+        Return the current page and set `has_next` from one extra row.
+        """
+        # Slice bounds are bound to locals so black keeps the colon un-spaced
+        # (flake8 E203)
+        start = self.offset
+        end = self.offset + self.limit + 1
+        items = list(queryset[start:end])
+        self.has_next = len(items) > self.limit
+        return items[: self.limit]
 
 
 class DefaultPagination(LimitOffsetPagination):
@@ -248,7 +283,94 @@ class FastPagination(DefaultPagination):
         return super().get_count(queryset)
 
 
-class NoCountPagination(DefaultPagination):
+class LimitedCountPagination(PeekNextPageMixin, DefaultPagination):
+    """
+    Reports a capped count: an exact integer up to
+    `settings.API_LIMITED_COUNT_MAX`, the string 'many' past it, and the
+    string 'unknown' when the count query exceeds
+    `settings.API_LIMITED_COUNT_TIMEOUT`.
+
+    The count queries at most `API_LIMITED_COUNT_MAX + 1` rows, so its cost
+    is bounded by the cap instead of the table size. Not meant to be called
+    inside an outer transaction: the scoped `statement_timeout` would persist
+    until that transaction ends. Querysets using `distinct(*fields)`
+    (DISTINCT ON) are not supported.
+    """
+
+    def get_count(self, queryset) -> int | str:
+        """
+        Count up to the configured cap, returning 'many' past it and
+        'unknown' when the scoped count query times out.
+        """
+        max_rows = settings.API_LIMITED_COUNT_MAX
+
+        if not isinstance(queryset, QuerySet):
+            count = len(queryset)
+            return LIMITED_COUNT_MANY if count > max_rows else count
+
+        # Clearing ordering is safe: any L+1 rows already prove 'many', and an
+        # ORDER BY inside a LIMIT subquery forces a full sort. `values('pk')`
+        # avoids detoasting wide columns (e.g. `Asset.content`).
+        capped = queryset.order_by().values('pk')[: max_rows + 1]
+
+        if settings.API_LIMITED_COUNT_TIMEOUT:
+            # `set_config(..., true)` is `SET LOCAL` but accepts bind
+            # parameters; atomic() scopes it and reverts on rollback.
+            try:
+                with transaction.atomic(using=queryset.db):
+                    with connections[queryset.db].cursor() as cursor:
+                        cursor.execute(
+                            "SELECT set_config('statement_timeout', %s, true)",
+                            [str(settings.API_LIMITED_COUNT_TIMEOUT)],
+                        )
+                    count = capped.count()
+            except OperationalError as e:
+                if isinstance(e.__cause__, QueryCanceled):
+                    return LIMITED_COUNT_UNKNOWN
+                raise
+        else:
+            # Never set statement_timeout when disabled: a value of 0 would
+            # turn off the connection-wide guard too.
+            count = capped.count()
+
+        return LIMITED_COUNT_MANY if count > max_rows else count
+
+    def get_paginated_response_schema(self, schema):
+        response_schema = super().get_paginated_response_schema(schema)
+        response_schema['properties']['count'] = {
+            'oneOf': [
+                {'type': 'integer', 'example': 123},
+                {
+                    'type': 'string',
+                    'enum': [LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN],
+                },
+            ],
+            'description': (
+                "Exact number of results, or 'many' when it exceeds the "
+                "server's configured row limit (exposed as "
+                "`limited_count_max_rows` in `/environment`), or 'unknown' "
+                'when counting timed out'
+            ),
+        }
+        return response_schema
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+        self.limit = self.get_limit(request)
+        self.offset = self.get_offset(request)
+        if not self.offset:
+            self.offset = 0
+
+        self.count = self.get_count(queryset)
+        # Only an exact count proves the page is empty without querying it;
+        # 'many' and 'unknown' fall through to the peek
+        if isinstance(self.count, int) and self.offset >= self.count:
+            return []
+
+        return self._get_page_with_peek(queryset)
+
+
+class NoCountPagination(PeekNextPageMixin, DefaultPagination):
     """
     Omits the 'count' field to avoid expensive COUNT(*) queries.
     """
@@ -279,20 +401,7 @@ class NoCountPagination(DefaultPagination):
         if not self.offset:
             self.offset = 0
 
-        # Peek one item beyond the current page to see if a next page exists
-        items = list(queryset[self.offset:self.offset + self.limit + 1])
-        self.has_next = len(items) > self.limit
-        return items[:self.limit]
-
-    def get_next_link(self):
-        if not self.has_next:
-            return None
-
-        url = self.request.build_absolute_uri()
-        url = replace_query_param(url, self.limit_query_param, self.limit)
-
-        offset = self.offset + self.limit
-        return replace_query_param(url, self.offset_query_param, offset)
+        return self._get_page_with_peek(queryset)
 
 
 def custom_max_limit(cls, max_limit):
