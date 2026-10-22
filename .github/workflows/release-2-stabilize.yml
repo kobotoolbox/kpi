@@ -299,12 +299,18 @@ jobs:
         # A collision is two migrations in the same app sharing a numeric prefix
         # (e.g. two branches both added 0012_*.py). A resolved-conflict migration
         # (e.g. 0013_merge_0012_conflicts.py) has its own number, so it's not one.
+        # Only count it if this merge actually introduced one of the two files —
+        # old, already-resolved collisions (left on disk after a past merge
+        # migration) must not block unrelated future merges.
         COLLISIONS=""
         for dir in $(echo "$NEW_MIGRATIONS" | xargs -n1 dirname | sort -u); do
           DUPE_PREFIXES=$(find "$dir" -maxdepth 1 -name '*.py' ! -name '__init__.py' -printf '%f\n' \
             | sed -E 's/^([0-9]+)_.*/\1/' | sort | uniq -d)
           for prefix in $DUPE_PREFIXES; do
-            COLLISIONS="${COLLISIONS}$(find "$dir" -maxdepth 1 -name "${prefix}_*.py" -printf '%p\n' | sort | tr '\n' ' ')"$'\n'
+            FILES=$(find "$dir" -maxdepth 1 -name "${prefix}_*.py" -printf '%p\n' | sort)
+            if echo "$FILES" | grep -qxFf <(echo "$NEW_MIGRATIONS"); then
+              COLLISIONS="${COLLISIONS}$(echo "$FILES" | tr '\n' ' ')"$'\n'
+            fi
           done
         done
 
