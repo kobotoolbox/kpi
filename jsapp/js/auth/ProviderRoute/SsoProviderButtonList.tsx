@@ -7,7 +7,7 @@ import { getProviderRedirectId } from './providerRedirect'
 /** The design allows three at most. */
 const MAX_PROVIDER_BUTTONS = 3
 
-export interface ProviderLoginButtonsProps {
+export interface SsoProviderButtonListProps {
   /** `social_apps` from `/api/v2/environment/`, which lists the public providers only. */
   socialApps: SocialApp[] | undefined
   /** Primary on the login screen, secondary on signup. */
@@ -22,7 +22,7 @@ export interface ProviderLoginButtonsProps {
  * are absent from `social_apps` by design - those are reached through their own link, see
  * `ProviderLoginRoute`.
  */
-export default function ProviderLoginButtons({ socialApps, variant }: ProviderLoginButtonsProps) {
+export default function SsoProviderButtonList({ socialApps, variant }: SsoProviderButtonListProps) {
   if (!socialApps?.length) {
     return null
   }

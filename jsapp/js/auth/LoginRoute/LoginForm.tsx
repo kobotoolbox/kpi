@@ -7,7 +7,7 @@ import type { LoginBody } from '#/api/models/loginBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthLoginPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
+import SsoProviderButtonList from '#/auth/ProviderRoute/SsoProviderButtonList'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { getRequiredFieldMessage, validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -158,7 +158,7 @@ export default function LoginForm({
 
   return (
     <Stack gap='xl'>
-      <ProviderLoginButtons socialApps={socialApps} variant='filled' />
+      <SsoProviderButtonList socialApps={socialApps} variant='filled' />
 
       <Title order={1} size='h3'>
         {t('Log in or create an account')}

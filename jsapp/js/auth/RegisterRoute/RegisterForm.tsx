@@ -7,7 +7,7 @@ import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
+import SsoProviderButtonList from '#/auth/ProviderRoute/SsoProviderButtonList'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
 import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
@@ -149,7 +149,7 @@ export default function RegisterForm({
         {t('Create your account')}
       </Title>
 
-      <ProviderLoginButtons socialApps={socialApps} variant='light' />
+      <SsoProviderButtonList socialApps={socialApps} variant='light' />
 
       {formErrors.length > 0 && (
         <Alert type='error' iconName='alert'>
