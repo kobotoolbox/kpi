@@ -66,6 +66,6 @@ def get_xforms_queryset(previous_xform_id: int, user_pk) -> QuerySet:
     # fetched quickly without scanning the full table.
     return (
         XForm.objects.filter(pk__gt=previous_xform_id, user_id=user_pk)
-        .order_by('pk').values('pk','id_string')
-        [: settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE]
+        .order_by('pk')
+        .values('pk', 'id_string')[: settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE]
     )
