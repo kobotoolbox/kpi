@@ -28,7 +28,7 @@ dict2xml
 dj-static
 dj-stripe>=2.9,<2.10
 stripe
-django-allauth>=65.11.2
+django-allauth>=65.20.0
 django-allauth[mfa]
 django-braces
 django-celery-beat
