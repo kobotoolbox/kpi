@@ -9,7 +9,7 @@ import { useNextRoute } from './useNextRoute'
 
 /**
  * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing on
- * a route with an already dead session is `RequireAuth`'s job, and arriving at signup with a live one is
+ * a route with an already dead session is `RequireAuth`'s job, and arriving at a sign-in screen with a live one is
  * `RequireAnonymous`'s. Where each change leads is `#/auth/authRedirects`.
  *
  * Readings come from every allauth answer, not just the session poll (see `#/auth/authChangeWatcher`), so this catches

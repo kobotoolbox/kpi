@@ -162,6 +162,10 @@ export const loginMfaRequiredMock = () =>
     ),
   )
 
+/** Somebody is already signed in - allauth says 409 and nothing else */
+export const loginAlreadyAuthenticatedMock = () =>
+  http.post(LOGIN_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
+
 /** The server itself broke */
 export const loginServerErrorMock = () =>
   http.post(LOGIN_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
