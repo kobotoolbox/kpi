@@ -773,7 +773,7 @@ export default function EditableForm(props: EditableFormProps) {
         <bem.FormBuilderHeader__row m='primary'>
           <bem.FormBuilderHeader__cell
             m={'logo'}
-            data-tip={t('Return to list')}
+            data-tip={t('Projects')}
             className='left-tooltip'
             tabIndex='0'
             onClick={safeNavigateToList}
