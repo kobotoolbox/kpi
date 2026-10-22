@@ -3,6 +3,8 @@
 from django.db import migrations
 
 
+# Dummy migration to mark when timestamps to _submission_time were added. Useful for
+# back-processing older instances
 class Migration(migrations.Migration):
 
     dependencies = [

@@ -90,7 +90,7 @@ class TestAddTzInformation(TestCase):
             'kobo.apps.openrosa.apps.logger.management.commands.add_tz_information_to_submission_times.execute_mongo_query'  # noqa
         ) as mock_execute_mongo_query:
             call_command(
-                'add_tz_information_to_submission_times', xform_id=self.xform.id_string
+                'add_tz_information_to_submission_times', xform=self.xform.id_string
             )
         assert mock_execute_mongo_query.mock_calls == [
             call([instance_pks[0], instance_pks[1]]),

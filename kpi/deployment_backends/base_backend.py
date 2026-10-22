@@ -30,9 +30,6 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.libs.utils.common_tags import (
     META_INSTANCE_ID,
     META_ROOT_UUID,
-    MONGO_STRFTIME,
-    MONGO_STRPTIME_NO_TIMEZONE,
-    MONGO_STRPTIME_WITH_TIMEZONE,
     SUBMISSION_TIME,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
@@ -906,21 +903,15 @@ class BaseDeploymentBackend(abc.ABC):
         if submission_time:
             try:
                 # submission_time should always be stored as UTC, check the tz anyway
-                as_date = datetime.datetime.strptime(
-                    submission_time, MONGO_STRPTIME_WITH_TIMEZONE
-                )
-                as_date = as_date.astimezone(datetime.timezone.utc)
-                submission[SUBMISSION_TIME] = as_date.strftime(MONGO_STRFTIME)
+                as_date = datetime.datetime.fromisoformat(submission_time)
             except ValueError:
-                try:
-                    # if no timezone info is present, assume it was UTC
-                    as_date = datetime.datetime.strptime(
-                        submission_time, MONGO_STRPTIME_NO_TIMEZONE
-                    )
+                pass
+            else:
+                if as_date.tzinfo is None:
                     as_date = as_date.replace(tzinfo=datetime.timezone.utc)
-                    submission[SUBMISSION_TIME] = as_date.strftime(MONGO_STRFTIME)
-                except ValueError:
-                    pass
+                submission[SUBMISSION_TIME] = as_date.astimezone(
+                    datetime.timezone.utc
+                ).isoformat()
         submission.pop('_tags', None)
         submission.pop('_notes', None)
         return submission

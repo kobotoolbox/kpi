@@ -10,7 +10,6 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from typing import Optional
-from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -29,10 +28,6 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
-from kobo.apps.openrosa.libs.utils.common_tags import (
-    MONGO_STRPTIME_NO_TIMEZONE,
-    MONGO_STRPTIME_WITH_TIMEZONE,
-)
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform, get_instance_lock
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
@@ -184,14 +179,12 @@ class Command(BaseCommand):
         sub_copy.pop('_id', None)
         submission_time = sub_copy.pop('_submission_time', None)
         if submission_time:
-            try:
-                submission_time = datetime.strptime(
-                    submission_time, MONGO_STRPTIME_NO_TIMEZONE
-                ).replace(tzinfo=ZoneInfo('UTC'))
-            except ValueError:
-                submission_time = datetime.strptime(
-                    submission_time, MONGO_STRPTIME_WITH_TIMEZONE
-                )
+            # not catching the ValueError here because if a submission time in mongo
+            # is not a properly-formatted date, we want to know about it
+            as_date = datetime.fromisoformat(submission_time)
+            if as_date.tzinfo is None:
+                as_date = as_date.replace(tzinfo=datetime.timezone.utc)
+            submission_time = as_date.astimezone(datetime.timezone.utc)
         else:
             submission_time = timezone.now()
 

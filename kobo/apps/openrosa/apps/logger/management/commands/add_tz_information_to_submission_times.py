@@ -11,7 +11,6 @@ from django.db.models import QuerySet
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kpi.utils.mongo_helper import MongoHelper
 
-lock = threading.Lock()
 LAST_INSTANCE_CACHE_KEY_PREFIX = 'submission_time_update_last_instance'
 
 
@@ -36,21 +35,20 @@ def execute_mongo_query(instance_pks):
 
 
 def process_xform(xform, format_updated_date):
-    with lock:
-        last_instance_id_for_form = cache.get(
-            f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}', 0
+    last_instance_id_for_form = cache.get(
+        f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}', 0
+    )
+    while instance_pks := get_instances_queryset(
+        xform.pk, format_updated_date, last_instance_id_for_form
+    ):
+        execute_mongo_query(instance_pks)
+        last_instance_id_for_form = instance_pks[-1]
+        cache.set(
+            f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}',
+            last_instance_id_for_form,
+            timeout=None,
         )
-        while instance_pks := get_instances_queryset(
-            xform.pk, format_updated_date, last_instance_id_for_form
-        ):
-            execute_mongo_query(instance_pks)
-            last_instance_id_for_form = instance_pks[-1]
-            cache.set(
-                f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}',
-                last_instance_id_for_form,
-                timeout=None,
-            )
-        cache.delete(f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}')
+    cache.delete(f'{LAST_INSTANCE_CACHE_KEY_PREFIX}:{xform.id}')
 
 
 def get_instances_queryset(
@@ -74,7 +72,8 @@ def get_instances_queryset(
 class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
-            '--xform_id',
+            '--xform',
+            help="Specify a XForm's `id_string`",
             required=True,
         )
 
@@ -82,7 +81,7 @@ class Command(BaseCommand):
         # technically more than one xform could have the same id_string.
         # follow the pattern of "clean_duplicated_submissions", which will act
         # on any form with the correct xform_id
-        xforms = XForm.objects.filter(id_string=options['xform_id'])
+        xforms = XForm.objects.filter(id_string=options['xform'])
         format_updated_date = MigrationRecorder.Migration.objects.get(
             app='viewer', name='0008_update_submission_time_format'
         ).applied

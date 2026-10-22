@@ -31,31 +31,33 @@ def run():
     last_user_id = cache.get(LAST_USER_ID_CACHE_KEY, 0)
     user_iterator = (
         get_active_users()
-        .only('pk')
         .filter(id__gt=last_user_id, date_joined__lte=format_updated_date)
         .order_by('pk')
+        .values_list('pk', flat=True)
         .iterator()
     )
-    for user in user_iterator:
-        last_xform_pk_for_user = cache.get(f'{LAST_XFORM_ID_CACHE_KEY}_{user.pk}', 0)
+    for user_pk in user_iterator:
+        last_xform_pk_for_user = cache.get(f'{LAST_XFORM_ID_CACHE_KEY}_{user_pk}', 0)
         with use_db(settings.OPENROSA_DB_ALIAS):
-            while xforms := get_xforms_queryset(last_xform_pk_for_user, user.pk):
+            while xforms := get_xforms_queryset(last_xform_pk_for_user, user_pk):
                 for xform in xforms:
+                    xform_pk = xform['pk']
+                    xform_id_string = xform['id_string']
                     logging.info(
-                        f'[LRM 0033] - Processing XForm #{xform.pk}, {xform.id_string}'
+                        f'[LRM 0033] - Processing XForm #{xform_pk}, {xform_id_string}'
                     )
                     call_command(
                         'add_tz_information_to_submission_times',
-                        xform_id=xform.id_string,
+                        xform=xform_id_string,
                     )
                     logging.info(
-                        f'[LRM 0033] - Finished XForm #{xform.pk}, {xform.id_string}'
+                        f'[LRM 0033] - Finished XForm #{xform_pk}, {xform_id_string}'
                     )
-                    last_xform_pk_for_user = xform.pk
+                    last_xform_pk_for_user = xform_pk
                     cache.set(
-                        f'{LAST_XFORM_ID_CACHE_KEY}_{user.pk}', last_xform_pk_for_user
+                        f'{LAST_XFORM_ID_CACHE_KEY}_{user_pk}', last_xform_pk_for_user
                     )
-        cache.set(LAST_USER_ID_CACHE_KEY, user.pk, timeout=None)
+        cache.set(LAST_USER_ID_CACHE_KEY, user_pk, timeout=None)
 
 
 def get_xforms_queryset(previous_xform_id: int, user_pk) -> QuerySet:
@@ -64,6 +66,6 @@ def get_xforms_queryset(previous_xform_id: int, user_pk) -> QuerySet:
     # fetched quickly without scanning the full table.
     return (
         XForm.objects.filter(pk__gt=previous_xform_id, user_id=user_pk)
-        .only('pk', 'id_string')
-        .order_by('pk')[: settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE]
+        .order_by('pk').values('pk','id_string')
+        [: settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE]
     )
