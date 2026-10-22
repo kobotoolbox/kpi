@@ -543,10 +543,12 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         })
         assert expected_order_by_name_collections_first == uids
 
-    def test_assets_ordering_stable_with_tied_date_modified(self):
+    @data(None, 'date_modified', '-date_modified')
+    def test_assets_ordering_stable_with_tied_date_modified(self, ordering):
         """
         Ensure assets tied on `date_modified` are neither duplicated nor
-        skipped across pages, and come back in ascending `pk` order
+        skipped across pages, and come back in ascending `pk` order, with the
+        default sort and with an explicit `ordering`
         """
         someuser = User.objects.get(username='someuser')
         tied_assets = [
@@ -567,9 +569,10 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             uids = []
             offset = 0
             while True:
-                response = self.client.get(
-                    self.list_url, data={'limit': 2, 'offset': offset}
-                )
+                params = {'limit': 2, 'offset': offset}
+                if ordering:
+                    params['ordering'] = ordering
+                response = self.client.get(self.list_url, data=params)
                 assert response.status_code == status.HTTP_200_OK
                 results = response.data['results']
                 if not results:
