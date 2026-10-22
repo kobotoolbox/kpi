@@ -302,21 +302,15 @@ jobs:
         # Only count it if this merge actually introduced one of the two files —
         # old, already-resolved collisions (left on disk after a past merge
         # migration) must not block unrelated future merges.
-        COLLISIONS=""
-        for dir in $(echo "$NEW_MIGRATIONS" | xargs -n1 dirname | sort -u); do
-          DUPE_PREFIXES=$(find "$dir" -maxdepth 1 -name '*.py' ! -name '__init__.py' -printf '%f\n' \
-            | sed -E 's/^([0-9]+)_.*/\1/' | sort | uniq -d)
-          for prefix in $DUPE_PREFIXES; do
-            FILES=$(find "$dir" -maxdepth 1 -name "${prefix}_*.py" -printf '%p\n' | sort)
-            if echo "$FILES" | grep -qxFf <(echo "$NEW_MIGRATIONS"); then
-              COLLISIONS="${COLLISIONS}$(echo "$FILES" | tr '\n' ' ')"$'\n'
-            fi
-          done
-        done
+        ALL_FILES=$(echo "$NEW_MIGRATIONS" | xargs -n1 dirname | sort -u \
+          | xargs -I{} find {} -maxdepth 1 -name '*.py' ! -name '__init__.py' -printf '%p\n')
+        DUPED_KEYS=$(echo "$ALL_FILES" | sed -E 's#(.*/)([0-9]+)_.*#\1\2#' | sort | uniq -d)
+        NEW_KEYS=$(echo "$NEW_MIGRATIONS" | sed -E 's#(.*/)([0-9]+)_.*#\1\2#' | sort -u)
+        COLLISIONS=$(comm -12 <(echo "$DUPED_KEYS") <(echo "$NEW_KEYS"))
 
         if [[ -n "$COLLISIONS" ]]; then
           echo "::error::Migration number collision — same numeric prefix used twice in the same app. Aborting merge forward:"
-          echo "$COLLISIONS"
+          echo "$ALL_FILES" | grep -F -f <(echo "$COLLISIONS")
           exit 1
         fi
 
