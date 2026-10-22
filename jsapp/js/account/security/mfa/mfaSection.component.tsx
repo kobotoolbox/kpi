@@ -94,7 +94,7 @@ export default function MfaSection() {
               <div className={styles.mfaOptionsRow}>
                 <h3 className={styles.mfaOptionsLabel}>{t('Authenticator app')}</h3>
 
-                {mfaStatus?.dateModified && <div>{formatTime(mfaStatus.dateModified)}</div>}
+                {mfaStatus?.dateCreated && <div>{formatTime(mfaStatus.dateCreated)}</div>}
 
                 <Button type='primary' label={t('Reconfigure')} size='m' onClick={() => showMfaModal('reconfigure')} />
               </div>
