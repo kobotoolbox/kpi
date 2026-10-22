@@ -1,15 +1,17 @@
-import type React from 'react'
-import { useEffect, useState } from 'react'
-
 import { Stack, Text } from '@mantine/core'
-import { fetchGet, fetchPost, handleApiFail, reportApiFail } from '#/api'
+import * as Sentry from '@sentry/react'
+import type React from 'react'
+import { useState } from 'react'
+import { fetchPost, reportApiFail } from '#/api'
+import type { TermsOfServiceResponse } from '#/api/models/termsOfServiceResponse'
+import { getTermsOfServiceListQueryKey, useTermsOfServiceList } from '#/api/react-query/other'
 import InjectedHtml from '#/auth/AuthContainer/InjectedHtml'
 import { useLogoutAndReload } from '#/auth/useLogout'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
-import { currentLang, notify } from '#/utils'
+import { currentLang } from '#/utils'
 import styles from './tosForm.module.scss'
 
 /** A slug for the `sitewide_messages` endpoint */
@@ -18,16 +20,13 @@ const TOS_SLUG = 'terms_of_service'
 const TOS_SLUG_TRANSLATED = `${TOS_SLUG}_<language>`
 
 const TOS_ACCEPT_ENDPOINT = '/me/tos/'
-const TOS_MESSAGES_ENDPOINT = '/api/v2/terms-of-service/'
 
-interface SitewideMessage {
-  url: string
-  slug: string
-  /** HTML or Markdown code. For TOS Announcement this will definitely be HTML. */
-  body: string
+/** The announcement's HTML in the UI language, falling back to the untranslated one. */
+function findAnnouncement(messages: TermsOfServiceResponse[]) {
+  const translatedSlug = TOS_SLUG_TRANSLATED.replace('<language>', currentLang())
+  return (messages.find((item) => item.slug === translatedSlug) ?? messages.find((item) => item.slug === TOS_SLUG))
+    ?.body
 }
-
-type SitewideMessagesResponse = SitewideMessage[]
 
 /**
  * This form displays a TOS announcement message with an accept button that will cause the UI to be
@@ -39,38 +38,28 @@ type SitewideMessagesResponse = SitewideMessage[]
 export default function TOSForm() {
   // After "Accept" button is clicked, this will be true until the call resolves
   const [isFormPending, setIsFormPending] = useState(false)
-  const [announcementMessage, setAnnouncementMessage] = useState<string | undefined>()
   const [acceptError, setAcceptError] = useState<string>()
 
   const logout = useLogoutAndReload()
 
-  // Get TOS message from endpoint
-  useEffect(() => {
-    const getTOS = async () => {
-      try {
-        const response = await fetchGet<SitewideMessagesResponse>(TOS_MESSAGES_ENDPOINT)
+  const terms = useTermsOfServiceList({
+    query: {
+      queryKey: getTermsOfServiceListQueryKey(),
+      // No toast: the error shows on the card. Still reported, so a broken blocker gets noticed.
+      throwOnError: (error) => {
+        Sentry.captureException(error)
+        return false
+      },
+    },
+  })
+  const announcementMessage = terms.data?.status === 200 ? findAnnouncement(terms.data.data) : undefined
 
-        // First we try to find and set the translated TOS message, if not present
-        // we go with fallback. Otherwise we will display an error.
-        const translatedSlug = TOS_SLUG_TRANSLATED.replace('<language>', currentLang())
-        const translatedMessage = response.find((item) => item.slug === translatedSlug)
-        const fallbackMessage = response.find((item) => item.slug === TOS_SLUG)
-        if (translatedMessage) {
-          setAnnouncementMessage(translatedMessage.body)
-        } else if (fallbackMessage) {
-          setAnnouncementMessage(fallbackMessage.body)
-        } else {
-          setAnnouncementMessage('')
-          notify(t('TOS Update Message not found'), 'error')
-        }
-      } catch (err) {
-        const failResult = err as FailResponse
-        handleApiFail(failResult)
-        setAnnouncementMessage('')
-      }
-    }
-    getTOS()
-  }, [])
+  let loadError: string | undefined
+  if (terms.isError) {
+    loadError = t('Something went wrong. Please try again later.')
+  } else if (terms.isSuccess && !announcementMessage) {
+    loadError = t('TOS Update Message not found')
+  }
 
   /**
    * Accepting TOS is simply POSTing to this endpoint. When it succeeds, we reload the page to display
@@ -82,6 +71,7 @@ export default function TOSForm() {
     setAcceptError(undefined)
 
     try {
+      // TODO: use an Orval hook once `/me/tos/` is in the OpenAPI schema DEV-3170.
       // No toast: the error shows on the card, like the other blocker errors.
       await fetchPost(TOS_ACCEPT_ENDPOINT, {}, { notifyAboutError: false })
       // TODO ideally we could make the profileStore fetch new account data
@@ -97,7 +87,7 @@ export default function TOSForm() {
     }
   }
 
-  const errors = [acceptError, logout.error].filter((error) => error !== undefined)
+  const errors = [loadError, acceptError, logout.error].filter((error) => error !== undefined)
 
   return (
     <form onSubmit={submitForm}>
@@ -105,7 +95,7 @@ export default function TOSForm() {
         {announcementMessage ? (
           <InjectedHtml className={styles.message} html={announcementMessage} />
         ) : (
-          <LoadingSpinner message={false} />
+          terms.isPending && <LoadingSpinner message={false} />
         )}
 
         {errors.length > 0 && (
