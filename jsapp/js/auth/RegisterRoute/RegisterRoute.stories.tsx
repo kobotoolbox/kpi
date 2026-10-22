@@ -18,6 +18,7 @@ import {
   signupServerErrorMock,
 } from '#/endpoints/allauth.mocks'
 import {
+  environmentResponse,
   environmentServerErrorMock,
   makeAuthConfigurationMock,
   makeEnvironmentMock,
@@ -53,7 +54,10 @@ const supportingEnvironmentMock = makeAuthConfigurationMock(
   LEGAL_AGREEMENT,
 )
 
-/** An instance that asks for every profile field it can and requires most of them */
+/**
+ * An instance that asks for every profile field it can and requires most of them, the newsletter opt in
+ * included, under a label of its own.
+ */
 const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
   ...LEGAL_AGREEMENT,
   user_metadata_fields: [
@@ -66,12 +70,16 @@ const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
     { name: 'gender', required: false, label: 'Gender' },
     { name: 'bio', required: true, label: 'Bio' },
     { name: 'city', required: true, label: 'City' },
-    {
-      name: 'newsletter_subscription',
-      required: false,
-      label: 'I want to receive occasional updates about KoboToolbox',
-    },
+    { name: 'newsletter_subscription', required: true, label: 'Send me the Example Organization digest' },
   ],
+})
+
+/** An instance that has switched the newsletter field off, so signup has nowhere to store the opt in. */
+const newsletterOffEnvironmentMock = makeEnvironmentMock({
+  ...LEGAL_AGREEMENT,
+  user_metadata_fields: environmentResponse.user_metadata_fields.filter(
+    (metadataField) => metadataField.name !== 'newsletter_subscription',
+  ),
 })
 
 /** An organization that signs in through SSO and owns `kbtdev.org` addresses. */
@@ -118,7 +126,6 @@ export default meta
 type Story = StoryObj<typeof AuthContainer>
 
 const VALID_INPUT = {
-  name: 'Caroline Herschel',
   email: 'caroline.herschel@kbtdev.org',
   username: 'caroline_herschel',
   password: 'correct horse battery staple',
@@ -137,7 +144,6 @@ async function fillForm(canvas: Canvas, overrides: Partial<typeof VALID_INPUT> =
 
   await waitForEnvironment(canvas)
 
-  await userEvent.type(field(canvas, 'Full name'), values.name)
   await userEvent.type(field(canvas, 'Email'), values.email)
   await userEvent.type(field(canvas, 'Username'), values.username)
   await userEvent.type(field(canvas, 'Password'), values.password)
@@ -197,13 +203,14 @@ export const ClientValidation: Story = {
     await submit(canvas)
 
     // The rules themselves are unit tested in `registerValidation.tests`
-    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
   },
 }
 
 /**
  * The profile fields this instance requires through `USER_METADATA_FIELDS` are not asked for here: signup
- * stays short and they are collected after logging in.
+ * stays short and they are collected after logging in. The newsletter opt in is the exception, and it
+ * takes the instance's label and rule.
  */
 export const RequiredProfileFieldsOmitted: Story = {
   parameters: { msw: { handlers: storyHandlers({ environment: requiredProfileFieldsEnvironmentMock }) } },
@@ -212,13 +219,36 @@ export const RequiredProfileFieldsOmitted: Story = {
 
     await waitForEnvironment(canvas)
 
-    for (const label of ['Country', 'Sector', 'Organization type', 'Organization name', 'Gender', 'Bio', 'City']) {
+    for (const label of [
+      'Full name',
+      'Country',
+      'Sector',
+      'Organization type',
+      'Organization name',
+      'Gender',
+      'Bio',
+      'City',
+    ]) {
       expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
     }
+    expect(canvas.getByRole('checkbox', { name: 'Send me the Example Organization digest' })).toBeInTheDocument()
 
     await submit(canvas)
-    // The same six as `ClientValidation`: what the instance configures makes no difference to this form.
+    // One more than `ClientValidation`, for the newsletter.
     expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+  },
+}
+
+/** Newsletter field switched off by the administrator - no opt in to offer */
+export const NewsletterNotConfigured: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: newsletterOffEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+
+    // The Terms of Service checkbox is the only one left.
+    expect(canvas.getAllByRole('checkbox')).toHaveLength(1)
   },
 }
 
@@ -261,9 +291,9 @@ export const NoAgreementRequired: Story = {
     expect(canvas.queryByRole('checkbox', { name: /I agree with the/ })).not.toBeInTheDocument()
     await submit(canvas)
 
-    // Five where `ClientValidation` gets six: the rule has to go away with the checkbox, or nobody could
+    // Four where `ClientValidation` gets five: the rule has to go away with the checkbox, or nobody could
     // ever submit this form.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
+    expect(await canvas.findAllByText('Required field')).toHaveLength(4)
   },
 }
 
