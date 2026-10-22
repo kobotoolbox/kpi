@@ -132,15 +132,13 @@ export default function RegisterForm({
 
     setFormErrors([])
 
-    // TODO: the endpoint takes the two checkboxes since DEV-2807, but the generated `SignupBody` predates
-    // that. The cast goes once the Orval types are regenerated.
-    const body = {
+    const body: SignupBody = {
       email: values.email.trim(),
       username: values.username.trim(),
       password: values.password,
       newsletter_subscription: values.newsletterSubscription,
       terms_of_service: values.termsOfService,
-    } as SignupBody
+    }
 
     signup.mutate({ data: body })
   }
