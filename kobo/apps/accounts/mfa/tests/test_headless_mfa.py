@@ -105,9 +105,7 @@ class HeadlessMfaTestCase(BaseTestCase):
         self._login_with_mfa(self.someuser, 'someuser')
 
         with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.delete(
-                f'{HEADLESS_URL}/account/authenticators/totp'
-            )
+            response = self.client.delete(f'{HEADLESS_URL}/account/authenticators/totp')
         assert response.status_code == status.HTTP_200_OK
 
         assert not user_has_active_mfa(self.someuser)
