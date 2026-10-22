@@ -275,40 +275,6 @@ $s-form-builder-content-width: 1024px;
   }
 }
 
-// CASCADE MODAL CONTENTS
-
-.cascade-popup {
-  textarea {
-    margin: 15px 0;
-    width: 100%;
-    height: 220px;
-    border: 2px solid colors.$kobo-gray-300;
-  }
-
-  .cascade-popup__buttonWrapper {
-    padding-top: 10px;
-    text-align: right;
-  }
-
-  .cascade-popup__message {
-    &--warning {
-      color: colors.$kobo-red;
-    }
-
-    &--ready {
-      color: colors.$kobo-teal;
-    }
-  }
-
-  .cascade-help {
-    text-align: right;
-
-    i {
-      font-size: 18px;
-      color: colors.$kobo-gray-700;
-    }
-  }
-}
 
 .survey-editor {
   .ui-sortable-placeholder {
