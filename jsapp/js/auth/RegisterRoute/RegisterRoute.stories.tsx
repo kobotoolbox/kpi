@@ -4,12 +4,11 @@ import { getWorker } from 'msw-storybook-addon'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
-import type { SocialApp } from '#/api/models/socialApp'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { setLoginBackgroundMetaForStories } from '#/auth/AuthContainer/authContainer.mocks'
 // The same stand-in photo the container's own stories use, so the custom theme stays offline.
 import backgroundImageUrl from '#/auth/AuthContainer/salah-darwish-story-bg.webp'
-import { type Canvas, field, narrowViewportDecorator } from '#/auth/authStoryHelpers'
+import { type Canvas, field, findProviderButtons, narrowViewportDecorator } from '#/auth/authStoryHelpers'
 import {
   signupAuthenticatedMock,
   signupErrorsMock,
@@ -22,6 +21,7 @@ import {
   environmentServerErrorMock,
   makeAuthConfigurationMock,
   makeEnvironmentMock,
+  socialAppsMock,
 } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
@@ -82,15 +82,8 @@ const newsletterOffEnvironmentMock = makeEnvironmentMock({
   ),
 })
 
-/** An organization that signs in through SSO and owns `kbtdev.org` addresses. */
-const managedSsoApp: SocialApp = {
-  provider: 'openid_connect',
-  name: 'Example Organization',
-  client_id: 'example-client-id',
-  provider_id: 'example-org',
-  managed: true,
-  domains: ['kbtdev.org'],
-}
+/** Legal links plus SSO. `Example Organization` owns `kbtdev.org` addresses. */
+const ssoEnvironmentMock = makeEnvironmentMock({ ...LEGAL_AGREEMENT, social_apps: socialAppsMock })
 
 /**
  * Storybook replaces the handler array rather than merging it, so a story overriding the signup handler
@@ -297,15 +290,23 @@ export const NoAgreementRequired: Story = {
   },
 }
 
+/** SSO configured: secondary buttons between the heading and the form */
+export const SingleSignOnProviders: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: ssoEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const gitlabButton = await findProviderButtons(canvas)
+    expect(canvas.getByText('or')).toBeInTheDocument()
+    // The form stays primary on signup
+    expect(gitlabButton).toHaveAttribute('data-variant', 'light')
+    expect(canvas.getByRole('button', { name: 'Continue' })).toHaveAttribute('data-variant', 'filled')
+  },
+}
+
 /** An address whose domain has to sign in through SSO instead. */
 export const ManagedSsoDomain: Story = {
-  parameters: {
-    msw: {
-      handlers: storyHandlers({
-        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, social_apps: [managedSsoApp] }),
-      }),
-    },
-  },
+  parameters: { msw: { handlers: storyHandlers({ environment: ssoEnvironmentMock }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await fillForm(canvas, { email: 'caroline.herschel@kbtdev.org' })
