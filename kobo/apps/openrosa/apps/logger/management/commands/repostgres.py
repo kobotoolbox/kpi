@@ -10,7 +10,6 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from typing import Optional
-from kpi.utils.xml import fromstring_preserve_root_xmlns
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -24,16 +23,18 @@ from kobo.apps.openrosa.apps.logger.models import (
     SurveyType,
     XForm,
 )
+from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_xform_media_question_xpaths,
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
-from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform, get_instance_lock
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 
 class Command(BaseCommand):
@@ -103,14 +104,25 @@ class Command(BaseCommand):
             for record in records:
                 cpt += 1
                 last_submission_id = record['_id']
-                self._process_record(
-                    record,
-                    cpt,
-                    total,
-                    xform,
-                    survey_type,
-                    storage_base_dir,
-                )
+                # The submission path's lock: a resubmission, an edit or another
+                # run cannot race the rebuild. It never waits, so unlike a row
+                # lock it adds no deadlock risk
+                root_uuid = remove_uuid_prefix(record['meta/rootUuid'])
+                with get_instance_lock(root_uuid, xform.pk) as lock_acquired:
+                    if not lock_acquired:
+                        self._log_error(
+                            record, 'Skipped: submission is being processed elsewhere'
+                        )
+                        continue
+
+                    self._process_record(
+                        record,
+                        cpt,
+                        total,
+                        xform,
+                        survey_type,
+                        storage_base_dir,
+                    )
 
     def _count_documents_if_verbose(self, min_submission_id: int) -> int:
         """
@@ -357,6 +369,7 @@ class Command(BaseCommand):
 
             self._rebuild_attachments(
                 instance,
+                xform,
                 storage_base_dir,
                 root_uuid,
                 mongo_files,
@@ -368,6 +381,7 @@ class Command(BaseCommand):
     def _rebuild_attachments(
         self,
         instance,
+        xform,
         storage_base_dir,
         root_uuid,
         mongo_files,
@@ -408,15 +422,20 @@ class Command(BaseCommand):
                 media_file_basename = question_name_basenames[
                     valid_basenames.index(storage_file)
                 ]
-                attachments.append(
-                    Attachment(
-                        instance_id=instance.id,
-                        media_file=os.path.join(storage_dir, storage_file),
-                        media_file_basename=media_file_basename,
-                        deleted_at=None,
-                        **attachment_kwargs,
-                    )
+                attachment = Attachment(
+                    instance_id=instance.id,
+                    xform_id=instance.xform_id,
+                    user_id=xform.user_id,
+                    media_file=os.path.join(storage_dir, storage_file),
+                    media_file_basename=media_file_basename,
+                    date_created=instance.date_created,
+                    deleted_at=None,
+                    **attachment_kwargs,
                 )
+                # bulk_create() skips save(), so fill what it would have set
+                attachment.media_file_size = attachment.media_file.size
+                attachment.hash = attachment.get_hash()
+                attachments.append(attachment)
 
         new_attachment_basenames = [att.media_file_basename for att in attachments]
         if sorted(new_attachment_basenames) != sorted(question_name_basenames):
@@ -428,12 +447,27 @@ class Command(BaseCommand):
                 f'{len(missing)} missing on {total_}: {missing}',
             )
 
+        # Like `post_save`, count only inserted rows: revived ones are already
+        # counted. Must run before `bulk_create()` fills the pks.
+        existing_ids = set(
+            Attachment.all_objects.filter(pk__in=mongo_files.values()).values_list(
+                'pk', flat=True
+            )
+        )
+        new_attachment_bytes = sum(
+            attachment.media_file_size
+            for attachment in attachments
+            if attachment.pk not in existing_ids
+        )
+
         Attachment.objects.bulk_create(
             attachments,
             update_fields=['deleted_at', 'instance_id'],
             update_conflicts=True,
             unique_fields=['id'],
         )
+
+        update_storage_counters({instance.xform_id: new_attachment_bytes})
 
         delete_mongo_doc = bool(record['_id'] != instance.pk)
         self._save_mongo_doc_to_storage(record, delete=delete_mongo_doc)

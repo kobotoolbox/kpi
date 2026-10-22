@@ -10,16 +10,21 @@ import {
   useAllauthBrowserV1AccountProvidersGet,
 } from '#/api/react-query/authentication-allauth-headless'
 import { getProviderRedirectId, readProviderRedirectError } from '#/auth/ProviderRoute/providerRedirect'
-import { splitAllauthErrors } from '#/auth/allauthErrors'
+import { getFirstAllauthErrorCode } from '#/auth/allauthErrors'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore, { type SocialApp } from '#/envStore'
 import { useProfile } from '#/stores/useProfile'
-import { notify } from '#/utils'
 import ManagedSsoConfirmModal from './ManagedSsoConfirmModal'
 import SsoConnectButton from './SsoConnectButton'
-import { findAppForProviderAccount, getSsoConnectErrorMessage, getSsoProviders, isSsoAvailable } from './sso.utils'
+import {
+  findAppForProviderAccount,
+  getSsoConnectErrorMessage,
+  getSsoDisconnectErrorMessage,
+  getSsoProviders,
+  isSsoAvailable,
+} from './sso.utils'
 import styles from './ssoSection.module.scss'
 
 /**
@@ -83,25 +88,37 @@ export default function SsoSection() {
   const connectedApp = connectedAccount ? findAppForProviderAccount(envStore.data, connectedAccount) : undefined
   const isManaged = connectedApp?.managed ?? false
 
-  const disconnectProvider = useAllauthBrowserV1AccountProvidersDelete()
+  const disconnectProvider = useAllauthBrowserV1AccountProvidersDelete({
+    mutation: {
+      // Here rather than in `mutate()`, whose callbacks are dropped if the user leaves the screen mid-request.
+      onSuccess: async (response) => {
+        if (response.status !== 200) {
+          return
+        }
+        // `/me/` keeps its own copy of the connections, which the password and email sections read, so refresh both
+        await queryClient.invalidateQueries({ queryKey: getAllauthBrowserV1AccountProvidersGetQueryKey() })
+        refreshAccount()
+      },
+    },
+  })
+  const [disconnectErrorMessage, setDisconnectErrorMessage] = useState<string | null>(null)
 
   function disconnectSocialAccount(account: ProviderAccount) {
+    setDisconnectErrorMessage(null)
+
     disconnectProvider.mutate(
       { data: { provider: account.provider.id, account: account.uid } },
       {
-        onSuccess: async (response) => {
-          // `fetchAllauth` hands 4xx back as data, so a refusal lands here and not in `onError`. allauth
-          // sends one when disconnecting would leave no way into the account - no password set, say.
+        onSuccess: (response) => {
+          // `fetchAllauth` hands 4xx back as data, so a refusal lands here, not in `onError`. allauth refuses
+          // when disconnecting would leave no way into the account.
           // TODO: DEV-1971 a 401 here is a reauthentication ask, not a refusal
           if (response.status !== 200) {
-            notify.error(splitAllauthErrors(response, []).formErrors.join(' '))
-            return
+            setDisconnectErrorMessage(getSsoDisconnectErrorMessage(getFirstAllauthErrorCode(response)))
           }
-
-          // `/me/` keeps its own copy of the connections, which the password and email sections read, so refresh both
-          await queryClient.invalidateQueries({ queryKey: getAllauthBrowserV1AccountProvidersGetQueryKey() })
-          refreshAccount()
         },
+        // Only a 5xx gets here, and it says nothing useful.
+        onError: () => setDisconnectErrorMessage(getSsoDisconnectErrorMessage(undefined)),
       },
     )
   }
@@ -143,6 +160,10 @@ export default function SsoSection() {
     )
   }
 
+  // The disconnect failure wins: the redirect error is from an older handshake.
+  const errorMessage =
+    disconnectErrorMessage ?? (redirectErrorCode ? getSsoConnectErrorMessage(redirectErrorCode) : null)
+
   return (
     <SsoSectionFrame>
       <div className={bodyClassName}>
@@ -155,10 +176,10 @@ export default function SsoSection() {
             )}
       </div>
 
-      {redirectErrorCode && (
+      {errorMessage && (
         <div className={bodyClassName}>
           <Alert type='error' iconName='alert'>
-            {getSsoConnectErrorMessage(redirectErrorCode)}
+            {errorMessage}
           </Alert>
         </div>
       )}

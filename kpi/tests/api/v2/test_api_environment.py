@@ -101,6 +101,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 I18nUtils.get_custom_password_help_text()
             ),
             'open_rosa_server': settings.KOBOCAT_URL,
+            'limited_count_max_rows': settings.API_LIMITED_COUNT_MAX,
             'terms_of_service__sitewidemessage__exists': False,
             'project_history_log_lifespan': (settings.PROJECT_HISTORY_LOG_LIFESPAN),
             'use_team_label': config.USE_TEAM_LABEL,

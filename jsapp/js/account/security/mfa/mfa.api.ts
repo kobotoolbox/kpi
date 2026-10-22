@@ -7,8 +7,8 @@ import { ROOT_URL } from '#/constants'
 // `MfaMethodsWrapper` row that `is_mfa_enabled` gates on, so setting up through allauth alone would store a secret no
 // login ever asks for.
 //
-// TODO: DEV-3109 drops that row, after which these become the generated hooks. Allauth has no `date_modified`, so
-// `dateModified` becomes the setup date.
+// TODO: DEV-3120 switch these to the generated hooks once DEV-3109 drops that row. Allauth has no
+// `date_modified`, so `dateModified` becomes the setup date.
 
 /** The only method KPI offers, and part of every write URL */
 const MFA_METHOD = 'app'
@@ -85,7 +85,7 @@ function useMfaMutation<TWire, TData, TVariables extends MfaCode | void = void>(
 /**
  * Reserves a TOTP secret and returns its QR code. 2FA stays off until {@link useMfaConfirmCode} accepts a token.
  *
- * TODO: DEV-3109 removes this - allauth hands out the secret in its TOTP status 404
+ * TODO: DEV-3120 remove this - allauth hands out the secret in its TOTP status 404
  */
 export const useMfaActivate = () =>
   useMfaMutation<{ details: string }, MfaSetup>('activate/', ({ details }) => {
@@ -95,7 +95,7 @@ export const useMfaActivate = () =>
 /**
  * Turns 2FA on, and returns the recovery codes - the only time they are shown
  *
- * TODO: DEV-3109 - allauth's activation omits the codes, so they will need a second read
+ * TODO: DEV-3120 - allauth's activation omits the codes, so they will need a second read
  */
 export const useMfaConfirmCode = () =>
   useMfaMutation<{ backup_codes: string[] }, string[], MfaCode>('activate/confirm/', ({ backup_codes }) => backup_codes)
