@@ -159,3 +159,10 @@ class EnvironmentResponseSerializer(serializers.Serializer):
 
     # Static configurations
     open_rosa_server = serializers.URLField(help_text='The OpenRosa server URL (KC)')
+    limited_count_max_rows = serializers.IntegerField(
+        help_text=(
+            'Row limit past which paginated endpoints using capped counting '
+            "report `count: 'many'`. Clients can label such counts as "
+            '"{limit}+"'
+        )
+    )

@@ -1,6 +1,8 @@
 # coding: utf-8
 import io
 
+from django.conf import settings
+from django.urls import reverse
 from django.utils.encoding import smart_str
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework.negotiation import DefaultContentNegotiation
@@ -11,7 +13,17 @@ from rest_framework.renderers import (
 )
 from rest_framework_xml.renderers import XMLRenderer
 
-from kpi.renderers import MediaFileRenderer
+from kpi.renderers import BasicHTMLRenderer, MediaFileRenderer
+
+
+class OpenRosaBasicHTMLRenderer(BasicHTMLRenderer):
+    """
+    Point to the OpenRosa API documentation, which is always served on the
+    KPI domain.
+    """
+
+    def get_docs_url(self) -> str:
+        return settings.KOBOFORM_URL + reverse('swagger-ui-openrosa')
 
 
 class XLSRenderer(BaseRenderer):

@@ -195,12 +195,12 @@ export const fetchDataRaw = async <T>(
     }
 
     if (contentType && contentType.indexOf('application/json') !== -1) {
-      failResponse.responseText = await response.text()
       try {
+        failResponse.responseText = await response.text()
         failResponse.responseJSON = JSON.parse(failResponse.responseText)
       } catch {
-        // If the response text is not a proper JSON, we simply don't add it to
-        // the rejection object.
+        // Either the body never finished arriving, or it is not proper JSON. We simply don't add it to the rejection
+        // object - the status is what matters below, and a read that failed must not hide it.
       }
     }
 
