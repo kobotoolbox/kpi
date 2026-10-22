@@ -175,6 +175,21 @@ class RegistrationTestCase(TestCase):
             response.content,
         )
 
+    def test_login_shows_signup_link_by_default(self):
+        response = self.client.get(reverse('account_login'))
+        self.assertContains(response, t('Create an account'))
+
+    @override_config(REGISTRATION_SHOW_LINK=False)
+    def test_login_hides_signup_link_when_setting_disabled(self):
+        response = self.client.get(reverse('account_login'))
+        self.assertContains(response, 'Log in')
+        self.assertNotContains(response, t('Create an account'))
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_login_hides_signup_link_when_registration_closed(self):
+        response = self.client.get(reverse('account_login'))
+        self.assertNotContains(response, t('Create an account'))
+
     @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
     def test_cannot_use_password_with_managed_social_app(self):
         social_app = SocialApp.objects.create(
