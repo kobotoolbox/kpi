@@ -30,6 +30,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_SELECT_MULTIPLE,
     QUESTION_TYPE_SELECT_ONE,
     QUESTION_TYPE_TEXT,
+    TEXT_SOURCE_TYPE,
     Action,
 )
 from kobo.apps.subsequences.exceptions import (
@@ -39,6 +40,7 @@ from kobo.apps.subsequences.exceptions import (
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
+    IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE,
     PROMPTS_BY_QUESTION_TYPE,
     InvalidResponseFromLLMException,
     analysis_question_placeholder,
@@ -363,10 +365,13 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
             '_uuid': submission_uuid,
         }
         # The prompt is built from the raw submission answer
-        prompt = self.action.generate_llm_prompt(
+        prompt = self.action.generate_llm_text_prompt(
             {
                 'uuid': BEDROCK_QUAL_TEXT_UUID,
-                '_dependency': {'_actionId': 'submission'},
+                '_dependency': {
+                    '_actionId': 'submission',
+                    '_question_type': TEXT_SOURCE_TYPE,
+                },
             },
             submission,
         )
@@ -402,7 +407,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         return question['labels']['_default']
 
     @data(BEDROCK_QUAL_TEXT_UUID, BEDROCK_QUAL_INTEGER_UUID)
-    def test_generate_llm_prompt_without_choices(self, qa_question_uuid):
+    def test_generate_llm_text_prompt_without_choices(self, qa_question_uuid):
         mock_templates_by_type = {
             QUESTION_TYPE_INTEGER: f'{BEDROCK_QUAL_INTEGER_UUID} '
             f'transcript: {response_placeholder},'
@@ -417,7 +422,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
-            prompt = self.action.generate_llm_prompt(action_data, {})
+            prompt = self.action.generate_llm_text_prompt(action_data, {})
         question_text = self._get_question_text_by_uuid(qa_question_uuid)
         expected = (
             f'{qa_question_uuid} transcript: {transcript_text},'
@@ -426,7 +431,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert prompt == expected
 
     @data(BEDROCK_QUAL_SELECT_ONE_UUID, BEDROCK_QUAL_SELECT_MULTIPLE_UUID)
-    def test_generate_llm_prompt_with_choices(self, qa_question_uuid):
+    def test_generate_llm_text_prompt_with_choices(self, qa_question_uuid):
         mock_templates_by_type = {
             QUESTION_TYPE_SELECT_ONE: f'{BEDROCK_QUAL_SELECT_ONE_UUID}'
             f' transcript: {response_placeholder},'
@@ -456,7 +461,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
                 return_value='example format string',
             ):
-                prompt = self.action.generate_llm_prompt(action_data, {})
+                prompt = self.action.generate_llm_text_prompt(action_data, {})
         expected_choices_string = ','.join(choices_labels)
         assert prompt == (
             f'{qa_question_uuid} transcript: {transcript_text},'
@@ -466,7 +471,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f' format: example format string'
         )
 
-    def test_generate_llm_prompt_with_hints(self):
+    def test_generate_llm_text_prompt_with_hints(self):
         manual = QuestionAdvancedFeature.objects.get(
             action='manual_qual', asset=self.asset, question_xpath='q1'
         )
@@ -496,14 +501,14 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
                 lambda hint: f'({hint})',
             ):
-                prompt = self.action.generate_llm_prompt(action_data, {})
+                prompt = self.action.generate_llm_text_prompt(action_data, {})
 
         assert prompt == (
             f'question: {question_text} (question hint), '
             f'choices: {choice_text} (choice hint)'
         )
 
-    def test_generate_llm_prompt_escapes_xml(self):
+    def test_generate_llm_text_prompt_escapes_xml(self):
         manual_qual = QuestionAdvancedFeature.objects.get(
             asset=self.asset, question_xpath='q1', action=Action.MANUAL_QUAL
         )
@@ -540,7 +545,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
                 lambda hint: f'({hint})',
             ):
-                prompt = action.generate_llm_prompt(action_data, {})
+                prompt = action.generate_llm_text_prompt(action_data, {})
         assert prompt == (
             'transcript: &lt;xml&gt;transcript&lt;/xml&gt;'
             'question: &lt;xml&gt;question&lt;/xml&gt; (&lt;xml&gt;hint&lt;/xml&gt;), '
@@ -556,7 +561,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with pytest.raises(AnalysisQuestionNotFound):
-            self.action.generate_llm_prompt(action_data, {})
+            self.action.generate_llm_text_prompt(action_data, {})
 
     def test_generate_prompt_fails_if_no_visible_choices(self):
         # regression test. this really shouldn't happen if we're validating schemas
@@ -597,7 +602,54 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with pytest.raises(AnalysisQuestionIncorrectlyConfigured):
-            action.generate_llm_prompt(action_data, {})
+            action.generate_llm_text_prompt(action_data, {})
+
+    def test_generate_image_request_data(self):
+        mock_templates_by_type = {
+            QUESTION_TYPE_TEXT: 'prompt',
+        }
+
+        self.asset.content = {
+            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'IMG_4266-11_38_22.jpg',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'id': 1,
+                    'filename': 'IMG_4266-11_38_22.jpg',
+                    'mimetype': 'image/jpeg',
+                    'question_xpath': 'q1',
+                },
+            ],
+            '_submitted_by': self.asset.owner.username,
+        }
+        self.asset.deployment.mock_submissions([submission])
+        submission = self.asset.deployment.get_submissions(
+            user=self.asset.owner, query={'_id': submission['_id']}
+        )[0]
+
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': {'_question_type': 'image'},
+        }
+        with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
+            with patch(
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',
+                return_value=b'123',
+            ):
+                request = self.action.construct_external_request(
+                    action_data, submission
+                )
+
+        request_content = request['messages'][0]['content']
+        assert request_content[0] == {'type': 'text', 'text': 'prompt'}
+        assert request_content[1]['type'] == 'image_url'
+        assert request_content[1]['image_url']['url'] == 'data:image/jpeg;base64,123'
 
     @data(
         # question uuid, parsing method name
@@ -662,7 +714,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
                 lambda choices: ','.join([choice['label'] for choice in choices]),
             ):
-                prompt = self.action.generate_llm_prompt(action_data, {})
+                prompt = self.action.generate_llm_text_prompt(action_data, {})
         assert prompt == 'choices: Apathy count: 1'
 
     def test_run_external_process_does_not_call_default_if_primary_succeeds(self):

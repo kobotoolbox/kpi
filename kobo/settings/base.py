@@ -2524,6 +2524,9 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
+AUTOQA_GEMMA_MODEL_AIP_ARN = env.str(
+    'AUTOQA_GEMMA_MODEL_AIP_ARN', default='google.gemma-3-27b-it'
+)
 
 # 24 months x 31 days/month = 744 default
 PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
