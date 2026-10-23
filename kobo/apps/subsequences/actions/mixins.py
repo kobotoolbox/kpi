@@ -29,7 +29,7 @@ def is_deleted_version_data(version_data: dict) -> bool:
     ) or version_data.get('status') == 'deleted'
 
 
-class RequiresTranscriptionMixin:
+class RequiresAdditionalSource:
 
     def attach_action_dependency(self, action_data: dict, submission: dict):
         """
@@ -249,7 +249,7 @@ class TranscriptionActionMixin:
         return schema
 
 
-class TranslationActionMixin(RequiresTranscriptionMixin):
+class TranslationActionMixin(RequiresAdditionalSource):
     """
     Provides common methods and properties used by all translation-related actions.
 

@@ -55,6 +55,7 @@ from kpi.constants import (
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import (
+    AttachmentNotFoundException,
     InvalidXFormException,
     MissingXFormException,
     ObjectDeploymentDoesNotExist,
@@ -628,6 +629,8 @@ class DataViewSet(
             raise serializers.ValidationError(
                 {'detail': 'Invalid qualitative analysis question configuration'}
             )
+        except AttachmentNotFoundException:
+            raise serializers.ValidationError({'detail': 'Attachment not found'})
 
         return Response(supplemental_data)
 

@@ -65,7 +65,7 @@ from kobo.apps.subsequences.tests.utils import MockLLMClient
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
-from kpi.exceptions import UsageLimitExceededException
+from kpi.exceptions import AttachmentNotFoundException, UsageLimitExceededException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -650,6 +650,64 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert request_content[0] == {'type': 'text', 'text': 'prompt'}
         assert request_content[1]['type'] == 'image_url'
         assert request_content[1]['image_url']['url'] == 'data:image/jpeg;base64,123'
+
+    def test_generate_image_request_data_image_response_missing(self):
+        self.asset.content = {
+            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            '_uuid': str(uuid.uuid4()),
+            '_submitted_by': 'someuser',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': {'_question_type': 'image'},
+        }
+        with self.assertRaises(AttachmentNotFoundException):
+            self.action.construct_external_request(action_data, submission)
+
+    def test_generate_image_request_data_image_file_missing(self):
+        self.asset.content = {
+            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'IMG_4266-11_38_22.jpg',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'id': 1,
+                    'filename': 'IMG_4266-11_38_22.jpg',
+                    'mimetype': 'image/jpeg',
+                    'question_xpath': 'q1',
+                },
+            ],
+            '_submitted_by': 'someuser',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        submission = self.asset.deployment.get_submissions(
+            user=self.asset.owner, query={'_id': submission['_id']}
+        )[0]
+        attachment = self.asset.deployment.get_attachment(
+            submission_id_or_uuid=submission['_id'],
+            user=User.objects.get(username='someuser'),
+            xpath='q1',
+        )
+        attachment.media_file.delete()
+
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': {'_question_type': 'image'},
+        }
+        with self.assertRaises(AttachmentNotFoundException):
+            self.action.construct_external_request(action_data, submission)
 
     @data(
         # question uuid, parsing method name

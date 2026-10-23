@@ -15,7 +15,7 @@ from django_userforeignkey.request import get_current_request
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
-from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
+from kobo.apps.subsequences.actions.mixins import RequiresAdditionalSource
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
     IMAGE_SOURCE_TYPE,
@@ -55,6 +55,7 @@ from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
 
 
@@ -103,7 +104,7 @@ Gemma = LLModel(
 )
 
 
-class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
+class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
 
     ID = 'automatic_bedrock_qual'
     allowed_source_types = QUAL_SOURCE_TYPES
@@ -166,15 +167,18 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         prompt = self.generate_llm_text_prompt(action_data, submission)
         if survey_question_type == IMAGE_SOURCE_TYPE:
             attachments = submission.get('_attachments', [])
-            attachment_dict = [
-                a
-                for a in attachments
-                if a.get('question_xpath') == self.source_question_xpath
-            ][0]
-            with default_storage.open(attachment_dict.get('filename')) as fp:
-                image_bytes = base64.b64encode(fp.read()).decode('utf-8')
-                image_mimetype = attachment_dict.get('mimetype')
-            return self.construct_image_request(prompt, image_bytes, image_mimetype)
+            try:
+                attachment = next(
+                    a
+                    for a in attachments
+                    if a.get('question_xpath') == self.source_question_xpath
+                )
+                with default_storage.open(attachment.get('filename')) as fp:
+                    image_bytes = base64.b64encode(fp.read()).decode('utf-8')
+                    image_mimetype = attachment.get('mimetype')
+                return self.construct_image_request(prompt, image_bytes, image_mimetype)
+            except (FileNotFoundError, StopIteration):
+                raise AttachmentNotFoundException()
         else:
             return self.construct_text_request(prompt)
 
@@ -378,7 +382,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         if model.supports_reasoning:
             # invoke_model raises an error if you try to disable reasoning
             # on a model that doesn't support it in the first place
-            request_data['include_reasoning'] = False
+            # don't mutate the original dict in case we have to go through multiple
+            # models
+            request_data = {**request_data, 'include_reasoning': False}
         response = self.client.invoke_model(
             modelId=model.model_arn,
             body=json.dumps(request_data),
