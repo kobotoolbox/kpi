@@ -77,6 +77,8 @@ class MongoHelper:
     USERFORM_ID = '_userform_id'
     SUBMISSION_UUID = '_uuid'
     SUBMISSION_ROOT_UUID = 'meta/rootUuid'
+    SUBMISSION_TIME = '_submission_time'
+    DATE_MODIFIED = '_date_modified'
     COLLECTION = 'instances'
 
     @classmethod
@@ -422,6 +424,15 @@ class MongoHelper:
                     fields.append(cls.SUBMISSION_ROOT_UUID)
                 else:
                     fields[cls.SUBMISSION_ROOT_UUID] = 1
+
+            # `cls.SUBMISSION_TIME` must come along with `cls.DATE_MODIFIED`.
+            # Submissions written before `_date_modified` was introduced do not
+            # have it in Mongo, it is injected on the fly using `_submission_time`
+            if cls.DATE_MODIFIED in fields and cls.SUBMISSION_TIME not in fields:
+                if isinstance(fields, list):
+                    fields.append(cls.SUBMISSION_TIME)
+                else:
+                    fields[cls.SUBMISSION_TIME] = 1
 
             # Retrieve only specified fields from Mongo. Remove
             # `cls.USERFORM_ID` from those fields in case users try to add it.
