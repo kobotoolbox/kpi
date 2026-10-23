@@ -607,7 +607,7 @@ class DataViewSet(
             raise serializers.ValidationError(
                 {'detail': 'Attempt to delete non-existent value'}
             )
-        except jsonschema.exceptions.ValidationError as ve:
+        except jsonschema.exceptions.ValidationError:
             # TODO: more descriptive errors
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:

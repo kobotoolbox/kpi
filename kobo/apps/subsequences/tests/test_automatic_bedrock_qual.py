@@ -639,7 +639,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
-                'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',  # noqa
                 return_value=b'123',
             ):
                 request = self.action.construct_external_request(

@@ -135,7 +135,8 @@ IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE = {
     ' analysis_question tags.'
     '\n\nAnalysis Question:'
     '\n<analysis_question>{{analysisQuestion}}{{hint}}</analysis_question>',
-    QUESTION_TYPE_TEXT: 'You are analyzing the attached image to answer a specific question. Follow these rules:'
+    QUESTION_TYPE_TEXT: 'You are analyzing the attached image to answer a specific'
+    ' question. Follow these rules:'
     '\n\n1. BASE YOUR ANSWER ONLY ON EVIDENCE: Only use information visible in the'
     ' attached image. Do not infer, assume, or speculate beyond what is directly shown.'
     '\n2. ACKNOWLEDGE UNCERTAINTY: If the attached image does not contain sufficient'
@@ -197,7 +198,7 @@ IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE = {
     '\n\nOptions to analyze:'
     '\n{{choicesList}}'
     '\n\nYour response must match the exact format described above. Do not include any'
-    ' additional text or comments.'
+    ' additional text or comments.',
 }
 
 

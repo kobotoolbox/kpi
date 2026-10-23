@@ -6,9 +6,10 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_pre
 from ..constants import (
     DELETED_FIELD,
     DEPENDENCY_SOURCE_SUBMISSION,
+    IMAGE_SOURCE_TYPE,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
-    TEXT_SOURCE_TYPE, IMAGE_SOURCE_TYPE,
+    TEXT_SOURCE_TYPE,
 )
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
@@ -61,7 +62,10 @@ class RequiresTranscriptionMixin:
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        if (source_question_type := self.get_source_question_type()) in [TEXT_SOURCE_TYPE, IMAGE_SOURCE_TYPE]:
+        if (source_question_type := self.get_source_question_type()) in [
+            TEXT_SOURCE_TYPE,
+            IMAGE_SOURCE_TYPE,
+        ]:
             # Direct-text source: point the dependency at the submission. The
             # `_question_type` key is in-flight only; the sanitizer in
             # `revise_data` strips it before persistence.
