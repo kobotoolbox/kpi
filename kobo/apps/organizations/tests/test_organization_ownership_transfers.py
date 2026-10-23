@@ -6,8 +6,10 @@ from django.db import IntegrityError
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import (
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_CANNOT_BE_OWNER_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
 )
@@ -20,6 +22,7 @@ from kobo.apps.organizations.tests.test_organizations_api import (
 )
 from kpi.exceptions import MailerError
 from kpi.urls.router_api_v2 import URL_NAMESPACE
+from kpi.utils.placeholders import replace_placeholders
 
 
 class BaseOrganizationOwnershipTransferTestCase(BaseOrganizationAssetApiTestCase):
@@ -132,6 +135,48 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         transfer = OrganizationOwnershipTransfer.objects.first()
         self.assertEqual(transfer.recipient, self.admin_user)
+
+    def test_recipient_email_resolves_team_admin_when_shared_with_external_user(
+        self,
+    ):
+        """
+        When an external user shares the same email with a team admin,
+        email lookup resolves to the team admin and succeeds.
+        """
+        self.external_user.email = self.admin_user.email
+        self.external_user.save(update_fields=['email'])
+
+        response = self._create_transfer(
+            self.owner_user, self.admin_user.email
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        transfer = OrganizationOwnershipTransfer.objects.first()
+        self.assertEqual(transfer.recipient, self.admin_user)
+
+    def test_recipient_ambiguous_email_returns_400(self):
+        """
+        When multiple active admins in the same team share an email,
+        reject the ambiguous match with a 400 error.
+        """
+        second_admin = User.objects.create(
+            username='second_admin',
+            email=self.admin_user.email,
+            is_active=True,
+        )
+        self.organization.add_user(second_admin, is_admin=True)
+
+        response = self._create_transfer(
+            self.owner_user, self.admin_user.email
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('recipient', response.data)
+        expected_error = replace_placeholders(
+            RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
+            email=self.admin_user.email,
+        )
+        self.assertEqual(
+            str(response.data['recipient'][0]), str(expected_error)
+        )
 
     def test_only_one_ownership_transfer_can_be_pending_per_team(self):
         """

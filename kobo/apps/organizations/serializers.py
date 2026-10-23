@@ -59,6 +59,7 @@ from .constants import (
     ORG_EXTERNAL_ROLE,
     ORG_MEMBER_ROLE,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_CANNOT_BE_OWNER_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
@@ -706,6 +707,53 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return user.organization
 
+    def validate_recipient(self, value):
+        organization = self._get_organization()
+
+        if '@' in str(value):
+            eligible_admins = OrganizationUser.objects.filter(
+                organization=organization,
+                is_admin=True,
+                user__email=value,
+                user__is_active=True,
+            ).select_related('user')
+            if organization.owner_user_object:
+                eligible_admins = eligible_admins.exclude(
+                    user=organization.owner_user_object
+                )
+
+            count = eligible_admins.count()
+            if count == 1:
+                return eligible_admins.first().user
+            if count > 1:
+                raise serializers.ValidationError(
+                    replace_placeholders(
+                        RECIPIENT_AMBIGUOUS_EMAIL_ERROR, email=value
+                    )
+                )
+
+            users = User.objects.filter(email=value, is_active=True)
+            if not users.exists():
+                raise serializers.ValidationError(
+                    replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=value)
+                )
+            if any(organization.is_owner(u) for u in users):
+                raise serializers.ValidationError(RECIPIENT_CANNOT_BE_OWNER_ERROR)
+            raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
+
+        # Username lookup
+        user = User.objects.filter(username=value, is_active=True).first()
+        if not user:
+            raise serializers.ValidationError(
+                replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=value)
+            )
+        if organization.is_owner(user):
+            raise serializers.ValidationError(RECIPIENT_CANNOT_BE_OWNER_ERROR)
+        if not organization.is_admin_only(user):
+            raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
+
+        return user
+
     def validate(self, attrs):
         organization = self._get_organization()
         request_user = get_database_user(self.context['request'].user)
@@ -723,39 +771,9 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                 {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
             )
 
-        # 3. Validates that the recipient is an active Admin within the same team
-        recipient_identifier = attrs.get('recipient')
-        recipient_user = User.objects.filter(
-            username=recipient_identifier, is_active=True
-        ).first()
-        if not recipient_user and '@' in str(recipient_identifier):
-            recipient_user = User.objects.filter(
-                email=recipient_identifier, is_active=True
-            ).first()
-
-        if not recipient_user:
-            raise serializers.ValidationError(
-                {
-                    'recipient': replace_placeholders(
-                        USER_DOES_NOT_EXIST_ERROR,
-                        invitee=recipient_identifier,
-                    )
-                }
-            )
-
-        if organization.is_owner(recipient_user):
-            raise serializers.ValidationError(
-                {'recipient': RECIPIENT_CANNOT_BE_OWNER_ERROR}
-            )
-
-        if not organization.is_admin_only(recipient_user):
-            raise serializers.ValidationError(
-                {'recipient': RECIPIENT_MUST_BE_ADMIN_ERROR}
-            )
-
         attrs['organization'] = organization
         attrs['sender'] = request_user
-        attrs['recipient_user'] = recipient_user
+        attrs['recipient_user'] = attrs['recipient']
         return attrs
 
     def create(self, validated_data):
