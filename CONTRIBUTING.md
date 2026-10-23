@@ -28,6 +28,10 @@ We actively welcome your pull requests:
 5. Make sure your code lints.
 6. Issue that pull request and follow the pull request template!
 
+The pull request template asks for a title like `<type>(<scope>)<!>: <title> DEV-1234`, following [Conventional Commits](https://www.conventionalcommits.org/).
+`DEV-1234` refers to the Kobo team's internal issue tracker, so external contributors can leave it out.
+Don't worry about getting the title exactly right; maintainers adjust it before merging.
+
 ## Any contributions you make will be under the GNU Affero General Public License
 
 In short, when you submit code changes, your submissions are understood to be under the same [GNU Affero General Public License](./LICENSE) that covers the project.
