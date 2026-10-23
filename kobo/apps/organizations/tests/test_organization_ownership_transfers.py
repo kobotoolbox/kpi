@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.core import mail
+from django.db import IntegrityError
 from django.urls import reverse
 from rest_framework import status
 
@@ -216,3 +217,22 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             response = self._create_transfer(self.owner_user, self.admin_user.username)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             self.assertEqual(OrganizationOwnershipTransfer.objects.count(), 1)
+
+    def test_simultaneous_transfers_conflict_returns_400(self):
+        """
+        If a concurrent request creates a transfer causing an IntegrityError,
+        return 400 with OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR instead of 500.
+        """
+        with patch.object(
+            OrganizationOwnershipTransfer.objects,
+            'create',
+            side_effect=IntegrityError('unique_pending_org_ownership_transfer'),
+        ):
+            response = self._create_transfer(self.owner_user, self.admin_user.username)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('detail', response.data)
+            self.assertEqual(
+                str(response.data['detail'][0]),
+                str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
+            )
+

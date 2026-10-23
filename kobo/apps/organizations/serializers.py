@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -759,14 +759,21 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        transfer = OrganizationOwnershipTransfer.objects.create(
-            organization=validated_data['organization'],
-            sender=validated_data['sender'],
-            recipient=validated_data['recipient_user'],
-            billing_review_requested=validated_data.get(
-                'billing_review_requested', False
-            ),
-            status=OrganizationInviteStatusChoices.PENDING,
-        )
+        try:
+            with transaction.atomic():
+                transfer = OrganizationOwnershipTransfer.objects.create(
+                    organization=validated_data['organization'],
+                    sender=validated_data['sender'],
+                    recipient=validated_data['recipient_user'],
+                    billing_review_requested=validated_data.get(
+                        'billing_review_requested', False
+                    ),
+                    status=OrganizationInviteStatusChoices.PENDING,
+                )
+        except IntegrityError as err:
+            raise serializers.ValidationError(
+                {'detail': [OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR]}
+            ) from err
+
         transfer.send_invite_email()
         return transfer
