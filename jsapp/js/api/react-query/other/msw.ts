@@ -14,6 +14,8 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 import type { RequestHandlerOptions } from 'msw'
 
+import type { BillingCycleInfo } from '../../models/billingCycleInfo'
+
 import { BlankEnum } from '../../models/blankEnum'
 
 import type { ChangePlan } from '../../models/changePlan'
@@ -21,6 +23,10 @@ import type { ChangePlan } from '../../models/changePlan'
 import type { CheckoutLink } from '../../models/checkoutLink'
 
 import { CollectionMethodEnum } from '../../models/collectionMethodEnum'
+
+import type { CustomerAddress } from '../../models/customerAddress'
+
+import type { CustomerBillingDetailsResponse } from '../../models/customerBillingDetailsResponse'
 
 import type { CustomerPortalPostResponse } from '../../models/customerPortalPostResponse'
 
@@ -211,6 +217,96 @@ export const getApiV2StripeCheckoutLinkCreateResponseMock = (
   price_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   quantity: faker.helpers.arrayElement([faker.number.int({ min: 1, max: undefined }), undefined]),
+  ...overrideResponse,
+})
+
+export const getApiV2StripeCustomerPortalRetrieveResponseCustomerAddressMock = (
+  overrideResponse: Partial<CustomerAddress> = {},
+): CustomerAddress => ({
+  ...{
+    city: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    country: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    line1: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    line2: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    postal_code: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    state: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2StripeCustomerPortalRetrieveResponseBillingCycleInfoMock = (
+  overrideResponse: Partial<BillingCycleInfo> = {},
+): BillingCycleInfo => ({
+  ...{
+    billing_cycle_anchor: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    current_period_start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    current_period_end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    interval: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    status: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2StripeCustomerPortalRetrieveResponseMock = (
+  overrideResponse: Partial<CustomerBillingDetailsResponse> = {},
+): CustomerBillingDetailsResponse => ({
+  id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  name: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  email: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  phone: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  address: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([{ ...getApiV2StripeCustomerPortalRetrieveResponseCustomerAddressMock() }, null]),
+    undefined,
+  ]),
+  balance: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
+    undefined,
+  ]),
+  currency: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  billing_cycle_info: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([{ ...getApiV2StripeCustomerPortalRetrieveResponseBillingCycleInfoMock() }, null]),
+    undefined,
+  ]),
+  url: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
   ...overrideResponse,
 })
 
@@ -811,6 +907,32 @@ export const getApiV2StripeCheckoutLinkCreateMockHandler = (
   )
 }
 
+export const getApiV2StripeCustomerPortalRetrieveMockHandler = (
+  overrideResponse?:
+    | CustomerBillingDetailsResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<CustomerBillingDetailsResponse> | CustomerBillingDetailsResponse),
+  options?: RequestHandlerOptions,
+) => {
+  return http.get(
+    '*/api/v2/stripe/customer-portal',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2StripeCustomerPortalRetrieveResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
 export const getApiV2StripeCustomerPortalCreateMockHandler = (
   overrideResponse?:
     | CustomerPortalPostResponse
@@ -1071,6 +1193,7 @@ export const getOtherMock = () => [
   getApiV2StripeAddonsRetrieveMockHandler(),
   getApiV2StripeChangePlanRetrieveMockHandler(),
   getApiV2StripeCheckoutLinkCreateMockHandler(),
+  getApiV2StripeCustomerPortalRetrieveMockHandler(),
   getApiV2StripeCustomerPortalCreateMockHandler(),
   getApiV2StripeProductsListMockHandler(),
   getApiV2StripeSubscriptionsListMockHandler(),
