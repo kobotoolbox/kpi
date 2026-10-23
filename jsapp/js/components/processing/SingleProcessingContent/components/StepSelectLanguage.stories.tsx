@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, waitFor, within } from 'storybook/test'
 import { UsageLimitTypes } from '#/account/stripe.types'
+import { MAX_AUTOMATIC_TRANSCRIPTION_AUDIO_MINUTES } from '#/components/processing/common/constants'
 import languageDetailMock from '#/endpoints/languageDetail.mocks'
 import languagesMock from '#/endpoints/languages.mocks'
 import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
@@ -56,7 +57,7 @@ export const Default: Story = {
     // The button enables itself only after it confirms the language has a transcription service.
     await waitFor(() => expect(canvas.getByRole('button', { name: 'automatic' })).toBeEnabled())
     await expect(canvas.getByRole('button', { name: 'manual' })).toBeEnabled()
-    await expect(canvas.queryByText(/can't be auto-transcribed/)).toBeNull()
+    await expect(canvas.queryByRole('alert')).toBeNull()
   },
 }
 
@@ -69,7 +70,8 @@ export const LongAudio: Story = {
     const canvas = within(canvasElement)
     const automatic = canvas.getByRole('button', { name: 'automatic' })
 
-    await expect(canvas.getByText(/Audio files over 55 minutes can't be auto-transcribed/)).toBeVisible()
+    // Matching on the limit only, so copy edits don't break this.
+    await expect(canvas.getByRole('alert')).toHaveTextContent(`${MAX_AUTOMATIC_TRANSCRIPTION_AUDIO_MINUTES} minutes`)
     // Wait out the service check that enables it in `Default`, so this proves the warning blocks it
     await waitFor(() => expect(automatic).not.toHaveClass(PENDING_CLASS))
     await expect(automatic).toBeDisabled()
