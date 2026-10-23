@@ -60,8 +60,10 @@ class AccountsEmailTestCase(APITestCase):
 
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
-        # Auth, re-authentication check, Select, Delete (many), Get or Create
-        queries = FuzzyInt(11, 22)
+        # Auth, re-authentication check, Select, Delete (many), Get or Create.
+        # The ceiling also covers the email: context processors run once per
+        # template, and this email renders three (subject, HTML, plain text)
+        queries = FuzzyInt(11, 26)
         with self.assertNumQueries(queries):
             res = self.client.post(self.url_list, data, format='json')
         self.assertContains(res, data['email'], status_code=201)

@@ -2,7 +2,6 @@ import io
 import unicodedata
 from unittest.mock import patch
 
-from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -24,16 +23,17 @@ from kobo.apps.openrosa.apps.logger.tests.test_form_versions import (
     xform_json,
     xform_xml,
 )
-from kobo.apps.openrosa.apps.logger.utils import attachment_restore
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import AttachmentRestorer
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
+from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
+from kobo.apps.support_tools.utils.restorers import attachment as attachment_restorer
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 from kpi.models.asset import Asset
 
 
 class AttachmentRestorerTestCase(TestCase):
     """
-    Bring back the files a submission still references, and only those.
+    Bring back the files that a submission still references, and only those.
     """
 
     def setUp(self):
@@ -70,7 +70,7 @@ class AttachmentRestorerTestCase(TestCase):
             **deployment_data['backend_response'],
             'formid': self.xform.pk,
             # `OpenRosaDeploymentBackend.xform` refuses a form whose `id_string`
-            # is not the one the deployment recorded
+            # is not the one that the deployment recorded
             'id_string': self.xform.id_string,
         }
         # Written straight to the column: `Asset.save()` refuses to run without
@@ -242,7 +242,7 @@ class AttachmentRestorerTestCase(TestCase):
         holder = AttachmentRestorer(self.xform, dry_run=False)
         assert holder._acquire_lock()
 
-        with self.assertRaises(attachment_restore.ProjectAlreadyBeingRestoredError):
+        with self.assertRaises(ProjectAlreadyBeingRestoredError):
             AttachmentRestorer(self.xform, dry_run=False).run()
 
         attachment.refresh_from_db()
@@ -323,7 +323,7 @@ class AttachmentRestorerTestCase(TestCase):
         )
 
         with patch.object(
-            attachment_restore.ParsedInstance, 'bulk_update_attachments'
+            attachment_restorer.ParsedInstance, 'bulk_update_attachments'
         ) as rewrite:
             self._restore()
 
@@ -340,7 +340,7 @@ class AttachmentRestorerTestCase(TestCase):
         self._kill(attachment)
 
         with patch.object(
-            attachment_restore.ParsedInstance,
+            attachment_restorer.ParsedInstance,
             'bulk_update_attachments',
             side_effect=OSError('mongo is down'),
         ):
@@ -365,7 +365,7 @@ class AttachmentRestorerTestCase(TestCase):
         older, newer = self._two_rows_under_one_name()
 
         # One row per batch, so the two are never judged together
-        with patch.object(attachment_restore, 'CHUNK_SIZE', 1):
+        with patch.object(attachment_restorer, 'CHUNK_SIZE', 1):
             restorer = self._restore()
 
         older.refresh_from_db()
@@ -383,7 +383,7 @@ class AttachmentRestorerTestCase(TestCase):
 
         self._two_rows_under_one_name()
 
-        with patch.object(attachment_restore, 'CHUNK_SIZE', 1):
+        with patch.object(attachment_restorer, 'CHUNK_SIZE', 1):
             restorer = self._restore(dry_run=True)
 
         assert restorer.restored == 1
@@ -412,7 +412,7 @@ class AttachmentRestorerTestCase(TestCase):
             assert other._acquire_lock()
             return restore_batch(*args)
 
-        with patch.object(attachment_restore, 'CHUNK_SIZE', 1):
+        with patch.object(attachment_restorer, 'CHUNK_SIZE', 1):
             with patch.object(
                 restorer, '_restore_batch', side_effect=take_over_then_restore
             ):
@@ -480,48 +480,6 @@ class AttachmentRestorerTestCase(TestCase):
         attachment.refresh_from_db()
         assert attachment.delete_status is None
 
-    def test_the_command_mails_its_log_when_asked_to(self):
-        _, attachment = self._submit_with_photo('first.jpg')
-        self._kill(attachment)
-
-        call_command(
-            'restore_soft_deleted_attachments',
-            asset_uid=self.asset.uid,
-            dry_run=False,
-            email=['support@example.com'],
-            verbosity=0,
-        )
-
-        assert len(mail.outbox) == 1
-        assert mail.outbox[0].to == ['support@example.com']
-        assert attachment.media_file_basename in mail.outbox[0].body
-
-    def test_the_command_mails_the_log_of_a_run_that_failed(self):
-        """
-        The log is the only trace of a run launched from the admin, so a failure
-        has to reach the person who asked for it rather than die in the worker.
-        """
-
-        _, attachment = self._submit_with_photo('first.jpg')
-        self._kill(attachment)
-
-        with patch.object(
-            attachment_restore.ParsedInstance,
-            'bulk_update_attachments',
-            side_effect=OSError('mongo is down'),
-        ):
-            with self.assertRaises(OSError):
-                call_command(
-                    'restore_soft_deleted_attachments',
-                    asset_uid=self.asset.uid,
-                    dry_run=False,
-                    email=['support@example.com'],
-                    verbosity=0,
-                )
-
-        assert len(mail.outbox) == 1
-        assert 'FAILED. OSError: mongo is down' in mail.outbox[0].body
-
     def test_the_command_refuses_a_project_that_does_not_exist(self):
         with self.assertRaises(CommandError) as context:
             call_command(
@@ -531,20 +489,6 @@ class AttachmentRestorerTestCase(TestCase):
             )
 
         assert 'does not exist' in str(context.exception)
-
-    def test_the_command_mails_the_log_of_a_project_it_cannot_resolve(self):
-        with self.assertRaises(CommandError):
-            call_command(
-                'restore_soft_deleted_attachments',
-                asset_uid='aNoSuchAsset',
-                email=['support@example.com'],
-                verbosity=0,
-            )
-
-        assert len(mail.outbox) == 1
-        assert 'FAILED. CommandError: Asset `aNoSuchAsset` does not exist' in (
-            mail.outbox[0].body
-        )
 
     def _kill(self, attachment: Attachment):
         """

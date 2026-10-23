@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from collections.abc import Iterable
+from itertools import islice
 
 from constance import config
 from django.conf import settings
@@ -6,6 +8,7 @@ from django.db import OperationalError, connections, transaction
 from django.db.models.query import QuerySet
 from psycopg.errors import QueryCanceled
 from rest_framework.pagination import LimitOffsetPagination, _positive_int
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
@@ -333,6 +336,34 @@ class AssetPagination(LimitedCountPagination):
             },
         }
         return response_schema
+
+
+class DataPagination(LimitedCountPagination):
+    """
+    Paginates submissions. The deployment back end fetches them from MongoDB
+    with `start` and `limit` already applied and counts them with the same cap
+    as `LimitedCountPagination`, so this class only builds the response.
+    """
+
+    def paginate_queryset(
+        self, queryset: Iterable[dict | str], request: Request, view=None
+    ) -> list[dict | str]:
+        """
+        Return the page from `queryset`, the submissions `view` fetched with one
+        row past `get_limit()`: that row sets `next`, so it never depends on
+        the count
+        """
+        self.request = request
+        self.limit = self.get_limit(request)
+        self.offset = self.get_offset(request)
+        if not self.offset:
+            self.offset = 0
+        self.count = view.asset.deployment.current_submission_count
+
+        limit = self.limit
+        page = list(islice(queryset, limit + 1))
+        self.has_next = len(page) > limit
+        return page[:limit]
 
 
 class NoCountPagination(PeekNextPageMixin, DefaultPagination):

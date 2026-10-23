@@ -1009,13 +1009,15 @@ DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
 # Maximum page size for API responses. Currently applies to submission lists only,
 # but will likely be extended to all endpoints in the future
 MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
-# Capped API list counts (`LimitedCountPagination`): stop counting rows past
-# this limit and report 'many' instead. The high default keeps the feature
-# inert until it is deliberately lowered (DEV-2781).
-API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 1_000_000)
-# Scoped statement_timeout applied to the capped count query alone (env var in
-# seconds, stored in milliseconds); on expiry the count is reported as
-# 'unknown'. 0 disables it, leaving only the connection-wide timeout (DEV-1705).
+# Capped API list counts (`LimitedCountPagination` and the MongoDB submission
+# list count): stop counting rows past this limit and report 'many' instead.
+# The high default keeps the feature inert until it is deliberately lowered
+# (DEV-2781).
+API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 100_000_000)
+# Timeout applied to the capped count query alone (env var in seconds, stored
+# in milliseconds): the Postgres statement_timeout, or the MongoDB maxTimeMS
+# for submission counts. On expiry the count is reported as 'unknown'. 0
+# disables it, leaving only the connection-wide timeouts (DEV-1705).
 API_LIMITED_COUNT_TIMEOUT = env.int('API_LIMITED_COUNT_TIMEOUT', 0) * 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
