@@ -1,5 +1,3 @@
-from allauth.headless import app_settings as headless_settings
-from allauth.headless.constants import Client
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -11,7 +9,6 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kobo.apps.accounts.views import HeadlessLoginView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -94,14 +91,6 @@ urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
-    # Must be before `allauth.headless.urls`, whose login endpoint it replaces
-    *[
-        path(
-            f'api/v2/allauth/{client}/v1/auth/login',
-            HeadlessLoginView.as_api_view(client=Client(client)),
-        )
-        for client in headless_settings.CLIENTS
-    ],
     path('api/v2/allauth/', include('allauth.headless.urls')),
     re_path(
         r'^accounts/register/?',

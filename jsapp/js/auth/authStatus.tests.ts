@@ -18,6 +18,9 @@ const response = (status: number, body: unknown = {}): AllauthResponse => ({ sta
 const authenticated = (methods: unknown[] = [{ method: 'password' }]) =>
   getAuthStatus(response(200, { data: { user, methods }, meta: { is_authenticated: true } }))
 
+/** Signed in, with one more method recorded by a reauthentication */
+const reauthenticated = () => authenticated([{ method: 'password' }, { method: 'password', reauthenticated: true }])
+
 const anonymous = (flows: unknown[] = [{ id: FlowId.login }]) =>
   getAuthStatus(response(401, { data: { flows }, meta: { is_authenticated: false } }))
 
@@ -126,14 +129,17 @@ describe('determineAuthChangeEvent', () => {
 
   it('reports those credentials being accepted', () => {
     chai
-      .expect(determineAuthChangeEvent(reauthenticationRequired(), authenticated()))
+      .expect(determineAuthChangeEvent(reauthenticationRequired(), reauthenticated()))
       .to.equal(AuthChangeEvent.reauthenticated)
   })
 
+  // `GET /auth/session` answers 200 even while reauthentication is pending
+  it('does not report a reauthentication when only the session poll answered', () => {
+    chai.expect(determineAuthChangeEvent(reauthenticationRequired(), authenticated())).to.equal(null)
+  })
+
   it('reports a reauthentication from a method having been added, with no flag to go on', () => {
-    const before = authenticated([{ method: 'password' }])
-    const after = authenticated([{ method: 'password' }, { method: 'password', reauthenticated: true }])
-    chai.expect(determineAuthChangeEvent(before, after)).to.equal(AuthChangeEvent.reauthenticated)
+    chai.expect(determineAuthChangeEvent(authenticated(), reauthenticated())).to.equal(AuthChangeEvent.reauthenticated)
   })
 
   it('does not report a reauthentication when a method was dropped instead', () => {

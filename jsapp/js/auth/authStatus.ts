@@ -2,7 +2,7 @@ import type { Flow } from '#/api/models/flow'
 import type { User } from '#/api/models/user'
 import type { AllauthResponse } from './allauthErrors'
 
-// Reading allauth's `GET /auth/session`, and spotting what changed between two readings.
+// Reading an allauth session answer, and spotting what changed between two readings.
 //
 // Ported from `determineAuthChangeEvent` and the `authInfo` helper next to it in django-allauth react-spa example ( see
 // https://codeberg.org/allauth/django-allauth/src/branch/main/examples/react-spa/frontend/src/auth/hooks.js).
@@ -11,8 +11,8 @@ import type { AllauthResponse } from './allauthErrors'
 // `401` either nobody signed in or somebody who has to prove it again (`meta.is_authenticated` tells those two apart),
 // `410` a session allauth has thrown away.
 //
-// TODO: DEV-3053 - only `200` and a plain anonymous `401` reach us as wired: the reauthentication pair comes back from
-// the sensitive request itself, so `reauthenticationRequired` cannot fire until those responses land in this cache too.
+// `GET /auth/session` is not the only source: a reauthentication ask comes back from the sensitive request itself, and
+// `#/auth/authChangeWatcher` files it under the same key - which is what makes `reauthenticationRequired` reachable.
 
 // Spelled out rather than taken from the generated response union
 interface SessionResponseBody {
@@ -40,7 +40,7 @@ export interface AuthStatus {
   flows: Flow[]
   pendingFlow: Flow | null
   user: User | null
-  /** Grows when a reauthentication lands, and after a page reload it is the only trace of that left */
+  /** Grows with every accepted reauthentication, which is the only reliable sign of one */
   methodCount: number
 }
 
@@ -117,11 +117,8 @@ export function determineAuthChangeEvent(fromStatus: AuthStatus, toStatus: AuthS
     if (toStatus.isReauthenticationRequired) {
       return AuthChangeEvent.reauthenticationRequired
     }
-    if (from.isReauthenticationRequired) {
-      return AuthChangeEvent.reauthenticated
-    }
-    // Reloading the reauthentication screen throws the flag above away. A method having been added is the other way to
-    // tell that credentials were just accepted.
+    // allauth adds a method on every accepted reauthentication. Unlike the reference client, a dropped flag alone is
+    // ignored: the session poll (e.g. on window focus) answers 200 while reauthentication is still pending.
     if (from.methodCount < toStatus.methodCount) {
       return AuthChangeEvent.reauthenticated
     }
