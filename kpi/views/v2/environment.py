@@ -269,6 +269,7 @@ class EnvironmentView(APIView):
                 ),
                 'background_image_url': background_image_url,
                 'show_kobotoolbox_logo': constance.config.SHOW_KOBOTOOLBOX_LOGO,
+                'server_tag': constance.config.AUTH_SERVER_TAG or None,
                 'logo_url': configuration_files.get(ConfigurationFileSlug.LOGO),
                 'supporting_image_url': configuration_files.get(
                     ConfigurationFileSlug.LOGIN_SUPPORTING_IMAGE
