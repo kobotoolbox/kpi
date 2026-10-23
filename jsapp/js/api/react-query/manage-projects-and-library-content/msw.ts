@@ -3947,7 +3947,10 @@ export const getApiV2AssetsMinimalListRetrieveResponseMock = (
 export const getApiV2ImportsListResponseMock = (
   overrideResponse: Partial<PaginatedImportResponseList> = {},
 ): PaginatedImportResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -4118,7 +4121,10 @@ export const getApiV2ImportsRetrieveResponseMock = (
 export const getApiV2ProjectOwnershipInvitesListResponseMock = (
   overrideResponse: Partial<PaginatedProjectInviteResponseList> = {},
 ): PaginatedProjectInviteResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -4211,7 +4217,10 @@ export const getApiV2ProjectOwnershipInvitesTransfersRetrieveResponseMock = (
 export const getApiV2TagsListResponseMock = (
   overrideResponse: Partial<PaginatedTagListResponseList> = {},
 ): PaginatedTagListResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({

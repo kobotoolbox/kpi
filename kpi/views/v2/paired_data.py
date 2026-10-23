@@ -9,6 +9,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.models import Asset, AssetFile, PairedData
+from kpi.paginators import LimitedCountPagination
 from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
 from kpi.schema_extensions.v2.paired_data.serializers import (
@@ -160,6 +161,7 @@ class PairedDataViewset(
     lookup_field = 'paired_data_uid'
     lookup_url_kwarg = 'uid_paired_data'
     permission_classes = (AssetEditorPermission,)
+    pagination_class = LimitedCountPagination
     serializer_class = PairedDataSerializer
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = [

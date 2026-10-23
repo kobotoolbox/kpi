@@ -99,6 +99,7 @@ OPENAPI_KNOWN_MISMATCHES = frozenset(
             'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users/(?P<pk>[^/.]+)',
             'PUT',
         ),
+        ('response-validation', 'api/v2/asset_snapshots/', 'GET'),
         ('response-validation', 'api/v2/asset_snapshots/', 'POST'),
         (
             'response-validation',
@@ -271,6 +272,7 @@ OPENAPI_KNOWN_MISMATCHES = frozenset(
             'api/v2/organizations/(?P<uid_organization>[^/.]+)/members/(?P<username>[^/.]+)/',
             'PATCH',
         ),
+        ('response-validation', 'api/v2/project-ownership/invites/', 'GET'),
         ('response-validation', 'api/v2/project-ownership/invites/', 'POST'),
         (
             'response-validation',

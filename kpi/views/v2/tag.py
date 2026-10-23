@@ -6,6 +6,7 @@ from taggit.models import Tag
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import SearchFilter
 from kpi.models import Asset
+from kpi.paginators import LimitedCountPagination
 from kpi.schema_extensions.v2.tags.serializers import TagListResponse
 from kpi.serializers.v2.tag import TagListSerializer
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
@@ -28,6 +29,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 class TagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagListSerializer
+    pagination_class = LimitedCountPagination
     filter_backends = (SearchFilter,)
 
     """

@@ -306,6 +306,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
     lookup_url_kwarg = 'uid_organization'
     permission_classes = [HasOrgRolePermission]
+    pagination_class = LimitedCountPagination
     http_method_names = ['get', 'patch']
     # Bare `q` terms search project names (see SearchFilter)
     search_default_field_lookups = ['name__icontains']
@@ -920,6 +921,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = OrgMembershipInviteSerializer
+    pagination_class = LimitedCountPagination
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
     parent_lookup_field = 'uid_organization'

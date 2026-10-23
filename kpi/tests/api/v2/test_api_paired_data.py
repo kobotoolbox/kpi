@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.core.cache import cache
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
@@ -11,6 +12,7 @@ from rest_framework.exceptions import ErrorDetail
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    LIMITED_COUNT_MANY,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
@@ -309,6 +311,18 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         result = response.data['results'][0]
         self.assertIsNone(result['source'])
         self.assertIsNone(result['source__name'])
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self.toggle_source_sharing(enabled=True)
+        self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        response = self.paired_data()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(self.destination_asset_paired_data_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
+        self.assertTrue(response.data['results'])
 
     def test_create_paired_data_anonymous(self):
         self.toggle_source_sharing(enabled=True)

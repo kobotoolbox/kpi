@@ -1,6 +1,7 @@
 # coding: utf-8
 import re
 
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -8,7 +9,7 @@ from rest_framework.exceptions import ParseError
 from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.languages.models.language import Language
-from kpi.constants import PERM_VIEW_ASSET
+from kpi.constants import LIMITED_COUNT_MANY, PERM_VIEW_ASSET
 from kpi.models.asset import AssetSnapshot
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -269,6 +270,16 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         response = self.client.get(snapshot_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 0)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self._create_asset_snapshot_from_source()
+        self.client.login(username='someuser', password='someuser')
+        snapshot_list_url = reverse(self._get_endpoint('assetsnapshot-list'))
+        response = self.client.get(snapshot_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
+        self.assertTrue(response.data['results'])
 
 
 class TestAssetSnapshotDetail(AssetSnapshotBase):

@@ -19,7 +19,7 @@ from kobo.apps.project_ownership.models.choices import (
 from kobo.apps.project_ownership.models.transfer import TransferStatusError
 from kobo.apps.project_ownership.utils import move_attachments
 from kobo.apps.trackers.utils import update_nlp_counter
-from kpi.constants import PERM_VIEW_ASSET
+from kpi.constants import LIMITED_COUNT_MANY, PERM_VIEW_ASSET
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -116,6 +116,24 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
             'Must not be in the same organization',
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username],
+            ),
+            'assets': [self.asset.uid],
+        }
+        response = self.client.post(self.invite_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+        response = self.client.get(self.invite_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
 
 
 class ProjectOwnershipInviteAPITestCase(KpiTestCase):

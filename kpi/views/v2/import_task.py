@@ -12,6 +12,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 )
 from kpi.models import ImportTask
 from kpi.models.import_export_task import ImportExportStatusChoices
+from kpi.paginators import LimitedCountPagination
 from kpi.schema_extensions.v2.imports.serializers import (
     ImportCreateRequestSerializer,
     ImportCreateResponse,
@@ -76,6 +77,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
+    pagination_class = LimitedCountPagination
     lookup_field = 'uid'
     lookup_url_kwarg = 'uid_import'
 

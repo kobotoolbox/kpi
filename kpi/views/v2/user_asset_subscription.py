@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 
 from kpi.models import UserAssetSubscription
+from kpi.paginators import LimitedCountPagination
 from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
     AssetSubscriptionRequest,
     AssetSubscriptionResponse,
@@ -71,6 +72,7 @@ from kpi.utils.schema_extensions.response import (
 class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = UserAssetSubscription.objects.none()
     serializer_class = UserAssetSubscriptionSerializer
+    pagination_class = LimitedCountPagination
     lookup_field = 'uid'
     lookup_url_kwarg = 'uid_asset_subscription'
 

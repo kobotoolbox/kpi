@@ -2,6 +2,7 @@
 import re
 
 from django.contrib.auth.models import AnonymousUser
+from django.test import override_settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
 from rest_framework import status
@@ -13,6 +14,7 @@ from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    LIMITED_COUNT_MANY,
     PERM_CHANGE_ASSET,
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
@@ -440,6 +442,29 @@ class CollectionsTests(BaseTestCase):
         response = self.client.get(coll_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 0)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_subscription_list_count_is_capped(self):
+        public_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='public collection',
+            owner=User.objects.get(username='anotheruser'),
+        )
+        public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+        sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
+        pub_coll_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': public_collection.uid},
+        )
+        response = self.client.post(
+            sub_list_url, {'asset': pub_coll_url}, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(sub_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
+        self.assertTrue(response.data['results'])
 
     def test_move_child_from_not_writable_source_collection(self):
         anotheruser = User.objects.get(username='anotheruser')
