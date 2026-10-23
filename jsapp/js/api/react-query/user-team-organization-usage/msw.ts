@@ -871,8 +871,6 @@ export const getApiV2OrganizationsMembersListResponseMock = (
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
     invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
-    pending_transfer: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
-    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   })),
   ...overrideResponse,
 })
@@ -907,8 +905,6 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
-  pending_transfer: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   ...overrideResponse,
 })
 
@@ -945,8 +941,6 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
     { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
     null,
   ]),
-  pending_transfer: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   ...overrideResponse,
 })
 

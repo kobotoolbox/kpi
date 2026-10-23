@@ -27601,25 +27601,11 @@
                                 "type": "null"
                             }
                         ]
-                    },
-                    "pending_transfer": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
-                    },
-                    "billing_review_requested": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ]
                     }
                 },
                 "required": [
-                    "billing_review_requested",
                     "date_joined",
                     "invite",
-                    "pending_transfer",
                     "role",
                     "url",
                     "user",

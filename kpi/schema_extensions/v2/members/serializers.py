@@ -23,8 +23,6 @@ MemberListResponse = inline_serializer_class(
         'date_joined': serializers.DateTimeField(allow_null=True),
         'user__is_active': serializers.BooleanField(allow_null=True),
         'invite': InviteResponse(allow_null=True),
-        'pending_transfer': serializers.BooleanField(allow_null=True),
-        'billing_review_requested': serializers.BooleanField(allow_null=True),
     },
 )
 

@@ -81,8 +81,6 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     user__has_sso_enabled = serializers.BooleanField(
         source='has_sso_enabled', read_only=True
     )
-    pending_transfer = serializers.BooleanField(read_only=True, default=False)
-    billing_review_requested = serializers.BooleanField(read_only=True, default=False)
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
@@ -108,8 +106,6 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'user__is_active',
             'invite',
-            'pending_transfer',
-            'billing_review_requested',
         ]
 
     @extend_schema_field(OpenApiTypes.URI)

@@ -27,8 +27,6 @@ export function buildMember(
     date_joined: '2025-01-15T10:00:00Z',
     user__is_active: true,
     invite: null,
-    pending_transfer: false,
-    billing_review_requested: false,
     ...override,
   }
 }
