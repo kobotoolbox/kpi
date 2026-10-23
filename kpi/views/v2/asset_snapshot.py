@@ -24,6 +24,7 @@ from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetFile, AssetSnapshot, PairedData
+from kpi.paginators import LimitedCountPagination
 from kpi.parsers import RawFilenameMultiPartParser
 from kpi.permissions import AssetSnapshotPermission, EditSubmissionPermission
 from kpi.renderers import (
@@ -319,6 +320,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     lookup_field = 'uid_asset_snapshot'
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
+    pagination_class = LimitedCountPagination
 
     log_type = AuditType.PROJECT_HISTORY
 

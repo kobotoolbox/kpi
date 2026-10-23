@@ -1,5 +1,6 @@
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 
+from kpi.paginators import LimitedCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -101,6 +102,7 @@ class InviteViewSet(AuditLoggedModelViewSet):
     lookup_url_kwarg = 'uid_invite'
     serializer_class = InviteSerializer
     permission_classes = (IsAuthenticated,)
+    pagination_class = LimitedCountPagination
     filter_backends = (InviteFilter, )
     log_type = 'project-history'
     logged_fields = ['recipient.username', 'status', 'transfers']

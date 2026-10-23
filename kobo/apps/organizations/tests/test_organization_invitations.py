@@ -7,6 +7,7 @@ from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core import mail
 from django.db.models import Q
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -33,6 +34,7 @@ from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
+from kpi.constants import LIMITED_COUNT_MANY
 from kpi.exceptions import MailerError
 from kpi.models import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
@@ -293,6 +295,14 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.client.force_login(self.another_owner_user)
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self._create_invite(self.owner_user)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
+        self.assertTrue(response.data['results'])
 
     def test_registered_user_can_accept_invitation(self):
         self._create_invite(self.owner_user)

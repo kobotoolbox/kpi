@@ -83,6 +83,14 @@ class OrganizationApiTestCase(BaseTestCase):
             res = self.client.get(self.url_list)
         self.assertContains(res, self.organization.name)
 
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self._insert_data()
+        response = self.client.get(self.url_list)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
+
     def test_api_returns_org_data(self):
         self._insert_data()
         response = self.client.get(self.url_detail)

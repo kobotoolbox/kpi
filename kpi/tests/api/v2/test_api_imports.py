@@ -8,11 +8,17 @@ import responses
 import xlwt
 from ddt import data, ddt, unpack
 from django.db import transaction
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION, PERM_MANAGE_ASSET
+from kpi.constants import (
+    ASSET_TYPE_BLOCK,
+    ASSET_TYPE_QUESTION,
+    LIMITED_COUNT_MANY,
+    PERM_MANAGE_ASSET,
+)
 from kpi.models import Asset, ImportTask, ObjectPermission
 from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
@@ -1557,6 +1563,16 @@ class AssetImportTaskTest(BaseTestCase):
         assert result.status == ImportExportStatusChoices.ERROR
         error_message = result.messages['error']
         assert 'note_1' in error_message
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        ImportTask.objects.create(user=self.user, data={})
+        url = reverse(self._get_endpoint('importtask-list'))
+        # Start past the row: it can't serialize (`url` reverses `uid` not `uid_import`)
+        response = self.client.get(url, {'start': 1})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert response.data['results'] == []
 
 
 class LibraryImportOwnershipTest(BaseTestCase):

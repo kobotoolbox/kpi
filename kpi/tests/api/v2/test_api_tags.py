@@ -1,8 +1,10 @@
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from taggit.models import Tag
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import LIMITED_COUNT_MANY
 from kpi.models import Asset, TagUid
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -63,3 +65,10 @@ class TagListTestCase(BaseTagTestCase):
         assert response.data['count'] == 1
         names = [r['name'] for r in response.data['results']]
         assert names.count(self.tag.name) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
