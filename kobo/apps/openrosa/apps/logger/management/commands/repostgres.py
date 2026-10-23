@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import json
 import mimetypes
 import os
@@ -8,9 +9,7 @@ import time
 import unicodedata
 from collections import defaultdict
 from copy import deepcopy
-from datetime import datetime
 from typing import Optional
-from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -180,9 +179,12 @@ class Command(BaseCommand):
         sub_copy.pop('_id', None)
         submission_time = sub_copy.pop('_submission_time', None)
         if submission_time:
-            submission_time = datetime.strptime(
-                submission_time, '%Y-%m-%dT%H:%M:%S'
-            ).replace(tzinfo=ZoneInfo('UTC'))
+            # not catching the ValueError here because if a submission time in mongo
+            # is not a properly-formatted date, we want to know about it
+            as_date = datetime.datetime.fromisoformat(submission_time)
+            if as_date.tzinfo is None:
+                as_date = as_date.replace(tzinfo=datetime.timezone.utc)
+            submission_time = as_date.astimezone(datetime.timezone.utc)
         else:
             submission_time = timezone.now()
 

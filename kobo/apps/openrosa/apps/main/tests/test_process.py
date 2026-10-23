@@ -5,9 +5,8 @@ import json
 import os
 import re
 import unittest
-from xml.dom import Node
+from xml.dom import Node, minidom
 
-from xml.dom import minidom
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.urls import reverse
@@ -311,7 +310,7 @@ class TestProcess(TestBase):
             {
                 'meta/instanceID': 'uuid:5b2cc313-fc09-437e-8149-fcd32f695d41',
                 '_uuid': '5b2cc313-fc09-437e-8149-fcd32f695d41',
-                '_submission_time': '2013-02-14T15:37:21',
+                '_submission_time': '2013-02-14T15:37:21+00:00',
                 '_tags': '',
                 '_notes': '',
             },
@@ -322,7 +321,7 @@ class TestProcess(TestBase):
                 self.bicycle_key: 'weekly',
                 'meta/instanceID': 'uuid:f3d8dc65-91a6-4d0f-9e97-802128083390',
                 '_uuid': 'f3d8dc65-91a6-4d0f-9e97-802128083390',
-                '_submission_time': '2013-02-14T15:37:22',
+                '_submission_time': '2013-02-14T15:37:22+00:00',
                 '_tags': '',
                 '_notes': '',
             },
@@ -331,7 +330,7 @@ class TestProcess(TestBase):
                 self.ambulance_key: 'weekly',
                 'meta/instanceID': 'uuid:9c6f3468-cfda-46e8-84c1-75458e72805d',
                 '_uuid': '9c6f3468-cfda-46e8-84c1-75458e72805d',
-                '_submission_time': '2013-02-14T15:37:23',
+                '_submission_time': '2013-02-14T15:37:23+00:00',
                 '_tags': '',
                 '_notes': '',
             },
@@ -342,7 +341,7 @@ class TestProcess(TestBase):
                 self.taxi_key: 'daily',
                 'meta/instanceID': 'uuid:9f0a1508-c3b7-4c99-be00-9b237c26bcbf',
                 '_uuid': '9f0a1508-c3b7-4c99-be00-9b237c26bcbf',
-                '_submission_time': '2013-02-14T15:37:24',
+                '_submission_time': '2013-02-14T15:37:24+00:00',
                 '_tags': '',
                 '_notes': '',
             },

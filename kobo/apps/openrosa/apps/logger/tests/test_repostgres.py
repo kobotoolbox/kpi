@@ -1,5 +1,6 @@
 import contextlib
 import csv
+import datetime
 import glob
 import io
 import os
@@ -7,6 +8,7 @@ import tempfile
 import uuid as uuid_module
 from unittest.mock import patch
 
+from ddt import data, ddt
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -30,6 +32,7 @@ from kobo.apps.openrosa.apps.logger.tests.test_form_versions import (
     xform_xml,
 )
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance,
     get_instance_lock,
@@ -291,3 +294,56 @@ class RepostgresRebuildAttachmentsTestCase(TestCase):
         assert doc is not None
         assert doc['_attachments']
         assert doc['_attachments'][0]['id'] == self.attachment.pk
+
+
+@ddt
+class RepostgresSubmissionTimeTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='bob')
+
+        self.asset = Asset.objects.create(
+            owner=self.user,
+            content={
+                'survey': [
+                    {'type': 'text', 'name': 'q1', 'label': ['Q1']},
+                ]
+            },
+        )
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.version_1 = self.asset.latest_deployed_version_uid
+
+    @data(
+        '2026-01-01T01:01:01',  # naive
+        '2026-01-01T06:01:01+05:00',  # different timezone
+        '2026-01-01T01:01:01+00:00',  # in UTC
+    )
+    def test_parse_submission_time(self, time_str):
+        submissions = [{'__version__': self.version_1, 'q1': 'a1'}]
+        self.asset.deployment.mock_submissions(submissions)
+        submission_id = submissions[0]['_id']
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission_id},
+            {'$set': {'_submission_time': time_str}},
+        )
+        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
+        ParsedInstance.objects.filter(instance__pk=submission_id)._raw_delete(
+            using=ParsedInstance.objects.db
+        )
+        Instance.objects.filter(pk=submission_id)._raw_delete(using=Instance.objects.db)
+        call_command(
+            'repostgres',
+            id_string=xform.id_string,
+        )
+        i = Instance.objects.get(pk=submission_id)
+        expected_date = datetime.datetime(
+            year=2026,
+            month=1,
+            day=1,
+            hour=1,
+            minute=1,
+            second=1,
+            microsecond=0,
+            tzinfo=datetime.timezone.utc,
+        )
+        assert i.date_created == expected_date
