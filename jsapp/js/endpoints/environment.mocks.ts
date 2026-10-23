@@ -350,6 +350,7 @@ export const environmentResponse = {
     theme: AuthThemeEnum.default,
     background_image_url: null,
     show_kobotoolbox_logo: true,
+    server_tag: null,
     logo_url: null,
     supporting_image_url: null,
     supporting_text: '',
