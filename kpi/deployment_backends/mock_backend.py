@@ -160,6 +160,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         return 'mock'
 
     def _get_media_files(self, submission):
+
         try:
             attachments = submission['_attachments']
         except KeyError:

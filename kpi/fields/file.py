@@ -18,6 +18,7 @@ class ExtendedFieldFile(FieldFile):
         self._raw_filename = os.path.basename(name) if name else None
 
     def move(self, target_folder: str, reraise_errors: bool = False) -> bool:
+
         old_path = self.name
         filename = os.path.basename(old_path)
         new_path = f'{target_folder}/{filename}'

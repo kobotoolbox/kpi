@@ -626,7 +626,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                     'question_xpath': 'q1',
                 },
             ],
-            '_submitted_by': self.asset.owner.username,
+            '_submitted_by': 'someuser',
         }
         self.asset.deployment.mock_submissions([submission])
         submission = self.asset.deployment.get_submissions(

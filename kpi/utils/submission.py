@@ -43,6 +43,7 @@ def _collect_filenames_and_xpaths(
     They have to stay apart until the whole submission has been walked, since
     a value nested in a repeat group can collide with one at the root.
     """
+
     by_name, by_sanitized_name = {}, {}
 
     for key, value in data.items():

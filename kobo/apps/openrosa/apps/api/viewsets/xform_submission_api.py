@@ -382,6 +382,7 @@ class XFormSubmissionApi(
             raise NotAuthenticated
 
         is_json_request = is_json(request)
+
         create_instance_func = (
             create_instance_from_json
             if is_json_request
