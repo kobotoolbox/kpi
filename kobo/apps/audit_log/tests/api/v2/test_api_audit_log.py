@@ -16,6 +16,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    LIMITED_COUNT_MANY,
     PERM_MANAGE_ASSET,
     PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
@@ -428,12 +429,22 @@ class ApiAccessLogTestCase(BaseAccessLogTestCase, LookbackTestMixin):
         response = self.client.get(self.url)
         # should return 1 submission group with 2 submissions
         self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['count'], 1)
         result = response.data['results'][0]
         self.assertEqual(
             result['metadata']['auth_type'],
             ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
         )
         self.assertEqual(result['count'], 2)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        AccessLog.objects.create(user=self.user)
+        self.force_login_user(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
+        self.assertTrue(response.data['results'])
 
 
 class AllApiAccessLogsTestCase(BaseAccessLogTestCase, LookbackTestMixin):
@@ -787,6 +798,19 @@ class ApiProjectHistoryLogsTestCase(
         self.client.force_login(user=user2)
         response = self.client.post(f'{self.url}export/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=self.asset.id,
+            action=AuditAction.DELETE,
+            metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
+        self.assertTrue(response.data['results'])
 
 
 class ApiAllProjectHistoryLogsTestCase(

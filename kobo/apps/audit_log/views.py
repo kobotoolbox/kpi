@@ -14,7 +14,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import DefaultPagination, FastPagination, NoCountPagination
+from kpi.paginators import LimitedCountPagination, NoCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
@@ -162,7 +162,7 @@ class AccessLogViewSet(AllAccessLogViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
-    pagination_class = DefaultPagination
+    pagination_class = LimitedCountPagination
 
 
 @extend_schema_view(
@@ -322,7 +322,7 @@ class ProjectHistoryLogViewSet(
     model = ProjectHistoryLog
     permission_classes = (ViewProjectHistoryLogsPermission,)
     lookup_field = 'uid'
-    pagination_class = FastPagination
+    pagination_class = LimitedCountPagination
 
     def get_queryset(self):
         min_date = get_lookback_date(self.request.user)

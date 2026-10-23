@@ -810,18 +810,8 @@ class AssetViewSet(
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
 
-            # self._filtered_queryset is set in the `list()` method that
-            # DRF automatically calls and is overridden below. This is
-            # to prevent double calls to `filter_queryset()` as described in
-            # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
-            queryset = self._filtered_queryset
-
-            # 1) Retrieve all asset IDs of the current list
-            if 'asset_ids_cache' not in context_:
-                asset_ids = AssetPagination.get_all_asset_ids_from_queryset(queryset)
-                context_['asset_ids_cache'] = asset_ids
-            else:
-                asset_ids = context_['asset_ids_cache']
+            # 1) Asset IDs of the current page, set by `list()`
+            asset_ids = context_['asset_ids_cache']
 
             # 2) Get object permissions per asset.
             # By default, only loads permissions for the requesting user and
