@@ -4,6 +4,7 @@ name: 'CD: publish'
 # Pipeline: validate tag → fetch changelog → [kpi, kobo-docker, kobo-install] → linear → notify
 on:
   workflow_dispatch:
+  workflow_call:
     inputs:
       tag:
         description: 'The release tag to announce (e.g. 2.026.27a)'
@@ -16,34 +17,41 @@ jobs:
   resolve-actor:
     uses: './.github/workflows/resolve-actor.yml'
 
-  # Validate that the tag exists and matches the selected branch.
+  # Resolve the tag (selected in the 'Use workflow from' dropdown, or passed by
+  # the tag workflow) and its release branch.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
+      tag: ${{ steps.branch.outputs.tag }}
     steps:
     - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         fetch-tags: true
-    - name: Validate tag and selected branch match
+    - name: Validate selected tag
       id: branch
       env:
-        TAG: ${{ inputs.tag }}
+        INPUT_TAG: ${{ inputs.tag }}
         REF_NAME: ${{ github.ref_name }}
+        REF_TYPE: ${{ github.ref_type }}
       run: |
         set -xe
+        TAG="$INPUT_TAG"
+        if [[ -z "$TAG" ]]; then
+          if [[ "$REF_TYPE" != "tag" ]]; then
+            echo "::error::This workflow must be run from a release tag (e.g. 2.026.27a). You selected branch '$REF_NAME'. Please re-run and pick the tag in the 'Use workflow from' dropdown."
+            exit 1
+          fi
+          TAG="$REF_NAME"
+        fi
         if ! git rev-parse "refs/tags/$TAG" &>/dev/null; then
           echo "::error::Tag '$TAG' does not exist."
           exit 1
         fi
         MINOR=$(echo "$TAG" | grep -oP '^\d+\.\d+\.\d+')
-        EXPECTED_BRANCH="release/$MINOR"
-        if [[ "$REF_NAME" != "$EXPECTED_BRANCH" ]]; then
-          echo "::error::Tag '$TAG' belongs to branch '$EXPECTED_BRANCH', but you selected '$REF_NAME'. Please re-run and pick '$EXPECTED_BRANCH' in the 'Use workflow from' dropdown."
-          exit 1
-        fi
-        echo "current_branch=$EXPECTED_BRANCH" >> "$GITHUB_OUTPUT"
+        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
 
   version:
@@ -60,6 +68,7 @@ jobs:
   changelog:
     runs-on: ubuntu-24.04
     needs:
+      - current-branch
       - version
     outputs:
       body: ${{ steps.changelog.outputs.body }}
@@ -72,7 +81,7 @@ jobs:
     - name: Fetch changelog from branch
       id: changelog
       env:
-        VERSION: ${{ inputs.tag }}
+        VERSION: ${{ needs.current-branch.outputs.tag }}
       run: |
         CHANGELOG_BRANCH="changelog/$VERSION"
         if ! git ls-remote --exit-code origin "refs/heads/$CHANGELOG_BRANCH" >/dev/null 2>&1; then
@@ -93,6 +102,7 @@ jobs:
   github-release-kpi:
     runs-on: ubuntu-24.04
     needs:
+      - current-branch
       - version
       - changelog
     permissions:
@@ -102,7 +112,7 @@ jobs:
 
     - name: Create GitHub release for kpi
       env:
-        VERSION: ${{ inputs.tag }}
+        VERSION: ${{ needs.current-branch.outputs.tag }}
         BODY: ${{ needs.changelog.outputs.body }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -120,6 +130,7 @@ jobs:
   github-release-kobo-docker:
     runs-on: ubuntu-24.04
     needs:
+      - current-branch
       - version
       - changelog
     steps:
@@ -134,7 +145,7 @@ jobs:
 
     - name: Create GitHub release for kobo-docker
       env:
-        VERSION: ${{ inputs.tag }}
+        VERSION: ${{ needs.current-branch.outputs.tag }}
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
         if gh release view "$VERSION" --repo kobotoolbox/kobo-docker &>/dev/null; then
@@ -153,6 +164,7 @@ jobs:
   github-release-kobo-install:
     runs-on: ubuntu-24.04
     needs:
+      - current-branch
       - version
       - changelog
     steps:
@@ -167,7 +179,7 @@ jobs:
 
     - name: Create GitHub release for kobo-install
       env:
-        VERSION: ${{ inputs.tag }}
+        VERSION: ${{ needs.current-branch.outputs.tag }}
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
         if gh release view "$VERSION" --repo kobotoolbox/kobo-install &>/dev/null; then
@@ -186,6 +198,7 @@ jobs:
   linear:
     runs-on: ubuntu-24.04
     needs:
+      - current-branch
       - version
       - github-release-kpi
       - github-release-kobo-docker
@@ -200,11 +213,12 @@ jobs:
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: complete
-        release_version: ${{ inputs.tag }}
+        release_version: ${{ needs.current-branch.outputs.tag }}
 
 
   notify:
     needs:
+      - current-branch
       - version
       - github-release-kpi
       - github-release-kobo-docker
@@ -215,11 +229,12 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":rocket: `${{ inputs.tag }}` GitHub releases published for kpi, kobo-docker, and kobo-install."
+      content: ":rocket: `${{ needs.current-branch.outputs.tag }}` GitHub releases published for kpi, kobo-docker, and kobo-install."
 
 
   on-failure:
     needs:
+      - current-branch
       - resolve-actor
       - version
       - changelog
@@ -232,4 +247,4 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. ${{ needs.resolve-actor.outputs.mention || '@*devs*' }} please investigate."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ needs.current-branch.outputs.tag }}`. ${{ needs.resolve-actor.outputs.mention || '@*devs*' }} please investigate."
