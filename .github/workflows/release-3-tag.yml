@@ -425,7 +425,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -xe
-        PRS=$(gh pr list --base "$PREV_BRANCH" --state open --json number --jq '.[].number')
+        PRS=$(gh pr list --base "$PREV_BRANCH" --state open --limit 1000 --json number --jq '.[].number')
         if [[ -z "$PRS" ]]; then
           echo "::notice::No open PRs targeting $PREV_BRANCH"
           exit 0
