@@ -26,12 +26,11 @@ import { actions } from '../../../js/actions'
 import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 // Stores, hooks and utilities
 import { dataInterface } from '../../../js/dataInterface'
-import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { findFirstGeopoint, notify, recordKeys } from '../../../js/utils'
+import { findFirstGeopoint, getSubmissionRootUuid, notify, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -45,6 +44,10 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { queryClient } from '#/api/queryClient'
+import { getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
+import SubmissionPreviewModal from '#/components/submissions/single/submissionPreviewModal'
+import { getBackToCurrentScreen, goToSubmission } from '#/components/submissions/single/submissionRouting'
 
 export const SUBMISSIONS_PER_PAGE = 1000
 const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
@@ -168,6 +171,8 @@ interface FormMapState {
   showMapSettings: boolean
   overridenStyles?: AssetMapStyles
   noData: boolean
+  /** The record being read in the preview modal, if any. */
+  previewedSubmissionId?: string
   previousViewby?: string
   // Note: In case 2 of createDataQuery(), we have a situation where a selected question exists without updating
   // overridenStyles. It is much easier to pass the selected question like this than doing some hack with AssetMapStyles
@@ -197,6 +202,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   private unlisteners: Function[] = []
   private lastRenderedBoundsSignature?: string
+
+  /**
+   * Leaves the view alone while the map rebuilds, so that deleting a record does not take the user away from the part
+   * of the map they were looking at. Stays on until they ask for a different set of points (see `overrideStyles`).
+   */
+  private keepViewOnRebuild = false
 
   /** Repeats the markers across the copies of the world the map shows. Replaced whenever the marker group is. */
   private worldCopies?: WorldCopies
@@ -739,7 +750,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers.addLayers(prepPoints)
       }
 
-      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
+      markers.on('click', this.previewClickedSubmission.bind(this)).addTo(map)
 
       if (bounds) {
         // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
@@ -747,7 +758,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         // The last condition is only possible if we are coming from having no points to having points in the same page,
         // i.e., we are done waiting for the `allData` prop to populate. We can then reset the zoom once.
         // Additionally, we now only auto-fit when plotted bounds actually changed between rebuilds.
-        const shouldFitBounds = boundsChanged && (!viewby || !this.state.componentRefreshed || this.state.noData)
+        const shouldFitBounds =
+          boundsChanged && !this.keepViewOnRebuild && (!viewby || !this.state.componentRefreshed || this.state.noData)
         if (shouldFitBounds) {
           // Fitting the plotted points rather than `markers.getBounds()`, as the latter grows with the copies of the
           // world we are about to add to the group.
@@ -757,7 +769,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
         this.setState({ noData: false })
       } else {
-        if (boundsChanged) {
+        if (boundsChanged && !this.keepViewOnRebuild) {
           // Legacy fallback location used when there are no plotted points.
           // Single-point bounds around Cambridge, MA.
           map.fitBounds([[42.373, -71.124]])
@@ -920,9 +932,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   componentDidUpdate(prevProps: FormMapProps, prevState: FormMapState) {
     const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
+    // An empty `allData` is both what the first render looks like, before any page has arrived, and what deleting the
+    // last plotted record leaves behind. Only the latter had points to clear off the map.
+    const hasPointsToDraw = this.props.allData.length > 0 || prevProps.allData.length > 0
     const dataChanged =
-      (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) &&
-      this.props.allData.length > 0
+      (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && hasPointsToDraw
     const viewbyChanged = prevProps.viewby !== this.props.viewby
 
     // We get the first page of results in order to get the total count, then we call createDataQuery again to update
@@ -975,19 +989,44 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return map
   }
 
-  launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.props.allData
-    const ids: number[] = []
-    td.forEach((r) => {
-      ids.push(r._id)
-    })
+  /**
+   * Opens the clicked point in the preview modal. Leaving the map to read one
+   * record would cost the user their place among the points.
+   */
+  previewClickedSubmission(evt: L.LeafletMouseEvent) {
+    // Markers only carry an `_id`, so we will try to get rootUuid and fall back to `_id` in edge cases
+    const submissionId: number = evt.layer.options.sId
+    const submission = this.props.allData.find((item) => item._id === submissionId)
 
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: evt.layer.options.sId,
-      asset: this.props.asset,
-      ids: ids,
+    this.setState({
+      previewedSubmissionId: String(submission ? getSubmissionRootUuid(submission) : submissionId),
     })
+  }
+
+  closeSubmissionPreview() {
+    this.setState({ previewedSubmissionId: undefined })
+  }
+
+  /** Leaves for the record's own address, offering the way back to the map. */
+  openPreviewedSubmissionRecord() {
+    if (!this.state.previewedSubmissionId) {
+      return
+    }
+
+    goToSubmission(this.props.asset.uid, this.state.previewedSubmissionId, {
+      state: { backTo: getBackToCurrentScreen(t('Back to Map')) },
+    })
+  }
+
+  onPreviewedSubmissionDeleted() {
+    this.closeSubmissionPreview()
+    this.keepViewOnRebuild = true
+
+    // The deleted record is still plotted, so the map needs its points again -
+    // every page of them sits under this key prefix.
+    // Not `invalidatePaginatedList`: it skips keys ending in a string, and the
+    // map's page keys end with the sort order (see `formMapWrapper`).
+    queryClient.invalidateQueries({ queryKey: getAssetsDataListQueryKey(this.props.asset.uid) })
   }
 
   toggleMapSettings() {
@@ -998,6 +1037,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
+    // Another question or query limit means another set of points, which the view is worth fitting to again.
+    this.keepViewOnRebuild = false
+
     this.setState(
       {
         filteredByMarker: undefined,
@@ -1481,6 +1523,16 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               queryLimit={this.getQueryLimit()}
             />
           </Modal>
+        )}
+
+        {this.state.previewedSubmissionId && (
+          <SubmissionPreviewModal
+            asset={this.props.asset}
+            submissionId={this.state.previewedSubmissionId}
+            onClose={this.closeSubmissionPreview.bind(this)}
+            onOpenFullRecord={this.openPreviewedSubmissionRecord.bind(this)}
+            onDeleted={this.onPreviewedSubmissionDeleted.bind(this)}
+          />
         )}
 
         <div id='data-map' />
