@@ -2269,6 +2269,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 # to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
+# Maximum allowed size (in bytes) of the `choices` sheet in an XLSForm
+MAX_CHOICES_SIZE_BYTES = env.int('MAX_CHOICES_SIZE_BYTES', 2 * 1024 * 1024)
+
 # OpenRosa setting in bytes
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
