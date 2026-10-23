@@ -1,4 +1,9 @@
+from http import HTTPStatus
+
 from allauth.account.models import EmailAddress
+from allauth.headless.internal.restkit.response import ErrorResponse
+from allauth.headless.mfa.views import ManageTOTPView as BaseHeadlessManageTOTPView
+from allauth.mfa.adapter import get_adapter as get_mfa_adapter
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.core.exceptions import MultipleObjectsReturned
@@ -414,3 +419,22 @@ class SocialAppView(generics.RetrieveAPIView):
         # object-level checks. Kept so tightening `permission_classes` is enough
         self.check_object_permissions(self.request, social_app)
         return social_app
+
+
+class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
+    """
+    Refuses to turn MFA off when the MFA adapter forbids it (superusers while
+    `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
+    `can_delete_authenticator()` in its templated form, not in headless mode
+    """
+
+    def delete(self, request, *args, **kwargs):
+        authenticator = self._get_authenticator()
+        adapter = get_mfa_adapter()
+        if authenticator and not adapter.can_delete_authenticator(authenticator):
+            return ErrorResponse(
+                request,
+                exception=adapter.validation_error('cannot_delete_authenticator'),
+                status=HTTPStatus.FORBIDDEN,
+            )
+        return super().delete(request, *args, **kwargs)
