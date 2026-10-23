@@ -2,7 +2,12 @@
 
 name: pytest
 
-on: workflow_call
+on:
+  workflow_call:
+    inputs:
+      coverage:
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -85,7 +90,7 @@ jobs:
       run: >-
         pytest ${{ matrix.extra-pytest-options }} ${{ matrix.test-path }}
         -n auto --dist=loadfile
-        --cov=hub --cov=kobo --cov=kpi -ra
+        ${{ inputs.coverage && '--cov=hub --cov=kobo --cov=kpi' || '' }} -ra
 
     - name: Test back-end code (rerun last-failed sequential)
       id: pytest_lastfailed
@@ -98,6 +103,7 @@ jobs:
       run: exit 1
 
     - name: Run coveralls for back-end code
+      if: inputs.coverage
       uses: AndreMiras/coveralls-python-action@develop
       # Coveralls action will intermittently give 422 errors - until that issue is resolved this step allowed to error.
       continue-on-error: true
