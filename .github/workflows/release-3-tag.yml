@@ -406,14 +406,15 @@ jobs:
         fi
 
 
-  # The previous release branch retires once this one is tagged, so move its
-  # open PRs here. Skipped for forced hotfixes on older branches.
+  # The previous release branch retires once this one gets its first (minor)
+  # tag, so move its open PRs here. Patch tags skip this, so hotfix PRs open on
+  # several branches at once stay where they are.
   retarget-prs:
     runs-on: ubuntu-24.04
     needs:
       - version
       - bump
-    if: ${{ !cancelled() && !failure() && inputs.force != true }}
+    if: ${{ !cancelled() && !failure() && needs.version.outputs.current_patch == needs.version.outputs.current_minor }}
     permissions:
       pull-requests: write
     steps:
