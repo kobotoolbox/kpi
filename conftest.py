@@ -34,14 +34,15 @@ def django_db_setup(
     only requested for their side effects: the second one appends the worker id
     to the test database name (`test_kpi_test_gw0`, `test_kpi_test_gw1`, ...).
 
-    Without xdist, or with `--reuse-db`, it behaves like pytest-django's
-    fixture. With xdist, pytest-django would create one test database per
-    worker and run all migrations on each one, which takes about a minute per
-    worker. Instead, the migrations run once, on an extra Postgres database
-    called the template database (`test_kpi_test_template`). No test runs on
-    it, it only serves as a model: each worker gets its own test database as a
-    copy of it, with `CREATE DATABASE <worker db> WITH TEMPLATE <template db>`.
-    Postgres copies the database files directly, which takes seconds.
+    Without xdist, or when it reuses existing databases (`--reuse-db` without
+    `--create-db`), it behaves like pytest-django's fixture. With xdist,
+    pytest-django would create one test database per worker and run all
+    migrations on each one, which takes about a minute per worker. Instead, the
+    migrations run once, on an extra Postgres database called the template
+    database (`test_kpi_test_template`). No test runs on it, it only serves as
+    a model: each worker gets its own test database as a copy of it, with
+    `CREATE DATABASE <worker db> WITH TEMPLATE <template db>`. Postgres copies
+    the database files directly, which takes seconds.
 
     Tests use a single database (`default`), so only `connection` is handled.
     """
@@ -51,7 +52,10 @@ def django_db_setup(
     # Only set on xdist workers. It holds the worker id (`gw0`, ...) and the
     # run id that the controller shares with all its workers.
     worker_input = getattr(request.config, 'workerinput', None)
-    # Same rule as pytest-django: `--create-db` wins over `--reuse-db`
+    # Same rules as pytest-django. An existing database is only reused with
+    # `--reuse-db` and without `--create-db`. Teardown keeps the database as
+    # soon as `--reuse-db` is passed, so that a database that `--create-db`
+    # rebuilt is still there for the next `--reuse-db` run.
     reuse_db = django_db_keepdb and not django_db_createdb
 
     # `--nomigrations`
@@ -71,7 +75,7 @@ def django_db_setup(
                 keepdb=reuse_db,
             )
         yield
-        if not reuse_db:
+        if not django_db_keepdb:
             with django_db_blocker.unblock():
                 teardown_databases(
                     db_cfg, verbosity=request.config.option.verbose
@@ -114,6 +118,9 @@ def django_db_setup(
 
     yield
 
+    if django_db_keepdb:
+        return
+
     with django_db_blocker.unblock():
         # Drop this worker's database only. The controller drops the template
         # database in `pytest_sessionfinish()`, after all workers are done.
@@ -132,7 +139,7 @@ def pytest_sessionfinish(session):
         return
 
     # No run id means xdist did not run. No run directory means no worker
-    # built a template database (`--reuse-db`).
+    # built a template database (`--reuse-db` without `--create-db`).
     testrunuid = getattr(session.config, 'testrunuid', None)
     if testrunuid is None or not _xdist_run_dir(testrunuid).exists():
         return
