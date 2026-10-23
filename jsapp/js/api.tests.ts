@@ -12,7 +12,7 @@ jest.mock('@sentry/react', () => {
 })
 
 import chai from 'chai'
-import { handleApiFail } from '#/api'
+import { handleApiFail, reportApiFail } from '#/api'
 import type { FailResponse } from '#/dataInterface'
 
 /** Shortened, but structurally what Django serves for a 500 in production. */
@@ -103,5 +103,24 @@ describe('handleApiFail', () => {
 
     chai.expect(mockedNotifyError.mock.calls.length).to.equal(0)
     chai.expect(mockedCaptureMessage.mock.calls.length).to.equal(0)
+  })
+})
+
+describe('reportApiFail', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('reports to Sentry like handleApiFail, but with no toast', () => {
+    reportApiFail(failResponse(500, 'Internal Server Error', DJANGO_500_PAGE))
+
+    chai.expect(mockedCaptureMessage.mock.calls[0][0]).to.equal('500 Internal Server Error')
+    chai.expect(mockedNotifyError.mock.calls).to.have.length(0)
+  })
+
+  it('skips requests we aborted ourselves', () => {
+    reportApiFail(failResponse(0, 'abort'))
+
+    chai.expect(mockedCaptureMessage.mock.calls).to.have.length(0)
   })
 })

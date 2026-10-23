@@ -19,13 +19,3 @@
   font-size: var(--mantine-h6-font-size);
   line-height: var(--mantine-h6-line-height);
 }
-
-// `scss/stylesheets/partials/_base.scss` drops list markers app wide, and `Typography` sets only the
-// indent, so a markdown list would arrive here unmarked.
-.text :global ul {
-  list-style: disc;
-}
-
-.text :global ol {
-  list-style: decimal;
-}
