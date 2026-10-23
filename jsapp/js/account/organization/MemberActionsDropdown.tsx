@@ -4,15 +4,19 @@ import { Menu } from '@mantine/core'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import envStore from '#/envStore'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
 import { useProfile } from '#/stores/useProfile'
 import MemberRemoveModal from './MemberRemoveModal'
+import { openTransferTeamOwnershipModal } from './openTransferTeamOwnershipModal'
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberActionsDropdownProps {
   target: ReactNode
   targetUsername: string
+  targetFullName?: string | null
+  orgName?: string
   /**
    * The role of the currently logged in user, i.e. the role of the user that
    * wants to do the actions (not the role of the target member).
@@ -23,8 +27,15 @@ interface MemberActionsDropdownProps {
 /**
  * A dropdown with all actions that can be taken towards an organization member.
  */
-export default function MemberActionsDropdown({ target, targetUsername, currentUserRole }: MemberActionsDropdownProps) {
+export default function MemberActionsDropdown({
+  target,
+  targetUsername,
+  targetFullName,
+  orgName,
+  currentUserRole,
+}: MemberActionsDropdownProps) {
   const profile = useProfile()
+  const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
 
   // Wait for session
@@ -74,6 +85,17 @@ export default function MemberActionsDropdown({ target, targetUsername, currentU
         <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
+          {isTransferOwnershipEnabled && currentUserRole === MemberRoleEnum.owner && (
+            <>
+              <Menu.Item
+                variant='light'
+                onClick={() => openTransferTeamOwnershipModal({ username: targetUsername, targetFullName, orgName })}
+              >
+                {t('Make owner')}
+              </Menu.Item>
+              <Menu.Divider />
+            </>
+          )}
           <Menu.Item variant='danger' onClick={() => setIsRemoveModalVisible(true)}>
             {removeButtonLabel}
           </Menu.Item>
