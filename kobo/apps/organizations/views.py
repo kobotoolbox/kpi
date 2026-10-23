@@ -14,7 +14,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -72,16 +72,19 @@ from .models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
+    OrganizationOwnershipTransfer,
     OrganizationUser,
 )
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
+    IsOrgOwnerPermission,
     OrganizationNestedHasOrgRolePermission,
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
 from .serializers import (
+    OrganizationOwnershipTransferSerializer,
     OrganizationResponseSerializer,
     OrganizationSerializer,
     OrganizationUserSerializer,
@@ -941,3 +944,44 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
             return [OrgMembershipCreateOrDeleteInvitePermission()]
 
         return [OrgMembershipInvitePermission()]
+
+
+@extend_schema(
+    tags=['User / team / organization / usage'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_organization',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the organization',
+        )
+    ],
+)
+class OrganizationOwnershipTransferViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    ViewSet for initiating organization ownership transfers.
+
+    Available actions:
+    - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+    """
+
+    serializer_class = OrganizationOwnershipTransferSerializer
+    permission_classes = [IsOrgOwnerPermission]
+    http_method_names = ['post']
+    parent_lookup_field = 'uid_organization'
+
+    def get_queryset(self):
+        organization_id = self.kwargs.get(self.parent_lookup_field)
+        return OrganizationOwnershipTransfer.objects.filter(
+            organization_id=organization_id
+        ).select_related('sender', 'recipient', 'organization')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        transfer = serializer.save()
+        response_serializer = self.get_serializer(transfer)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
