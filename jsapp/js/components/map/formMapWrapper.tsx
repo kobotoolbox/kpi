@@ -12,7 +12,6 @@ interface FormMapWrapperProps {
 }
 
 const DEFAULT_PAGE_SIZE = 1
-const MAP_DATA_STALE_TIME = 5 * 60 * 1000
 
 /**
  * Wrapper for the `FormMap` component so we can use hooks without doing a full refactor of `FormMap`
@@ -35,8 +34,8 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
           sort: sort,
         }),
       enabled: fields !== undefined,
-      // Each page is one of up to 30 parallel requests, so avoid refetching or retrying them all at once
-      staleTime: MAP_DATA_STALE_TIME,
+      // Each page is one of up to 30 parallel requests, so avoid refetching or retrying them all at once. They are still
+      // refetched whenever the map is opened, as nothing invalidates them when submissions are added, edited or deleted
       refetchOnWindowFocus: false,
       retry: 1,
     }
