@@ -371,11 +371,13 @@ async function waitForZoomToLand(canvasElement: HTMLElement) {
  * moment after the loading message goes, so a page requested past the end would be caught rather than missed.
  */
 async function waitForRequestedPages(canvasElement: HTMLElement, log: DataRequestLog, expectedStarts: number[]) {
-  await waitFor(() => expect(log.starts).toEqual(expectedStarts), WAIT)
+  // Sorted, as pages requested together can reach the handler in any order
+  const requestedStarts = () => [...log.starts].sort((a, b) => a - b)
+  await waitFor(() => expect(requestedStarts()).toEqual(expectedStarts), WAIT)
   await waitFor(() => expect(within(canvasElement).queryByText(/Fetching points/i)).not.toBeInTheDocument(), WAIT)
   // A page past the end would be requested right after the last one, and is logged as soon as it is requested
   await new Promise((resolve) => setTimeout(resolve, 150))
-  expect(log.starts).toEqual(expectedStarts)
+  expect(requestedStarts()).toEqual(expectedStarts)
 }
 
 /** 2,500 submissions with a 20,000 limit saved, so the map could ask for 20 pages but only 3 hold anything */
