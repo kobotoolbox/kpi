@@ -5,14 +5,11 @@ import Dropzone, { type Accept, type FileRejection } from 'react-dropzone'
 import { actions } from '#/actions'
 import { getQuestionOrChoiceDisplayName, getRowName } from '#/assetUtils'
 import bem from '#/bem'
-import Select from '#/components/common/Select'
-import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
 import MapColorPicker from '#/components/map/MapColorPicker'
-import { QUERY_LIMIT_DEFAULT, QUERY_LIMIT_OPTIONS, normalizeQueryLimit } from '#/components/map/mapUtils'
 import { userCan } from '#/components/permissions/utils'
-import { ASSET_FILE_TYPES, isMapDisplayableGeopointType } from '#/constants'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
   AssetFileResponse,
@@ -86,6 +83,7 @@ interface MapSettingsProps {
   toggleMapSettings: () => void
   overrideStyles: (mapStyles: AssetMapStyles) => void
   overridenStyles?: AssetMapStyles
+  queryLimit: number
 }
 
 interface MapSettingsState {
@@ -156,6 +154,10 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     this.setState({ activeModalTab: newActiveTab })
   }
 
+  resetMapSettings() {
+    this.saveMapSettings({})
+  }
+
   onSave() {
     this.saveMapSettings(this.state.mapSettings)
   }
@@ -180,12 +182,9 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     this.setState({ mapSettings: settings })
   }
 
-  onQueryLimitChange(newValue: string | null) {
-    if (newValue === null) {
-      return
-    }
+  onQueryLimitChange(evt: React.ChangeEvent<HTMLInputElement>) {
     const settings = this.state.mapSettings
-    settings.querylimit = newValue
+    settings.querylimit = evt.target.value
     this.setState({ mapSettings: settings })
   }
 
@@ -271,12 +270,13 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
   }
 
   render() {
-    const queryLimit = normalizeQueryLimit(this.state.mapSettings.querylimit)
+    let queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT
     const hasChangeAssetPermission = userCan('change_asset', this.props.asset)
 
-    const queryLimitOptions = QUERY_LIMIT_OPTIONS.map((value) => {
-      return { value: String(value), label: value.toLocaleString() }
-    })
+    // This case can only happen if somehow the queryLimit in map_styles is using the old slider values
+    if (Number(queryLimit) > this.props.queryLimit) {
+      queryLimit = this.props.queryLimit.toString()
+    }
 
     const tabsToDisplay = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: this.state.geoQuestions.length > 1,
@@ -380,20 +380,26 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
               <bem.FormModal__item>
                 <div className='map-settings__querylimit'>
                   {t(
-                    'By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can increase this limit to a different value.',
+                    'By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.',
                   ).replace('##QUERY_LIMIT_DEFAULT##', String(QUERY_LIMIT_DEFAULT))}
-                  <Alert type='warning' iconName='warning' className='change-limit-warning'>
+                  <p className='change-limit-warning'>
                     {t('Warning: Displaying a large number of points can take a long time to load')}
-                  </Alert>
-                  <Select
-                    size='md'
-                    label={t('Maximum number of submissions')}
-                    clearable={false}
-                    allowDeselect={false}
-                    data={queryLimitOptions}
-                    value={String(queryLimit)}
-                    onChange={this.onQueryLimitChange.bind(this)}
-                  />
+                  </p>
+                  <form className='change-limit-form'>
+                    <input
+                      id='limit-slider'
+                      className='change-limit-slider'
+                      type='range'
+                      step={QUERY_LIMIT_MINIMUM}
+                      min={QUERY_LIMIT_MINIMUM}
+                      max={this.props.queryLimit}
+                      value={queryLimit}
+                      onChange={this.onQueryLimitChange.bind(this)}
+                    />
+                    <output id='limit-slider-value' className='change-limit-slider-value' htmlFor='limit-slider'>
+                      {queryLimit}
+                    </output>
+                  </form>
                 </div>
               </bem.FormModal__item>
             )}
@@ -404,6 +410,10 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
           activeTab,
         ) && (
           <bem.Modal__footer>
+            {hasChangeAssetPermission && queryLimit !== QUERY_LIMIT_DEFAULT && (
+              <Button type='danger' size='l' onClick={this.resetMapSettings.bind(this)} label={t('Reset')} />
+            )}
+
             <Button type='primary' size='l' onClick={this.onSave.bind(this)} label={t('Save')} />
           </bem.Modal__footer>
         )}

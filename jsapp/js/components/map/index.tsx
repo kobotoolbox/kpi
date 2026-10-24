@@ -19,7 +19,7 @@ import CenteredMessage from '../../../js/components/common/centeredMessage.compo
 import Modal from '../../../js/components/common/modal'
 // Partial components
 import MapSettings from './MapSettings'
-import { type PlottedPoint, QUERY_LIMIT_DEFAULT, getMapPageCount, getPlottedPoints, getPointsBounds } from './mapUtils'
+import { MAX_QUERY_LIMIT, type PlottedPoint, getMapPageCount, getPlottedPoints, getPointsBounds } from './mapUtils'
 import { WorldCopies } from './worldCopies'
 
 import { actions } from '../../../js/actions'
@@ -31,7 +31,7 @@ import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
 import { findFirstGeopoint, notify, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, isMapDisplayableGeopointType } from '../../../js/constants'
+import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -196,9 +196,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   private unlisteners: Function[] = []
   private lastRenderedBoundsSignature?: string
-  // The limit notice is shown at most once per opening of the map, as the count it relies on reloads whenever the
-  // requested fields change (e.g. picking another "view by" question)
-  private hasShownLimitNotice = false
 
   /** Repeats the markers across the copies of the world the map shows. Replaced whenever the marker group is. */
   private worldCopies?: WorldCopies
@@ -294,6 +291,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       map: map,
       fields: fields,
     })
+
+    if (this.props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
+      notify(
+        t(
+          'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.',
+        ).replace('##number##', QUERY_LIMIT_DEFAULT.toString()),
+      )
+    }
 
     this.createDataQuery(this.props.viewby)
     this.rebuildMapLayers(map)
@@ -896,7 +901,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     // how many pages to request
     if (totalCountPopulated) {
       this.createDataQuery(this.props.viewby)
-      this.showLimitNoticeIfNeeded()
     }
 
     if (dataChanged && !viewbyChanged) {
@@ -919,26 +923,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     ) {
       this.syncLegendViewportListeners()
     }
-  }
-
-  /**
-   * Tells the user the map only shows the most recent submissions, if there are more than the default limit and nobody
-   * has chosen a limit for this project yet.
-   */
-  showLimitNoticeIfNeeded() {
-    const count = this.props.totalCount
-    const hasMoreThanDefault = typeof count === 'number' ? count > QUERY_LIMIT_DEFAULT : count !== undefined
-
-    if (this.hasShownLimitNotice || this.props.asset.map_styles.querylimit || !hasMoreThanDefault) {
-      return
-    }
-
-    this.hasShownLimitNotice = true
-    notify(
-      t(
-        'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.',
-      ).replace('##number##', QUERY_LIMIT_DEFAULT.toString()),
-    )
   }
 
   refreshMapLayers() {
@@ -1466,6 +1450,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               toggleMapSettings={this.toggleMapSettings.bind(this)}
               overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
+              queryLimit={MAX_QUERY_LIMIT}
             />
           </Modal>
         )}
