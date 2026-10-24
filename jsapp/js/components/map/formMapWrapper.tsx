@@ -2,7 +2,8 @@ import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
 import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
-import FormMap, { SUBMISSIONS_PER_PAGE } from '.'
+import FormMap from '.'
+import { SUBMISSIONS_PER_PAGE } from './mapUtils'
 
 interface FormMapWrapperProps {
   asset: AssetResponse
@@ -11,6 +12,7 @@ interface FormMapWrapperProps {
 }
 
 const DEFAULT_PAGE_SIZE = 1
+const MAP_DATA_STALE_TIME = 5 * 60 * 1000
 
 /**
  * Wrapper for the `FormMap` component so we can use hooks without doing a full refactor of `FormMap`
@@ -33,6 +35,10 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
           sort: sort,
         }),
       enabled: fields !== undefined,
+      // Each page is one of up to 30 parallel requests, so avoid refetching or retrying them all at once
+      staleTime: MAP_DATA_STALE_TIME,
+      refetchOnWindowFocus: false,
+      retry: 1,
     }
   })
 
@@ -47,10 +53,8 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
     })
   const isLoading = results.some((result) => result.isLoading)
   // Get total count from first query (only if not currently refetching to avoid stale data)
-  const firstPageCount =
+  const totalCount =
     results[0]?.data?.status === 200 && !results[0]?.isFetching ? results[0].data.data.count : undefined
-  // 'many'/'unknown' counts are not displayed yet (DEV-2634)
-  const totalCount = typeof firstPageCount === 'number' ? firstPageCount : undefined
 
   return (
     <FormMap
