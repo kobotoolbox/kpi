@@ -577,6 +577,10 @@ export const WithCappedCountRequestsPagesOneAtATime: Story = {
     await step('Verify the points from every page are plotted', async () => {
       await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
     })
+
+    // Every page moves the bounds, so the map zooms to them after each one. Leaflet finishes a zoom on a timer, which
+    // throws if the map has gone by then - as it does when the test runner moves on to the next story.
+    await step('Wait for the map to finish zooming to the points', () => waitForZoomToLand(canvasElement))
   },
 }
 
@@ -603,5 +607,9 @@ export const WithExactCountRequestsPagesAtOnce: Story = {
     await step('Verify the points from every page are plotted', async () => {
       await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
     })
+
+    // Every page moves the bounds, so the map zooms to them after each one. Leaflet finishes a zoom on a timer, which
+    // throws if the map has gone by then - as it does when the test runner moves on to the next story.
+    await step('Wait for the map to finish zooming to the points', () => waitForZoomToLand(canvasElement))
   },
 }

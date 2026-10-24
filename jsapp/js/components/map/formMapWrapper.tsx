@@ -63,7 +63,10 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
   })
   const results = [firstPage].concat(otherPages)
 
+  // Only the pages this load has reached: the others can still hold data cached by an earlier load, which may have since
+  // been deleted, and would otherwise stay on the map if this load finds the submissions end sooner
   const allData = results
+    .slice(0, startedPages)
     .filter((result) => result.isSuccess)
     .flatMap((result) => {
       if (result.data && result.data.status === 200) {
