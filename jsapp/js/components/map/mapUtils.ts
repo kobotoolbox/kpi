@@ -1,35 +1,18 @@
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { PaginatedDataResponseListCount } from '#/api/models/paginatedDataResponseListCount'
+import { QUERY_LIMIT_DEFAULT } from '#/constants'
 import { parseLatLng } from '#/utils'
 
 /** The data API returns at most this many submissions per page. */
 export const SUBMISSIONS_PER_PAGE = 1000
 
-/** How many of the most recent submissions the map loads unless the user asks for more. */
-export const QUERY_LIMIT_DEFAULT = 1000
-
-/**
- * The choices for how many of the most recent submissions the map loads. The last one is the most we allow, as every
- * 1000 submissions is one more of the requests the map sends in parallel.
- */
-export const QUERY_LIMIT_OPTIONS = [1000, 5000, 10000, 20000, 30000]
-
-/**
- * Turns a saved `querylimit` into one of `QUERY_LIMIT_OPTIONS`. Limits saved with the old slider can be any multiple of
- * 1000, so we round them up to the next option - whoever saved them was asking for more points, not fewer.
- */
-export function normalizeQueryLimit(querylimit: string | undefined): number {
-  const value = Number.parseInt(querylimit ?? '')
-  if (Number.isNaN(value)) {
-    return QUERY_LIMIT_DEFAULT
-  }
-  return QUERY_LIMIT_OPTIONS.find((option) => option >= value) ?? QUERY_LIMIT_OPTIONS[QUERY_LIMIT_OPTIONS.length - 1]
-}
+/** The most submissions the map loads, as every 1000 of them is one more request. */
+export const MAX_QUERY_LIMIT = 30 * SUBMISSIONS_PER_PAGE
 
 /**
  * How many pages of submissions the map should request.
  *
- * @param querylimit - The saved limit, see `normalizeQueryLimit()`.
+ * @param querylimit - The saved limit, the default if it is missing or not a number, and at most `MAX_QUERY_LIMIT`.
  * @param totalCount - The count from the first page. Until it has loaded we only ask for that one page. An exact count
  * lowers the limit, so we don't request empty pages, while 'many' or 'unknown' mean there are too many submissions to
  * count, so we keep the limit.
@@ -42,7 +25,9 @@ export function getMapPageCount(
     return 1
   }
 
-  const pageCount = normalizeQueryLimit(querylimit) / SUBMISSIONS_PER_PAGE
+  const parsedLimit = Number.parseInt(querylimit ?? '')
+  const queryLimit = Math.min(Number.isNaN(parsedLimit) ? QUERY_LIMIT_DEFAULT : parsedLimit, MAX_QUERY_LIMIT)
+  const pageCount = Math.max(Math.ceil(queryLimit / SUBMISSIONS_PER_PAGE), 1)
   if (typeof totalCount === 'number') {
     return Math.min(pageCount, Math.max(Math.ceil(totalCount / SUBMISSIONS_PER_PAGE), 1))
   }
