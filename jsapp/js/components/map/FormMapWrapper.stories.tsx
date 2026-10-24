@@ -1,9 +1,10 @@
 import type { Decorator, Meta, StoryObj } from '@storybook/react-webpack5'
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, delay } from 'msw'
 import { useEffect, useRef, useState } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, waitFor, within } from 'storybook/test'
 import { endpoints } from '#/api.endpoints'
+import type { PaginatedDataResponseListCount } from '#/api/models/paginatedDataResponseListCount'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { MetaQuestionTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
@@ -217,6 +218,69 @@ function mapHandlers(asset: AssetResponse, submissions: SubmissionResponse[]) {
   ]
 }
 
+/** What the paged data handler below saw: the `start` of every page requested, and the most requested at once. */
+interface DataRequestLog {
+  starts: number[]
+  inFlight: number
+  maxInFlight: number
+}
+
+/**
+ * Like `mapHandlers()`, but for a project with `total` submissions, served a page at a time the way the data API does:
+ * honouring `start` and `limit`, with a `next` link until the submissions run out, and reporting `count` (which can be
+ * capped). Each page holds a single point, as the map only cares about the paging here. Every request is logged, and
+ * held back a moment so that the ones made at the same time overlap.
+ */
+function pagedMapHandlers(asset: AssetResponse, total: number, count: PaginatedDataResponseListCount) {
+  const log: DataRequestLog = { starts: [], inFlight: 0, maxInFlight: 0 }
+  const resetLog = () => {
+    log.starts = []
+    log.inFlight = 0
+    log.maxInFlight = 0
+  }
+
+  const handlers = [
+    http.get(endpoints.ASSET_URL, ({ params }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      return HttpResponse.json(asset)
+    }),
+    http.get<{ uid: string }>(endpoints.ASSET_DATA_URL, async ({ params, request }) => {
+      if (params.uid !== mockAssetUid) return undefined
+      const url = new URL(request.url)
+      const start = Number(url.searchParams.get('start') ?? 0)
+      const limit = Number(url.searchParams.get('limit') ?? 1000)
+
+      log.starts.push(start)
+      log.inFlight++
+      log.maxInFlight = Math.max(log.maxInFlight, log.inFlight)
+      await delay(50)
+      log.inFlight--
+
+      const nextUrl = new URL(url)
+      nextUrl.searchParams.set('start', String(start + limit))
+      const response = {
+        count,
+        next: start + limit < total ? nextUrl.toString() : null,
+        previous: null,
+        results:
+          start < total
+            ? [
+                assetDataFactory(start + 1, {
+                  your_name: `Page ${start / limit + 1}`,
+                  location: `-17.7333 ${168.3273 + start / 100000} 0 0`, // Port Vila, nudged east for each page
+                  _geolocation: [-17.7333, 168.3273 + start / 100000],
+                }),
+              ]
+            : [],
+      }
+      return HttpResponse.json(response)
+    }),
+    ...mapTileHandlers,
+  ]
+
+  return { handlers, log, resetLog }
+}
+
 /**
  * Holds the story back until the browser has given the container a layout box.
  *
@@ -301,6 +365,28 @@ async function waitForZoomToLand(canvasElement: HTMLElement) {
   const mapPane = canvasElement.querySelector('.leaflet-map-pane')
   await waitFor(() => expect(mapPane).not.toHaveClass('leaflet-zoom-anim'), WAIT)
 }
+
+/**
+ * Waits for the map to finish requesting pages, and checks it stops at the last one holding submissions. Gives it a
+ * moment after the loading message goes, so a page requested past the end would be caught rather than missed.
+ */
+async function waitForRequestedPages(canvasElement: HTMLElement, log: DataRequestLog, expectedStarts: number[]) {
+  await waitFor(() => expect(log.starts).toEqual(expectedStarts), WAIT)
+  await waitFor(() => expect(within(canvasElement).queryByText(/Fetching points/i)).not.toBeInTheDocument(), WAIT)
+  // A page past the end would be requested right after the last one, and is logged as soon as it is requested
+  await new Promise((resolve) => setTimeout(resolve, 150))
+  expect(log.starts).toEqual(expectedStarts)
+}
+
+/** 2,500 submissions with a 20,000 limit saved, so the map could ask for 20 pages but only 3 hold anything */
+const assetWithManySubmissions = {
+  ...assetWithPacificGeopoints,
+  deployment__submission_count: 2500,
+  map_styles: { querylimit: '20000' },
+} as AssetResponse
+
+const cappedCountData = pagedMapHandlers(assetWithManySubmissions, 2500, 'many')
+const exactCountData = pagedMapHandlers(assetWithManySubmissions, 2500, 2500)
 
 const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
@@ -463,6 +549,59 @@ export const WithPointsRepeatedInEveryWorldCopy: Story = {
       // At this zoom the world fits on screen several times over, and every copy gets its own cluster of the same four
       // points — so more than the single cluster the points alone would make.
       await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(1), WAIT)
+    })
+  },
+}
+
+export const WithCappedCountRequestsPagesOneAtATime: Story = {
+  parameters: {
+    msw: { handlers: cappedCountData.handlers },
+  },
+  args: {
+    asset: assetWithManySubmissions,
+  },
+  beforeEach: () => {
+    cappedCountData.resetLog()
+  },
+  // A 'many' count doesn't say where the submissions end, so the map has to follow the `next` links instead of asking for
+  // all 20 pages its limit allows
+  play: async ({ canvasElement, step }) => {
+    await step('Wait for the map to request every page holding submissions, and no more', () =>
+      waitForRequestedPages(canvasElement, cappedCountData.log, [0, 1000, 2000]),
+    )
+
+    await step('Verify the pages were requested one at a time', async () => {
+      expect(cappedCountData.log.maxInFlight).toBe(1)
+    })
+
+    await step('Verify the points from every page are plotted', async () => {
+      await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
+    })
+  },
+}
+
+export const WithExactCountRequestsPagesAtOnce: Story = {
+  parameters: {
+    msw: { handlers: exactCountData.handlers },
+  },
+  args: {
+    asset: assetWithManySubmissions,
+  },
+  beforeEach: () => {
+    exactCountData.resetLog()
+  },
+  // An exact count already tells the map which pages hold submissions, so after the first one it asks for the rest at once
+  play: async ({ canvasElement, step }) => {
+    await step('Wait for the map to request every page holding submissions, and no more', () =>
+      waitForRequestedPages(canvasElement, exactCountData.log, [0, 1000, 2000]),
+    )
+
+    await step('Verify the pages after the first were requested together', async () => {
+      expect(exactCountData.log.maxInFlight).toBe(2)
+    })
+
+    await step('Verify the points from every page are plotted', async () => {
+      await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
     })
   },
 }
