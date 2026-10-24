@@ -936,8 +936,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.hasShownLimitNotice = true
     notify(
       t(
-        'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.',
-      ).replace('##number##', QUERY_LIMIT_DEFAULT.toString()),
+        'By default map is limited to the ##number## most recent submissions for performance reasons. Go to map settings to increase this limit.',
+      ).replace('##number##', QUERY_LIMIT_DEFAULT.toLocaleString()),
     )
   }
 
