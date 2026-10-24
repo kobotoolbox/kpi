@@ -264,20 +264,7 @@ body .leaflet-control-layers,
 }
 
 .change-limit-warning {
-  color: red;
-}
-
-.change-limit-form {
-  @include mixins.centerRowFlex;
-  gap: 10px;
-}
-
-.change-limit-slider {
-  flex: 1;
-}
-
-.change-limit-slider-value {
-  min-width: 80px;
+  margin: 12px 0;
 }
 
 .map-no-geopoint {
