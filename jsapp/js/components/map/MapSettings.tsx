@@ -381,13 +381,14 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                 <div className='map-settings__querylimit'>
                   {t(
                     'By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can increase this limit to a different value.',
-                  ).replace('##QUERY_LIMIT_DEFAULT##', String(QUERY_LIMIT_DEFAULT))}
+                  ).replace('##QUERY_LIMIT_DEFAULT##', QUERY_LIMIT_DEFAULT.toLocaleString())}
                   <Alert type='warning' iconName='warning' className='change-limit-warning'>
                     {t('Warning: Displaying a large number of points can take a long time to load')}
                   </Alert>
                   <Select
                     size='md'
                     label={t('Maximum number of submissions')}
+                    searchable={false}
                     clearable={false}
                     allowDeselect={false}
                     data={queryLimitOptions}
