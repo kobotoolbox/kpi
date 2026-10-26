@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
+from kobo.apps.accounts.provisioning import SocialAccountProvisioningView
 from kobo.apps.accounts.views import EmailConfirmationView, SocialAppView
 from kobo.apps.audit_log.urls import router as audit_log_router
 from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
@@ -330,6 +331,14 @@ social_app_url_patterns = [
     ),
 ]
 
+social_account_url_patterns = [
+    path(
+        'social-accounts/provisioning/',
+        SocialAccountProvisioningView.as_view(),
+        name='social-account-provisioning',
+    ),
+]
+
 additional_urls = [
     path(r'environment/', EnvironmentView.as_view(), name='environment')
 ]
@@ -342,5 +351,6 @@ urls_patterns = (
     + kobo_scim_url_patterns
     + email_confirmation_url_patterns
     + social_app_url_patterns
+    + social_account_url_patterns
     + additional_urls
 )

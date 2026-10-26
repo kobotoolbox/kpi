@@ -8,6 +8,7 @@ from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from ddt import data, ddt
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
@@ -19,6 +20,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kobo.apps.accounts.adapter import SocialAccountAdapter
+from kobo.apps.kobo_scim.models import IdentityProvider
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.utils.fuzzy_int import FuzzyInt
 from ...help.models import InAppMessage, InAppMessageUsers, MessageType
@@ -333,3 +335,132 @@ class SingleSocialAccountConnectFlowTestCase(TestCase):
         else:
             # if there was only one user still getting the message, it should be expired
             assert i.valid_until < now
+
+
+class ScimProvisioningTestCase(TestCase):
+    def setUp(self):
+        self.adapter = SocialAccountAdapter()
+        self.social_app = SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id='keycloak',
+            name='Keycloak SSO',
+            client_id='test-client-id',
+            secret='test-secret',
+        )
+        self.idp = IdentityProvider.objects.create(
+            name='Keycloak SCIM IdP',
+            slug='keycloak-idp',
+            scim_api_key='secret-key',
+            social_app=self.social_app,
+            is_active=True,
+        )
+        self.provisioning_url = reverse('api_v2:social-account-provisioning')
+
+    def _build_login(self, provider='keycloak', uid='incoming-uid', email='user@example.com'):
+        account = SocialAccount(provider=provider, uid=uid)
+        user = User(email=email, username='testuser')
+        provider_instance = self.adapter.get_provider(None, provider=provider)
+        sociallogin = SocialLogin(user=user, account=account, provider=provider_instance)
+        sociallogin.state['process'] = AuthProcess.LOGIN
+        return sociallogin
+
+    def _build_request(self):
+        request = RequestFactory().get('/')
+        request.user = AnonymousUser()
+        SessionMiddleware(lambda r: None).process_request(request)
+        request._messages = FallbackStorage(request)
+        return request
+
+    def test_first_time_login_with_scim_provider_redirects_to_provisioning(self):
+        sociallogin = self._build_login()
+        request = self._build_request()
+
+        with self.assertRaises(ImmediateHttpResponse) as cm:
+            self.adapter.pre_social_login(request, sociallogin)
+
+        response = cm.exception.response
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.url, '/auth/provisioning/')
+        self.assertIn('socialaccount_sociallogin', request.session)
+        self.assertIn('scim_provisioning_start', request.session)
+
+    def test_first_time_login_with_non_scim_provider_does_not_redirect(self):
+        # Inactive IDP
+        self.idp.is_active = False
+        self.idp.save()
+
+        sociallogin = self._build_login()
+        request = self._build_request()
+
+        # Does not raise ImmediateHttpResponse
+        result = self.adapter.pre_social_login(request, sociallogin)
+        self.assertIsNone(result)
+
+    def test_is_open_for_signup_false_for_scim_provider(self):
+        sociallogin = self._build_login()
+        request = self._build_request()
+        self.assertFalse(self.adapter.is_open_for_signup(request, sociallogin))
+
+    def test_provisioning_view_without_session_returns_400(self):
+        response = self.client.get(self.provisioning_url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(),
+            {'detail': 'No pending provisioning session found.'},
+        )
+
+    def test_provisioning_view_pending_poll(self):
+        sociallogin = self._build_login()
+        session = self.client.session
+        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_provisioning_start'] = timezone.now().timestamp()
+        session.save()
+
+        response = self.client.get(self.provisioning_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {'ready': False, 'expired': False, 'redirect_url': None},
+        )
+
+    def test_provisioning_view_ready_poll_completes_login(self):
+        sociallogin = self._build_login(uid='cleo-uid', email='cleo@example.com')
+        # Simulate SCIM user creation
+        cleo = User.objects.create_user(username='cleo', email='cleo@example.com')
+        SocialAccount.objects.create(user=cleo, provider='keycloak', uid='cleo-uid')
+
+        session = self.client.session
+        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_provisioning_start'] = timezone.now().timestamp()
+        session.save()
+
+        response = self.client.get(self.provisioning_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertTrue(data['ready'])
+        self.assertFalse(data['expired'])
+        self.assertIsNotNone(data['redirect_url'])
+
+        # Pending session is cleared
+        self.assertNotIn('socialaccount_sociallogin', self.client.session)
+        self.assertNotIn('scim_provisioning_start', self.client.session)
+
+    def test_provisioning_view_expired_clears_session(self):
+        sociallogin = self._build_login()
+        session = self.client.session
+        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        # Set start time to 70 seconds ago (> 60s timeout)
+        session['scim_provisioning_start'] = timezone.now().timestamp() - 70
+        session.save()
+
+        response = self.client.get(self.provisioning_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {'ready': False, 'expired': True, 'redirect_url': None},
+        )
+
+        # Session data was cleared
+        self.assertNotIn('socialaccount_sociallogin', self.client.session)
+        self.assertNotIn('scim_provisioning_start', self.client.session)
+
