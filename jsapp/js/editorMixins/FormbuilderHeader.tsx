@@ -277,6 +277,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
                 href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
                 target='_blank'
                 data-tip={t('Learn more about importing cascading lists from Excel')}
+                className='right-tooltip'
               >
                 <i className='k-icon k-icon-help' />
               </Anchor>
