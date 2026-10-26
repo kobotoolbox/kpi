@@ -168,7 +168,7 @@ export const ASSET_TYPES: AssetTypes = {
   },
   survey: {
     id: AssetTypeName.survey,
-    label: t('Project name'),
+    label: t('project'),
   },
   collection: {
     id: AssetTypeName.collection,
