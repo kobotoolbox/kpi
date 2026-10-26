@@ -98,7 +98,7 @@ OSS120 = LLModel(
 )
 Gemma = LLModel(
     model_id='google.gemma-3-27b-it',
-    model_arn='google.gemma-3-27b-it',
+    model_arn=settings.AUTOQA_GEMMA_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
 )
