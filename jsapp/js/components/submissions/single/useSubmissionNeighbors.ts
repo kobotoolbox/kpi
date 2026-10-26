@@ -10,7 +10,11 @@ import { getSubmissionNeighborParams } from './submissionRouting'
 const selectNeighbor = (data: assetsDataListResponse) => {
   if (data.status !== 200) return
   // Keep the count even with no neighbour left, so the ends of the list still place the record.
-  return { submission: data.data.results[0], count: data.data.count }
+  return {
+    submission: data.data.results[0],
+    // 'many'/'unknown' counts are not displayed yet (DEV-2633)
+    count: typeof data.data.count === 'number' ? data.data.count : 0,
+  }
 }
 
 export interface SubmissionNeighbors {
