@@ -133,14 +133,18 @@ interface MfaConfirmVariables extends MfaCode {
   password?: string
 }
 
-/** Turns 2FA on, and returns the recovery codes allauth made along with it */
+/** Turns 2FA on. Read the codes allauth made along with it through {@link useMfaRecoveryCodes}. */
 export const useMfaConfirmCode = () =>
-  useMfaMutation<string[], MfaConfirmVariables>('confirm', async ({ code, password }) => {
+  useMfaMutation<void, MfaConfirmVariables>('confirm', async ({ code, password }) => {
     if (password !== undefined) {
       assertOk(await allauthBrowserV1AuthReauthenticatePost({ password }), 'password')
     }
     assertOk(await allauthBrowserV1AccountAuthenticatorsTotpPost({ code }), 'code')
+  })
 
+/** Separate from {@link useMfaConfirmCode}, so a failed read can be retried without turning 2FA on twice */
+export const useMfaRecoveryCodes = () =>
+  useMfaMutation<string[]>('recoveryCodes', async () => {
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
     return response.data.data.unused_codes

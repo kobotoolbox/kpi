@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { expect, fn, userEvent, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import {
   BACKUP_CODES,
   INCORRECT_CODE_MESSAGE,
@@ -7,8 +7,10 @@ import {
   TOTP_URL,
   VALID_CODE,
   VALID_PASSWORD,
+  mfaActivateCounterMock,
   mfaDeactivateRefusedMock,
   mfaMocks,
+  mfaRecoveryCodesServerErrorMock,
 } from '#/endpoints/mfa.mocks'
 import { seedEnvStore } from '#/envStore.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -68,6 +70,38 @@ export const ConfirmNewSetup: Story = {
     // Nothing may close this step before the codes have been downloaded
     expect(canvas.getByRole('button', { name: 'I saved my codes' })).toBeDisabled()
     expect(args.onModalClose).not.toHaveBeenCalled()
+  },
+}
+
+let activationCount = 0
+
+/** 2FA went on but the codes didn't load, so Next only rereads them */
+export const ConfirmRetriesRecoveryCodes: Story = {
+  args: { modalType: 'qr', qrCode: TOTP_URL },
+  parameters: {
+    msw: {
+      handlers: [
+        mfaActivateCounterMock(() => activationCount++),
+        mfaRecoveryCodesServerErrorMock({ once: true }),
+        ...mfaMocks(state),
+      ],
+    },
+  },
+  beforeEach: () => {
+    activationCount = 0
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await typePassword(canvas, VALID_PASSWORD)
+    await submitCode(canvas, VALID_CODE)
+    await waitFor(() => expect(state.totp).not.toBeNull())
+    await waitFor(() => expect(canvas.getByRole('button', { name: 'Next' })).toBeEnabled())
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Next' }))
+
+    await expectBackupCodes(canvas)
+    expect(activationCount).toBe(1)
   },
 }
 

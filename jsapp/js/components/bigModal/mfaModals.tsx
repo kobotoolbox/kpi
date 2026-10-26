@@ -10,6 +10,7 @@ import {
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
+  useMfaRecoveryCodes,
   useMfaRegenerateCodes,
 } from '#/account/security/mfa/mfa.api'
 import bem, { makeBem } from '#/bem'
@@ -85,14 +86,22 @@ function MFAModals(props: MFAModalsProps) {
   const [errorText, setErrorText] = useState<string | undefined>(undefined)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState<string | undefined>(undefined)
+  /** 2FA is on, but the codes may still need reading */
+  const [isActivated, setIsActivated] = useState(false)
 
   const isPasswordNeeded = useIsPasswordNeeded()
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
+  const recoveryCodes = useMfaRecoveryCodes()
   const regenerateCodes = useMfaRegenerateCodes()
 
-  const isBusy = activate.isPending || confirmCode.isPending || deactivate.isPending || regenerateCodes.isPending
+  const isBusy =
+    activate.isPending ||
+    confirmCode.isPending ||
+    recoveryCodes.isPending ||
+    deactivate.isPending ||
+    regenerateCodes.isPending
 
   // HACK FIX: the close icon belongs to the modal frame, and the codes are shown once - dismissing would lose them.
   useEffect(() => {
@@ -133,9 +142,20 @@ function MFAModals(props: MFAModalsProps) {
 
   function mfaConfirm() {
     clearErrors()
+    // A retry after the codes failed to load must not turn 2FA on again
+    if (isActivated) {
+      recoveryCodes.mutate(undefined, { onSuccess: showCodes })
+      return
+    }
     confirmCode.mutate(
       { code: inputString, password: isPasswordNeeded ? password : undefined },
-      { onSuccess: showCodes, onError: onCredentialRejected },
+      {
+        onSuccess: () => {
+          setIsActivated(true)
+          recoveryCodes.mutate(undefined, { onSuccess: showCodes })
+        },
+        onError: onCredentialRejected,
+      },
     )
   }
 
@@ -265,9 +285,9 @@ function MFAModals(props: MFAModalsProps) {
     )
   }
 
-  /** The confirming steps need the password too, when there is one */
+  /** The confirming steps need the password too, when there is one. Once 2FA is on, Next only rereads the codes. */
   function isConfirmValid() {
-    return isTokenValid() && (!isPasswordNeeded || password.length >= 1)
+    return isActivated || (isTokenValid() && (!isPasswordNeeded || password.length >= 1))
   }
 
   function renderQRCodeStep() {

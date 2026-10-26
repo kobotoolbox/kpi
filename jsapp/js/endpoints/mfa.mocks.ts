@@ -119,6 +119,16 @@ export const mfaRecoveryCodesMocks = () => [
   http.post(RECOVERY_CODES_URL, recoveryCodes),
 ]
 
+/** Reading the codes breaking. `once` leaves the handler behind it to answer the retry. */
+export const mfaRecoveryCodesServerErrorMock = ({ once }: { once?: boolean } = {}) =>
+  http.get(RECOVERY_CODES_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })
+
+/** Counts activations without answering, so the regular mock still does */
+export const mfaActivateCounterMock = (onActivate: () => void) =>
+  http.post(TOTP_ENDPOINT_URL, () => {
+    onActivate()
+  })
+
 export const reauthenticateMocks = () => [
   http.post(REAUTHENTICATE_URL, withCredentialCheck('password', VALID_PASSWORD, reauthenticated)),
   http.post(MFA_REAUTHENTICATE_URL, withCredentialCheck('code', VALID_CODE, reauthenticated)),
