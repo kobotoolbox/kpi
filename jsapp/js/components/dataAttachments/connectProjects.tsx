@@ -12,6 +12,7 @@ import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttach
 import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { replaceBracketsWithLink } from '#/textUtils'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
@@ -341,19 +342,16 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.FormView__form>
-          <span>
-            {t(
-              "Allow other forms to use this project's data as a dynamic data attachment. Learn more about dynamic data attachments",
-            )}
-            &nbsp;
-            <a
-              href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {t('here')}
-            </a>
-          </span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: replaceBracketsWithLink(
+                t(
+                  "Allow other forms to use this project's data as a dynamic data attachment. Learn more about dynamic data attachments [here]",
+                ),
+                envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
+              ),
+            }}
+          />
 
           <ConnectProjectsExports
             isShared={isShared}
@@ -374,16 +372,16 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.FormView__form>
-          <span>
-            {t(
-              'Select one or more projects to use their data as dynamic data attachments in this project. Learn more about dynamic data attachments',
-            )}
-            &nbsp;
-            <a href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL} target='_blank'>
-              {t('here')}
-            </a>
-            .
-          </span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: replaceBracketsWithLink(
+                t(
+                  'Select one or more projects to use their data as dynamic data attachments in this project. Learn more about dynamic data attachments',
+                ),
+                envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
+              ),
+            }}
+          />
           <ConnectProjectsImports
             selectComponent={
               <ConnectProjectsSelect
