@@ -727,9 +727,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                 return eligible_admins.first().user
             if count > 1:
                 raise serializers.ValidationError(
-                    replace_placeholders(
-                        RECIPIENT_AMBIGUOUS_EMAIL_ERROR, email=value
-                    )
+                    replace_placeholders(RECIPIENT_AMBIGUOUS_EMAIL_ERROR, email=value)
                 )
 
             users = User.objects.filter(email=value, is_active=True)

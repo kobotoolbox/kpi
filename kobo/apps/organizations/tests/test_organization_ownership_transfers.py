@@ -146,9 +146,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.external_user.email = self.admin_user.email
         self.external_user.save(update_fields=['email'])
 
-        response = self._create_transfer(
-            self.owner_user, self.admin_user.email
-        )
+        response = self._create_transfer(self.owner_user, self.admin_user.email)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         transfer = OrganizationOwnershipTransfer.objects.first()
         self.assertEqual(transfer.recipient, self.admin_user)
@@ -165,18 +163,14 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
         self.organization.add_user(second_admin, is_admin=True)
 
-        response = self._create_transfer(
-            self.owner_user, self.admin_user.email
-        )
+        response = self._create_transfer(self.owner_user, self.admin_user.email)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
         expected_error = replace_placeholders(
             RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
             email=self.admin_user.email,
         )
-        self.assertEqual(
-            str(response.data['recipient'][0]), str(expected_error)
-        )
+        self.assertEqual(str(response.data['recipient'][0]), str(expected_error))
 
     def test_only_one_ownership_transfer_can_be_pending_per_team(self):
         """
@@ -280,4 +274,3 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 str(response.data['detail'][0]),
                 str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
             )
-
