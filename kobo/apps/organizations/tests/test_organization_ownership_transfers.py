@@ -217,7 +217,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         sent_email = mail.outbox[0]
         billing_notice = (
             'The current owner has requested that you review and confirm the '
-            'team\'s billing details upon accepting this transfer.'
+            "team's billing details upon accepting this transfer."
         )
         self.assertIn(billing_notice, sent_email.body)
         if sent_email.alternatives:
