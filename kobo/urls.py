@@ -9,6 +9,7 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
+from kobo.apps.accounts.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -90,6 +91,11 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
+    path(
+        'accounts/social/provisioning/',
+        SocialAccountProvisioningHTMLView.as_view(),
+        name='socialaccount_provisioning',
+    ),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
     path('api/v2/allauth/', include('allauth.headless.urls')),
     re_path(

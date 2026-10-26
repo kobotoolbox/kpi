@@ -1,0 +1,60 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="registration registration--provisioning">
+  <div class="registration--logo">
+    <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>
+    <h1>{% trans "Provisioning your account…" %}</h1>
+  </div>
+
+  <div id="provisioning-active" style="text-align: center; margin: 2rem 0; {% if expired %}display: none;{% endif %}">
+    <div class="k-icon k-icon-spinner k-spin" style="font-size: 2.5rem; margin-bottom: 1rem;"></div>
+    <p class="registration__message">
+      {% trans "Please wait while your account is being set up. This will only take a moment." %}
+    </p>
+  </div>
+
+  <div id="provisioning-timeout" style="text-align: center; margin: 2rem 0; {% if not expired %}display: none;{% endif %}">
+    <p class="registration__message" style="color: #d9534f; margin-bottom: 1.5rem;">
+      {% trans "Sorry, provisioning data were not received for your account. Please try again later." %}
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+      <button type="button" class="kobo-button kobo-button--blue" onclick="window.location.reload();">
+        {% trans "Check again" %}
+      </button>
+      <a href="{% url 'account_login' %}" class="kobo-button kobo-button--secondary">
+        {% trans "Back to login" %}
+      </a>
+    </div>
+  </div>
+</div>
+
+{% if not expired %}
+<script>
+  (function() {
+    var pollIntervalMs = {{ poll_interval }} * 1000;
+    var timer = setInterval(function() {
+      fetch("{% url 'api_v2:social-account-provisioning' %}")
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.ready) {
+          clearInterval(timer);
+          window.location.href = data.redirect_url || '/';
+        } else if (data.expired) {
+          clearInterval(timer);
+          document.getElementById('provisioning-active').style.display = 'none';
+          document.getElementById('provisioning-timeout').style.display = 'block';
+        }
+      })
+      .catch(function(err) {
+        console.error('Provisioning poll error:', err);
+      });
+    }, pollIntervalMs);
+  })();
+</script>
+{% endif %}
+{% endblock %}

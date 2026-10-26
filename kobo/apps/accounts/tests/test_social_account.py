@@ -355,6 +355,7 @@ class ScimProvisioningTestCase(TestCase):
             is_active=True,
         )
         self.provisioning_url = reverse('api_v2:social-account-provisioning')
+        self.provisioning_html_url = reverse('socialaccount_provisioning')
 
     def _build_login(self, provider='keycloak', uid='incoming-uid', email='user@example.com'):
         account = SocialAccount(provider=provider, uid=uid)
@@ -380,7 +381,7 @@ class ScimProvisioningTestCase(TestCase):
 
         response = cm.exception.response
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        self.assertEqual(response.url, '/auth/provisioning/')
+        self.assertEqual(response.url, self.provisioning_html_url)
         self.assertIn('socialaccount_sociallogin', request.session)
         self.assertIn('scim_provisioning_start', request.session)
 
@@ -401,12 +402,28 @@ class ScimProvisioningTestCase(TestCase):
         request = self._build_request()
         self.assertFalse(self.adapter.is_open_for_signup(request, sociallogin))
 
-    def test_provisioning_view_without_session_returns_400(self):
+    def test_provisioning_html_view_renders_template_when_session_present(self):
+        sociallogin = self._build_login()
+        session = self.client.session
+        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_provisioning_start'] = timezone.now().timestamp()
+        session.save()
+
+        response = self.client.get(self.provisioning_html_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTemplateUsed(response, 'socialaccount/provisioning.html')
+
+    def test_provisioning_html_view_redirects_to_login_when_no_session(self):
+        response = self.client.get(self.provisioning_html_url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_provisioning_view_without_session_returns_expired(self):
         response = self.client.get(self.provisioning_url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.json(),
-            {'detail': 'No pending provisioning session found.'},
+            {'ready': False, 'expired': True, 'redirect_url': None},
         )
 
     def test_provisioning_view_pending_poll(self):
