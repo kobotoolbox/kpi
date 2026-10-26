@@ -32,6 +32,7 @@ from kpi.fields import KpiUidField
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 from kpi.utils.placeholders import replace_placeholders
+
 from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
@@ -564,6 +565,7 @@ class OrganizationOwnershipTransfer(models.Model):
             'current_owner_email': self.sender.email,
             'team_name': self.organization.name,
             'accept_url': accept_url,
+            'billing_review_requested': self.billing_review_requested,
         }
 
         email_message = EmailMessage(

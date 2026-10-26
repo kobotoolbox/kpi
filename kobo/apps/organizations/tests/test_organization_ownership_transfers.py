@@ -199,7 +199,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
     def test_billing_review_requested_flag(self):
         """
-        billing_review_requested boolean flag is persisted on the model.
+        billing_review_requested boolean flag is persisted on the model
+        and renders the billing review notice in the notification email.
         """
         response = self._create_transfer(
             self.owner_user,
@@ -211,6 +212,17 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
         transfer = OrganizationOwnershipTransfer.objects.first()
         self.assertTrue(transfer.billing_review_requested)
+
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        billing_notice = (
+            "The current owner has requested that you review and confirm the "
+            "team's billing details upon accepting this transfer."
+        )
+        self.assertIn(billing_notice, sent_email.body)
+        if sent_email.alternatives:
+            html_content = sent_email.alternatives[0][0]
+            self.assertIn(billing_notice, html_content)
 
     def test_email_notification_dispatched(self):
         """
@@ -232,18 +244,25 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         expected_param = f'organization_ownership_transfer={transfer.guid}'
         expected_org_param = f'organization_id={self.organization.id}'
 
+        billing_notice = (
+            "The current owner has requested that you review and confirm the "
+            "team's billing details upon accepting this transfer."
+        )
+
         # Check plaintext body
         self.assertIn(self.admin_user.username, sent_email.body)
         self.assertIn(self.owner_user.username, sent_email.body)
         self.assertIn(self.organization.name, sent_email.body)
         self.assertIn(expected_param, sent_email.body)
         self.assertIn(expected_org_param, sent_email.body)
+        self.assertNotIn(billing_notice, sent_email.body)
 
         # Check HTML alternative if present
         if sent_email.alternatives:
             html_content = sent_email.alternatives[0][0]
             self.assertIn(expected_param, html_content)
             self.assertIn(expected_org_param, html_content)
+            self.assertNotIn(billing_notice, html_content)
 
     def test_mailer_error_does_not_prevent_transfer_creation(self):
         """

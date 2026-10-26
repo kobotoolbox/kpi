@@ -4,8 +4,11 @@
 
 {% blocktrans trimmed %}{{ current_owner_username }} ({{ current_owner_email }}) has requested to transfer ownership of team {{ team_name }} to you.{% endblocktrans %}
 
-{% blocktrans trimmed %}When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits. As part of this process, you will be upgraded to a Team plan, and will have to confirm your billing details.{% endblocktrans %}
+{% blocktrans trimmed %}When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits. As part of this process, you will be upgraded to a Team plan.{% endblocktrans %}
+{% if billing_review_requested %}
 
+{% blocktrans trimmed %}The current owner has requested that you review and confirm the team's billing details upon accepting this transfer.{% endblocktrans %}
+{% endif %}
 {% blocktrans trimmed %}If you are unsure, please contact the current owner. This transfer request will expire in 14 days.{% endblocktrans %}
 
 {% blocktrans trimmed %}You can accept or decline ownership by clicking the link here: {{ accept_url }}{% endblocktrans %}
