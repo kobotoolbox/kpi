@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.db import OperationalError, connection, models
@@ -11,12 +12,43 @@ from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN
-from kpi.paginators import DefaultPagination, LimitedCountPagination, NoCountPagination
+from kpi.paginators import (
+    DataPagination,
+    DefaultPagination,
+    LimitedCountPagination,
+    NoCountPagination,
+)
 
 
 class PassThroughSerializer(serializers.BaseSerializer):
     def to_representation(self, item):
         return item
+
+
+class TestDataPagination(TestCase):
+
+    def test_paginate_queryset_peeks_one_row_past_the_page(self):
+        """
+        Test that the extra row fetched past the page sets `next` without being
+        returned, and that the count comes from the view's deployment
+        """
+        deployment = SimpleNamespace(current_submission_count=LIMITED_COUNT_MANY)
+        view = SimpleNamespace(asset=SimpleNamespace(deployment=deployment))
+        request = Request(APIRequestFactory().get('/', {'start': 4, 'limit': 2}))
+        paginator = DataPagination()
+
+        page = paginator.paginate_queryset(
+            iter([{'_id': 5}, {'_id': 6}, {'_id': 7}]), request, view
+        )
+
+        assert page == [{'_id': 5}, {'_id': 6}]
+        assert paginator.count == LIMITED_COUNT_MANY
+        assert 'start=6' in paginator.get_next_link()
+
+        page = paginator.paginate_queryset(iter([{'_id': 5}]), request, view)
+
+        assert page == [{'_id': 5}]
+        assert paginator.get_next_link() is None
 
 
 class TestDefaultPagination(TestCase):
