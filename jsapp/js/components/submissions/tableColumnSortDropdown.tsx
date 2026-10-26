@@ -186,7 +186,6 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
             </>
           )}
 
-          {/* Open to everyone, as `tableStore` keeps the choice per user. */}
           <Menu.Divider />
 
           <Menu.Item

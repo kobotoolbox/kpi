@@ -37,8 +37,7 @@ function readStoredSettings(storageKey: string): TableSettingsByAsset {
 
 /**
  * Keeps Data Table settings (sorting, hidden and frozen columns, etc.) in
- * `localStorage`, per user and per asset. Never saved to the asset, so one
- * user's changes don't affect others.
+ * `localStorage`, per user and per asset.
  *
  * NOTE: we assume this is used only on the table route, i.e. assetUid comes
  * from url.
@@ -46,7 +45,7 @@ function readStoredSettings(storageKey: string): TableSettingsByAsset {
  * NOTE: nothing is persisted until `setStorageKey` is called (see
  * `DataTableWrapper`), only kept in memory.
  *
- * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ * @deprecated migrate out of Reflux (DEV-3191) whenever you need to adjust things beyond simple rename
  */
 class TableStore extends Reflux.Store {
   private storageKey: string | null = null
