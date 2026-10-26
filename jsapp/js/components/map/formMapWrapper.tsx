@@ -50,10 +50,11 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
   const totalCount = firstPage.data?.status === 200 && !firstPage.isFetching ? firstPage.data.data.count : undefined
 
   // With an exact count, `pageCount` is already capped to the pages holding submissions, so we request them all at once.
-  // A 'many' or 'unknown' count doesn't tell us where the submissions end, so we request one page at a time, each once
-  // the one before it says there is a next page. This keeps us from requesting empty pages on the largest projects.
-  const isCountExact = typeof totalCount === 'number'
-  const startedPages = isCountExact ? pageCount : pageProgress.fields === fields ? pageProgress.count : 1
+  // So we do with 'many': we don't know where the submissions end, but counting up to the cap was quick, so requesting
+  // past the end is cheap. 'unknown' means counting timed out, so these queries are slow - there we request one page at
+  // a time, each once the one before it says there is a next page, so we never request pages past the end.
+  const canRequestAllPages = typeof totalCount === 'number' || totalCount === 'many'
+  const startedPages = canRequestAllPages ? pageCount : pageProgress.fields === fields ? pageProgress.count : 1
 
   const otherPages = useQueries({
     queries: Array.from({ length: Math.max(pageCount - 1, 0) }).map((_, otherIndex) => {
@@ -77,7 +78,7 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
 
   const latestPage = results[startedPages - 1]
   const canStartNextPage =
-    !isCountExact &&
+    !canRequestAllPages &&
     startedPages < pageCount &&
     latestPage?.isSuccess === true &&
     !latestPage.isFetching &&
