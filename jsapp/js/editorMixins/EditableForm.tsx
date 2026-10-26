@@ -48,6 +48,7 @@ import {
 import envStore from '#/envStore'
 import type { RouterProp } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+import { isAnyLibraryRoute } from '#/router/routerUtils'
 import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { Survey } from '../../xlform/src/model.survey'
 import type { SurveyDetail } from '../../xlform/src/model.surveyDetail'
@@ -63,7 +64,7 @@ import {
 } from '../dataInterface'
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
-import { escapeHtml, recordKeys } from '../utils'
+import { escapeHtml, notify, recordKeys } from '../utils'
 import AssetNavigator from './AssetNavigator'
 
 const ErrorMessage = makeBem(null, 'error-message')
@@ -655,6 +656,7 @@ export default function EditableForm(props: EditableFormProps) {
         survey: survey,
         rawSurvey: rawAssetContent,
         assetType: getFormBuilderAssetType(state.asset?.asset_type, state.desiredAssetType),
+        onManageLanguages: navigateToLanguageSettings,
       })
 
       const newApp = new dkobo_xlform.view.SurveyApp({
@@ -723,6 +725,23 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     props.router.navigate(targetRoute)
+  }
+
+  /**
+   * Leaves the Form Builder for the asset's own page, where languages are managed. Managing them saves the asset, so
+   * it can't happen over unsaved Form Builder changes - routing out lets the blocker ask about those first.
+   *
+   * Not `safeNavigateToAsset`, which follows the user's back route and does nothing when they arrived by link.
+   */
+  function navigateToLanguageSettings() {
+    if (assetUid === '') {
+      notify(t('Please save this form before setting its language.'), 'warning')
+      return
+    }
+
+    // Read at click time rather than from `state.backRoute`, which is captured when the Form Builder is built
+    const route = isAnyLibraryRoute() ? ROUTES.LIBRARY_ITEM : ROUTES.FORM
+    props.router.navigate(route.replace(':uid', assetUid))
   }
 
   function isAddingQuestionsRestricted() {

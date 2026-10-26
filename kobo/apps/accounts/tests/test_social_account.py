@@ -99,6 +99,33 @@ class SingleSocialAccountTestCase(TestCase):
         # No second account was created
         self.assertEqual(SocialAccount.objects.filter(user=self.user).count(), 1)
 
+    def test_blocks_linking_second_account_from_headless(self):
+        baker.make(
+            'socialaccount.SocialAccount',
+            user=self.user,
+            provider='openid_connect',
+            uid='existing-uid',
+        )
+        request = self._build_request()
+        sociallogin = self._build_connect_login(provider='microsoft', uid='new-uid')
+        # What the headless `auth/provider/redirect` endpoint stores in the state
+        sociallogin.state['headless'] = True
+        sociallogin.state['next'] = '/#/account/security'
+
+        with self.assertRaises(ImmediateHttpResponse) as cm:
+            self.adapter.pre_social_login(request, sociallogin)
+
+        # The SPA gets the error code on its own URL instead of an HTML page.
+        # allauth adds it as a real query string, ahead of the hash route
+        response = cm.exception.response
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(
+            response.url,
+            '/?error=multiple_sso_not_allowed&error_process=connect'
+            '#/account/security',
+        )
+        self.assertEqual(SocialAccount.objects.filter(user=self.user).count(), 1)
+
     def test_allows_linking_first_account(self):
         request = self._build_request()
         sociallogin = self._build_connect_login()
