@@ -9,7 +9,7 @@ import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
 import { useProfile } from '#/stores/useProfile'
 import MemberRemoveModal from './MemberRemoveModal'
-import TransferTeamOwnershipModal from './TransferTeamOwnershipModal'
+import { openTransferTeamOwnershipModal } from './openTransferTeamOwnershipModal'
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberActionsDropdownProps {
@@ -39,7 +39,6 @@ export default function MemberActionsDropdown({
   const profile = useProfile()
   const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnership)
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
-  const [isTransferOwnerVisible, setIsTransferOwnerVisible] = useState(false)
 
   // Wait for session
   if (!profile.currentLoggedAccount?.username) {
@@ -84,17 +83,6 @@ export default function MemberActionsDropdown({
         />
       )}
 
-      {isTransferOwnerVisible && (
-        <TransferTeamOwnershipModal
-          username={targetUsername}
-          targetFullName={targetFullName}
-          orgName={orgName}
-          isModalOpen={isTransferOwnerVisible}
-          onCancel={() => setIsTransferOwnerVisible(false)}
-          onConfirm={() => setIsTransferOwnerVisible(false)}
-        />
-      )}
-
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
 
@@ -108,7 +96,10 @@ export default function MemberActionsDropdown({
             isTransferOwnershipEnabled &&
             currentUserRole === MemberRoleEnum.owner && (
               <>
-                <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
+                <Menu.Item
+                  variant='light'
+                  onClick={() => openTransferTeamOwnershipModal({ username: targetUsername, targetFullName, orgName })}
+                >
                   {t('Make owner')}
                 </Menu.Item>
                 <Menu.Divider />

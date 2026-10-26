@@ -200,7 +200,6 @@ jobs:
       pull-requests: write  # gh pr create/edit for the merge-conflict PR
     runs-on: ubuntu-24.04
     outputs:
-      new_migrations: ${{ steps.detect-migrations.outputs.new_migrations }}
       conflict: ${{ steps.merge.outputs.conflict }}
     steps:
 
@@ -285,7 +284,7 @@ jobs:
           echo "::notice::PR #$EXISTING_PR updated with latest branch state."
         fi
 
-    - name: Detect new migrations
+    - name: Detect colliding migrations
       id: detect-migrations
       if: steps.merge.outputs.conflict != 'true'
       env:
@@ -293,12 +292,26 @@ jobs:
       run: |
         NEW_MIGRATIONS=$(git diff --name-only "origin/$next_branch"..HEAD -- '*/migrations/*.py' \
           | grep -v '__init__.py' || true)
-        if [[ -n "$NEW_MIGRATIONS" ]]; then
-          echo "::warning::New Django migrations detected in merge-forward."
-          echo "$NEW_MIGRATIONS"
-          echo "new_migrations<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$NEW_MIGRATIONS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+        if [[ -z "$NEW_MIGRATIONS" ]]; then
+          exit 0
+        fi
+
+        # A collision is two migrations in the same app sharing a numeric prefix
+        # (e.g. two branches both added 0012_*.py). A resolved-conflict migration
+        # (e.g. 0013_merge_0012_conflicts.py) has its own number, so it's not one.
+        # Only count it if this merge actually introduced one of the two files —
+        # old, already-resolved collisions (left on disk after a past merge
+        # migration) must not block unrelated future merges.
+        ALL_FILES=$(echo "$NEW_MIGRATIONS" | xargs -n1 dirname | sort -u \
+          | xargs -I{} find {} -maxdepth 1 -name '*.py' ! -name '__init__.py' -printf '%p\n')
+        DUPED_KEYS=$(echo "$ALL_FILES" | sed -E 's#(.*/)([0-9]+)_.*#\1\2#' | sort | uniq -d)
+        NEW_KEYS=$(echo "$NEW_MIGRATIONS" | sed -E 's#(.*/)([0-9]+)_.*#\1\2#' | sort -u)
+        COLLISIONS=$(comm -12 <(echo "$DUPED_KEYS") <(echo "$NEW_KEYS"))
+
+        if [[ -n "$COLLISIONS" ]]; then
+          echo "::error::Migration number collision — same numeric prefix used twice in the same app. Aborting merge forward:"
+          echo "$ALL_FILES" | grep -F -f <(echo "$COLLISIONS")
+          exit 1
         fi
 
     - name: Push
@@ -351,9 +364,7 @@ jobs:
               && ':skip_forward: merged forward skipped due failed automated tests.'
               || needs.merge-forward.outputs.conflict == 'true'
                 && format(':warning: merge forward to `{0}` has conflicts — PR created for manual resolution', needs.version.outputs.next_branch)
-                || needs.merge-forward.outputs.new_migrations != ''
-                  && format(':check: merged forward into `{0}` — ⚠️ **new migrations detected, review manually:** ```{1}```', needs.version.outputs.next_branch, needs.merge-forward.outputs.new_migrations)
-                  || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
+                || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
           }}
         - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
             && format(':warning: failed to update changelog: {4} please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id, needs.resolve-actor.outputs.mention || '@*devs*')
