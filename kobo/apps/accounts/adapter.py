@@ -177,9 +177,13 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         # Handle SCIM provisioning race condition for first-time login
         if sociallogin.state.get('process') != AuthProcess.CONNECT:
-            if not sociallogin.is_existing and self.is_scim_enabled(request, sociallogin):
+            if not sociallogin.is_existing and self.is_scim_enabled(
+                request, sociallogin
+            ):
                 if getattr(sociallogin, 'provider', None) is None:
-                    sociallogin.provider = self.get_provider(request, sociallogin.account.provider)
+                    sociallogin.provider = self.get_provider(
+                        request, sociallogin.account.provider
+                    )
                 request.session['socialaccount_sociallogin'] = sociallogin.serialize()
                 request.session['scim_provisioning_start'] = timezone.now().timestamp()
                 raise ImmediateHttpResponse(

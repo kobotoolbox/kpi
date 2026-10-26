@@ -129,4 +129,3 @@ class SocialAccountProvisioningResponseSerializer(serializers.Serializer):
         allow_null=True,
         help_text=t('Destination URL to redirect to once logged in.'),
     )
-

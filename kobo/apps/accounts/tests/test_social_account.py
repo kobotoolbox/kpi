@@ -357,11 +357,15 @@ class ScimProvisioningTestCase(TestCase):
         self.provisioning_url = reverse('api_v2:social-account-provisioning')
         self.provisioning_html_url = reverse('socialaccount_provisioning')
 
-    def _build_login(self, provider='keycloak', uid='incoming-uid', email='user@example.com'):
+    def _build_login(
+        self, provider='keycloak', uid='incoming-uid', email='user@example.com'
+    ):
         account = SocialAccount(provider=provider, uid=uid)
         user = User(email=email, username='testuser')
         provider_instance = self.adapter.get_provider(None, provider=provider)
-        sociallogin = SocialLogin(user=user, account=account, provider=provider_instance)
+        sociallogin = SocialLogin(
+            user=user, account=account, provider=provider_instance
+        )
         sociallogin.state['process'] = AuthProcess.LOGIN
         return sociallogin
 
@@ -480,4 +484,3 @@ class ScimProvisioningTestCase(TestCase):
         # Session data was cleared
         self.assertNotIn('socialaccount_sociallogin', self.client.session)
         self.assertNotIn('scim_provisioning_start', self.client.session)
-

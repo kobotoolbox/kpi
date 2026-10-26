@@ -15,10 +15,7 @@ from rest_framework.views import APIView
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.versioning import APIV2Versioning
-from .constants import (
-    SCIM_PROVISIONING_POLL_INTERVAL,
-    SCIM_PROVISIONING_TIMEOUT,
-)
+from .constants import SCIM_PROVISIONING_POLL_INTERVAL, SCIM_PROVISIONING_TIMEOUT
 from .serializers import SocialAccountProvisioningResponseSerializer
 
 
