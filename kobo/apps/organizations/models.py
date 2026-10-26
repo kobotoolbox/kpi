@@ -32,7 +32,6 @@ from kpi.fields import KpiUidField
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 from kpi.utils.placeholders import replace_placeholders
-
 from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,

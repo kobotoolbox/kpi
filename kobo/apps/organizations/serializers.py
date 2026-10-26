@@ -41,7 +41,6 @@ from kpi.utils.schema_extensions.fields import (
     HyperlinkedIdentityFieldWithSchemaField,
     ReadOnlyFieldWithSchemaField,
 )
-
 from .constants import (
     INVALID_ROLE_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
