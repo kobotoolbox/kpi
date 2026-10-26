@@ -99,7 +99,10 @@ class AccountAdapter(DefaultAccountAdapter):
         its own version hardcodes the template prefix.
         """
         address = emailconfirmation.email_address
-        ctx = {'user': address.user}
+        ctx = {
+            'user': address.user,
+            'expire_hours': self.get_confirmation_expire_hours(),
+        }
         if allauth_account_settings.EMAIL_VERIFICATION_BY_CODE_ENABLED:
             ctx['code'] = emailconfirmation.key
         else:
@@ -129,6 +132,10 @@ class AccountAdapter(DefaultAccountAdapter):
             user_id=address.user_id, verified=True
         ).exists()
         return prefix if has_verified_address else f'{prefix}_resend'
+
+    def get_confirmation_expire_hours(self):
+        """In hours, so the default 1 day reads "24 hours" as designed"""
+        return allauth_account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS * 24
 
     def get_email_confirmation_url(self, request, emailconfirmation):
         url = super().get_email_confirmation_url(request, emailconfirmation)
