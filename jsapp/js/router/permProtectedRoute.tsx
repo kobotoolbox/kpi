@@ -12,6 +12,7 @@ import { userCan, userCanPartially } from '#/components/permissions/utils'
 import { decodeURLParamWithSlash } from '#/components/processing/routes.utils'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
+import RouteGuardSpinner from '#/router/RouteGuardSpinner'
 import AccessDenied from '#/router/accessDenied'
 import type { WithRouterProps } from '#/router/legacy'
 import profileStore from '#/stores/profile'
@@ -58,8 +59,8 @@ const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, err
   const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
   const goToLogin = useGoToLogin()
 
-  // TODO: DEV-3074 this reading can be a minute old (`staleTime` in `useAuthStatus`), so a session that just ended
-  // still reads as signed in and the refusal is shown where the login screen belongs.
+  // A 401 on the asset load has already invalidated this reading (see `#/auth/authChangeWatcher`), so a session that
+  // just ended turns into a redirect as soon as the re-read lands - the refusal below only flashes until then.
   const decision = getAuthGateDecision(
     isAuthRedesignEnabled
       ? { authStatus, isAuthStatusLoading: isLoading, isAuthStatusCheckFailed: isError, isLegacyLoggedIn: false }
@@ -86,7 +87,7 @@ const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, err
 
   // Navigation happens in an effect, so the spinner also covers the render that starts it.
   if (shouldGoToLogin || decision === 'wait') {
-    return <LoadingSpinner />
+    return <RouteGuardSpinner />
   }
 
   return <AccessDenied errorMessage={errorMessage} />
@@ -258,7 +259,7 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
 
   render() {
     if (!this.state.isLoadAssetFinished) {
-      return <LoadingSpinner />
+      return <RouteGuardSpinner />
     } else if (this.state.userHasRequiredPermissions) {
       const filteredProps = this.filterProps(this.props)
       return (

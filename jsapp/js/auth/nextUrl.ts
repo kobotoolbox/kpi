@@ -90,8 +90,11 @@ export function getUrlForNextRoute(routePath: string | null, appRootUrl = ROOT_U
   return routePath === null ? `${appRootUrl}/` : `${appRootUrl}/#${routePath}`
 }
 
-/** Just the bits of `window.location` leaving a page needs */
-type Navigable = Pick<Location, 'href' | 'assign' | 'reload'>
+/** Just the bits of `window` leaving a page needs */
+interface Navigable {
+  location: Pick<Location, 'href' | 'assign' | 'reload'>
+  history: Pick<History, 'pushState'>
+}
 
 /** The document an address names - everything in it but the fragment */
 const documentUrl = (url: URL) => `${url.origin}${url.pathname}${url.search}`
@@ -102,9 +105,9 @@ const documentUrl = (url: URL) => `${url.origin}${url.pathname}${url.search}`
  * The load is the whole point - see {@link getUrlForNextRoute} - and a destination differing only by its fragment is
  * one the browser moves the address for without loading anything, hence asking for the load outright.
  *
- * @param location for testing
+ * @param browser for testing
  */
-export function goToPage(url: string | null, location: Navigable = window.location): void {
+export function goToPage(url: string | null, { location, history }: Navigable = window): void {
   if (url === null) {
     location.reload()
     return
@@ -114,9 +117,12 @@ export function goToPage(url: string | null, location: Navigable = window.locati
   const there = new URL(url, here)
   const isMoveWithinPage = there.hash !== '' && documentUrl(there) === documentUrl(here)
 
-  location.assign(url)
-  // The address has moved already, so this loads the destination rather than where we came from
   if (isMoveWithinPage) {
+    // Not `assign`: its `hashchange` would make the router render the destination with stale data before the reload
+    history.pushState(null, '', url)
     location.reload()
+    return
   }
+
+  location.assign(url)
 }

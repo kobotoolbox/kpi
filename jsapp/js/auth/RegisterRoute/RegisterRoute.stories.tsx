@@ -4,12 +4,11 @@ import { getWorker } from 'msw-storybook-addon'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
-import type { SocialApp } from '#/api/models/socialApp'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { setLoginBackgroundMetaForStories } from '#/auth/AuthContainer/authContainer.mocks'
 // The same stand-in photo the container's own stories use, so the custom theme stays offline.
 import backgroundImageUrl from '#/auth/AuthContainer/salah-darwish-story-bg.webp'
-import { type Canvas, field, narrowViewportDecorator } from '#/auth/authStoryHelpers'
+import { type Canvas, field, findProviderButtons, narrowViewportDecorator } from '#/auth/authStoryHelpers'
 import {
   signupAuthenticatedMock,
   signupErrorsMock,
@@ -18,9 +17,11 @@ import {
   signupServerErrorMock,
 } from '#/endpoints/allauth.mocks'
 import {
+  environmentResponse,
   environmentServerErrorMock,
   makeAuthConfigurationMock,
   makeEnvironmentMock,
+  socialAppsMock,
 } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
@@ -32,14 +33,17 @@ import RegisterRoute from './RegisterRoute'
  * the route, as the story component.
  */
 
-const TERMS_OF_SERVICE_URL = 'https://kbtdev.org/terms'
-const PRIVACY_POLICY_URL = 'https://kbtdev.org/privacy'
+/**
+ * The KoboToolbox default: terms published as a sitewide message, which is what requires the agreement, and
+ * a URL for each document, which is what makes the checkbox label clickable.
+ */
+const LEGAL_AGREEMENT = {
+  terms_of_service__sitewidemessage__exists: true,
+  terms_of_service_url: 'https://kbtdev.org/terms',
+  privacy_policy_url: 'https://kbtdev.org/privacy',
+}
 
-/** Both legal documents configured, so the Terms of Service checkbox renders real links to wait on. */
-const environmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-})
+const environmentMock = makeEnvironmentMock(LEGAL_AGREEMENT)
 
 /** Both supporting fields filled in: a `login_supporting_image` upload and a `welcome_message`, as HTML. */
 const supportingEnvironmentMock = makeAuthConfigurationMock(
@@ -47,13 +51,15 @@ const supportingEnvironmentMock = makeAuthConfigurationMock(
     supporting_image_url: backgroundImageUrl,
     supporting_text: '<h2>Welcome to the Example Organization server</h2>\n<p>Accounts here are for staff.</p>',
   },
-  { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
+  LEGAL_AGREEMENT,
 )
 
-/** An instance that asks for every profile field it can and requires most of them */
+/**
+ * An instance that asks for every profile field it can and requires most of them, the newsletter opt in
+ * included, under a label of its own.
+ */
 const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
+  ...LEGAL_AGREEMENT,
   user_metadata_fields: [
     { name: 'name', required: true, label: 'Full name' },
     { name: 'country', required: true, label: 'Country' },
@@ -64,23 +70,20 @@ const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
     { name: 'gender', required: false, label: 'Gender' },
     { name: 'bio', required: true, label: 'Bio' },
     { name: 'city', required: true, label: 'City' },
-    {
-      name: 'newsletter_subscription',
-      required: false,
-      label: 'I want to receive occasional updates about KoboToolbox',
-    },
+    { name: 'newsletter_subscription', required: true, label: 'Send me the Example Organization digest' },
   ],
 })
 
-/** An organization that signs in through SSO and owns `kbtdev.org` addresses. */
-const managedSsoApp: SocialApp = {
-  provider: 'openid_connect',
-  name: 'Example Organization',
-  client_id: 'example-client-id',
-  provider_id: 'example-org',
-  managed: true,
-  domains: ['kbtdev.org'],
-}
+/** An instance that has switched the newsletter field off, so signup has nowhere to store the opt in. */
+const newsletterOffEnvironmentMock = makeEnvironmentMock({
+  ...LEGAL_AGREEMENT,
+  user_metadata_fields: environmentResponse.user_metadata_fields.filter(
+    (metadataField) => metadataField.name !== 'newsletter_subscription',
+  ),
+})
+
+/** Legal links plus SSO. `Example Organization` owns `kbtdev.org` addresses. */
+const ssoEnvironmentMock = makeEnvironmentMock({ ...LEGAL_AGREEMENT, social_apps: socialAppsMock })
 
 /**
  * Storybook replaces the handler array rather than merging it, so a story overriding the signup handler
@@ -116,7 +119,6 @@ export default meta
 type Story = StoryObj<typeof AuthContainer>
 
 const VALID_INPUT = {
-  name: 'Caroline Herschel',
   email: 'caroline.herschel@kbtdev.org',
   username: 'caroline_herschel',
   password: 'correct horse battery staple',
@@ -135,7 +137,6 @@ async function fillForm(canvas: Canvas, overrides: Partial<typeof VALID_INPUT> =
 
   await waitForEnvironment(canvas)
 
-  await userEvent.type(field(canvas, 'Full name'), values.name)
   await userEvent.type(field(canvas, 'Email'), values.email)
   await userEvent.type(field(canvas, 'Username'), values.username)
   await userEvent.type(field(canvas, 'Password'), values.password)
@@ -175,7 +176,7 @@ export const CustomTheme: Story = {
       handlers: storyHandlers({
         environment: makeAuthConfigurationMock(
           { theme: AuthThemeEnum.custom, background_image_url: backgroundImageUrl },
-          { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
+          LEGAL_AGREEMENT,
         ),
       }),
     },
@@ -195,13 +196,14 @@ export const ClientValidation: Story = {
     await submit(canvas)
 
     // The rules themselves are unit tested in `registerValidation.tests`
-    expect(await canvas.findAllByText('Required field')).toHaveLength(6)
+    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
   },
 }
 
 /**
  * The profile fields this instance requires through `USER_METADATA_FIELDS` are not asked for here: signup
- * stays short and they are collected after logging in.
+ * stays short and they are collected after logging in. The newsletter opt in is the exception, and it
+ * takes the instance's label and rule.
  */
 export const RequiredProfileFieldsOmitted: Story = {
   parameters: { msw: { handlers: storyHandlers({ environment: requiredProfileFieldsEnvironmentMock }) } },
@@ -210,57 +212,101 @@ export const RequiredProfileFieldsOmitted: Story = {
 
     await waitForEnvironment(canvas)
 
-    for (const label of ['Country', 'Sector', 'Organization type', 'Organization name', 'Gender', 'Bio', 'City']) {
+    for (const label of [
+      'Full name',
+      'Country',
+      'Sector',
+      'Organization type',
+      'Organization name',
+      'Gender',
+      'Bio',
+      'City',
+    ]) {
       expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
     }
+    expect(canvas.getByRole('checkbox', { name: 'Send me the Example Organization digest' })).toBeInTheDocument()
 
     await submit(canvas)
-    // The same six as `ClientValidation`: what the instance configures makes no difference to this form.
+    // One more than `ClientValidation`, for the newsletter.
     expect(await canvas.findAllByText('Required field')).toHaveLength(6)
   },
 }
 
-/** Only one document configured: the checkbox asks about that one, with no mention of the other. */
-export const PrivacyPolicyOnly: Story = {
-  parameters: {
-    msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ privacy_policy_url: PRIVACY_POLICY_URL }) }) },
-  },
-  play: async ({ canvasElement }) => {
-    // Two matches again, for the same reason: the footer's link and the checkbox's.
-    await waitFor(() => expect(within(canvasElement).getAllByRole('link', { name: 'Privacy Policy' })).toHaveLength(2))
-  },
-}
-
-/** No legal documents configured - nothing to agree - no checkbox */
-export const NoLegalDocuments: Story = {
-  parameters: { msw: { handlers: storyHandlers({ environment: makeEnvironmentMock() }) } },
+/** Newsletter field switched off by the administrator - no opt in to offer */
+export const NewsletterNotConfigured: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: newsletterOffEnvironmentMock }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // The logo comes from the same response, so the missing checkbox is a real absence rather than a
-    // request still in flight.
-    await canvas.findByRole('img', { name: 'KoboToolbox' })
+    await waitForEnvironment(canvas)
+
+    // The Terms of Service checkbox is the only one left.
+    expect(canvas.getAllByRole('checkbox')).toHaveLength(1)
+  },
+}
+
+/** No Privacy Policy URL, so there is no second document to name: the sentence is about the terms alone. */
+export const TermsOfServiceOnly: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, privacy_policy_url: '' }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitForEnvironment(canvas)
+    expect(canvas.getByRole('checkbox', { name: 'I agree with the Terms of Service' })).toBeInTheDocument()
+    expect(canvas.queryByRole('link', { name: 'Privacy Policy' })).not.toBeInTheDocument()
+  },
+}
+
+/**
+ * No sitewide message, so the server asks for no agreement and drops the field: no checkbox, whatever the
+ * document URLs say. They stay in the footer, where they are not an agreement.
+ */
+export const NoAgreementRequired: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, terms_of_service__sitewidemessage__exists: false }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The footer link comes from the same response, so the missing checkbox is a real absence rather than a
+    // request still in flight. `findBy` also fails on a second match, which a checkbox label would be.
+    await canvas.findByRole('link', { name: 'Terms of Service' })
+    expect(canvas.queryByRole('checkbox', { name: /I agree with the/ })).not.toBeInTheDocument()
     await submit(canvas)
 
-    // Five where `ClientValidation` gets six: the rule has to go away with the checkbox, or nobody could
+    // Four where `ClientValidation` gets five: the rule has to go away with the checkbox, or nobody could
     // ever submit this form.
-    expect(await canvas.findAllByText('Required field')).toHaveLength(5)
+    expect(await canvas.findAllByText('Required field')).toHaveLength(4)
+  },
+}
+
+/** SSO configured: secondary buttons between the heading and the form */
+export const SingleSignOnProviders: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: ssoEnvironmentMock }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const gitlabButton = await findProviderButtons(canvas)
+    expect(canvas.getByText('or')).toBeInTheDocument()
+    // The form stays primary on signup
+    expect(gitlabButton).toHaveAttribute('data-variant', 'light')
+    expect(canvas.getByRole('button', { name: 'Continue' })).toHaveAttribute('data-variant', 'filled')
   },
 }
 
 /** An address whose domain has to sign in through SSO instead. */
 export const ManagedSsoDomain: Story = {
-  parameters: {
-    msw: {
-      handlers: storyHandlers({
-        environment: makeEnvironmentMock({
-          terms_of_service_url: TERMS_OF_SERVICE_URL,
-          privacy_policy_url: PRIVACY_POLICY_URL,
-          social_apps: [managedSsoApp],
-        }),
-      }),
-    },
-  },
+  parameters: { msw: { handlers: storyHandlers({ environment: ssoEnvironmentMock }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await fillForm(canvas, { email: 'caroline.herschel@kbtdev.org' })
@@ -383,11 +429,7 @@ export const RegistrationClosed: Story = {
   parameters: {
     msw: {
       handlers: storyHandlers({
-        environment: makeEnvironmentMock({
-          terms_of_service_url: TERMS_OF_SERVICE_URL,
-          privacy_policy_url: PRIVACY_POLICY_URL,
-          registration_open: false,
-        }),
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, registration_open: false }),
       }),
     },
   },

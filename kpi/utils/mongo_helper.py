@@ -1,15 +1,23 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional, Union
+from typing import Any, Optional, TypeAlias, Union
 
 from django.conf import settings
+from pymongo.cursor import Cursor
+from pymongo.errors import ExecutionTimeout
 
 from kobo.celery import celery_app
-from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
+from kpi.constants import (
+    LIMITED_COUNT_MANY,
+    LIMITED_COUNT_UNKNOWN,
+    NESTED_MONGO_RESERVED_ATTRIBUTES,
+)
 from kpi.utils.strings import base64_encodestring
 
 PermissionFilter = dict[str, Any]
+# An exact number of submissions, or 'many' / 'unknown' (see `_get_limited_count`)
+LimitedCount: TypeAlias = int | str
 
 
 def drop_mock_only(func):
@@ -384,13 +392,15 @@ class MongoHelper:
     @classmethod
     def _get_cursor_and_count(
         cls,
-        mongo_userform_id,
+        mongo_userform_id: str,
         fields: Optional[list, dict] = None,
         query: Optional[dict] = None,
         submission_ids: Optional[list] = None,
-        permission_filters=None,
-        skip_count=False,
-    ):
+        permission_filters: Optional[
+            Union[PermissionFilter, list[PermissionFilter]]
+        ] = None,
+        skip_count: bool = False,
+    ) -> tuple[Cursor, Optional[LimitedCount]]:
         if query is None:
             query = {}
 
@@ -443,10 +453,30 @@ class MongoHelper:
         )
         count = None
         if not skip_count:
-            count = settings.MONGO_DB.instances.count_documents(
-                query, maxTimeMS=cls.get_max_time_ms()
-            )
+            count = cls._get_limited_count(query)
         return cursor, count
+
+    @classmethod
+    def _get_limited_count(cls, query: dict) -> LimitedCount:
+        """
+        Count the submissions matching `query` the same way as
+        `LimitedCountPagination`: an exact number up to
+        `settings.API_LIMITED_COUNT_MAX`, 'many' past it and 'unknown' when
+        the count times out
+        """
+        max_rows = settings.API_LIMITED_COUNT_MAX
+        try:
+            # `limit` adds a `$limit` stage after `$match`, so the count stops
+            # after `max_rows + 1` documents
+            count = settings.MONGO_DB.instances.count_documents(
+                query,
+                limit=max_rows + 1,
+                maxTimeMS=settings.API_LIMITED_COUNT_TIMEOUT or cls.get_max_time_ms(),
+            )
+        except ExecutionTimeout:
+            return LIMITED_COUNT_UNKNOWN
+
+        return LIMITED_COUNT_MANY if count > max_rows else count
 
     @classmethod
     def _is_attribute_encoded(cls, key: str) -> bool:

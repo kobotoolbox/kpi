@@ -2,9 +2,6 @@ import re
 from collections import defaultdict
 
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
-from django.conf import settings
-from django.core.cache import cache
-from redis.exceptions import LockError
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -14,23 +11,10 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_xform_media_question_xpaths,
 )
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.support_tools.utils.logger import DEBUG, VERBOSE
+from kobo.apps.support_tools.utils.restorers.base import CHUNK_SIZE, ProjectRestorer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.files import normalize_nfc
-from kpi.utils.log import logging
-from kpi.utils.mailer import EmailMessage, Mailer
-
-# What the runtime of this walk was measured with on production
-CHUNK_SIZE = 100
-# Long enough for a run interrupted by a time limit to be picked up the same
-# day, short enough that a cursor nobody ever came back to stops silently
-# trimming the front of a later run
-CURSOR_CACHE_TTL = 60 * 60 * 24 * 7
-# Refreshed after every batch, so a run of any length keeps the project, the
-# command included, which no time limit stops. Past the hard time limit, so that
-# a run killed outright stops holding the project once the worker that took the
-# lock can no longer be alive
-LOCK_CACHE_TTL = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
-LOG_EVERY = 100
 
 ATTACHMENT_FIELDS = (
     'pk',
@@ -45,78 +29,7 @@ COLLECT_BACKGROUND_AUDIO_RE = re.compile(r'^\d{10,}\.(m4a|amr)$')
 ENKETO_BACKGROUND_AUDIO_RE = re.compile(r'^background-audio-\d{8}_\d{6}\.webm$')
 
 
-def get_lock_cache_key(asset_uid: str) -> str:
-    """
-    Return the key a run holds while it works on a project.
-
-    Built from the project alone, so that whoever wants to know whether a run
-    is still alive can ask without resolving the form first.
-    """
-
-    return f'restore_soft_deleted_attachments_lock__{asset_uid}'
-
-
-def get_project_xform(asset_uid: str) -> XForm:
-    """
-    Return the form a project is deployed as, or explain why it has none.
-    """
-
-    # Imported here because `kpi.models` reaches back into this app
-    from kpi.models import Asset
-
-    try:
-        asset = Asset.objects.defer('content').get(uid=asset_uid)
-    except Asset.DoesNotExist:
-        raise ValueError(f'Asset `{asset_uid}` does not exist')
-
-    if not asset.has_deployment:
-        raise ValueError(f'Asset `{asset_uid}` is not deployed')
-
-    return asset.deployment.xform
-
-
-def log_collector(echo: callable = None) -> tuple[list, callable]:
-    """
-    Return the list a run writes its log into and the callable that appends to
-    it, optionally echoing each line somewhere else as it goes.
-    """
-
-    lines = []
-
-    def log(message: str):
-        lines.append(message)
-        if echo:
-            echo(message)
-
-    return lines, log
-
-
-def send_restore_log(email_to: list, asset_uid: str, lines: list):
-    """
-    Mail a run's log, and never let a failed send become the run's own failure:
-    this is called from a `finally`, where raising would hide whatever the run
-    was already reporting.
-    """
-
-    try:
-        Mailer.send(
-            EmailMessage(
-                to=email_to,
-                subject=(f'Attachment restore for project {asset_uid}'),
-                plain_text_content_or_template='\n'.join(lines) + '\n',
-            )
-        )
-    except Exception as e:  # noqa
-        logging.error(
-            f'Could not email the restore log of {asset_uid}: {type(e).__name__}: {e}'
-        )
-
-
-class ProjectAlreadyBeingRestoredError(Exception):
-    pass
-
-
-class AttachmentRestorer:
+class AttachmentRestorer(ProjectRestorer):
     """
     Bring back the attachments of one project that `get_soft_deleted_attachments()`
     retired by mistake, i.e. every soft-deleted file its submission still
@@ -127,12 +40,14 @@ class AttachmentRestorer:
     that does not match the XML, so the question asked is not "was this deletion
     a mistake at the time" but "should this file be visible today".
 
-    Progress is remembered per project and per mode, so a run cut short by a
-    soft time limit resumes where it stopped rather than walking the project
-    again. A run killed outright, by an OOM or a pod eviction, leaves the cursor
-    at the last committed batch; nothing restarts it on its own, but relaunching
-    picks up from there.
+    Two runs overlapping would not credit the same bytes twice, since
+    `update_delete_status()` only counts the rows that it changed itself. They would
+    still walk and rewrite the same submissions, hence the lock
+    `ProjectRestorer` holds.
     """
+
+    cache_key_prefix = 'restore_soft_deleted_attachments'
+    item_label = 'attachment'
 
     def __init__(
         self,
@@ -141,73 +56,15 @@ class AttachmentRestorer:
         resume: bool = True,
         log: callable = None,
     ):
-        self.xform = xform
-        self.dry_run = dry_run
-        self.resume = resume
-        self.log = log or (lambda message: None)
+        super().__init__(xform, dry_run=dry_run, resume=resume, log=log)
 
-        self.scanned = 0
         self.restored = 0
         self.skipped_without_basename = 0
-        self.completed = False
-        self._lock = None
+        self._media_question_xpaths = []
         # Names already picked per submission during this run. A real run finds
         # them live in the database anyway, a dry run writes nothing and would
         # otherwise report the same name once per row
         self._picked_basenames = defaultdict(set)
-
-    @property
-    def cursor_cache_key(self) -> str:
-        """
-        Key the cursor by project *and* by mode: a dry run walks the same rows
-        without restoring any of them, so letting it share a cursor with a real
-        run would silently cut the front off whichever came second.
-        """
-
-        mode = 'dry' if self.dry_run else 'write'
-
-        return f'restore_soft_deleted_attachments__{self.xform.kpi_asset_uid}__{mode}'
-
-    @property
-    def lock_cache_key(self) -> str:
-        """
-        One lock per project, whatever the mode. A dry run writes nothing, but
-        letting it race a real one buys nothing either.
-        """
-
-        return get_lock_cache_key(self.xform.kpi_asset_uid)
-
-    def run(self):
-        """
-        Walk every soft-deleted attachment of the project and restore the ones
-        their submission still references, alone on that project.
-
-        Two runs overlapping would not credit the same bytes twice anymore,
-        since `update_delete_status()` only counts the rows it changed itself.
-        They would still walk and rewrite the same submissions, and share the
-        cursor, so only one run per project is allowed.
-        """
-
-        if not self._acquire_lock():
-            raise ProjectAlreadyBeingRestoredError(
-                f'Another run already has {self.xform.kpi_asset_uid}. A lock'
-                f' left behind by a run that died clears itself within'
-                f' {LOCK_CACHE_TTL // 60} minutes.'
-            )
-
-        try:
-            self._run()
-        finally:
-            self._release_lock()
-
-    def _acquire_lock(self) -> bool:
-        """
-        Claim the project, or report that somebody else holds it.
-        """
-
-        self._lock = cache.lock(self.lock_cache_key, timeout=LOCK_CACHE_TTL)
-
-        return self._lock.acquire(blocking=False)
 
     def _fetch_batch(self, cursor: int) -> list:
         """
@@ -268,25 +125,25 @@ class AttachmentRestorer:
             or bool(ENKETO_BACKGROUND_AUDIO_RE.match(basename))
         )
 
-    def _load_cursor(self) -> int:
-        """
-        Return where a previous run stopped, and say so, since resuming means
-        the front of the project is not looked at this time.
-        """
+    def _log_progress(self, cursor: int):
+        self.log(
+            f'{self.scanned} attachments scanned, {self.restored} restored,'
+            f' now below #{cursor}'
+        )
 
-        if not self.resume:
-            cache.delete(self.cursor_cache_key)
-            return 0
+    def _log_summary(self):
+        verb = 'to restore' if self.dry_run else 'restored'
+        self.log(
+            f'Done. {self.scanned} soft-deleted attachment(s) scanned,'
+            f' {self.restored} {verb}.'
+        )
 
-        cursor = cache.get(self.cursor_cache_key)
-
-        if cursor:
+        if self.skipped_without_basename:
             self.log(
-                f'Resuming below attachment #{cursor}, where an earlier run stopped.'
-                f' Pass `--no-resume`, or `"resume": false`, to start over'
+                f'{self.skipped_without_basename} attachment(s) were left alone'
+                f' for holding no `media_file_basename`, which leaves nothing'
+                f' trustworthy to match the submission against'
             )
-
-        return cursor or 0
 
     def _pick_restorable(
         self, attachments: list, referenced_basenames: set, basenames_in_use: set
@@ -325,24 +182,22 @@ class AttachmentRestorer:
 
         return list(picked.values())
 
-    def _release_lock(self):
-        """
-        Give the project back, and only while it is still ours.
+    def _prepare(self) -> bool:
+        self._media_question_xpaths = get_xform_media_question_xpaths(self.xform)
 
-        Redis compares the token and deletes the key in one step, so a lock
-        taken over by another run is never turned loose by this one.
-        """
+        if not self._media_question_xpaths:
+            # Nothing to compare the attachments against, and that is also the
+            # right answer for a form that dropped its only media question in a
+            # later version
+            self.log('The form holds no media question, nothing to restore')
+            return False
 
-        try:
-            self._lock.release()
-        except LockError:
-            # Already expired or taken over, and nothing of ours left to free
-            pass
+        return True
 
-    def _restore_batch(self, attachments: list, media_question_xpaths: list) -> int:
+    def _restore_batch(self, attachments: list):
         """
-        Return how many attachments of the batch were restored, or would have
-        been on a dry run.
+        Restore the attachments of the batch their submission still references,
+        or only count them on a dry run.
         """
 
         from kobo.apps.openrosa.libs.utils.logger_tools import (
@@ -356,6 +211,8 @@ class AttachmentRestorer:
         basenames_in_use = self._get_basenames_in_use(attachments_per_instance.keys())
         to_restore, instance_ids = [], []
 
+        self.log(f'  {len(attachments_per_instance)} submission(s)', VERBOSE)
+
         instances = Instance.objects.only('pk', 'xml', 'xform_id').filter(
             pk__in=attachments_per_instance.keys()
         )
@@ -366,7 +223,7 @@ class AttachmentRestorer:
 
             try:
                 submission_basenames = get_submission_media_basenames(
-                    instance, media_question_xpaths
+                    instance, self._media_question_xpaths
                 )
             except (SoftTimeLimitExceeded, TimeLimitExceeded):
                 raise
@@ -375,6 +232,18 @@ class AttachmentRestorer:
                 # does not resolve, is never worth failing the whole run over
                 self.log(f'Instance #{instance.pk} skipped, {type(e).__name__}: {e}')
                 continue
+
+            soft_deleted = sorted(
+                attachment.media_file_basename or ''
+                for attachment in attachments_per_instance[instance.pk]
+            )
+            self.log(
+                f'Instance #{instance.pk}:'
+                f' referenced={sorted(submission_basenames or [])}'
+                f' soft_deleted={soft_deleted}'
+                f' in_use={sorted(basenames_in_use[instance.pk])}',
+                DEBUG,
+            )
 
             if not submission_basenames:
                 continue
@@ -397,73 +266,11 @@ class AttachmentRestorer:
                 to_restore.extend(picked)
                 instance_ids.append(instance.pk)
 
-        if not to_restore or self.dry_run:
-            return len(to_restore)
+        if to_restore and not self.dry_run:
+            self._write_batch(to_restore, instance_ids)
 
-        self._write_batch(to_restore, instance_ids)
-
-        return len(to_restore)
-
-    def _run(self):
-        self.log(f'Project {self.xform.kpi_asset_uid}: "{self.xform.title}"')
-
-        if self.dry_run:
-            self.log('Dry run: no change will be written')
-
-        media_question_xpaths = get_xform_media_question_xpaths(self.xform)
-
-        if not media_question_xpaths:
-            # Nothing to compare the attachments against, and that is also the
-            # right answer for a form that dropped its only media question in a
-            # later version
-            self.log('The form holds no media question, nothing to restore')
-            self.completed = True
-            cache.delete(self.cursor_cache_key)
-            return
-
-        cursor = self._load_cursor()
-        batches = 0
-
-        while True:
-            batch = self._fetch_batch(cursor)
-
-            if not batch:
-                break
-
-            self.scanned += len(batch)
-            self.restored += self._restore_batch(batch, media_question_xpaths)
-
-            # Only ever moved once a batch is committed, so an interruption
-            # costs the batch in progress and nothing before it
-            cursor = batch[-1].pk
-            cache.set(self.cursor_cache_key, cursor, timeout=CURSOR_CACHE_TTL)
-
-            # Raises if another run took the project over, which is only
-            # possible once the lock expired, and then the two must not overlap
-            self._lock.reacquire()
-
-            batches += 1
-            if not batches % LOG_EVERY:
-                self.log(
-                    f'{self.scanned} attachments scanned, {self.restored} restored,'
-                    f' now below #{cursor}'
-                )
-
-        self.completed = True
-        cache.delete(self.cursor_cache_key)
-
-        verb = 'to restore' if self.dry_run else 'restored'
-        self.log(
-            f'Done. {self.scanned} soft-deleted attachment(s) scanned,'
-            f' {self.restored} {verb}.'
-        )
-
-        if self.skipped_without_basename:
-            self.log(
-                f'{self.skipped_without_basename} attachment(s) were left alone'
-                f' for holding no `media_file_basename`, which leaves nothing'
-                f' trustworthy to match the submission against'
-            )
+        # Only once written, so a batch that failed is not counted as restored
+        self.restored += len(to_restore)
 
     def _write_batch(self, attachments: list, instance_ids: list):
         """
