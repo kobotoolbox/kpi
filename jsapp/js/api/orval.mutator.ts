@@ -61,6 +61,10 @@ export const fetchWithAuth = async <T>(url: string, config: FetchWithAuthConfig)
       throw bodyReadFailure
     }
 
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    recordApiResponse({ url, status: response.status, body: error.parsedResponse })
+
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
     recordApiResponse({ url, status: response.status, body: error.parsedResponse })
 
     bridgeOrvalFailureToLegacyActions(url, config, {

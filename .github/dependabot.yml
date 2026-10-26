@@ -72,3 +72,22 @@ updates:
 
       # https://linear.app/kobotoolbox/issue/DEV-1790/dependabot-automerged-dependency-that-fails-tests
       - dependency-name: "storybook"
+
+  - package-ecosystem: "uv"
+    # Our locks are compiled by `uv pip compile` (see pip-compile.sh); the pip
+    # ecosystem would regenerate them with pip-tools instead.
+    directory: "/dependencies/pip"
+    schedule:
+      # dependabot doesn't support cron
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "Back end"
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    open-pull-requests-limit: 5

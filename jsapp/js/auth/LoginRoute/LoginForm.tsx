@@ -7,7 +7,7 @@ import type { LoginBody } from '#/api/models/loginBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthLoginPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
+import SsoProviderButtonList from '#/auth/ProviderRoute/SsoProviderButtonList'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { getRequiredFieldMessage, validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -69,7 +69,7 @@ export interface LoginFormProps {
   onOutcome: (outcome: LoginOutcome) => void
 }
 
-/** Credentials, and the single sign-on providers next to them. Password recovery etc. live elsewhere */
+/** The single sign-on providers, then the credentials. Password recovery etc. live elsewhere */
 export default function LoginForm({
   credential,
   socialApps,
@@ -78,6 +78,8 @@ export default function LoginForm({
   onOutcome,
 }: LoginFormProps) {
   const credentialParam = getLoginCredentialParam(credential)
+  // SSO buttons take the primary look when there are any
+  const hasProviders = Boolean(socialApps?.length)
 
   const form = useForm<LoginFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
@@ -156,8 +158,10 @@ export default function LoginForm({
 
   return (
     <Stack gap='xl'>
+      <SsoProviderButtonList socialApps={socialApps} variant='filled' />
+
       <Title order={1} size='h3'>
-        {t('Log into your account')}
+        {t('Log in or create an account')}
       </Title>
 
       {formErrors.length > 0 && (
@@ -198,13 +202,17 @@ export default function LoginForm({
             </div>
           </Stack>
 
-          <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || login.isPending}>
+          <ButtonNew
+            variant={hasProviders ? 'light' : 'filled'}
+            type='submit'
+            size='lg'
+            fullWidth
+            loading={isConfigurationPending || login.isPending}
+          >
             {t('Log in')}
           </ButtonNew>
         </Stack>
       </form>
-
-      <ProviderLoginButtons socialApps={socialApps} />
 
       {!isRegistrationClosed && (
         <Text size='sm' ta='center'>

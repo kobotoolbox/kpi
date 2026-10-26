@@ -5,9 +5,9 @@ import { useAuthStatus } from '#/auth/useAuthStatus'
 import { useGoToLogin } from '#/auth/useGoToLogin'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import profileStore from '#/stores/profile'
-import LoadingSpinner from '../components/common/loadingSpinner'
 import { AuthCheckFailedCard } from './AuthCheckFailed'
 import { RequireOrg } from './RequireOrg'
+import RouteGuardSpinner from './RouteGuardSpinner'
 
 interface Props {
   children: React.ReactNode
@@ -45,7 +45,7 @@ export default function RequireAuth({ children }: Props) {
   }
 
   if (decision !== 'allow') {
-    return <LoadingSpinner />
+    return <RouteGuardSpinner />
   }
 
   return (
