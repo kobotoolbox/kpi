@@ -1888,7 +1888,10 @@ ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.
-# changing the email address) demands it again
+# changing the email address) demands it again. When changing the default, also
+# change `REAUTHENTICATION_TIMEOUT_SECONDS` in
+# `jsapp/js/account/security/mfa/mfa.api.ts`
+# TODO: DEV-3183 expose it to the frontend, so the copy can go
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )

@@ -235,9 +235,12 @@ export const sessionAnonymousMock = () =>
 
 /**
  * Somebody is signed in, which is how a sign-on *login* that worked looks from the callback screen. Pass
- * `hasUsablePassword: false` for an SSO-only account.
+ * `hasUsablePassword: false` for an SSO-only account, and `secondsSinceLogin` for a session that has a login time.
  */
-export const sessionAuthenticatedMock = ({ hasUsablePassword = true }: { hasUsablePassword?: boolean } = {}) =>
+export const sessionAuthenticatedMock = ({
+  hasUsablePassword = true,
+  secondsSinceLogin,
+}: { hasUsablePassword?: boolean; secondsSinceLogin?: number } = {}) =>
   http.get(SESSION_URL, () =>
     HttpResponse.json({
       status: 200,
@@ -249,7 +252,10 @@ export const sessionAuthenticatedMock = ({ hasUsablePassword = true }: { hasUsab
           email: 'sallyride@nasa.com',
           has_usable_password: hasUsablePassword,
         },
-        methods: [],
+        methods:
+          secondsSinceLogin === undefined
+            ? []
+            : [{ method: 'password', at: Date.now() / 1000 - secondsSinceLogin, username: 'sallyride' }],
       },
       meta: { is_authenticated: true },
     }),

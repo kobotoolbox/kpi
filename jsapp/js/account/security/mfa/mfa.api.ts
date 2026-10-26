@@ -15,7 +15,6 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import { type AllauthResponse, splitAllauthErrors } from '#/auth/allauthErrors'
 import { getAuthStatusQueryKey } from '#/auth/authChangeWatcher'
-import { getAuthStatus } from '#/auth/authStatus'
 import { notify } from '#/utils'
 
 // allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. That 401 makes
@@ -78,17 +77,60 @@ export function useMfaStatus() {
   })
 }
 
-/** SSO-only accounts have no password, and allauth doesn't ask them for one */
-export function useIsPasswordNeeded() {
-  const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
+/**
+ * Copy of the `ACCOUNT_REAUTHENTICATION_TIMEOUT` default from `kobo/settings/base.py` - change both together.
+ *
+ * TODO: DEV-3184 read it from the backend once DEV-3183 exposes it
+ */
+const REAUTHENTICATION_TIMEOUT_SECONDS = 300
+/** Asks a bit early, so the window doesn't close while the user scans and types */
+const REAUTHENTICATION_MARGIN_SECONDS = 60
+
+interface PasswordCheckReading {
+  hasUsablePassword: boolean
+  /** Last (re)authentication, in server seconds */
+  authenticatedAt: number | null
+  /** Server clock when this reading came in, so a wrong browser clock doesn't matter */
+  serverNow: number | null
+}
+
+/** Only the part of the session body this reads */
+interface SessionBody {
+  data?: { user?: { has_usable_password?: boolean }; methods?: Array<{ at?: number }> }
+}
+
+/** Whether allauth will want the password before 2FA goes on. A function, so submit can ask again. */
+export function usePasswordCheck() {
+  const { data, dataUpdatedAt } = useAllauthBrowserV1AuthSessionGet<PasswordCheckReading>({
     query: {
       queryKey: getAuthStatusQueryKey(),
-      select: (response) => getAuthStatus(response).user?.has_usable_password ?? true,
+      select: (response) => {
+        const body = response.data as SessionBody | undefined
+        const serverDate = Date.parse(response.headers?.get('date') ?? '')
+        return {
+          // SSO-only accounts have no password, and allauth doesn't ask them for one
+          hasUsablePassword: body?.data?.user?.has_usable_password ?? true,
+          authenticatedAt: body?.data?.methods?.at(-1)?.at ?? null,
+          serverNow: Number.isNaN(serverDate) ? null : serverDate / 1000,
+        }
+      },
       throwOnError: false,
     },
   })
-  // Ask until we know otherwise
-  return data ?? true
+
+  return () => {
+    // Ask until we know otherwise
+    if (!data || data.authenticatedAt === null) {
+      return data?.hasUsablePassword ?? true
+    }
+    if (!data.hasUsablePassword) {
+      return false
+    }
+    // Server time of the reading, plus what the browser has counted since
+    const readingNow = data.serverNow ?? dataUpdatedAt / 1000
+    const elapsed = readingNow - data.authenticatedAt + (Date.now() - dataUpdatedAt) / 1000
+    return elapsed > REAUTHENTICATION_TIMEOUT_SECONDS - REAUTHENTICATION_MARGIN_SECONDS
+  }
 }
 
 /** Every write changes the status, so they all reread {@link useMfaStatus} */
@@ -129,7 +171,7 @@ export const useMfaActivate = () =>
   })
 
 interface MfaConfirmVariables extends MfaCode {
-  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
+  /** Leave out for accounts {@link usePasswordCheck} lets through */
   password?: string
 }
 

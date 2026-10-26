@@ -40,6 +40,10 @@ $mfa-paragraph-spacing: 18px;
   &.mfa-modal__p--align-right {
     text-align: right;
   }
+
+  &.mfa-modal__p--align-center {
+    text-align: center;
+  }
 }
 
 .mfa-modal__body,

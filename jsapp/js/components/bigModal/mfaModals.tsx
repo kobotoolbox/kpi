@@ -6,15 +6,14 @@ import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
   MfaRejection,
-  useIsPasswordNeeded,
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
   useMfaRecoveryCodes,
   useMfaRegenerateCodes,
+  usePasswordCheck,
 } from '#/account/security/mfa/mfa.api'
 import bem, { makeBem } from '#/bem'
-import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import envStore from '#/envStore'
@@ -89,7 +88,8 @@ function MFAModals(props: MFAModalsProps) {
   /** 2FA is on, but the codes may still need reading */
   const [isActivated, setIsActivated] = useState(false)
 
-  const isPasswordNeeded = useIsPasswordNeeded()
+  const checkPasswordNeeded = usePasswordCheck()
+  const isPasswordNeeded = checkPasswordNeeded()
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
@@ -147,8 +147,13 @@ function MFAModals(props: MFAModalsProps) {
       recoveryCodes.mutate(undefined, { onSuccess: showCodes })
       return
     }
+    // The window may have closed since the last render
+    if (checkPasswordNeeded() && !password) {
+      setPasswordError(t('Please confirm your password to continue'))
+      return
+    }
     confirmCode.mutate(
-      { code: inputString, password: isPasswordNeeded ? password : undefined },
+      { code: inputString, password: password || undefined },
       {
         onSuccess: () => {
           setIsActivated(true)
@@ -271,17 +276,22 @@ function MFAModals(props: MFAModalsProps) {
       return null
     }
     return (
-      <bem.MFAModal__p>
-        <PasswordInput
-          label={t('Password')}
-          description={t('Confirm your password to turn on two-factor authentication')}
-          size='lg'
-          error={passwordError}
-          value={password}
-          onChange={(evt) => setPassword(evt.currentTarget.value)}
-          autoComplete='current-password'
-        />
-      </bem.MFAModal__p>
+      <>
+        <bem.MFAModal__p>{t('Confirm your password to turn on two-factor authentication.')}</bem.MFAModal__p>
+        <bem.MFAModal__p>
+          <TextInput
+            className='mfa-modals-textbox'
+            type='password'
+            size='lg'
+            aria-label={t('Password')}
+            placeholder={t('Password')}
+            error={passwordError}
+            value={password}
+            onChange={(evt) => setPassword(evt.currentTarget.value)}
+            autoComplete='current-password'
+          />
+        </bem.MFAModal__p>
+      </>
     )
   }
 
@@ -310,16 +320,7 @@ function MFAModals(props: MFAModalsProps) {
             <QRCode value={qrCode || ''} size={170} />
           </bem.MFAModal__qrcodeWrapper>
 
-          <bem.MFAModal__p>
-            {t(
-              'After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.',
-            ).replace('##number##', String(envStore.data.mfa_code_length))}
-          </bem.MFAModal__p>
-
-          {renderCodeInput()}
-          {renderPasswordInput()}
-
-          <bem.MFAModal__p m='align-right'>
+          <bem.MFAModal__p m='align-center'>
             {t('No QR code?')}
             &nbsp;
             <bem.MFAModal__helpLink
@@ -330,6 +331,15 @@ function MFAModals(props: MFAModalsProps) {
               {t('Enter key manually')}
             </bem.MFAModal__helpLink>
           </bem.MFAModal__p>
+
+          <bem.MFAModal__p>
+            {t(
+              'After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.',
+            ).replace('##number##', String(envStore.data.mfa_code_length))}
+          </bem.MFAModal__p>
+
+          {renderCodeInput()}
+          {renderPasswordInput()}
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>

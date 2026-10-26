@@ -132,6 +132,29 @@ export const ConfirmWithoutPassword: Story = {
   },
 }
 
+/** allauth still trusts a login from a minute ago, so no password is asked */
+export const ConfirmSkipsPasswordAfterRecentLogin: Story = {
+  args: { modalType: 'qr', qrCode: TOTP_URL },
+  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceLogin: 60 }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await submitCode(canvas, VALID_CODE)
+
+    await expectBackupCodes(canvas)
+    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
+  },
+}
+
+/** Close to the end of the window, the password is asked already */
+export const ConfirmAsksPasswordNearTimeout: Story = {
+  args: { modalType: 'qr', qrCode: TOTP_URL },
+  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceLogin: 270 }) } },
+  play: async ({ canvasElement }) => {
+    expect(await within(canvasElement).findByLabelText('Password')).toBeInTheDocument()
+  },
+}
+
 export const EnterKeyManually: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
   play: async ({ canvasElement }) => {

@@ -135,8 +135,8 @@ export const reauthenticateMocks = () => [
 ]
 
 /** Every handler over one state - what most stories need. Put overrides first, msw takes the first match. */
-export const mfaMocks = (state: MfaMockState, { hasUsablePassword = true } = {}) => [
-  sessionAuthenticatedMock({ hasUsablePassword }),
+export const mfaMocks = (state: MfaMockState, session: Parameters<typeof sessionAuthenticatedMock>[0] = {}) => [
+  sessionAuthenticatedMock(session),
   mfaAuthenticatorsMock(state),
   mfaTotpStatusMock(state),
   mfaActivateMock(state),
