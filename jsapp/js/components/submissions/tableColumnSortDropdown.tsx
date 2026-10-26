@@ -186,10 +186,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
             </>
           )}
 
-          {/*
-            Open to everyone. `tableStore` decides whether the choice is saved to
-            the project (needs `change_asset`) or kept for the session only.
-          */}
+          {/* Open to everyone, as `tableStore` keeps the choice per user. */}
           <Menu.Divider />
 
           <Menu.Item
