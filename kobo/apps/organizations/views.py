@@ -66,7 +66,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethodsWrapper
+from ..accounts.mfa.utils import mfa_is_active_expression
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -577,12 +577,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         organization_id = self.kwargs['uid_organization']
 
-        # Subquery to check if the user has an active MFA method
-        mfa_subquery = MfaMethodsWrapper.objects.filter(
-            user=OuterRef('user_id'),
-            is_active=True
-        ).values('pk')
-
         # Subquery to check if the user has an associated SSO account
         sso_subquery = SocialAccount.objects.filter(user=OuterRef('user_id')).values(
             'pk'
@@ -609,7 +603,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             .select_related('user__extra_details')
             .annotate(
                 role=role_annotation,
-                has_mfa_enabled=Exists(mfa_subquery),
+                has_mfa_enabled=mfa_is_active_expression('user_id'),
                 has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
                 ordering_date=F('created'),
