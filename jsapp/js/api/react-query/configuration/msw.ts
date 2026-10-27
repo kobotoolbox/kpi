@@ -71,7 +71,6 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
     logo_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     supporting_image_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     supporting_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    allow_login_with_username: faker.datatype.boolean(),
   },
   project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 20 } }),
