@@ -565,13 +565,19 @@ class CustomerPortalView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        latest_subscription = (
+        plan_subscriptions = (
             Subscription.objects.filter(
                 customer=customer,
+                items__price__product__metadata__product_type='plan',
             )
-            .order_by('-start_date', '-created')
             .prefetch_related('items__price__product')
+        )
+
+        latest_subscription = (
+            plan_subscriptions.filter(status__in=ACTIVE_STRIPE_STATUSES)
+            .order_by('-start_date', '-created')
             .first()
+            or plan_subscriptions.order_by('-start_date', '-created').first()
         )
 
         billing_cycle_info = None
@@ -590,11 +596,6 @@ class CustomerPortalView(APIView):
                 'interval': interval,
                 'status': latest_subscription.status,
             }
-
-            if first_item and first_item.price and first_item.price.product:
-                metadata = first_item.price.product.metadata or {}
-                if metadata.get('product_type') == 'addon':
-                    return_url = generate_return_url(metadata)
 
         stripe_session = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
