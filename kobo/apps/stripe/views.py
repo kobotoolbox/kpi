@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as t
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
 from djstripe import enums
@@ -536,13 +537,17 @@ class CustomerPortalView(APIView):
             organization = Organization.objects.get(id=organization_id)
         except Organization.DoesNotExist:
             return Response(
-                {'detail': f"Couldn't find organization with id {organization_id}"},
+                {
+                    'detail': t(
+                        "Couldn't find organization with id {}"
+                    ).format(organization_id)
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         if not organization.is_owner(request.user):
             return Response(
-                {'detail': 'You do not have permission to perform this action.'},
+                {'detail': t('You do not have permission to perform this action.')},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -552,7 +557,9 @@ class CustomerPortalView(APIView):
         ).first()
 
         if not customer:
-            detail = f"Couldn't find customer with organization id {organization_id}"
+            detail = t("Couldn't find customer with organization id {}").format(
+                organization_id
+            )
             return Response(
                 {'detail': detail},
                 status=status.HTTP_404_NOT_FOUND,
