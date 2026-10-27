@@ -158,6 +158,10 @@ module.exports = do ->
       # and never become an XLSForm column of their own
       return unless name_detail?.deduplicate
 
+      # A row saved without a name has it only in `$autoname`, which is what its
+      # references use
+      oldName = name_detail.get('value') or row.get('$autoname')?.get('value')
+
       # `finalize()` derives the name from the label and throws without one. Such
       # a row can't be exported anyway, so skip it instead of breaking the drop.
       row.finalize()  if row.get('label')
@@ -166,9 +170,11 @@ module.exports = do ->
       # at 30 characters and rewrites characters that are legal in a name but not
       # in a label (a dot, say), mangling names that were already fine.
       if @_is_row_name_taken(name_detail)
-        oldName = name_detail.get('value')
         name_detail.set 'value', name_detail.deduplicate(@)
-        renames[oldName] = name_detail.get('value')
+
+      # Either step can change the name, so compare with the original
+      newName = name_detail.get('value')
+      renames[oldName] = newName  if oldName and newName isnt oldName
       return
 
     # Updates `${name}` references to renamed questions (`${gender}` ->

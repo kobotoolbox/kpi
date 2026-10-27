@@ -588,6 +588,22 @@ do ->
       expect(nextAge.calculation).toBe('${age_001} + 1')
       expect(savedRow(survey, 'summary_001').label).toBe('Next: ${next_age_001}')
 
+    it 'renames references to questions named from their label', () ->
+      # References use `$autoname`, but the label gives the name its case
+      unnamedQuestion = -> $model.Survey.loadDict({
+        survey: [
+          {
+            type: 'integer', $autoname: 'code', label: 'Code',
+            constraint: '${code} > 0'
+          }
+        ]
+      })
+      survey = new $model.Survey()
+      survey.insertSurvey(unnamedQuestion(), 0)
+      survey.insertSurvey(unnamedQuestion(), 1)
+      expect(savedRow(survey, 'Code').constraint).toBe('${Code} > 0')
+      expect(savedRow(survey, 'Code_001').constraint).toBe('${Code_001} > 0')
+
     it 'renames references in a single library question', () ->
       libraryQuestion = -> $model.Survey.loadDict({
         survey: [
