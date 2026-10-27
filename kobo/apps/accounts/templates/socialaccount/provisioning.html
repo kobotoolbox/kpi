@@ -3,7 +3,11 @@
 {% load i18n %}
 
 {% block content %}
-<div class="registration registration--provisioning">
+<div class="registration registration--provisioning"
+     data-poll-url="{% url 'api_v2:social-account-provisioning' %}"
+     data-poll-interval="{{ poll_interval }}"
+     data-poll-timeout="{{ timeout }}"
+     data-expired="{% if expired %}true{% else %}false{% endif %}">
   <div class="registration--logo">
     <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>
     <h1>{% trans "Provisioning your account…" %}</h1>
@@ -21,7 +25,7 @@
       {% trans "Sorry, provisioning data were not received for your account. Please try again later." %}
     </p>
     <div style="display: flex; gap: 1rem; justify-content: center;">
-      <button type="button" class="kobo-button kobo-button--blue" onclick="window.location.reload();">
+      <button type="button" id="provisioning-retry-button" class="kobo-button kobo-button--blue">
         {% trans "Check again" %}
       </button>
       <a href="{% url 'account_login' %}" class="kobo-button kobo-button--secondary">
@@ -30,31 +34,8 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-{% if not expired %}
-<script>
-  (function() {
-    var pollIntervalMs = {{ poll_interval }} * 1000;
-    var timer = setInterval(function() {
-      fetch("{% url 'api_v2:social-account-provisioning' %}")
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(data) {
-        if (data.ready) {
-          clearInterval(timer);
-          window.location.href = data.redirect_url || '/';
-        } else if (data.expired) {
-          clearInterval(timer);
-          document.getElementById('provisioning-active').style.display = 'none';
-          document.getElementById('provisioning-timeout').style.display = 'block';
-        }
-      })
-      .catch(function(err) {
-        console.error('Provisioning poll error:', err);
-      });
-    }, pollIntervalMs);
-  })();
-</script>
-{% endif %}
+{% block extra_javascript %}
+<script src="{% static 'js/socialaccount_provisioning.js' %}"></script>
 {% endblock %}
