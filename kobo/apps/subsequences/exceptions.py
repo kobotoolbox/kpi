@@ -61,8 +61,8 @@ class ImageTooLarge(Exception):
     """
     Raised when an image cannot be resized to below the maximum size
     """
-
     pass
+
 
 class InvalidAction(Exception):
     """

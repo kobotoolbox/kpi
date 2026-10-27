@@ -41,7 +41,8 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
-    ManualQualNotFound, ImageTooLarge,
+    ImageTooLarge,
+    ManualQualNotFound,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
@@ -927,10 +928,10 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
         attachment = self.submission['_attachments'][0]
         with patch(
             'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_SIZE',
-            1, # set a max size to a value too small for any image file
+            1,  # set a max size to a value too small for any image file
         ):
             with self.assertRaises(ImageTooLarge):
-                image_bytes = self.action.format_image_for_llm(attachment)
+                self.action.format_image_for_llm(attachment)
 
 
 @override_settings(CACHES={
