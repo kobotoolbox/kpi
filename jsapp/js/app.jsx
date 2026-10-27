@@ -19,6 +19,7 @@ import AuthChangeRedirector from '#/auth/AuthChangeRedirector'
 import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
 import ProfileDetailsErrorScreen from '#/auth/ProfileDetailsBlocker/ProfileDetailsErrorScreen'
 import { useProfileDetailsBlockerState } from '#/auth/ProfileDetailsBlocker/useProfileDetailsBlockerState'
+import { useAuthStatus } from '#/auth/useAuthStatus'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
@@ -26,11 +27,13 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import MainHeader from '#/components/header/mainHeader.component'
 import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
 import envStore from '#/envStore'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import FormViewSideTabs from '#/project/formViewSideTabs'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
+import { RouteGuardPendingContext } from '#/router/RouteGuardSpinner'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
 import {
   getRouteAssetUid,
@@ -38,6 +41,7 @@ import {
   isTOSAgreementRouteBlockerActive,
 } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
+import profileStore from '#/stores/profile'
 import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { cssVariablesResolverKobo, themeKobo } from './theme'
@@ -53,6 +57,16 @@ import './api/mutation-defaults'
 function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle, assetUid }) {
   const [modal, setModal] = useState(() => pageState.state.modal ?? false)
   const [isDrawerOpen, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false)
+  const [isGuardPending, setIsGuardPending] = useState(false)
+  const { data: authStatus } = useAuthStatus()
+  const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
+
+  // Until the session confirms a sign-in, which also covers it still loading.
+  // TODO: DEV-1868 drop the `profileStore` fallback with the flag - with the flag off the session query never runs.
+  const isSignedIn = isAuthRedesignEnabled ? authStatus?.isAuthenticated === true : profileStore.isLoggedIn
+
+  // Anonymous users get no header until the route guard lets them in (see `RouteGuardSpinner`)
+  const isMainShown = shouldDisplayMain && !(isGuardPending && !isSignedIn)
 
   // Subscribe to modal state changes.
   useEffect(() => {
@@ -86,12 +100,12 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
 
   return (
     <>
-      {shouldDisplayMain && <div className='header-stretch-bg' />}
+      {isMainShown && <div className='header-stretch-bg' />}
 
       <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
         {modal && <BigModal params={modal} />}
 
-        {shouldDisplayMain && (
+        {isMainShown && (
           <>
             <MainHeader assetUid={assetUid} onToggleMobileMenu={toggleDrawer} />
             <Drawer />
@@ -99,14 +113,16 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
         )}
 
         <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
-          {shouldDisplayMain && (
+          {isMainShown && (
             <>
               {isFormSingle && <ProjectTopTabs />}
               <FormViewSideTabs show={isFormSingle} />
             </>
           )}
 
-          <Outlet />
+          <RouteGuardPendingContext.Provider value={setIsGuardPending}>
+            <Outlet />
+          </RouteGuardPendingContext.Provider>
         </bem.PageWrapper__content>
       </bem.PageWrapper>
     </>

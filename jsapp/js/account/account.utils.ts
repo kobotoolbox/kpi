@@ -1,7 +1,7 @@
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { choicesFromTuples, recordKeys } from '#/utils'
 import type { AccountFieldsConfig, AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
-import { MMO_MANAGED_FIELD_NAMES, USER_FIELD_NAMES } from './account.constants'
+import { MMO_MANAGED_FIELD_NAMES } from './account.constants'
 
 /**
  * A blank for every field Frontend knows about. `Required` on purpose: this is the list the other helpers here derive
@@ -24,6 +24,11 @@ export function getInitialAccountFieldsValues(): Required<AccountFieldsValues> {
     linkedin: '',
     instagram: '',
   }
+}
+
+/** Whether a name (for example from a server response) is a known field */
+export function isUserFieldName(name: string): name is UserFieldName {
+  return Object.hasOwn(getInitialAccountFieldsValues(), name)
 }
 
 /**
@@ -76,8 +81,8 @@ export function getAccountFieldsConfig(environment: EnvironmentResponse): Accoun
   // it: that is what the server enforces, so a later optional entry must not make the field look skippable.
   const byName = new Map<UserFieldName, UserMetadataField>()
   for (const field of environment.user_metadata_fields) {
-    if (field.name in USER_FIELD_NAMES) {
-      const name = field.name as UserFieldName
+    if (isUserFieldName(field.name)) {
+      const name = field.name
       byName.set(name, {
         name,
         required: Boolean(field.required) || Boolean(byName.get(name)?.required),
@@ -115,5 +120,5 @@ export function hasNoOrganizationAffiliation(
   values: Pick<AccountFieldsValues, 'organization_type'>,
   configuredFieldNames: readonly UserFieldName[],
 ): boolean {
-  return configuredFieldNames.includes(USER_FIELD_NAMES.organization_type) && values.organization_type === 'none'
+  return configuredFieldNames.includes('organization_type') && values.organization_type === 'none'
 }

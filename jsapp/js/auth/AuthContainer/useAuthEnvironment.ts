@@ -12,11 +12,15 @@ export function useAuthEnvironment() {
     select: (response: environmentRetrieveResponse) => {
       return {
         authConfiguration: response.data.auth_configuration,
+        /** Whether a signup has to agree to the terms */
+        termsOfServiceRequired: response.data.terms_of_service__sitewidemessage__exists,
         termsOfServiceUrl: response.data.terms_of_service_url,
         privacyPolicyUrl: response.data.privacy_policy_url,
         /** Same constance setting allauth's `AccountAdapter.is_open_for_signup()` reads. */
         registrationOpen: response.data.registration_open,
         socialApps: response.data.social_apps,
+        /** The `USER_METADATA_FIELDS` constance setting: which profile fields this server asks for, and how. */
+        userMetadataFields: response.data.user_metadata_fields,
         /** The `SUPPORT_EMAIL` constance setting, so private servers point people at their own team. */
         supportEmail: response.data.support_email,
         /**
@@ -24,6 +28,11 @@ export function useAuthEnvironment() {
          * rather than from allauth's own configuration, which never mentions the length.
          */
         mfaCodeLength: response.data.mfa_code_length,
+        /**
+         * The `MFA_LOCALIZED_HELP_TEXT` constance setting in the user's language, as HTML rendered from markdown,
+         * with `SUPPORT_EMAIL` already filled in.
+         */
+        mfaHelpText: response.data.mfa_localized_help_text,
       }
     },
   })

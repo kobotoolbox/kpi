@@ -1,11 +1,15 @@
 import './mfaModals.scss'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-import { observer } from 'mobx-react'
+import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
-import type { MfaActivatedResponse, MfaBackupCodesResponse } from '#/actions/mfaActions'
-import mfaActions from '#/actions/mfaActions'
+import {
+  useMfaActivate,
+  useMfaConfirmCode,
+  useMfaDeactivate,
+  useMfaRegenerateCodes,
+} from '#/account/security/mfa/mfa.api'
 import bem, { makeBem } from '#/bem'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
@@ -32,182 +36,163 @@ bem.MFAModal__footerRight = makeBem(bem.MFAModal, 'footer-right')
 
 type ModalSteps = 'backups' | 'disclaimer' | 'help' | 'manual' | 'qr' | 'token'
 
+/** Which job these steps are doing, set by whoever opened the modal. */
+export type MfaModalType = 'deactivate' | 'qr' | 'reconfigure' | 'regenerate'
+
 interface MFAModalsProps {
   onModalClose: Function
   qrCode?: string
-  modalType: 'deactivate' | 'qr' | 'reconfigure' | 'regenerate'
+  modalType: MfaModalType
 }
 
-interface MFAModalsState {
-  currentStep: ModalSteps
-  qrCode: string | null
-  /** Currently input code, used for confirmCode */
-  inputString: string
-  backupCodes: string[] | null
-  downloadClicked: boolean
-  errorText: string | undefined
+function getInitialModalStep(modalType: MfaModalType): ModalSteps {
+  switch (modalType) {
+    case 'qr':
+      return 'qr'
+    case 'regenerate':
+    case 'reconfigure':
+      return 'disclaimer'
+    case 'deactivate':
+      return 'token'
+  }
 }
 
-const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAModalsState> {
-  constructor(props: MFAModalsProps) {
-    super(props)
-    this.state = {
-      qrCode: this.props.qrCode || null,
-      currentStep: this.getInitalModalStep(),
-      inputString: '',
-      backupCodes: null,
-      downloadClicked: false,
-      errorText: undefined,
+/**
+ * Pulls the secret out of the `otpauth://` URI, for typing it in by hand. Runs during render, so an unreadable URI
+ * leaves a message rather than blanking the modal.
+ */
+function getSecretKey(totpUrl: string | null): string {
+  let secret: string | null = null
+  try {
+    secret = totpUrl ? new URL(totpUrl).searchParams.get('secret') : null
+  } catch {
+    secret = null
+  }
+  return secret ?? t('Could not generate secret key')
+}
+
+/** `envStore` supplies the code length and help text, hence the `observer` export. */
+function MFAModals(props: MFAModalsProps) {
+  const [currentStep, setCurrentStep] = useState<ModalSteps>(() => getInitialModalStep(props.modalType))
+  const [qrCode, setQrCode] = useState<string | null>(props.qrCode || null)
+  /** Currently input code, used for every call that asks for one */
+  const [inputString, setInputString] = useState('')
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null)
+  const [isDownloadClicked, setIsDownloadClicked] = useState(false)
+  const [errorText, setErrorText] = useState<string | undefined>(undefined)
+
+  const activate = useMfaActivate()
+  const confirmCode = useMfaConfirmCode()
+  const deactivate = useMfaDeactivate()
+  const regenerateCodes = useMfaRegenerateCodes()
+
+  const isBusy = activate.isPending || confirmCode.isPending || deactivate.isPending || regenerateCodes.isPending
+
+  // HACK FIX: the close icon belongs to the modal frame, and the codes are shown once - dismissing would lose them.
+  useEffect(() => {
+    if (currentStep !== 'backups') {
+      return
     }
+    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement | undefined
+    if (closeIcon) {
+      closeIcon.hidden = true
+    }
+  }, [currentStep])
+
+  function closeModal() {
+    props.onModalClose()
   }
 
-  private unlisteners: Function[] = []
+  function showCodes(codes: string[]) {
+    setBackupCodes(codes)
+    setCurrentStep('backups')
+  }
 
-  componentDidMount() {
-    this.unlisteners.push(
-      mfaActions.activate.completed.listen(this.onMfaActivateCompleted.bind(this)),
-      mfaActions.confirmCode.completed.listen(this.onMfaCodesReceived.bind(this)),
-      mfaActions.regenerate.completed.listen(this.onMfaCodesReceived.bind(this)),
-      mfaActions.deactivate.completed.listen(this.onMfaDeactivated.bind(this)),
+  /** A rejected code shows next to the field; anything else is left to the usual error toast. */
+  function onCodeRejected() {
+    setErrorText(t('Incorrect token'))
+  }
 
-      mfaActions.confirmCode.failed.listen(this.onCallFailed.bind(this)),
-      mfaActions.regenerate.failed.listen(this.onCallFailed.bind(this)),
-      mfaActions.deactivate.failed.listen(this.onCallFailed.bind(this)),
+  function mfaConfirm() {
+    setErrorText(undefined)
+    confirmCode.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCodeRejected })
+  }
+
+  // TODO: DEV-1971 this and the regenerate below stop asking for a code.
+  function mfaDeactivate() {
+    setErrorText(undefined)
+    deactivate.mutate(
+      { code: inputString },
+      {
+        onSuccess: () => {
+          // Reconfiguring is a deactivation plus a fresh setup, so the modal walks on to the new QR code itself.
+          if (props.modalType === 'reconfigure') {
+            activate.mutate(undefined, {
+              onSuccess: ({ qrCodeUrl }) => {
+                setQrCode(qrCodeUrl)
+                setCurrentStep('qr')
+              },
+            })
+          } else {
+            closeModal()
+          }
+        },
+        onError: onCodeRejected,
+      },
     )
   }
 
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
+  function mfaRegenerate() {
+    setErrorText(undefined)
+    regenerateCodes.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCodeRejected })
   }
 
-  onMfaActivateCompleted(response: MfaActivatedResponse) {
-    this.setState({
-      qrCode: response.details,
-      currentStep: 'qr',
-      errorText: undefined,
-    })
-  }
+  function onSubmit() {
+    setInputString('')
 
-  mfaConfirm() {
-    mfaActions.confirmCode(this.state.inputString)
-  }
-
-  onMfaCodesReceived(response: MfaBackupCodesResponse) {
-    this.setState({
-      backupCodes: response.backup_codes,
-      currentStep: 'backups',
-      errorText: undefined,
-    })
-  }
-
-  mfaDeactivate() {
-    mfaActions.deactivate(this.state.inputString)
-  }
-
-  onMfaDeactivated() {
-    this.setState({ errorText: undefined })
-    if (this.props.modalType === 'reconfigure') {
-      mfaActions.activate(true)
-    } else {
-      this.closeModal()
-    }
-  }
-
-  mfaRegenerate() {
-    mfaActions.regenerate(this.state.inputString)
-  }
-
-  closeModal() {
-    this.props.onModalClose()
-  }
-
-  // Only used for failed tokens
-  onCallFailed() {
-    this.setState({ errorText: t('Incorrect token') })
-  }
-
-  getSecretKey(): string {
-    // We expect backend to not change the way the secret key is returned
-    const keyFromBackend = this.props.qrCode || this.state.qrCode
-
-    if (keyFromBackend) {
-      return keyFromBackend.split('=')[1].split('&')[0]
-    } else {
-      return t('Could not generate secret key')
-    }
-  }
-
-  getInitalModalStep(): ModalSteps {
-    switch (this.props.modalType) {
-      case 'qr':
-        return 'qr'
+    switch (props.modalType) {
       case 'regenerate':
-      case 'reconfigure':
-        return 'disclaimer'
-      case 'deactivate':
-        return 'token'
-    }
-  }
-
-  onSubmit() {
-    this.setState({ inputString: '' })
-
-    switch (this.props.modalType) {
-      case 'regenerate':
-        this.mfaRegenerate()
+        mfaRegenerate()
         break
       case 'reconfigure':
-        this.mfaDeactivate()
-        break
       case 'deactivate':
-        this.mfaDeactivate()
+        mfaDeactivate()
         break
     }
   }
 
-  onInputChange(inputString: string) {
-    this.setState({ inputString: inputString })
-  }
-
-  changeStep(evt: React.ChangeEvent<HTMLInputElement>, newStep: ModalSteps) {
+  function changeStep(evt: React.ChangeEvent<HTMLInputElement>, newStep: ModalSteps) {
     evt.preventDefault()
-    this.setState({ currentStep: newStep })
+    setCurrentStep(newStep)
   }
 
-  isTokenValid() {
-    return this.state.inputString !== null && this.state.inputString.length >= 1
+  function isTokenValid() {
+    return inputString.length >= 1
   }
 
-  downloadCodes() {
-    if (this.state.backupCodes) {
-      const USERNAME = profileStore.currentAccount.username
-      // gets date in yyyymmdd
-      const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '')
-
-      const formatedCodes = this.state.backupCodes.map((t) => t + '\n')
-      const codesLink = document.createElement('a')
-      const codesFile = new Blob(formatedCodes)
-
-      codesLink.href = URL.createObjectURL(codesFile)
-      codesLink.download = 'backups_' + USERNAME + '_' + DATE + '.txt'
-
-      document.body.appendChild(codesLink)
-      codesLink.click()
-
-      this.setState({ downloadClicked: true })
+  function downloadCodes() {
+    if (!backupCodes) {
+      return
     }
+
+    const USERNAME = profileStore.currentAccount.username
+    // gets date in yyyymmdd
+    const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '')
+
+    const formatedCodes = backupCodes.map((code) => code + '\n')
+    const codesLink = document.createElement('a')
+    const codesFile = new Blob(formatedCodes)
+
+    codesLink.href = URL.createObjectURL(codesFile)
+    codesLink.download = 'backups_' + USERNAME + '_' + DATE + '.txt'
+
+    document.body.appendChild(codesLink)
+    codesLink.click()
+
+    setIsDownloadClicked(true)
   }
 
-  // HACK FIX: since the header is seperate from the modal we do this
-  // roundabout way of disabling the close icon
-  disableCloseIcon() {
-    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement
-    closeIcon.hidden = true
-  }
-
-  renderIntroText() {
+  function renderIntroText() {
     return (
       <bem.MFAModal__p>
         {t(
@@ -218,11 +203,29 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     )
   }
 
-  renderQRCodeStep() {
+  /** The field is the same on all three steps that ask for a code. */
+  function renderCodeInput() {
+    return (
+      <bem.MFAModal__p>
+        {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
+        <input type='password' hidden />
+        <TextInput
+          className='mfa-modals-textbox'
+          size='lg'
+          error={errorText}
+          value={inputString}
+          onChange={(evt) => setInputString(evt.currentTarget.value)}
+          autoComplete='off'
+        />
+      </bem.MFAModal__p>
+    )
+  }
+
+  function renderQRCodeStep() {
     return (
       <bem.MFAModal m='step-qr'>
         <bem.MFAModal__description>
-          {this.renderIntroText()}
+          {renderIntroText()}
           <bem.MFAModal__p>
             <strong>
               {t('Scan QR code and enter the ##number##-digit token from the application').replace(
@@ -235,7 +238,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
 
         <bem.MFAModal__body>
           <bem.MFAModal__qrcodeWrapper>
-            <QRCode value={this.state.qrCode || ''} size={170} />
+            <QRCode value={qrCode || ''} size={170} />
           </bem.MFAModal__qrcodeWrapper>
 
           <bem.MFAModal__p>
@@ -244,25 +247,14 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
             ).replace('##number##', String(envStore.data.mfa_code_length))}
           </bem.MFAModal__p>
 
-          <bem.MFAModal__p>
-            {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
-            <input type='password' hidden />
-            <TextInput
-              className='mfa-modals-textbox'
-              size='lg'
-              error={this.state.errorText}
-              value={this.state.inputString}
-              onChange={(evt) => this.onInputChange(evt.currentTarget.value)}
-              autoComplete='off'
-            />
-          </bem.MFAModal__p>
+          {renderCodeInput()}
 
           <bem.MFAModal__p m='align-right'>
             {t('No QR code?')}
             &nbsp;
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'manual')
+                changeStep(evt, 'manual')
               }}
             >
               {t('Enter key manually')}
@@ -277,8 +269,9 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               size='l'
               isFullWidth
               label={t('Next')}
-              onClick={this.mfaConfirm.bind(this)}
-              isDisabled={!this.isTokenValid()}
+              onClick={mfaConfirm}
+              isDisabled={!isTokenValid()}
+              isPending={isBusy}
             />
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
@@ -286,9 +279,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     )
   }
 
-  renderBackupStep() {
-    this.disableCloseIcon()
-
+  function renderBackupStep() {
     return (
       <bem.MFAModal m='step-backup'>
         <bem.MFAModal__description>
@@ -301,11 +292,11 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
-          {this.state.backupCodes && (
+          {backupCodes && (
             <bem.MFAModal__codesWrapper>
               <bem.MFAModal__codes>
                 <bem.MFAModal__list>
-                  {this.state.backupCodes.map((backupCode, index) => (
+                  {backupCodes.map((backupCode, index) => (
                     <li key={index}>
                       <strong>{backupCode}</strong>
                     </li>
@@ -318,13 +309,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
 
         <bem.MFAModal__footer>
           <bem.MFAModal__footerLeft>
-            <Button
-              type='secondary'
-              size='l'
-              isFullWidth
-              label={t('Download codes')}
-              onClick={this.downloadCodes.bind(this)}
-            />
+            <Button type='secondary' size='l' isFullWidth label={t('Download codes')} onClick={downloadCodes} />
           </bem.MFAModal__footerLeft>
 
           <bem.MFAModal__footerRight>
@@ -333,8 +318,8 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               size='l'
               isFullWidth
               label={t('I saved my codes')}
-              onClick={this.closeModal.bind(this)}
-              isDisabled={!this.state.downloadClicked}
+              onClick={closeModal}
+              isDisabled={!isDownloadClicked}
             />
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
@@ -342,11 +327,11 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     )
   }
 
-  renderManualStep() {
+  function renderManualStep() {
     return (
       <bem.MFAModal m='step-manual'>
         <bem.MFAModal__description>
-          <bem.MFAModal__p>{this.renderIntroText()}</bem.MFAModal__p>
+          <bem.MFAModal__p>{renderIntroText()}</bem.MFAModal__p>
 
           <bem.MFAModal__p>
             <strong>
@@ -360,7 +345,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
 
         <bem.MFAModal__body>
           <bem.MFAModal__codesWrapper>
-            <bem.MFAModal__codes>{this.getSecretKey()}</bem.MFAModal__codes>
+            <bem.MFAModal__codes>{getSecretKey(qrCode)}</bem.MFAModal__codes>
           </bem.MFAModal__codesWrapper>
 
           <bem.MFAModal__p>
@@ -369,23 +354,12 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
             ).replace('##number##', String(envStore.data.mfa_code_length))}
           </bem.MFAModal__p>
 
-          <bem.MFAModal__p>
-            {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
-            <input type='password' hidden />
-            <TextInput
-              className='mfa-modals-textbox'
-              size='lg'
-              error={this.state.errorText}
-              value={this.state.inputString}
-              onChange={(evt) => this.onInputChange(evt.currentTarget.value)}
-              autoComplete='off'
-            />
-          </bem.MFAModal__p>
+          {renderCodeInput()}
 
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'qr')
+                changeStep(evt, 'qr')
               }}
             >
               {t('Take me back to QR code')}
@@ -400,8 +374,9 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               size='l'
               isFullWidth
               label={t('Next')}
-              onClick={this.mfaConfirm.bind(this)}
-              isDisabled={!this.isTokenValid()}
+              onClick={mfaConfirm}
+              isDisabled={!isTokenValid()}
+              isPending={isBusy}
             />
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
@@ -409,41 +384,30 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     )
   }
 
-  renderTokenStep() {
+  function renderTokenStep() {
     return (
       <bem.MFAModal m='step-token'>
         <bem.MFAModal__body>
           <bem.MFAModal__p>
             <strong>
               {/*This is safe as this step only shows if not on qr step*/}
-              {this.props.modalType === 'regenerate' &&
+              {props.modalType === 'regenerate' &&
                 t(
                   'Please enter your ##number##-digit authenticator token or one of your recovery codes to regenerate your backup codes.',
                 ).replace('##number##', String(envStore.data.mfa_code_length))}
-              {this.props.modalType !== 'regenerate' &&
+              {props.modalType !== 'regenerate' &&
                 t(
                   'Please enter your ##number##-digit authenticator token or one of your recovery codes to deactivate two-factor authentication.',
                 ).replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
 
-          <bem.MFAModal__p>
-            {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
-            <input type='password' hidden />
-            <TextInput
-              className='mfa-modals-textbox'
-              size='lg'
-              error={this.state.errorText}
-              value={this.state.inputString}
-              onChange={(evt) => this.onInputChange(evt.currentTarget.value)}
-              autoComplete='off'
-            />
-          </bem.MFAModal__p>
+          {renderCodeInput()}
 
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'help')
+                changeStep(evt, 'help')
               }}
             >
               {t('Problems with your token?')}
@@ -458,8 +422,9 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               size='l'
               isFullWidth
               label={t('Next')}
-              onClick={this.onSubmit.bind(this)}
-              isDisabled={!this.isTokenValid()}
+              onClick={onSubmit}
+              isDisabled={!isTokenValid()}
+              isPending={isBusy}
             />
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
@@ -467,11 +432,11 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     )
   }
 
-  renderDisclaimerStep() {
+  function renderDisclaimerStep() {
     return (
       <bem.MFAModal
         m={{
-          regenerate: this.props.modalType === 'regenerate',
+          regenerate: props.modalType === 'regenerate',
           disclaimer: true,
         }}
       >
@@ -479,17 +444,17 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
           <bem.MFAModal__p>
             <strong>
               {/*This is safe as this step only shows if on reconfigure or regenerate*/}
-              {this.props.modalType === 'regenerate' &&
+              {props.modalType === 'regenerate' &&
                 t('Please note that generating new recovery codes will invalidate any previously generated codes.')}
 
-              {this.props.modalType !== 'regenerate' &&
+              {props.modalType !== 'regenerate' &&
                 t(
                   'Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will first be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.',
                 )}
             </strong>
           </bem.MFAModal__p>
 
-          {this.props.modalType === 'reconfigure' && (
+          {props.modalType === 'reconfigure' && (
             <bem.MFAModal__p>
               {t(
                 "Once your current 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process, 2FA will remain disabled for your account. " +
@@ -507,7 +472,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               isFullWidth
               label={t('Next')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'token')
+                changeStep(evt, 'token')
               }}
             />
           </bem.MFAModal__footerRight>
@@ -516,7 +481,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     )
   }
 
-  renderHelpStep() {
+  function renderHelpStep() {
     return (
       <bem.MFAModal m='step-help'>
         <bem.MFAModal__body>
@@ -539,42 +504,40 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               isFullWidth
               label={t('Back')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'token')
+                changeStep(evt, 'token')
               }}
             />
           </bem.MFAModal__footerLeft>
 
           <bem.MFAModal__footerRight>
-            <Button type='primary' size='l' isFullWidth label={t('OK')} onClick={this.closeModal.bind(this)} />
+            <Button type='primary' size='l' isFullWidth label={t('OK')} onClick={closeModal} />
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
     )
   }
 
-  render() {
-    // qrCode is mandatory if modalType is qr
-    if (!this.props.qrCode && this.props.modalType === 'qr') {
-      throw new Error('Modal is expecting a qr code but did not recieve any')
-    }
+  // qrCode is mandatory if modalType is qr
+  if (!props.qrCode && props.modalType === 'qr') {
+    throw new Error('Modal is expecting a qr code but did not recieve any')
+  }
 
-    switch (this.state.currentStep) {
-      case 'qr':
-        return this.renderQRCodeStep()
-      case 'backups':
-        return this.renderBackupStep()
-      case 'manual':
-        return this.renderManualStep()
-      case 'token':
-        return this.renderTokenStep()
-      case 'disclaimer':
-        return this.renderDisclaimerStep()
-      case 'help':
-        return this.renderHelpStep()
-      default:
-        return null
-    }
+  switch (currentStep) {
+    case 'qr':
+      return renderQRCodeStep()
+    case 'backups':
+      return renderBackupStep()
+    case 'manual':
+      return renderManualStep()
+    case 'token':
+      return renderTokenStep()
+    case 'disclaimer':
+      return renderDisclaimerStep()
+    case 'help':
+      return renderHelpStep()
+    default:
+      return null
   }
 }
 
-export default (observer as any)(MFAModals)
+export default observer(MFAModals)

@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
-
+import { Stack, Text, Title } from '@mantine/core'
+import DocumentTitle from 'react-document-title'
 import UpdatePasswordForm from '#/account/security/password/updatePasswordForm.component'
-import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
-import BasicLayout from './basicLayout.component'
-import styles from './invalidatedPassword.module.scss'
+import AuthCard from '#/auth/AuthContainer/AuthCard'
+import AuthPageFrame from '#/auth/AuthContainer/AuthPageFrame'
+import { useLogoutAndReload } from '#/auth/useLogout'
+import ButtonNew from '#/components/common/ButtonNew'
+import Alert from '#/components/common/alert'
 
 /**
  * This is a route blocker component to be used for accounts marked by admin
@@ -12,39 +13,39 @@ import styles from './invalidatedPassword.module.scss'
  * route - to block users from using the app befor taking action.
  */
 export default function InvalidatedPassword() {
-  const [isFormVisible, setIsFormVisible] = useState(false)
-
-  function onSuccess() {
-    window.location.reload()
-  }
+  const logout = useLogoutAndReload()
 
   return (
-    <BasicLayout>
-      <div className={styles.root}>
-        <header className={styles.header}>
-          <Icon name='warning' size='l' color='mid-red' />
-          <h1>{t('Temporary Access Restriction: Password Update Required')}</h1>
-        </header>
+    <DocumentTitle title={`${t('Update password')} | KoboToolbox`}>
+      <AuthPageFrame>
+        <AuthCard>
+          <Stack gap='xl'>
+            <Stack gap='xs'>
+              <Title order={1} size='h3'>
+                {t('Temporary Access Restriction: Password Update Required')}
+              </Title>
+              <Text>
+                {t(
+                  'You must update your password before proceeding. Please do so promptly to ensure the security of your data.',
+                )}
+              </Text>
+            </Stack>
 
-        <p className={styles.message}>
-          {t(
-            'You must update your password before proceeding. Please do so promptly to ensure the security of your data.',
-          )}
-        </p>
+            {logout.error && (
+              <Alert type='error' iconName='alert'>
+                <Text inherit>{logout.error}</Text>
+              </Alert>
+            )}
 
-        <footer className={styles.footer}>
-          {!isFormVisible && (
-            <Button
-              size='l'
-              label={t('Update password')}
-              type='primary'
-              onClick={() => setIsFormVisible(!isFormVisible)}
-            />
-          )}
+            <UpdatePasswordForm onSuccess={() => window.location.reload()} />
 
-          {isFormVisible && <UpdatePasswordForm onSuccess={onSuccess} />}
-        </footer>
-      </div>
-    </BasicLayout>
+            {/* The frame has no account menu, so this is the only way out. */}
+            <ButtonNew variant='light' size='lg' fullWidth loading={logout.isPending} onClick={logout.logOut}>
+              {t('Logout')}
+            </ButtonNew>
+          </Stack>
+        </AuthCard>
+      </AuthPageFrame>
+    </DocumentTitle>
   )
 }

@@ -11,6 +11,7 @@ import {
   getUserMetadataFieldLabel,
   getUserMetadataFieldsByName,
   hasNoOrganizationAffiliation,
+  isUserFieldName,
 } from './account.utils'
 
 describe('getProfileFieldsValues', () => {
@@ -36,6 +37,17 @@ describe('getProfileFieldsValues', () => {
 
     chai.expect(result).to.not.have.property('last_ui_language')
     chai.expect(result).to.not.have.property('project_views_settings')
+  })
+})
+
+describe('isUserFieldName', () => {
+  it('knows the profile fields', () => {
+    chai.expect(isUserFieldName('organization_website')).to.equal(true)
+  })
+
+  it('rejects other `extra_details` keys and inherited object keys', () => {
+    chai.expect(isUserFieldName('last_ui_language')).to.equal(false)
+    chai.expect(isUserFieldName('toString')).to.equal(false)
   })
 })
 

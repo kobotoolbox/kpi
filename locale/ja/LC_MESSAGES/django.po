@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:38+0000\n"
+"POT-Creation-Date: 2026-10-16 14:35+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
 "Language-Team: Japanese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ja/)\n"
@@ -797,16 +797,16 @@ msgstr "%(user)sユーザーはフォームを変更する権限を持ってい�
 msgid "You do not have permission to view data from this form."
 msgstr "このフォーム内のデータを閲覧する権限を持っていません。"
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:34
 #, python-format
 msgid "Invalid formId %s."
 msgstr "%s は無効なformIdです。"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:151
 msgid "No submission key provided."
 msgstr "提出キーが提供されていません。"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:415
 msgid "Unable to create submission."
 msgstr "提出を作成できません。"
 
@@ -2450,17 +2450,17 @@ msgstr "アクションが必要です: Kobo Toolboxプロジェクトの所有�
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Kobo Toolboxプロジェクトの所有権の譲渡は完了していません"
 
-#: kobo/apps/project_ownership/models/transfer.py:252
+#: kobo/apps/project_ownership/models/transfer.py:255
 msgid "Project ownership transferred"
 msgstr "プロジェクト所有権を譲渡済み"
 
-#: kobo/apps/project_ownership/models/transfer.py:254
+#: kobo/apps/project_ownership/models/transfer.py:257
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "プロジェクト **##project_name##** の所有権が **##previous_owner##** から **##new_owner##** に譲渡されました。"
 
-#: kobo/apps/project_ownership/models/transfer.py:258
+#: kobo/apps/project_ownership/models/transfer.py:261
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2747,7 +2747,7 @@ msgstr ""
 msgid "This action is not supported for this question type"
 msgstr ""
 
-#: kobo/settings/base.py:339
+#: kobo/settings/base.py:346
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2755,7 +2755,7 @@ msgid ""
 "email##)."
 msgstr "認証アプリケーションにアクセスできない時は、代わりにバックアップコードの1つを入力してください。そのどちらにもアクセスできない時は、［##support email##］（mailto:##support email##）で支援を求める必要があります。"
 
-#: kobo/settings/base.py:627
+#: kobo/settings/base.py:634
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2938,53 +2938,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr "無効なユーザー名/パスワード"
 
-#: kpi/deployment_backends/base_backend.py:144
+#: kpi/deployment_backends/base_backend.py:148
 msgid "No submissions match the given `submission_ids`"
 msgstr "指定された`submission_ids`に一致する提出はありません"
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:630
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "このparamは実装されていません。代わりに返事の`count`プロパティーを使用してください。"
 
-#: kpi/deployment_backends/base_backend.py:625
+#: kpi/deployment_backends/base_backend.py:641
 msgid "This param is not supported in `XML` format"
 msgstr "このparamは`XML`フォーマットでサポートされていません"
 
-#: kpi/deployment_backends/base_backend.py:630
+#: kpi/deployment_backends/base_backend.py:646
 msgid "This is not supported in `XML` format"
 msgstr "これは`XML`フォーマットでサポートされていません"
 
-#: kpi/deployment_backends/base_backend.py:650
-#: kpi/deployment_backends/base_backend.py:679
-#: kpi/deployment_backends/base_backend.py:701 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:666
+#: kpi/deployment_backends/base_backend.py:695
+#: kpi/deployment_backends/base_backend.py:717 kpi/views/v2/data.py:1128
 msgid "Value must be valid JSON."
 msgstr "値は有効なJSONでなければなりません。"
 
-#: kpi/deployment_backends/base_backend.py:655
+#: kpi/deployment_backends/base_backend.py:671
 msgid "Value must be a list."
 msgstr "値はリストでなければなりません。"
 
-#: kpi/deployment_backends/base_backend.py:686
-#: kpi/deployment_backends/base_backend.py:693
+#: kpi/deployment_backends/base_backend.py:702
+#: kpi/deployment_backends/base_backend.py:709
 msgid "A positive integer is required."
 msgstr "正の整数が必須です。"
 
-#: kpi/deployment_backends/openrosa_backend.py:434
+#: kpi/deployment_backends/openrosa_backend.py:442
 msgid "Your submission XML is malformed."
 msgstr "提出されたXMLの形式が不正です。"
 
-#: kpi/deployment_backends/openrosa_backend.py:440
+#: kpi/deployment_backends/openrosa_backend.py:448
 msgid "Your submission XML is missing critical elements."
 msgstr "提出されたXＭＬには重要な要素が欠けています。"
 
-#: kpi/deployment_backends/openrosa_backend.py:478
+#: kpi/deployment_backends/openrosa_backend.py:486
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "あなたが編集しようとした提出が見つからないかアクセスできません。"
 
-#: kpi/deployment_backends/openrosa_backend.py:1039
+#: kpi/deployment_backends/openrosa_backend.py:1061
 msgid "Successful submission"
 msgstr "提出に成功しました"
 
@@ -3495,7 +3495,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:886
 msgid "The specified asset has not been deployed"
 msgstr "指定したアセットは公開されていません"
 
@@ -3743,10 +3743,10 @@ msgstr "変換中にエラーが発生しました"
 msgid "Conversion is not supported for {}"
 msgstr "{}で変換はサポートされていません"
 
-#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+#: kpi/views/v2/data.py:758 kpi/views/v2/data.py:808
 msgid "One or more submission ids are invalid"
 msgstr ""
 
-#: kpi/views/v2/data.py:871
+#: kpi/views/v2/data.py:872
 msgid "A positive integer is required"
 msgstr "正の整数が必要です"

@@ -27,6 +27,9 @@ const environmentMock = makeEnvironmentMock()
 /** An instance whose tokens are longer than the default six, which only the description shows. */
 const longCodeEnvironmentMock = makeEnvironmentMock({ mfa_code_length: 8 })
 
+/** An instance whose admin emptied `MFA_LOCALIZED_HELP_TEXT`, leaving the help panel to its own copy. */
+const noHelpTextEnvironmentMock = makeEnvironmentMock({ mfa_localized_help_text: '' })
+
 let postedBody: unknown = null
 
 const mfaRecordingMock = () =>
@@ -180,8 +183,26 @@ export const ServerErrors: Story = {
   },
 }
 
-/** What to do without the authenticator app. Reached from the form's button. */
+/** What to do without the authenticator app, in the admin's words. Reached from the form's button. */
 export const VerificationIssues: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await reachCodeForm(canvas)
+
+    await openVerificationIssues(canvas)
+
+    await canvas.findByText(/you will need to request assistance by contacting/)
+    expect(canvas.getByRole('link', { name: 'support@kobo.local' })).toHaveAttribute(
+      'href',
+      'mailto:support@kobo.local',
+    )
+    expect(canvas.queryByLabelText(/^Code/)).not.toBeInTheDocument()
+  },
+}
+
+/** An admin who cleared the help text still leaves the panel saying something. */
+export const VerificationIssuesWithoutHelpText: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: noHelpTextEnvironmentMock }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await reachCodeForm(canvas)
@@ -190,7 +211,6 @@ export const VerificationIssues: Story = {
 
     // The instance's own address, from `/environment` - not the KoboToolbox one the source string carries.
     await canvas.findByText(/contact support@kobo.local for help/)
-    expect(canvas.queryByLabelText(/^Code/)).not.toBeInTheDocument()
   },
 }
 

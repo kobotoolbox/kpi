@@ -4,6 +4,7 @@
 
 import * as Sentry from '@sentry/react'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
+import { recordApiResponse } from '#/auth/authChangeWatcher'
 import type { FailResponse } from '#/dataInterface'
 import { getCsrfToken, notify } from '#/utils'
 import type { Json } from './components/common/common.interfaces'
@@ -21,6 +22,38 @@ const JQUERY_TEXT_STATUSES = ['error', 'timeout', 'abort', 'parsererror', 'nocon
  */
 export function isAbortResponse(response: FailResponse) {
   return response.status === 0 && response.statusText === 'abort'
+}
+
+/** The backend's own message in a fail response or an empty string */
+function getBackendMessage(response: FailResponse) {
+  if (!response.responseJSON && typeof response.responseText === 'string') {
+    // The body isn't JSON, so it holds no message for the user - with one exception. The Werkzeug Debugger, used in
+    // development, puts the exception in `.errormsg`. On production this finds nothing, so we use the JSON body.
+    const htmlDoc = new DOMParser().parseFromString(response.responseText, 'text/html')
+    const htmlMessage = htmlDoc.getElementsByClassName('errormsg')[0]?.textContent?.trim()
+    if (htmlMessage) {
+      return htmlMessage
+    }
+  }
+  return flattenErrorBody(response.responseJSON)
+}
+
+function getStatusMessage(response: FailResponse) {
+  return response.status || response.statusText ? `${response.status} ${response.statusText}` : ''
+}
+
+/** Sends a fail response to Sentry without a toast, for callers that show the error themselves */
+export function reportApiFail(response: FailResponse, fallbackTitle = t('An error occurred')) {
+  if (isAbortResponse(response)) {
+    return
+  }
+
+  // Sentry titles and groups issues by this message, so keep it to the flattened body, falling back to the status. The
+  // raw body used to be the title, which made every single response its own issue; it goes along as context instead.
+  Sentry.captureMessage(
+    getBackendMessage(response) || getStatusMessage(response) || fallbackTitle,
+    response.responseText ? { extra: { responseText: response.responseText } } : undefined,
+  )
 }
 
 /**
@@ -41,16 +74,6 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
 
   const customMessage = toastMessage && !JQUERY_TEXT_STATUSES.includes(toastMessage) ? toastMessage : undefined
 
-  const responseMessage = response.responseText
-  let htmlMessage = ''
-
-  if (!response.responseJSON && typeof responseMessage === 'string') {
-    // The body isn't JSON, so it holds no message for the user - with one exception. The Werkzeug Debugger, used in
-    // development, puts the exception in `.errormsg`. On production this finds nothing and we fall back below.
-    const htmlDoc = new DOMParser().parseFromString(responseMessage, 'text/html')
-    htmlMessage = htmlDoc.getElementsByClassName('errormsg')[0]?.textContent?.trim() ?? ''
-  }
-
   /*
   the message shown to the user, which uses (in descending order of priority)
   1. the toast message (if provided)
@@ -58,9 +81,7 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
   3. the JSON body, when it holds a message - see `flattenErrorBody`
   4. a generic error
   */
-  const backendMessage = htmlMessage || flattenErrorBody(response.responseJSON)
-
-  let displayMessage = backendMessage
+  let displayMessage = getBackendMessage(response)
 
   if (customMessage || !displayMessage) {
     // display the caller's message or, if we don't have *any* message available, use a generic error
@@ -73,21 +94,15 @@ export function handleApiFail(response: FailResponse, toastMessage?: string) {
     }
   }
 
-  const statusMessage = response.status || response.statusText ? `${response.status} ${response.statusText}` : ''
-
   // The body no longer reaches the toast, so log it here instead - a suppressed
   // traceback is still the fastest way to find out what actually broke.
-  const consoleMessage = [statusMessage, responseMessage].filter(Boolean).join(' | ') || displayMessage
+  const consoleMessage =
+    [getStatusMessage(response), response.responseText].filter(Boolean).join(' | ') || displayMessage
 
   // show the error message to the user
   notify.error(displayMessage, undefined, consoleMessage)
 
-  // Sentry titles and groups issues by this message, so keep it to the flattened body, falling back to the status. The
-  // raw body used to be the title, which made every single response its own issue; it goes along as context instead.
-  Sentry.captureMessage(
-    backendMessage || statusMessage || displayMessage,
-    responseMessage ? { extra: { responseText: responseMessage } } : undefined,
-  )
+  reportApiFail(response, displayMessage)
 }
 
 const JSON_HEADER = 'application/json'
@@ -194,14 +209,17 @@ export const fetchDataRaw = async <T>(
     }
 
     if (contentType && contentType.indexOf('application/json') !== -1) {
-      failResponse.responseText = await response.text()
       try {
+        failResponse.responseText = await response.text()
         failResponse.responseJSON = JSON.parse(failResponse.responseText)
       } catch {
-        // If the response text is not a proper JSON, we simply don't add it to
-        // the rejection object.
+        // Either the body never finished arriving, or it is not proper JSON. We simply don't add it to the rejection
+        // object - the status is what matters below, and a read that failed must not hide it.
       }
     }
+
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    recordApiResponse({ url, status: response.status, body: failResponse.responseJSON })
 
     // For these codes we might display a toast with HTTP status (through
     // `handleApiFail` helper)

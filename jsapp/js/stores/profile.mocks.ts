@@ -13,10 +13,13 @@ import profileStore from './profile'
  * starting up. When it does, the request hits the real server, fails, and
  * the store stays anonymous, leaving anything gated on the session stuck on
  * a loading spinner.
+ *
+ * Pass `overrides` for a field the `/me/` mock leaves blank, and return this
+ * function as the story's teardown to put the default back.
  */
-export function hydrateProfileStoreForStories() {
+export function hydrateProfileStoreForStories(overrides?: Partial<AccountResponse>) {
   runInAction(() => {
-    profileStore.currentAccount = meMockResponse as unknown as AccountResponse
+    profileStore.currentAccount = { ...meMockResponse, ...overrides } as unknown as AccountResponse
     profileStore.isAuthStateKnown = true
     profileStore.isLoggedIn = true
     profileStore.isInitialLoadComplete = true
@@ -43,5 +46,6 @@ export function setAnonymousProfileForStories() {
     profileStore.isPending = false
   })
 
-  return hydrateProfileStoreForStories
+  // Wrapped, so Storybook can't pass the teardown's own arguments on as overrides.
+  return () => hydrateProfileStoreForStories()
 }
