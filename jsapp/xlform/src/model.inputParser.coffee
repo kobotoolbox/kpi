@@ -109,6 +109,13 @@ module.exports = do ->
         row.required = false
     return normalizedSurvey
 
+  # appends the items `list` doesn't have yet, in place. Falsy items are
+  # skipped: the null slot of a language list belongs to the form.
+  mergeMissing = (list, items)->
+    for item in items when item and item not in list
+      list.push(item)
+    return
+
   inputParser.parseArr = parseArr
 
   # pass baseSurvey whenever you import other asset into existing form
@@ -120,19 +127,21 @@ module.exports = do ->
     # we edit the received object directly, which is totally a case of BAD CODE™
     # but in fact is a necessary part of the nullify hack
     o.survey = nullified.survey;
-    # Choice labels are indexed by the same language list as the survey rows, so they have to be
-    # rewritten alongside them or they end up under the wrong language
+    # Choices are indexed by the same language list as the survey rows, so
+    # they have to be rewritten alongside them
     o.choices = nullified.choices  if nullified.choices
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
 
-    # On save, only the columns listed in the form's `translated` get a language appended
-    # (`guidance_hint` -> `guidance_hint::English (en)`). An imported asset can translate a column the form does not,
-    # so we add those columns to the form's list - one left without a language would stop the form from opening.
-    if baseSurvey?._initialParams.translations_0 and o.translated
-      formTranslated = (baseSurvey._initialParams.translated ?= [])
-      for prop in o.translated when prop not in formTranslated
-        formTranslated.push(prop)
+    formParams = baseSurvey?._initialParams
+
+    if formParams?.translations_0 and o.translated
+      # On save only the columns in `translated` get a language appended, so a
+      # column the asset translates and the form doesn't would stay nameless.
+      mergeMissing((formParams.translated ?= []), o.translated)
+      # Same for the languages: `unnullifyTranslations` writes this list into
+      # the saved form.
+      mergeMissing((formParams.translations ?= [null]), o.translations)
 
     if o.survey
       o.survey = normalizeRequiredValues(o.survey)

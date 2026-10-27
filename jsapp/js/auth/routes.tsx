@@ -41,9 +41,15 @@ export default function authRoutes() {
         </RequireFeatureFlag>
       }
     >
-      {/* Not gated: logging in while signed in switches accounts */}
-      <Route path={AUTH_ROUTES.LOGIN} element={<LoginRoute />} />
-      {/* The screen a session makes pointless */}
+      {/* The two screens a session makes pointless */}
+      <Route
+        path={AUTH_ROUTES.LOGIN}
+        element={
+          <RequireAnonymous>
+            <LoginRoute />
+          </RequireAnonymous>
+        }
+      />
       <Route
         path={AUTH_ROUTES.SIGNUP}
         element={

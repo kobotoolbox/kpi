@@ -19,7 +19,7 @@ def set_stored_data_key_to_null(apps, schema_editor):
     Asset.objects.filter(_deployment_data__has_key='_stored_data_key').update(
         _deployment_data=RemoveJSONFieldAttribute(
             '_deployment_data',
-            attribute_dotted_path='_stored_data_key',
+            '_stored_data_key',
         ),
     )
 

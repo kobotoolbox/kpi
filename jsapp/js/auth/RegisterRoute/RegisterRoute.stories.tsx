@@ -33,14 +33,17 @@ import RegisterRoute from './RegisterRoute'
  * the route, as the story component.
  */
 
-const TERMS_OF_SERVICE_URL = 'https://kbtdev.org/terms'
-const PRIVACY_POLICY_URL = 'https://kbtdev.org/privacy'
+/**
+ * The KoboToolbox default: terms published as a sitewide message, which is what requires the agreement, and
+ * a URL for each document, which is what makes the checkbox label clickable.
+ */
+const LEGAL_AGREEMENT = {
+  terms_of_service__sitewidemessage__exists: true,
+  terms_of_service_url: 'https://kbtdev.org/terms',
+  privacy_policy_url: 'https://kbtdev.org/privacy',
+}
 
-/** Both legal documents configured, so the Terms of Service checkbox renders real links to wait on. */
-const environmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-})
+const environmentMock = makeEnvironmentMock(LEGAL_AGREEMENT)
 
 /** Both supporting fields filled in: a `login_supporting_image` upload and a `welcome_message`, as HTML. */
 const supportingEnvironmentMock = makeAuthConfigurationMock(
@@ -48,7 +51,7 @@ const supportingEnvironmentMock = makeAuthConfigurationMock(
     supporting_image_url: backgroundImageUrl,
     supporting_text: '<h2>Welcome to the Example Organization server</h2>\n<p>Accounts here are for staff.</p>',
   },
-  { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
+  LEGAL_AGREEMENT,
 )
 
 /**
@@ -56,8 +59,7 @@ const supportingEnvironmentMock = makeAuthConfigurationMock(
  * included, under a label of its own.
  */
 const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
+  ...LEGAL_AGREEMENT,
   user_metadata_fields: [
     { name: 'name', required: true, label: 'Full name' },
     { name: 'country', required: true, label: 'Country' },
@@ -74,19 +76,14 @@ const requiredProfileFieldsEnvironmentMock = makeEnvironmentMock({
 
 /** An instance that has switched the newsletter field off, so signup has nowhere to store the opt in. */
 const newsletterOffEnvironmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
+  ...LEGAL_AGREEMENT,
   user_metadata_fields: environmentResponse.user_metadata_fields.filter(
     (metadataField) => metadataField.name !== 'newsletter_subscription',
   ),
 })
 
 /** Legal links plus SSO. `Example Organization` owns `kbtdev.org` addresses. */
-const ssoEnvironmentMock = makeEnvironmentMock({
-  terms_of_service_url: TERMS_OF_SERVICE_URL,
-  privacy_policy_url: PRIVACY_POLICY_URL,
-  social_apps: socialAppsMock,
-})
+const ssoEnvironmentMock = makeEnvironmentMock({ ...LEGAL_AGREEMENT, social_apps: socialAppsMock })
 
 /**
  * Storybook replaces the handler array rather than merging it, so a story overriding the signup handler
@@ -179,7 +176,7 @@ export const CustomTheme: Story = {
       handlers: storyHandlers({
         environment: makeAuthConfigurationMock(
           { theme: AuthThemeEnum.custom, background_image_url: backgroundImageUrl },
-          { terms_of_service_url: TERMS_OF_SERVICE_URL, privacy_policy_url: PRIVACY_POLICY_URL },
+          LEGAL_AGREEMENT,
         ),
       }),
     },
@@ -248,26 +245,43 @@ export const NewsletterNotConfigured: Story = {
   },
 }
 
-/** Only one document configured: the checkbox asks about that one, with no mention of the other. */
-export const PrivacyPolicyOnly: Story = {
+/** No Privacy Policy URL, so there is no second document to name: the sentence is about the terms alone. */
+export const TermsOfServiceOnly: Story = {
   parameters: {
-    msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ privacy_policy_url: PRIVACY_POLICY_URL }) }) },
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, privacy_policy_url: '' }),
+      }),
+    },
   },
-  play: async ({ canvasElement }) => {
-    // Two matches again, for the same reason: the footer's link and the checkbox's.
-    await waitFor(() => expect(within(canvasElement).getAllByRole('link', { name: 'Privacy Policy' })).toHaveLength(2))
-  },
-}
-
-/** No legal documents configured - nothing to agree - no checkbox */
-export const NoLegalDocuments: Story = {
-  parameters: { msw: { handlers: storyHandlers({ environment: makeEnvironmentMock() }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // The logo comes from the same response, so the missing checkbox is a real absence rather than a
-    // request still in flight.
-    await canvas.findByRole('img', { name: 'KoboToolbox' })
+    await waitForEnvironment(canvas)
+    expect(canvas.getByRole('checkbox', { name: 'I agree with the Terms of Service' })).toBeInTheDocument()
+    expect(canvas.queryByRole('link', { name: 'Privacy Policy' })).not.toBeInTheDocument()
+  },
+}
+
+/**
+ * No sitewide message, so the server asks for no agreement and drops the field: no checkbox, whatever the
+ * document URLs say. They stay in the footer, where they are not an agreement.
+ */
+export const NoAgreementRequired: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, terms_of_service__sitewidemessage__exists: false }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The footer link comes from the same response, so the missing checkbox is a real absence rather than a
+    // request still in flight. `findBy` also fails on a second match, which a checkbox label would be.
+    await canvas.findByRole('link', { name: 'Terms of Service' })
+    expect(canvas.queryByRole('checkbox', { name: /I agree with the/ })).not.toBeInTheDocument()
     await submit(canvas)
 
     // Four where `ClientValidation` gets five: the rule has to go away with the checkbox, or nobody could
@@ -415,11 +429,7 @@ export const RegistrationClosed: Story = {
   parameters: {
     msw: {
       handlers: storyHandlers({
-        environment: makeEnvironmentMock({
-          terms_of_service_url: TERMS_OF_SERVICE_URL,
-          privacy_policy_url: PRIVACY_POLICY_URL,
-          registration_open: false,
-        }),
+        environment: makeEnvironmentMock({ ...LEGAL_AGREEMENT, registration_open: false }),
       }),
     },
   },

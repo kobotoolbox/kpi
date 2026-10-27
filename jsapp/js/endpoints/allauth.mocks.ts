@@ -162,6 +162,10 @@ export const loginMfaRequiredMock = () =>
     ),
   )
 
+/** Somebody is already signed in - allauth says 409 and nothing else */
+export const loginAlreadyAuthenticatedMock = () =>
+  http.post(LOGIN_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
+
 /** The server itself broke */
 export const loginServerErrorMock = () =>
   http.post(LOGIN_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
@@ -471,6 +475,12 @@ export const accountProvidersMock = (accounts: ProviderAccount[]) =>
 /** The connection lookup breaking, leaving "is anything connected?" unanswered rather than answered with a no. */
 export const accountProvidersServerErrorMock = () =>
   http.get(ACCOUNT_PROVIDERS_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
+/** allauth refusing to remove a connection. The section writes its own copy from `code`, so `message` is filler. */
+export const accountProvidersDisconnectRefusedMock = (code: string, message = 'allauth refused.') =>
+  http.delete(ACCOUNT_PROVIDERS_URL, () =>
+    HttpResponse.json({ status: 400, errors: [{ code, message }] }, { status: 400 }),
+  )
 
 /** A connection lookup that never answers, so the section stays in its loading state. */
 export const accountProvidersNeverAnswersMock = () =>

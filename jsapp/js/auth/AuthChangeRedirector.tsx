@@ -7,12 +7,9 @@ import { goToPage } from './nextUrl'
 import { useAuthStatus } from './useAuthStatus'
 import { useNextRoute } from './useNextRoute'
 
-/** A `RedirectContext` minus where the reading came from: only the effect acting on a change can say. */
-type WhereTheBrowserIs = Omit<RedirectContext, 'isReadingFromOwnCall'>
-
 /**
  * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing on
- * a route with an already dead session is `RequireAuth`'s job, and arriving at signup with a live one is
+ * a route with an already dead session is `RequireAuth`'s job, and arriving at a sign-in screen with a live one is
  * `RequireAnonymous`'s. Where each change leads is `#/auth/authRedirects`.
  *
  * Readings come from every allauth answer, not just the session poll (see `#/auth/authChangeWatcher`), so this catches
@@ -28,14 +25,14 @@ export default function AuthChangeRedirector() {
 
   // Kept out of the effect's dependencies: a redirect has to happen once per change in the session, not again every
   // time the address bar moves - which redirecting itself causes.
-  const context: WhereTheBrowserIs = {
+  const context: RedirectContext = {
     navigate,
     routePath: pathname,
     routeWithSearch: pathname + search,
     nextRoute,
     goToPage,
   }
-  const contextRef = useRef<WhereTheBrowserIs>(context)
+  const contextRef = useRef<RedirectContext>(context)
   contextRef.current = context
 
   const previousStatusRef = useRef<AuthStatus | undefined>(undefined)
@@ -56,9 +53,9 @@ export default function AuthChangeRedirector() {
 
     const event = determineAuthChangeEvent(previousStatus, authStatus)
     if (event) {
-      // Read here, not during render: it belongs to the reading being acted on, not to whatever lands later.
-      const isReadingFromOwnCall = isNewestReadingFromOwnCall()
-      redirectForAuthChange(event, authStatus, { ...contextRef.current, isReadingFromOwnCall })
+      // Provenance read here, not during render: it belongs to the reading being acted on, not to whatever lands later.
+      const change = { event, status: authStatus, isReadingFromOwnCall: isNewestReadingFromOwnCall() }
+      redirectForAuthChange(change, contextRef.current)
     }
   }, [authStatus])
 

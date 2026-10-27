@@ -40,6 +40,40 @@ export function findAppForProviderAccount(
   return getSsoProviders(envStoreData).find((app) => app.provider_id === providerAccount.provider.id)
 }
 
+/**
+ * allauth's codes for a disconnect it refuses - both mean this is the only way left into the account. Its third,
+ * `disconnect_last`, needs `SOCIALACCOUNT_ONLY`, which KPI does not set.
+ */
+const DISCONNECT_ERROR_CODES = {
+  noPassword: 'no_password',
+  noVerifiedEmail: 'no_verified_email',
+} as const
+
+/**
+ * What to show when a disconnect is refused or fails. allauth's own message only states the problem, these say what
+ * to do about it.
+ */
+export function getSsoDisconnectErrorMessage(code: string | undefined): string {
+  if (code === DISCONNECT_ERROR_CODES.noPassword) {
+    return t(
+      'Set a password in the Password section above first.' +
+        ' Your account needs another way to log in before single-sign on (SSO) can be disabled.',
+    )
+  }
+  if (code === DISCONNECT_ERROR_CODES.noVerifiedEmail) {
+    return t(
+      'Confirm your email address in the Email address section above first,' +
+        ' so that you can still reset your password once single-sign on (SSO) is disabled.',
+    )
+  }
+  return t('We could not disable single-sign on (SSO) for your account. Please try again.')
+}
+
+/** KPI's own connect refusal, from `SocialAccountAdapter.pre_social_login`: one SSO connection per account. */
+const CONNECT_ERROR_CODES = {
+  multipleSsoNotAllowed: 'multiple_sso_not_allowed',
+} as const
+
 /** What to show for the `?error=` a failed `connect` comes back with */
 export function getSsoConnectErrorMessage(code: string): string {
   if (code === PROVIDER_ERROR_CODES.connectedOther) {
@@ -51,8 +85,15 @@ export function getSsoConnectErrorMessage(code: string): string {
   if (code === PROVIDER_ERROR_CODES.cancelled) {
     return t('Connecting was cancelled before it finished. You can try again.')
   }
-  // A refusal reads the same whoever made it, so borrow the login wording instead of restating it.
-  if (code === PROVIDER_ERROR_CODES.denied || code === PROVIDER_ERROR_CODES.permissionDenied) {
+  if (code === CONNECT_ERROR_CODES.multipleSsoNotAllowed) {
+    return t(
+      'You can only connect one single-sign on (SSO) account at a time.' +
+        ' Disable the current one before connecting another.',
+    )
+  }
+  // A refusal reads the same whoever made it, so borrow the login wording instead of restating it. No `denied` here:
+  // only allauth's draugiem provider sends it, and a real provider refusal arrives as an unknown error.
+  if (code === PROVIDER_ERROR_CODES.permissionDenied) {
     return getProviderRedirectErrorMessage(PROVIDER_ERROR_CODES.denied)
   }
   // TODO: DEV-1971 send the user through a reauthentication instead of asking them to sign in again.
