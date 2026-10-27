@@ -50,7 +50,19 @@ export const fetchWithAuth = async <T>(url: string, config: FetchWithAuthConfig)
   })
 
   if (!response.ok) {
-    const error = await ServerError.new(response)
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    let error: ServerError
+    try {
+      error = await ServerError.new(response)
+    } catch (bodyReadFailure) {
+      // The body can fail on its own, with the connection dropping after the headers arrived. Report the status
+      // anyway: without it a page keeps answering "signed in" from cache for the rest of `staleTime`.
+      recordApiResponse({ url, status: response.status })
+      throw bodyReadFailure
+    }
+
+    // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
+    recordApiResponse({ url, status: response.status, body: error.parsedResponse })
 
     // A 401 here is how an expired session reaches the auth guards - see `#/auth/authChangeWatcher`
     recordApiResponse({ url, status: response.status, body: error.parsedResponse })

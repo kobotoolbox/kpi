@@ -1,13 +1,13 @@
 import { Anchor, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FlowId } from '#/api/models/flowId'
 import type { LoginBody } from '#/api/models/loginBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthLoginPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import ProviderLoginButtons from '#/auth/ProviderRoute/ProviderLoginButtons'
+import SsoProviderButtonList from '#/auth/ProviderRoute/SsoProviderButtonList'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { getRequiredFieldMessage, validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -26,6 +26,8 @@ interface LoginFormValues {
 export type LoginOutcome =
   /** Credentials accepted and the session exists. */
   | { kind: 'authenticated' }
+  /** A session was already there, so there was nothing to sign in to. */
+  | { kind: 'alreadyAuthenticated' }
   /** Right credentials, unconfirmed address. */
   | { kind: 'emailVerificationRequired' }
   /** Credentials accepted, and allauth wants a one-time code before it hands out the session. */
@@ -38,13 +40,11 @@ export interface LoginFormProps {
   socialApps: SocialApp[] | undefined
   /** Drops the signup link: with signup closed there is only a dead end behind it */
   isRegistrationClosed?: boolean
-  /** Shown at the top, since it applies to the SSO buttons too */
-  notice?: ReactNode
   onOutcome: (outcome: LoginOutcome) => void
 }
 
 /** The single sign-on providers, then the credentials. Password recovery etc. live elsewhere */
-export default function LoginForm({ socialApps, isRegistrationClosed = false, notice, onOutcome }: LoginFormProps) {
+export default function LoginForm({ socialApps, isRegistrationClosed = false, onOutcome }: LoginFormProps) {
   // SSO buttons take the primary look when there are any
   const hasProviders = Boolean(socialApps?.length)
 
@@ -69,6 +69,11 @@ export default function LoginForm({ socialApps, isRegistrationClosed = false, no
       onSuccess: (response) => {
         if (response.status === 200 && response.data.meta.is_authenticated) {
           onOutcome({ kind: 'authenticated' })
+          return
+        }
+        // A 409 means a session was already in place
+        if (response.status === 409) {
+          onOutcome({ kind: 'alreadyAuthenticated' })
           return
         }
         // The credentials were right, and allauth is asking for one more thing before it hands out a session
@@ -105,9 +110,7 @@ export default function LoginForm({ socialApps, isRegistrationClosed = false, no
 
   return (
     <Stack gap='xl'>
-      {notice}
-
-      <ProviderLoginButtons socialApps={socialApps} variant='filled' />
+      <SsoProviderButtonList socialApps={socialApps} variant='filled' />
 
       <Title order={1} size='h3'>
         {t('Log in or create an account')}

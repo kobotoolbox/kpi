@@ -442,6 +442,7 @@ export const environmentResponse = {
   stripe_public_key: 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM',
   terms_of_service__sitewidemessage__exists: false,
   open_rosa_server: 'http://kc.kobo.local',
+  limited_count_max_rows: 100000000,
   allow_self_account_deletion: true,
   // `satisfies` rather than a type annotation: still fails the build when the generated model gains
   // or renames a field, but keeps the literal's exact types for anyone reading values off it.

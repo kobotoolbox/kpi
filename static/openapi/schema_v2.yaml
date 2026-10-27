@@ -2881,6 +2881,7 @@ paths:
 
         * `start`: Index (zero-based) from which the results start
         * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>
+        * `count` in the response is exact up to the server's limit (`limited_count_max_rows` in `/api/v2/environment/`), `"many"` past it, and `"unknown"` when counting takes too long. Use `next` to page through results.
 
         ```shell
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
@@ -8532,6 +8533,7 @@ paths:
         - Features configurations (MFA, password entropy meter, custom guidance text).
         - Sign-in and account creation branding (theme, logos, background and supporting image, supporting text) and behaviour (whether registration is open, whether a username is accepted at sign-in).
         - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+        - Pagination behaviour (row limit past which list counts are capped).
       tags:
       - Configuration
       security:
@@ -18521,6 +18523,10 @@ components:
           type: string
           format: uri
           description: The OpenRosa server URL (KC)
+        limited_count_max_rows:
+          type: integer
+          description: 'Row limit past which paginated endpoints using capped counting
+            report `count: ''many''`. Clients can label such counts as "{limit}+"'
       required:
       - academy_url
       - allow_self_account_deletion
@@ -18535,6 +18541,7 @@ components:
       - frontend_max_retry_time
       - frontend_min_retry_time
       - interface_languages
+      - limited_count_max_rows
       - mfa_code_length
       - mfa_enabled
       - mfa_localized_help_text
@@ -20391,8 +20398,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20418,8 +20433,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string

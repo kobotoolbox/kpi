@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 10:33+0000\n"
+"POT-Creation-Date: 2026-10-16 14:35+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Olivier Leger, 2025\n"
 "Language-Team: Vietnamese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/vi/)\n"
@@ -23,75 +23,104 @@ msgstr ""
 msgid "Log in as user"
 msgstr "Đăng nhập với tư cách người dùng"
 
-#: kobo/apps/accounts/forms.py:67
+#: kobo/apps/accounts/adapter.py:115
+msgid "SSO account already linked"
+msgstr ""
+
+#: kobo/apps/accounts/adapter.py:117
+msgid ""
+"You can only link one SSO account at a time. Disconnect your existing SSO "
+"account before linking a new one."
+msgstr ""
+
+#: kobo/apps/accounts/admin.py:119
+msgid "The in-app message cannot be empty."
+msgstr ""
+
+#: kobo/apps/accounts/admin.py:223
+#, python-format
+msgid "Confirm Managed SSO Changes for %s"
+msgstr ""
+
+#: kobo/apps/accounts/constants.py:4
+msgid ""
+"If that email address needs confirming, a new confirmation email has been "
+"sent to it."
+msgstr ""
+
+#: kobo/apps/accounts/forms.py:70
 msgid "Please enter a valid URL"
 msgstr "Vui lòng nhập URL hợp lệ"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:47
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:47
 msgid "Non-profit organization"
 msgstr "Tổ chức phi lợi nhuận"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:48
 msgid "Government institution"
 msgstr "Cơ quan chính phủ"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:80 kobo/apps/organizations/models.py:49
 msgid "Educational organization"
 msgstr "Tổ chức giáo dục"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:50
+#: kobo/apps/accounts/forms.py:81 kobo/apps/organizations/models.py:50
 msgid "A commercial/for-profit company"
 msgstr "Công ty thương mại/vì lợi nhuận"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:51
+#: kobo/apps/accounts/forms.py:82 kobo/apps/organizations/models.py:51
 msgid "I am not associated with any organization"
 msgstr "Tôi không liên quan đến bất kỳ tổ chức nào"
 
-#: kobo/apps/accounts/forms.py:87
+#: kobo/apps/accounts/forms.py:90
 msgid "Male"
 msgstr "Nam"
 
-#: kobo/apps/accounts/forms.py:88
+#: kobo/apps/accounts/forms.py:91
 msgid "Female"
 msgstr "Nữ"
 
-#: kobo/apps/accounts/forms.py:89 kobo/static_lists.py:37
+#: kobo/apps/accounts/forms.py:92 kobo/static_lists.py:37
 msgid "Other"
 msgstr "Khác"
 
-#: kobo/apps/accounts/forms.py:120 kobo/apps/accounts/forms.py:123
+#: kobo/apps/accounts/forms.py:123 kobo/apps/accounts/forms.py:126
 #: kobo/apps/accounts/templates/legal/registration_legal.html:8
 msgid "Terms of Service"
 msgstr "Điều khoản dịch vụ"
 
-#: kobo/apps/accounts/forms.py:127 kobo/apps/accounts/forms.py:130
+#: kobo/apps/accounts/forms.py:130 kobo/apps/accounts/forms.py:133
 #: kobo/apps/accounts/templates/legal/registration_legal.html:13
 msgid "Privacy Policy"
 msgstr "Chính sách Bảo mật"
 
-#: kobo/apps/accounts/forms.py:132
+#: kobo/apps/accounts/forms.py:135
 msgid "I agree with the ##terms_of_service## and ##privacy_policy##"
 msgstr "Tôi đồng ý với ##terms_of_service## và ##privacy_policy##"
 
-#: kobo/apps/accounts/forms.py:146
+#: kobo/apps/accounts/forms.py:149
 msgid "Password confirmation"
 msgstr "Xác nhận mật khẩu"
 
-#: kobo/apps/accounts/forms.py:148
+#: kobo/apps/accounts/forms.py:151
 msgid "name@organization.org"
 msgstr "name@organization.org"
 
-#: kobo/apps/accounts/forms.py:223
+#: kobo/apps/accounts/forms.py:226
 msgid "This field is required."
 msgstr "Trường này là bắt buộc."
 
-#: kobo/apps/accounts/forms.py:280
+#: kobo/apps/accounts/forms.py:288
 msgid "Email must match SSO server email"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:333
+#: kobo/apps/accounts/forms.py:341
 msgid "You must type the same password each time."
 msgstr "Bạn phải nhập đúng một mật khẩu cho mỗi lần nhập."
+
+#: kobo/apps/accounts/forms.py:363 kobo/apps/accounts/forms.py:375
+msgid "Cannot set password for SSO-managed accounts"
+msgstr ""
 
 #: kobo/apps/accounts/mfa/forms.py:26 kobo/apps/accounts/mfa/forms.py:38
 msgid "Code"
@@ -131,9 +160,49 @@ msgstr "Quay lại"
 msgid "Could not activate this method. Please try again later."
 msgstr ""
 
-#: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:324
+#: kobo/apps/accounts/reauthentication.py:108
+msgid ""
+"This field is required to change the email address when authenticating "
+"without a browser session."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:112
+#: kpi/serializers/current_user.py:211
+msgid "Incorrect current password."
+msgstr "Mật khẩu hiện tại không đúng."
+
+#: kobo/apps/accounts/reauthentication.py:118
+msgid ""
+"This field is required to change the email address when authenticating "
+"without a browser session and MFA is enabled."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:125
+msgid "Invalid code."
+msgstr ""
+
+#: kobo/apps/accounts/reauthentication.py:160
+msgid "Re-authentication is required for this action."
+msgstr ""
+
+#: kobo/apps/accounts/serializers.py:42 kobo/apps/accounts/serializers.py:47
+#: kpi/serializers/current_user.py:329
 msgid "This action is not allowed."
+msgstr ""
+
+#: kobo/apps/accounts/tasks.py:20
+msgid ""
+"Dear ##username##,\n"
+"\n"
+"Going forward, your organization will be managing all Kobo accounts through ##sso_name##. Please connect your ##sso_name## account. Your password will be disabled and you will be required to use ##sso_name## to log in."
+msgstr ""
+
+#: kobo/apps/accounts/tasks.py:64
+msgid "Update your account"
+msgstr ""
+
+#: kobo/apps/accounts/tasks.py:65
+msgid "Please connect your ##sso_name## account"
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
@@ -303,6 +372,7 @@ msgid ""
 msgstr "Vui lòng xác nhận <a href=\"mailto:%(email)s\">%(email)s</a> là địa chỉ email của người dùng %(user_display)s."
 
 #: kobo/apps/accounts/templates/account/email_confirm.html:29
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:14
 msgid "Confirm"
 msgstr "Xác nhận"
 
@@ -411,6 +481,15 @@ msgstr "Đăng ký bằng SSO"
 msgid "Register with SSO"
 msgstr "Đăng ký với SSO"
 
+#: kobo/apps/accounts/templates/account/signup_closed.html:9
+msgid "Sign Up Closed"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/signup_closed.html:16
+#: kpi/tests/test_registration.py:160 kpi/tests/test_registration.py:174
+msgid "We are sorry, but the sign up is currently closed."
+msgstr ""
+
 #: kobo/apps/accounts/templates/account/verification_sent.html:8
 msgid "Confirm your email address"
 msgstr "Xác thực địa chỉ email của bạn"
@@ -421,16 +500,89 @@ msgid ""
 "folder) and click the link to activate your account."
 msgstr ""
 
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:8
+msgid "Home"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:20
+#, python-format
+msgid "Confirm Managed SSO changes for %(name)s"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:22
+msgid "Are you sure you want to save the following changes?"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:25
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:27
+msgid "Status:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:25
+msgid "Disabling Managed SSO"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:27
+msgid "Enabling Managed SSO"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:31
+msgid "Added domain(s):"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:35
+msgid "Removed domain(s):"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:39
+msgid ""
+"Pending in-app reminders asking users to link their SSO account will be "
+"withdrawn."
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:42
+msgid "Affected Accounts:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:44
+msgid "Linked accounts that will be converted to SSO-only:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:45
+msgid ""
+"Unlinked accounts that will receive an in-app notification to link SSO:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:62
+msgid "Send in-app message to non-linked accounts"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:67
+msgid "In-app message"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:72
+msgid "Available placeholders:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:79
+msgid "Yes, I'm sure"
+msgstr ""
+
+#: kobo/apps/accounts/templates/admin/accounts/socialappcustomdata/confirmation.html:80
+msgid "No, take me back"
+msgstr ""
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:11
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
 msgid "SSO Login Failure"
 msgstr "Không thể đăng nhập SSO"
 
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:23
 msgid "An error occurred while attempting to login using your SSO account."
 msgstr "Có lỗi xảy ra trong khi đăng nhập bằng tài khoản SSO của bạn."
 
-#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:20
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:29
 #: kpi/templates/custom_404.html:12
 msgid "Go back"
 msgstr "Quay lại"
@@ -623,7 +775,7 @@ msgstr ""
 msgid "Import"
 msgstr "Nhập"
 
-#: kobo/apps/mass_emails/tasks.py:310
+#: kobo/apps/mass_emails/tasks.py:300
 msgid "Not available"
 msgstr ""
 
@@ -641,16 +793,16 @@ msgstr "Người dùng %(user)s không có quyền thay đổi biểu mẫu này
 msgid "You do not have permission to view data from this form."
 msgstr "Không có quyền xem dữ liệu từ biểu mẫu này."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:32
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:34
 #, python-format
 msgid "Invalid formId %s."
 msgstr "formId không hợp lệ %s."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:148
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:151
 msgid "No submission key provided."
 msgstr "Không có khóa xác thực được cung cấp."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:408
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:415
 msgid "Unable to create submission."
 msgstr "Không thể tạo bản dữ liệu."
 
@@ -667,7 +819,7 @@ msgid "Invalid submission - deprecatedID refers to an old submission version"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/logger/exceptions.py:41
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1273
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1334
 msgid "Invalid submission - deprecatedID not found"
 msgstr ""
 
@@ -777,7 +929,7 @@ msgstr "Không được chia sẻ."
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:132
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:174
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:202
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:701
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:703
 msgid "XML string must have a survey element."
 msgstr "Chuỗi XML phải có phần tử khảo sát."
 
@@ -1927,93 +2079,93 @@ msgstr "Zimbabwe"
 msgid "Unknown or unspecified country"
 msgstr "Quốc gia không xác định hoặc không được chỉ định"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:216
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:218
 msgid ""
 "Superusers are not allowed to submit data. Please use a regular account."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:232
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:234
 msgid "Forbidden"
 msgstr "Cấm"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:242
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:244
 msgid ""
 "Forbidden attempt to edit a submission. To make a new submission, Remove "
 "`deprecatedID` from the submission XML and try again."
 msgstr "Cấm chỉnh sửa bản dữ liệu. Để tạo một bản dữ liệu mới, hãy Xóa `deprecatedID` khỏi tệp XML của bản dữ liệu và thử lại."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:472
 msgid ""
 "Submission rejected: the form contains unsupported or invisible characters."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:623
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:625
 msgid "Username or ID required."
 msgstr "Phải có tên người dùng hoặc ID."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:626
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:628
 msgid "Received empty submission. No instance was created"
 msgstr "Đã nhận được bản dữ liệu rỗng. Không có bản sao nào được tạo"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:629
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:631
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:638
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:640
 msgid "Form is not active"
 msgstr "Biểu mẫu không hoạt động"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:641
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:643
 msgid "Temporarily unavailable"
 msgstr "Tạm thời không khả dụng"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:647
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:649
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:653
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:659
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:661
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:662
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:664
 msgid "Form does not exist on this account"
 msgstr "Biểu mẫu không tồn tại trên tài khoản này"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:665
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:667
 msgid "Improperly formatted XML."
 msgstr "XML định dạng không đúng."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:683
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:685
 msgid "Access denied"
 msgstr "Truy cập bị từ chối"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:690
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:692
 msgid "File likely corrupted during transmission, please try later."
 msgstr "Tệp tin có thể đã bị hỏng trong quá trình truyền tải, vui lòng thử lại sau."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:827
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:829
 msgid "Invalid URL format."
 msgstr "Định dạng URL không hợp lệ."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:839
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:841
 msgid "Form validation timeout, please try again."
 msgstr "Đã hết thời gian xác thực biểu mẫu, xin vui lòng thử lại."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:898
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:900
 #: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "Lỗi trong yêu cầu: %(class)s: %(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:931
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:933
 msgid "The requested file could not be found."
 msgstr "Không tìm thấy tệp tin được yêu cầu."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:1270
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1331
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
@@ -2258,6 +2410,30 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr ""
 
+#: kobo/apps/organizations/views.py:187 kobo/apps/organizations/views.py:254
+msgid "Filter the results with search query"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:194
+msgid "Paginate results with start parameter"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:201
+msgid "Paginate results with limit parameter"
+msgstr ""
+
+#: kobo/apps/organizations/views.py:208
+msgid "Which field to use when ordering the results."
+msgstr ""
+
+#: kobo/apps/organizations/views.py:261
+msgid "Number of results to return per page."
+msgstr ""
+
+#: kobo/apps/organizations/views.py:268
+msgid "The initial index from which to return the results."
+msgstr ""
+
 #: kobo/apps/project_ownership/models/invite.py:99
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "Chuyển quyền sở hữu dự án KoboToolbox được chấp nhận "
@@ -2270,17 +2446,17 @@ msgstr "Thao tác bắt buộc: Yêu cầu chuyển quyền sở hữu dự án 
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Chuyển quyền sở hữu dự án KoboToolbox chưa hoàn tất"
 
-#: kobo/apps/project_ownership/models/transfer.py:252
+#: kobo/apps/project_ownership/models/transfer.py:255
 msgid "Project ownership transferred"
 msgstr "Đã chuyển quyền sở hữu dự án"
 
-#: kobo/apps/project_ownership/models/transfer.py:254
+#: kobo/apps/project_ownership/models/transfer.py:257
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "Xin lưu ý rằng quyền sở hữu dự án **##project_name##** đã được chuyển từ **##previous_owner##** sang **##new_owner##**."
 
-#: kobo/apps/project_ownership/models/transfer.py:258
+#: kobo/apps/project_ownership/models/transfer.py:261
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2559,11 +2735,15 @@ msgid "%d plan add-on was created."
 msgid_plural "%d plan add-ons were created."
 msgstr[0] ""
 
-#: kobo/apps/subsequences/serializers.py:25
+#: kobo/apps/subsequences/serializers.py:26
 msgid "Invalid parameters for this action"
 msgstr ""
 
-#: kobo/settings/base.py:327
+#: kobo/apps/subsequences/serializers.py:27
+msgid "This action is not supported for this question type"
+msgstr ""
+
+#: kobo/settings/base.py:346
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2571,7 +2751,7 @@ msgid ""
 "email##)."
 msgstr "Nếu không thể truy cập ứng dụng xác thực, vui lòng nhập một trong các mã sao lưu thay thế. Nếu bạn cũng không thể truy cập các mã sao lưu đó, bạn sẽ cần gửi liên hệ đến [##support email##](mailto:##support email##) để được hỗ trợ."
 
-#: kobo/settings/base.py:608
+#: kobo/settings/base.py:634
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2754,53 +2934,53 @@ msgstr ""
 msgid "Invalid username/password"
 msgstr "Tên người dùng/mật khẩu không hợp lệ"
 
-#: kpi/deployment_backends/base_backend.py:142
+#: kpi/deployment_backends/base_backend.py:148
 msgid "No submissions match the given `submission_ids`"
 msgstr "Không có bản dữ liệu nào phù hợp với `submission_ids` đã có"
 
-#: kpi/deployment_backends/base_backend.py:612
+#: kpi/deployment_backends/base_backend.py:630
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "Tham số này không được triển khai. Thay vào đó, hãy sử dụng thuộc tính `count` của phản hồi."
 
-#: kpi/deployment_backends/base_backend.py:623
+#: kpi/deployment_backends/base_backend.py:641
 msgid "This param is not supported in `XML` format"
 msgstr "Không hỗ trợ tham số này ở định dạng `XML`"
 
-#: kpi/deployment_backends/base_backend.py:628
+#: kpi/deployment_backends/base_backend.py:646
 msgid "This is not supported in `XML` format"
 msgstr "Yếu tố này không được hỗ trợ ở định dạng `XML`"
 
-#: kpi/deployment_backends/base_backend.py:648
-#: kpi/deployment_backends/base_backend.py:677
-#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1121
+#: kpi/deployment_backends/base_backend.py:666
+#: kpi/deployment_backends/base_backend.py:695
+#: kpi/deployment_backends/base_backend.py:717 kpi/views/v2/data.py:1128
 msgid "Value must be valid JSON."
 msgstr "Giá trị phải là JSON hợp lệ."
 
-#: kpi/deployment_backends/base_backend.py:653
+#: kpi/deployment_backends/base_backend.py:671
 msgid "Value must be a list."
 msgstr "Giá trị phải là một danh sách."
 
-#: kpi/deployment_backends/base_backend.py:684
-#: kpi/deployment_backends/base_backend.py:691
+#: kpi/deployment_backends/base_backend.py:702
+#: kpi/deployment_backends/base_backend.py:709
 msgid "A positive integer is required."
 msgstr "Bắt buộc phải có số nguyên dương."
 
-#: kpi/deployment_backends/openrosa_backend.py:412
+#: kpi/deployment_backends/openrosa_backend.py:442
 msgid "Your submission XML is malformed."
 msgstr "Tệp XML bạn gửi bị hỏng."
 
-#: kpi/deployment_backends/openrosa_backend.py:418
+#: kpi/deployment_backends/openrosa_backend.py:448
 msgid "Your submission XML is missing critical elements."
 msgstr "Tệp XML bạn gửi thiếu các yếu tố quan trọng."
 
-#: kpi/deployment_backends/openrosa_backend.py:456
+#: kpi/deployment_backends/openrosa_backend.py:486
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "Không tìm thấy bản dữ liệu bạn muốn chỉnh sửa hoặc bạn không có quyền truy cập."
 
-#: kpi/deployment_backends/openrosa_backend.py:1011
+#: kpi/deployment_backends/openrosa_backend.py:1061
 msgid "Successful submission"
 msgstr "Đã gửi thành công"
 
@@ -2836,11 +3016,15 @@ msgstr "Cú pháp kém"
 msgid "Not supported field lookup"
 msgstr "Không hỗ trợ tìm kiếm trường"
 
-#: kpi/exceptions.py:244
+#: kpi/exceptions.py:226
+msgid "Too many relational filters in the search query"
+msgstr ""
+
+#: kpi/exceptions.py:249
 msgid "Your query is too short"
 msgstr "Truy vấn của bạn quá ngắn"
 
-#: kpi/exceptions.py:267
+#: kpi/exceptions.py:272
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
@@ -3050,11 +3234,11 @@ msgstr ""
 msgid "Each option must be a dictionary containing 'name' and 'label'."
 msgstr ""
 
-#: kpi/models/import_export_task.py:164
+#: kpi/models/import_export_task.py:172
 msgid "Cannot access data"
 msgstr "Không thể truy cập dữ liệu"
 
-#: kpi/models/import_export_task.py:827
+#: kpi/models/import_export_task.py:971
 msgid "This data does not exist or you do not have access to it"
 msgstr "Dữ liệu này không tồn tại hoặc bạn không có quyền truy cập"
 
@@ -3072,68 +3256,64 @@ msgid ""
 "characters."
 msgstr "Mật khẩu phải có tối thiểu ##number of rules## loại ký tự khác nhau."
 
-#: kpi/serializers/current_user.py:210
-msgid "Incorrect current password."
-msgstr "Mật khẩu hiện tại không đúng."
-
-#: kpi/serializers/current_user.py:230
+#: kpi/serializers/current_user.py:231
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` và `new_password` đều phải là"
 
-#: kpi/serializers/current_user.py:268
+#: kpi/serializers/current_user.py:269
 #: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "Trường này không được để trống."
 
-#: kpi/serializers/v2/asset.py:167
+#: kpi/serializers/v2/asset.py:166
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "%(count)d dự án đã được khôi phục"
 
-#: kpi/serializers/v2/asset.py:173
+#: kpi/serializers/v2/asset.py:172
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "%(count)d dự án đã bị xóa"
 
-#: kpi/serializers/v2/asset.py:180
+#: kpi/serializers/v2/asset.py:179
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "%(count)d dự án đã hoàn tác lưu trữ"
 
-#: kpi/serializers/v2/asset.py:186
+#: kpi/serializers/v2/asset.py:185
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "%(count)d dự án đã được lưu trữ"
 
-#: kpi/serializers/v2/asset.py:202
+#: kpi/serializers/v2/asset.py:201
 msgid "One or many projects have been deleted already!"
 msgstr "Một hoặc nhiều dự án đã bị xóa!"
 
-#: kpi/serializers/v2/asset.py:210
+#: kpi/serializers/v2/asset.py:209
 msgid "One or many projects are already being deleted!"
 msgstr "Một hoặc nhiều dự án đang được xóa!"
 
-#: kpi/serializers/v2/asset.py:352
+#: kpi/serializers/v2/asset.py:351
 msgid "`action` parameter is required"
 msgstr "Phải có tham số `action`"
 
-#: kpi/serializers/v2/asset.py:357
+#: kpi/serializers/v2/asset.py:356
 msgid "Supported values for `action` are: "
 msgstr "Các giá trị hỗ trợ cho `action` là: "
 
-#: kpi/serializers/v2/asset.py:379
+#: kpi/serializers/v2/asset.py:378
 msgid "Draft projects cannot be archived"
 msgstr "Không thể lưu trữ các dự án nháp"
 
-#: kpi/serializers/v2/asset.py:385 kpi/serializers/v2/data.py:61
+#: kpi/serializers/v2/asset.py:384 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "Bắt buộc phải có xác nhận"
 
-#: kpi/serializers/v2/asset.py:1066
+#: kpi/serializers/v2/asset.py:1065
 msgid "The property is required"
 msgstr "Bắt buộc phải có thuộc tính"
 
-#: kpi/serializers/v2/asset.py:1070
+#: kpi/serializers/v2/asset.py:1069
 msgid "The property must be an array"
 msgstr "Thuộc tính phải là một mảng"
 
@@ -3311,7 +3491,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:885
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:886
 msgid "The specified asset has not been deployed"
 msgstr "Tài sản được chỉ định chưa được triển khai"
 
@@ -3413,21 +3593,21 @@ msgstr "`{basename}` đã được sử dụng"
 msgid "Invalid asset type. Only `{asset_type}` is allowed"
 msgstr "Loại tài sản không hợp lệ. Chỉ cho phép `{asset_type}`"
 
-#: kpi/templates/custom_404.html:7
+#: kpi/templates/custom_404.html:7 kpi/templates/error_page.html:50
 msgid "Page not found (404)"
 msgstr "Không tìm thấy trang (404)"
 
-#: kpi/templates/custom_404.html:10
+#: kpi/templates/custom_404.html:10 kpi/templates/error_page.html:51
 msgid ""
 "This page does not exist on the server. Please check the URL or link that "
 "sent you here."
 msgstr "Trang này không tồn tại trên máy chủ. Vui lòng kiểm tra URL hoặc liên kết bạn đã nhập."
 
-#: kpi/templates/custom_500.html:7
+#: kpi/templates/custom_500.html:7 kpi/templates/error_page.html:47
 msgid "Server error (500)"
 msgstr "Lỗi máy chủ (500)"
 
-#: kpi/templates/custom_500.html:10
+#: kpi/templates/custom_500.html:10 kpi/templates/error_page.html:48
 msgid "Something went wrong when trying to process your request."
 msgstr "Đã xảy ra lỗi khi xử lý yêu cầu của bạn."
 
@@ -3480,7 +3660,7 @@ msgstr "Trang tải xuống Opera"
 msgid "Opera"
 msgstr "Opera"
 
-#: kpi/tests/test_registration.py:73
+#: kpi/tests/test_registration.py:77
 msgid "This email domain is not allowed to create an account"
 msgstr "Tên miền email này không được phép sử dụng để tạo tài khoản"
 
@@ -3559,10 +3739,10 @@ msgstr "Có lỗi xảy ra trong khi chuyển đổi"
 msgid "Conversion is not supported for {}"
 msgstr "Không hỗ trợ chuyển đổi cho {}"
 
-#: kpi/views/v2/data.py:757 kpi/views/v2/data.py:807
+#: kpi/views/v2/data.py:758 kpi/views/v2/data.py:808
 msgid "One or more submission ids are invalid"
 msgstr ""
 
-#: kpi/views/v2/data.py:871
+#: kpi/views/v2/data.py:872
 msgid "A positive integer is required"
 msgstr "Phải có số nguyên dương"

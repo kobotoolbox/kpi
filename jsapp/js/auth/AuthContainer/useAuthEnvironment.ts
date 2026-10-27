@@ -12,6 +12,8 @@ export function useAuthEnvironment() {
     select: (response: environmentRetrieveResponse) => {
       return {
         authConfiguration: response.data.auth_configuration,
+        /** Whether a signup has to agree to the terms */
+        termsOfServiceRequired: response.data.terms_of_service__sitewidemessage__exists,
         termsOfServiceUrl: response.data.terms_of_service_url,
         privacyPolicyUrl: response.data.privacy_policy_url,
         /** Same constance setting allauth's `AccountAdapter.is_open_for_signup()` reads. */

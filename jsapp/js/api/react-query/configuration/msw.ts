@@ -110,6 +110,7 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
   stripe_public_key: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   terms_of_service__sitewidemessage__exists: faker.datatype.boolean(),
   open_rosa_server: faker.internet.url(),
+  limited_count_max_rows: faker.number.int({ min: undefined, max: undefined }),
   ...overrideResponse,
 })
 

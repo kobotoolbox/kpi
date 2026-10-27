@@ -6,11 +6,10 @@ import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { type Canvas, field, findField, findProviderButtons } from '#/auth/authStoryHelpers'
 import { ROOT_URL } from '#/constants'
 import {
+  loginAlreadyAuthenticatedMock,
   loginAuthenticatedMock,
   loginEmailVerificationRequiredMock,
   loginErrorsMock,
-  sessionAnonymousMock,
-  sessionAuthenticatedMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
@@ -33,11 +32,10 @@ const environmentMock = makeEnvironmentMock()
  */
 const storyHandlers = (options?: {
   environment?: RequestHandler
-  session?: RequestHandler
   login?: RequestHandler
 }): RequestHandler[] =>
-  [options?.environment ?? environmentMock, options?.session ?? sessionAnonymousMock(), options?.login].filter(
-    (handler): handler is RequestHandler => Boolean(handler),
+  [options?.environment ?? environmentMock, options?.login].filter((handler): handler is RequestHandler =>
+    Boolean(handler),
   )
 
 /**
@@ -95,8 +93,6 @@ export const Default: Story = {
     // No `social_apps`, so no single sign-on section at all - not an empty divider with nothing under it.
     expect(canvas.queryByText('or')).not.toBeInTheDocument()
     expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'filled')
-
-    expect(canvas.queryByText(/You are logged in as/)).not.toBeInTheDocument()
   },
 }
 
@@ -230,23 +226,18 @@ export const EmailVerificationRequired: Story = {
   },
 }
 
-/** Signed in already: the form stays usable, and logging in as somebody else switches accounts. */
-export const SignedIn: Story = {
-  parameters: {
-    msw: { handlers: storyHandlers({ session: sessionAuthenticatedMock(), login: loginAuthenticatedMock() }) },
-  },
+/** A 409: a session was already in place, which is nobody's mistake and nothing to fix. */
+export const AlreadyLoggedIn: Story = {
+  parameters: { msw: { handlers: storyHandlers({ login: loginAlreadyAuthenticatedMock() }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    onAuthenticated.mockClear()
-
-    await canvas.findByText('You are logged in as sallyride. Logging in with another account will log you out.')
-    // A plain `href`, so the click leaves `/auth` and loads the app
-    const appRoot = `${window.location.origin}/`
-    expect(canvas.getByRole('link', { name: 'Continue as sallyride' })).toHaveAttribute('href', appRoot)
 
     await fillForm(canvas)
     await submit(canvas)
 
-    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
+    await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
+    // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
+    const appRoot = `${window.location.origin}/`
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', appRoot)
   },
 }

@@ -11,6 +11,7 @@ Two parameters can be used to control pagination.
 
 * `start`: Index (zero-based) from which the results start
 * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>
+* `count` in the response is exact up to the server's limit (`limited_count_max_rows` in `/api/v2/environment/`), `"many"` past it, and `"unknown"` when counting takes too long. Use `next` to page through results.
 
 ```shell
 curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
