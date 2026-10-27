@@ -15,22 +15,35 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.xform_fs import XFormInstanceFS
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
 
-# odk
+# Any directory tree works: each `.xml` file that starts with `<?xml` is
+# imported as a submission, and the other files of its folder become its
+# attachments. Blank forms match too, so they are reported as errors.
+
+# Layouts from data collection clients (researched with Claude Opus 5.5)
+#
+# Collect, folder copied from the device
+# Android/data/org.odk.collect.android/files/projects/<project_uuid>
 # ├── forms
-# │   ├── Agriculture_2011_03_18.xml
-# │   ├── Education_2011_03_18.xml
-# │   ├── Health_2011_03_18.xml
-# │   ├── LGA_2011_03_18.xml
-# │   ├── Registration_2011_03_18.xml
-# │   └── Water_2011_03_18.xml
+# │   ├── Water.xml
+# │   └── Water-media
 # ├── instances
-# │   ├── Education_2011_03_18_2011-03-23_11-07-36
-# │   │   ├── 1300878537573.jpg
-# │   │   └── Education_2011_03_18_2011-03-23_11-07-36.xml
-# │   ├── Registration_2011_03_18_2011-03-21_19-33-34
-# │   │   └── Registration_2011_03_18_2011-03-21_19-33-34.xml
-# └── metadata
-#     └── data
+# │   ├── Water_2026-03-23_11-07-36
+# │   │   ├── 1300878537573.jpg
+# │   │   └── Water_2026-03-23_11-07-36.xml
+# │   └── Registration_2026-03-21_19-33-34
+# │       └── Registration_2026-03-21_19-33-34.xml
+# ├── layers
+# ├── metadata
+# └── settings
+#
+# Enketo, zip exported from the queue of records saved offline
+# <form_title>_2026-03-23_12-00-00.zip
+# ├── meta.json
+# ├── <form_title>_2026-03-23_11-07-36
+# │   ├── 1300878537573.jpg
+# │   └── submission.xml
+# └── <form_title>_2026-03-21_19-33-34
+#     └── submission.xml
 
 
 def django_file(path, field_name, content_type):
