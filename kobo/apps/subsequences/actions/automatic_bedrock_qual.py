@@ -62,7 +62,7 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
 
-MAX_IMAGE_SIZE = 3.75e6 * 3/4  # max image size for Bedrock with room for encoding
+MAX_IMAGE_SIZE = 3.75e6 * 3 / 4  # max image size for Bedrock with room for encoding
 
 
 @dataclass
