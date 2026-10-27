@@ -71,7 +71,6 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
     logo_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     supporting_image_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     supporting_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    allow_login_with_username: faker.datatype.boolean(),
   },
   project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -111,6 +110,7 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
   stripe_public_key: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   terms_of_service__sitewidemessage__exists: faker.datatype.boolean(),
   open_rosa_server: faker.internet.url(),
+  limited_count_max_rows: faker.number.int({ min: undefined, max: undefined }),
   ...overrideResponse,
 })
 

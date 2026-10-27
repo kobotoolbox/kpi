@@ -116,6 +116,8 @@ export default function RegisterRoute() {
       >
         <RegisterForm
           socialApps={data?.socialApps}
+          newsletterField={data?.userMetadataFields.find((field) => field.name === 'newsletter_subscription')}
+          isTermsOfServiceRequired={data?.termsOfServiceRequired}
           termsOfServiceUrl={data?.termsOfServiceUrl}
           privacyPolicyUrl={data?.privacyPolicyUrl}
           isConfigurationPending={isPending}

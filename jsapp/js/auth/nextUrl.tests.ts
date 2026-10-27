@@ -117,44 +117,48 @@ describe('getUrlForNextRoute', () => {
 
 describe('goToPage', () => {
   /** Stands in for `window.location`, which jsdom refuses to navigate */
-  const locationAt = (href: string) => ({ href, assign: jest.fn(), reload: jest.fn() })
+  const browserAt = (href: string) => ({
+    location: { href, assign: jest.fn(), reload: jest.fn() },
+    history: { pushState: jest.fn() },
+  })
 
   // `ROOT_URL` is a path, so a `next` destination differs from the login screen by its fragment alone.
   it('asks for the load itself when the destination is another route of this same page', () => {
-    const location = locationAt('https://kf.example.org/#/auth/login?next=%2F%23%2Fprojects%2Fhome')
+    const browser = browserAt('https://kf.example.org/#/auth/login?next=%2F%23%2Fprojects%2Fhome')
 
-    goToPage('/#/projects/home', location)
+    goToPage('/#/projects/home', browser)
 
-    chai.expect(location.assign.mock.calls).to.deep.equal([['/#/projects/home']])
-    chai.expect(location.reload.mock.calls).to.deep.equal([[]])
+    chai.expect(browser.history.pushState.mock.calls).to.deep.equal([[null, '', '/#/projects/home']])
+    chai.expect(browser.location.reload.mock.calls).to.deep.equal([[]])
+    chai.expect(browser.location.assign.mock.calls).to.deep.equal([])
   })
 
   it('does the same under a deployment prefix', () => {
-    const location = locationAt('https://kf.example.org/kpi/#/auth/login')
+    const browser = browserAt('https://kf.example.org/kpi/#/auth/login')
 
-    goToPage('/kpi/#/projects/home', location)
+    goToPage('/kpi/#/projects/home', browser)
 
-    chai.expect(location.assign.mock.calls).to.deep.equal([['/kpi/#/projects/home']])
-    chai.expect(location.reload.mock.calls).to.deep.equal([[]])
+    chai.expect(browser.history.pushState.mock.calls).to.deep.equal([[null, '', '/kpi/#/projects/home']])
+    chai.expect(browser.location.reload.mock.calls).to.deep.equal([[]])
   })
 
   // A second one here would cancel the load the browser is already starting.
   it('asks for no load of its own when leaving for a page with no fragment', () => {
-    const location = locationAt('https://kf.example.org/#/auth/login')
+    const browser = browserAt('https://kf.example.org/#/auth/login')
 
-    goToPage(getUrlForNextRoute(null, UNPREFIXED_ROOT), location)
+    goToPage(getUrlForNextRoute(null, UNPREFIXED_ROOT), browser)
 
-    chai.expect(location.assign.mock.calls).to.deep.equal([['https://kf.example.org/']])
-    chai.expect(location.reload.mock.calls).to.deep.equal([])
+    chai.expect(browser.location.assign.mock.calls).to.deep.equal([['https://kf.example.org/']])
+    chai.expect(browser.location.reload.mock.calls).to.deep.equal([])
   })
 
   it('loads this page again when handed nothing, which is a session that arrived from another tab', () => {
-    const location = locationAt('https://kf.example.org/#/projects/home')
+    const browser = browserAt('https://kf.example.org/#/projects/home')
 
-    goToPage(null, location)
+    goToPage(null, browser)
 
-    chai.expect(location.reload.mock.calls).to.deep.equal([[]])
-    chai.expect(location.assign.mock.calls).to.deep.equal([])
+    chai.expect(browser.location.reload.mock.calls).to.deep.equal([[]])
+    chai.expect(browser.location.assign.mock.calls).to.deep.equal([])
   })
 })
 

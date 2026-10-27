@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
+import type { SocialApp } from '#/api/models/socialApp'
 import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
@@ -352,7 +353,6 @@ export const environmentResponse = {
     logo_url: null,
     supporting_image_url: null,
     supporting_text: '',
-    allow_login_with_username: true,
   },
   project_metadata_fields: [
     {
@@ -442,10 +442,50 @@ export const environmentResponse = {
   stripe_public_key: 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM',
   terms_of_service__sitewidemessage__exists: false,
   open_rosa_server: 'http://kc.kobo.local',
+  limited_count_max_rows: 100000000,
   allow_self_account_deletion: true,
   // `satisfies` rather than a type annotation: still fails the build when the generated model gains
   // or renames a field, but keeps the literal's exact types for anyone reading values off it.
 } satisfies EnvironmentResponse
+
+/**
+ * Four public providers for `social_apps`, one more than the auth screens show. `Example Organization` is
+ * managed and owns `kbtdev.org` addresses.
+ */
+export const socialAppsMock: SocialApp[] = [
+  {
+    provider: 'gitlab',
+    name: 'GitLab',
+    client_id: 'gitlab-client-id',
+    provider_id: 'gitlab-dev',
+    managed: false,
+    domains: [],
+  },
+  {
+    provider: 'openid_connect',
+    name: 'Example Organization',
+    client_id: 'example-client-id',
+    provider_id: 'example-org',
+    managed: true,
+    domains: ['kbtdev.org'],
+  },
+  {
+    provider: 'google',
+    name: 'Google',
+    client_id: 'google-client-id',
+    provider_id: 'google',
+    managed: false,
+    domains: [],
+  },
+  {
+    provider: 'microsoft',
+    name: 'Microsoft',
+    client_id: 'microsoft-client-id',
+    provider_id: 'microsoft',
+    managed: false,
+    domains: [],
+  },
+]
 
 /**
  * Mock API for environment config using Orval-generated handler with production-like data.

@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from kobo.apps.accounts.mfa.tests.utils import get_mfa_code_for_user
+from kobo.apps.accounts.mfa.tests.utils import activate_mfa_for_user
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -24,16 +24,8 @@ class AuthenticationApiTests(BaseAssetTestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
         self.list_url = reverse(self._get_endpoint('asset-list'))
 
-        # Activate MFA for someuser
-        self.client.login(username='someuser', password='someuser')
-        self.client.post(reverse('mfa-activate', kwargs={'method': 'app'}))
-        code = get_mfa_code_for_user(self.someuser)
-        self.client.post(
-            reverse('mfa-confirm', kwargs={'method': 'app'}), data={'code': str(code)}
-        )
-
-        # Ensure `self.client` is not authenticated
-        self.client.logout()
+        # Activate MFA for someuser; leaves `self.client` unauthenticated
+        activate_mfa_for_user(self.client, self.someuser)
 
     def test_token_authentication_with_mfa_enabled(self):
         token, _ = Token.objects.get_or_create(user=self.someuser)

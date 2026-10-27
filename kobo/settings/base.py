@@ -111,6 +111,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
     'allauth.mfa',
+    'allauth.headless',
     'hub.HubAppConfig',
     'import_export',
     'import_export_celery',
@@ -198,6 +199,13 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `django.conf.settings.THE_SETTING`
 
 CONSTANCE_CONFIG = {
+    # Temporary?: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+    # server-side calls (form, manifest, media, submissions) stay inside the cluster
+    'ENKETO_USE_INTERNAL_OPENROSA_URL': (
+        env.bool('CONSTANCE_ENKETO_USE_INTERNAL_OPENROSA_URL', False),
+        'Save the internal domain name instead of the public one as the '
+        'OpenRosa server URL in Enketo',
+    ),
     'REGISTRATION_OPEN': (
         True,
         'Allow new users to register accounts for themselves',
@@ -813,6 +821,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
         'USER_REPORTS_PAGE_SIZE_LIMIT',
+        'ENKETO_USE_INTERNAL_OPENROSA_URL',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1001,6 +1010,16 @@ DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
 # Maximum page size for API responses. Currently applies to submission lists only,
 # but will likely be extended to all endpoints in the future
 MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
+# Capped API list counts (`LimitedCountPagination` and the MongoDB submission
+# list count): stop counting rows past this limit and report 'many' instead.
+# The high default keeps the feature inert until it is deliberately lowered
+# (DEV-2781).
+API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 100_000_000)
+# Timeout applied to the capped count query alone (env var in seconds, stored
+# in milliseconds): the Postgres statement_timeout, or the MongoDB maxTimeMS
+# for submission counts. On expiry the count is reported as 'unknown'. 0
+# disables it, leaving only the connection-wide timeouts (DEV-1705).
+API_LIMITED_COUNT_TIMEOUT = env.int('API_LIMITED_COUNT_TIMEOUT', 0) * 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1437,6 +1456,7 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
+ENKETO_TIMEOUT = 5  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1867,6 +1887,8 @@ ACCOUNT_FORMS = {
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+# Accounts can share an email, so login stays username-only: allauth rejects
+# `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True

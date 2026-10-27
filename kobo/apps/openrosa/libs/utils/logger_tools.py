@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import hashlib
 import logging
 import os
@@ -99,8 +100,12 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
-from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.utils.files import normalize_nfc
+from kpi.utils.form_versions import (
+    get_collected_version_uid,
+    load_deployed_version_ids,
+    version_uid_regex,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -118,67 +123,90 @@ uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
 
 mongo_instances = settings.MONGO_DB.instances
 
-# A KPI `AssetVersion` uid: the `v` prefix of its `KpiUidField`, then exactly
-# `UUID_LENGTH` characters from `shortuuid`'s alphabet, which is alphanumeric.
-# Anything else is discarded rather than written back into the document
-version_uid_regex = re.compile(rf'^v[A-Za-z0-9]{{{UUID_LENGTH}}}$')
-
 
 def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -> str:
     """
-    Tag the submission with every form version it has been through.
+    Write to `meta/formVersions` the versions of the form whose fields the
+    submission's answers belong to, oldest first, as a space-separated list.
+    That is where the fields of a submission are looked up.
 
-    A submission spans more than one version in two situations:
-    - it is edited, through Enketo or through a bulk edit, while a newer
-      version of the form is deployed;
-    - it is collected offline with an older version and sent only after a
-      newer one has been deployed.
+    - A new submission records the version that it was collected with, when that is
+      not the deployed one, i.e. it was collected offline and sent once a newer
+      version was deployed. The deployed version is left out: none of the
+      answers were given against it.
+    - An edit records the history of the record being edited, the version that it
+      was collected with, the version that the incoming XML declares, and the
+      deployed version, since a bulk edit keeps the old `__version__` while
+      writing answers that the deployed form asks for.
 
-    The versions are written to `meta/formVersions` as a space-separated list,
-    oldest first. `__version__` is left untouched. When there is nothing to
-    record, which is the case for the vast majority of submissions, the XML is
+    `__version__` is left untouched. When the deployed version alone describes
+    the submission, which is the case for the vast majority of them, the XML is
     returned unchanged so that it keeps the exact bytes the client sent.
 
     `previous_xml` is the submission being edited, and it is the only source of
     history: what the incoming XML claims under `meta/formVersions` is
-    discarded, since a client could otherwise drop the versions it has really
+    discarded, since a client could otherwise drop the versions that it has really
     been through. A new submission passes `None` and starts from nothing.
+
+    The version that a submission was collected with is read by
+    `get_collected_version_uid()`. It is `__version__` for a recent one, and
+    the asset's versions are only loaded for an old one, which may name its
+    version under other nodes, by a reversion id or by an alias.
 
     The node is read through `ElementTree` but written textually, so that
     `strip_form_versions()` gives the client payload back byte for byte and
     `xml_hash` keeps identifying what was actually submitted.
+
+    A version already in the history is never removed.
     """
 
     deployed_version_uid = xform.deployed_version_uid
+    # Loaded once at most, and only for a submission old enough to need it
+    load_version_ids = functools.cache(
+        lambda: load_deployed_version_ids(xform.kpi_asset_uid)
+    )
 
     xml_parsed = fromstring_preserve_root_xmlns(xml)
-    _, submission_version = _get_form_versions(xml_parsed)
+    submission_version = get_collected_version_uid(xml_parsed, load_version_ids)
 
     form_versions = []
     if previous_xml is not None:
         # 1) Retrieve every version the record being edited has already been through…
         # Don't trust what the client sent, retrieve form versions from previous version
-        form_versions, previous_version = _get_form_versions(
-            fromstring_preserve_root_xmlns(previous_xml)
+        previous_xml_parsed = fromstring_preserve_root_xmlns(previous_xml)
+        form_versions, _ = _get_form_versions(previous_xml_parsed)
+        previous_version = get_collected_version_uid(
+            previous_xml_parsed, load_version_ids
         )
         if previous_version and previous_version not in form_versions:
             # `meta/formVersions` is absent from a record that only ever knew
-            # one version, so its `__version__` is the only trace of it
+            # one version, so the version that it was collected with is the only
+            # trace of it
             form_versions.append(previous_version)
 
     if submission_version and submission_version not in form_versions:
-        # 2) … then, the version the client says it collected with
+        # 2) … then, the version that the client says it collected with
         form_versions.append(submission_version)
 
-    if deployed_version_uid and deployed_version_uid not in form_versions:
-        # 3) … and last, the version deployed when the submission arrived. A
-        # form we cannot place has none, which is a reason to add nothing,
-        # never a reason to drop the history above
+    if (
+        previous_xml is not None
+        and deployed_version_uid
+        and deployed_version_uid not in form_versions
+    ):
+        # 3) … and last, on an edit, the version deployed when it arrived: a
+        # bulk edit keeps the old `__version__` while writing answers the
+        # deployed form asks for. A new submission collected offline gave none
+        # of its answers against it, so it is left out. A form we cannot place
+        # has none, which is a reason to add nothing, never a reason to drop
+        # the history above
         form_versions.append(deployed_version_uid)
 
-    if len(form_versions) < 2:
-        # A single version, so nothing worth recording. Stripping also clears a
-        # node the client made up, or one inherited by `duplicate_submission()`
+    if len(form_versions) < 2 and (
+        not deployed_version_uid or form_versions in ([], [deployed_version_uid])
+    ):
+        # Only the deployed version, or no way to tell it apart, so nothing
+        # worth recording. Stripping also clears a node that the client made up, or
+        # one inherited by `duplicate_submission()`
         return strip_form_versions(xml)
 
     form_versions_text = ' '.join(form_versions)

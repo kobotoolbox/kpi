@@ -47,13 +47,6 @@ class AuthConfigurationSerializer(serializers.Serializer):
             'localized for the request language. Empty when unset'
         ),
     )
-    allow_login_with_username = serializers.BooleanField(
-        help_text=(
-            'Whether this server accepts a username at sign-in. Reflects the '
-            'login methods the server is configured with, so the sign-in form '
-            'never offers a credential the server would reject'
-        )
-    )
 
 
 class SocialAppSerializer(serializers.Serializer):
@@ -159,3 +152,10 @@ class EnvironmentResponseSerializer(serializers.Serializer):
 
     # Static configurations
     open_rosa_server = serializers.URLField(help_text='The OpenRosa server URL (KC)')
+    limited_count_max_rows = serializers.IntegerField(
+        help_text=(
+            'Row limit past which paginated endpoints using capped counting '
+            "report `count: 'many'`. Clients can label such counts as "
+            '"{limit}+"'
+        )
+    )

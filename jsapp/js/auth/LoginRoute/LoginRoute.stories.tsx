@@ -1,22 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { http, HttpResponse } from 'msw'
 import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
-import type { SocialApp } from '#/api/models/socialApp'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
-import { type Canvas, field } from '#/auth/authStoryHelpers'
+import { type Canvas, field, findField, findProviderButtons } from '#/auth/authStoryHelpers'
 import { ROOT_URL } from '#/constants'
 import {
-  LOGIN_URL,
-  allauthConfigurationMock,
-  allauthConfigurationServerErrorMock,
   loginAlreadyAuthenticatedMock,
+  loginAuthenticatedMock,
   loginEmailVerificationRequiredMock,
   loginErrorsMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
-import { makeEnvironmentMock } from '#/endpoints/environment.mocks'
+import { makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
@@ -30,60 +26,17 @@ const CREDENTIALS = {
 
 const environmentMock = makeEnvironmentMock()
 
-/** Two public providers, as `/environment` lists them, with `provider_id` set as an instance would set it. */
-const socialApps: SocialApp[] = [
-  {
-    provider: 'gitlab',
-    name: 'GitLab',
-    client_id: 'gitlab-client-id',
-    provider_id: 'gitlab-dev',
-    managed: false,
-    domains: [],
-  },
-  {
-    provider: 'openid_connect',
-    name: 'Example Organization',
-    client_id: 'example-client-id',
-    provider_id: 'example-org',
-    managed: true,
-    domains: ['kbtdev.org'],
-  },
-]
-
-/** Where {@link loginRecordingMock} leaves the body it saw, for a story to check the keys of. */
-let postedCredentials: unknown = null
-
-/**
- * A successful sign-in that keeps the request body first: which key the credential went under is the whole
- * point of the email-only story, and it is invisible from the rendered output.
- */
-const loginRecordingMock = () =>
-  http.post(LOGIN_URL, async ({ request }) => {
-    postedCredentials = await request.json()
-    return HttpResponse.json({
-      status: 200,
-      data: {
-        user: { id: 1, display: 'someone', username: 'someone', email: CREDENTIALS.email, has_usable_password: true },
-        methods: [],
-      },
-      meta: { is_authenticated: true },
-    })
-  })
-
 /**
  * Storybook replaces the handler array rather than merging it, so overriding one handler means restating
- * the rest. `configuration` is allauth's, and decides which credential the form asks for.
+ * the rest.
  */
 const storyHandlers = (options?: {
   environment?: RequestHandler
-  configuration?: RequestHandler
   login?: RequestHandler
 }): RequestHandler[] =>
-  [
-    options?.environment ?? environmentMock,
-    options?.configuration ?? allauthConfigurationMock(['username']),
-    options?.login,
-  ].filter((handler): handler is RequestHandler => Boolean(handler))
+  [options?.environment ?? environmentMock, options?.login].filter((handler): handler is RequestHandler =>
+    Boolean(handler),
+  )
 
 /**
  * Stands in for the page load that a real success ends with. A navigation would take the test runner with
@@ -118,19 +71,11 @@ const meta: Meta<typeof AuthContainer> = {
 export default meta
 type Story = StoryObj<typeof AuthContainer>
 
-/**
- * Resolves once allauth's settings have settled one way or the other: the button spins until they have, so
- * nobody posts a credential under a key the server does not read.
- */
-const waitForConfiguration = (canvas: Canvas) =>
-  waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
-
 const submit = (canvas: Canvas) => userEvent.click(canvas.getByRole('button', { name: 'Log in' }))
 
-/** Fills both fields with something the client accepts. `label` is whichever credential is on offer. */
-async function fillForm(canvas: Canvas, { label = 'Username', identifier = CREDENTIALS.username } = {}) {
-  await waitForConfiguration(canvas)
-  await userEvent.type(field(canvas, label), identifier)
+/** Fills both fields with something the client accepts */
+async function fillForm(canvas: Canvas) {
+  await userEvent.type(await findField(canvas, 'Username'), CREDENTIALS.username)
   await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
 }
 
@@ -139,10 +84,7 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    await waitForConfiguration(canvas)
-
-    expect(field(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
-    expect(canvas.queryByLabelText(/^Email/)).not.toBeInTheDocument()
+    expect(await findField(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
 
     // Both router links, so neither recovery nor signing up reloads the page.
     expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
@@ -150,22 +92,55 @@ export const Default: Story = {
 
     // No `social_apps`, so no single sign-on section at all - not an empty divider with nothing under it.
     expect(canvas.queryByText('or')).not.toBeInTheDocument()
+    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'filled')
   },
 }
 
-/** A server with single sign-on configured: one button per public provider, under the credentials. */
+let postedCredentials: unknown = null
+
+/** The happy path. allauth reads only `username` and `password`, and a stray space would fail the lookup. */
+export const LoggedIn: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        login: loginAuthenticatedMock((body) => {
+          postedCredentials = body
+        }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+    postedCredentials = null
+
+    await userEvent.type(await findField(canvas, 'Username'), `  ${CREDENTIALS.username}  `)
+    await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
+    await submit(canvas)
+
+    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
+    expect(postedCredentials).toEqual({ username: CREDENTIALS.username, password: CREDENTIALS.password })
+  },
+}
+
+/** A server with single sign-on configured: up to three provider buttons, above the credentials. */
 export const SingleSignOnProviders: Story = {
-  parameters: { msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialApps }) }) } },
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialAppsMock }) }) },
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // `findBy`, not `getBy`: the buttons arrive with `/environment` rather than with the form.
-    const gitlabButton = await canvas.findByRole('button', { name: 'Log in with GitLab' })
-    await canvas.findByRole('button', { name: 'Log in with Example Organization' })
-    // Separated from the credentials, which still work. Waited for rather than asserted: the providers come
-    // from `/environment` and the credential from allauth's settings, so either request may land first.
-    await canvas.findByText('or')
-    await waitForConfiguration(canvas)
+    const gitlabButton = await findProviderButtons(canvas)
+
+    // Buttons, then the divider, then the form
+    const divider = canvas.getByText('or')
+    const heading = canvas.getByRole('heading', { level: 1, name: 'Log in or create an account' })
+    expect(gitlabButton.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(divider.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // SSO is primary here, so the form's button steps down
+    expect(gitlabButton).toHaveAttribute('data-variant', 'filled')
+    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'light')
 
     // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
     // `provider_id`, not its `provider` kind.
@@ -175,87 +150,13 @@ export const SingleSignOnProviders: Story = {
   },
 }
 
-/**
- * `ACCOUNT_LOGIN_METHODS = {'email'}`: the field asks for an address and - invisible on screen - posts it
- * as `email`. allauth's `LoginInput` has no `username` field on such a server, so the other key earns a 400.
- */
-export const EmailOnlyServer: Story = {
-  parameters: {
-    msw: {
-      handlers: storyHandlers({ configuration: allauthConfigurationMock(['email']), login: loginRecordingMock() }),
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    onAuthenticated.mockClear()
-    postedCredentials = null
-
-    // `findBy`, not `getBy`: the field starts out asking for a username and switches once the response lands.
-    await canvas.findByLabelText(/^Email/)
-    expect(canvas.queryByLabelText(/^Username/)).not.toBeInTheDocument()
-
-    await fillForm(canvas, { label: 'Email', identifier: CREDENTIALS.email })
-    await submit(canvas)
-
-    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
-    expect(postedCredentials).toEqual({ email: CREDENTIALS.email, password: CREDENTIALS.password })
-  },
-}
-
-/**
- * `ACCOUNT_LOGIN_METHODS = {'username', 'email'}`: both are a way in, and the label has to say so. The
- * address still posts as `username`, which allauth resolves by address first on such a server.
- */
-export const UsernameOrEmailServer: Story = {
-  parameters: {
-    msw: {
-      handlers: storyHandlers({
-        configuration: allauthConfigurationMock(['username', 'email']),
-        login: loginRecordingMock(),
-      }),
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    onAuthenticated.mockClear()
-    postedCredentials = null
-
-    await canvas.findByLabelText(/^Username or email address/)
-    // Not `type='email'`: the browser would refuse the username half.
-    expect(field(canvas, 'Username or email address')).toHaveAttribute('type', 'text')
-
-    await fillForm(canvas, { label: 'Username or email address', identifier: CREDENTIALS.email })
-    await submit(canvas)
-
-    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
-    expect(postedCredentials).toEqual({ username: CREDENTIALS.email, password: CREDENTIALS.password })
-  },
-}
-
-/**
- * allauth's settings never arrived, so there is no telling which credential this server takes. The form
- * stays away rather than guessing at the field name.
- */
-export const ConfigurationUnavailable: Story = {
-  parameters: { msw: { handlers: storyHandlers({ configuration: allauthConfigurationServerErrorMock() }) } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    await canvas.findByRole('heading', { level: 1, name: 'Logging in is temporarily unavailable' })
-    expect(canvas.getByRole('button', { name: 'Retry' })).toBeEnabled()
-
-    // No form at all, rather than one that cannot work.
-    expect(canvas.queryByLabelText(/^Password/)).not.toBeInTheDocument()
-  },
-}
-
 /** Nothing filled in, form submitted - both fields show errors and nothing is sent. */
 export const ClientValidation: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     onAuthenticated.mockClear()
 
-    await waitForConfiguration(canvas)
+    await findField(canvas, 'Username')
     await submit(canvas)
 
     // The rule itself is unit tested in `authValidation.tests`
@@ -264,11 +165,7 @@ export const ClientValidation: Story = {
   },
 }
 
-/**
- * Both kinds of rejection at once, and the reason the credential input is called `identifier`: allauth
- * names the field `username`, which no input here answers to, so the error has to be moved across or it
- * would never be seen. What was typed stays where it is, so a second attempt costs one field.
- */
+/** Both kinds of rejection at once. What was typed stays, so a second attempt costs one field. */
 export const ServerErrors: Story = {
   parameters: {
     msw: {
@@ -287,7 +184,7 @@ export const ServerErrors: Story = {
     await fillForm(canvas)
     await submit(canvas)
 
-    // Field error - under the credential input, having arrived named for a field that is not there.
+    // Field error - under the username input
     await canvas.findByText('No account goes by that name.')
     // General error - above the form
     await canvas.findByText('Too many failed login attempts. Try again later.')
@@ -298,46 +195,10 @@ export const ServerErrors: Story = {
 }
 
 /**
- * The right password on an account whose address was never confirmed: a 401 with a pending `verify_email`
- * flow, and no new email - KPI's `AccountAdapter` declines that on headless logins, so the panel has to
- * offer a link rather than announce one. The address is known because this server signs in by address.
+ * Right password, unconfirmed address. allauth doesn't say which address the account uses, so the resend asks
+ * for one.
  */
 export const EmailVerificationRequired: Story = {
-  parameters: {
-    msw: {
-      handlers: storyHandlers({
-        configuration: allauthConfigurationMock(['email']),
-        login: loginEmailVerificationRequiredMock(),
-      }).concat(emailConfirmationRequestedMock()),
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    onAuthenticated.mockClear()
-
-    await canvas.findByLabelText(/^Email/)
-    await fillForm(canvas, { label: 'Email', identifier: CREDENTIALS.email })
-    await submit(canvas)
-
-    await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
-    // The address it went to, so nobody has to type it again to ask for another link.
-    await canvas.findByText(CREDENTIALS.email)
-    expect(onAuthenticated).not.toHaveBeenCalled()
-
-    // And that offer works, for a link that went astray or expired while it sat in an inbox.
-    await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
-    // Reported as a request, not a delivery - the endpoint answers 200 even when the mail could not go out.
-    await canvas.findByText(/A new link has been requested/)
-    // So the offer stays, rather than dead-ending on a link that never arrives.
-    expect(canvas.getByRole('button', { name: 'Request new link' })).toBeEnabled()
-  },
-}
-
-/**
- * The same unconfirmed account reached with a username, where allauth never says which address the account
- * uses - so asking for a new link starts by asking for the address.
- */
-export const EmailVerificationRequiredWithoutAddress: Story = {
   parameters: {
     msw: {
       handlers: storyHandlers({ login: loginEmailVerificationRequiredMock() }).concat(emailConfirmationRequestedMock()),

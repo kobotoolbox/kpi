@@ -9,24 +9,35 @@ import { getProviderCallbackUrl } from './providerRedirect'
 export interface ProviderRedirectButtonProps extends ButtonProps {
   /** `provider_id` of the `SocialApp` to hand the browser over to. */
   providerId: string
+  /**
+   * What allauth does with the provider account it gets back - `login` (signup too) creates the account, `connect`
+   * attaches it to the account already signed in.
+   */
+  process?: Process
+  /** Where allauth returns the browser. Defaults to the screen that finishes a sign-on login. */
+  callbackUrl?: string
   children: React.ReactNode
 }
 
-/**
- * Starts a single sign-on handshake: a real form POST to allauth's provider redirect endpoint.
- *
- * A native form rather than the generated mutation hook on purpose: allauth answers with a 302 to the
- * provider, which `fetch` would follow cross-origin, leaving the browser sitting here.
- */
-export default function ProviderRedirectButton({ providerId, children, ...buttonProps }: ProviderRedirectButtonProps) {
+/** Starts a single sign-on handshake. */
+export default function ProviderRedirectButton({
+  providerId,
+  process = Process.login,
+  callbackUrl,
+  children,
+  ...buttonProps
+}: ProviderRedirectButtonProps) {
   const { search } = useLocation()
 
   return (
     <form method='post' action={`${ROOT_URL}${getAllauthBrowserV1AuthProviderRedirectPostUrl()}`}>
       <input type='hidden' name='provider' value={providerId} />
-      <input type='hidden' name='callback_url' value={getProviderCallbackUrl(window.location.search, search)} />
-      {/* `login` covers signing up too: allauth creates the account when the provider account is new. */}
-      <input type='hidden' name='process' value={Process.login} />
+      <input
+        type='hidden'
+        name='callback_url'
+        value={callbackUrl ?? getProviderCallbackUrl(window.location.search, search)}
+      />
+      <input type='hidden' name='process' value={process} />
       {/* In the body, not the `X-CSRFToken` header a native form submit cannot set. Django reads either. */}
       <input type='hidden' name='csrfmiddlewaretoken' value={getCsrfToken() ?? ''} />
 

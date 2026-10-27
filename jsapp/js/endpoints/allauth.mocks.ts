@@ -1,6 +1,6 @@
 import { http, HttpResponse, delay } from 'msw'
-import type { AccountConfigurationLoginMethodsItem } from '#/api/models/accountConfigurationLoginMethodsItem'
 import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsItem'
+import type { ProviderAccount } from '#/api/models/providerAccount'
 
 /**
  * Hand written msw handlers for allauth's headless endpoints. The generated ones answer 200 with faker data, and every
@@ -9,7 +9,6 @@ import type { ErrorResponseErrorsItem } from '#/api/models/errorResponseErrorsIt
 
 const SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/signup'
 const EMAIL_VERIFY_URL = '*/api/v2/allauth/browser/v1/auth/email/verify'
-const CONFIG_URL = '*/api/v2/allauth/browser/v1/config'
 /** `GET` asks who is signed in, `DELETE` logs them out */
 export const SESSION_URL = '*/api/v2/allauth/browser/v1/auth/session'
 /** Exported so a story can put its own handler here and inspect the credentials the form posted. */
@@ -22,27 +21,8 @@ export const PASSWORD_REQUEST_URL = '*/api/v2/allauth/browser/v1/auth/password/r
 export const PASSWORD_RESET_URL = '*/api/v2/allauth/browser/v1/auth/password/reset'
 /** `GET` asks what the provider gave us, `POST` fills in the rest */
 export const PROVIDER_SIGNUP_URL = '*/api/v2/allauth/browser/v1/auth/provider/signup'
-
-/** allauth's own settings. The default `loginMethods` matches an instance that left `ACCOUNT_LOGIN_METHODS` alone. */
-export const allauthConfigurationMock = (loginMethods: AccountConfigurationLoginMethodsItem[] = ['username']) =>
-  http.get(CONFIG_URL, () =>
-    HttpResponse.json({
-      status: 200,
-      data: {
-        account: {
-          login_methods: loginMethods,
-          is_open_for_signup: true,
-          email_verification_by_code_enabled: false,
-          login_by_code_enabled: false,
-          password_reset_by_code_enabled: false,
-        },
-      },
-    }),
-  )
-
-/** The settings never arriving, so the form has no credential it can safely ask for. */
-export const allauthConfigurationServerErrorMock = () =>
-  http.get(CONFIG_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+/** `GET` lists the provider accounts connected to this user, `DELETE` disconnects one */
+const ACCOUNT_PROVIDERS_URL = '*/api/v2/allauth/browser/v1/account/providers'
 
 /**
  * A successful signup under `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default: 401, since the  new account
@@ -104,10 +84,14 @@ export const signupClosedMock = () => http.post(SIGNUP_URL, () => HttpResponse.j
 export const signupServerErrorMock = () =>
   http.post(SIGNUP_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
-/** A sign-in allauth was happy with: the session exists, and the form may leave `/auth`. */
-export const loginAuthenticatedMock = () =>
-  http.post(LOGIN_URL, () =>
-    HttpResponse.json({
+/**
+ * A sign-in allauth was happy with: the session exists, and the form may leave `/auth`. `onBody` gets the posted
+ * JSON, since the field names never show on screen.
+ */
+export const loginAuthenticatedMock = (onBody?: (body: unknown) => void) =>
+  http.post(LOGIN_URL, async ({ request }) => {
+    onBody?.(await request.json())
+    return HttpResponse.json({
       status: 200,
       data: {
         user: {
@@ -120,8 +104,8 @@ export const loginAuthenticatedMock = () =>
         methods: [{ method: 'password', at: 1700000000, username: 'sallyride' }],
       },
       meta: { is_authenticated: true },
-    }),
-  )
+    })
+  })
 
 /** A rejected sign-in */
 export const loginErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
@@ -220,6 +204,10 @@ export const logoutNeverAnswersMock = () =>
   http.delete(SESSION_URL, async () => {
     await delay('infinite')
   })
+
+/** A logout that fails */
+export const logoutServerErrorMock = () =>
+  http.delete(SESSION_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
 
 /** Nobody is signed in. allauth reports that as a 401 carrying the flows that could get you there. */
 export const sessionAnonymousMock = () =>
@@ -354,6 +342,21 @@ export const passwordResetDoneAndSignedInMock = () =>
 export const passwordResetErrorsMock = (errors: ErrorResponseErrorsItem[]) =>
   http.post(PASSWORD_RESET_URL, () => HttpResponse.json({ status: 400, errors }, { status: 400 }))
 
+/**
+ * A provider account as allauth reports it. `providerId` is the `SocialApp`'s `provider_id`, which is what a
+ * disconnect has to send back.
+ */
+export const providerAccountMock = ({
+  providerId = 'example-org',
+  providerName = 'Example Organization',
+  uid = 'provider-account-uid',
+  display = 'sallyride@nasa.com',
+}: Partial<{ providerId: string; providerName: string; uid: string; display: string }> = {}): ProviderAccount => ({
+  uid,
+  display,
+  provider: { id: providerId, name: providerName, flows: ['provider_redirect'] },
+})
+
 interface PendingProviderSignupOptions {
   /** allauth's `display`: "a name derived from the third-party provider account data". */
   display?: string
@@ -380,11 +383,7 @@ export const providerSignupPendingMock = ({
       status: 200,
       data: {
         email: [{ email, primary: true, verified: false }],
-        account: {
-          uid: 'provider-account-uid',
-          display,
-          provider: { id: 'example-org', name: providerName, flows: ['provider_redirect'] },
-        },
+        account: providerAccountMock({ providerName, display }),
         user: { display, username, has_usable_password: false },
       },
     }),
@@ -449,3 +448,23 @@ export const providerSignupNeverAnswersMock = () =>
 /** The flow went away between loading the form and submitting it. */
 export const providerSignupFlowExpiredMock = () =>
   http.post(PROVIDER_SIGNUP_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
+
+/** The provider accounts connected to the current user. Pass `[]` for an account with no SSO. */
+export const accountProvidersMock = (accounts: ProviderAccount[]) =>
+  http.get(ACCOUNT_PROVIDERS_URL, () => HttpResponse.json({ status: 200, data: accounts }))
+
+/** The connection lookup breaking, leaving "is anything connected?" unanswered rather than answered with a no. */
+export const accountProvidersServerErrorMock = () =>
+  http.get(ACCOUNT_PROVIDERS_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
+/** allauth refusing to remove a connection. The section writes its own copy from `code`, so `message` is filler. */
+export const accountProvidersDisconnectRefusedMock = (code: string, message = 'allauth refused.') =>
+  http.delete(ACCOUNT_PROVIDERS_URL, () =>
+    HttpResponse.json({ status: 400, errors: [{ code, message }] }, { status: 400 }),
+  )
+
+/** A connection lookup that never answers, so the section stays in its loading state. */
+export const accountProvidersNeverAnswersMock = () =>
+  http.get(ACCOUNT_PROVIDERS_URL, async () => {
+    await delay('infinite')
+  })
