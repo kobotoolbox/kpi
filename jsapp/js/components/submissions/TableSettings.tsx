@@ -1,4 +1,4 @@
-import { Checkbox, Group, Radio, Stack } from '@mantine/core'
+import { Box, Checkbox, Group, Radio, Stack } from '@mantine/core'
 import React from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
 import { DATA_TABLE_SETTINGS } from '#/components/submissions/tableConstants'
@@ -70,6 +70,8 @@ export default function TableSettings(props: TableSettingsProps) {
 
   return (
     <Stack gap='md'>
+      <Box fz='sm'>{t('These settings only apply to you, in this browser.')}</Box>
+
       <Radio.Group
         label={t('Column headers')}
         value={String(translationIndex)}

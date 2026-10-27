@@ -749,26 +749,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       this.props.activeBulkActions,
     )
 
-    let showLabels = this.state.showLabels
-    let showGroupName = this.state.showGroupName
-    let showHXLTags = this.state.showHXLTags
-    let translationIndex = this.state.translationIndex
+    // Getters fall back to defaults, so a reset setting is undone here too.
+    const translationIndex = tableStore.getTranslationIndex()
+    const showLabels = translationIndex > -1
+    const showGroupName = Boolean(tableStore.getShowGroupName())
+    const showHXLTags = Boolean(tableStore.getShowHXLTags())
     const maxPageRes = Math.min(this.state.pageSize, this.state.submissions.length)
-
-    const tableSettings = tableStore.getTableSettings()
-
-    if (tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== undefined) {
-      translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] || 0
-      showLabels = translationIndex > -1
-    }
-
-    if (tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== undefined) {
-      showGroupName = Boolean(tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP])
-    }
-
-    if (tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== undefined) {
-      showHXLTags = Boolean(tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL])
-    }
 
     // Define the columns array.
     // NOTE: we don't sort this list - the data columns are already in the right

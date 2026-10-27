@@ -43,6 +43,18 @@ describe('tableStore', () => {
     chai.expect(tableStore.getFrozenColumn()).to.equal(null)
   })
 
+  it('should keep settings saved by other tabs', () => {
+    // Simulates another tab saving assetB after this one loaded.
+    localStorage.setItem(storageKey, JSON.stringify({ assetB: { [DATA_TABLE_SETTINGS.SHOW_HXL]: true } }))
+
+    tableStore.setSortBy('Name', SortValues.ASCENDING)
+
+    chai.expect(JSON.parse(localStorage.getItem(storageKey) || '')).to.deep.equal({
+      assetA: { [DATA_TABLE_SETTINGS.SORT_BY]: { fieldId: 'Name', value: SortValues.ASCENDING } },
+      assetB: { [DATA_TABLE_SETTINGS.SHOW_HXL]: true },
+    })
+  })
+
   it('should load settings stored under given key', () => {
     const otherKey = `${storageKey}-other`
     localStorage.setItem(otherKey, JSON.stringify({ assetA: { [DATA_TABLE_SETTINGS.SHOW_HXL]: true } }))

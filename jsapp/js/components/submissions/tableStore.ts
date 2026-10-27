@@ -84,6 +84,12 @@ class TableStore extends Reflux.Store {
       return
     }
 
+    // Other tabs may have saved other assets since we loaded, so pick these up
+    // to avoid overwriting them.
+    if (this.storageKey) {
+      this.settingsByAsset = { ...this.settingsByAsset, ...readStoredSettings(this.storageKey) }
+    }
+
     const mergedSettings = { ...this.settingsByAsset[assetUid], ...newTableSettings }
     // `null` means "use default", so there's no point storing it.
     this.settingsByAsset[assetUid] = Object.fromEntries(
