@@ -175,7 +175,8 @@ export default function ProviderSignupForm({
               autoComplete='email'
               key={form.key('email')}
               {...withAuthFieldError(form.getInputProps('email'))}
-              disabled={isEmailLocked}
+              // Not `disabled`, so it stays focusable, copyable and read out by screen readers.
+              readOnly={isEmailLocked}
               required
             />
             <TextInput

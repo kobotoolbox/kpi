@@ -119,9 +119,10 @@ export const Default: Story = {
 
     await waitForForm(canvas)
     // Locked, because the server only accepts the provider's address.
-    expect(field(canvas, 'Email')).toHaveValue(PROVIDER_ACCOUNT.email)
-    expect(field(canvas, 'Email')).toBeDisabled()
-    expect(field(canvas, 'Username')).toBeEnabled()
+    const email = field(canvas, 'Email')
+    await userEvent.type(email, 'x')
+    expect(email).toHaveValue(PROVIDER_ACCOUNT.email)
+    expect(email).toHaveAttribute('readonly')
   },
 }
 
