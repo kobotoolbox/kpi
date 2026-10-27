@@ -14,9 +14,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from ...tests.utils import record_authentication
 
 TOTP_URL = '/api/v2/allauth/browser/v1/account/authenticators/totp'
-RECOVERY_CODES_URL = (
-    '/api/v2/allauth/browser/v1/account/authenticators/recovery-codes'
-)
+RECOVERY_CODES_URL = '/api/v2/allauth/browser/v1/account/authenticators/recovery-codes'
 
 
 @override_config(MFA_ENABLED=True)
