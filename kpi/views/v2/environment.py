@@ -1,5 +1,4 @@
 import constance
-from allauth.account import app_settings as allauth_account_settings
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -275,13 +274,6 @@ class EnvironmentView(APIView):
                 ),
                 'supporting_text': (
                     markdownify(supporting_text) if supporting_text else ''
-                ),
-                # Reported, not configured: follows allauth's accepted
-                # login methods, so the form never offers a credential the
-                # server would reject
-                'allow_login_with_username': (
-                    allauth_account_settings.LoginMethod.USERNAME
-                    in allauth_account_settings.LOGIN_METHODS
                 ),
             }
         }

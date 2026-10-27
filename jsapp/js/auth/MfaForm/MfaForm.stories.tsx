@@ -5,10 +5,9 @@ import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import LoginRoute from '#/auth/LoginRoute/LoginRoute'
-import { type Canvas, field } from '#/auth/authStoryHelpers'
+import { type Canvas, field, findField } from '#/auth/authStoryHelpers'
 import {
   MFA_AUTHENTICATE_URL,
-  allauthConfigurationMock,
   loginMfaRequiredMock,
   mfaErrorsMock,
   mfaFlowExpiredMock,
@@ -46,17 +45,13 @@ const mfaRecordingMock = () =>
   })
 
 /**
- * Storybook replaces the handler array rather than merging it, so every story restates `/environment`,
- * allauth's configuration, and the sign-in that asks for a code - that first step is what puts this form on
- * screen. The configuration only matters to the step before this one, which needs a credential to ask for.
+ * Storybook replaces the handler array rather than merging it, so every story restates `/environment` and
+ * the sign-in that asks for a code - that first step is what puts this form on screen.
  */
 const storyHandlers = (options?: { environment?: RequestHandler; mfa?: RequestHandler }): RequestHandler[] =>
-  [
-    options?.environment ?? environmentMock,
-    allauthConfigurationMock(['username']),
-    loginMfaRequiredMock(),
-    options?.mfa,
-  ].filter((handler): handler is RequestHandler => Boolean(handler))
+  [options?.environment ?? environmentMock, loginMfaRequiredMock(), options?.mfa].filter(
+    (handler): handler is RequestHandler => Boolean(handler),
+  )
 
 const onAuthenticated = fn()
 
@@ -95,9 +90,7 @@ async function reachCodeForm(canvas: Canvas) {
   onAuthenticated.mockClear()
   postedBody = null
 
-  // The login button holds a spinner until `/environment` says which credential this server takes
-  await waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
-  await userEvent.type(field(canvas, 'Username'), CREDENTIALS.username)
+  await userEvent.type(await findField(canvas, 'Username'), CREDENTIALS.username)
   await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
   await userEvent.click(canvas.getByRole('button', { name: 'Log in' }))
 
