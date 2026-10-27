@@ -1,6 +1,6 @@
 import { recordKeys } from '#/utils'
 import type { AccountFieldsValues, UserFieldName } from './account.constants'
-import { MMO_MANAGED_FIELD_NAMES, USER_FIELD_NAMES } from './account.constants'
+import { MMO_MANAGED_FIELD_NAMES } from './account.constants'
 
 /**
  * A blank for every field Frontend knows about. `Required` on purpose: this is the list the other helpers here derive
@@ -23,6 +23,11 @@ export function getInitialAccountFieldsValues(): Required<AccountFieldsValues> {
     linkedin: '',
     instagram: '',
   }
+}
+
+/** Whether a name (for example from a server response) is a known field */
+export function isUserFieldName(name: string): name is UserFieldName {
+  return Object.hasOwn(getInitialAccountFieldsValues(), name)
 }
 
 /**
@@ -72,5 +77,5 @@ export function hasNoOrganizationAffiliation(
   values: Pick<AccountFieldsValues, 'organization_type'>,
   configuredFieldNames: readonly UserFieldName[],
 ): boolean {
-  return configuredFieldNames.includes(USER_FIELD_NAMES.organization_type) && values.organization_type === 'none'
+  return configuredFieldNames.includes('organization_type') && values.organization_type === 'none'
 }

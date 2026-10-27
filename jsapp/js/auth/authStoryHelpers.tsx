@@ -9,6 +9,9 @@ export type Canvas = ReturnType<typeof within>
 /** Finds an input by its label (ignores required marker) */
 export const field = (canvas: Canvas, label: string) => canvas.getByLabelText(new RegExp(`^${label}`))
 
+/** Like {@link field}, but waits for the input to render */
+export const findField = (canvas: Canvas, label: string) => canvas.findByLabelText(new RegExp(`^${label}`))
+
 /** Narrows the card enough to trip its container queries */
 export const narrowViewportDecorator: Decorator = (Story) => <div style={{ width: 400 }}>{Story()}</div>
 

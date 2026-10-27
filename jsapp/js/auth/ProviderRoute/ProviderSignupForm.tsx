@@ -65,6 +65,9 @@ export default function ProviderSignupForm({
   isConfigurationPending,
   onOutcome,
 }: ProviderSignupFormProps) {
+  // The server rejects any address but the provider's, so only a missing one can be typed in.
+  const isEmailLocked = initialValues.email !== ''
+
   const form = useForm<ProviderSignupFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
@@ -172,6 +175,8 @@ export default function ProviderSignupForm({
               autoComplete='email'
               key={form.key('email')}
               {...withAuthFieldError(form.getInputProps('email'))}
+              // Not `disabled`, so it stays focusable, copyable and read out by screen readers.
+              readOnly={isEmailLocked}
               required
             />
             <TextInput
