@@ -2,10 +2,9 @@ from django.contrib.auth.decorators import user_passes_test
 from django.urls import re_path
 
 from .views import (
-    MarkdownxUploaderImageUploadView,
     MarkdownxUploaderFileContentView,
+    MarkdownxUploaderImageUploadView,
 )
-
 
 urlpatterns = [
     re_path(
