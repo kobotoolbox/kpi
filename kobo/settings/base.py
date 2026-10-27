@@ -14,7 +14,11 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
+from kpi.constants import (
+    AUTH_SERVER_TAG_CHOICES,
+    PERM_DELETE_ASSET,
+    PERM_MANAGE_ASSET,
+)
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
@@ -244,6 +248,13 @@ CONSTANCE_CONFIG = {
         'Show the KoboToolbox logo on the sign-in and account creation pages. '
         'Turn this off to display only the logo uploaded under '
         'Configuration files',
+    ),
+    'AUTH_SERVER_TAG': (
+        '',
+        'Server name tag shown at the top of the sign-in and account creation '
+        'cards. Leave as None on private servers to show the logo uploaded '
+        'under Configuration files instead',
+        'server_tag_choice',
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
@@ -782,6 +793,13 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
+    'server_tag_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': [('', 'None')] + AUTH_SERVER_TAG_CHOICES,
+            'required': False,
+        },
+    ],
     'disabled': [
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
@@ -801,6 +819,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         'SHOW_KOBOTOOLBOX_LOGO',
+        'AUTH_SERVER_TAG',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -1153,6 +1172,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthServerTagEnum': 'kpi.constants.AUTH_SERVER_TAG_CHOICES',
         'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
