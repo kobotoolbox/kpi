@@ -1,11 +1,13 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView
+from markdownx.views import MarkdownifyView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
@@ -98,7 +100,11 @@ urlpatterns = [
     ),
     path('', include('kpi.urls')),
     path('', include('kobo.apps.openrosa.apps.main.urls')),
-    path('markdownx/', include('markdownx.urls')),
+    path(
+        'markdownx/markdownify/',
+        user_passes_test(lambda u: u.is_superuser)(MarkdownifyView.as_view()),
+        name='markdownx_markdownify',
+    ),
     path('markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     path('help/', include('kobo.apps.help.urls')),
 ]
