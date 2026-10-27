@@ -60,7 +60,7 @@ const meta: Meta<typeof EmailSection> = {
   decorators: [
     (Story) => (
       <RequireOrg>
-        {/* The real app mounts this in `BasicLayout`; without it `notify()` output has nowhere to render */}
+        {/* The real app mounts this in `App`; without it `notify()` output has nowhere to render */}
         <ToasterConfig />
         <Story />
       </RequireOrg>

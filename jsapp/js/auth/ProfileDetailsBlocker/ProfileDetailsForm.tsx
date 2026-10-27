@@ -7,7 +7,7 @@ import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
 import { ServerError } from '#/api/ServerError'
 import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
 import { getMeRetrieveQueryKey, useMePartialUpdate } from '#/api/react-query/user-team-organization-usage'
-import { useLogout } from '#/auth/useLogout'
+import { useLogoutAndReload } from '#/auth/useLogout'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import envStore from '#/envStore'
@@ -50,7 +50,7 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
   /** Errors that belong to no single input, shown in a banner above the fields. */
   const [formErrors, setFormErrors] = useState<string[]>([])
 
-  const logout = useLogout()
+  const logout = useLogoutAndReload()
 
   const displayedFieldNames = getEditableProfileFieldNames(fieldsContext)
 
@@ -119,18 +119,8 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
     save.mutate({ data: { extra_details: editedFields } })
   }
 
-  async function handleLogout() {
-    try {
-      await logout.mutateAsync()
-      // Straight to the login screen, and no `next` to bring anyone back to a screen they just left.
-      window.location.replace('')
-    } catch {
-      // Only a 5xx or a dead connection gets here - `fetchAllauth` treats the 401 as the success it is.
-      // Said in the banner rather than left to the default toast, because being stuck on this screen with
-      // no way out is the worst outcome it has.
-      setFormErrors([t('Could not log you out. Please try again later.')])
-    }
-  }
+  // A failed logout goes in the banner too, not a toast - being stuck here is the worst outcome.
+  const bannerErrors = logout.error ? [...formErrors, logout.error] : formErrors
 
   return (
     <Stack gap='xl'>
@@ -145,10 +135,10 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
         </Text>
       </Stack>
 
-      {formErrors.length > 0 && (
+      {bannerErrors.length > 0 && (
         <Alert type='error' iconName='alert'>
           <Stack gap='xxs'>
-            {formErrors.map((message) => (
+            {bannerErrors.map((message) => (
               <Text key={message} inherit>
                 {message}
               </Text>
@@ -186,7 +176,7 @@ export default function ProfileDetailsForm({ initialValues, fieldsContext, onSav
               variant='transparent'
               size='lg'
               fullWidth
-              onClick={handleLogout}
+              onClick={logout.logOut}
               loading={logout.isPending}
               disabled={save.isPending}
             >
