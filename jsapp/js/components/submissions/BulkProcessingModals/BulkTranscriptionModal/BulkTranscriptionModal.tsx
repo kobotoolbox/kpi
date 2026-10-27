@@ -1,4 +1,5 @@
-import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { Anchor, Checkbox, Group, Stack, Text } from '@mantine/core'
+import { IconHelpCircleFilled } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -25,6 +26,7 @@ import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useProfile } from '#/stores/useProfile'
 import { formatTimeFromSeconds, getSubmissionRootUuid, notify } from '#/utils'
+import ActionIcon from '../../../common/ActionIcon'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -59,6 +61,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
+  const [autoAccept, setAutoAccept] = useState(false)
   const queryClient = useQueryClient()
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
@@ -231,6 +234,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         action_id: ActionIdEnum.automatic_google_transcription,
         question_xpath: sourceRowPath,
         submission_uuids: eligibleSubmissionUuids,
+        auto_accept: autoAccept,
         params: {
           language: selectedLanguage!,
           locale: selectedRegion || undefined,
@@ -289,6 +293,22 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               serviceType='transcription'
               onRegionChange={handleRegionChange}
               titleOverride={t('Select a region')}
+            />
+          </Group>
+
+          <Group gap='xs'>
+            <Checkbox
+              checked={autoAccept}
+              onChange={(event) => setAutoAccept(event.currentTarget.checked)}
+              label={t('Automatically approve resulting transcriptions')}
+            />
+            <ActionIcon
+              size='sm'
+              variant='transparent'
+              icon={IconHelpCircleFilled}
+              aria-label={t('About automatic approval')}
+              tooltip={t('All generated transcripts will be approved automatically without requiring manual review')}
+              style={{ cursor: 'default' }}
             />
           </Group>
 
