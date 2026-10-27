@@ -11,6 +11,7 @@ $markdownTable = require './model.utils.markdownTable'
 csv = require './csv'
 LOCKING_PROFILES_PROP_NAME = require('#/components/locking/lockingConstants').LOCKING_PROFILES_PROP_NAME
 txtid = require('#/utils').txtid
+renameQuestionReferences = require('#/components/formBuilder/questionReferences').renameQuestionReferences
 
 module.exports = do ->
   class Survey extends $surveyFragment.SurveyFragment
@@ -150,7 +151,8 @@ module.exports = do ->
     # (e.g. "choose_a_fruit" -> "choose_a_fruit_001").
     # Only call this once the row is inserted - same as `insert_row()` does - so
     # both steps can see the sibling rows they compare against.
-    _ensure_row_name_is_unique: (row)->
+    # Each rename goes into `renames` (old name -> new name).
+    _ensure_row_name_is_unique: (row, renames)->
       name_detail = row.get('name')
       # Score/rank sub-rows keep `name` as a plain string rather than a RowDetail,
       # and never become an XLSForm column of their own
@@ -164,7 +166,31 @@ module.exports = do ->
       # at 30 characters and rewrites characters that are legal in a name but not
       # in a label (a dot, say), mangling names that were already fine.
       if @_is_row_name_taken(name_detail)
+        oldName = name_detail.get('value')
         name_detail.set 'value', name_detail.deduplicate(@)
+        renames[oldName] = name_detail.get('value')
+      return
+
+    # Updates `${name}` references to renamed questions (`${gender}` ->
+    # `${gender_001}`) in all row and choice fields. Parsed skip logic already
+    # follows renames, but plain text like `constraint` or labels doesn't.
+    _rename_row_references: (row, renames)->
+      for own key, detail of row.attributes
+        value = detail?.get?('value')
+        continue unless _.isString(value)
+        renamedValue = renameQuestionReferences(value, renames)
+        continue if renamedValue is value
+        detail.set('value', renamedValue)
+        # `relevant` and `constraint` save from a parsed copy, so re-parse it
+        if detail.facade
+          detail.postInitialize()
+          detail.linkUp()
+
+      # The list is already this copy's own, see `_ensure_row_list_is_copied`
+      if !row.rows && rowlist = row.getList()
+        for option in rowlist.options.models
+          for own key, value of option.attributes when _.isString(value)
+            option.set(key, renameQuestionReferences(value, renames))
       return
 
     # Whether another row already uses this name. Skips the row owning `name_detail`
@@ -219,14 +245,18 @@ module.exports = do ->
             }
           )
 
-          # Name the group and every row inside it, after the insert so each one
-          # sees its new siblings
-          @_ensure_row_name_is_unique(row)
+          blockRows = [row]
           if row.forEachRow
             row.forEachRow(
-              (r) => @_ensure_row_name_is_unique(r),
+              (r) -> blockRows.push(r),
               {includeGroups: true}
             )
+
+          # Name the group and every row inside it, after the insert so each one
+          # sees its new siblings. Then fix references within the block.
+          renames = {}
+          @_ensure_row_name_is_unique(r, renames) for r in blockRows
+          @_rename_row_references(r, renames) for r in blockRows
 
           # Groups don't trigger change events automatically
           @trigger('change')
@@ -241,7 +271,9 @@ module.exports = do ->
             row.toJSON(),
             at: index_incr
           )
-          @_ensure_row_name_is_unique(insertedRow)
+          renames = {}
+          @_ensure_row_name_is_unique(insertedRow, renames)
+          @_rename_row_references(insertedRow, renames)
       return
 
     toFlatJSON: (stringify=false, spaces=4)->
