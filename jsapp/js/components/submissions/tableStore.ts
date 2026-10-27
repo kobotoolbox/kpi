@@ -50,6 +50,8 @@ function readStoredSettings(storageKey: string): TableSettingsByAsset {
 class TableStore extends Reflux.Store {
   private storageKey: string | null = null
   private settingsByAsset: TableSettingsByAsset = {}
+  /** Assets with changes that failed to persist, kept in memory only. */
+  private unsavedAssetUids = new Set<string>()
 
   /** Loads the settings stored under given key and persists future changes there. */
   setStorageKey(storageKey: string) {
@@ -58,6 +60,7 @@ class TableStore extends Reflux.Store {
     }
     this.storageKey = storageKey
     this.settingsByAsset = readStoredSettings(storageKey)
+    this.unsavedAssetUids.clear()
     this.trigger(this.getData())
   }
 
@@ -85,9 +88,12 @@ class TableStore extends Reflux.Store {
     }
 
     // Other tabs may have saved other assets since we loaded, so pick these up
-    // to avoid overwriting them.
+    // to avoid overwriting them. Unsaved changes still win.
     if (this.storageKey) {
-      this.settingsByAsset = { ...this.settingsByAsset, ...readStoredSettings(this.storageKey) }
+      const unsavedSettings = Object.fromEntries(
+        [...this.unsavedAssetUids].map((uid) => [uid, this.settingsByAsset[uid]]),
+      )
+      this.settingsByAsset = { ...this.settingsByAsset, ...readStoredSettings(this.storageKey), ...unsavedSettings }
     }
 
     const mergedSettings = { ...this.settingsByAsset[assetUid], ...newTableSettings }
@@ -99,8 +105,10 @@ class TableStore extends Reflux.Store {
     if (this.storageKey) {
       try {
         localStorage.setItem(this.storageKey, JSON.stringify(this.settingsByAsset))
+        this.unsavedAssetUids.clear()
       } catch {
         // Storage is full or disabled. Settings still work until page reload.
+        this.unsavedAssetUids.add(assetUid)
       }
     }
 

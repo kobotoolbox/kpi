@@ -55,6 +55,20 @@ describe('tableStore', () => {
     })
   })
 
+  it('should keep unsaved changes in memory if storage fails', () => {
+    tableStore.setSortBy('Name', SortValues.ASCENDING)
+    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+
+    tableStore.setSortBy('Age', SortValues.DESCENDING)
+    tableStore.setFrozenColumn('Age', true)
+
+    chai.expect(tableStore.getSortBy()).to.deep.equal({ fieldId: 'Age', value: SortValues.DESCENDING })
+    chai.expect(tableStore.getFrozenColumn()).to.equal('Age')
+    setItemSpy.mockRestore()
+  })
+
   it('should load settings stored under given key', () => {
     const otherKey = `${storageKey}-other`
     localStorage.setItem(otherKey, JSON.stringify({ assetA: { [DATA_TABLE_SETTINGS.SHOW_HXL]: true } }))
