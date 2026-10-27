@@ -1,6 +1,5 @@
 import './table.scss'
 import { Stack } from '@mantine/core'
-import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
 import Markdown from 'react-markdown'
@@ -44,7 +43,6 @@ import TableBulkOptions from '#/components/submissions/tableBulkOptions'
 import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
 import {
   CELLS_WIDTH_OVERRIDES,
-  DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
   SUBMISSION_ACTIONS_ID,
@@ -154,7 +152,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   frozenLeftRef = 0
 
   /** We store it for future checks. */
-  previousOverrides: AssetTableSettings = {}
+  previousTableSettings: AssetTableSettings = {}
 
   private lastRowRefreshErrorNotifiedAt = 0
 
@@ -186,6 +184,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   componentDidMount() {
+    this.previousTableSettings = tableStore.getTableSettings()
     this.unlisteners.push(
       tableStore.listen(this.onTableStoreChange.bind(this), this),
       pageState.listen(this.onPageStateUpdated.bind(this)),
@@ -215,35 +214,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   componentDidUpdate(prevProps: DataTableProps) {
-    let prevSettings = prevProps.asset?.settings?.[DATA_TABLE_SETTING]
-    if (!prevSettings) {
-      prevSettings = {}
-    }
-
-    let newSettings = this.props.asset.settings?.[DATA_TABLE_SETTING]
-    if (!newSettings) {
-      newSettings = {}
-    }
-
     const prevAdditionalFields = prevProps.asset?.analysis_form_json?.additional_fields
     const newAdditionalFields = this.props.asset?.analysis_form_json?.additional_fields
 
     const prevActiveBulkActions = prevProps.activeBulkActions
     const newActiveBulkActions = this.props.activeBulkActions
 
-    // If sort setting changed, we definitely need to get new submissions (which
-    // will rebuild columns)
-    if (
-      JSON.stringify(newSettings[DATA_TABLE_SETTINGS.SORT_BY]) !==
-      JSON.stringify(prevSettings[DATA_TABLE_SETTINGS.SORT_BY])
-    ) {
-      this.refreshSubmissions()
-    } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
-      // If some other table settings changed, we need to fix columns using
-      // existing data, as after `actions.table.updateSettings` resolves,
-      // the props asset is not yet updated
-      this._prepColumns(this.state.submissions)
-    } else if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
+    if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
       // If additional fields have changed, it means that user has added
       // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions)
@@ -772,26 +749,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       this.props.activeBulkActions,
     )
 
-    let showLabels = this.state.showLabels
-    let showGroupName = this.state.showGroupName
-    let showHXLTags = this.state.showHXLTags
-    let translationIndex = this.state.translationIndex
+    // Getters fall back to defaults, so a reset setting is undone here too.
+    const translationIndex = tableStore.getTranslationIndex()
+    const showLabels = translationIndex > -1
+    const showGroupName = Boolean(tableStore.getShowGroupName())
+    const showHXLTags = Boolean(tableStore.getShowHXLTags())
     const maxPageRes = Math.min(this.state.pageSize, this.state.submissions.length)
-
-    const tableSettings = tableStore.getTableSettings()
-
-    if (tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== undefined) {
-      translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] || 0
-      showLabels = translationIndex > -1
-    }
-
-    if (tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== undefined) {
-      showGroupName = Boolean(tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP])
-    }
-
-    if (tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== undefined) {
-      showHXLTags = Boolean(tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL])
-    }
 
     // Define the columns array.
     // NOTE: we don't sort this list - the data columns are already in the right
@@ -1019,26 +982,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onTableStoreChange(newData: TableStoreData) {
-    // Note: closing the table settings modal after a save is owned by the modal
-    // instance itself (see `TableSettings`), so it isn't handled here.
-
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
-      JSON.stringify(this.previousOverrides[DATA_TABLE_SETTINGS.SORT_BY]) !==
-      JSON.stringify(newData.overrides[DATA_TABLE_SETTINGS.SORT_BY])
+      JSON.stringify(this.previousTableSettings[DATA_TABLE_SETTINGS.SORT_BY]) !==
+      JSON.stringify(newData.tableSettings[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions()
-    } else if (!isEqual(this.previousOverrides, newData.overrides)) {
-      // Other overrides (e.g. a hidden or frozen column) only change how existing
+    } else if (!isEqual(this.previousTableSettings, newData.tableSettings)) {
+      // Other settings (e.g. a hidden or frozen column) only change how existing
       // data is presented, so rebuilding the columns is enough.
-      //
-      // For users without `change_asset` this is the only signal available -
-      // nothing is persisted, so `componentDidUpdate` never sees a new asset.
       this._prepColumns(this.state.submissions)
     }
 
-    this.previousOverrides = clonedeep(newData.overrides)
+    this.previousTableSettings = newData.tableSettings
   }
 
   /** Uses `fetchData` but with past instance. */
