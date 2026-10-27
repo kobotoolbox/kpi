@@ -7,11 +7,15 @@ from io import StringIO
 
 from django.conf import settings
 from django.core.management import call_command
+from django.test import Client
 from django.urls import reverse
 
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
 from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.views import bulksubmission
+from kobo.apps.openrosa.apps.logger.views import (
+    bulksubmission,
+    bulksubmission_form,
+)
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.permissions import assign_perm
@@ -158,6 +162,30 @@ class TestImportingDatabase(TestBase):
         assert response.status_code == 200
         assert Instance.objects.filter(xform=self.xform).exists()
 
+    def test_bulk_import_post_without_csrf_token(self):
+        client = self._get_csrf_enforcing_client()
+        url = reverse(bulksubmission, kwargs={'username': self.user.username})
+        with open(BULK_SUBMISSION_ZIP_PATH, 'rb') as zip_file:
+            response = client.post(url, {'zip_submission_file': zip_file})
+        assert response.status_code == 403
+        assert not Instance.objects.exists()
+
+    def test_bulk_import_post_with_csrf_token_from_form(self):
+        client = self._get_csrf_enforcing_client()
+        form_url = reverse(bulksubmission_form, kwargs={'username': self.user.username})
+        assert client.get(form_url).status_code == 200
+        url = reverse(bulksubmission, kwargs={'username': self.user.username})
+        with open(BULK_SUBMISSION_ZIP_PATH, 'rb') as zip_file:
+            response = client.post(
+                url,
+                {
+                    'zip_submission_file': zip_file,
+                    'csrfmiddlewaretoken': client.cookies['csrftoken'].value,
+                },
+            )
+        assert response.status_code == 200
+        assert Instance.objects.filter(xform=self.xform).count() == 2
+
     def test_import_instances_command_from_zip(self):
         self._call_import_instances(BULK_SUBMISSION_ZIP_PATH)
         assert Instance.objects.filter(xform=self.xform).count() == 2
@@ -207,3 +235,8 @@ class TestImportingDatabase(TestBase):
         with zipfile.ZipFile(BULK_SUBMISSION_ZIP_PATH) as zip_file:
             zip_file.extractall(dest_dir)
         return os.path.join(dest_dir, 'bulk_submission', 'odk')
+
+    def _get_csrf_enforcing_client(self):
+        client = Client(enforce_csrf_checks=True)
+        assert client.login(username=self.login_username, password=self.login_password)
+        return client
