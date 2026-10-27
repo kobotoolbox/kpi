@@ -1,7 +1,9 @@
 import base64
 import json
+import math
 from copy import deepcopy
 from dataclasses import dataclass
+from io import BytesIO
 from json import JSONDecodeError
 from typing import Optional
 from xml.sax.saxutils import escape
@@ -12,6 +14,7 @@ from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutErr
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
+from PIL import Image
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
@@ -31,6 +34,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
+    ImageTooLarge,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.prompts import (
@@ -57,6 +61,8 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
+
+MAX_IMAGE_SIZE = 3.75e6  # max image size allowed by Bedrock
 
 
 @dataclass
@@ -173,9 +179,9 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     for a in attachments
                     if a.get('question_xpath') == self.source_question_xpath
                 )
-                with default_storage.open(attachment.get('filename')) as fp:
-                    image_bytes = base64.b64encode(fp.read()).decode('utf-8')
-                    image_mimetype = attachment.get('mimetype')
+                image_bytes = self.format_image_for_llm(attachment)
+                image_mimetype = attachment.get('mimetype')
+
                 return self.construct_image_request(prompt, image_bytes, image_mimetype)
             except (FileNotFoundError, StopIteration):
                 raise AttachmentNotFoundException()
@@ -312,6 +318,46 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 )
             except QuestionAdvancedFeature.DoesNotExist:
                 raise ManualQualNotFound
+
+    def format_image_for_llm(self, attachment_dict: dict) -> str:
+        """
+        Return b64-encoded image, resized if necessary to fit maximum size limits
+        """
+        filename = attachment_dict.get('filename')
+        filesize = default_storage.size(filename)
+        with default_storage.open(filename) as fp:
+            print(f'{MAX_IMAGE_SIZE=}')
+            raw_bytes = fp.read()
+            if filesize > MAX_IMAGE_SIZE:
+                buffer = BytesIO(raw_bytes)
+                with Image.open(buffer) as image:
+                    image_format = image.format
+                    # use sqrt here because the scale factor will be applied
+                    # to both height and width
+                    scale = math.sqrt(MAX_IMAGE_SIZE / filesize)
+                    new_w = max(1, int(image.width * scale))
+                    new_h = max(1, int(image.height * scale))
+                    # LANCZOS is standard for shrinking images while
+                    # maintaining overall quality
+                    resized = image.resize((new_w, new_h), Image.LANCZOS)
+                    outbytes = BytesIO()
+                    resized.save(outbytes, format=image_format)
+                    while (current_size:=outbytes.getbuffer().nbytes) > MAX_IMAGE_SIZE:
+                        if new_w == 1 and new_h == 1:
+                            raise ImageTooLarge
+                        new_w = max(1, new_w // 2)
+                        new_h = max(1, new_h // 2)
+                        resized = resized.resize((new_w, new_h), Image.LANCZOS)
+                        outbytes = BytesIO()
+                        resized.save(outbytes, format=image_format)
+                        if outbytes.getbuffer().nbytes == current_size:
+                            # we've made the image as small as it can go
+                            # and it's still too large
+                            raise ImageTooLarge
+                    image_bytes = base64.b64encode(outbytes.getvalue()).decode('utf-8')
+            else:
+                image_bytes = base64.b64encode(raw_bytes).decode('utf-8')
+        return image_bytes
 
     def get_output_fields(self) -> list[dict]:
         return []
