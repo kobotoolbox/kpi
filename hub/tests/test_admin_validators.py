@@ -1,9 +1,10 @@
+from allauth.mfa.models import Authenticator
 from constance.test import override_config
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from hub.admin.extend_user import validate_superuser_auth
-from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
+from kobo.apps.accounts.mfa.utils import deactivate_mfa
 from kobo.apps.kobo_auth.shortcuts import User
 
 
@@ -34,13 +35,21 @@ class ValidateSuperuserMfaTest(TestCase):
         regular_user = User.objects.create_user(username='regular', password='password')
         self.assertTrue(validate_superuser_auth(regular_user, False))
 
-    def test_superuser_with_inactive_mfa(self):
+    def test_superuser_with_recovery_codes_only(self):
         """
-        If the MFA record exists but is_active is False,
-        it should still be considered invalid for a superuser.
+        Leftover recovery codes without a TOTP authenticator do not count as
+        MFA for a superuser
         """
-        MfaMethodsWrapper.objects.create(user=self.superuser, is_active=False)
+        Authenticator.objects.create(
+            user=self.superuser, type=Authenticator.Type.RECOVERY_CODES, data={}
+        )
         self.assertFalse(validate_superuser_auth(self.superuser, True))
+
+    def test_superuser_with_active_mfa(self):
+        Authenticator.objects.create(
+            user=self.superuser, type=Authenticator.Type.TOTP, data={'secret': 'x'}
+        )
+        self.assertTrue(validate_superuser_auth(self.superuser, True))
 
     @override_config(SUPERUSER_AUTH_ENFORCEMENT=False)
     def test_superuser_with_enforcement_disabled(self):
@@ -54,15 +63,15 @@ class ValidateSuperuserMfaTest(TestCase):
         """
         Ensure a superuser's MFA methods cannot be deleted when enforcement is on
         """
-        mfa_method = MfaMethodsWrapper.objects.create(
-            user=self.superuser, is_active=True
+        Authenticator.objects.create(
+            user=self.superuser, type=Authenticator.Type.TOTP, data={'secret': 'x'}
         )
 
         with self.assertRaises(ValidationError):
-            mfa_method.delete()
+            deactivate_mfa(self.superuser)
 
-        active_mfa_count = MfaMethodsWrapper.objects.filter(
-            user=self.superuser, is_active=True
+        active_mfa_count = Authenticator.objects.filter(
+            user=self.superuser, type=Authenticator.Type.TOTP
         ).count()
         self.assertEqual(active_mfa_count, 1, 'MFA record should still exist')
 
