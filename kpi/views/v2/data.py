@@ -53,12 +53,14 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
+from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
     ObjectDeploymentDoesNotExist,
 )
 from kpi.models import Asset
+from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
@@ -88,6 +90,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
+from kpi.utils.enketo_utils import rewrite_internal_url_to_external
 from kpi.utils.log import logging
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -267,6 +270,7 @@ class DataViewSet(
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
     )
+    pagination_class = DataPagination
     permission_classes = (SubmissionPermission,)
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
@@ -443,9 +447,8 @@ class DataViewSet(
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
     def get_queryset(self):
-        # This method is needed when pagination is activated and renderer is
-        # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
-        # `retrieve()` don't need Django Queryset, we only need return `None`.
+        # Data comes from Mongo, so `list()` and `retrieve()` don't need a
+        # Django queryset, we only need to return `None`.
         return None
 
     def get_renderers(self):
@@ -472,6 +475,14 @@ class DataViewSet(
                 )
             )
 
+        # The paginator owns the window, so `page` and `offset` reach MongoDB
+        # too. One extra row tells `DataPagination` whether a next page exists
+        offset = self.paginator.get_offset(request)
+        if offset is not None:
+            # `None` (no offset, 0 or invalid) keeps the back end's `start`
+            # validation
+            filters['start'] = offset
+        filters['limit'] = self.paginator.get_limit(request) + 1
         try:
             submissions = deployment.get_submissions(
                 request.user,
@@ -487,13 +498,9 @@ class DataViewSet(
                 raise serializers.ValidationError(message)
             logging.warning(message, exc_info=True)
             raise serializers.ValidationError('Unsupported query')
-        # Create a dummy list to let the Paginator do all the calculation
-        # for pagination because it does not need the list of real objects.
-        # It avoids retrieving all the objects from MongoDB
-        dummy_submissions_list = [None] * deployment.current_submission_count
-        page = self.paginate_queryset(dummy_submissions_list)
+        page = self.paginate_queryset(submissions)
         if page is not None:
-            return self.get_paginated_response(submissions)
+            return self.get_paginated_response(page)
 
         return Response(list(submissions))
 
@@ -857,6 +864,8 @@ class DataViewSet(
 
         # Remove `format` from filters. No need to use it
         filters.pop('format', None)
+        # `skip_count` is internal: this endpoint must always return a count
+        filters.pop('skip_count', None)
         # Do not allow requests to retrieve more than `max_limit`
         # submissions at one time only if a limit is explicitly defined.
         if 'limit' in filters:
@@ -1004,29 +1013,34 @@ class DataViewSet(
         )
 
         data = {
-            'server_url': reverse(
-                viewname='assetsnapshot-detail',
-                kwargs={'uid_asset_snapshot': snapshot.uid},
-                request=request,
+            'server_url': to_internal_or_external_url(
+                reverse(
+                    viewname='assetsnapshot-detail',
+                    kwargs={'uid_asset_snapshot': snapshot.uid},
+                    request=request,
+                ),
+                openrosa=False,
             ),
             'instance': xml_tostring(submission_xml_root),
             'instance_id': submission_json['_uuid'],
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
         }
-
         # Add attachments if any.
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
         for attachment in attachments:
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
-            data[key_] = reverse(
-                'attachment-detail',
-                args=(self.asset.uid, submission_id, attachment.uid),
-                request=request,
+            data[key_] = to_internal_or_external_url(
+                reverse(
+                    'attachment-detail',
+                    args=(self.asset.uid, submission_id, attachment.uid),
+                    request=request,
+                ),
+                openrosa=False,
             )
 
         response = requests.post(
-            f'{settings.ENKETO_URL}/{enketo_endpoint}',
+            f'{settings.ENKETO_INTERNAL_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
             auth=(settings.ENKETO_API_KEY, ''),
             data=data
@@ -1050,6 +1064,7 @@ class DataViewSet(
 
         json_response = response.json()
         enketo_url = json_response.get(f'{action_}_url')
+        enketo_url = rewrite_internal_url_to_external(enketo_url)
 
         return Response(
             {

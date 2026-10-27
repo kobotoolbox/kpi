@@ -39,8 +39,12 @@ const PROVIDER_ACCOUNT = {
   providerName: 'Example Organization',
 }
 
-/** Both legal documents configured - the KoboToolbox default, so there is an agreement to tick. */
+/**
+ * The KoboToolbox default: terms published as a sitewide message, which is what requires the agreement, and
+ * a URL for each document, which is what makes the checkbox label clickable.
+ */
 const environmentMock = makeEnvironmentMock({
+  terms_of_service__sitewidemessage__exists: true,
   terms_of_service_url: 'https://kbtdev.org/terms',
   privacy_policy_url: 'https://kbtdev.org/privacy',
 })

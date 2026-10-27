@@ -10,7 +10,7 @@ from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.user_reports.models import BillingAndUsageSnapshotRun
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes, get_distinct_values
 
 
 class DjangoORMHelperTestCase(TestCase):
@@ -305,3 +305,67 @@ class ReturningQuerySetTestCase(TestCase, AssetSubmissionTestMixin):
         assert queryset.delete_returning(['id']) == []
         assert queryset.update_returning(['id'], date_modified=timezone.now()) == []
         assert Attachment.all_objects.filter(pk=self.attachment.pk).exists()
+
+
+class GetDistinctValuesTestCase(TestCase, AssetSubmissionTestMixin):
+
+    def setUp(self):
+        user = User.objects.create(username='owner')
+        # Three projects, the first one holding two attachments
+        self.xform_ids = []
+        for index in range(3):
+            _, xform, instance, _, attachment = self._create_test_asset_and_submission(
+                user=user
+            )
+            self.xform_ids.append(xform.pk)
+            if not index:
+                self.first_attachment = attachment
+                Attachment.objects.bulk_create(
+                    [
+                        Attachment(
+                            instance=instance,
+                            xform_id=xform.pk,
+                            user_id=user.pk,
+                            media_file='owner/attachments/second_file.jpg',
+                            media_file_basename='second_file.jpg',
+                            media_file_size=10,
+                            mimetype='image/jpeg',
+                        )
+                    ]
+                )
+        self.xform_ids.sort()
+
+    def test_values_are_distinct_and_in_order(self):
+        assert (
+            get_distinct_values(Attachment.all_objects.all(), 'xform_id')
+            == self.xform_ids
+        )
+
+    def test_walk_resumes_after_last_value_and_stops_at_limit(self):
+        first, second, third = self.xform_ids
+        queryset = Attachment.all_objects.all()
+
+        assert get_distinct_values(queryset, 'xform_id', last_value=first) == [
+            second,
+            third,
+        ]
+        assert get_distinct_values(queryset, 'xform_id', limit=1) == [first]
+
+    def test_filters_of_the_queryset_apply(self):
+        Attachment.all_objects.filter(xform_id=self.xform_ids[1]).update(
+            delete_status=AttachmentDeleteStatus.PENDING_DELETE
+        )
+
+        queryset = Attachment.all_objects.filter(delete_status__isnull=False)
+        assert get_distinct_values(queryset, 'xform_id') == [self.xform_ids[1]]
+
+    def test_filters_matching_nothing(self):
+        queryset = Attachment.all_objects.filter(pk__in=[])
+
+        assert get_distinct_values(queryset, 'xform_id') == []
+
+    def test_joins_are_refused(self):
+        queryset = Attachment.all_objects.filter(xform__kpi_asset_uid='aFoo')
+
+        with pytest.raises(ValueError):
+            get_distinct_values(queryset, 'xform_id')

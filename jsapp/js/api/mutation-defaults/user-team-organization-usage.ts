@@ -285,9 +285,6 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
     getMeEmailsCreateMutationOptions({
       // This POST drops any other unverified address while adding the new one, so a refetch is simpler than keeping a
       // snapshot in step with it. `onSettled` for the reason in `useRemoveUnverifiedEmails`.
-      //
-      // `invalidatePaginatedList` would miss it: the endpoint takes no parameters, so its key is a bare
-      // `['me', 'emails']`, and that helper only counts keys ending in a non-string as lists.
       mutation: {
         onSettled: () => {
           client.invalidateQueries({ queryKey: getMeEmailsListQueryKey() })
