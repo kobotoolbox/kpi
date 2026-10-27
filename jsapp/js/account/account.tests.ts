@@ -113,6 +113,14 @@ describe('getAccountFieldsConfig', () => {
     chai.expect(result.userMetadataFields.map((field) => field.name)).to.deep.equal(['name'])
   })
 
+  it('drops a name that only exists on the object prototype', () => {
+    const result = getAccountFieldsConfig(
+      environment({ user_metadata_fields: [{ name: 'constructor', label: 'Constructor', required: true }] }),
+    )
+
+    chai.expect(result.userMetadataFields).to.deep.equal([])
+  })
+
   it('keeps one entry for a name the instance lists twice, labelled by the last of them', () => {
     const result = getAccountFieldsConfig(
       environment({
