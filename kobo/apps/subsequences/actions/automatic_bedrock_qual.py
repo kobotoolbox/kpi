@@ -505,7 +505,6 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
 
         self.client = self.create_bedrock_client()
 
-
         request = self.construct_external_request(action_data, submission)
         if survey_question_type == IMAGE_SOURCE_TYPE:
             models = [Gemma]
