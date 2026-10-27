@@ -321,8 +321,8 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
     def _get_xml(cls, data):
 
         # Submissions are wrapped in `<item>` nodes.
-        results = data.pop('results', False)
-        if not results:
+        results = data.pop('results', None)
+        if results is None:
             return dict2xml(data, wrap=cls.root_tag_name, newlines=False)
 
         submissions_parent_node = 'results'

@@ -3,6 +3,7 @@ import type { HttpHandler } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import type { EmailAddress } from '#/api/models/emailAddress'
+import type { Canvas } from '#/auth/authStoryHelpers'
 import organizationMock from '#/endpoints/organization.mocks'
 import {
   PENDING_EMAIL,
@@ -43,6 +44,16 @@ function withEmails(initial: EmailAddress[], ...refusals: HttpHandler[]) {
   }
 }
 
+/** Swaps the current address in the field for `address` */
+async function typeNewEmail(canvas: Canvas, address: string) {
+  const input = await canvas.findByRole('textbox')
+  // The field starts out holding the current address, which arrives with the profile.
+  await waitFor(() => expect(input).toHaveValue(VERIFIED_EMAIL.email))
+
+  await userEvent.clear(input)
+  await userEvent.type(input, address)
+}
+
 const meta: Meta<typeof EmailSection> = {
   title: 'Features/EmailSection',
   component: EmailSection,
@@ -60,7 +71,7 @@ const meta: Meta<typeof EmailSection> = {
   decorators: [
     (Story) => (
       <RequireOrg>
-        {/* The real app mounts this in `BasicLayout`; without it `notify()` output has nowhere to render */}
+        {/* The real app mounts this in `App`; without it `notify()` output has nowhere to render */}
         <ToasterConfig />
         <Story />
       </RequireOrg>
@@ -80,6 +91,44 @@ export const PendingConfirmation: Story = {
     await canvas.findByText(new RegExp(`Check your email ${PENDING_EMAIL.email}`))
     expect(canvas.getByText(new RegExp(`will replace ${VERIFIED_EMAIL.email}`))).toBeInTheDocument()
     expect(canvas.getByRole('button', { name: 'Resend' })).toBeEnabled()
+    // No editing while an address waits for confirmation.
+    expect(canvas.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(canvas.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument()
+  },
+}
+
+export const ChangeAndRemove: Story = {
+  ...withEmails([VERIFIED_EMAIL]),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('textbox')
+    expect(canvas.getByRole('button', { name: 'Change' })).toBeDisabled()
+
+    await typeNewEmail(canvas, PENDING_EMAIL.email)
+    await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
+
+    await canvas.findByText(new RegExp(`Check your email ${PENDING_EMAIL.email}`))
+    expect(canvas.queryByRole('textbox')).not.toBeInTheDocument()
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Remove' }))
+
+    // Back to the current address, so there is nothing to change yet.
+    expect(await canvas.findByRole('textbox')).toHaveValue(VERIFIED_EMAIL.email)
+    expect(canvas.getByRole('button', { name: 'Change' })).toBeDisabled()
+  },
+}
+
+export const InvalidAddress: Story = {
+  ...withEmails([VERIFIED_EMAIL]),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await typeNewEmail(canvas, 'nope')
+    await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
+
+    await canvas.findByText('Invalid email address')
+    expect(canvas.getByRole('textbox')).toBeInvalid()
   },
 }
 
@@ -88,12 +137,7 @@ export const RejectedAddress: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    const input = await canvas.findByRole('textbox')
-    // The field starts out holding the current address, which arrives with the profile.
-    await waitFor(() => expect(input).toHaveValue(VERIFIED_EMAIL.email))
-
-    await userEvent.clear(input)
-    await userEvent.type(input, 'nope@example.com')
+    await typeNewEmail(canvas, 'nope@example.com')
     await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
 
     await canvas.findByText('Enter a valid email address.')

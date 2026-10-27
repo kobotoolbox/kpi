@@ -3,7 +3,7 @@ import { useEnvironmentQuery } from '#/api/useEnvironmentQuery'
 
 /**
  * Everything the authentication screens need from `/environment`: how the server is dressed, not how it
- * authenticates. Anonymous-safe. Accepted credentials come from `useAllauthConfiguration` instead.
+ * authenticates. Anonymous-safe.
  */
 export function useAuthEnvironment() {
   return useEnvironmentQuery({
@@ -19,6 +19,8 @@ export function useAuthEnvironment() {
         /** Same constance setting allauth's `AccountAdapter.is_open_for_signup()` reads. */
         registrationOpen: response.data.registration_open,
         socialApps: response.data.social_apps,
+        /** The `USER_METADATA_FIELDS` constance setting: which profile fields this server asks for, and how. */
+        userMetadataFields: response.data.user_metadata_fields,
         /** The `SUPPORT_EMAIL` constance setting, so private servers point people at their own team. */
         supportEmail: response.data.support_email,
         /**
@@ -26,6 +28,11 @@ export function useAuthEnvironment() {
          * rather than from allauth's own configuration, which never mentions the length.
          */
         mfaCodeLength: response.data.mfa_code_length,
+        /**
+         * The `MFA_LOCALIZED_HELP_TEXT` constance setting in the user's language, as HTML rendered from markdown,
+         * with `SUPPORT_EMAIL` already filled in.
+         */
+        mfaHelpText: response.data.mfa_localized_help_text,
       }
     },
   })

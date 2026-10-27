@@ -1,9 +1,11 @@
+from http import HTTPStatus
+
 from allauth.account.models import EmailAddress
-from allauth.headless.account.views import LoginView as BaseHeadlessLoginView
-from allauth.headless.base.response import AuthenticationResponse
+from allauth.headless.internal.restkit.response import ErrorResponse
+from allauth.headless.mfa.views import ManageTOTPView as BaseHeadlessManageTOTPView
+from allauth.mfa.adapter import get_adapter as get_mfa_adapter
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
-from django.contrib.auth import logout
 from django.core.exceptions import MultipleObjectsReturned
 from django.http import Http404
 from drf_spectacular.utils import (
@@ -419,22 +421,20 @@ class SocialAppView(generics.RetrieveAPIView):
         return social_app
 
 
-class HeadlessLoginView(BaseHeadlessLoginView):
+class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
     """
-    Lets an authenticated user log in as another account, which allauth would
-    refuse with a 409. Mirrors `MfaLoginView` for the templated login page
+    Refuses to turn MFA off when the MFA adapter forbids it (superusers while
+    `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
+    `can_delete_authenticator()` in its templated form, not in headless mode
     """
 
-    def post(self, request, *args, **kwargs):
-        # The credentials were already checked in `handle_input()`: a wrong
-        # password returned 400 before reaching here, so a failed attempt never
-        # drops the current session
-        user = request.user
-        if user.is_authenticated:
-            # Same account: already logged in, so answer like a successful login
-            if user.pk == self.input.login.user.pk:
-                return AuthenticationResponse(request)
-            # Log out before the login runs, not after: the MFA and email
-            # verification stages refuse authenticated requests
-            logout(request)
-        return super().post(request, *args, **kwargs)
+    def delete(self, request, *args, **kwargs):
+        authenticator = self._get_authenticator()
+        adapter = get_mfa_adapter()
+        if authenticator and not adapter.can_delete_authenticator(authenticator):
+            return ErrorResponse(
+                request,
+                exception=adapter.validation_error('cannot_delete_authenticator'),
+                status=HTTPStatus.FORBIDDEN,
+            )
+        return super().delete(request, *args, **kwargs)

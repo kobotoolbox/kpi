@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useAllauthBrowserV1AuthProviderSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import { validateTermsOfService, validateUsername } from '#/auth/RegisterRoute/registerValidation'
+import { validateRequiredCheckbox, validateUsername } from '#/auth/RegisterRoute/registerValidation'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateEmailFormat } from '#/auth/authValidation'
 import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
@@ -65,6 +65,9 @@ export default function ProviderSignupForm({
   isConfigurationPending,
   onOutcome,
 }: ProviderSignupFormProps) {
+  // The server rejects any address but the provider's, so only a missing one can be typed in.
+  const isEmailLocked = initialValues.email !== ''
+
   const form = useForm<ProviderSignupFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
@@ -77,7 +80,7 @@ export default function ProviderSignupForm({
       username: validateUsername,
       // No checkbox to tick where the server asks for no agreement. Mantine reads these rules fresh on every
       // render, so this follows the checkbox once `/environment` lands.
-      termsOfService: isTermsOfServiceRequired ? validateTermsOfService : undefined,
+      termsOfService: isTermsOfServiceRequired ? validateRequiredCheckbox : undefined,
     },
   })
 
@@ -172,6 +175,8 @@ export default function ProviderSignupForm({
               autoComplete='email'
               key={form.key('email')}
               {...withAuthFieldError(form.getInputProps('email'))}
+              // Not `disabled`, so it stays focusable, copyable and read out by screen readers.
+              readOnly={isEmailLocked}
               required
             />
             <TextInput
