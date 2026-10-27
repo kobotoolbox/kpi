@@ -1,8 +1,6 @@
 import { makeAutoObservable } from 'mobx'
-import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
-import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
-import { queryClient } from '#/api/queryClient'
-import { environmentRetrieve, getEnvironmentRetrieveQueryKey } from '#/api/react-query/configuration'
+import { fetchGet } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import type { ExtraProjectMetadataFieldType } from '#/constants'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import { choicesFromTuples } from '#/utils'
@@ -160,24 +158,13 @@ class EnvStore {
   constructor() {
     makeAutoObservable(this)
     this.data = new EnvStoreData()
-    // Deferred because this module sits in an import cycle with the Orval fetcher it calls, which may not have
-    // finished initializing when this constructor runs. One microtask later every static import has.
-    queueMicrotask(() => this.fetchData())
+    this.fetchData()
   }
 
   async fetchData() {
-    // Through the React Query cache, so `useEnvironmentQuery` callers share this request instead of making another.
-    try {
-      const response = await queryClient.fetchQuery({
-        queryKey: getEnvironmentRetrieveQueryKey(),
-        queryFn: ({ signal }) => environmentRetrieve({ signal }),
-      })
-      // The same JSON `fetchGet` used to hand over, and as unchecked: this interface is stricter than the schema
-      // (non-null URLs, for one), and reconciling the two is its own change.
-      this.onGetEnvCompleted(response.data as unknown as EnvironmentResponse)
-    } catch (error) {
-      onErrorDefaultHandler(error as OrvalFetchError, undefined, undefined)
-    }
+    // Error handling is done inside `fetchGet`
+    const response = await fetchGet<EnvironmentResponse>(endpoints.ENVIRONMENT)
+    this.onGetEnvCompleted(response)
   }
 
   private onGetEnvCompleted(response: EnvironmentResponse) {

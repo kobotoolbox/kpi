@@ -69,8 +69,8 @@ export function useProfileDetailsBlockerState(): ProfileDetailsBlockerState {
   }
 
   // Without the configuration there is nothing to ask of the account, and answering `inactive` would let somebody
-  // with blank required fields into the app. `envStore` now shares this query, so `AppGuard`'s gate should already
-  // stop a failed one - this is the guard for when it does not.
+  // with blank required fields into the app. `AppGuard` cannot cover for this: its own gate is `envStore`, which
+  // fetches the same endpoint separately and can have succeeded while this request failed.
   if (!fieldsConfig) {
     return { status: 'error' }
   }
