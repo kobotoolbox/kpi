@@ -1,7 +1,12 @@
 # coding: utf-8
 import os
+import shutil
+import tempfile
+import zipfile
+from io import StringIO
 
 from django.conf import settings
+from django.core.management import call_command
 from django.urls import reverse
 
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
@@ -153,7 +158,52 @@ class TestImportingDatabase(TestBase):
         assert response.status_code == 200
         assert Instance.objects.filter(xform=self.xform).exists()
 
+    def test_import_instances_command_from_zip(self):
+        self._call_import_instances(BULK_SUBMISSION_ZIP_PATH)
+        assert Instance.objects.filter(xform=self.xform).count() == 2
+
+    def test_import_instances_command_from_legacy_odk_dir(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._extract_odk_dir(tmp_dir)
+            self._call_import_instances(tmp_dir)
+        assert Instance.objects.filter(xform=self.xform).count() == 2
+
+    def test_import_instances_command_from_collect_project_dir(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            odk_dir = self._extract_odk_dir(tmp_dir)
+            projects_dir = os.path.join(tmp_dir, 'projects')
+            os.mkdir(projects_dir)
+            shutil.move(odk_dir, os.path.join(projects_dir, 'project_uuid'))
+            self._call_import_instances(projects_dir)
+        assert Instance.objects.filter(xform=self.xform).count() == 2
+
+    def test_import_instances_command_from_enketo_zip(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            instances_dir = os.path.join(self._extract_odk_dir(tmp_dir), 'instances')
+            enketo_zip_path = os.path.join(tmp_dir, 'tutorial_2026-03-23_12-00-00.zip')
+            with zipfile.ZipFile(enketo_zip_path, 'w') as enketo_zip:
+                enketo_zip.writestr('meta.json', '[]')
+                for record_dir in os.scandir(instances_dir):
+                    for entry in os.scandir(record_dir.path):
+                        if entry.name.endswith('.xml'):
+                            name = 'submission.xml'
+                        else:
+                            name = entry.name
+                        enketo_zip.write(
+                            entry.path, os.path.join(record_dir.name, name)
+                        )
+            self._call_import_instances(enketo_zip_path)
+        assert Instance.objects.filter(xform=self.xform).count() == 2
+
+    def _call_import_instances(self, path):
+        call_command('import_instances', self.user.username, path, stdout=StringIO())
+
     def _create_user_with_profile_and_login(self, username):
         user = self._create_user(username, username)
         UserProfile.objects.get_or_create(user_id=user.pk)
         return user, self._login(username, username)
+
+    def _extract_odk_dir(self, dest_dir):
+        with zipfile.ZipFile(BULK_SUBMISSION_ZIP_PATH) as zip_file:
+            zip_file.extractall(dest_dir)
+        return os.path.join(dest_dir, 'bulk_submission', 'odk')

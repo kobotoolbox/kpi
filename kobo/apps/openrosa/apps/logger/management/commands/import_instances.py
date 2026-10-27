@@ -22,12 +22,11 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'username',
-            help='User who submits the instances. Permissions are checked '
-            'against this user',
+            help='User who submits the instances, used for permission checks',
         )
         parser.add_argument(
             'path',
-            help='Zip file, directory of zip files or directory of ODK ' 'instances',
+            help='Zip file, directory of zip files or directory of instances',
         )
 
     def handle(self, *args, **kwargs):
@@ -51,14 +50,11 @@ class Command(BaseCommand):
             self._import_zip(path, user, request)
             return
 
+        self.stdout.write('Importing from dir %s..\n' % path)
+        results = import_instances_from_path(path, user, request)
+        self._log_import(results)
+
         for dir, subdirs, files in os.walk(path):
-            # check if the dir has an odk directory
-            if 'odk' in subdirs:
-                # dont walk further down this dir
-                subdirs.remove('odk')
-                self.stdout.write('Importing from dir %s..\n' % dir)
-                results = import_instances_from_path(dir, user, request)
-                self._log_import(results)
             for file in files:
                 self._import_zip(os.path.join(dir, file), user, request)
 
