@@ -12,35 +12,31 @@ from django.http import (
     HttpResponseRedirect,
     StreamingHttpResponse,
 )
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.template import loader
 from django.utils.translation import gettext as t
-from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.libs.utils.logger_tools import BaseOpenRosaResponse
 from kobo.apps.openrosa.libs.utils.logger_tools import (
+    BaseOpenRosaResponse,
     response_with_mimetype_and_name,
 )
 from kobo.apps.openrosa.libs.utils.user_auth import (
-    helper_auth_helper,
-    has_permission,
     add_cors_headers,
+    has_permission,
+    helper_auth_helper,
 )
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from ...koboform.pyxform_utils import convert_csv_to_xls
 
-IO_ERROR_STRINGS = [
-    'request data read error',
-    'error during read(65536) on wsgi.input'
-]
+IO_ERROR_STRINGS = ['request data read error', 'error during read(65536) on wsgi.input']
 
 
 def _bad_request(e):
@@ -50,9 +46,9 @@ def _bad_request(e):
 
 
 def _extract_uuid(text):
-    text = text[text.find("@key="):-1].replace("@key=", "")
-    if text.startswith("uuid:"):
-        text = text.replace("uuid:", "")
+    text = text[text.find('@key=') : -1].replace('@key=', '')
+    if text.startswith('uuid:'):
+        text = text.replace('uuid:', '')
     return text
 
 
@@ -65,12 +61,12 @@ def _parse_int(num):
 
 def _submission_response(request, instance):
     data = {
-        'message': t("Successful submission."),
+        'message': t('Successful submission.'),
         'formid': instance.xform.id_string,
         'encrypted': instance.xform.encrypted,
         'instanceID': f'uuid:{instance.uuid}',
         'submissionDate': instance.date_created.isoformat(),
-        'markedAsCompleteDate': instance.date_modified.isoformat()
+        'markedAsCompleteDate': instance.date_modified.isoformat(),
     }
 
     template_ = loader.get_template('submission.xml')
@@ -89,15 +85,23 @@ def bulksubmission(request, username):
     # request.FILES is a django.utils.datastructures.MultiValueDict
     # for each key we have a list of values
     try:
-        temp_postfile = request.FILES.pop("zip_submission_file", [])
+        temp_postfile = request.FILES.pop('zip_submission_file', [])
     except IOError:
-        return HttpResponseBadRequest(t("There was a problem receiving your "
-                                        "ODK submission. [Error: IO Error "
-                                        "reading data]"))
+        return HttpResponseBadRequest(
+            t(
+                'There was a problem receiving your '
+                'ODK submission. [Error: IO Error '
+                'reading data]'
+            )
+        )
     if len(temp_postfile) != 1:
-        return HttpResponseBadRequest(t("There was a problem receiving your"
-                                        " ODK submission. [Error: multiple "
-                                        "submission files (?)]"))
+        return HttpResponseBadRequest(
+            t(
+                'There was a problem receiving your'
+                ' ODK submission. [Error: multiple '
+                'submission files (?)]'
+            )
+        )
 
     postfile = temp_postfile[0]
     tempdir = tempfile.gettempdir()
@@ -107,8 +111,7 @@ def bulksubmission(request, username):
         f.write(postfile.read())
 
     with open(our_tfpath, 'rb') as f:
-        total_count, success_count, errors = import_instances_from_zip(
-            f, posting_user)
+        total_count, success_count, errors = import_instances_from_zip(f, posting_user)
     # chose the try approach as suggested by the link below
     # http://stackoverflow.com/questions/82831
     try:
@@ -117,13 +120,18 @@ def bulksubmission(request, username):
         # TODO: log this Exception somewhere
         pass
     json_msg = {
-        'message': t("Submission complete. Out of %(total)d "
-                     "survey instances, %(success)d were imported, "
-                     "(%(rejected)d were rejected as duplicates, "
-                     "missing forms, etc.)") %
-        {'total': total_count, 'success': success_count,
-         'rejected': total_count - success_count},
-        'errors': "%d %s" % (len(errors), errors)
+        'message': t(
+            'Submission complete. Out of %(total)d '
+            'survey instances, %(success)d were imported, '
+            '(%(rejected)d were rejected as duplicates, '
+            'missing forms, etc.)'
+        )
+        % {
+            'total': total_count,
+            'success': success_count,
+            'rejected': total_count - success_count,
+        },
+        'errors': '%d %s' % (len(errors), errors),
     }
     response = HttpResponse(json.dumps(json_msg))
     response.status_code = 200
@@ -208,12 +216,10 @@ def download_jsonform(request, username, id_string):
         response = HttpResponseForbidden(t('Not shared.'))
         add_cors_headers(response)
         return response
-    response = response_with_mimetype_and_name(
-        'json', id_string, show_date=False
-    )
+    response = response_with_mimetype_and_name('json', id_string, show_date=False)
     if 'callback' in request.GET and request.GET.get('callback') != '':
         callback = request.GET.get('callback')
-        response.content = "%s(%s)" % (callback, xform.json)
+        response.content = '%s(%s)' % (callback, xform.json)
     else:
         add_cors_headers(response)
         response.content = xform.json
