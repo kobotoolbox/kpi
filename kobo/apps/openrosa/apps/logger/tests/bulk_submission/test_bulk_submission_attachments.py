@@ -45,7 +45,9 @@ class TestBulkSubmissionAttachments(TestBase):
     def test_bulk_import_attachments_zip(self):
         self.assertFalse(Instance.objects.exists())
 
-        import_instances_from_zip(ZIP_FILE_PATH, self.user)
+        request = self.factory.post('/')
+        request.user = self.user
+        import_instances_from_zip(ZIP_FILE_PATH, self.user, request)
 
         queryset = Instance.objects
 

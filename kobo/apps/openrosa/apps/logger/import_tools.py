@@ -1,12 +1,17 @@
 # coding: utf-8
+from __future__ import annotations
+
 import mimetypes
 import os
 import shutil
 import tempfile
 import zipfile
+from typing import BinaryIO, Union
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.http import HttpRequest
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.xform_fs import XFormInstanceFS
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
 
@@ -63,7 +68,13 @@ def iterate_through_instances(dirpath, callback):
     return total_file_count, success_count, errors
 
 
-def import_instances_from_zip(zipfile_path, user, status='zip'):
+def import_instances_from_zip(
+    zipfile_path: Union[str, BinaryIO],
+    user: User,
+    request: HttpRequest,
+    status: str = 'zip',
+) -> tuple[int, int, list[str]]:
+
     try:
         temp_directory = tempfile.mkdtemp()
         zf = zipfile.ZipFile(zipfile_path)
@@ -73,17 +84,24 @@ def import_instances_from_zip(zipfile_path, user, status='zip'):
         errors = ['%s' % e]
         return 0, 0, errors
     else:
-        return import_instances_from_path(temp_directory, user, status)
+        return import_instances_from_path(temp_directory, user, request, status)
     finally:
         shutil.rmtree(temp_directory)
 
 
-def import_instances_from_path(path, user, status='zip'):
-    def callback(xform_fs):
+def import_instances_from_path(
+    path: str,
+    user: User,
+    request: HttpRequest,
+    status: str = 'zip',
+) -> tuple[int, int, list[str]]:
+
+    def callback(xform_fs: XFormInstanceFS) -> int:
         """
         This callback is passed an instance of a XFormInstanceFS.
         See xform_fs.py for more info.
         """
+
         with django_file(
             xform_fs.path,
             field_name='xml_file',
@@ -97,14 +115,16 @@ def import_instances_from_path(path, user, status='zip'):
                 )
                 for dir_entry in xform_fs.attachments
             ]
-            # TODO: if an instance has been submitted make sure all the
-            # files are in the database.
-            # there shouldn't be any instances with a submitted status in the
-            # import.
-            #
+            # TODO: if an instance has been submitted make sure all the files are in the
+            #  database. There shouldn't be any instances with a submitted status in the
+            #  import.
 
             instance = create_instance(
-                user.username, xml_file, (a for a in attachments), status
+                user.username,
+                xml_file,
+                (a for a in attachments),
+                status,
+                request=request,
             )
 
             for a in attachments:
