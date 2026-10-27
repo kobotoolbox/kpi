@@ -326,7 +326,6 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         filename = attachment_dict.get('filename')
         filesize = default_storage.size(filename)
         with default_storage.open(filename) as fp:
-            print(f'{MAX_IMAGE_SIZE=}')
             raw_bytes = fp.read()
             if filesize > MAX_IMAGE_SIZE:
                 buffer = BytesIO(raw_bytes)
@@ -342,9 +341,11 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     resized = image.resize((new_w, new_h), Image.LANCZOS)
                     outbytes = BytesIO()
                     resized.save(outbytes, format=image_format)
-                    while (current_size:=outbytes.getbuffer().nbytes) > MAX_IMAGE_SIZE:
-                        if new_w == 1 and new_h == 1:
-                            raise ImageTooLarge
+                    # the image metadata may mean the file is still too big, even after
+                    # rescale. Keep reducing dimensions by half until it's small enough
+                    while (
+                        current_size := outbytes.getbuffer().nbytes
+                    ) > MAX_IMAGE_SIZE:
                         new_w = max(1, new_w // 2)
                         new_h = max(1, new_h // 2)
                         resized = resized.resize((new_w, new_h), Image.LANCZOS)
