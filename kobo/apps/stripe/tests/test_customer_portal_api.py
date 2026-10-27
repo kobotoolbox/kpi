@@ -313,3 +313,83 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_get_billing_details_ignores_newer_addon_subscription(
+        self, create_config, list_config, session_create, get_customer
+    ):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        self._create_stripe_data(create_subscription=True, product_type='plan')
+        self.price.recurring = {'interval': 'month'}
+        self.price.save()
+
+        now = timezone.now()
+        self.subscription.start_date = now - timezone.timedelta(days=30)
+        self.subscription.save()
+
+        # Newer addon subscription
+        addon_product = baker.make(Product, metadata={'product_type': 'addon'})
+        addon_price = baker.make(
+            Price, product=addon_product, recurring={'interval': 'year'}
+        )
+        baker.make(
+            Subscription,
+            status='active',
+            customer=self.customer,
+            items__price=addon_price,
+            livemode=False,
+            start_date=now - timezone.timedelta(days=2),
+            billing_cycle_anchor=now - timezone.timedelta(days=2),
+            current_period_start=now - timezone.timedelta(days=2),
+            current_period_end=now + timezone.timedelta(days=363),
+        )
+
+        self.organization.add_user(self.some_user)
+
+        url = self._get_url({'organization_id': self.organization.id})
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['billing_cycle_info']['interval'] == 'month'
+        session_create.assert_called_once_with(
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            customer=self.customer.id,
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
+        )
+
+    def test_get_billing_details_prefers_active_plan_over_newer_canceled_plan(
+        self, create_config, list_config, session_create, get_customer
+    ):
+        session_create.return_value = {
+            'url': 'https://billing.stripe.com/p/session/test_YWNjdF8x'
+        }
+        self._create_stripe_data(create_subscription=True, product_type='plan')
+        now = timezone.now()
+        self.subscription.start_date = now - timezone.timedelta(days=60)
+        self.subscription.save()
+
+        # Newer canceled plan subscription
+        canceled_plan_product = baker.make(Product, metadata={'product_type': 'plan'})
+        canceled_plan_price = baker.make(Price, product=canceled_plan_product)
+        baker.make(
+            Subscription,
+            status='canceled',
+            customer=self.customer,
+            items__price=canceled_plan_price,
+            livemode=False,
+            start_date=now - timezone.timedelta(days=5),
+        )
+
+        self.organization.add_user(self.some_user)
+
+        url = self._get_url({'organization_id': self.organization.id})
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['billing_cycle_info']['status'] == 'active'
+        session_create.assert_called_once_with(
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            customer=self.customer.id,
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
+        )
