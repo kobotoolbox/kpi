@@ -62,7 +62,7 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
 
-MAX_IMAGE_SIZE = 3.75e6  # max image size allowed by Bedrock
+MAX_IMAGE_SIZE = 3.75e6 * 3/4  # max image size for Bedrock with room for encoding
 
 
 @dataclass
@@ -355,10 +355,9 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                             # we've made the image as small as it can go
                             # and it's still too large
                             raise ImageTooLarge
-                    image_bytes = base64.b64encode(outbytes.getvalue()).decode('utf-8')
+                    return base64.b64encode(outbytes.getvalue()).decode('utf-8')
             else:
-                image_bytes = base64.b64encode(raw_bytes).decode('utf-8')
-        return image_bytes
+                return base64.b64encode(raw_bytes).decode('utf-8')
 
     def get_output_fields(self) -> list[dict]:
         return []
