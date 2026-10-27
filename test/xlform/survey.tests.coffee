@@ -572,6 +572,22 @@ do ->
       ageCopy = savedRow(reloadedSurvey, 'age_001')
       expect(ageCopy.constraint).toBe("${gender_001} = 'nonbinary'")
 
+    it 'renames references between top-level library questions', () ->
+      libraryQuestions = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'integer', name: 'age', label: 'Age', constraint: '. < 99'},
+          {type: 'calculate', name: 'next_age', calculation: '${age} + 1'},
+          # Points at a row that is named only after this one
+          {type: 'note', name: 'summary', label: 'Next: ${next_age}'}
+        ]
+      })
+      survey = new $model.Survey()
+      survey.insertSurvey(libraryQuestions(), 0)
+      survey.insertSurvey(libraryQuestions(), 3)
+      nextAge = savedRow(survey, 'next_age_001')
+      expect(nextAge.calculation).toBe('${age_001} + 1')
+      expect(savedRow(survey, 'summary_001').label).toBe('Next: ${next_age_001}')
+
     it 'renames references in a single library question', () ->
       libraryQuestion = -> $model.Survey.loadDict({
         survey: [

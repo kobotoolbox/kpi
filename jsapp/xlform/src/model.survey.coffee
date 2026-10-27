@@ -215,6 +215,9 @@ module.exports = do ->
     # Called from surveyScope.addExternalItemAtPosition() after fetching the asset.
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
+      # Shared by the whole item, since any of its rows can reference any other
+      renames = {}
+      insertedRows = []
       for row, row_i in survey.rows.models
         # Find the target (root survey or a specific group)
         target = @
@@ -253,10 +256,9 @@ module.exports = do ->
             )
 
           # Name the group and every row inside it, after the insert so each one
-          # sees its new siblings. Then fix references within the block.
-          renames = {}
+          # sees its new siblings
           @_ensure_row_name_is_unique(r, renames) for r in blockRows
-          @_rename_row_references(r, renames) for r in blockRows
+          insertedRows.push(blockRows...)
 
           # Groups don't trigger change events automatically
           @trigger('change')
@@ -271,9 +273,11 @@ module.exports = do ->
             row.toJSON(),
             at: index_incr
           )
-          renames = {}
           @_ensure_row_name_is_unique(insertedRow, renames)
-          @_rename_row_references(insertedRow, renames)
+          insertedRows.push(insertedRow)
+
+      # Only once all rows are named, so references to later rows are fixed too
+      @_rename_row_references(r, renames) for r in insertedRows
       return
 
     toFlatJSON: (stringify=false, spaces=4)->
