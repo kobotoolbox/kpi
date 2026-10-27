@@ -386,8 +386,10 @@ $s-data-table-font: 13px;
     z-index: z-indexes.$z-data-table-frozen-column + 11;
   }
 
+  // Frozen columns go first (in their usual order), right after the checkbox one.
   .rt-th.is-frozen,
   .rt-td.is-frozen {
+    order: -1;
     z-index: z-indexes.$z-data-table-frozen-column;
     position: relative;
     left: 0;
@@ -432,7 +434,6 @@ $s-data-table-font: 13px;
 
   .rt-th.is-frozen.is-last-frozen,
   .rt-td.is-frozen.is-last-frozen {
-    order: -1;
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }

@@ -1,3 +1,4 @@
+import { simpleSurveyAsset, simpleSurveySubmission } from '#/components/submissions/submissionUtils.mocks'
 import { DATA_TABLE_SETTINGS, SortValues } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
 import { getRouteAssetUid } from '#/router/routerUtils'
@@ -30,7 +31,7 @@ describe('tableStore', () => {
 
     chai.expect(JSON.parse(localStorage.getItem(storageKey) || '')).to.deep.equal({
       assetA: { [DATA_TABLE_SETTINGS.SORT_BY]: { fieldId: 'Name', value: SortValues.ASCENDING } },
-      assetB: { [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: 'Age' },
+      assetB: { [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: ['Age'] },
     })
     chai.expect(tableStore.getSortBy()).to.equal(null)
   })
@@ -40,7 +41,7 @@ describe('tableStore', () => {
     tableStore.setFrozenColumn('Age', false)
 
     chai.expect(JSON.parse(localStorage.getItem(storageKey) || '')).to.deep.equal({ assetA: {} })
-    chai.expect(tableStore.getFrozenColumn()).to.equal(null)
+    chai.expect(tableStore.getFrozenColumns()).to.deep.equal([])
   })
 
   it('should keep settings saved by other tabs', () => {
@@ -65,7 +66,7 @@ describe('tableStore', () => {
     tableStore.setFrozenColumn('Age', true)
 
     chai.expect(tableStore.getSortBy()).to.deep.equal({ fieldId: 'Age', value: SortValues.DESCENDING })
-    chai.expect(tableStore.getFrozenColumn()).to.equal('Age')
+    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Age'])
     setItemSpy.mockRestore()
   })
 
@@ -86,6 +87,38 @@ describe('tableStore', () => {
 
     chai.expect(tableStore.getTableSettings()).to.deep.equal({})
     chai.expect(tableStore.getShowGroupName()).to.equal(true)
+  })
+
+  it('should freeze and unfreeze columns without touching the other ones', () => {
+    tableStore.setFrozenColumn('Name', true)
+    tableStore.setFrozenColumn('Age', true)
+    tableStore.setFrozenColumn('City', true)
+    tableStore.setFrozenColumn('Age', false)
+
+    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Name', 'City'])
+    chai.expect(tableStore.isFieldFrozen('Age')).to.equal(false)
+    chai.expect(tableStore.isFieldFrozen('City')).to.equal(true)
+  })
+
+  it('should read a single frozen column from old settings', () => {
+    const otherKey = `${storageKey}-other`
+    localStorage.setItem(otherKey, JSON.stringify({ assetA: { [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: 'Age' } }))
+    tableStore.setStorageKey(otherKey)
+
+    tableStore.setFrozenColumn('Name', true)
+
+    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Age', 'Name'])
+  })
+
+  it('should unfreeze only the columns being hidden', () => {
+    tableStore.setFrozenColumn('First_name', true)
+    tableStore.setFrozenColumn('start', true)
+
+    tableStore.hideField(simpleSurveyAsset, [simpleSurveySubmission], [], 'start')
+
+    chai.expect(tableStore.getSelectedColumns()).to.include('First_name').and.not.include('start')
+
+    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['First_name'])
   })
 
   it('should not save anything outside of an asset route', () => {

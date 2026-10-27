@@ -72,7 +72,7 @@ class TableStore extends Reflux.Store {
   getTableSettings(): AssetTableSettings {
     const assetUid = getRouteAssetUid()
     // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
-    // prepends the frozen column to the selected columns).
+    // prepends the frozen columns to the selected columns).
     return clonedeep((assetUid && this.settingsByAsset[assetUid]) || {})
   }
 
@@ -136,13 +136,14 @@ class TableStore extends Reflux.Store {
     return null
   }
 
-  getFrozenColumn(): string | null {
-    let frozenColumn = null
-    const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN] !== 'undefined') {
-      frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
+  /** Returns ids of frozen columns, in the order they were frozen. */
+  getFrozenColumns(): string[] {
+    const frozenColumns = this.getTableSettings()[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
+    // Old settings keep a single column id as a string.
+    if (typeof frozenColumns === 'string') {
+      return [frozenColumns]
     }
-    return frozenColumn || null
+    return Array.isArray(frozenColumns) ? frozenColumns : []
   }
 
   isFieldVisible(fieldId: string) {
@@ -170,20 +171,14 @@ class TableStore extends Reflux.Store {
   }
 
   isFieldFrozen(fieldId: string) {
-    return this.getFrozenColumn() === fieldId
+    return this.getFrozenColumns().includes(fieldId)
   }
 
+  /** Freezes or unfreezes given column, leaving other frozen columns as they are. */
   setFrozenColumn(fieldId: string, isFrozen: boolean) {
-    // NOTE: Currently we only support one frozen column at a time, so that is
-    // why making column not-frozen means we just null-ify the value, without
-    // checking what column is frozen now.
-    let newVal = null
-    if (isFrozen) {
-      newVal = fieldId
-    }
-    const settingsObj: AssetTableSettings = {}
-    settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = newVal
-    this.saveTableSettings(settingsObj)
+    const otherColumns = this.getFrozenColumns().filter((id) => id !== fieldId)
+    const newFrozenColumns = isFrozen ? [...otherColumns, fieldId] : otherColumns
+    this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns.length ? newFrozenColumns : null })
   }
 
   /**
@@ -298,12 +293,13 @@ class TableStore extends Reflux.Store {
     const settingsObj: AssetTableSettings = {}
     settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns
 
-    // If current frozen column is not in the newSelectedColumns, we need to
-    // unfreeze it.
-    const frozenColumn = this.getFrozenColumn()
-    if (frozenColumn !== null && Array.isArray(newSelectedColumns) && !newSelectedColumns.includes(frozenColumn)) {
-      // Currently we allow only one frozen column, so we just set it to `null`.
-      settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null
+    // Hidden columns can't stay frozen, so we unfreeze them.
+    if (Array.isArray(newSelectedColumns)) {
+      const frozenColumns = this.getFrozenColumns()
+      const visibleFrozenColumns = frozenColumns.filter((id) => newSelectedColumns.includes(id))
+      if (visibleFrozenColumns.length !== frozenColumns.length) {
+        settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = visibleFrozenColumns.length ? visibleFrozenColumns : null
+      }
     }
 
     // If we are hiding the column that data is sorted by, we need to unsort it.

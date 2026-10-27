@@ -3,7 +3,7 @@ import { Group } from '@mantine/core'
 import React, { useState } from 'react'
 import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
-import { SortValues } from '#/components/submissions/tableConstants'
+import { MAX_FROZEN_COLUMNS, SortValues } from '#/components/submissions/tableConstants'
 import envStore from '#/envStore'
 
 interface TableColumnSortDropdownProps {
@@ -16,6 +16,8 @@ interface TableColumnSortDropdownProps {
   onSortChange: (fieldId: string, sortValue: SortValues | null) => void
   onHide: (fieldId: string) => void
   isFieldFrozen: boolean
+  /** Disables freezing, but unfreezing stays possible. */
+  isFreezeLimitReached?: boolean
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
   onTranscribeSelectedAudioFiles?: (fieldId: string) => void
   onTranslateSelectedTranscriptions?: (fieldId: string) => void
@@ -78,6 +80,8 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
   function changeFieldFrozen(isFrozen: boolean) {
     props.onFrozenChange(props.fieldId, isFrozen)
   }
+
+  const isFreezeDisabled = !props.isFieldFrozen && Boolean(props.isFreezeLimitReached)
 
   function transcribeSelectedAudioFiles() {
     props.onTranscribeSelectedAudioFiles?.(props.fieldId)
@@ -198,6 +202,12 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
 
           <Menu.Item
             className='sort-dropdown-menu-button'
+            disabled={isFreezeDisabled}
+            title={
+              isFreezeDisabled
+                ? t('You can freeze up to ##count## fields').replace('##count##', String(MAX_FROZEN_COLUMNS))
+                : undefined
+            }
             onClick={() => {
               changeFieldFrozen(!props.isFieldFrozen)
             }}
