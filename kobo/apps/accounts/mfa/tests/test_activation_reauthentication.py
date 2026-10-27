@@ -71,8 +71,7 @@ class TotpActivationReauthenticationTestCase(TestCase):
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert not Authenticator.objects.filter(user=self.user).exists()
         assert [
-            record['method']
-            for record in get_authentication_records(self.client)
+            record['method'] for record in get_authentication_records(self.client)
         ] == ['password']
 
     def test_failed_activation_is_not_recorded(self):
@@ -80,13 +79,12 @@ class TotpActivationReauthenticationTestCase(TestCase):
         self.client.get(TOTP_URL)
 
         response = self.client.post(
-            TOTP_URL, data={'code': '000000'}, content_type='application/json'
+            TOTP_URL, data={'code': 'invalid'}, content_type='application/json'
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert [
-            record['method']
-            for record in get_authentication_records(self.client)
+            record['method'] for record in get_authentication_records(self.client)
         ] == ['password']
 
     def _activate_totp(self):
