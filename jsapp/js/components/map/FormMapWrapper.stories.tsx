@@ -229,7 +229,7 @@ interface DataRequestLog {
  * Like `mapHandlers()`, but for a project with `total` submissions, served a page at a time the way the data API does:
  * honouring `start` and `limit`, with a `next` link until the submissions run out, and reporting `count` (which can be
  * capped). Each page holds a single point, as the map only cares about the paging here. Every request is logged, and
- * held back a moment so that the ones made at the same time overlap.
+ * held back a moment, so that requests made together are all in flight at once and `maxInFlight` can count them.
  */
 function pagedMapHandlers(asset: AssetResponse, total: number, count: PaginatedDataResponseListCount) {
   const log: DataRequestLog = { starts: [], inFlight: 0, maxInFlight: 0 }
@@ -387,9 +387,41 @@ const assetWithManySubmissions = {
   map_styles: { querylimit: '20000' },
 } as AssetResponse
 
-const unknownCountData = pagedMapHandlers(assetWithManySubmissions, 2500, 'unknown')
-const manyCountData = pagedMapHandlers(assetWithManySubmissions, 2500, 'many')
-const exactCountData = pagedMapHandlers(assetWithManySubmissions, 2500, 2500)
+/**
+ * A story for `assetWithManySubmissions` served with the given `count`, checking which pages the map asks for and how
+ * many of them it has in flight at once.
+ */
+function pagedCountStory(
+  count: PaginatedDataResponseListCount,
+  expectedStarts: number[],
+  inFlightCheck: { label: string; verify: (maxInFlight: number) => void },
+): Story {
+  const data = pagedMapHandlers(assetWithManySubmissions, 2500, count)
+  return {
+    parameters: {
+      msw: { handlers: data.handlers },
+    },
+    args: {
+      asset: assetWithManySubmissions,
+    },
+    beforeEach: () => {
+      data.resetLog()
+    },
+    play: async ({ canvasElement, step }) => {
+      await step('Wait for the map to request the expected pages, and no more', () =>
+        waitForRequestedPages(canvasElement, data.log, expectedStarts),
+      )
+
+      await step(inFlightCheck.label, async () => inFlightCheck.verify(data.log.maxInFlight))
+
+      await step('Verify the points are plotted', () => waitForPlottedPoints(canvasElement))
+
+      // Every page moves the bounds, so the map zooms to them after each one. Leaflet finishes a zoom on a timer, which
+      // throws if the map has gone by then - as it does when the test runner moves on to the next story.
+      await step('Wait for the map to finish zooming to the points', () => waitForZoomToLand(canvasElement))
+    },
+  }
+}
 
 const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
@@ -556,96 +588,26 @@ export const WithPointsRepeatedInEveryWorldCopy: Story = {
   },
 }
 
-export const WithUnknownCountRequestsPagesOneAtATime: Story = {
-  parameters: {
-    msw: { handlers: unknownCountData.handlers },
-  },
-  args: {
-    asset: assetWithManySubmissions,
-  },
-  beforeEach: () => {
-    unknownCountData.resetLog()
-  },
-  // An 'unknown' count means counting timed out, so the map follows the `next` links one page at a time instead of asking
-  // for all 20 pages its limit allows
-  play: async ({ canvasElement, step }) => {
-    await step('Wait for the map to request every page holding submissions, and no more', () =>
-      waitForRequestedPages(canvasElement, unknownCountData.log, [0, 1000, 2000]),
-    )
+// An 'unknown' count means counting timed out, so the map follows the `next` links one page at a time instead of asking
+// for all 20 pages its limit allows
+export const WithUnknownCountRequestsPagesOneAtATime = pagedCountStory('unknown', [0, 1000, 2000], {
+  label: 'Verify the pages were requested one at a time',
+  verify: (maxInFlight) => expect(maxInFlight).toBe(1),
+})
 
-    await step('Verify the pages were requested one at a time', async () => {
-      expect(unknownCountData.log.maxInFlight).toBe(1)
-    })
+// An exact count already tells the map which pages hold submissions, so after the first one it asks for the rest at once
+export const WithExactCountRequestsPagesAtOnce = pagedCountStory(2500, [0, 1000, 2000], {
+  label: 'Verify the pages after the first were requested together',
+  verify: (maxInFlight) => expect(maxInFlight).toBe(2),
+})
 
-    await step('Verify the points from every page are plotted', async () => {
-      await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
-    })
-
-    // Every page moves the bounds, so the map zooms to them after each one. Leaflet finishes a zoom on a timer, which
-    // throws if the map has gone by then - as it does when the test runner moves on to the next story.
-    await step('Wait for the map to finish zooming to the points', () => waitForZoomToLand(canvasElement))
+// A 'many' count doesn't say where the submissions end either, but counting was quick, so after the first page the map
+// asks for all the others its limit allows at once, even those past the end
+export const WithManyCountRequestsPagesAtOnce = pagedCountStory(
+  'many',
+  Array.from({ length: 20 }, (_, index) => index * 1000),
+  {
+    label: 'Verify the pages after the first were requested together',
+    verify: (maxInFlight) => expect(maxInFlight).toBeGreaterThan(1),
   },
-}
-
-export const WithExactCountRequestsPagesAtOnce: Story = {
-  parameters: {
-    msw: { handlers: exactCountData.handlers },
-  },
-  args: {
-    asset: assetWithManySubmissions,
-  },
-  beforeEach: () => {
-    exactCountData.resetLog()
-  },
-  // An exact count already tells the map which pages hold submissions, so after the first one it asks for the rest at once
-  play: async ({ canvasElement, step }) => {
-    await step('Wait for the map to request every page holding submissions, and no more', () =>
-      waitForRequestedPages(canvasElement, exactCountData.log, [0, 1000, 2000]),
-    )
-
-    await step('Verify the pages after the first were requested together', async () => {
-      expect(exactCountData.log.maxInFlight).toBe(2)
-    })
-
-    await step('Verify the points from every page are plotted', async () => {
-      await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
-    })
-
-    // Every page moves the bounds, so the map zooms to them after each one. Leaflet finishes a zoom on a timer, which
-    // throws if the map has gone by then - as it does when the test runner moves on to the next story.
-    await step('Wait for the map to finish zooming to the points', () => waitForZoomToLand(canvasElement))
-  },
-}
-
-export const WithManyCountRequestsPagesAtOnce: Story = {
-  parameters: {
-    msw: { handlers: manyCountData.handlers },
-  },
-  args: {
-    asset: assetWithManySubmissions,
-  },
-  beforeEach: () => {
-    manyCountData.resetLog()
-  },
-  // A 'many' count doesn't say where the submissions end either, but counting was quick, so after the first page the map
-  // asks for all the others its limit allows at once, even those past the end
-  play: async ({ canvasElement, step }) => {
-    const limitPageStarts = Array.from({ length: 20 }, (_, index) => index * 1000)
-
-    await step('Wait for the map to request every page its limit allows', () =>
-      waitForRequestedPages(canvasElement, manyCountData.log, limitPageStarts),
-    )
-
-    await step('Verify the pages after the first were requested together', async () => {
-      expect(manyCountData.log.maxInFlight).toBeGreaterThan(1)
-    })
-
-    await step('Verify the points from every page are plotted', async () => {
-      await waitFor(() => expect(plottedMarkers(canvasElement).length).toBeGreaterThan(0), WAIT)
-    })
-
-    // Every page moves the bounds, so the map zooms to them after each one. Leaflet finishes a zoom on a timer, which
-    // throws if the map has gone by then - as it does when the test runner moves on to the next story.
-    await step('Wait for the map to finish zooming to the points', () => waitForZoomToLand(canvasElement))
-  },
-}
+)
