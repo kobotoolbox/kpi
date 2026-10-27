@@ -504,18 +504,20 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         error = ''
 
         self.client = self.create_bedrock_client()
-        update_nlp_counter(
-            'bedrock_llm_requests',
-            1,
-            self.asset.owner_id,
-            self.asset.id,
-        )
+
 
         request = self.construct_external_request(action_data, submission)
         if survey_question_type == IMAGE_SOURCE_TYPE:
             models = [Gemma]
         else:
             models = [OSS120, ClaudeSonnet]
+
+        update_nlp_counter(
+            'bedrock_llm_requests',
+            1,
+            self.asset.owner_id,
+            self.asset.id,
+        )
 
         # for now, hardcode OSS to be primary and Claude to be backup
         # eventually this will be configurable
