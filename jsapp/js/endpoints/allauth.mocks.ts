@@ -224,6 +224,10 @@ export const logoutNeverAnswersMock = () =>
     await delay('infinite')
   })
 
+/** A logout that fails */
+export const logoutServerErrorMock = () =>
+  http.delete(SESSION_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }))
+
 /** Nobody is signed in. allauth reports that as a 401 carrying the flows that could get you there. */
 export const sessionAnonymousMock = () =>
   http.get(SESSION_URL, () =>

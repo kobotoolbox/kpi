@@ -1,3 +1,4 @@
+from allauth.mfa.models import Authenticator
 from allauth.socialaccount.models import SocialAccount
 from ddt import data, ddt, unpack
 from django.urls import reverse
@@ -158,6 +159,29 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             m for m in response.data['results'] if m['user__username'] == 'alice'
         )
         self.assertTrue(alice_data['user__has_sso_enabled'])
+
+    def test_user_has_mfa_enabled(self):
+        self.client.force_login(self.someuser)
+
+        def alice_has_mfa_enabled():
+            response = self.client.get(self.list_url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            return next(
+                m for m in response.data['results'] if m['user__username'] == 'alice'
+            )['user__has_mfa_enabled']
+
+        self.assertFalse(alice_has_mfa_enabled())
+
+        # Leftover recovery codes alone do not mean MFA is on
+        Authenticator.objects.create(
+            user=self.alice, type=Authenticator.Type.RECOVERY_CODES, data={}
+        )
+        self.assertFalse(alice_has_mfa_enabled())
+
+        Authenticator.objects.create(
+            user=self.alice, type=Authenticator.Type.TOTP, data={'secret': 'x'}
+        )
+        self.assertTrue(alice_has_mfa_enabled())
 
     def test_inactive_user_do_not_show_up_members_list(self):
 
