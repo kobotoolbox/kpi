@@ -869,7 +869,7 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
         request_content = request['messages'][0]['content']
         assert request_content[0] == {'type': 'text', 'text': 'prompt'}
         assert request_content[1]['type'] == 'image_url'
-        assert request_content[1]['image_url']['url'] == 'data:image/jpeg;base64,123'
+        assert request_content[1]['image_url']['url'] == 'data:image/png;base64,123'
 
     def test_generate_image_request_data_image_response_missing(self):
         self.asset.content = {
@@ -908,7 +908,7 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
     def test_resize_image(self):
         attachment = self.submission['_attachments'][0]
         original_file = os.path.join(
-            settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow.jpg'
+            settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow.png'
         )
         original_file_size = os.path.getsize(original_file)
         with Image.open(original_file) as image:

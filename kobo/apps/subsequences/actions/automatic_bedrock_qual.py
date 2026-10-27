@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutErr
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
-from PIL import Image
+from PIL import Image, ImageOps
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
@@ -331,6 +331,8 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 buffer = BytesIO(raw_bytes)
                 with Image.open(buffer) as image:
                     image_format = image.format
+                    # keep rotation information
+                    ImageOps.exif_transpose(image, in_place=True)
                     # use sqrt here because the scale factor will be applied
                     # to both height and width
                     scale = math.sqrt(MAX_IMAGE_SIZE / filesize)
