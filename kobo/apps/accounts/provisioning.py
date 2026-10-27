@@ -78,10 +78,14 @@ class SocialAccountProvisioningView(APIView):
             # SCIM created the account! Clear provisioning state and log in.
             clear_pending_signup(request)
             request.session.pop('scim_provisioning_start', None)
-            _login(request, sociallogin)
-            redirect_url = sociallogin.get_redirect_url(request) or resolve_url(
-                settings.LOGIN_REDIRECT_URL
-            )
+            login_response = _login(request, sociallogin)
+            redirect_url = getattr(login_response, 'url', None)
+            if not redirect_url and login_response.has_header('Location'):
+                redirect_url = login_response['Location']
+            if not redirect_url:
+                redirect_url = sociallogin.get_redirect_url(request) or resolve_url(
+                    settings.LOGIN_REDIRECT_URL
+                )
             return Response(
                 {
                     'ready': True,

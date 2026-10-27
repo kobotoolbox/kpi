@@ -460,7 +460,38 @@ class ScimProvisioningTestCase(TestCase):
         data = response.json()
         self.assertTrue(data['ready'])
         self.assertFalse(data['expired'])
-        self.assertIsNotNone(data['redirect_url'])
+        self.assertEqual(data['redirect_url'], '/')
+
+        # User is logged in to the session
+        self.assertEqual(int(self.client.session['_auth_user_id']), cleo.pk)
+
+        # Pending session is cleared
+        self.assertNotIn('socialaccount_sociallogin', self.client.session)
+        self.assertNotIn('scim_provisioning_start', self.client.session)
+
+    @override_settings(SOCIALACCOUNT_EMAIL_VERIFICATION='mandatory')
+    def test_provisioning_w_mandatory_email_verification_goes_to_confirmation(self):
+        sociallogin = self._build_login(uid='cleo-uid', email='cleo@example.com')
+        # Simulate SCIM user creation (email unconfirmed)
+        cleo = User.objects.create_user(username='cleo', email='cleo@example.com')
+        SocialAccount.objects.create(user=cleo, provider='keycloak', uid='cleo-uid')
+
+        session = self.client.session
+        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_provisioning_start'] = timezone.now().timestamp()
+        session.save()
+
+        response = self.client.get(self.provisioning_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertTrue(data['ready'])
+        self.assertFalse(data['expired'])
+        self.assertEqual(
+            data['redirect_url'], reverse('account_email_verification_sent')
+        )
+
+        # User is not logged in yet due to mandatory email verification
+        self.assertNotIn('_auth_user_id', self.client.session)
 
         # Pending session is cleared
         self.assertNotIn('socialaccount_sociallogin', self.client.session)
