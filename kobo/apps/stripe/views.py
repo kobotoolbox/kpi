@@ -538,9 +538,9 @@ class CustomerPortalView(APIView):
         except Organization.DoesNotExist:
             return Response(
                 {
-                    'detail': t(
-                        "Couldn't find organization with id {}"
-                    ).format(organization_id)
+                    'detail': t("Couldn't find organization with id {}").format(
+                        organization_id
+                    )
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -565,13 +565,10 @@ class CustomerPortalView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        plan_subscriptions = (
-            Subscription.objects.filter(
-                customer=customer,
-                items__price__product__metadata__product_type='plan',
-            )
-            .prefetch_related('items__price__product')
-        )
+        plan_subscriptions = Subscription.objects.filter(
+            customer=customer,
+            items__price__product__metadata__product_type='plan',
+        ).prefetch_related('items__price__product')
 
         latest_subscription = (
             plan_subscriptions.filter(status__in=ACTIVE_STRIPE_STATUSES)
