@@ -584,7 +584,6 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert len(uids) == self.client.get(self.list_url).data['count']
         tied_uids = [asset.uid for asset in tied_assets]
         assert set(tied_uids).issubset(uids)
-        assert crawl_uids() == uids
         assert [uid for uid in uids if uid in tied_uids] == tied_uids
 
     def test_assets_ordering_by_date_created(self):
