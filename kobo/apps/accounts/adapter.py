@@ -11,6 +11,7 @@ from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -19,7 +20,6 @@ from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
-from kobo.apps.kobo_scim.models import IdentityProvider
 from .models import SocialAppManagedDomain
 from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
@@ -150,12 +150,15 @@ class AccountAdapter(DefaultAccountAdapter):
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
     def is_scim_enabled(self, request, sociallogin):
+        if not apps.is_installed('kobo.apps.kobo_scim'):
+            return False
         app = getattr(sociallogin.provider, 'app', None)
         if app is None:
             try:
                 app = self.get_app(request, sociallogin.account.provider)
             except Exception:
                 return False
+        IdentityProvider = apps.get_model('kobo_scim', 'IdentityProvider')
         return IdentityProvider.objects.filter(social_app=app, is_active=True).exists()
 
     def is_open_for_signup(self, request, sociallogin):

@@ -111,21 +111,3 @@ class SocialAppDetailSerializer(serializers.Serializer):
         # allauth treats `provider_id` as the identifier for subproviders (OIDC,
         # SAML) and falls back to `provider` for everything else
         return obj.provider_id or obj.provider
-
-
-class SocialAccountProvisioningResponseSerializer(serializers.Serializer):
-    """
-    Response schema for the social account provisioning polling endpoint.
-    """
-
-    ready = serializers.BooleanField(
-        help_text=t('Whether the account provisioning has completed.')
-    )
-    expired = serializers.BooleanField(
-        help_text=t('Whether the provisioning session has timed out.')
-    )
-    redirect_url = serializers.CharField(
-        required=False,
-        allow_null=True,
-        help_text=t('Destination URL to redirect to once logged in.'),
-    )
