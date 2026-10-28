@@ -9,7 +9,7 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kobo.apps.accounts.provisioning import SocialAccountProvisioningHTMLView
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,

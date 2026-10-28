@@ -11,3 +11,6 @@ SCIM_SCHEMA_PATCH_OP = 'urn:ietf:params:scim:api:messages:2.0:PatchOp'
 SCIM_SCHEMA_EXTENSION_USER = (
     'urn:ietf:params:scim:schemas:extension:kobo:2.0:User'
 )
+
+SCIM_PROVISIONING_TIMEOUT = 60  # seconds
+SCIM_PROVISIONING_POLL_INTERVAL = 10  # seconds
