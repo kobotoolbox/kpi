@@ -608,8 +608,13 @@ class Asset(
         elif only_cached_data:
             return None
 
-        # return deployed versions first
-        versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
+        # See `get_attachment_xpaths_from_version_uids()` for why the contents
+        # are deferred
+        versions = (
+            self.asset_versions.filter(deployed=True)
+            .defer('version_content', 'deployed_content')
+            .iterator()
+        )
         xpaths = set()
         for version in versions:
             if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
@@ -703,12 +708,16 @@ class Asset(
         an attachment collected under the older name unreachable.
         """
 
-        # A `version_content` weighs several megabytes on a large form.
-        # `iterator()` keeps one version at a time in memory, where iterating
-        # the queryset itself would fill its result cache with all of them
-        versions = self.asset_versions.filter(
-            uid__in=version_uids, deployed=True
-        ).iterator()
+        # A `version_content` weighs several megabytes on a large form, and
+        # `iterator()` alone still fetches rows by chunks of 2000, i.e. every
+        # version at once. Deferring the contents keeps the rows small, and
+        # `get_attachment_xpaths_from_version()` loads a content only when the
+        # version misses the Redis cache, one version at a time
+        versions = (
+            self.asset_versions.filter(uid__in=version_uids, deployed=True)
+            .defer('version_content', 'deployed_content')
+            .iterator()
+        )
 
         xpaths = set()
         for version in versions:
