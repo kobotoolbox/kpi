@@ -46,7 +46,7 @@ def _bad_request(e):
 
 
 def _extract_uuid(text):
-    text = text[text.find('@key='): -1].replace('@key=', '')
+    text = text[text.find('@key=') : -1].replace('@key=', '')
     if text.startswith('uuid:'):
         text = text.replace('uuid:', '')
     return text

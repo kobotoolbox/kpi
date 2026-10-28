@@ -82,10 +82,10 @@ echo 'Disclaimer: CI runs Darker only on the last commit and the remote branch'
 set +e
 if [ -n "$GOSU_USER" ]; then
     CURRENT_BRANCH=$(gosu "$GOSU_USER" git rev-parse --abbrev-ref HEAD)
-    darker_output=$(gosu $GOSU_USER darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH")
+    darker_output=$(gosu $GOSU_USER darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821,E203" kpi kobo hub -r "origin/$CURRENT_BRANCH")
 else
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    darker_output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH")
+    darker_output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821,E203" kpi kobo hub -r "origin/$CURRENT_BRANCH")
 fi
 darker_status=$?
 set -e

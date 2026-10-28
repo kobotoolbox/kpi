@@ -54,6 +54,8 @@ jobs:
           # -L runs the linter
           #  `--ignore=F821` avoids raising false positive error in typing
           #   annotations with string, e.g. def my_method(my_model: 'ModelName')
+          #  `E203` (whitespace before ':') conflicts with black, which puts
+          #   spaces around ':' in complex slices, e.g. `text[a.find(b) : -1]`
           # -r REV specifies a commit to compare with the worktree
           #
           # Let darker's exit code decide: it is 0 when there is nothing to
@@ -67,7 +69,7 @@ jobs:
           # and prints nothing, so a formatting failure shows up as a blank red
           # X with no explanation. `--diff` does not change the exit code; it
           # just reveals what `format-python.sh origin/main` would fix.
-          darker --check --diff --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH
+          darker --check --diff --isort -L "flake8 --max-line-length=88 --extend-ignore=F821,E203" kpi kobo hub -r $LATEST_IN_BASE_BRANCH
         # `bash` (not a bare `/usr/bin/bash`) so the step keeps `-e -o pipefail`
         # and aborts on the first failing command.
         shell: bash
