@@ -1059,7 +1059,6 @@ MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 MARKDOWNX_UPLOAD_CONTENT_TYPES = [
     'image/jpeg',
     'image/png',
-    'image/svg+xml',
     'image/gif',
     'image/webp',
 ]
