@@ -29,6 +29,20 @@ class UserListTests(BaseTestCase):
         assert len(response.data['results']) == 1
         assert response.data['results'][0]['username'] == 'adminuser'
 
+    def test_user_list_past_the_last_page_stays_paginated(self):
+        url = reverse(self._get_endpoint('user-kpi-list'))
+        response = self.client.get(url, {'start': 1000}, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'] == []
+        assert response.data['next'] is None
+
+    def test_user_list_search_without_match_stays_paginated(self):
+        url = reverse(self._get_endpoint('user-kpi-list'))
+        response = self.client.get(url, {'q': 'nobody_matches'}, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
+        assert response.data['results'] == []
+
     def test_user_list_forbidden_non_superuser(self):
         """
         a non-superuser cannot query the entire user list
