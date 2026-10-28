@@ -1,4 +1,4 @@
-import { Anchor, Box, Flex, Group, Text, Tooltip } from '@mantine/core'
+import { Anchor, Box, Flex, Group, Text, UnstyledButton } from '@mantine/core'
 import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
 import React from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -23,7 +23,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
   const savedSettings =
     query.data?.status === 200 ? query.data.data.results.filter((setting) => setting.name.trim().length > 0) : []
 
-  function getCopyAction(url: string, fileType: 'CSV' | 'XLSX') {
+  function renderCopyAction(url: string, fileType: 'CSV' | 'XLSX') {
     const copyLabel = fileType === 'CSV' ? t('Copy CSV sync link') : t('Copy XLSX sync link')
 
     return (
@@ -65,18 +65,15 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
           <Text fz={18} fw={500}>
             {t('Synchronous exports')}
           </Text>
-          <Tooltip
-            label={t(
+          <ActionIcon
+            icon={IconInfoCircle}
+            size='sm'
+            variant='transparent'
+            tooltip={t(
               'Synchronous exports provide a link to current project data as a CSV or XLSX file that updates as new data is submitted. To generate a synchronous export, save export settings in Advanced options.',
             )}
-          >
-            <ActionIcon
-              icon={IconInfoCircle}
-              size='sm'
-              variant='transparent'
-              aria-label={t('About synchronous exports')}
-            />
-          </Tooltip>
+            aria-label={t('About synchronous exports')}
+          />
         </Group>
         {envStore.isReady && envStore.data.support_url && (
           <Anchor
@@ -98,6 +95,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
         <Text>{t('Save export settings to generate a synchronous export.')}</Text>
       ) : (
         <SimpleTable
+          minWidth={700}
           head={[
             t('Type'),
             t('Export name'),
@@ -132,30 +130,24 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             </Text>,
             <Menu key={setting.uid} withinPortal={false} closeOnItemClick position='bottom-end' offset={2}>
               <Menu.Target>
-                <Group
-                  component='button'
-                  gap={4}
-                  p={0}
-                  bg='transparent'
-                  bd={0}
-                  style={{ cursor: 'pointer' }}
-                  aria-label={t('Copy synchronous export link')}
-                >
-                  <ActionIcon
-                    component='span'
-                    icon={IconLink}
-                    size='md'
-                    variant='light'
-                    color='blue.4'
-                    aria-hidden
-                    tabIndex={-1}
-                  />
-                  <IconChevronDown size={14} color='var(--mantine-color-blue-4)' aria-hidden />
-                </Group>
+                <UnstyledButton aria-label={t('Copy synchronous export link')}>
+                  <Group gap={4} align='center'>
+                    <ActionIcon
+                      component='span'
+                      icon={IconLink}
+                      size='md'
+                      variant='light'
+                      color='blue.4'
+                      aria-hidden
+                      tabIndex={-1}
+                    />
+                    <KoboIcon icon={IconChevronDown} size='xs' color='var(--mantine-color-blue-4)' aria-hidden />
+                  </Group>
+                </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
-                {getCopyAction(setting.data_url_csv, 'CSV')}
-                {getCopyAction(setting.data_url_xlsx, 'XLSX')}
+                {renderCopyAction(setting.data_url_csv, 'CSV')}
+                {renderCopyAction(setting.data_url_xlsx, 'XLSX')}
               </Menu.Dropdown>
             </Menu>,
           ])}
