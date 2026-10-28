@@ -79,6 +79,5 @@
 }
 
 .required {
-  color: var(--mantine-color-red-7);
   font-size: var(--mantine-font-size-lg);
 }
