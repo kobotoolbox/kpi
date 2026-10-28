@@ -1,3 +1,5 @@
+import type { LabelValuePair } from '#/dataInterface'
+
 /**
  * This is a list of user metadata fields known by Front end code. If you happen
  * to add new fields, please updated this interface first :)
@@ -23,38 +25,32 @@ export type AccountFieldsErrors = { [name in UserFieldName]?: string }
 
 export type UserFieldName = keyof AccountFieldsValues
 
-export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
-  bio: 'bio',
-  city: 'city',
-  country: 'country',
-  gender: 'gender',
-  instagram: 'instagram',
-  linkedin: 'linkedin',
-  name: 'name',
-  newsletter_subscription: 'newsletter_subscription',
-  organization_type: 'organization_type',
-  organization_website: 'organization_website',
-  organization: 'organization',
-  require_auth: 'require_auth',
-  sector: 'sector',
-  twitter: 'twitter',
-}
-
 /**
  * Organization details belong to the organization once it has more than one member, so its members cannot
  * write them through `/me/`
  */
 export const MMO_MANAGED_FIELD_NAMES: readonly UserFieldName[] = [
-  USER_FIELD_NAMES.organization,
-  USER_FIELD_NAMES.organization_website,
-  USER_FIELD_NAMES.organization_type,
+  'organization',
+  'organization_website',
+  'organization_type',
 ]
 
 /**
  * The fields that only mean anything for somebody who is with an organization, so `organization_type: 'none'`
  * takes them out of play - see `areOrganizationFieldsSkipped` in `account.utils`.
  */
-export const ORGANIZATION_DEPENDENT_FIELD_NAMES: readonly UserFieldName[] = [
-  USER_FIELD_NAMES.organization,
-  USER_FIELD_NAMES.organization_website,
-]
+export const ORGANIZATION_DEPENDENT_FIELD_NAMES: readonly UserFieldName[] = ['organization', 'organization_website']
+
+export interface UserMetadataField {
+  name: UserFieldName
+  required: boolean
+  label: string
+}
+
+/** Everything `AccountFieldsEditor` needs from `/environment` */
+export interface AccountFieldsConfig {
+  /** Every field `USER_METADATA_FIELDS` configures, in the order the instance lists them */
+  userMetadataFields: UserMetadataField[]
+  countryChoices: LabelValuePair[]
+  sectorChoices: LabelValuePair[]
+}

@@ -74,7 +74,11 @@ class TestInstance(TestBase):
         for instance in instances:
             # parse with timezone
             date_created = instance.date_created.replace(microsecond=0)
-            json_time = parser.parse(f'{instance.json[SUBMISSION_TIME]}+00:00')
+            submission_time = instance.json[SUBMISSION_TIME]
+            # submission_time should either be recorded with UTC or no tz at all
+            if not submission_time.endswith('+00:00'):
+                submission_time = f'{submission_time}+00:00'
+            json_time = parser.parse(submission_time)
             one_second_before = date_created - timedelta(seconds=1)
             one_second_after = date_created + timedelta(seconds=1)
             # GH actions can have 1 (or maybe a few) seconds' difference between
