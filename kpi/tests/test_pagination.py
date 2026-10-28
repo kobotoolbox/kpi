@@ -261,6 +261,24 @@ class TestLimitedCountPagination(TestCase):
         paginator = LimitedCountPagination()
         assert paginator.get_count(queryset) == 1
 
+    @override_settings(API_LIMITED_COUNT_MAX=100)
+    def test_distinct_values_queryset_counts_distinct_values(self):
+        # Two users share a first name: narrowing to `pk` would count 2
+        baker.make(User, username='lcp_a', first_name='Ada')
+        baker.make(User, username='lcp_b', first_name='Ada')
+        queryset = self._queryset().values('first_name').distinct()
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=0, API_LIMITED_COUNT_MAX=100)
+    def test_distinct_model_queryset_is_narrowed_to_pk(self):
+        self._make_users(2)
+        paginator = LimitedCountPagination()
+        with CaptureQueriesContext(connection) as ctx:
+            assert paginator.get_count(self._queryset().distinct()) == 2
+        # DISTINCT runs on `id` alone, not on every column
+        assert '"email"' not in ctx.captured_queries[-1]['sql']
+
     def _make_users(self, count):
         for i in range(count):
             baker.make(User, username=f'lcp_{i}')
