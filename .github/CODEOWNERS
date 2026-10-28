@@ -21,8 +21,8 @@
 /LICENSE                            @jnm @tinok
 
 ## Translations
-/.gitmodules                        @kobotoolbox/frontend @jamesrkiger
-/.tx/                               @kobotoolbox/frontend @jamesrkiger
+/.gitmodules                        @kobotoolbox/frontend
+/.tx/                               @kobotoolbox/frontend
 
 
 
@@ -45,15 +45,15 @@
 /.stylelintrc.js                    @kobotoolbox/frontend
 /.swcrc                             @kobotoolbox/frontend
 /.coffeelint.json                   @kobotoolbox/frontend
-/biome.jsonc                        @kobotoolbox/frontend @jamesrkiger
-/eslint.config.mjs                  @kobotoolbox/frontend @jamesrkiger
+/biome.jsonc                        @kobotoolbox/frontend
+/eslint.config.mjs                  @kobotoolbox/frontend
 /package-lock.json                  @kobotoolbox/frontend
 /package.json                       @kobotoolbox/frontend
 /tsconfig.json                      @kobotoolbox/frontend
 
 # Billing
-/jsapp/js/account/                  @kobotoolbox/frontend @jamesrkiger
-/jsapp/js/components/usageLimits    @kobotoolbox/frontend @jamesrkiger
+/jsapp/js/account/                  @kobotoolbox/frontend
+/jsapp/js/components/usageLimits    @kobotoolbox/frontend
 
 
 
