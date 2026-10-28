@@ -34,7 +34,7 @@ from kobo.apps.subsequences.exceptions import (
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.integrations.local.client import (
-    LocalLLMError,
+    LocalServiceError,
     chat_completion,
 )
 from kobo.apps.subsequences.prompts import (
@@ -396,7 +396,7 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         try:
             response_body = chat_completion(body)
             text = LocalLLM.get_response_text(response_body)
-        except (LocalLLMError, IndexError, KeyError, TypeError) as e:
+        except (LocalServiceError, IndexError, KeyError, TypeError) as e:
             if request := get_current_request():
                 request.llm_response = {
                     'error': 'Unable to get an answer from the local LLM',

@@ -117,7 +117,7 @@ class TestLocalTranslate(TestCase):
     @responses.activate
     def test_defers_to_celery_outside_a_worker(self):
         with patch(
-            'kobo.apps.subsequences.integrations.local.local_translate.celery_app',
+            'kobo.apps.subsequences.integrations.local.client.celery_app',
             MagicMock(current_worker_task=None),
         ):
             result = self.service.process_data(
@@ -133,7 +133,7 @@ class TestLocalTranslate(TestCase):
     def test_translates_inside_a_worker(self):
         responses.post(LLM_URL, json=llm_reply('Hello'))
         with patch(
-            'kobo.apps.subsequences.integrations.local.local_translate.celery_app',
+            'kobo.apps.subsequences.integrations.local.client.celery_app',
             MagicMock(current_worker_task=MagicMock()),
         ):
             result = self.service.process_data(

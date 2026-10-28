@@ -2011,13 +2011,16 @@ AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
 AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
 
 # Where automatic NLP runs. `bedrock` uses AWS Bedrock for automatic qual and
-# Google for translation; `local` sends both to an OpenAI-compatible server
-# (e.g. llama.cpp's llama-server) at `LOCAL_LLM_URL`, for offline installs.
+# Google for transcription and translation. `local` uses OpenAI-compatible
+# servers instead, for offline installs: an LLM at `LOCAL_LLM_URL` (e.g.
+# llama.cpp's llama-server) for qual and translation, and speech-to-text at
+# `LOCAL_WHISPER_URL` (e.g. whisper.cpp's whisper-server) for transcription.
 # Qual runs inside the request, so its read timeout must stay below uWSGI's
-# harakiri (120s by default). Translation runs in a Celery worker, whose timeout
-# must stay below CELERY_TASK_SOFT_TIME_LIMIT.
+# harakiri (120s by default). Transcription and translation run in a Celery
+# worker, whose timeout must stay below CELERY_TASK_SOFT_TIME_LIMIT.
 NLP_BACKEND = env.str('NLP_BACKEND', 'bedrock')
 LOCAL_LLM_URL = env.str('LOCAL_LLM_URL', 'http://llm:8080')
+LOCAL_WHISPER_URL = env.str('LOCAL_WHISPER_URL', 'http://whisper:8080')
 LOCAL_LLM_READ_TIMEOUT = env.int('LOCAL_LLM_READ_TIMEOUT', 100)
 LOCAL_LLM_TASK_READ_TIMEOUT = env.int('LOCAL_LLM_TASK_READ_TIMEOUT', 1500)
 LOCAL_LLM_CONNECT_TIMEOUT = env.int('LOCAL_LLM_CONNECT_TIMEOUT', 5)

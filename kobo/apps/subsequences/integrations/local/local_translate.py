@@ -5,12 +5,16 @@ import re
 from django.conf import settings
 
 from kobo.apps.languages.models.language import Language
-from kobo.celery import celery_app
 from kpi.utils.log import logging
 
 from ...constants import DEPENDENCY_ACTION_ID_FIELD, DEPENDENCY_SOURCE_SUBMISSION
 from ...utils.survey import get_form_language
-from .client import LocalLLMError, chat_completion, get_message_content
+from .client import (
+    LocalServiceError,
+    chat_completion,
+    get_message_content,
+    must_defer_to_worker,
+)
 
 # Matches the trailing `(code)` in a form language like 'English (en)'
 _FORM_LANGUAGE_CODE_RE = re.compile(r'\s*\(([^)]+)\)\s*$')
@@ -28,12 +32,10 @@ class LocalTranslationService:
     Translate with the OpenAI-compatible LLM at `LOCAL_LLM_URL`
     (`NLP_BACKEND=local`). Same interface as `GoogleTranslationService`.
 
-    On a CPU-only box a long transcript can take minutes, longer than a request
-    may run, so translation only happens in a Celery worker: called from a
-    request, `process_data()` returns `in_progress`, and
+    Translation only happens in a Celery worker (see `must_defer_to_worker()`):
+    called from a request, `process_data()` returns `in_progress`, and
     `BaseAutomaticNLPAction.run_external_process()` schedules
-    `poll_run_external_process`, which calls it again from the worker. With
-    `CELERY_TASK_ALWAYS_EAGER` (no workers) it translates right away.
+    `poll_run_external_process`, which calls it again from the worker.
     """
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
@@ -70,7 +72,7 @@ class LocalTranslationService:
                 'error': 'The source question has no text to translate.',
             }
 
-        if not (celery_app.current_worker_task or settings.CELERY_TASK_ALWAYS_EAGER):
+        if must_defer_to_worker():
             return {'status': 'in_progress'}
 
         prompt = PROMPT.format(
@@ -89,7 +91,7 @@ class LocalTranslationService:
                 read_timeout=settings.LOCAL_LLM_TASK_READ_TIMEOUT,
             )
             value = get_message_content(response_body).strip()
-        except LocalLLMError as e:
+        except LocalServiceError as e:
             logging.warning(f'Local translation failed for {xpath=}: {e}')
             return {'status': 'failed', 'error': f'Translation failed: {e}'}
 
