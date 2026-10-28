@@ -1558,6 +1558,16 @@ class AssetImportTaskTest(BaseTestCase):
         error_message = result.messages['error']
         assert 'note_1' in error_message
 
+    def test_list_links_each_import_to_its_detail(self):
+        task = ImportTask.objects.create(user=self.user, data='{}')
+        response = self.client.get(reverse(self._get_endpoint('importtask-list')))
+        assert response.status_code == status.HTTP_200_OK
+        detail_url = reverse(
+            self._get_endpoint('importtask-detail'), kwargs={'uid_import': task.uid}
+        )
+        assert response.data['results'][0]['uid'] == task.uid
+        assert response.data['results'][0]['url'].endswith(detail_url)
+
 
 class LibraryImportOwnershipTest(BaseTestCase):
     """
