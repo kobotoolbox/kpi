@@ -1,13 +1,13 @@
 # coding: utf-8
 import os
 
-from django.urls import reverse
 from django.conf import settings
+from django.urls import reverse
 
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.views import bulksubmission
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -24,15 +24,21 @@ class TestImportingDatabase(TestBase):
         TestBase.setUp(self)
         self._publish_xls_file(
             os.path.join(
-                settings.OPENROSA_APP_DIR, "apps", "logger", "fixtures",
-                "test_forms", "tutorial.xls"))
+                settings.OPENROSA_APP_DIR,
+                'apps',
+                'logger',
+                'fixtures',
+                'test_forms',
+                'tutorial.xls',
+            )
+        )
 
     def _images_count(self, instance):
         placeholder_path = '{username}/attachments/{xform_uuid}/{instance_uuid}'
         attachments_path = placeholder_path.format(
             username=self.user.username,
             xform_uuid=instance.xform.uuid,
-            instance_uuid=instance.uuid
+            instance_uuid=instance.uuid,
         )
         _, images = default_storage.listdir(attachments_path)
         return len(images)
@@ -63,8 +69,9 @@ class TestImportingDatabase(TestBase):
         for instance in queryset.all():
             initial_images_count += self._images_count(instance)
 
-        import_instances_from_zip(os.path.join(
-            DB_FIXTURES_PATH, "bulk_submission.zip"), self.user)
+        import_instances_from_zip(
+            os.path.join(DB_FIXTURES_PATH, 'bulk_submission.zip'), self.user
+        )
 
         instance_count = Instance.objects.count()
         images_count = 0
@@ -79,8 +86,8 @@ class TestImportingDatabase(TestBase):
 
     def test_badzipfile_import(self):
         total, success, errors = import_instances_from_zip(
-            os.path.join(
-                CUR_DIR, "Water_Translated_2011_03_10.xml"), self.user)
+            os.path.join(CUR_DIR, 'Water_Translated_2011_03_10.xml'), self.user
+        )
         self.assertEqual(total, 0)
         self.assertEqual(success, 0)
         expected_errors = ['File is not a zip file']
@@ -88,22 +95,20 @@ class TestImportingDatabase(TestBase):
 
     def test_bulk_import_post(self):
         zip_file_path = os.path.join(
-            DB_FIXTURES_PATH, "bulk_submission_w_extra_instance.zip")
-        url = reverse(bulksubmission, kwargs={
-            "username": self.user.username
-        })
-        with open(zip_file_path, "rb") as zip_file:
+            DB_FIXTURES_PATH, 'bulk_submission_w_extra_instance.zip'
+        )
+        url = reverse(bulksubmission, kwargs={'username': self.user.username})
+        with open(zip_file_path, 'rb') as zip_file:
             post_data = {'zip_submission_file': zip_file}
             response = self.client.post(url, post_data)
         self.assertEqual(response.status_code, 200)
 
     def test_bulk_import_post_with_username_in_uppercase(self):
         zip_file_path = os.path.join(
-            DB_FIXTURES_PATH, "bulk_submission_w_extra_instance.zip")
-        url = reverse(bulksubmission, kwargs={
-            "username": self.user.username.upper()
-        })
-        with open(zip_file_path, "rb") as zip_file:
+            DB_FIXTURES_PATH, 'bulk_submission_w_extra_instance.zip'
+        )
+        url = reverse(bulksubmission, kwargs={'username': self.user.username.upper()})
+        with open(zip_file_path, 'rb') as zip_file:
             post_data = {'zip_submission_file': zip_file}
             response = self.client.post(url, post_data)
         self.assertEqual(response.status_code, 200)

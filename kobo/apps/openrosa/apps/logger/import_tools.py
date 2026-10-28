@@ -39,7 +39,7 @@ def django_file(path, field_name, content_type):
         name=f.name,
         content_type=content_type,
         size=os.path.getsize(path),
-        charset=None
+        charset=None,
     )
 
 
@@ -115,7 +115,6 @@ def import_instances_from_path(path, user, status='zip'):
             else:
                 return 0
 
-    total_count, success_count, errors = iterate_through_instances(
-        path, callback)
+    total_count, success_count, errors = iterate_through_instances(path, callback)
 
     return total_count, success_count, errors
