@@ -80,10 +80,17 @@ def bulksubmission(request, username):
     # runs "import_tools(temp_directory)"
     # deletes
 
-    if request.user.username.lower() != username.lower():
-        return HttpResponseForbidden()
+    # FIXME: drop the username check below and the `<username>` URL
+    #   argument. `create_instance()` already checks `add_submissions` on each
+    #   form through `request`, so this check only blocks non-owners who are
+    #   allowed to submit. Also stop passing `user` down the chain
+    #   (import_instances_from_zip -> import_instances_from_path ->
+    #   create_instance), since `get_xform_from_submission()` no longer uses
+    #   the username to find the form.
+    posting_user = request.user
 
-    posting_user = get_object_or_404(User, username__iexact=username)
+    if posting_user.username.lower() != username.lower():
+        return HttpResponseForbidden()
 
     # request.FILES is a django.utils.datastructures.MultiValueDict
     # for each key we have a list of values
