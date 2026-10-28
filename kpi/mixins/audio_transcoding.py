@@ -1,10 +1,9 @@
 # coding: utf-8
-import subprocess
 from datetime import datetime, timedelta
 from typing import Tuple, Union
 
-from kpi.exceptions import FFMpegException, NotSupportedFormatException
-from kpi.utils.log import logging
+from kpi.exceptions import NotSupportedFormatException
+from kpi.utils.ffmpeg import decode_args, run_ffmpeg
 
 
 class AudioTranscodingMixin:
@@ -34,27 +33,12 @@ class AudioTranscodingMixin:
         if audio_format not in self.AVAILABLE_OUTPUT_FORMATS:
             raise NotSupportedFormatException
 
-        ffmpeg_command = [
-            '/usr/bin/ffmpeg',
-            '-i',
-            self.absolute_path,
-            '-ac',
-            '1',
-            '-vn',
+        pipe = run_ffmpeg([
+            *decode_args(self.absolute_path),
             '-f',
             audio_format,
             'pipe:1',
-        ]
-
-        pipe = subprocess.run(
-            ffmpeg_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        if pipe.returncode:
-            logging.error(f'ffmpeg error: {pipe.stderr}')
-            raise FFMpegException
+        ])
 
         if include_duration:
             duration = str(pipe.stderr).split('Duration: ')[-1].split('.')[0]
