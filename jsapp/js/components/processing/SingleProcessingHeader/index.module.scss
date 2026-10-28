@@ -15,6 +15,24 @@
   gap: 5px;
 }
 
+.navButtons {
+  @include mixins.centerRowFlex;
+  position: relative;
+  gap: 5px;
+
+  // Hide the (disabled) buttons while loading so the loader sits in their place
+  // without affecting layout
+  &.navButtonsLoading > :not(.navButtonsLoader) {
+    visibility: hidden;
+  }
+}
+
+.navButtonsLoader {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
 @include breakpoints.breakpoint(veryNarrow) {
   .root {
     flex-wrap: wrap;
