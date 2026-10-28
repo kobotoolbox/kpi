@@ -1,4 +1,5 @@
 import copy
+import json
 import time
 import uuid
 from datetime import timedelta
@@ -6,6 +7,7 @@ from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
 import pytest
+import responses
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
@@ -24,6 +26,7 @@ from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
     OSS120,
     AutomaticBedrockQual,
     ClaudeSonnet,
+    LocalLLM,
 )
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_INTEGER,
@@ -918,6 +921,70 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         #  Verify it exited gracefully
         assert result.get('status') == 'failed'
         assert 'Connect timeout' in result.get('error')
+
+    @override_settings(NLP_BACKEND='local')
+    def test_local_backend_uses_only_local_llm(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(
+            self.action, 'create_bedrock_client'
+        ) as patched_create_client, patch.object(
+            self.action, 'get_response_from_llm', side_effect=ConnectTimeoutError(
+                endpoint_url='http://llm:8080', error='down'
+            )
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # No Bedrock client, and no fallback to Bedrock models when local fails
+        patched_create_client.assert_not_called()
+        patched_get_response_from_llm.assert_called_once_with(ANY, LocalLLM)
+        assert result.get('status') == 'failed'
+
+    @override_settings(NLP_BACKEND='local', LOCAL_LLM_URL='http://llm:8080/')
+    @responses.activate
+    def test_local_backend_sends_openai_request(self):
+        responses.post(
+            'http://llm:8080/v1/chat/completions',
+            json={
+                'id': 'chatcmpl-1',
+                'model': 'gemma-4-E4B-it-Q4_0.gguf',
+                'choices': [{'message': {'role': 'assistant', 'content': '5'}}],
+            },
+        )
+        action_data = {
+            'uuid': BEDROCK_QUAL_INTEGER_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        assert result == {'value': 5, 'status': 'complete'}
+        assert len(responses.calls) == 1
+        body = json.loads(responses.calls[0].request.body)
+        assert 'anthropic_version' not in body
+        assert 'include_reasoning' not in body
+        assert body['temperature'] == 0
+        assert body['messages'][0]['role'] == 'user'
+
+    @data(
+        # response kwargs for the local server
+        {'status': 500, 'json': {'error': 'model not loaded'}},
+        {'json': {'choices': []}},
+        {'body': 'not json'},
+    )
+    @override_settings(NLP_BACKEND='local')
+    @responses.activate
+    def test_local_backend_errors_fail_cleanly(self, response_kwargs):
+        responses.post('http://llm:8080/v1/chat/completions', **response_kwargs)
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        assert result.get('status') == 'failed'
+        assert 'local LLM' in result.get('error')
 
 
 @override_settings(CACHES={

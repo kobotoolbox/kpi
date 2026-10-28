@@ -7,6 +7,7 @@ from typing import Optional
 from xml.sax.saxutils import escape
 
 import boto3
+import requests
 from botocore.config import Config
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
@@ -101,6 +102,15 @@ Gemma = LLModel(
     model_arn=settings.AUTOQA_GEMMA_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
+)
+# Any OpenAI-compatible server at `LOCAL_LLM_URL` (used when NLP_BACKEND=local).
+# Whichever model the server has loaded answers; thinking/reasoning, if the model
+# has it, must be turned off server-side or it can leak into the answer.
+LocalLLM = LLModel(
+    model_arn='',
+    model_id='local',
+    path_to_response='choices.0.message.content',
+    supports_reasoning=False,
 )
 
 
@@ -377,7 +387,41 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
         ]
 
+    def get_response_from_local_llm(self, request_data: dict) -> str:
+        # Bedrock-only field; OpenAI-compatible servers don't expect it
+        body = {k: v for k, v in request_data.items() if k != 'anthropic_version'}
+        url = f"{settings.LOCAL_LLM_URL.rstrip('/')}/v1/chat/completions"
+        try:
+            response = requests.post(
+                url,
+                json=body,
+                timeout=(
+                    settings.LOCAL_LLM_CONNECT_TIMEOUT,
+                    settings.LOCAL_LLM_READ_TIMEOUT,
+                ),
+            )
+            response.raise_for_status()
+            response_body = response.json()
+            text = LocalLLM.get_response_text(response_body)
+        except (requests.RequestException, IndexError, KeyError, TypeError) as e:
+            if request := get_current_request():
+                request.llm_response = {
+                    'error': 'Unable to get an answer from the local LLM',
+                }
+            raise InvalidResponseFromLLMException(
+                f'Unable to get an answer from the local LLM: {e}'
+            ) from e
+
+        if request := get_current_request():
+            request.llm_response = {
+                'request_id': response_body.get('id', ''),
+                'model': response_body.get('model', LocalLLM.model_id),
+            }
+        return text
+
     def get_response_from_llm(self, request_data: dict, model: LLModel) -> str:
+        if model is LocalLLM:
+            return self.get_response_from_local_llm(request_data)
 
         if model.supports_reasoning:
             # invoke_model raises an error if you try to disable reasoning
@@ -503,13 +547,17 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         survey_question_type = action_data['_dependency'].get('_question_type')
         error = ''
 
-        self.client = self.create_bedrock_client()
-
         request = self.construct_external_request(action_data, submission)
-        if survey_question_type == IMAGE_SOURCE_TYPE:
-            models = [Gemma]
+        if settings.NLP_BACKEND == 'local':
+            # No Bedrock client: it needs an AWS region, which offline installs
+            # don't have
+            models = [LocalLLM]
         else:
-            models = [OSS120, ClaudeSonnet]
+            self.client = self.create_bedrock_client()
+            if survey_question_type == IMAGE_SOURCE_TYPE:
+                models = [Gemma]
+            else:
+                models = [OSS120, ClaudeSonnet]
 
         update_nlp_counter(
             'bedrock_llm_requests',

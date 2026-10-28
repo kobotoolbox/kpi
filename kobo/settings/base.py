@@ -2009,6 +2009,15 @@ if env.str('AWS_ACCESS_KEY_ID', False):
 AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
 AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
 AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
+
+# Where automatic NLP runs. `bedrock` uses AWS Bedrock for automatic qual;
+# `local` sends it to an OpenAI-compatible server (e.g. llama.cpp's llama-server)
+# at `LOCAL_LLM_URL`, for offline installs. The read timeout must stay below
+# uWSGI's harakiri (120s by default) because qual runs inside the request.
+NLP_BACKEND = env.str('NLP_BACKEND', 'bedrock')
+LOCAL_LLM_URL = env.str('LOCAL_LLM_URL', 'http://llm:8080')
+LOCAL_LLM_READ_TIMEOUT = env.int('LOCAL_LLM_READ_TIMEOUT', 100)
+LOCAL_LLM_CONNECT_TIMEOUT = env.int('LOCAL_LLM_CONNECT_TIMEOUT', 5)
 AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
 AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
