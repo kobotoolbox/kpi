@@ -9,7 +9,6 @@
 *                                   @kobotoolbox/frontend @kobotoolbox/backend
 
 
-
 ################
 #### Global section.
 /.editorconfig                      @kobotoolbox/frontend
@@ -25,8 +24,6 @@
 /.tx/                               @kobotoolbox/frontend
 
 
-
-
 ################
 #### Frontend section.
 
@@ -35,7 +32,6 @@
 /jsapp/                             @kobotoolbox/frontend
 /patches/                           @kobotoolbox/frontend
 /static/                            @kobotoolbox/frontend
-/static/js/                         @kobotoolbox/frontend
 /test/                              @kobotoolbox/frontend
 /webpack/                           @kobotoolbox/frontend
 /.babelrc.json                      @kobotoolbox/frontend
@@ -51,12 +47,6 @@
 /package.json                       @kobotoolbox/frontend
 /tsconfig.json                      @kobotoolbox/frontend
 
-# Billing
-/jsapp/js/account/                  @kobotoolbox/frontend
-/jsapp/js/components/usageLimits    @kobotoolbox/frontend
-
-
-
 
 ################
 #### Backend section
@@ -64,12 +54,8 @@
 # Default owner
 /dependencies/                      @kobotoolbox/backend
 /hub/                               @kobotoolbox/backend
-/hub/tests/                         @kobotoolbox/backend
 /kobo/                              @kobotoolbox/backend
-/kobo/apps/audit_log/               @kobotoolbox/backend
-/kobo/apps/subsequences/            @kobotoolbox/backend
 /kpi/                               @kobotoolbox/backend
-/kpi/tests/                         @kobotoolbox/backend
 /.coveragerc                        @kobotoolbox/backend
 /.dockerignore                      @kobotoolbox/backend
 /format-python.sh                   @kobotoolbox/backend
@@ -84,8 +70,6 @@
 _registration.scss                  @kobotoolbox/frontend
 
 
-
-
 ################
 #### Infrastructure section
 
@@ -97,8 +81,6 @@ _registration.scss                  @kobotoolbox/frontend
 /.github/workflows/npm-test.yml     @kobotoolbox/frontend
 /.gitlab-ci.yml                     @olive-KTB
 /Dockerfile                         @olive-KTB @kobotoolbox/backend
-
-
 
 
 ################
