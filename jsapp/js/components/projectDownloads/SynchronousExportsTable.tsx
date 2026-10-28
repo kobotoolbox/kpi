@@ -7,9 +7,9 @@ import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
-import { EXPORT_TYPES, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
+import { EXPORT_FORMATS, EXPORT_TYPES, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
 import envStore from '#/envStore'
-import { formatDate, notify } from '#/utils'
+import { formatDate, getLangAsObject, notify } from '#/utils'
 
 const SYNCHRONOUS_EXPORT_SUPPORT_URL = 'pulling_data_into_powerbi.html'
 
@@ -42,6 +42,20 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
         <Menu.Item>{copyLabel}</Menu.Item>
       </CopyToClipboard>
     )
+  }
+
+  function renderLanguage(language: string) {
+    const formatName = language as keyof typeof EXPORT_FORMATS
+    if (EXPORT_FORMATS[formatName]) {
+      return EXPORT_FORMATS[formatName].label
+    }
+
+    const languageObject = getLangAsObject(language)
+    if (languageObject) {
+      return `${languageObject.name} (${languageObject.code.toLowerCase()})`
+    }
+
+    return language
   }
 
   return (
@@ -88,6 +102,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             t('Type'),
             t('Export name'),
             t('Date modified'),
+            t('Language'),
             <Text key='include-groups' ta='center'>
               {t('Include Groups')}
             </Text>,
@@ -100,6 +115,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             EXPORT_TYPES[setting.export_settings.type as ExportTypeName]?.label || t('Unknown format'),
             setting.name,
             formatDate(setting.date_modified, true, 'LL'),
+            renderLanguage(setting.export_settings.lang || ''),
             <Text key='include-groups' ta='center'>
               {setting.export_settings.hierarchy_in_labels ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
