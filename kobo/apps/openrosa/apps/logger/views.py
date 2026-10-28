@@ -15,7 +15,6 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.template import loader
 from django.utils.translation import gettext as t
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -75,12 +74,23 @@ def _submission_response(request, instance):
 
 
 @require_POST
-@csrf_exempt
+@login_required
 def bulksubmission(request, username):
     # puts it in a temp directory.
     # runs "import_tools(temp_directory)"
     # deletes
-    posting_user = get_object_or_404(User, username__iexact=username)
+
+    # FIXME: drop the username check below and the `<username>` URL
+    #   argument. `create_instance()` already checks `add_submissions` on each
+    #   form through `request`, so this check only blocks non-owners who are
+    #   allowed to submit. Also stop passing `user` down the chain
+    #   (import_instances_from_zip -> import_instances_from_path ->
+    #   create_instance), since `get_xform_from_submission()` no longer uses
+    #   the username to find the form.
+    posting_user = request.user
+
+    if posting_user.username.lower() != username.lower():
+        return HttpResponseForbidden()
 
     # request.FILES is a django.utils.datastructures.MultiValueDict
     # for each key we have a list of values
@@ -111,7 +121,9 @@ def bulksubmission(request, username):
         f.write(postfile.read())
 
     with open(our_tfpath, 'rb') as f:
-        total_count, success_count, errors = import_instances_from_zip(f, posting_user)
+        total_count, success_count, errors = import_instances_from_zip(
+            f, posting_user, request=request
+        )
     # chose the try approach as suggested by the link below
     # http://stackoverflow.com/questions/82831
     try:
