@@ -7,7 +7,6 @@ from typing import Optional
 from xml.sax.saxutils import escape
 
 import boto3
-import requests
 from botocore.config import Config
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
@@ -33,6 +32,10 @@ from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     ManualQualNotFound,
+)
+from kobo.apps.subsequences.integrations.local.client import (
+    LocalLLMError,
+    chat_completion,
 )
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
@@ -390,20 +393,10 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
     def get_response_from_local_llm(self, request_data: dict) -> str:
         # Bedrock-only field; OpenAI-compatible servers don't expect it
         body = {k: v for k, v in request_data.items() if k != 'anthropic_version'}
-        url = f"{settings.LOCAL_LLM_URL.rstrip('/')}/v1/chat/completions"
         try:
-            response = requests.post(
-                url,
-                json=body,
-                timeout=(
-                    settings.LOCAL_LLM_CONNECT_TIMEOUT,
-                    settings.LOCAL_LLM_READ_TIMEOUT,
-                ),
-            )
-            response.raise_for_status()
-            response_body = response.json()
+            response_body = chat_completion(body)
             text = LocalLLM.get_response_text(response_body)
-        except (requests.RequestException, IndexError, KeyError, TypeError) as e:
+        except (LocalLLMError, IndexError, KeyError, TypeError) as e:
             if request := get_current_request():
                 request.llm_response = {
                     'error': 'Unable to get an answer from the local LLM',

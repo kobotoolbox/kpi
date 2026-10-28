@@ -1,6 +1,10 @@
+from django.conf import settings
+
 from kobo.apps.organizations.constants import UsageType
+
 from ..constants import TRANSLATABLE_SOURCE_TYPES
 from ..integrations.google.google_translate import GoogleTranslationService
+from ..integrations.local.local_translate import LocalTranslationService
 from ..type_aliases import NLPExternalServiceClass
 from .base import ActionClassConfig, BaseAutomaticNLPAction, ReviewType
 from .mixins import TranslationActionMixin
@@ -19,6 +23,8 @@ class AutomaticGoogleTranslationAction(TranslationActionMixin, BaseAutomaticNLPA
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
+        if settings.NLP_BACKEND == 'local':
+            return LocalTranslationService
         return GoogleTranslationService
 
     @property
