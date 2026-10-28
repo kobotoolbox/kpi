@@ -4,34 +4,34 @@
 import os
 
 from django.core.management.base import BaseCommand, CommandError
+from django.test import RequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.libs.logger.import_tools import (
+from kobo.apps.openrosa.apps.logger.import_tools import (
     import_instances_from_path,
     import_instances_from_zip,
 )
 
 
 class Command(BaseCommand):
-    args = 'username path'
     help = (
         'Import a zip file, a directory containing zip files '
         'or a directory of ODK instances'
     )
 
-    def _log_import(self, results):
-        total_count, success_count, errors = results
-        self.stdout.write(
-            'Total: %(total)d, Imported: %(imported)d, Errors: '
-            '%(errors)s\n------------------------------\n'
-            % {'total': total_count, 'imported': success_count, 'errors': errors}
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'username',
+            help='User who submits the instances, used for permission checks',
+        )
+        parser.add_argument(
+            'path',
+            help='Zip file, directory of zip files or directory of instances',
         )
 
     def handle(self, *args, **kwargs):
-        if len(args) < 2:
-            raise CommandError('Usage: <command> username file/path.')
-        username = args[0]
-        path = args[1]
+        username = kwargs['username']
+        path = kwargs['path']
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -41,20 +41,35 @@ class Command(BaseCommand):
         if not os.path.exists(path):
             raise CommandError("The specified path '%s' does not exist." % path)
 
+        # `create_instance()` checks submission permissions against the
+        # request user
+        request = RequestFactory().post('/')
+        request.user = user
+
+        if os.path.isfile(path):
+            self._import_zip(path, user, request)
+            return
+
+        self.stdout.write('Importing from dir %s..\n' % path)
+        results = import_instances_from_path(path, user, request)
+        self._log_import(results)
+
         for dir, subdirs, files in os.walk(path):
-            # check if the dir has an odk directory
-            if 'odk' in subdirs:
-                # dont walk further down this dir
-                subdirs.remove('odk')
-                self.stdout.write('Importing from dir %s..\n' % dir)
-                results = import_instances_from_path(dir, user)
-                self.log_import(results)
             for file in files:
-                filepath = os.path.join(path, file)
-                if (
-                    os.path.isfile(filepath)
-                    and os.path.splitext(filepath)[1].lower() == '.zip'
-                ):
-                    self.stdout.write('Importing from zip at %s..\n' % filepath)
-                    results = import_instances_from_zip(filepath, user)
-                    self.log_import(results)
+                self._import_zip(os.path.join(dir, file), user, request)
+
+    def _import_zip(self, filepath, user, request):
+        if os.path.splitext(filepath)[1].lower() != '.zip':
+            return
+
+        self.stdout.write('Importing from zip at %s..\n' % filepath)
+        results = import_instances_from_zip(filepath, user, request)
+        self._log_import(results)
+
+    def _log_import(self, results):
+        total_count, success_count, errors = results
+        self.stdout.write(
+            'Total: %(total)d, Imported: %(imported)d, Errors: '
+            '%(errors)s\n------------------------------\n'
+            % {'total': total_count, 'imported': success_count, 'errors': errors}
+        )
