@@ -18,7 +18,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
-from kpi.paginators import DefaultPagination
+from kpi.paginators import LimitedCountPagination
 from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.xml import add_xml_declaration
 
@@ -109,7 +109,7 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             limit = (
                 int(
                     request.query_params.get(
-                        DefaultPagination.limit_query_param, default_limit
+                        LimitedCountPagination.limit_query_param, default_limit
                     )
                 )
                 if request

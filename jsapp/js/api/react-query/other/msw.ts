@@ -71,7 +71,10 @@ import type { TranslationService } from '../../models/translationService'
 export const getApiV2LanguagesListResponseMock = (
   overrideResponse: Partial<PaginatedLanguageListList> = {},
 ): PaginatedLanguageListList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -115,7 +118,10 @@ export const getApiV2LanguagesRetrieveResponseMock = (overrideResponse: Partial<
 export const getApiV2PermissionsListResponseMock = (
   overrideResponse: Partial<PaginatedPermissionResponseList> = {},
 ): PaginatedPermissionResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -150,7 +156,10 @@ export const getApiV2PermissionsRetrieveResponseMock = (
 export const getApiV2StripeAddonsListResponseMock = (
   overrideResponse: Partial<PaginatedOneTimeAddOnList> = {},
 ): PaginatedOneTimeAddOnList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -236,7 +245,10 @@ export const getApiV2StripeProductsListResponseRecurringMock = (
 export const getApiV2StripeProductsListResponseMock = (
   overrideResponse: Partial<PaginatedProductList> = {},
 ): PaginatedProductList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -288,7 +300,10 @@ export const getApiV2StripeSubscriptionsListResponseRecurringMock = (
 export const getApiV2StripeSubscriptionsListResponseMock = (
   overrideResponse: Partial<PaginatedSubscriptionList> = {},
 ): PaginatedSubscriptionList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -576,7 +591,10 @@ export const getApiV2TermsOfServiceRetrieveResponseMock = (
 export const getApiV2TranscriptionServicesListResponseMock = (
   overrideResponse: Partial<PaginatedTranscriptionServiceList> = {},
 ): PaginatedTranscriptionServiceList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -597,7 +615,10 @@ export const getApiV2TranscriptionServicesRetrieveResponseMock = (
 export const getApiV2TranslationServicesListResponseMock = (
   overrideResponse: Partial<PaginatedTranslationServiceList> = {},
 ): PaginatedTranslationServiceList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({

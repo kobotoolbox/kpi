@@ -28,7 +28,7 @@ from kpi.exceptions import (
 )
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import AssetPagination, LimitedCountPagination, NoCountPagination
+from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.schema_extensions.v2.invites.schema import (
     INVITE_ROLE_SCHEMA,
     INVITE_STATUS_SCHEMA,
@@ -381,12 +381,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @action(
-        detail=True,
-        methods=['get'],
-        permission_classes=[IsOrgAdminPermission],
-        pagination_class=LimitedCountPagination,
-    )
+    @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
     def asset_usage(self, request, pk=None, *args, **kwargs):
 
         # `get_object()` checks permissions
@@ -561,7 +556,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     serializer_class = OrganizationUserSerializer
     permission_classes = [OrganizationNestedHasOrgRolePermission]
-    pagination_class = LimitedCountPagination
     http_method_names = ['get', 'patch', 'delete']
     parent_lookup_field = 'uid_organization'
     lookup_field = 'user__username'

@@ -1110,7 +1110,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.LimitedCountPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
