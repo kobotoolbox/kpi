@@ -46,7 +46,7 @@ PARENT_INDEX = '_parent_index'
 PARENT_TABLE_NAME = '_parent_table_name'
 
 # datetime format that we store in mongo
-MONGO_STRFTIME = '%Y-%m-%dT%H:%M:%S'
+MONGO_STRFTIME = '%Y-%m-%dT%H:%M:%S%:z'
 
 # how to represent N/A in exports
 NA_REP = 'n/a'
