@@ -75,7 +75,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   // Not `useOrganizationAssumed`, as form routes are not wrapped in `RequireOrg`
   const profile = useSession()
   const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
-  const { data: organizationResponse } = useOrganizationsRetrieve(organizationId!, {
+  const { data: organizationResponse, isFetched: isOrganizationFetched } = useOrganizationsRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
       staleTime: Number.POSITIVE_INFINITY,
@@ -104,9 +104,11 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const isImportsLoading = isLoadingAttachedSources || isDetachingSource
   const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
+  // Wait until we know whether user is an org admin, so the list doesn't show up partial and then grow.
   // `isFetched`, so a failed org request still shows the user's projects
+  const isOrgCheckDone = !profile.isAnonymous && (!organizationId || isOrganizationFetched)
   const sharingEnabledAssetsLoaded =
-    Boolean(sharingEnabledAssetsResponse?.data) && (!isOrgAdmin || isOrgSharingEnabledAssetsFetched)
+    Boolean(sharingEnabledAssetsResponse?.data) && isOrgCheckDone && (!isOrgAdmin || isOrgSharingEnabledAssetsFetched)
 
   const sharingEnabledAssets = useMemo<ConnectableAsset[]>(() => {
     const userAssets: ConnectableAsset[] =
