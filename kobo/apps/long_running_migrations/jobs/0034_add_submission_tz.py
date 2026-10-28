@@ -54,7 +54,9 @@ def run():
                     )
                     last_xform_pk_for_user = xform_pk
                     cache.set(
-                        f'{LAST_XFORM_ID_CACHE_KEY}_{user_pk}', last_xform_pk_for_user
+                        f'{LAST_XFORM_ID_CACHE_KEY}_{user_pk}',
+                        last_xform_pk_for_user,
+                        timeout=None,
                     )
         cache.set(LAST_USER_ID_CACHE_KEY, user_pk, timeout=None)
 
