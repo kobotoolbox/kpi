@@ -313,7 +313,7 @@ function MembersRoute() {
               currentUserRole={organization.request_user_role}
               targetFullName={member.user__extra_details__name}
               orgName={organization.name}
-              isPendingTransfer={!!obj.pending_transfer}
+              isPendingOwnershipTransfer={!!obj.pending_transfer}
             />
           )
         } else if (invite) {
