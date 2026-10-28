@@ -13,8 +13,8 @@ from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kpi.models import Asset
 from kpi.utils.mongo_helper import MongoHelper
 
-job_0033 = importlib.import_module(
-    'kobo.apps.long_running_migrations.jobs.0033_add_submission_tz'
+job_0034 = importlib.import_module(
+    'kobo.apps.long_running_migrations.jobs.0034_add_submission_tz'
 )
 
 
@@ -77,7 +77,7 @@ class TestAddTzInfo(TestCase):
                 == submission_times_with_tz_by_id[document['_id']][0:-6]
             )
 
-        job_0033.run()
+        job_0034.run()
 
         # tz info should be back
         for document in settings.MONGO_DB.instances.find({}):
@@ -107,9 +107,9 @@ class TestAddTzInfo(TestCase):
             last_login=timezone.now(),
         )
         with patch.object(
-            job_0033, 'get_xforms_queryset', return_value=XForm.objects.none()
+            job_0034, 'get_xforms_queryset', return_value=XForm.objects.none()
         ) as patched_get_xforms:
-            job_0033.run()
+            job_0034.run()
         patched_get_xforms.assert_called_once_with(0, correct.pk)
 
     @override_settings(LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE=2)
@@ -132,9 +132,9 @@ class TestAddTzInfo(TestCase):
             xform = XForm.objects.get(kpi_asset_uid=a.uid)
             xform_pks.append(xform.pk)
         with patch.object(
-            job_0033, 'get_xforms_queryset', wraps=job_0033.get_xforms_queryset
+            job_0034, 'get_xforms_queryset', wraps=job_0034.get_xforms_queryset
         ) as patched_get_xforms:
-            job_0033.run()
+            job_0034.run()
         assert patched_get_xforms.mock_calls == [
             call(0, u.pk),
             call(xform_pks[1], u.pk),
