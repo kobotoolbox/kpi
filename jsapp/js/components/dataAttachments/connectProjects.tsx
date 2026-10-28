@@ -20,7 +20,7 @@ import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttach
 import { MAX_DISPLAYED_STRING_LENGTH, ROOT_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useProfile } from '#/stores/useProfile'
+import { useSession } from '#/stores/useSession'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
@@ -73,7 +73,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const { data: sharingEnabledAssetsResponse } = useAssetsList(SHARING_ENABLED_PROJECTS_PARAMS)
 
   // Not `useOrganizationAssumed`, as form routes are not wrapped in `RequireOrg`
-  const profile = useProfile()
+  const profile = useSession()
   const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const { data: organizationResponse } = useOrganizationsRetrieve(organizationId!, {
     query: {
