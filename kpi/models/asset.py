@@ -634,7 +634,7 @@ class Asset(
         """
         Get attachment xpaths from a specific version.
 
-        Results are cached in Redis for 24 hours, but only when a version is
+        Results are cached in Redis for 30 days, but only when a version is
         given. A version's content never changes, so its uid alone says what
         the entry holds and that entry can never go stale. `self.content`
         offers no such marker: it changes on every save, and nothing
@@ -691,7 +691,9 @@ class Asset(
         # Store in Redis cache
         if cache_key:
             cache.set(
-                cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL
+                cache_key,
+                xpaths_list,
+                timeout=settings.ATTACHMENT_XPATHS_VERSION_CACHE_TTL,
             )
 
         return xpaths_list

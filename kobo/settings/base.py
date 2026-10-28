@@ -2501,6 +2501,9 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+# Same, for the XPaths of a single form version. A version never changes, so
+# its entry can live much longer than the one that merges all versions
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 30 * 86400
 
 # Cache time-to-live (in seconds) for the survey question types and default
 # language used by NLP actions
