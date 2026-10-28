@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block content %}
-<div class="registration registration--provisioning"
+<section class="registration registration--provisioning"
      data-poll-url="{% url 'api_v2:social-account-provisioning' %}"
      data-poll-interval="{{ poll_interval }}"
      data-poll-timeout="{{ timeout }}"
@@ -24,16 +24,16 @@
     <p class="registration__message" style="color: #d9534f; margin-bottom: 1.5rem;">
       {% trans "Sorry, provisioning data were not received for your account. Please try again later." %}
     </p>
-    <div style="display: flex; gap: 1rem; justify-content: center;">
+    <div style="display: flex; gap: 1rem; justify-content: center; align-items: center;">
       <button type="button" id="provisioning-retry-button" class="kobo-button kobo-button--blue">
         {% trans "Check again" %}
       </button>
-      <a href="{% url 'account_login' %}" class="kobo-button kobo-button--secondary">
+      <a href="{% url 'account_login' %}">
         {% trans "Back to login" %}
       </a>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_javascript %}
