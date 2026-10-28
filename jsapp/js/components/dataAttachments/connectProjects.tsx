@@ -3,15 +3,24 @@ import './connect-projects.scss'
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
+import { endpoints } from '#/api.endpoints'
 import type { ServerError } from '#/api/ServerError'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
+import {
+  getOrganizationsAssetsMinimalListRetrieveQueryKey,
+  getOrganizationsRetrieveQueryKey,
+  useOrganizationsAssetsMinimalListRetrieve,
+  useOrganizationsRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
-import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
+import { MAX_DISPLAYED_STRING_LENGTH, ROOT_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { useSession } from '#/stores/useSession'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
@@ -21,7 +30,7 @@ import openDataAttachmentColumnsModal from './openDataAttachmentColumnsModal'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
-const SHARING_ENABLED_PROJECTS_QUERY = 'data_sharing__enabled:true'
+const SHARING_ENABLED_PROJECTS_PARAMS = { q: 'data_sharing__enabled:true' }
 
 function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const [isShared, setIsShared] = useState(asset.data_sharing?.enabled || false)
@@ -61,7 +70,29 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     refetch: refetchAttachedSources,
   } = useAssetsPairedDataList(asset.uid)
   const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
-  const { data: sharingEnabledAssetsResponse } = useAssetsList({ q: SHARING_ENABLED_PROJECTS_QUERY })
+  const { data: sharingEnabledAssetsResponse } = useAssetsList(SHARING_ENABLED_PROJECTS_PARAMS)
+
+  // Not `useOrganizationAssumed`, as form routes are not wrapped in `RequireOrg`
+  const profile = useSession()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
+  const { data: organizationResponse, isFetched: isOrganizationFetched } = useOrganizationsRetrieve(organizationId!, {
+    query: {
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      staleTime: Number.POSITIVE_INFINITY,
+    },
+  })
+  const organization = organizationResponse?.status === 200 ? organizationResponse.data : undefined
+  // MMO admins and owners don't get org projects from `/assets/`, so we ask the org endpoint too
+  const isOrgAdmin =
+    !!organization?.is_mmo &&
+    (organization.request_user_role === MemberRoleEnum.admin || organization.request_user_role === MemberRoleEnum.owner)
+  const { data: orgSharingEnabledAssetsResponse, isFetched: isOrgSharingEnabledAssetsFetched } =
+    useOrganizationsAssetsMinimalListRetrieve(organizationId!, SHARING_ENABLED_PROJECTS_PARAMS, {
+      query: {
+        queryKey: getOrganizationsAssetsMinimalListRetrieveQueryKey(organizationId!, SHARING_ENABLED_PROJECTS_PARAMS),
+        enabled: isOrgAdmin,
+      },
+    })
   const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate<ServerError>({
     mutation: {
       // Hide default error to avoid duplicate toasts
@@ -73,17 +104,32 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const isImportsLoading = isLoadingAttachedSources || isDetachingSource
   const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
-  const sharingEnabledAssetsLoaded = Boolean(sharingEnabledAssetsResponse?.data)
+  // Wait until we know whether user is an org admin, so the list doesn't show up partial and then grow.
+  // `isFetched`, so a failed org request still shows the user's projects
+  const isOrgCheckDone = !profile.isAnonymous && (!organizationId || isOrganizationFetched)
+  const sharingEnabledAssetsLoaded =
+    Boolean(sharingEnabledAssetsResponse?.data) && isOrgCheckDone && (!isOrgAdmin || isOrgSharingEnabledAssetsFetched)
 
   const sharingEnabledAssets = useMemo<ConnectableAsset[]>(() => {
-    return (
+    const userAssets: ConnectableAsset[] =
       sharingEnabledAssetsResponse?.data.results.map((item) => ({
         uid: item.uid,
         url: item.url,
         name: item.name || '',
       })) || []
-    )
-  }, [sharingEnabledAssetsResponse])
+    // Minimal list has no `url`, so we build it
+    const orgAssets: ConnectableAsset[] =
+      orgSharingEnabledAssetsResponse?.status === 200
+        ? orgSharingEnabledAssetsResponse.data.results.map((item) => ({
+            uid: item.uid,
+            url: ROOT_URL + endpoints.ASSET_URL.replace(':uid', item.uid),
+            name: item.name || '',
+          }))
+        : []
+    // Projects shared with the user directly can be in both lists
+    const userAssetUids = new Set(userAssets.map((item) => item.uid))
+    return [...userAssets, ...orgAssets.filter((item) => !userAssetUids.has(item.uid))]
+  }, [sharingEnabledAssetsResponse, orgSharingEnabledAssetsResponse])
 
   const attachedSources = useMemo<AttachedSourceItem[]>(() => {
     const payload = attachedSourcesResponse?.data
