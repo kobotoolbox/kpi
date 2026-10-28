@@ -20,7 +20,8 @@ import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttach
 import { MAX_DISPLAYED_STRING_LENGTH, ROOT_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
+import { ANON_USERNAME } from '#/users/utils'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
@@ -73,7 +74,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const { data: sharingEnabledAssetsResponse } = useAssetsList(SHARING_ENABLED_PROJECTS_PARAMS)
 
   // Not `useOrganizationAssumed`, as form routes are not wrapped in `RequireOrg`
-  const profile = useSession()
+  const profile = useProfile()
   const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const { data: organizationResponse, isFetched: isOrganizationFetched } = useOrganizationsRetrieve(organizationId!, {
     query: {
@@ -104,9 +105,11 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const isImportsLoading = isLoadingAttachedSources || isDetachingSource
   const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
+  // Profile store holds an anonymous placeholder until `/me/` loads
+  const isAccountLoaded = profile.currentLoggedAccount.username !== ANON_USERNAME
   // Wait until we know whether user is an org admin, so the list doesn't show up partial and then grow.
   // `isFetched`, so a failed org request still shows the user's projects
-  const isOrgCheckDone = !profile.isAnonymous && (!organizationId || isOrganizationFetched)
+  const isOrgCheckDone = isAccountLoaded && (!organizationId || isOrganizationFetched)
   const sharingEnabledAssetsLoaded =
     Boolean(sharingEnabledAssetsResponse?.data) && isOrgCheckDone && (!isOrgAdmin || isOrgSharingEnabledAssetsFetched)
 
