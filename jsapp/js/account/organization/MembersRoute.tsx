@@ -1,9 +1,10 @@
 import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { modals } from '@mantine/modals'
 import { IconSearch } from '@tabler/icons-react'
 import { keepPreviousData } from '@tanstack/react-query'
 import { observer } from 'mobx-react-lite'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
@@ -66,6 +67,12 @@ function MembersRoute() {
   const [organization] = useOrganizationAssumed()
   const isUserAdminOrOwner =
     organization.request_user_role === MemberRoleEnum.owner || organization.request_user_role === MemberRoleEnum.admin
+
+  useEffect(() => {
+    return () => {
+      modals.closeAll()
+    }
+  }, [])
 
   const [opened, { open, close }] = useDisclosure(false)
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
