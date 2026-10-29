@@ -376,7 +376,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
             dangerouslySetInnerHTML={{
               __html: replaceBracketsWithLink(
                 t(
-                  'Select one or more projects to use their data as dynamic data attachments in this project. Learn more about dynamic data attachments',
+                  'Select one or more projects to use their data as dynamic data attachments in this project. Learn more about dynamic data attachments [here]',
                 ),
                 envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
               ),
