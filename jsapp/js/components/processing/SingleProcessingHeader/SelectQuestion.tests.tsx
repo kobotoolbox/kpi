@@ -82,7 +82,7 @@ function openDropdown() {
 }
 
 describe('SelectQuestion', () => {
-  it('lists both the schema and orphan audio and text entries, but no image entries', () => {
+  it('lists both the schema and orphan audio, text and image entries', () => {
     renderSelectQuestion('audio_q')
     openDropdown()
 
@@ -90,8 +90,8 @@ describe('SelectQuestion', () => {
     chai.expect(screen.queryAllByText('audio_q')).to.have.lengthOf(1)
     chai.expect(screen.queryAllByText('Text question')).to.have.lengthOf(1)
     chai.expect(screen.queryAllByText('text_q')).to.have.lengthOf(1)
-    chai.expect(screen.queryAllByText('Image question')).to.have.lengthOf(0)
-    chai.expect(screen.queryAllByText('image_q')).to.have.lengthOf(0)
+    chai.expect(screen.queryAllByText('Image question')).to.have.lengthOf(1)
+    chai.expect(screen.queryAllByText('image_q')).to.have.lengthOf(1)
   })
 
   // Nothing has been transcribed under the old path yet, so the answer is all there is to go on.
@@ -100,7 +100,9 @@ describe('SelectQuestion', () => {
     openDropdown()
 
     const optionLabels = screen.getAllByRole('option').map((option) => option.textContent)
-    chai.expect(optionLabels).to.deep.equal(['Audio question', 'Text question', 'audio_q', 'text_q'])
+    chai
+      .expect(optionLabels)
+      .to.deep.equal(['Audio question', 'Text question', 'Image question', 'audio_q', 'text_q', 'image_q'])
   })
 
   // Borrowing the label of `audio_q` for `renamed_group/audio_q` - what leaf-name matching used to do - would show two
@@ -110,7 +112,9 @@ describe('SelectQuestion', () => {
     openDropdown()
 
     const optionLabels = screen.getAllByRole('option').map((option) => option.textContent)
-    chai.expect(optionLabels).to.deep.equal(['Audio question', 'Text question', 'audio_q', 'text_q'])
+    chai
+      .expect(optionLabels)
+      .to.deep.equal(['Audio question', 'Text question', 'Image question', 'audio_q', 'text_q', 'image_q'])
   })
 
   // Mantine's Select shows nothing for a value it has no option for, and the Data Table sends you here at an orphan
