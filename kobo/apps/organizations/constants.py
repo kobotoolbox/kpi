@@ -85,3 +85,4 @@ PENDING_TRANSFER_MEMBER_REMOVAL_ERROR = t(
 PENDING_TRANSFER_ACCOUNT_DELETION_ERROR = t(
     'You cannot delete your account while an organization ownership transfer is pending.'
 )
+TRANSFER_NOT_PENDING_ERROR = t('Transfer is not pending.')

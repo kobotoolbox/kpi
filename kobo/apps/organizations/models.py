@@ -595,3 +595,15 @@ class OrganizationOwnershipTransfer(models.Model):
             logging.warning(
                 f'Failed to send organization ownership transfer request email: {e}'
             )
+
+    def send_acceptance_email(self):
+        # Email template will be introduced in follow-up step
+        pass
+
+    def send_refusal_email(self):
+        # Email template will be introduced in follow-up step
+        pass
+
+    def send_cancellation_email(self):
+        # Email template will be introduced in follow-up step
+        pass

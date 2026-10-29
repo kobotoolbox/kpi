@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -693,6 +693,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient = serializers.CharField(write_only=True, required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
+    sender_name = serializers.SerializerMethodField()
+    sender_email = serializers.EmailField(source='sender.email', read_only=True)
     recipient_username = serializers.CharField(
         source='recipient.username', read_only=True
     )
@@ -710,6 +712,8 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_id',
             'organization_name',
             'sender',
+            'sender_name',
+            'sender_email',
             'recipient',
             'recipient_username',
             'status',
@@ -722,11 +726,20 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_id',
             'organization_name',
             'sender',
+            'sender_name',
+            'sender_email',
             'recipient_username',
             'status',
             'created',
             'modified',
         ]
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_sender_name(self, obj):
+        try:
+            return obj.sender.extra_details.data.get('name', '')
+        except (AttributeError, ObjectDoesNotExist):
+            return ''
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
