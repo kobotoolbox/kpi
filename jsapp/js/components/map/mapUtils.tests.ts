@@ -1,5 +1,5 @@
 import type { DataResponse } from '#/api/models/dataResponse'
-import { getPlottedPoints, getPointsBounds, getWorldCopyOffsets, unwrapLongitudes } from './mapUtils'
+import { getMapPageCount, getPlottedPoints, getPointsBounds, getWorldCopyOffsets, unwrapLongitudes } from './mapUtils'
 
 describe('unwrapLongitudes', () => {
   it('handles having no points at all', () => {
@@ -141,5 +141,40 @@ describe('getPlottedPoints', () => {
       'location',
     )
     chai.expect(points.map((point) => point.lng)).to.deep.equal([168.3273, 188.2333])
+  })
+})
+
+describe('getMapPageCount', () => {
+  it('asks only for the first page until the count has loaded', () => {
+    chai.expect(getMapPageCount('10000', undefined)).to.equal(1)
+  })
+
+  it('asks for as many pages as the limit allows when there are enough submissions', () => {
+    chai.expect(getMapPageCount(undefined, 2500)).to.equal(1)
+    chai.expect(getMapPageCount('5000', 4999)).to.equal(5)
+  })
+
+  it('lowers the limit to the pages the submissions fill', () => {
+    chai.expect(getMapPageCount('10000', 2500)).to.equal(3)
+    chai.expect(getMapPageCount('10000', 3000)).to.equal(3)
+  })
+
+  it('asks for one page when there are no submissions', () => {
+    chai.expect(getMapPageCount('10000', 0)).to.equal(1)
+  })
+
+  it('keeps the limit when there are too many submissions to count', () => {
+    chai.expect(getMapPageCount('20000', 'many')).to.equal(20)
+    chai.expect(getMapPageCount('20000', 'unknown')).to.equal(20)
+  })
+
+  it('uses the default limit when none is saved, or it is not a number', () => {
+    chai.expect(getMapPageCount(undefined, 'many')).to.equal(1)
+    chai.expect(getMapPageCount('lots', 'many')).to.equal(1)
+  })
+
+  it('keeps the limit to the most the map loads', () => {
+    chai.expect(getMapPageCount('12000', 'many')).to.equal(12)
+    chai.expect(getMapPageCount('50000', 'many')).to.equal(30)
   })
 })

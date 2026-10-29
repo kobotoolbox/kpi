@@ -14,6 +14,8 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 import type { RequestHandlerOptions } from 'msw'
 
+import { AuthServerTagEnum } from '../../models/authServerTagEnum'
+
 import { AuthThemeEnum } from '../../models/authThemeEnum'
 
 import type { EnvironmentResponse } from '../../models/environmentResponse'
@@ -68,10 +70,10 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
     theme: faker.helpers.arrayElement(Object.values(AuthThemeEnum)),
     background_image_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     show_kobotoolbox_logo: faker.datatype.boolean(),
+    server_tag: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(AuthServerTagEnum)), null]),
     logo_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     supporting_image_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     supporting_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    allow_login_with_username: faker.datatype.boolean(),
   },
   project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 20 } }),

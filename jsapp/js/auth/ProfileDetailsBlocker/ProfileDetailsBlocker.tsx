@@ -1,34 +1,31 @@
-import { observer } from 'mobx-react-lite'
+import type { AccountFieldsConfig } from '#/account/account.constants'
 import { getProfileFieldsValues } from '#/account/account.utils'
-import envStore from '#/envStore'
-import profileStore from '#/stores/profile'
+import { useProfile } from '#/stores/useProfile'
 import ProfileDetailsScreen from './ProfileDetailsScreen'
 
 export interface ProfileDetailsBlockerProps {
   isMmoMember: boolean
+  fieldsConfig: AccountFieldsConfig
 }
 
 /**
  * Route blocker for the required profile details this instance asks for and the account has left blank. See
  * {@link useProfileDetailsBlockerState}, which decides who gets it.
  */
-function ProfileDetailsBlocker({ isMmoMember }: ProfileDetailsBlockerProps) {
-  const account = profileStore.currentAccount
+export default function ProfileDetailsBlocker({ isMmoMember, fieldsConfig }: ProfileDetailsBlockerProps) {
+  const { currentLoggedAccount } = useProfile()
 
-  // Cannot happen - being blocked means being logged in - but it is what narrows `currentAccount` from its
-  // anonymous placeholder to an account.
-  if (!('email' in account)) {
+  // Cannot happen - being blocked means being signed in - but it is what narrows the anonymous placeholder
+  // `useProfile` starts with, and types as an account, from an actual account.
+  if (!currentLoggedAccount || !('email' in currentLoggedAccount)) {
     return null
   }
 
   return (
     <ProfileDetailsScreen
-      initialValues={getProfileFieldsValues(account.extra_details)}
-      fieldsContext={{
-        configuredFieldNames: envStore.data.getUserMetadataFieldNames(),
-        requiredFieldNames: envStore.data.getUserMetadataRequiredFieldNames(),
-        isMmoMember,
-      }}
+      initialValues={getProfileFieldsValues(currentLoggedAccount.extra_details)}
+      fieldsConfig={fieldsConfig}
+      isMmoMember={isMmoMember}
       // The same forced reload the other two route blockers do. `profileStore.refreshAccount()` would
       // flip this screen without one, but it reports neither success nor failure, so a refresh that
       // quietly failed would leave this screen up with nothing to explain it.
@@ -36,7 +33,3 @@ function ProfileDetailsBlocker({ isMmoMember }: ProfileDetailsBlockerProps) {
     />
   )
 }
-
-// The fields to fill in come from `/environment` and the values from the session, and both can land after
-// the first render.
-export default observer(ProfileDetailsBlocker)
