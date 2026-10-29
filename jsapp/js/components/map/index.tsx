@@ -19,7 +19,7 @@ import CenteredMessage from '../../../js/components/common/centeredMessage.compo
 import Modal from '../../../js/components/common/modal'
 // Partial components
 import MapSettings from './MapSettings'
-import { MAX_QUERY_LIMIT, type PlottedPoint, getMapPageCount, getPlottedPoints, getPointsBounds } from './mapUtils'
+import { type PlottedPoint, QUERY_LIMIT_DEFAULT, getMapPageCount, getPlottedPoints, getPointsBounds } from './mapUtils'
 import { WorldCopies } from './worldCopies'
 
 import { actions } from '../../../js/actions'
@@ -31,7 +31,7 @@ import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
 import { findFirstGeopoint, notify, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
+import { ASSET_FILE_TYPES, MODAL_TYPES, isMapDisplayableGeopointType } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -1450,7 +1450,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               toggleMapSettings={this.toggleMapSettings.bind(this)}
               overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
-              queryLimit={MAX_QUERY_LIMIT}
             />
           </Modal>
         )}
