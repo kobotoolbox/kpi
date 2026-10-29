@@ -376,7 +376,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
-        _uuid, uuid_formatted = self.generate_new_instance_id()
+        _, uuid_formatted = self.generate_new_instance_id()
         date_formatted = self.format_openrosa_datetime()
         for date_field in ('start', 'end'):
             element = xml_parsed.find(date_field)
@@ -410,7 +410,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
             media_files=attachments,
-            uuid=_uuid,
             request=request,
         )
 
@@ -1294,7 +1293,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),
             media_files=media_files,
-            uuid=submission_uuid,
             request=kwargs.get('request'),
             check_usage_limits=False,
         )

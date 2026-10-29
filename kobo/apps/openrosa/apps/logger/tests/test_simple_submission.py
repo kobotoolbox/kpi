@@ -141,7 +141,7 @@ class TestSimpleSubmission(TestCase):
         request = RequestFactory().post('/')
         request.user = self.user
         error, instance = safe_create_instance(
-            self.user.username, TempFileProxy(xml), None, None, request=request
+            self.user.username, TempFileProxy(xml), None, request=request
         )
         # No `DjangoUnicodeDecodeError` errors are raised anymore.
         # An `InvalidXMLCharacterError` is raised instead
@@ -189,7 +189,7 @@ class TestSimpleSubmission(TestCase):
         ).format(str(uuid.uuid4()))
 
         error, instance = safe_create_instance(
-            self.user.username, TempFileProxy(invalid_char_xml), None, None
+            self.user.username, TempFileProxy(invalid_char_xml), None
         )
         text = 'unsupported or invisible characters'
         self.assertContains(error, text, status_code=400)

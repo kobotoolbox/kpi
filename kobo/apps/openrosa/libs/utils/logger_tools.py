@@ -118,8 +118,9 @@ OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
 DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
 
-uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
-                        re.DOTALL)
+form_uuid_regex = re.compile(
+    r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>', re.DOTALL
+)
 
 mongo_instances = settings.MONGO_DB.instances
 
@@ -279,7 +280,6 @@ def create_instance(
     xml_file: File,
     media_files: Generator[File],
     status: str = 'submitted_via_web',
-    uuid: str = None,
     date_created_override: datetime = None,
     request: Optional['rest_framework.request.Request'] = None,
     check_usage_limits: bool = True,
@@ -308,7 +308,6 @@ def create_instance(
         xml_file (File): A file-like object containing the XML form submission.
         media_files (Generator[File]): Generator yielding media file objects.
         status (str, optional): Submission status (default 'submitted_via_web').
-        uuid (str, optional): Unique identifier for the submission.
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
         request (Optional[Request]): Request object used for permission checks.
@@ -335,7 +334,7 @@ def create_instance(
 
     xml = smart_str(xml_file.read())
     validate_xml_chars(xml)
-    xform = get_xform_from_submission(xml, username, uuid)
+    xform = get_xform_from_submission(xml, username)
     check_submission_permissions(request, xform)
     # `Instance.get_hash()` excludes `meta/formVersions`, so duplicate detection
     # compares what the client sent and stays unaffected by a redeployment
@@ -566,25 +565,24 @@ def get_instance_or_404(**criteria):
         raise Http404
 
 
-def get_uuid_from_submission(xml):
+def get_form_uuid_from_submission(xml):
     # parse UUID from uploaded XML
-    split_xml = uuid_regex.split(xml)
+    split_xml = form_uuid_regex.split(xml)
 
     # check that xml has UUID
     return len(split_xml) > 1 and split_xml[1] or None
 
 
-def get_xform_from_submission(xml, username, uuid=None):
-    # check alternative form submission ids
-    uuid = uuid or get_uuid_from_submission(xml)
+def get_xform_from_submission(xml, username):
+    form_uuid = get_form_uuid_from_submission(xml)
 
-    if not username and not uuid:
+    if not username and not form_uuid:
         raise InstanceInvalidUserError()
 
-    if uuid:
+    if form_uuid:
         # try to find the form by its uuid which is the ideal condition
         try:
-            xform = XForm.objects.select_related('user').get(uuid=uuid)
+            xform = XForm.objects.select_related('user').get(uuid=form_uuid)
         except XForm.DoesNotExist:
             pass
         else:
@@ -976,7 +974,6 @@ def safe_create_instance(
     username: str,
     xml_file: File,
     media_files: Union[list, Generator[File]],
-    uuid: Optional[str] = None,
     date_created_override: Optional[datetime] = None,
     request: Optional['rest_framework.request.Request'] = None,
 ):
@@ -990,7 +987,6 @@ def safe_create_instance(
             username,
             xml_file,
             media_files,
-            uuid=uuid,
             date_created_override=date_created_override,
             request=request,
         ),
