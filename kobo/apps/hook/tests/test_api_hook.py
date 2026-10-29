@@ -580,6 +580,6 @@ class ApiHookTestCase(BaseHookTestCase):
             kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
         )
         response = self.client.get(log_list_url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
-        self.assertTrue(response.data['results'])
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert response.data['results']

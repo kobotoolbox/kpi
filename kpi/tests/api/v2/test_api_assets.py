@@ -1578,9 +1578,9 @@ class AssetVersionApiTests(BaseTestCase):
     @override_settings(API_LIMITED_COUNT_MAX=0)
     def test_list_count_is_capped(self):
         resp = self.client.get(self.version_list_url, format='json')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data['count'], LIMITED_COUNT_MANY)
-        self.assertTrue(resp.data['results'])
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['count'] == LIMITED_COUNT_MANY
+        assert resp.data['results']
 
     def test_restricted_access_to_version(self):
         self.client.logout()

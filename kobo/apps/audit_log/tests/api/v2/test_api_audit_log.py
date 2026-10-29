@@ -429,7 +429,7 @@ class ApiAccessLogTestCase(BaseAccessLogTestCase, LookbackTestMixin):
         response = self.client.get(self.url)
         # should return 1 submission group with 2 submissions
         self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['count'], 1)
+        assert response.data['count'] == 1
         result = response.data['results'][0]
         self.assertEqual(
             result['metadata']['auth_type'],
@@ -442,9 +442,9 @@ class ApiAccessLogTestCase(BaseAccessLogTestCase, LookbackTestMixin):
         AccessLog.objects.create(user=self.user)
         self.force_login_user(self.user)
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
-        self.assertTrue(response.data['results'])
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert response.data['results']
 
 
 class AllApiAccessLogsTestCase(BaseAccessLogTestCase, LookbackTestMixin):
@@ -808,9 +808,9 @@ class ApiProjectHistoryLogsTestCase(
             metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
         )
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], LIMITED_COUNT_MANY)
-        self.assertTrue(response.data['results'])
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert response.data['results']
 
 
 class ApiAllProjectHistoryLogsTestCase(
