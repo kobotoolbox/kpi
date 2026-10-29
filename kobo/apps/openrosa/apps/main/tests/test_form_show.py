@@ -7,8 +7,8 @@ from django.urls import reverse
 from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.views import (
-    download_xlsform,
     download_jsonform,
+    download_xlsform,
 )
 from kobo.apps.openrosa.libs.tests.utils import publish_xml_form
 from .test_base import TestBase
@@ -29,8 +29,8 @@ class TestFormShow(TestBase):
         }))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response['Content-Disposition'],
-            "attachment; filename=exp_one.xlsx")
+            response['Content-Disposition'], 'attachment; filename=exp_one.xlsx'
+        )
 
     def test_dl_xls_redirect_to_login_to_anon_if_public(self):
         self.xform.shared = True

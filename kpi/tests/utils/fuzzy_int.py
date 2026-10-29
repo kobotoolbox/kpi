@@ -10,5 +10,4 @@ class FuzzyInt(int):
         return other >= self.lowest and other <= self.highest
 
     def __repr__(self):
-        return "[%d..%d]" % (self.lowest, self.highest)
-    
+        return '[%d..%d]' % (self.lowest, self.highest)

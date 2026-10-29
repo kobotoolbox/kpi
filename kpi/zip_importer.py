@@ -94,7 +94,7 @@ class ImportFile:
 
     def get_type(self):
         if not hasattr(self, '_type'):
-            raise RuntimeError("cannot get type of item that has not been parsed")
+            raise RuntimeError('cannot get type of item that has not been parsed')
         return self._type
 
     def get_children(self):

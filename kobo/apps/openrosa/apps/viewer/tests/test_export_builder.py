@@ -48,7 +48,7 @@ class TestExportBuilder(TestBase):
                         },
                         {
                             'children/cartoons/name': 'Flinstones',
-                            'children/cartoons/why': "I like bam bam\u0107"
+                            'children/cartoons/why': 'I like bam bam\u0107',
                             # throw in a unicode character
                         }
                     ]
@@ -65,10 +65,10 @@ class TestExportBuilder(TestBase):
                     [
                         {
                             'children/cartoons/name': 'Shrek',
-                            'children/cartoons/why': 'He\'s so funny'
+                            'children/cartoons/why': "He's so funny",
                         },
                         {
-                            'children/cartoons/name': 'Dexter\'s Lab',
+                            'children/cartoons/name': "Dexter's Lab",
                             'children/cartoons/why': 'He thinks hes smart',
                             'children/cartoons/characters':
                             [
@@ -114,10 +114,12 @@ class TestExportBuilder(TestBase):
                             'Tom is silly',
                         },
                         {
-                            'childrens_survey_with_a_very_lo/cartoons/name':
-                            'Flinstones',
-                            'childrens_survey_with_a_very_lo/cartoons/why':
-                            "I like bam bam\u0107"
+                            'childrens_survey_with_a_very_lo/cartoons/name': (
+                                'Flinstones'
+                            ),
+                            'childrens_survey_with_a_very_lo/cartoons/why': (
+                                'I like bam bam\u0107'
+                            ),
                             # throw in a unicode character
                         }
                     ]
@@ -133,16 +135,18 @@ class TestExportBuilder(TestBase):
                     'childrens_survey_with_a_very_lo/cartoons':
                     [
                         {
-                            'childrens_survey_with_a_very_lo/cartoons/name':
-                            'Shrek',
-                            'childrens_survey_with_a_very_lo/cartoons/why':
-                            'He\'s so funny'
+                            'childrens_survey_with_a_very_lo/cartoons/name': 'Shrek',
+                            'childrens_survey_with_a_very_lo/cartoons/why': (
+                                "He's so funny"
+                            ),
                         },
                         {
-                            'childrens_survey_with_a_very_lo/cartoons/name':
-                            'Dexter\'s Lab',
-                            'childrens_survey_with_a_very_lo/cartoons/why':
-                            'He thinks hes smart',
+                            'childrens_survey_with_a_very_lo/cartoons/name': (
+                                "Dexter's Lab"
+                            ),
+                            'childrens_survey_with_a_very_lo/cartoons/why': (
+                                'He thinks hes smart'
+                            ),
                             'childrens_survey_with_a_very_lo/cartoons/characte'
                             'rs':
                             [
@@ -185,8 +189,7 @@ class TestExportBuilder(TestBase):
                         },
                         {
                             'childrenLg==info/cartoons/name': 'Flinstones',
-                            'childrenLg==info/cartoons/why':
-                            "I like bam bam\u0107"
+                            'childrenLg==info/cartoons/why': 'I like bam bam\u0107',
                             # throw in a unicode character
                         }
                     ]
@@ -243,9 +246,9 @@ class TestExportBuilder(TestBase):
 
         expected_element_names = [
             'children/cartoons/characters/name',
-            'children/cartoons/characters/good_or_evil']
-        section = \
-            _section_by_name(export_builder, 'children/cartoons/characters')
+            'children/cartoons/characters/good_or_evil',
+        ]
+        section = _section_by_name(export_builder, 'children/cartoons/characters')
         element_names = [element['xpath'] for element in section['elements']]
         self.assertEqual(
             sorted(expected_element_names), sorted(element_names))
@@ -479,14 +482,14 @@ class TestExportBuilder(TestBase):
         self.assertEqual(new_row, expected_row)
 
     def test_generate_field_title(self):
-        field_name = ExportBuilder.format_field_title("child/age", ".")
-        expected_field_name = "child.age"
+        field_name = ExportBuilder.format_field_title('child/age', '.')
+        expected_field_name = 'child.age'
         self.assertEqual(field_name, expected_field_name)
 
     def test_delimiter_replacement_works_existing_fields(self):
         survey = self._create_childrens_survey()
         export_builder = ExportBuilder()
-        export_builder.GROUP_DELIMITER = "."
+        export_builder.GROUP_DELIMITER = '.'
         export_builder.set_survey(survey)
         expected_sections =\
             [
@@ -508,7 +511,7 @@ class TestExportBuilder(TestBase):
     def test_delimiter_replacement_works_generated_multi_select_fields(self):
         survey = self._create_childrens_survey()
         export_builder = ExportBuilder()
-        export_builder.GROUP_DELIMITER = "."
+        export_builder.GROUP_DELIMITER = '.'
         export_builder.set_survey(survey)
         expected_section =\
             {
@@ -529,7 +532,7 @@ class TestExportBuilder(TestBase):
     def test_delimiter_replacement_works_for_generated_gps_fields(self):
         survey = self._create_childrens_survey()
         export_builder = ExportBuilder()
-        export_builder.GROUP_DELIMITER = "."
+        export_builder.GROUP_DELIMITER = '.'
         export_builder.set_survey(survey)
         expected_section = \
             {
@@ -635,24 +638,24 @@ class TestExportBuilder(TestBase):
         xls_file.close()
 
     def test_get_valid_sheet_name_catches_duplicates(self):
-        work_sheets = {'childrens_survey': "Worksheet"}
-        desired_sheet_name = "childrens_survey"
-        expected_sheet_name = "childrens_survey1"
+        work_sheets = {'childrens_survey': 'Worksheet'}
+        desired_sheet_name = 'childrens_survey'
+        expected_sheet_name = 'childrens_survey1'
         generated_sheet_name = ExportBuilder.get_valid_sheet_name(
             desired_sheet_name, work_sheets)
         self.assertEqual(generated_sheet_name, expected_sheet_name)
 
     def test_get_valid_sheet_name_catches_long_names(self):
-        desired_sheet_name = "childrens_survey_with_a_very_long_name"
-        expected_sheet_name = "childrens_survey_with_a_very_lo"
+        desired_sheet_name = 'childrens_survey_with_a_very_long_name'
+        expected_sheet_name = 'childrens_survey_with_a_very_lo'
         generated_sheet_name = ExportBuilder.get_valid_sheet_name(
             desired_sheet_name, [])
         self.assertEqual(generated_sheet_name, expected_sheet_name)
 
     def test_get_valid_sheet_name_catches_long_duplicate_names(self):
         work_sheet_titles = ['childrens_survey_with_a_very_lo']
-        desired_sheet_name = "childrens_survey_with_a_very_long_name"
-        expected_sheet_name = "childrens_survey_with_a_very_l1"
+        desired_sheet_name = 'childrens_survey_with_a_very_long_name'
+        expected_sheet_name = 'childrens_survey_with_a_very_l1'
         generated_sheet_name = ExportBuilder.get_valid_sheet_name(
             desired_sheet_name, work_sheet_titles)
         self.assertEqual(generated_sheet_name, expected_sheet_name)
@@ -705,37 +708,34 @@ class TestExportBuilder(TestBase):
 
     def test_type_conversion(self):
         submission_1 = {
-            "_id": 579827,
-            "geolocation": "-1.2625482 36.7924794 0.0 21.0",
-            "meta/instanceID": "uuid:2a8129f5-3091-44e1-a579-bed2b07a12cf",
-            "name": "Smith",
-            "formhub/uuid": "633ec390e024411ba5ce634db7807e62",
-            "_submission_time": "2013-07-03T08:25:30",
-            "age": "107",
-            "_uuid": "2a8129f5-3091-44e1-a579-bed2b07a12cf",
-            "when": "2013-07-03",
-            "amount": "250.0",
-            "_geolocation": [
-                "-1.2625482",
-                "36.7924794"
-            ],
-            "_xform_id_string": "test_data_types",
-            "_userform_id": "larryweya_test_data_types",
-            "_status": "submitted_via_web",
-            "precisely": "2013-07-03T15:24:00.000+03",
-            "really": "15:24:00.000+03"
+            '_id': 579827,
+            'geolocation': '-1.2625482 36.7924794 0.0 21.0',
+            'meta/instanceID': 'uuid:2a8129f5-3091-44e1-a579-bed2b07a12cf',
+            'name': 'Smith',
+            'formhub/uuid': '633ec390e024411ba5ce634db7807e62',
+            '_submission_time': '2013-07-03T08:25:30',
+            'age': '107',
+            '_uuid': '2a8129f5-3091-44e1-a579-bed2b07a12cf',
+            'when': '2013-07-03',
+            'amount': '250.0',
+            '_geolocation': ['-1.2625482', '36.7924794'],
+            '_xform_id_string': 'test_data_types',
+            '_userform_id': 'larryweya_test_data_types',
+            '_status': 'submitted_via_web',
+            'precisely': '2013-07-03T15:24:00.000+03',
+            'really': '15:24:00.000+03',
         }
 
         submission_2 = {
-            "_id": 579828,
-            "_submission_time": "2013-07-03T08:26:10",
-            "_uuid": "5b4752eb-e13c-483e-87cb-e67ca6bb61e5",
-            "_xform_id_string": "test_data_types",
-            "_userform_id": "larryweya_test_data_types",
-            "_status": "submitted_via_web",
-            "meta/instanceID": "uuid:5b4752eb-e13c-483e-87cb-e67ca6bb61e5",
-            "formhub/uuid": "633ec390e024411ba5ce634db7807e62",
-            "amount": "",
+            '_id': 579828,
+            '_submission_time': '2013-07-03T08:26:10',
+            '_uuid': '5b4752eb-e13c-483e-87cb-e67ca6bb61e5',
+            '_xform_id_string': 'test_data_types',
+            '_userform_id': 'larryweya_test_data_types',
+            '_status': 'submitted_via_web',
+            'meta/instanceID': 'uuid:5b4752eb-e13c-483e-87cb-e67ca6bb61e5',
+            'formhub/uuid': '633ec390e024411ba5ce634db7807e62',
+            'amount': '',
         }
 
         survey = create_survey_from_xls(viewer_fixture_path(

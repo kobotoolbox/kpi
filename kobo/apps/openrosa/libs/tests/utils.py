@@ -24,12 +24,8 @@ def image_url(attachment, suffix):
             filename = attachment.media_file.name
             if default_storage.exists(filename):
                 if (
-                    default_storage.exists(
-                        get_optimized_image_path(filename, suffix)
-                    )
-                    and default_storage.size(
-                        get_optimized_image_path(filename, suffix)
-                    )
+                    default_storage.exists(get_optimized_image_path(filename, suffix))
+                    and default_storage.size(get_optimized_image_path(filename, suffix))
                     > 0
                 ):
                     url = default_storage.url(
