@@ -70,6 +70,7 @@ from .tasks import transfer_member_data_ownership_to_org
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
+    pending_transfer = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
         queryset=get_user_model().objects.all(),
         lookup_field='username',
@@ -145,6 +146,33 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
         return None
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_pending_transfer(self, obj):
+        """
+        Get the active pending ownership transfer for the user if it exists
+        """
+        try:
+            pending_transfers_per_member = self.context['pending_transfers_per_member']
+        except KeyError:
+            transfer = (
+                OrganizationOwnershipTransfer.objects.filter(
+                    organization=obj.organization,
+                    recipient=obj.user,
+                    status=OrganizationInviteStatusChoices.PENDING,
+                )
+                .select_related('sender', 'recipient', 'organization')
+                .first()
+            )
+        else:
+            transfer = pending_transfers_per_member.get(obj.user_id)
+
+        if transfer:
+            return OrganizationOwnershipTransferSerializer(
+                transfer, context=self.context
+            ).data
+
+        return None
+
     def to_representation(self, instance):
         """
         Handle representation of invite objects.
@@ -190,6 +218,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     assets = serializers.SerializerMethodField()
     asset_usage = serializers.SerializerMethodField()
+    has_pending_ownership_transfer = serializers.BooleanField(read_only=True)
     is_mmo = serializers.BooleanField(read_only=True)
     is_owner = serializers.SerializerMethodField()
     members = serializers.SerializerMethodField()
@@ -212,6 +241,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'modified',
             'is_owner',
             'is_mmo',
+            'has_pending_ownership_transfer',
             'request_user_role',
             'members',
             'assets',

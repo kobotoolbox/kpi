@@ -284,6 +284,15 @@ class Organization(AbstractOrganization):
         except ObjectDoesNotExist:
             return
 
+    @property
+    @cache_for_request
+    def has_pending_ownership_transfer(self) -> bool:
+        if not self.pk:
+            return False
+        return self.ownership_transfers.filter(
+            status=OrganizationInviteStatusChoices.PENDING
+        ).exists()
+
 
 class EmptyOrganization(Organization):
     """
