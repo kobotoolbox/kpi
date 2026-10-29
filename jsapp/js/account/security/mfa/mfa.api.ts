@@ -184,7 +184,10 @@ export const useMfaConfirmCode = () =>
     assertOk(await allauthBrowserV1AccountAuthenticatorsTotpPost({ code }), 'code')
   })
 
-/** Separate from {@link useMfaConfirmCode}, so a failed read can be retried without turning 2FA on twice */
+/**
+ * Separate from {@link useMfaConfirmCode}, so a failed read can be retried without turning 2FA on twice. Needs no
+ * reauthentication right after activation: the backend counts the activation as a fresh 2FA authentication.
+ */
 export const useMfaRecoveryCodes = () =>
   useMfaMutation<string[]>('recoveryCodes', async () => {
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
