@@ -67,6 +67,8 @@ from kpi.utils.schema_extensions.response import (
 )
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethodsWrapper
+from .constants import CANNOT_REMOVE_OWNER_ERROR, PENDING_TRANSFER_MEMBER_REMOVAL_ERROR
+from .exceptions import InvalidMembershipRequest
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -575,6 +577,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             invitee_id__in=members_user_ids,
             organization_id=organization_id,
         ).order_by('invitee_id', 'created')
+        self._pending_transfers_queryset = OrganizationOwnershipTransfer.objects.filter(
+            status=OrganizationInviteStatusChoices.PENDING,
+            recipient_id__in=members_user_ids,
+            organization_id=organization_id,
+        ).select_related('sender', 'recipient', 'organization')
         return page
 
     def get_queryset(self):
@@ -783,6 +790,12 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 invites_per_member[invite.invitee_id] = invite
             context['invites_per_member'] = invites_per_member
 
+        if hasattr(self, '_pending_transfers_queryset'):
+            pending_transfers_per_member = {}
+            for transfer in self._pending_transfers_queryset:
+                pending_transfers_per_member[transfer.recipient_id] = transfer
+            context['pending_transfers_per_member'] = pending_transfers_per_member
+
         return context
 
     def perform_destroy(self, instance):
@@ -790,6 +803,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         member = instance
+        if member.organization.is_owner(member.user):
+            raise InvalidMembershipRequest(CANNOT_REMOVE_OWNER_ERROR)
+
+        if OrganizationOwnershipTransfer.objects.filter(
+            organization=member.organization,
+            recipient=member.user,
+            status=OrganizationInviteStatusChoices.PENDING,
+        ).exists():
+            raise InvalidMembershipRequest(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR)
+
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)

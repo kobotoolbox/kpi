@@ -1,5 +1,6 @@
 from constance import config
 from django.db import transaction
+from django.db.models import Q
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -8,6 +9,11 @@ from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import PENDING_TRANSFER_ACCOUNT_DELETION_ERROR
+from kobo.apps.organizations.models import (
+    OrganizationInviteStatusChoices,
+    OrganizationOwnershipTransfer,
+)
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.constants import ASSET_TYPE_EMPTY
 from kpi.schema_extensions.v2.me.serializers import (
@@ -80,6 +86,12 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
                 'You cannot delete your own account as a multi-member organization '
                 'owner'
             )
+
+        if OrganizationOwnershipTransfer.objects.filter(
+            Q(sender=user) | Q(recipient=user),
+            status=OrganizationInviteStatusChoices.PENDING,
+        ).exists():
+            raise PermissionDenied(PENDING_TRANSFER_ACCOUNT_DELETION_ERROR)
 
         confirm = request.data.get('confirm')
         if confirm != user.extra_details.uid:
