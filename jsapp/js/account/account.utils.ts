@@ -1,6 +1,7 @@
-import { recordKeys } from '#/utils'
-import type { AccountFieldsValues, UserFieldName } from './account.constants'
-import { MMO_MANAGED_FIELD_NAMES, USER_FIELD_NAMES } from './account.constants'
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
+import { choicesFromTuples, recordKeys } from '#/utils'
+import type { AccountFieldsConfig, AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
+import { MMO_MANAGED_FIELD_NAMES } from './account.constants'
 
 /**
  * A blank for every field Frontend knows about. `Required` on purpose: this is the list the other helpers here derive
@@ -23,6 +24,11 @@ export function getInitialAccountFieldsValues(): Required<AccountFieldsValues> {
     linkedin: '',
     instagram: '',
   }
+}
+
+/** Whether a name (for example from a server response) is a known field */
+export function isUserFieldName(name: string): name is UserFieldName {
+  return Object.hasOwn(getInitialAccountFieldsValues(), name)
 }
 
 /**
@@ -68,9 +74,51 @@ export function getEditableProfileFieldNames({
   return configuredFieldNames.filter((name) => !MMO_MANAGED_FIELD_NAMES.includes(name))
 }
 
+/** The profile fields configuration built from `/environment` response. */
+export function getAccountFieldsConfig(environment: EnvironmentResponse): AccountFieldsConfig {
+  // Keyed, because `USER_METADATA_FIELDS` accepts the same name twice - its uniqueness check compares whole entries,
+  // not names. The last label wins, matching the dict the editor reads, but required is kept if any entry asks for
+  // it: that is what the server enforces, so a later optional entry must not make the field look skippable.
+  const byName = new Map<UserFieldName, UserMetadataField>()
+  for (const field of environment.user_metadata_fields) {
+    if (isUserFieldName(field.name)) {
+      const name = field.name
+      byName.set(name, {
+        name,
+        required: Boolean(field.required) || Boolean(byName.get(name)?.required),
+        label: field.label,
+      })
+    }
+  }
+
+  return {
+    userMetadataFields: [...byName.values()],
+    countryChoices: choicesFromTuples(environment.country_choices),
+    sectorChoices: choicesFromTuples(environment.sector_choices),
+  }
+}
+
+export function getUserMetadataFieldsByName(
+  userMetadataFields: readonly UserMetadataField[],
+): Partial<Record<UserFieldName, UserMetadataField>> {
+  const byName: Partial<Record<UserFieldName, UserMetadataField>> = {}
+  for (const field of userMetadataFields) {
+    byName[field.name] = field
+  }
+  return byName
+}
+
+export function getUserMetadataFieldLabel(
+  userMetadataFields: readonly UserMetadataField[],
+  fieldName: UserFieldName,
+): string {
+  // Through the same dict the editor labels its inputs from, so the two can never name a field differently.
+  return getUserMetadataFieldsByName(userMetadataFields)[fieldName]?.label || fieldName
+}
+
 export function hasNoOrganizationAffiliation(
   values: Pick<AccountFieldsValues, 'organization_type'>,
   configuredFieldNames: readonly UserFieldName[],
 ): boolean {
-  return configuredFieldNames.includes(USER_FIELD_NAMES.organization_type) && values.organization_type === 'none'
+  return configuredFieldNames.includes('organization_type') && values.organization_type === 'none'
 }

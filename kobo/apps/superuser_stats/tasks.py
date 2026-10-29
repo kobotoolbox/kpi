@@ -25,6 +25,7 @@ from django.db.models import (
 from django.db.models.functions import Cast, Coalesce, Concat, Lower
 
 from hub.models import ExtraUserDetail
+from kobo.apps.accounts.mfa.utils import mfa_is_active_expression
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import (
     Instance,
@@ -609,7 +610,7 @@ def generate_user_details_report(
         )
         .exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
-            mfa_is_active=F('mfa_methods_wrapper__is_active'),
+            mfa_is_active=mfa_is_active_expression(),
             metadata=F('extra_details__data'),
             joined_date=Cast('date_joined', CharField()),
             last_login_date=Cast('last_login', CharField()),

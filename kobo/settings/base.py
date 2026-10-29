@@ -14,7 +14,11 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
+from kpi.constants import (
+    AUTH_SERVER_TAG_CHOICES,
+    PERM_DELETE_ASSET,
+    PERM_MANAGE_ASSET,
+)
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
@@ -244,6 +248,13 @@ CONSTANCE_CONFIG = {
         'Show the KoboToolbox logo on the sign-in and account creation pages. '
         'Turn this off to display only the logo uploaded under '
         'Configuration files',
+    ),
+    'AUTH_SERVER_TAG': (
+        '',
+        'Server name tag shown at the top of the sign-in and account creation '
+        'cards. Leave as None on private servers to show the logo uploaded '
+        'under Configuration files instead',
+        'server_tag_choice',
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
@@ -782,6 +793,13 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
+    'server_tag_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': [('', 'None')] + AUTH_SERVER_TAG_CHOICES,
+            'required': False,
+        },
+    ],
     'disabled': [
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
@@ -801,6 +819,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         'SHOW_KOBOTOOLBOX_LOGO',
+        'AUTH_SERVER_TAG',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -1040,7 +1059,6 @@ MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 MARKDOWNX_UPLOAD_CONTENT_TYPES = [
     'image/jpeg',
     'image/png',
-    'image/svg+xml',
     'image/gif',
     'image/webp',
 ]
@@ -1091,7 +1109,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.LimitedCountPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1153,6 +1171,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthServerTagEnum': 'kpi.constants.AUTH_SERVER_TAG_CHOICES',
         'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
@@ -1887,6 +1906,8 @@ ACCOUNT_FORMS = {
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+# Accounts can share an email, so login stays username-only: allauth rejects
+# `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
@@ -2269,6 +2290,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 # to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
+# Maximum allowed size (in bytes) of the `choices` sheet in an XLSForm
+MAX_CHOICES_SIZE_BYTES = env.int('MAX_CHOICES_SIZE_BYTES', 2 * 1024 * 1024)
+
 # OpenRosa setting in bytes
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
@@ -2526,6 +2550,9 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 )
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
+)
+AUTOQA_GEMMA_MODEL_AIP_ARN = env.str(
+    'AUTOQA_GEMMA_MODEL_AIP_ARN', default='google.gemma-3-27b-it'
 )
 
 # 24 months x 31 days/month = 744 default
