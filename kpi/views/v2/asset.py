@@ -810,18 +810,8 @@ class AssetViewSet(
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
 
-            # self._filtered_queryset is set in the `list()` method that
-            # DRF automatically calls and is overridden below. This is
-            # to prevent double calls to `filter_queryset()` as described in
-            # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
-            queryset = self._filtered_queryset
-
-            # 1) Retrieve all asset IDs of the current list
-            if 'asset_ids_cache' not in context_:
-                asset_ids = AssetPagination.get_all_asset_ids_from_queryset(queryset)
-                context_['asset_ids_cache'] = asset_ids
-            else:
-                asset_ids = context_['asset_ids_cache']
+            # 1) Asset IDs of what `list()` serializes
+            asset_ids = context_['asset_ids_cache']
 
             # 2) Get object permissions per asset.
             # By default, only loads permissions for the requesting user and
@@ -919,38 +909,33 @@ class AssetViewSet(
         return context_
 
     def list(self, request, *args, **kwargs):
-        # assigning global filtered query set to prevent additional,
-        # unnecessary calls to `filter_queryset`
-        self._filtered_queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
 
-        page = self.paginate_queryset(self._filtered_queryset)
+        # `get_serializer_context()` reads these, so fill them from whatever
+        # gets serialized, even without pagination
+        assets = page if page is not None else queryset
+        self._serializer_context['asset_ids_cache'] = [a.pk for a in assets]
+        self._serializer_context['asset_uids_cache'] = [a.uid for a in assets]
 
         if page is not None:
-            self._serializer_context['asset_ids_cache'] = []
-            self._serializer_context['asset_uids_cache'] = []
-            for asset in page:
-                self._serializer_context['asset_ids_cache'].append(asset.pk)
-                self._serializer_context['asset_uids_cache'].append(asset.uid)
-
             serializer = self.get_serializer(
                 self._attach_xforms_to_assets(page), many=True
             )
             metadata = None
             if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(self._filtered_queryset)
+                metadata = self.get_metadata(queryset)
 
             response = self.get_paginated_response(serializer.data, metadata)
             return response
 
-        serializer = self.get_serializer(self._filtered_queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def counts(self, request):
-        self._filtered_queryset = self.filter_queryset(self.get_queryset())
-        serializer = AssetListCountSerializer(
-            self._filtered_queryset, context={'request': request}
-        )
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = AssetListCountSerializer(queryset, context={'request': request})
         return Response(serializer.data)
 
     @action(

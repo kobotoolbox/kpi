@@ -3,6 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { FlowId } from '#/api/models/flowId'
 import { useAllauthBrowserV1Auth2faAuthenticatePost } from '#/api/react-query/authentication-allauth-headless'
+import InjectedHtml from '#/auth/AuthContainer/InjectedHtml'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
@@ -27,10 +28,12 @@ export type MfaOutcome =
 const DEFAULT_CODE_LENGTH = 6
 
 interface VerificationIssuesPanelProps {
+  helpText?: string
   /**
    * Where to send someone with no backup codes left. Passed in rather than read off `envStore`, which fetches
    * its own copy of `/environment` and reads as an empty address until that lands - on a private server that
-   * would name the KoboToolbox team instead of theirs.
+   * would name the KoboToolbox team instead of theirs. Only the fallback copy needs it: the server has already put
+   * the address into `helpText`.
    */
   supportEmail?: string | null
   onGoBack: () => void
@@ -40,7 +43,7 @@ interface VerificationIssuesPanelProps {
  * What to do when the authenticator app is out of reach. Replaces the form rather than opening beside it, and the way
  * back is the only thing on it.
  */
-function VerificationIssuesPanel({ supportEmail, onGoBack }: VerificationIssuesPanelProps) {
+function VerificationIssuesPanel({ helpText, supportEmail, onGoBack }: VerificationIssuesPanelProps) {
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
@@ -48,14 +51,19 @@ function VerificationIssuesPanel({ supportEmail, onGoBack }: VerificationIssuesP
           {t('Verification issues')}
         </Title>
 
-        <Text>
-          {replaceSupportEmail(
-            t(
-              "If you cannot access your authenticator app, please enter one of your backup codes instead. If you don't have those either, contact help@kobotoolbox.org for help.",
-            ),
-            supportEmail,
-          )}
-        </Text>
+        {/* The server always sends its default, so the fixed copy is only for an admin who cleared the setting */}
+        {helpText ? (
+          <InjectedHtml html={helpText} />
+        ) : (
+          <Text>
+            {replaceSupportEmail(
+              t(
+                "If you cannot access your authenticator app, please enter one of your backup codes instead. If you don't have those either, contact help@kobotoolbox.org for help.",
+              ),
+              supportEmail,
+            )}
+          </Text>
+        )}
       </Stack>
 
       <ButtonNew size='lg' fullWidth onClick={onGoBack}>
@@ -120,7 +128,11 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
 
   if (isShowingIssues) {
     return (
-      <VerificationIssuesPanel supportEmail={environment?.supportEmail} onGoBack={() => setIsShowingIssues(false)} />
+      <VerificationIssuesPanel
+        helpText={environment?.mfaHelpText}
+        supportEmail={environment?.supportEmail}
+        onGoBack={() => setIsShowingIssues(false)}
+      />
     )
   }
 
