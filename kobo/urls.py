@@ -97,17 +97,6 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
-    *(
-        [
-            path(
-                'accounts/social/provisioning/',
-                SocialAccountProvisioningHTMLView.as_view(),
-                name='socialaccount_provisioning',
-            ),
-        ]
-        if apps.is_installed('kobo.apps.kobo_scim')
-        else []
-    ),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
     # Must be before `allauth.headless.urls`, whose TOTP endpoint it replaces
     *[
@@ -136,6 +125,15 @@ urlpatterns = [
 if settings.ENABLE_METRICS:
     urlpatterns.append(
         path('', include('django_prometheus.urls')),
+    )
+
+if apps.is_installed('kobo.apps.kobo_scim'):
+    urlpatterns.append(
+        path(
+            'accounts/social/provisioning/',
+            SocialAccountProvisioningHTMLView.as_view(),
+            name='socialaccount_provisioning',
+        ),
     )
 
 
