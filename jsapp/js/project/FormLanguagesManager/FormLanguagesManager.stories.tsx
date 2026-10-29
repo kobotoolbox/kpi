@@ -1,6 +1,7 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { AssetContentSurveyItem } from '#/api/models/assetContentSurveyItem'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
@@ -111,6 +112,8 @@ const meta: Meta<typeof StoryTrigger> = {
         </QueryClientProvider>
       )
     },
+    // Outermost, since `FormLanguagesManager` uses `useBlocker`, which needs a data router
+    withRouter,
   ],
   parameters: {
     msw: {
