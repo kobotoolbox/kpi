@@ -133,11 +133,11 @@ def import_instances_from_path(
             #  import.
 
             instance = create_instance(
-                user.username,
-                xml_file,
-                (a for a in attachments),
-                status,
+                xml_file=xml_file,
+                media_files=(a for a in attachments),
                 request=request,
+                status=status,
+                owner_username=request.user.username,
             )
 
             for a in attachments:

@@ -11,6 +11,7 @@ from xml.parsers.expat import ExpatError
 import requests
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.test import RequestFactory
 from requests.auth import HTTPDigestAuth
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
@@ -88,6 +89,10 @@ class BriefcaseClient:
     def __init__(self, url, username, password, user):
         self.url = url
         self.user = user
+        # `create_instance()` checks submission permissions against the
+        # request user
+        self.request = RequestFactory().post('/')
+        self.request.user = user
         self.auth = HTTPDigestAuth(username, password)
         self.form_list_url = urljoin(self.url, 'formList')
         self.submission_list_url = urljoin(self.url, 'view/submissionList')
@@ -316,7 +321,12 @@ class BriefcaseClient:
                 media_obj = django_file(file_obj, 'media_files[]', mimetype)
                 attachments.append(media_obj)
 
-        create_instance(self.user.username, new_xml_file, attachments)
+        create_instance(
+            xml_file=new_xml_file,
+            media_files=attachments,
+            request=self.request,
+            owner_username=self.user.username,
+        )
 
     def _upload_instances(self, path):
         instances_count = 0

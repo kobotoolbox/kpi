@@ -136,12 +136,12 @@ class TestInstanceCreation(TestCase):
         date_created = datetime(2013, 1, 1, 12, tzinfo=ZoneInfo('UTC'))
         with open(xml_path, 'rb') as xml_file:
             instance = create_instance(
-                self.user.username,
-                xml_file,
+                xml_file=xml_file,
                 media_files=[],
                 request=request,
                 date_created_override=date_created,
                 check_usage_limits=False,
+                owner_username=self.user.username,
             )
 
         instance.refresh_from_db()
@@ -226,11 +226,11 @@ class TestInstanceCreation(TestCase):
 
         # Create first instance with uuid=A, root_uuid=R1
         create_instance(
-            self.user.username,
-            xml_file,
+            xml_file=xml_file,
             media_files=[],
             request=request,
             check_usage_limits=False,
+            owner_username=self.user.username,
         )
 
         # Create a second instance with the same uuid but different root_uuid
@@ -277,11 +277,11 @@ class TestInstanceCreation(TestCase):
         # disambiguate which instance to edit
         with self.assertRaises(ConflictingSubmissionUUIDError) as context:
             create_instance(
-                self.user.username,
-                xml_file_edited,
+                xml_file=xml_file_edited,
                 media_files=[],
                 request=request,
                 check_usage_limits=False,
+                owner_username=self.user.username,
             )
 
         assert 'Multiple submissions found with the same DeprecatedID' in str(
@@ -318,11 +318,11 @@ class TestInstanceCreation(TestCase):
 
         # Create first instance with uuid=A
         first_instance = create_instance(
-            self.user.username,
-            xml_file,
+            xml_file=xml_file,
             media_files=[],
             request=request,
             check_usage_limits=False,
+            owner_username=self.user.username,
         )
 
         # Simulate legacy data: remove root_uuid to create ambiguity
@@ -378,11 +378,11 @@ class TestInstanceCreation(TestCase):
         # which of the duplicate instances is being edited
         with self.assertRaises(ConflictingSubmissionUUIDError) as context:
             create_instance(
-                self.user.username,
-                xml_file_edited,
+                xml_file=xml_file_edited,
                 media_files=[],
                 request=request,
                 check_usage_limits=False,
+                owner_username=self.user.username,
             )
 
         assert 'Multiple submissions found with the same DeprecatedID' in str(
@@ -415,11 +415,11 @@ class TestInstanceCreation(TestCase):
 
         # Create first instance with uuid=A, root_uuid=R1
         first_instance = create_instance(
-            self.user.username,
-            xml_file,
+            xml_file=xml_file,
             media_files=[],
             request=request,
             check_usage_limits=False,
+            owner_username=self.user.username,
         )
         first_root_uuid = first_instance.root_uuid
         first_pk = first_instance.pk
@@ -467,11 +467,11 @@ class TestInstanceCreation(TestCase):
         # This should successfully edit the first instance because root_uuid
         # matches and disambiguates which instance to update
         edited_instance = create_instance(
-            self.user.username,
-            xml_file_edited,
+            xml_file=xml_file_edited,
             media_files=[],
             request=request,
             check_usage_limits=False,
+            owner_username=self.user.username,
         )
 
         # Verify it updated the FIRST instance (same pk and root_uuid)
