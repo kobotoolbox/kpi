@@ -19,6 +19,8 @@ class Command(BaseCommand):
         self.__cached_instances = {}
         self.__last_id = None
 
+        # FIXME `Cursor.count()` and `Collection.save()` do not exist in PyMongo 4,
+        #  so this command raises `AttributeError` before it updates anything.
         cursor = self.__get_data()
         instances_count = cursor.count()
         done = 0

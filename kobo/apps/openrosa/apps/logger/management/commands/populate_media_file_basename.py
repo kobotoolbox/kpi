@@ -27,6 +27,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         batchsize = kwargs.get("batchsize")
         stop = False
+        # FIXME `offset` moves forward while the filter below loses the rows that
+        #  each batch updates, so every other batch is skipped. The command has to
+        #  run again until it finds nothing left. Paginate on `id` instead.
         offset = 0
         while stop is not True:
             limit = offset + batchsize
