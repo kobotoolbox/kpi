@@ -1418,12 +1418,8 @@ BULK_ACTION_STUCK_THRESHOLD = env.int(
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
 )
 
-# The one audio length limit for every transcription engine: the lowest limit
-# among the engines we use, applied to all of them, so that there is a single
-# path whatever the language or engine. Audio below it is transcribed whole and
-# no chunk may ever be longer. Today that is 55 minutes, 5 minutes under
-# Google's 60 minute limit as a safety margin; lower it whenever an engine with
-# a tighter limit is added.
+# The one audio length limit for every transcription engine; lower it whenever
+# an engine with a tighter limit is added
 TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS = env.int(
     'TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS',
     55 * 60,
@@ -1431,6 +1427,7 @@ TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS = env.int(
 
 # The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
 # than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
 TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
     'TRANSCRIPTION_SILENCE_MIN_DURATION',
     0.5,
@@ -1438,10 +1435,7 @@ TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
 
 # Loudness thresholds, in dBFS, tried in order until every cut has a pause to
 # land in. Recording levels differ enormously between files, so no single
-# threshold finds the pauses in all of them: one production file averages
-# -18 dBFS, where no moment is ever below -30. Each step up counts
-# quieter-but-not-silent audio as a pause, which is what a loud recording
-# needs, at the cost of one more decode pass.
+# threshold finds the pauses in all of them
 TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
 
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'

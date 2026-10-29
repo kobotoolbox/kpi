@@ -72,10 +72,10 @@ class FFMpegArgumentsTestCase(SimpleTestCase):
             '-vn',
         ]
 
-    def test_silencedetect_args(self):
+    def test_silencedetect_args_downmix_to_mono_first(self):
         assert silencedetect_args(-25, 0.5) == [
             '-af',
-            'silencedetect=noise=-25dB:d=0.5',
+            'aformat=channel_layouts=mono,silencedetect=noise=-25dB:d=0.5',
         ]
 
 
@@ -108,6 +108,21 @@ class ParseSilencesTestCase(SimpleTestCase):
     def test_run_starting_past_the_end_of_the_file_is_dropped(self):
         assert parse_silences('silence_start: 12.0\n', duration=9.0) == []
 
+    def test_timestamps_in_scientific_notation(self):
+        """
+        ffmpeg prints these with `%g`, so a run beginning one sample into a
+        44.1 kHz file is reported as `2.26757e-05` rather than `0.0000227`.
+        Read as `2.26757` it would start after it ended and be dropped
+        """
+
+        stderr = (
+            'silence_start: 2.26757e-05\n'
+            'silence_end: 2 | silence_duration: 1.99998\n'
+        )
+        assert parse_silences(stderr, duration=2.0) == [
+            Silence(start=2.26757e-05, end=2.0)
+        ]
+
 
 @skipUnless(os.path.exists(FFMPEG_BINARY), f'{FFMPEG_BINARY} is not installed')
 class RunFFMpegTestCase(SimpleTestCase):
@@ -133,6 +148,31 @@ class RunFFMpegTestCase(SimpleTestCase):
         assert len(silences) == 1
         assert silences[0].start == pytest.approx(2.0, abs=0.1)
         assert silences[0].end == pytest.approx(3.5, abs=0.1)
+
+    def test_detect_silences_hears_a_pause_only_the_mono_mix_has(self):
+        """
+        A stereo file whose channels are out of phase cancels to silence once
+        mixed to mono, which is the signal the transcription service gets.
+        `silencedetect` only calls a moment silent while every channel is
+        below the threshold, so without the downmix in its own filter chain it
+        reports nothing here
+        """
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'out_of_phase.wav')
+            # fmt: off
+            run_ffmpeg([
+                '-f', 'lavfi',
+                '-i', 'aevalsrc=exprs=sin(2*PI*1000*t)|-sin(2*PI*1000*t)'
+                      ':s=44100:d=5',
+                '-y', path,
+            ])
+            # fmt: on
+
+            silences = detect_silences(path, 5.0, threshold_db=-30, min_duration=0.5)
+
+        assert len(silences) == 1
+        assert silences[0].duration == pytest.approx(5.0, abs=0.1)
 
     def test_detect_silences_ignores_runs_under_the_minimum_duration(self):
         with tempfile.TemporaryDirectory() as directory:

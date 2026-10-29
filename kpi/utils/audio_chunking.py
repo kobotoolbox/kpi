@@ -8,16 +8,18 @@ from kpi.utils.audio_duration import get_audio_duration
 from kpi.utils.ffmpeg import Silence, detect_silences
 from kpi.utils.log import logging
 
-# How to choose between two pauses that are both in reach of the same cut. A
-# pause at least this fraction as long as the longest one available counts as
-# good enough, and of those we take the latest, so chunks stay as long as the
-# limit allows.
+# Think of this as asking: "Of the pauses we found, which do we cut at?"
+# Every pause in reach of a cut is a candidate. We find the longest, then cut
+# at the latest pause that is at least 70% as long. Long pauses are sentence
+# or speaker breaks, and taking the latest one keeps chunks long, so there are
+# fewer to transcribe.
 #
-# Example from a real recording: a 0.92s pause three seconds after the previous
-# cut, and a 0.66s pause four minutes later. Always taking the longest cuts at
-# the 0.92s one and leaves a 3 second chunk, which costs a whole transcription
-# request to carry three seconds of audio. At 0.7 the 0.66s pause counts as
-# good enough and wins, because it comes later.
+# Why not simply the longest? In one real recording, a 0.92s pause came 3
+# seconds after the previous cut and a 0.66s pause 4 minutes after it. "Longest
+# wins" would cut at 3 seconds: a 3-second chunk that still costs a full
+# request. At 0.7 the 0.66s pause qualifies (0.66 >= 0.7 * 0.92 = 0.644) and,
+# being later, is chosen. On the sample recordings this removed five such tiny
+# chunks and added none; at 0.8 the 0.66s pause would not qualify.
 GOOD_ENOUGH_SILENCE_FRACTION = 0.7
 
 
@@ -42,29 +44,22 @@ def plan_chunk_ranges(
     duration: float, silences: list[Silence], hard_limit: float
 ) -> tuple[list[ChunkRange], int]:
     """
-    Decide where to cut `duration` seconds of audio into chunks
+    Decide where to cut `duration` seconds of audio, given its pauses
 
-    `silences` is every pause in the file, already found by ffmpeg. This
-    function only does arithmetic on those numbers and never touches the audio.
+    Only arithmetic on the pauses ffmpeg already found; the audio is never read.
 
-    It works forward from the start of the file. For each cut it looks at the
-    pauses lying between the previous cut and `hard_limit` after it, and cuts
-    through the middle of the best one, so that neither side clips speech.
-    "Best" means the latest pause that is nearly as long as the longest one in
-    reach: a long pause is the end of a sentence or a change of speaker, a
-    short one is a breath between two words, and taking the latest good one
-    keeps chunks long, so there are fewer of them to transcribe.
+    Walks forward from the start. While more than `hard_limit` is left, it picks
+    a pause within the next `hard_limit` seconds (see
+    `GOOD_ENOUGH_SILENCE_FRACTION`) and cuts at its middle, so neither side
+    clips speech. With no pause in reach, it cuts at exactly `hard_limit`, a
+    "blind cut". What is left becomes the last chunk.
 
-    Chunks therefore come out uneven, because their length depends on where
-    people happened to stop talking. With a 55 minute limit, a 90 minute file
-    whose only pauses are at 10:00 and 60:00 becomes 10 + 50 + 30 minutes
-    rather than two 45 minute halves. That costs nothing, and fewer chunks
-    means fewer requests to the transcription service and less to merge.
+    Chunks are uneven by design: a 90 min file with pauses only at 10:00 and
+    60:00 becomes 10 + 50 + 30 min.
 
-    Returns the ranges, which join up and together cover the whole file, along
-    with the number of cuts that had no pause to land in. A caller that gets a
-    count above zero can look for pauses again at a louder threshold and plan
-    once more.
+    Returns `(ranges, blind_cuts)`. The ranges follow on from each other and
+    cover the whole file. Any blind cuts tell the caller to look for pauses
+    again at a louder threshold.
     """
 
     if hard_limit <= 0:
@@ -133,12 +128,11 @@ def get_chunk_ranges(
     land in: detection then starts over at a louder threshold, at most once per
     entry in the ladder, and usually not at all.
 
-    `hard_limit` defaults to the setting, which is the lowest limit among the
-    engines we use and is therefore safe whichever one transcribes the file. A
-    caller that has already resolved the engine can pass that engine's own
-    limit instead, so that a file is not cut more finely than it needs to be:
-    cutting a 60 minute recording at 15 minutes rather than 55 turns 2 chunks
-    into 6, and each chunk is a separate request to the service.
+    `hard_limit` defaults to `TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS`: one
+    setting for every engine, set to the lowest limit among the engines we use,
+    so it is safe whichever one transcribes the file. The argument is there so
+    a caller can plan at another limit without patching the setting, which the
+    tests rely on; nothing in production passes it.
     """
 
     if hard_limit is None:

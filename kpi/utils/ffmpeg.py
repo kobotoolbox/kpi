@@ -8,9 +8,13 @@ from kpi.utils.log import logging
 FFMPEG_BINARY = '/usr/bin/ffmpeg'
 
 # `silencedetect` writes a `silence_start` line when a quiet run begins and a
-# matching `silence_end` when it ends, both at the default `info` log level
-SILENCE_START_RE = re.compile(r'silence_start:\s*(-?[\d.]+)')
-SILENCE_END_RE = re.compile(r'silence_end:\s*(-?[\d.]+)')
+# matching `silence_end` when it ends, both at the default `info` log level.
+# The exponent is optional but has to be accepted: ffmpeg prints these with
+# `%g`, which switches to scientific notation below 0.0001, so a run beginning
+# one sample into a 44.1 kHz file reads `silence_start: 2.26757e-05`. Reading
+# that as 2.26757 would move the run most of the way through the file.
+SILENCE_START_RE = re.compile(r'silence_start:\s*(-?[\d.]+(?:[eE][+-]?\d+)?)')
+SILENCE_END_RE = re.compile(r'silence_end:\s*(-?[\d.]+(?:[eE][+-]?\d+)?)')
 
 
 @dataclass(frozen=True)
@@ -60,9 +64,9 @@ def decode_args(path_or_url: str) -> list[str]:
     """
     Arguments that read `path_or_url` as a single audio stream, video dropped
 
-    Every pass we make over an attachment starts with these, so that silence
-    detection listens to the same mono signal the transcription service will
-    be given.
+    Every pass we make over an attachment starts with these, so that detection
+    and conversion read the file the same way. `-ac 1` asks for mono output;
+    note that it constrains what ffmpeg writes, not what filters see.
     """
 
     return ['-i', path_or_url, '-ac', '1', '-vn']
@@ -75,9 +79,20 @@ def silencedetect_args(threshold_db: int, min_duration: float) -> list[str]:
     `noise` is the loudness under which audio counts as silence, and `d` the
     shortest run worth reporting: anything shorter is the gap between two
     words, where a cut would split a sentence.
+
+    The downmix to mono is part of this chain rather than left to `-ac 1`,
+    which applies on the way out and so would come after `silencedetect` had
+    already listened. That matters on stereo recordings, because a moment
+    counts as silent only while every channel is below the threshold: a hum in
+    one channel alone hides every pause in the file, even where the mono mix
+    the transcription service receives is quiet.
     """
 
-    return ['-af', f'silencedetect=noise={threshold_db}dB:d={min_duration}']
+    return [
+        '-af',
+        'aformat=channel_layouts=mono,'
+        f'silencedetect=noise={threshold_db}dB:d={min_duration}',
+    ]
 
 
 def parse_silences(stderr: str, duration: float) -> list[Silence]:
