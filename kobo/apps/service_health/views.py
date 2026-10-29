@@ -73,7 +73,7 @@ def service_health(request):
         'Broker': lambda: celery_app.backend.client.ping(),
         'Session': lambda: request.session.save(),
         'Enketo': lambda: requests.get(
-            settings.ENKETO_INTERNAL_URL, timeout=10
+            settings.ENKETO_INTERNAL_URL, timeout=10, verify=False
         ).raise_for_status(),
         'Enketo Redis (main)': lambda: caches['enketo_redis_main'].set('a', True, 1),
     }
