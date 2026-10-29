@@ -1,6 +1,6 @@
 import { Anchor, Box, Group, Text, Textarea } from '@mantine/core'
 import cx from 'classnames'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import ModalNew from '#/components/common/ModalNew'
 import Button from '#/components/common/button'
 import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
@@ -73,8 +73,6 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
   const [cascadeReadySurvey, setCascadeReadySurvey] = useState<Survey | undefined>(undefined)
   const [cascadeTextareaValue, setCascadeTextareaValue] = useState('')
   const [cascadeLastSelectedRowIndex, setCascadeLastSelectedRowIndex] = useState<number | undefined>(undefined)
-  const cascadeRef = useRef<HTMLTextAreaElement>(null)
-
   const toggleCascade = () => {
     setShowCascadePopup((prev) => !prev)
     setCascadeTextareaValue('')
@@ -89,10 +87,8 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
     setShowCascadePopup(false)
   }
 
-  const cascadePopupChange = () => {
-    const el = cascadeRef.current
-    if (!el) return
-    const value = (el as HTMLTextAreaElement).value
+  const cascadePopupChange = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = evt.currentTarget.value
     setCascadeTextareaValue(value)
     try {
       const inp = dkobo_xlform.model.utils.split_paste(value)
@@ -116,7 +112,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
   return (
     <>
       <Box className='form-builder-header'>
-        <Group className='form-builder-header__row form-builder-header__row--primary' wrap='nowrap' gap={20}>
+        <Group className='form-builder-header__row form-builder-header__row--primary'>
           <Box
             className='form-builder-header__cell form-builder-header__cell--logo left-tooltip'
             data-tip={t('Return to list')}
@@ -263,14 +259,7 @@ export default function FormbuilderHeader(props: FormbuilderHeaderProps) {
             <Text>{t('Paste your formatted table from excel in the box below.')}</Text>
           )}
           {cascadeReady && <Text c='teal.3'>{t('OK')}</Text>}
-          <Textarea
-            ref={cascadeRef}
-            onChange={cascadePopupChange}
-            value={cascadeTextareaValue}
-            mt='md'
-            mb='md'
-            rows={8}
-          />
+          <Textarea onChange={cascadePopupChange} value={cascadeTextareaValue} mt='md' mb='md' rows={8} />
           {envStore.isReady && envStore.data.support_url && (
             <Group justify='flex-end'>
               <Anchor

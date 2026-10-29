@@ -662,7 +662,7 @@ export default function EditableForm(props: EditableFormProps) {
   // Used to enable the "show all" button only when there's something to expand
   function getSurveyHasSelectQuestion(): boolean {
     let hasSelect = false
-    app?.survey?.forEachRow((row: any) => {
+    app?.survey?.forEachRow((row) => {
       if (row._isSelectQuestion()) {
         hasSelect = true
       }
