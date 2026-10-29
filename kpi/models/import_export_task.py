@@ -400,20 +400,12 @@ class ImportTask(ImportExportTask):
         real_owner = get_real_owner(self.user)
         transfer = real_owner != self.user and not destination
 
-        # Pre-validate all assets before saving any of them
-        parsed_contents = {}
+        # Pre-validate folder hierarchy before beginning transaction
         for item in fif._parsed:
             if item.parent and item.parent not in fif._parsed:
-                raise ValueError(t('The archive contains an invalid folder hierarchy.'))
-            if item.get_type() == 'asset':
-                try:
-                    kontent = xlsx_to_dict(item.readable)
-                except InvalidFileException:
-                    kontent = xls_to_dict(item.readable)
-                self._ensure_valid_node_names(kontent)
-                self._ensure_translated_columns(kontent)
-                self._ensure_choices_size(kontent)
-                parsed_contents[item] = kontent
+                raise ValueError(
+                    t('The archive contains an invalid folder hierarchy.')
+                )
 
         updated_records = []
         with transaction.atomic():
@@ -439,7 +431,13 @@ class ImportTask(ImportExportTask):
                         item.get_type(), extra_args, grant_manage=grant_manage
                     )
                 elif item.get_type() == 'asset':
-                    kontent = parsed_contents[item]
+                    try:
+                        kontent = xlsx_to_dict(item.readable)
+                    except InvalidFileException:
+                        kontent = xls_to_dict(item.readable)
+                    self._ensure_valid_node_names(kontent)
+                    self._ensure_translated_columns(kontent)
+                    self._ensure_choices_size(kontent)
 
                     if not destination_asset:
                         extra_args['content'] = _strip_header_keys(kontent)
