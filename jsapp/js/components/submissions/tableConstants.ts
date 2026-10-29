@@ -101,6 +101,12 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   SORT_BY: 'sort-by',
 })
 
+/** How many columns user can freeze in Data Table (the checkbox column doesn't count). */
+export const MAX_FROZEN_COLUMNS = 5
+
+/** Part of the table width frozen columns can take before they stop staying in place. */
+export const MAX_FROZEN_WIDTH_RATIO = 0.7
+
 export const TABLE_MEDIA_TYPES = createEnum([
   QuestionTypeName.file,
   QuestionTypeName.image,
