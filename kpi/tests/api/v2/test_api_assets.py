@@ -8,7 +8,7 @@ import jsonschema
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.db import connection
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -24,6 +24,7 @@ from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
+    LIMITED_COUNT_MANY,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
@@ -655,18 +656,18 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
 
     def test_query_counts(self):
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
     def test_list_can_load_with_desynchronized_assets(self):
@@ -684,6 +685,14 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert len(response.data['results']) == 2
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        response = self.client.get(self.list_url, data={'metadata': 'on'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
+        assert 'metadata' in response.data
 
     def test_current_user_permissions_only_owner_without_param(self):
         """
@@ -1658,6 +1667,13 @@ class AssetVersionApiTests(BaseTestCase):
         resp2 = self.client.get(first_version['url'], format='json')
         self.assertEqual(resp2.data['content_hash'],
                          asset.latest_version.content_hash)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        resp = self.client.get(self.version_list_url, format='json')
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['count'] == LIMITED_COUNT_MANY
+        assert resp.data['results']
 
     def test_restricted_access_to_version(self):
         self.client.logout()
