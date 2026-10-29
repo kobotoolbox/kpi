@@ -432,8 +432,9 @@ $s-data-table-font: 13px;
     background-color: colors.$kobo-white;
   }
 
-  .rt-th.is-frozen.is-last-frozen,
-  .rt-td.is-frozen.is-last-frozen {
+  // Unpinned (too wide) frozen columns look like regular ones.
+  .rt-th.is-frozen.is-last-frozen:not(.is-unpinned),
+  .rt-td.is-frozen.is-last-frozen:not(.is-unpinned) {
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }

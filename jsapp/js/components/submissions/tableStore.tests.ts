@@ -100,6 +100,15 @@ describe('tableStore', () => {
     chai.expect(tableStore.isFieldFrozen('City')).to.equal(true)
   })
 
+  it('should unfreeze columns that are not available when freezing a new one', () => {
+    tableStore.setFrozenColumn('Old_field', true)
+    tableStore.setFrozenColumn('Name', true)
+
+    tableStore.setFrozenColumn('Age', true, ['Name', 'Age'])
+
+    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Name', 'Age'])
+  })
+
   it('should read a single frozen column from old settings', () => {
     const otherKey = `${storageKey}-other`
     localStorage.setItem(otherKey, JSON.stringify({ assetA: { [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: 'Age' } }))

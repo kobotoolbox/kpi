@@ -174,9 +174,14 @@ class TableStore extends Reflux.Store {
     return this.getFrozenColumns().includes(fieldId)
   }
 
-  /** Freezes or unfreezes given column, leaving other frozen columns as they are. */
-  setFrozenColumn(fieldId: string, isFrozen: boolean) {
-    const otherColumns = this.getFrozenColumns().filter((id) => id !== fieldId)
+  /**
+   * Freezes or unfreezes given column, leaving other frozen columns as they are.
+   * @param availableIds - other frozen ids not on this list get unfrozen
+   */
+  setFrozenColumn(fieldId: string, isFrozen: boolean, availableIds?: string[]) {
+    const otherColumns = this.getFrozenColumns().filter(
+      (id) => id !== fieldId && (!availableIds || availableIds.includes(id)),
+    )
     const newFrozenColumns = isFrozen ? [...otherColumns, fieldId] : otherColumns
     this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns.length ? newFrozenColumns : null })
   }

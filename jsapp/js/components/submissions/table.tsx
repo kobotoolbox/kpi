@@ -2,6 +2,7 @@ import './table.scss'
 import { Stack } from '@mantine/core'
 import cx from 'classnames'
 import isEqual from 'lodash.isequal'
+import throttle from 'lodash.throttle'
 import React from 'react'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
@@ -47,6 +48,7 @@ import {
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
   MAX_FROZEN_COLUMNS,
+  MAX_FROZEN_WIDTH_RATIO,
   SUBMISSION_ACTIONS_ID,
   SortValues,
   VALIDATION_STATUS_ID_PROP,
@@ -207,6 +209,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted.bind(this)),
       actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted.bind(this)),
     )
+
+    // A narrower table may no longer fit the frozen columns.
+    const onWindowResize = throttle(() => this.positionFrozenColumns(), 100)
+    window.addEventListener('resize', onWindowResize)
+    this.unlisteners.push(() => {
+      onWindowResize.cancel()
+      window.removeEventListener('resize', onWindowResize)
+    })
   }
 
   componentWillUnmount() {
@@ -241,6 +251,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+
+    // Re-renders may change frozen columns or drop the classes added in there.
+    // ReactTable renders new columns in its own update after this one, so we
+    // wait a frame.
+    window.requestAnimationFrame(() => this.positionFrozenColumns())
   }
 
   /** @param submissionRootUuids - From `getSubmissionRootUuid`, matching what bulk actions report. */
@@ -472,7 +487,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
-    tableStore.setFrozenColumn(fieldId, isFrozen)
+    // Drops frozen ids missing on this page (e.g. old form version fields), or
+    // they would go over the limit when they come back.
+    tableStore.setFrozenColumn(
+      fieldId,
+      isFrozen,
+      this.state.columns.map((col) => col.id),
+    )
   }
 
   /** Counts rendered columns only, as stored ids may be stale (e.g. a field removed from the form). */
@@ -1224,22 +1245,34 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // We need this check, because when scrolling vertically, the scrollLeft
     // property is always `0` (which seems like a browser bug).
     if (this.tableScrollTop === eventTarget.scrollTop) {
-      const left = eventTarget.scrollLeft > 0 ? eventTarget.scrollLeft : 0
-      const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen')
-
-      if (left >= 1) {
-        $frozenColumnCells.addClass('is-scrolled-horizontally')
-      } else {
-        $frozenColumnCells.removeClass('is-scrolled-horizontally')
-      }
-
-      $frozenColumnCells.css({ left: left })
-
-      // Save the reference position for the frozen column's left offset.
-      this.frozenLeftRef = left
+      this.positionFrozenColumns()
     } else {
       this.tableScrollTop = eventTarget.scrollTop
     }
+  }
+
+  /** Keeps frozen columns in place while scrolling, unless they are too wide. */
+  positionFrozenColumns() {
+    const tableEl = $('.ReactTable .rt-table')[0]
+    if (!tableEl) {
+      return
+    }
+
+    const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen')
+    const frozenWidth = $('.ReactTable .rt-thead.-header .is-frozen')
+      .toArray()
+      .reduce((sum, el) => sum + el.offsetWidth, 0)
+    // Too wide frozen columns would cover everything, so we let them scroll
+    // like regular ones.
+    const isPinned = frozenWidth <= tableEl.clientWidth * MAX_FROZEN_WIDTH_RATIO
+    const left = isPinned && tableEl.scrollLeft > 0 ? tableEl.scrollLeft : 0
+
+    $frozenColumnCells.toggleClass('is-scrolled-horizontally', left >= 1)
+    $frozenColumnCells.toggleClass('is-unpinned', !isPinned)
+    $frozenColumnCells.css({ left: left })
+
+    // Save the reference position for the frozen column's left offset.
+    this.frozenLeftRef = left
   }
 
   render() {
