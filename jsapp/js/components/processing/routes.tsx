@@ -5,7 +5,7 @@ import assetStore from '#/assetStore'
 import { findRowByXpath } from '#/assetUtils'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { getAvailableTabsForQuestionType } from '#/components/processing/common/utils'
-import { ProcessingTab, decodeURLParamWithSlash } from '#/components/processing/routes.utils'
+import { TAB_ROUTES, decodeURLParamWithSlash } from '#/components/processing/routes.utils'
 import PermProtectedRoute from '#/router/permProtectedRoute'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import SingleProcessingRoute from '.'
@@ -19,9 +19,7 @@ const ProcessingRootRedirect = () => {
   const asset = params.uid ? assetStore.getAsset(params.uid) : undefined
   const xpath = params.xpath ? decodeURLParamWithSlash(params.xpath) : undefined
   const questionType = asset?.content && xpath ? findRowByXpath(asset.content, xpath)?.type : undefined
-  const defaultTabRoute = getAvailableTabsForQuestionType(questionType).includes(ProcessingTab.Transcript)
-    ? PROCESSING_ROUTES.TRANSCRIPT
-    : PROCESSING_ROUTES.TRANSLATIONS
+  const defaultTabRoute = TAB_ROUTES[getAvailableTabsForQuestionType(questionType)[0]]
 
   return <Navigate to={generatePath(defaultTabRoute, params)} replace />
 }

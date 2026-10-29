@@ -11,7 +11,14 @@ import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import { isPlainClick } from '#/utils'
 import { getAvailableTabsForQuestionType } from '../common/utils'
-import { ProcessingTab, getTabRoutePath, goToTabRoute, isProcessingRouteActive } from '../routes.utils'
+import {
+  ProcessingTab,
+  TAB_ROUTES,
+  getActiveTab,
+  getTabRoutePath,
+  goToTabRoute,
+  isProcessingRouteActive,
+} from '../routes.utils'
 import TabAnalysis from './TabAnalysis'
 import TabTranscript from './TabTranscript'
 import TabTranslations from './TabTranslations'
@@ -46,6 +53,7 @@ export default function SingleProcessingContent({
   const questionType = findRowByXpath(asset.content ?? {}, questionXpath)?.type
   const availableTabs = getAvailableTabsForQuestionType(questionType)
   const isTranscriptAvailable = availableTabs.includes(ProcessingTab.Transcript)
+  const isTranslationsAvailable = availableTabs.includes(ProcessingTab.Translations)
 
   /** DRY wrapper for protector function. */
   function safeExecute(callback: () => void) {
@@ -82,13 +90,15 @@ export default function SingleProcessingContent({
     activeTab = PROCESSING_ROUTES.ANALYSIS
   }
 
-  // Guards against landing on Transcript for a question type that doesn't
-  // support it (e.g. a stale link, or switching questions while on that tab).
+  // Guards against landing on a tab the question type doesn't support, by
+  // moving to its default tab (e.g. a stale link, or switching questions while
+  // on that tab).
   useEffect(() => {
-    if (!isTranscriptAvailable && isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-      goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS)
+    const currentTab = getActiveTab()
+    if (currentTab && !availableTabs.includes(currentTab)) {
+      goToTabRoute(TAB_ROUTES[availableTabs[0]])
     }
-  }, [isTranscriptAvailable])
+  }, [questionType, activeTab])
 
   return (
     <section className={styles.root}>
@@ -100,9 +110,11 @@ export default function SingleProcessingContent({
             </Tabs.Tab>
           )}
 
-          <Tabs.Tab value={PROCESSING_ROUTES.TRANSLATIONS} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSLATIONS)}>
-            {t('Translations')}
-          </Tabs.Tab>
+          {isTranslationsAvailable && (
+            <Tabs.Tab value={PROCESSING_ROUTES.TRANSLATIONS} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSLATIONS)}>
+              {t('Translations')}
+            </Tabs.Tab>
+          )}
 
           <Tabs.Tab value={PROCESSING_ROUTES.ANALYSIS} renderRoot={renderTabLink(PROCESSING_ROUTES.ANALYSIS)}>
             {t('Analysis')}
@@ -122,7 +134,7 @@ export default function SingleProcessingContent({
             advancedFeatures={advancedFeatures}
           />
         )}
-        {activeTab === PROCESSING_ROUTES.TRANSLATIONS && (
+        {isTranslationsAvailable && activeTab === PROCESSING_ROUTES.TRANSLATIONS && (
           <TabTranslations
             asset={asset}
             questionXpath={questionXpath}
