@@ -1,7 +1,5 @@
 import type { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import type { WithRouterProps } from '#/router/legacy'
-import type { StepName } from './constants'
 
 /**
  * Type for the context in which ProjectSettings is being used.
@@ -26,7 +24,7 @@ export interface ProjectSettingsFields {
   extra_metadata_fields: Record<string, string | string[] | null>
 }
 
-export interface ProjectSettingsProps extends WithRouterProps {
+export interface ProjectSettingsProps {
   /** Determines which mode: NEW (create), REPLACE (replace form), or EXISTING (edit settings) */
   context: ProjectSettingsContext
   /** The asset being edited (only for EXISTING and REPLACE contexts) */
@@ -39,47 +37,4 @@ export interface ProjectSettingsProps extends WithRouterProps {
   onSetModalTitle?: (title: string) => void
   /** Close the mantine modal wrapper. Currently exists alongside legcaly modal management through pageState. */
   onRequestClose?: () => void
-}
-
-export interface ProjectSettingsState {
-  // Loading states
-  isSessionLoaded: boolean
-  isSubmitPending: boolean
-
-  // Asset data
-  /** The asset being created or edited - populated after template/upload/import */
-  formAsset?: AssetResponse
-
-  // Form data
-  fields: ProjectSettingsFields
-  /** List of field names that failed validation */
-  fieldsWithErrors: string[]
-
-  // Multi-step wizard navigation
-  /** Current step in the wizard (null during initial load) */
-  currentStep: StepName | null
-  /** Previous step (used for back button navigation) */
-  previousStep: StepName | null
-
-  // URL import state
-  isImportFromURLPending: boolean
-  importUrl: string
-  importUrlButtonEnabled: boolean
-  importUrlButton: string
-
-  // Template selection state
-  isApplyTemplatePending: boolean
-  applyTemplateButton: string
-  chosenTemplateUid: string | null
-  /** Used to track async template cloning and prevent race conditions */
-  pendingTemplateCloneUid: string | null
-
-  // File upload state
-  isUploadFilePending: boolean
-
-  // Archive/unarchive flow state
-  /** Waiting for archive operation to complete before navigating away */
-  isAwaitingArchiveCompleted: boolean
-  /** Waiting for unarchive operation to complete before navigating away */
-  isAwaitingUnarchiveCompleted: boolean
 }
