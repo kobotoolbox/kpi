@@ -24,6 +24,7 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from kpi.tests.utils.mixins import (
     AssetFileTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
@@ -32,7 +33,6 @@ from kpi.tests.utils.mixins import (
     SubmissionViewTestCaseMixin,
 )
 from kpi.urls.router_api_v2 import URL_NAMESPACE
-from kpi.utils.fuzzy_int import FuzzyInt
 
 
 class OrganizationApiTestCase(BaseTestCase):

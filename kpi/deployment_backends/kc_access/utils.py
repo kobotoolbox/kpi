@@ -3,23 +3,11 @@ from contextlib import contextmanager
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db import ProgrammingError, transaction
+from django.db import transaction
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.database import use_db
 from kpi.utils.log import logging
-
-
-def safe_kc_read(func):
-    def _wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except ProgrammingError as e:
-            raise ProgrammingError(
-                'kc_access error accessing KoboCAT tables: {}'.format(str(e))
-            )
-
-    return _wrapper
 
 
 def _get_xform_id_for_asset(asset):

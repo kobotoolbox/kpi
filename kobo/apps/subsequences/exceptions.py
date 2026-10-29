@@ -66,14 +66,6 @@ class InvalidAction(Exception):
     pass
 
 
-class InvalidItem(Exception):
-    """
-    The referenced action does not contain a list of items
-    """
-
-    pass
-
-
 class InvalidXPath(Exception):
     """
     The referenced question XPath was not configured for supplemental data at
@@ -116,10 +108,6 @@ class TranscriptionNotFound(DependencyNotFound):
         )
     ):
         super().__init__(message)
-
-
-class TranslationAsyncResultAvailable(Exception):
-    pass
 
 
 class TranscriptionResultNotFound(Exception):

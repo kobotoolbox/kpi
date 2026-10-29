@@ -20,7 +20,7 @@ from rest_framework.test import APITestCase
 
 from kobo.apps.accounts.adapter import SocialAccountAdapter
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from ...help.models import InAppMessage, InAppMessageUsers, MessageType
 from ...kobo_auth.shortcuts import User
 from ..models import SocialAppCustomData, SocialAppManagedDomain

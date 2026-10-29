@@ -5,10 +5,6 @@ from xml.etree import ElementTree as ET
 
 from kpi.utils.hash import calculate_hash
 
-# an approximation of the max size.
-# actual max length will be 40 + len(join_with) + len("_001")
-MAX_NAME_LENGTH = 40
-
 DEFAULT_OPTS = {
     'lrstrip': False,
     'lstrip': False,

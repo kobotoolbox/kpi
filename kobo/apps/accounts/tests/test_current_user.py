@@ -12,7 +12,7 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 
 
 class CurrentUserAPITestCase(APITestCase):
