@@ -1,8 +1,6 @@
-import clonedeep from 'lodash.clonedeep'
 import { when } from 'mobx'
-import React from 'react'
-import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { actions } from '#/actions'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
@@ -15,9 +13,8 @@ import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import { type ImportErrorResponse, applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
-import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import { router, withRouter } from '#/router/legacy'
+import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { escapeHtml, isAValidUrl, join, notify } from '#/utils'
@@ -28,8 +25,70 @@ import StepFormSource from './steps/StepFormSource'
 import StepImportUrl from './steps/StepImportUrl'
 import StepProjectDetails from './steps/StepProjectDetails'
 import StepUploadFile from './steps/StepUploadFile'
-import type { ProjectSettingsProps, ProjectSettingsState } from './types'
+import type { ProjectSettingsContext, ProjectSettingsFields, ProjectSettingsProps } from './types'
 import { getFilenameFromURI, getInitialFieldsFromAsset, getSettingsForEndpoint, validateProjectFields } from './utils'
+
+interface Steps {
+  /** Current step in the wizard (null while an initial template is being cloned) */
+  current: StepName | null
+  /** Previous step (used for back button navigation) */
+  previous: StepName | null
+}
+
+function getInitialStep(context: ProjectSettingsContext, initialTemplateUid?: string | null): StepName | null {
+  switch (context) {
+    case PROJECT_SETTINGS_CONTEXTS.NEW:
+    case PROJECT_SETTINGS_CONTEXTS.REPLACE:
+      // With an initial template we show a spinner until the clone completes
+      if (initialTemplateUid && context === PROJECT_SETTINGS_CONTEXTS.NEW) {
+        return null
+      }
+      return STEPS.FORM_SOURCE
+    case PROJECT_SETTINGS_CONTEXTS.EXISTING:
+      return STEPS.PROJECT_DETAILS
+    default:
+      throw new Error(`Unknown context: ${context}!`)
+  }
+}
+
+function getBaseTitle(context: ProjectSettingsContext) {
+  switch (context) {
+    case PROJECT_SETTINGS_CONTEXTS.NEW:
+      return t('Create project')
+    case PROJECT_SETTINGS_CONTEXTS.REPLACE:
+      return t('Replace form')
+    case PROJECT_SETTINGS_CONTEXTS.EXISTING:
+    default:
+      return t('Project settings')
+  }
+}
+
+function notifyImportFailure(response: ImportErrorResponse, sourceName: string | null) {
+  const messages = response?.messages || response?.responseJSON?.messages
+  const errorType = messages?.error_type
+  const importError = messages?.error
+
+  if (importError) {
+    const errLines: Array<string | JSX.Element> = [t('Import Failed!')]
+    if (sourceName) {
+      errLines.push(<code key='name'>Name: {sourceName}</code>)
+    }
+    errLines.push(
+      <code key='error'>
+        {errorType}: {escapeHtml(importError)}
+      </code>,
+    )
+    // join returns an array of React nodes (strings and JSX elements with <br /> separators).
+    // The wrapping <div> is required: the toast container lays out its direct children with
+    // `display: flex`, so without a block-level wrapper the lines render side-by-side as columns.
+    const message = <div>{join(errLines, <br />)}</div>
+    notify.error(message)
+  } else {
+    // Fallback for responses without structured error messages
+    // ImportErrorResponse doesn't have status/statusText, so we use a generic error
+    notify.error(t('Import Failed!'))
+  }
+}
 
 /**
  * This is used for multiple different purposes:
@@ -48,127 +107,129 @@ import { getFilenameFromURI, getInitialFieldsFromAsset, getSettingsForEndpoint, 
  * - AccountSettingsRoute
  * - LibraryAssetForm
  */
-class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSettingsState> {
-  private unlisteners: Function[] = []
+export default function ProjectSettings(props: ProjectSettingsProps) {
+  const { context, initialTemplateUid, onSetModalTitle } = props
+  const navigate = useNavigate()
+  const params = useParams()
+  // NEW and REPLACE run as a wizard in a modal, EXISTING is the /settings page
+  const isModal = context !== PROJECT_SETTINGS_CONTEXTS.EXISTING
 
-  constructor(props: ProjectSettingsProps) {
-    super(props)
+  const [isSessionLoaded, setIsSessionLoaded] = useState(!!profileStore.isLoggedIn)
+  const [isSubmitPending, setIsSubmitPending] = useState(false)
+  /** The asset being created or edited - populated after template/upload/import */
+  const [formAsset, setFormAsset] = useState(props.formAsset)
+  // project details
+  const [fields, setFields] = useState(() => getInitialFieldsFromAsset(props.formAsset))
+  /** List of field names that failed validation */
+  const [fieldsWithErrors, setFieldsWithErrors] = useState<string[]>([])
+  // steps
+  const [steps, setSteps] = useState<Steps>(() => {return {
+    current: getInitialStep(context, initialTemplateUid),
+    previous: null,
+  }})
+  // importing url
+  const [isImportFromURLPending, setIsImportFromURLPending] = useState(false)
+  const [importUrl, setImportUrl] = useState('')
+  const [importUrlButtonEnabled, setImportUrlButtonEnabled] = useState(false)
+  const [importUrlButton, setImportUrlButton] = useState(t('Import'))
+  // template
+  const [isApplyTemplatePending, setIsApplyTemplatePending] = useState(false)
+  const [applyTemplateButton, setApplyTemplateButton] = useState(t('Next'))
+  const [chosenTemplateUid, setChosenTemplateUid] = useState(initialTemplateUid || null)
+  // upload files
+  const [isUploadFilePending, setIsUploadFilePending] = useState(false)
 
-    this.state = {
-      isSessionLoaded: !!profileStore.isLoggedIn,
-      isSubmitPending: false,
-      formAsset: this.props.formAsset,
-      // project details
-      fields: getInitialFieldsFromAsset(this.props.formAsset),
-      fieldsWithErrors: [],
-      // steps
-      currentStep: null,
-      previousStep: null,
-      // importing url
-      isImportFromURLPending: false,
-      importUrl: '',
-      importUrlButtonEnabled: false,
-      importUrlButton: t('Import'),
-      // template
-      isApplyTemplatePending: false,
-      applyTemplateButton: t('Next'),
-      chosenTemplateUid: this.props.initialTemplateUid || null,
-      pendingTemplateCloneUid: null,
-      // upload files
-      isUploadFilePending: false,
-      // archive flow
-      isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false,
-    }
-
-    autoBind(this)
-  }
+  // Refs, not state: never rendered, and async callbacks need the current value
+  /** Template being cloned. Late responses for other templates are ignored. */
+  const pendingTemplateCloneUid = useRef<string | null>(null)
+  /** Archive or unarchive waiting to complete before navigating away */
+  const awaitingDeploymentChange = useRef<'archive' | 'unarchive' | null>(null)
 
   /*
    * setup
    */
 
-  componentDidMount() {
-    this.setInitialStep()
+  // The passed asset may lack `content`, so load the full one
+  const routeAssetUid = params.assetid || params.uid
+  useEffect(() => {
+    if (routeAssetUid) {
+      actions.resources.loadAsset({ id: routeAssetUid }, true)
+    }
+  }, [routeAssetUid])
+
+  useEffect(() => {
     // If an initial template is provided, apply it immediately
-    if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
-      this.cloneTemplateAsSurvey(this.props.initialTemplateUid)
+    if (initialTemplateUid && context === PROJECT_SETTINGS_CONTEXTS.NEW) {
+      cloneTemplateAsSurvey(initialTemplateUid)
     }
-    when(
+    return when(
       () => profileStore.isInitialLoadComplete,
-      () => {
-        this.setState({ isSessionLoaded: true })
-      },
+      () => setIsSessionLoaded(true),
     )
-    this.unlisteners.push(
-      actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
-      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
-      actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
-      actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
-      actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      router!.subscribe(this.onRouteChange.bind(this)),
-    )
-  }
+  }, [])
 
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
-  }
+  // Shows the step in the modal title, e.g. "Create project: Upload XLSForm"
+  useEffect(() => {
+    if (onSetModalTitle && steps.current) {
+      onSetModalTitle(`${getBaseTitle(context)}: ${getStepTitle(steps.current)}`)
+    }
+  }, [steps.current, context, onSetModalTitle])
 
-  applyAssetToState(asset: AssetResponse) {
-    this.setState({
-      fields: getInitialFieldsFromAsset(asset),
-      isUploadFilePending: false,
-      isImportFromURLPending: false,
-      formAsset: asset,
-    })
-  }
+  // Listeners subscribe once, so they go through a ref to reach the latest handlers
+  const handlers = { onLoadAssetCompleted, onUpdateAssetCompleted, onUpdateAssetFailed, onSetDeploymentActiveCompleted }
+  const listeners = useRef(handlers)
+  listeners.current = handlers
 
-  setInitialStep() {
-    switch (this.props.context) {
-      case PROJECT_SETTINGS_CONTEXTS.NEW:
-      case PROJECT_SETTINGS_CONTEXTS.REPLACE:
-        // If an initial template is provided, keep currentStep null to show spinner
-        // until the clone completes, then onCloneAssetCompleted will show PROJECT_DETAILS
-        if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
-          return
-        }
-        return this.displayStep(STEPS.FORM_SOURCE)
-      case PROJECT_SETTINGS_CONTEXTS.EXISTING:
-        return this.displayStep(STEPS.PROJECT_DETAILS)
-      default:
-        throw new Error(`Unknown context: ${this.props.context}!`)
+  useEffect(() => {
+    const unlisteners = [
+      actions.resources.loadAsset.completed.listen((response: AssetResponse) =>
+        listeners.current.onLoadAssetCompleted(response),
+      ),
+      actions.resources.updateAsset.completed.listen((response: AssetResponse) =>
+        listeners.current.onUpdateAssetCompleted(response),
+      ),
+      actions.resources.updateAsset.failed.listen(() => listeners.current.onUpdateAssetFailed()),
+      actions.resources.setDeploymentActive.failed.listen(() => {
+        awaitingDeploymentChange.current = null
+      }),
+      actions.resources.setDeploymentActive.completed.listen(() => listeners.current.onSetDeploymentActiveCompleted()),
+      // User navigated by themselves, so don't redirect them after archiving
+      router!.subscribe(() => {
+        awaitingDeploymentChange.current = null
+      }),
+    ]
+    return () => unlisteners.forEach((unlisten) => unlisten())
+  }, [])
+
+  /** Final step of uploading or importing an XLSForm */
+  function onImportCompleted(asset: AssetResponse) {
+    if (context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      // when replacing, we omit PROJECT_DETAILS step
+      goToFormLanding()
+    } else {
+      setFields(getInitialFieldsFromAsset(asset))
+      setIsUploadFilePending(false)
+      setIsImportFromURLPending(false)
+      setFormAsset(asset)
+      displayStep(STEPS.PROJECT_DETAILS)
     }
   }
 
-  getBaseTitle() {
-    switch (this.props.context) {
-      case PROJECT_SETTINGS_CONTEXTS.NEW:
-        return t('Create project')
-      case PROJECT_SETTINGS_CONTEXTS.REPLACE:
-        return t('Replace form')
-      case PROJECT_SETTINGS_CONTEXTS.EXISTING:
-      default:
-        return t('Project settings')
-    }
-  }
-
-  isLoading() {
+  function isLoading() {
     return (
-      !this.state.isSessionLoaded ||
-      !this.state.currentStep ||
+      !isSessionLoaded ||
+      !steps.current ||
       // this checks if the modal is about existing asset
       // that is not fully loaded yet
-      (this.props.context !== PROJECT_SETTINGS_CONTEXTS.NEW && typeof this.state.formAsset?.content === 'undefined')
+      (context !== PROJECT_SETTINGS_CONTEXTS.NEW && typeof formAsset?.content === 'undefined')
     )
   }
 
-  isReplacingFormLocked() {
+  function isReplacingFormLocked() {
     return (
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-      this.state.formAsset?.content &&
-      hasAssetRestriction(this.state.formAsset.content, LockingRestrictionName.form_replace)
+      context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+      formAsset?.content &&
+      hasAssetRestriction(formAsset.content, LockingRestrictionName.form_replace)
     )
   }
 
@@ -176,29 +237,31 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
    * handling user input
    */
 
-  onAnyFieldChange(fieldName: string, newFieldValue: string | string[] | null) {
-    // Deep clone state to avoid mutations (React best practice)
-    const newStateObj: ProjectSettingsState = clonedeep(this.state) as ProjectSettingsState
+  function onAnyFieldChange(fieldName: string, newFieldValue: string | string[] | null) {
+    setFields((prevFields) => {
+      // Check if this is an admin-configured extra field or a standard field
+      if (prevFields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
+        return {
+          ...prevFields,
+          extra_metadata_fields: { ...prevFields.extra_metadata_fields, [fieldName]: newFieldValue },
+        }
+      }
 
-    // Check if this is an admin-configured extra field or a standard field
-    if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
-      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
-    } else {
+      const newFields: ProjectSettingsFields = { ...prevFields }
       // Type-safe field assignment - switch ensures we handle each field correctly
-      // This replaces the previous `as any` type escape and catches typos at compile time
       switch (fieldName) {
         case 'name':
         case 'description':
-          newStateObj.fields[fieldName] = newFieldValue as string
+          newFields[fieldName] = newFieldValue as string
           break
         case 'sector':
         case 'operational_purpose':
         case 'collects_pii':
-          newStateObj.fields[fieldName] = newFieldValue as string | null
+          newFields[fieldName] = newFieldValue as string | null
           break
         case 'country':
           // Country is special - it's a multi-select so expects an array
-          newStateObj.fields[fieldName] = newFieldValue as string[] | null
+          newFields[fieldName] = newFieldValue as string[] | null
           break
         default:
           // Unrecognized field name - log warning in development to catch typos
@@ -211,193 +274,132 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
           }
           break
       }
-    }
+      return newFields
+    })
 
     // Clear error for this field when user starts editing it
     // New validation will run on submit if the value is still invalid
-    if (this.hasFieldError(fieldName)) {
-      newStateObj.fieldsWithErrors = newStateObj.fieldsWithErrors.filter(
-        (fieldWithErrorName) => fieldWithErrorName !== fieldName,
-      )
-    }
+    setFieldsWithErrors((prevErrors) => prevErrors.filter((fieldWithErrorName) => fieldWithErrorName !== fieldName))
 
-    this.setState(newStateObj)
-
-    if (typeof this.props.onProjectDetailsChange === 'function') {
-      this.props.onProjectDetailsChange({
-        fieldName: fieldName,
-        fieldValue: newFieldValue,
-      })
-    }
-  }
-
-  onNameChange(newValue: string) {
-    this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue).slice(0, NAME_MAX_LENGTH))
-  }
-
-  onDescriptionChange(newValue: string) {
-    this.onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue))
-  }
-
-  onImportUrlChange(value: string) {
-    this.setState({
-      importUrl: value,
-      importUrlButtonEnabled: isAValidUrl(value),
-      importUrlButton: t('Import'),
+    props.onProjectDetailsChange?.({
+      fieldName: fieldName,
+      fieldValue: newFieldValue,
     })
   }
 
-  onTemplateChange(templateUid: string) {
-    this.setState({
-      chosenTemplateUid: templateUid,
-    })
+  function onNameChange(newValue: string) {
+    onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue).slice(0, NAME_MAX_LENGTH))
   }
 
-  resetApplyTemplateButton() {
-    this.setState({
-      isApplyTemplatePending: false,
-      applyTemplateButton: t('Choose'),
-    })
+  function onDescriptionChange(newValue: string) {
+    onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue))
   }
 
-  resetImportUrlButton() {
-    this.setState({
-      isImportFromURLPending: false,
-      importUrlButtonEnabled: false,
-      importUrlButton: t('Import'),
-    })
+  function onImportUrlChange(value: string) {
+    setImportUrl(value)
+    setImportUrlButtonEnabled(isAValidUrl(value))
+    setImportUrlButton(t('Import'))
   }
 
-  deleteProject(evt: React.MouseEvent<HTMLButtonElement>) {
+  function resetApplyTemplateButton() {
+    setIsApplyTemplatePending(false)
+    setApplyTemplateButton(t('Choose'))
+  }
+
+  function resetImportUrlButton() {
+    setIsImportFromURLPending(false)
+    setImportUrlButtonEnabled(false)
+    setImportUrlButton(t('Import'))
+  }
+
+  function deleteProject(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    openDeleteAssetModal(this.state.formAsset!, this.state.formAsset!.name, this.goToProjectsList.bind(this))
+    openDeleteAssetModal(formAsset!, formAsset!.name, goToProjectsList)
   }
 
   // archive flow
 
-  isArchivable() {
-    return this.state.formAsset?.deployment_status === 'deployed'
+  function isArchivable() {
+    return formAsset?.deployment_status === 'deployed'
   }
 
-  isArchived() {
-    return this.state.formAsset?.deployment_status === 'archived'
+  function isArchived() {
+    return formAsset?.deployment_status === 'archived'
   }
 
-  archiveProject(evt: React.MouseEvent<HTMLButtonElement>) {
+  function archiveProject(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
-    archiveAsset(this.state.formAsset!)
-    this.setState({ isAwaitingArchiveCompleted: true })
+    archiveAsset(formAsset!)
+    awaitingDeploymentChange.current = 'archive'
   }
 
-  unarchiveProject(evt: React.MouseEvent<HTMLButtonElement>) {
+  function unarchiveProject(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
-    unarchiveAsset(this.state.formAsset!)
-    this.setState({ isAwaitingUnarchiveCompleted: true })
-  }
-
-  onSetDeploymentActiveFailed() {
-    this.setState({
-      isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false,
-    })
+    unarchiveAsset(formAsset!)
+    awaitingDeploymentChange.current = 'unarchive'
   }
 
   // when archiving/unarchiving finishes, take user to a route that makes sense
   // unless user navigates by themselves before that happens
-  onSetDeploymentActiveCompleted() {
-    if (this.state.isAwaitingArchiveCompleted) {
-      this.goToProjectsList()
+  function onSetDeploymentActiveCompleted() {
+    if (awaitingDeploymentChange.current === 'archive') {
+      goToProjectsList()
     }
-    if (this.state.isAwaitingUnarchiveCompleted) {
-      this.goToFormLanding()
+    if (awaitingDeploymentChange.current === 'unarchive') {
+      goToFormLanding()
     }
-    this.setState({
-      isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false,
-    })
-  }
-
-  onRouteChange() {
-    this.setState({
-      isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false,
-    })
+    awaitingDeploymentChange.current = null
   }
 
   /*
    * routes navigation
    */
 
-  goToFormBuilder(assetUid: string) {
+  function goToFormBuilder(assetUid: string) {
     pageState.hideModal()
-    this.props.router.navigate(`/forms/${assetUid}/edit`)
+    navigate(`/forms/${assetUid}/edit`)
   }
 
-  goToFormLanding() {
+  function goToFormLanding() {
     pageState.hideModal()
-    if (this.props.onRequestClose) {
-      this.props.onRequestClose()
-    }
+    props.onRequestClose?.()
 
-    let targetUid
-    if (this.state.formAsset) {
-      targetUid = this.state.formAsset.uid
-    } else if (this.props.router.params.assetid) {
-      targetUid = this.props.router.params.assetid
-    } else if (this.props.router.params.uid) {
-      targetUid = this.props.router.params.uid
-    }
-
+    const targetUid = formAsset?.uid || routeAssetUid
     if (!targetUid) {
       throw new Error('Unknown uid!')
     }
 
-    this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid))
+    navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid))
   }
 
-  goToProjectsList() {
+  function goToProjectsList() {
     pageState.hideModal()
-    this.props.router.navigate(ROUTES.FORMS)
+    navigate(ROUTES.FORMS)
   }
 
   /*
    * modal steps navigation
    */
 
-  displayStep(targetStep: StepName) {
-    const currentStep = this.state.currentStep
-    const previousStep = this.state.previousStep
-
-    // No-op if we're already on this step
-    if (targetStep === currentStep) {
-      return
-    } else if (targetStep === previousStep) {
+  function displayStep(targetStep: StepName) {
+    setSteps((prevSteps) => {
+      // No-op if we're already on this step
+      if (targetStep === prevSteps.current) {
+        return prevSteps
+      }
       // Going back: swap current and previous (like a stack pop)
-      this.setState({
-        currentStep: previousStep,
-        previousStep: null,
-      })
-    } else {
+      if (targetStep === prevSteps.previous) {
+        return { current: targetStep, previous: null }
+      }
       // Going forward: push current step to history
-      this.setState({
-        currentStep: targetStep,
-        previousStep: currentStep,
-      })
-    }
-
-    // Update modal title if parent component provides a callback
-    // (Used by BigModal to show "Create project: Upload XLSForm" etc.)
-    if (this.props.onSetModalTitle) {
-      const stepTitle = getStepTitle(targetStep)
-      const baseTitle = this.getBaseTitle()
-      this.props.onSetModalTitle(`${baseTitle}: ${stepTitle}`)
-    }
+      return { current: targetStep, previous: prevSteps.current }
+    })
   }
 
-  displayPreviousStep() {
-    if (this.state.previousStep) {
-      this.displayStep(this.state.previousStep)
+  function displayPreviousStep() {
+    if (steps.previous) {
+      displayStep(steps.previous)
     }
   }
 
@@ -405,43 +407,35 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
    * handling asset creation
    */
 
-  onLoadAssetCompleted(response: AssetResponse) {
-    if (this.state.formAsset?.uid === response.uid) {
-      this.setState({ formAsset: response })
+  function onLoadAssetCompleted(response: AssetResponse) {
+    if (formAsset?.uid === response.uid) {
+      setFormAsset(response)
     }
   }
 
-  onUpdateAssetCompleted(response: AssetResponse) {
-    if (
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
-    ) {
-      this.goToFormLanding()
+  function onUpdateAssetCompleted(response: AssetResponse) {
+    if (isModal) {
+      goToFormLanding()
     }
 
     // This handles the case when the asset was edited outside the Settings,
     // e.g. the title editor in the header.
-    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && response.uid === this.state.formAsset?.uid) {
-      this.setState({
-        formAsset: response,
-        fields: getInitialFieldsFromAsset(response),
-      })
+    if (!isModal && response.uid === formAsset?.uid) {
+      setFormAsset(response)
+      setFields(getInitialFieldsFromAsset(response))
     }
   }
 
-  onUpdateAssetFailed() {
-    if (
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
-    ) {
-      this.resetApplyTemplateButton()
+  function onUpdateAssetFailed() {
+    if (isModal) {
+      resetApplyTemplateButton()
     }
   }
 
-  getOrCreateFormAsset() {
-    const assetPromise = new Promise<AssetResponse>((resolve, reject) => {
-      if (this.state.formAsset) {
-        resolve(this.state.formAsset)
+  function getOrCreateFormAsset() {
+    return new Promise<AssetResponse>((resolve, reject) => {
+      if (formAsset) {
+        resolve(formAsset)
       } else {
         dataInterface
           .createResource({
@@ -455,38 +449,34 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
           })
       }
     })
-    return assetPromise
   }
 
-  createAssetAndOpenInBuilder() {
+  function createAssetAndOpenInBuilder() {
     dataInterface
       .createResource({
-        name: this.state.fields.name,
-        settings: getSettingsForEndpoint(this.state.fields),
+        name: fields.name,
+        settings: getSettingsForEndpoint(fields),
         asset_type: 'survey',
       })
       .done((asset: AssetResponse) => {
-        this.goToFormBuilder(asset.uid)
+        goToFormBuilder(asset.uid)
       })
       .fail((r: JQuery.jqXHR) => {
         notify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`)
       })
   }
 
-  updateAndOpenAsset() {
-    actions.resources.updateAsset(this.state.formAsset!.uid, {
-      name: this.state.fields.name,
-      settings: getSettingsForEndpoint(this.state.fields),
+  function updateAndOpenAsset() {
+    actions.resources.updateAsset(formAsset!.uid, {
+      name: fields.name,
+      settings: getSettingsForEndpoint(fields),
     })
   }
 
-  cloneTemplateAsSurvey(templateUid: string) {
-    this.setState({
-      isApplyTemplatePending: true,
-      applyTemplateButton: t('Please wait…'),
-      // Track which template we're cloning to prevent race conditions
-      pendingTemplateCloneUid: templateUid,
-    })
+  function cloneTemplateAsSurvey(templateUid: string) {
+    setIsApplyTemplatePending(true)
+    setApplyTemplateButton(t('Please wait…'))
+    pendingTemplateCloneUid.current = templateUid
 
     // Use dataInterface directly instead of actions to get promise-based control flow
     // This avoids race conditions with global action listeners that might trigger
@@ -499,85 +489,68 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
       .done((asset: AssetResponse) => {
         // Race condition protection: only process if we're still waiting for THIS template
         // (User might have clicked another template while this one was loading)
-        if (this.state.pendingTemplateCloneUid === templateUid) {
-          this.setState({
-            formAsset: asset,
-            fields: getInitialFieldsFromAsset(asset),
-            pendingTemplateCloneUid: null,
-          })
-          this.resetApplyTemplateButton()
-          this.displayStep(STEPS.PROJECT_DETAILS)
+        if (pendingTemplateCloneUid.current === templateUid) {
+          pendingTemplateCloneUid.current = null
+          setFormAsset(asset)
+          setFields(getInitialFieldsFromAsset(asset))
+          resetApplyTemplateButton()
+          displayStep(STEPS.PROJECT_DETAILS)
         }
       })
       .fail(() => {
-        if (this.state.pendingTemplateCloneUid === templateUid) {
-          this.setState({ pendingTemplateCloneUid: null })
-          this.resetApplyTemplateButton()
+        if (pendingTemplateCloneUid.current === templateUid) {
+          pendingTemplateCloneUid.current = null
+          resetApplyTemplateButton()
           notify.error(t('Failed to apply template.'))
           // Special case: if this was an auto-applied template from initialTemplateUid,
           // close the modal since the user was directed here for that specific template
-          if (this.props.initialTemplateUid === templateUid) {
+          if (initialTemplateUid === templateUid) {
             pageState.hideModal()
           }
         }
       })
   }
 
-  applyTemplate(evt: React.MouseEvent<HTMLButtonElement>) {
+  function applyTemplate(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    const templateUid = this.state.chosenTemplateUid
-
-    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-      this.setState({
-        isApplyTemplatePending: true,
-        applyTemplateButton: t('Please wait…'),
-      })
-      actions.resources.updateAsset(this.state.formAsset!.uid, {
-        clone_from: templateUid!,
-        name: this.state.formAsset!.name,
+    if (context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      setIsApplyTemplatePending(true)
+      setApplyTemplateButton(t('Please wait…'))
+      actions.resources.updateAsset(formAsset!.uid, {
+        clone_from: chosenTemplateUid!,
+        name: formAsset!.name,
       })
     } else {
-      this.cloneTemplateAsSurvey(templateUid!)
+      cloneTemplateAsSurvey(chosenTemplateUid!)
     }
   }
 
-  importFromURL(evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
+  function importFromURL(evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    if (isAValidUrl(this.state.importUrl)) {
-      this.setState({
-        isImportFromURLPending: true,
-        importUrlButtonEnabled: false,
-        importUrlButton: t('Retrieving form, please wait...'),
-      })
+    if (isAValidUrl(importUrl)) {
+      setIsImportFromURLPending(true)
+      setImportUrlButtonEnabled(false)
+      setImportUrlButton(t('Retrieving form, please wait...'))
 
-      this.getOrCreateFormAsset().then(
+      getOrCreateFormAsset().then(
         (asset) => {
-          this.setState({ formAsset: asset })
-          const importUrl = this.state.importUrl
+          setFormAsset(asset)
 
           applyUrlToAsset(importUrl, asset).then(
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
-                .done((finalAsset: AssetResponse) => {
-                  if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-                    // when replacing, we omit PROJECT_DETAILS step
-                    this.goToFormLanding()
-                  } else {
-                    this.applyAssetToState(finalAsset)
-                    this.displayStep(STEPS.PROJECT_DETAILS)
-                  }
-                })
+                .done(onImportCompleted)
                 .fail(() => {
-                  this.resetImportUrlButton()
+                  resetImportUrlButton()
                   notify.error(t('Failed to reload project after import!'))
                 })
             },
             (response) => {
-              this.resetImportUrlButton()
-              this.notifyImportFailure(response, importUrl ? getFilenameFromURI(importUrl) : null)
+              resetImportUrlButton()
+              notifyImportFailure(response, importUrl ? getFilenameFromURI(importUrl) : null)
             },
           )
         },
@@ -588,38 +561,11 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
     }
   }
 
-  notifyImportFailure(response: ImportErrorResponse, sourceName: string | null) {
-    const messages = response?.messages || response?.responseJSON?.messages
-    const errorType = messages?.error_type
-    const importError = messages?.error
-
-    if (importError) {
-      const errLines: Array<string | JSX.Element> = [t('Import Failed!')]
-      if (sourceName) {
-        errLines.push(<code key='name'>Name: {sourceName}</code>)
-      }
-      errLines.push(
-        <code key='error'>
-          {errorType}: {escapeHtml(importError)}
-        </code>,
-      )
-      // join returns an array of React nodes (strings and JSX elements with <br /> separators).
-      // The wrapping <div> is required: the toast container lays out its direct children with
-      // `display: flex`, so without a block-level wrapper the lines render side-by-side as columns.
-      const message = <div>{join(errLines, <br />)}</div>
-      notify.error(message)
-    } else {
-      // Fallback for responses without structured error messages
-      // ImportErrorResponse doesn't have status/statusText, so we use a generic error
-      notify.error(t('Import Failed!'))
-    }
-  }
-
-  onFileDrop(files: File[]) {
+  function onFileDrop(files: File[]) {
     if (files.length >= 1) {
-      this.setState({ isUploadFilePending: true })
+      setIsUploadFilePending(true)
 
-      this.getOrCreateFormAsset().then(
+      getOrCreateFormAsset().then(
         (asset) => {
           applyFileToAsset(files[0], asset).then(
             (data) => {
@@ -631,56 +577,49 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
                   // We manually trigger the action listener here to maintain consistency.
                   // TODO: Refactor component to use react-query
                   actions.resources.loadAsset.completed(finalAsset)
-
-                  if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-                    // when replacing, we omit PROJECT_DETAILS step
-                    this.goToFormLanding()
-                  } else {
-                    this.applyAssetToState(finalAsset)
-                    this.displayStep(STEPS.PROJECT_DETAILS)
-                  }
+                  onImportCompleted(finalAsset)
                 })
                 .fail(() => {
-                  this.setState({ isUploadFilePending: false })
+                  setIsUploadFilePending(false)
                   notify.error(t('Failed to reload project after upload!'))
                 })
             },
             (response) => {
-              this.setState({ isUploadFilePending: false })
-              this.notifyImportFailure(response, files[0]?.name)
+              setIsUploadFilePending(false)
+              notifyImportFailure(response, files[0]?.name)
             },
           )
         },
         () => {
-          this.setState({ isUploadFilePending: false })
+          setIsUploadFilePending(false)
           notify.error(t('Could not import XLSForm!'))
         },
       )
     }
   }
 
-  hasFieldError(fieldName: string) {
-    return this.state.fieldsWithErrors.includes(fieldName)
+  function hasFieldError(fieldName: string) {
+    return fieldsWithErrors.includes(fieldName)
   }
 
-  handleSubmit(evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
+  function handleSubmit(evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    const fieldsWithErrors = validateProjectFields(this.state.fields)
+    const newFieldsWithErrors = validateProjectFields(fields)
 
-    this.setState({ fieldsWithErrors })
+    setFieldsWithErrors(newFieldsWithErrors)
 
-    if (fieldsWithErrors.length >= 1) {
+    if (newFieldsWithErrors.length >= 1) {
       notify.error(t('Some fields contain errors!'))
       return
     }
 
-    this.setState({ isSubmitPending: true })
+    setIsSubmitPending(true)
 
-    if (this.state.formAsset) {
-      this.updateAndOpenAsset()
+    if (formAsset) {
+      updateAndOpenAsset()
     } else {
-      this.createAssetAndOpenInBuilder()
+      createAssetAndOpenInBuilder()
     }
   }
 
@@ -688,109 +627,92 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
    * rendering
    */
 
-  render() {
-    if (this.isLoading()) {
-      return <LoadingSpinner />
-    }
+  if (isLoading()) {
+    return <LoadingSpinner />
+  }
 
-    if (this.isReplacingFormLocked()) {
+  if (isReplacingFormLocked()) {
+    return (
+      <InlineMessage
+        type='warning'
+        icon='alert'
+        message={t("Form replacing is not available due to form's Locking Profile restrictions.")}
+      />
+    )
+  }
+
+  const modalStyle = isModal ? styles.modal : null
+  const isBackDisabled = isSubmitPending || isApplyTemplatePending || isImportFromURLPending || isUploadFilePending
+
+  switch (steps.current) {
+    case STEPS.FORM_SOURCE:
+      return <StepFormSource context={context} modalStyle={modalStyle} onSelectStep={displayStep} />
+
+    case STEPS.CHOOSE_TEMPLATE:
       return (
-        <InlineMessage
-          type='warning'
-          icon='alert'
-          message={t("Form replacing is not available due to form's Locking Profile restrictions.")}
+        <StepChooseTemplate
+          chosenTemplateUid={chosenTemplateUid}
+          onTemplateChange={setChosenTemplateUid}
+          applyTemplateButton={applyTemplateButton}
+          isApplyTemplatePending={isApplyTemplatePending}
+          onApplyTemplate={applyTemplate}
+          previousStep={steps.previous}
+          onBack={displayPreviousStep}
+          isBackDisabled={isBackDisabled}
+          modalStyle={modalStyle}
         />
       )
-    }
 
-    const modalStyle = this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING ? styles.modal : null
-    const isBackDisabled =
-      this.state.isSubmitPending ||
-      this.state.isApplyTemplatePending ||
-      this.state.isImportFromURLPending ||
-      this.state.isUploadFilePending
+    case STEPS.UPLOAD_FILE:
+      return (
+        <StepUploadFile
+          isUploadFilePending={isUploadFilePending}
+          onFileDrop={onFileDrop}
+          previousStep={steps.previous}
+          onBack={displayPreviousStep}
+          modalStyle={modalStyle}
+        />
+      )
 
-    switch (this.state.currentStep) {
-      case STEPS.FORM_SOURCE:
-        return (
-          <StepFormSource
-            context={this.props.context}
-            modalStyle={modalStyle}
-            onSelectStep={this.displayStep.bind(this)}
-          />
-        )
+    case STEPS.IMPORT_URL:
+      return (
+        <StepImportUrl
+          importUrl={importUrl}
+          onImportUrlChange={onImportUrlChange}
+          importUrlButton={importUrlButton}
+          importUrlButtonEnabled={importUrlButtonEnabled}
+          onImportFromURL={importFromURL}
+          previousStep={steps.previous}
+          onBack={displayPreviousStep}
+          isBackDisabled={isBackDisabled}
+          modalStyle={modalStyle}
+        />
+      )
 
-      case STEPS.CHOOSE_TEMPLATE:
-        return (
-          <StepChooseTemplate
-            chosenTemplateUid={this.state.chosenTemplateUid}
-            onTemplateChange={this.onTemplateChange.bind(this)}
-            applyTemplateButton={this.state.applyTemplateButton}
-            isApplyTemplatePending={this.state.isApplyTemplatePending}
-            onApplyTemplate={this.applyTemplate.bind(this)}
-            previousStep={this.state.previousStep}
-            onBack={this.displayPreviousStep.bind(this)}
-            isBackDisabled={isBackDisabled}
-            modalStyle={modalStyle}
-          />
-        )
+    case STEPS.PROJECT_DETAILS:
+      return (
+        <StepProjectDetails
+          context={context}
+          fields={fields}
+          formAsset={formAsset}
+          isSubmitPending={isSubmitPending}
+          hasFieldError={hasFieldError}
+          onNameChange={onNameChange}
+          onDescriptionChange={onDescriptionChange}
+          onAnyFieldChange={onAnyFieldChange}
+          onSubmit={handleSubmit}
+          onArchiveProject={archiveProject}
+          onUnarchiveProject={unarchiveProject}
+          onDeleteProject={deleteProject}
+          isArchivable={isArchivable}
+          isArchived={isArchived}
+          previousStep={steps.previous}
+          onBack={displayPreviousStep}
+          modalStyle={modalStyle}
+        />
+      )
 
-      case STEPS.UPLOAD_FILE:
-        return (
-          <StepUploadFile
-            isUploadFilePending={this.state.isUploadFilePending}
-            onFileDrop={this.onFileDrop.bind(this)}
-            previousStep={this.state.previousStep}
-            onBack={this.displayPreviousStep.bind(this)}
-            modalStyle={modalStyle}
-          />
-        )
-
-      case STEPS.IMPORT_URL:
-        return (
-          <StepImportUrl
-            importUrl={this.state.importUrl}
-            onImportUrlChange={this.onImportUrlChange.bind(this)}
-            importUrlButton={this.state.importUrlButton}
-            importUrlButtonEnabled={this.state.importUrlButtonEnabled}
-            onImportFromURL={this.importFromURL.bind(this)}
-            previousStep={this.state.previousStep}
-            onBack={this.displayPreviousStep.bind(this)}
-            isBackDisabled={isBackDisabled}
-            modalStyle={modalStyle}
-          />
-        )
-
-      case STEPS.PROJECT_DETAILS:
-        return (
-          <StepProjectDetails
-            context={this.props.context}
-            fields={this.state.fields}
-            formAsset={this.state.formAsset}
-            isSubmitPending={this.state.isSubmitPending}
-            hasFieldError={this.hasFieldError.bind(this)}
-            onNameChange={this.onNameChange.bind(this)}
-            onDescriptionChange={this.onDescriptionChange.bind(this)}
-            onAnyFieldChange={this.onAnyFieldChange.bind(this)}
-            onSubmit={this.handleSubmit.bind(this)}
-            onArchiveProject={this.archiveProject.bind(this)}
-            onUnarchiveProject={this.unarchiveProject.bind(this)}
-            onDeleteProject={this.deleteProject.bind(this)}
-            isArchivable={this.isArchivable.bind(this)}
-            isArchived={this.isArchived.bind(this)}
-            previousStep={this.state.previousStep}
-            onBack={this.displayPreviousStep.bind(this)}
-            modalStyle={modalStyle}
-          />
-        )
-
-      default:
-        throw new Error(`Unknown step: ${this.state.currentStep}!`)
-    }
+    default:
+      throw new Error(`Unknown step: ${steps.current}!`)
   }
 }
-
-// NOTE: dmix mixin is causing a full asset load after component mounts
-reactMixin(ProjectSettings.prototype, mixins.dmix)
-
-export default withRouter(ProjectSettings)
