@@ -70,7 +70,7 @@ def service_health(request):
         'Postgres kpi': lambda: Asset.objects.order_by().exists(),
         'Postgres kobocat': lambda: UserProfile.objects.exists(),
         'Cache': lambda: cache.set('a', True, 1),
-        'Broker': lambda: celery_app.backend.client.ping(),
+        'Broker': lambda: celery_app.backend.runtime_client.ping(),
         'Session': lambda: request.session.save(),
         'Enketo': lambda: requests.get(
             settings.ENKETO_INTERNAL_URL, timeout=10

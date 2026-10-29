@@ -37,7 +37,10 @@ from kobo.apps.subsequences.tests.constants import (
     FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
     FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
 )
-from kobo.apps.subsequences.tests.utils import MockLLMClient, get_mock_claude_response
+from kobo.apps.subsequences.tests.utils import (
+    MockBedrockRuntimeClient,
+    get_mock_claude_response,
+)
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -2065,7 +2068,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         with patch(
             'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient(5),
+            return_value=MockBedrockRuntimeClient(5),
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2244,7 +2247,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # add a response
         with patch(
             'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient(5),
+            return_value=MockBedrockRuntimeClient(5),
         ):
             action_data = {'uuid': question_uuid}
             if not automatic:

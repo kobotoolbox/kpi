@@ -2,7 +2,7 @@ import copy
 import time
 import uuid
 from datetime import timedelta
-from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
+from unittest.mock import ANY, DEFAULT, call, patch
 
 import jsonschema
 import pytest
@@ -20,10 +20,11 @@ from rest_framework.reverse import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions import ManualQualAction
-from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import AutomaticBedrockQual
+from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
     OSS120,
-    AutomaticBedrockQual,
     ClaudeSonnet,
+    RuntimeClient,
 )
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_INTEGER,
@@ -61,7 +62,7 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_QUAL_TEXT_UUID,
     BEDROCK_VALIDATION_MAIN_UUID,
 )
-from kobo.apps.subsequences.tests.utils import MockLLMClient
+from kobo.apps.subsequences.tests.utils import mock_get_response
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
@@ -94,11 +95,6 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             question_xpath='q1',
         )
         self.action = self.feature.to_action()
-        patched_get_client = patch.object(
-            self.action, 'create_bedrock_client', return_value=MockLLMClient('response')
-        )
-        patched_get_client.start()
-        self.addCleanup(patched_get_client.stop)
 
     def _add_submission(self):
         # add a submission
@@ -279,9 +275,12 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                 },
             },
         }
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
+        with patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(
+                model=model, text='LLM text'
+            ),
         ):
             response = self.client.patch(
                 supplement_details_url, data=payload, format='json'
@@ -354,7 +353,14 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         action_data = {'uuid': BEDROCK_QUAL_TEXT_UUID}
 
         # No TranscriptionNotFound is raised even though there is no transcript
-        result = self.action.revise_data(submission, {}, action_data)
+        with patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(
+                model=model, text='response'
+            ),
+        ):
+            result = self.action.revise_data(submission, {}, action_data)
 
         version = result[BEDROCK_QUAL_TEXT_UUID]['_versions'][0]
         assert version['_data']['status'] == 'complete'
@@ -645,11 +651,10 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 request = self.action.construct_external_request(
                     action_data, submission
                 )
-
-        request_content = request['messages'][0]['content']
-        assert request_content[0] == {'type': 'text', 'text': 'prompt'}
-        assert request_content[1]['type'] == 'image_url'
-        assert request_content[1]['image_url']['url'] == 'data:image/jpeg;base64,123'
+        request_content = request['content']
+        assert request_content[0] == {'type': 'input_text', 'text': 'prompt'}
+        assert request_content[1]['type'] == 'input_image'
+        assert request_content[1]['image_url'] == 'data:image/jpeg;base64,123'
 
     def test_generate_image_request_data_image_response_missing(self):
         self.asset.content = {
@@ -726,26 +731,29 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',
             side_effect=InvalidResponseFromLLMException('Cannot parse'),
         ):
-            return_value = self.action.run_external_process(
-                {}, {}, action_data=action_data
-            )
+            with patch.object(
+                RuntimeClient,
+                'make_request',
+                lambda _, request_data, model: mock_get_response(
+                    model=model, text='LLM text'
+                ),
+            ):
+                return_value = self.action.run_external_process(
+                    {}, {}, action_data=action_data
+                )
         assert return_value.get('status') == 'failed'
         assert return_value.get('error') == 'Cannot parse'
 
     def test_client_error_from_external_process(self):
-        mock_client = MagicMock()
-        mock_client.invoke_model.side_effect = ClientError(
-            {'Error': {'Message': 'Bad'}}, ''
-        )
         action_data = {
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         # mock error on invoke
         with patch.object(
-            self.action,
-            'create_bedrock_client',
-            return_value=mock_client,
+            RuntimeClient,
+            'make_request',
+            side_effect=ClientError({'Error': {'Message': 'Bad'}}, ''),
         ):
             return_value = self.action.run_external_process(
                 {}, {}, action_data=action_data
@@ -937,7 +945,16 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             AutomaticQARateThrottle, 'timer', new=staticmethod(lambda: time.time())
         )
         patcher.start()
+        client_patcher = patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(
+                model=model, text='LLM text'
+            ),
+        )
+        client_patcher.start()
         self.addCleanup(patcher.stop)
+        self.addCleanup(client_patcher.stop)
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(
@@ -955,13 +972,11 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
-    def test_automatic_qa_throttles_after_limit(self, mock_boto):
+    def test_automatic_qa_throttles_after_limit(self):
         """
         Test that after a certain number of requests to trigger automatic QA,
         the user is throttled and receives a 429 response
         """
-        mock_boto.return_value = MockLLMClient('LLM text')
 
         # Simulate 5 successful requests
         for i in range(5):
@@ -1003,13 +1018,11 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
-    def test_throttling_is_per_user(self, mock_boto):
+    def test_throttling_is_per_user(self):
         """
         Test that if one user hits the automatic QA throttle, it does not affect
         other users
         """
-        mock_boto.return_value = MockLLMClient('LLM text')
 
         # Exhaust the limit for UserA
         for _ in range(5):
@@ -1017,10 +1030,10 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
                 self.supplement_details_url, data=self.qa_payload, format='json'
             )
 
-        # Verify UserA is throttled
-        response = self.client.patch(
-            self.supplement_details_url, data=self.qa_payload, format='json'
-        )
+            # Verify UserA is throttled
+            response = self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
         # Create and log in as UserB

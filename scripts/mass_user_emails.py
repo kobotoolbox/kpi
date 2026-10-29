@@ -1,15 +1,14 @@
 import os
 import time
-import boto3
 
+import boto3
 from botocore.exceptions import ClientError
 from dateutil.relativedelta import relativedelta
-from django.db.models import F, Func, Value, CharField
+from django.db.models import CharField, F, Func, Value
 from django.db.models.functions import Lower
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-
 
 MAX_SEND_ATTEMPTS = 3
 RETRY_WAIT_TIME = 30  # in seconds
@@ -77,7 +76,7 @@ def run(*args):
     aws_region_name = os.environ.get('AWS_SES_REGION_NAME') or os.environ.get(
         'AWS_S3_REGION_NAME'
     )
-    ses = boto3.client('ses', region_name=aws_region_name)
+    ses = boto3.runtime_client('ses', region_name=aws_region_name)
 
     can_send = ses.get_account_sending_enabled()
     print(f'sending {"" if can_send else "not "}enabled in region {aws_region_name}')
@@ -153,7 +152,7 @@ def run(*args):
     if force_send:
         print(f'found {active_user_count} users')
     else:
-        print(f'found {active_user_count} users who haven\'t received emails')
+        print(f"found {active_user_count} users who haven't received emails")
     if active_user_count <= 10:
         for user in eligible_users:
             print(user.email_cleaned)

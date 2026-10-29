@@ -5,9 +5,9 @@ from typing import Iterable
 from azure.storage.blob import PartialBatchErrorException
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage, Storage
+from rest_framework import status
 from storages.backends.azure_storage import AzureStorage
 from storages.backends.s3 import S3Storage
-from rest_framework import status
 
 from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 
@@ -117,7 +117,7 @@ def _bulk_delete_files_azure(file_paths: Iterable[str], storage: AzureStorage):
     """
     Delete Azure blobs by exact name, with no listing step.
     """
-    container_client = storage.client
+    container_client = storage.runtime_client
     location = getattr(storage, 'location', '').strip('/')
     pending: list[str] = []
 
