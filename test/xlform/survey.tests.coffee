@@ -1,3 +1,4 @@
+_ = require("underscore")
 {expect} = require('../helper/fauxChai')
 
 $model = require("../../jsapp/xlform/src/_model")
@@ -493,6 +494,126 @@ do ->
       }), 0)
 
       expect(rowNames(@targetSurvey)).toEqual [longName]
+
+  describe 'survey.tests: references inside library blocks (DEV-2724)', () ->
+    # The saved row with that name
+    savedRow = (survey, name) ->
+      return _.find(survey.toFlatJSON().survey, (row) -> row.name is name)
+
+    beforeEach ->
+      window.xlfHideWarnings = true
+      @libraryBlock = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'begin_group', name: 'block', label: 'Block'},
+          {type: 'select_one genders', name: 'gender', label: 'Gender'},
+          {
+            type: 'integer',
+            name: 'age',
+            label: 'Age of ${gender}',
+            hint: 'Outside: ${household}',
+            required: "${gender} != ''",
+            constraint: "${gender} = 'nonbinary'",
+            # Too complex for the condition builder, so it stays hand-coded
+            relevant: "${gender} = 'nonbinary' or ${household} > 2"
+          },
+          {type: 'calculate', name: 'next_age', calculation: '${age} + 1'},
+          {type: 'end_group'}
+        ],
+        choices: [
+          {list_name: 'genders', name: 'nonbinary', label: 'Same as ${age}'}
+        ]
+      })
+      @targetSurvey = $model.Survey.loadDict({
+        survey: [{type: 'integer', name: 'household', label: 'Household'}]
+      })
+      @targetSurvey.insertSurvey(@libraryBlock(), 1)
+      @targetSurvey.insertSurvey(@libraryBlock(), 2)
+
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'points the copy at its own questions', () ->
+      age = savedRow(@targetSurvey, 'age_001')
+      expect(age.label).toBe('Age of ${gender_001}')
+      expect(age.required).toBe("${gender_001} != ''")
+      expect(age.constraint).toBe("${gender_001} = 'nonbinary'")
+      expect(age.relevant).toBe(
+        "${gender_001} = 'nonbinary' or ${household} > 2"
+      )
+      nextAge = savedRow(@targetSurvey, 'next_age_001')
+      expect(nextAge.calculation).toBe('${age_001} + 1')
+
+    it 'leaves the first copy and outside questions alone', () ->
+      age = savedRow(@targetSurvey, 'age')
+      expect(age.constraint).toBe("${gender} = 'nonbinary'")
+      expect(age.hint).toBe('Outside: ${household}')
+      ageCopy = savedRow(@targetSurvey, 'age_001')
+      expect(ageCopy.hint).toBe('Outside: ${household}')
+
+    it 'points choice labels at the copy too', () ->
+      labels = _.pluck(@targetSurvey.toFlatJSON().choices, 'label')
+      expect(labels).toEqual ['Same as ${age}', 'Same as ${age_001}']
+
+    it 'keeps parsed skip logic pointing at the copy', () ->
+      # Parsed skip logic is saved from the rows it points at, not the text
+      @targetSurvey.insertSurvey($model.Survey.loadDict({
+        survey: [
+          {type: 'begin_group', name: 'block', label: 'Block'},
+          {type: 'text', name: 'gender', label: 'Gender'},
+          {type: 'text', name: 'age', label: 'Age', relevant: "${gender}='x'"},
+          {type: 'end_group'}
+        ]
+      }), 3)
+      ageCopy = savedRow(@targetSurvey, 'age_002')
+      expect(ageCopy.relevant).toBe("${gender_002} = 'x'")
+
+    it 'keeps the references through a save and reload', () ->
+      surveyJSON = JSON.parse(JSON.stringify(@targetSurvey.toFlatJSON()))
+      reloadedSurvey = $model.Survey.loadDict(surveyJSON)
+      ageCopy = savedRow(reloadedSurvey, 'age_001')
+      expect(ageCopy.constraint).toBe("${gender_001} = 'nonbinary'")
+
+    it 'renames references between top-level library questions', () ->
+      libraryQuestions = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'integer', name: 'age', label: 'Age', constraint: '. < 99'},
+          {type: 'calculate', name: 'next_age', calculation: '${age} + 1'},
+          # Points at a row that is named only after this one
+          {type: 'note', name: 'summary', label: 'Next: ${next_age}'}
+        ]
+      })
+      survey = new $model.Survey()
+      survey.insertSurvey(libraryQuestions(), 0)
+      survey.insertSurvey(libraryQuestions(), 3)
+      nextAge = savedRow(survey, 'next_age_001')
+      expect(nextAge.calculation).toBe('${age_001} + 1')
+      expect(savedRow(survey, 'summary_001').label).toBe('Next: ${next_age_001}')
+
+    it 'renames references to questions named from their label', () ->
+      # References use `$autoname`, but the label gives the name its case
+      unnamedQuestion = -> $model.Survey.loadDict({
+        survey: [
+          {
+            type: 'integer', $autoname: 'code', label: 'Code',
+            constraint: '${code} > 0'
+          }
+        ]
+      })
+      survey = new $model.Survey()
+      survey.insertSurvey(unnamedQuestion(), 0)
+      survey.insertSurvey(unnamedQuestion(), 1)
+      expect(savedRow(survey, 'Code').constraint).toBe('${Code} > 0')
+      expect(savedRow(survey, 'Code_001').constraint).toBe('${Code_001} > 0')
+
+    it 'renames references in a single library question', () ->
+      libraryQuestion = -> $model.Survey.loadDict({
+        survey: [
+          {type: 'text', name: 'code', label: 'Code', constraint: '${code} > 0'}
+        ]
+      })
+      survey = new $model.Survey()
+      survey.insertSurvey(libraryQuestion(), 0)
+      survey.insertSurvey(libraryQuestion(), 1)
+      expect(savedRow(survey, 'code_001').constraint).toBe('${code_001} > 0')
 
   describe 'survey.tests: selects without a choice list', () ->
     beforeEach -> window.xlfHideWarnings = true
