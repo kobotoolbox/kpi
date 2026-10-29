@@ -21,6 +21,7 @@ Django>=5.2,<5.3
 Markdown
 Pygments
 amqp
+aws_bedrock_token_generator
 billiard
 celery
 celery[redis]
@@ -70,6 +71,7 @@ lxml
 more-itertools
 oauthlib
 objgraph
+openai
 openpyxl
 pillow-heif
 psycopg

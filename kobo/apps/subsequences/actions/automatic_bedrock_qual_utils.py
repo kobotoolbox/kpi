@@ -15,7 +15,6 @@ from kobo.apps.subsequences.prompts import (
     MODEL_TEMPERATURE,
     InvalidResponseFromLLMException,
 )
-from kpi.utils.log import logging
 
 
 @dataclass
@@ -88,7 +87,8 @@ class MantleClient(BedrockClient):
     def __init__(self, *args, **kwargs):
         self.client = OpenAI(
             api_key=provide_token(region=settings.AWS_BEDROCK_REGION_NAME),
-            base_url=f'https://bedrock-mantle.{settings.AWS_BEDROCK_REGION_NAME}.api.aws/openai/v1',
+            base_url=f'https://bedrock-mantle'
+                     f'.{settings.AWS_BEDROCK_REGION_NAME}.api.aws/openai/v1',
         )
 
     def make_request(self, request_data, model):
