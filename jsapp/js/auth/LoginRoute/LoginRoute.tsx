@@ -3,6 +3,7 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
+import AuthServerBrand from '#/auth/AuthContainer/AuthServerBrand'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
@@ -156,11 +157,14 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
         text={environment?.authConfiguration.supporting_text}
       />
     )
+    // Same rule as the aside: only on the cards that still hold a form.
+    const brand = <AuthServerBrand authConfiguration={environment?.authConfiguration} />
 
     // Not an ending: the password was accepted and there is a second factor still to fill in.
     if (outcome?.kind === 'mfaRequired') {
       return (
         <AuthCard aside={aside}>
+          {brand}
           <MfaForm onOutcome={handleOutcome} />
         </AuthCard>
       )
@@ -178,6 +182,7 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
     }
     return (
       <AuthCard aside={aside}>
+        {brand}
         <LoginForm
           socialApps={environment?.socialApps}
           // Only a definite "no" hides the signup link - the same setting the signup screen itself goes by, so

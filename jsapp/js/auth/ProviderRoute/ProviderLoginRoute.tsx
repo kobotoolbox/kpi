@@ -72,7 +72,7 @@ function ConfirmPanel({ providerId, providerName }: ConfirmPanelProps) {
   return (
     <Stack gap='xl'>
       <Stack gap='xs'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {/* Substituted rather than interpolated, so translators get one stable string per screen. */}
           {t('Log in with ##provider##').replace('##provider##', () => providerName)}
         </Title>

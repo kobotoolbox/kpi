@@ -57,3 +57,16 @@
     }
   }
 }
+
+.root[data-variant='blue-light'] {
+  background-color: var(--mantine-color-blue-8);
+  color: var(--mantine-color-blue-4);
+
+  .remove {
+    color: var(--mantine-color-blue-4);
+
+    &:hover {
+      color: var(--mantine-color-blue-3);
+    }
+  }
+}

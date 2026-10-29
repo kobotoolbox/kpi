@@ -3,6 +3,7 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
+import AuthServerBrand from '#/auth/AuthContainer/AuthServerBrand'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
 import { ROOT_URL } from '#/constants'
@@ -12,7 +13,7 @@ import RegisterForm from './RegisterForm'
 function SignupClosedPanel() {
   return (
     <Stack gap='md'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Sign up closed')}
       </Title>
       <Text>{t('We are sorry, but the sign up is currently closed')}</Text>
@@ -114,6 +115,7 @@ export default function RegisterRoute() {
           )
         }
       >
+        <AuthServerBrand authConfiguration={data?.authConfiguration} />
         <RegisterForm
           socialApps={data?.socialApps}
           newsletterField={data?.userMetadataFields.find((field) => field.name === 'newsletter_subscription')}

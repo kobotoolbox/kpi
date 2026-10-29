@@ -24,7 +24,7 @@ export default function ProfileDetailsErrorScreen({ onRetry }: ProfileDetailsErr
         <AuthCard>
           <Stack gap='xl'>
             <Stack gap='xs'>
-              <Title order={1} size='h3'>
+              <Title order={1} size='h3' ta='center'>
                 {t('Something went wrong')}
               </Title>
               <Text>

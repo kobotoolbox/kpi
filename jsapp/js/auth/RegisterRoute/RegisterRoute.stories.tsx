@@ -3,6 +3,7 @@ import type { RequestHandler } from 'msw'
 import { getWorker } from 'msw-storybook-addon'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { AuthServerTagEnum } from '#/api/models/authServerTagEnum'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { setLoginBackgroundMetaForStories } from '#/auth/AuthContainer/authContainer.mocks'
@@ -184,6 +185,20 @@ export const CustomTheme: Story = {
   beforeEach: setLoginBackgroundMetaForStories(backgroundImageUrl),
   play: async ({ canvasElement }) => {
     await waitForEnvironment(within(canvasElement))
+  },
+}
+
+/** The server tag sits above the form here too. */
+export const ServerTag: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.eu }, LEGAL_AGREEMENT),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await within(canvasElement).findByText('EU server')
   },
 }
 
