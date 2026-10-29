@@ -7,7 +7,7 @@ from allauth.account.models import EmailAddress
 from allauth.mfa.models import Authenticator
 from constance.test import override_config
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -19,11 +19,14 @@ RECOVERY_CODES_URL = '/api/v2/allauth/browser/v1/account/authenticators/recovery
 
 @override_config(MFA_ENABLED=True)
 @override_settings(ACCOUNT_RATE_LIMITS=False)
-class TotpActivationReauthenticationTestCase(TestCase):
+class TotpActivationReauthenticationTestCase(TransactionTestCase):
     """
     Confirming a TOTP code while turning MFA on counts as a fresh MFA
     authentication, so the recovery codes can be shown right after without
     asking the user to re-authenticate with the code they just entered
+
+    Real transactions are needed (hence `TransactionTestCase`): allauth sends
+    `authenticator_added` on commit, which never happens inside `TestCase`
     """
 
     fixtures = ['test_data']
@@ -42,7 +45,9 @@ class TotpActivationReauthenticationTestCase(TestCase):
         self.user.save()
         self.client.force_login(self.user)
         # Signed in with SSO long before turning MFA on
-        record_authentication(self.client, methods=('socialaccount',), age=600)
+        record_authentication(
+            self.client, methods=('socialaccount',), age=600, reauthenticated=False
+        )
 
         assert self._activate_totp().status_code == status.HTTP_200_OK
 
@@ -69,7 +74,8 @@ class TotpActivationReauthenticationTestCase(TestCase):
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert not Authenticator.objects.filter(user=self.user).exists()
         assert [
-            record['method'] for record in get_authentication_records(self.client)
+            record['method']
+            for record in get_authentication_records(self.client, self.user)
         ] == ['password']
 
     def test_failed_activation_is_not_recorded(self):
@@ -82,7 +88,8 @@ class TotpActivationReauthenticationTestCase(TestCase):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert [
-            record['method'] for record in get_authentication_records(self.client)
+            record['method']
+            for record in get_authentication_records(self.client, self.user)
         ] == ['password']
 
     def _activate_totp(self):
