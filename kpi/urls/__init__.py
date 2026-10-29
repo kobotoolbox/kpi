@@ -32,7 +32,6 @@ urlpatterns = [
         'delete': 'destroy',
     }), name='currentuser-detail'),
     path('api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
-    path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

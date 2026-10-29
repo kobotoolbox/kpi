@@ -16048,6 +16048,30 @@
                 }
             }
         },
+        "/api/v2/social-accounts/provisioning/": {
+            "get": {
+                "operationId": "api_v2_social_accounts_provisioning_retrieve",
+                "description": "## Check social account provisioning status\n\nPolls whether background SCIM user provisioning has completed for an ongoing single sign-on (SSO) login flow.\n\nWhen a first-time user authenticates via a SCIM-enabled Identity Provider, the browser is redirected to the provisioning wait screen while Keycloak or Okta asynchronously provisions the account in Kobo via SCIM. The client polls this endpoint to detect when the account has been provisioned and complete the login.\n\n### Session Requirement\nRequires an active browser session with the pending `socialaccount_sociallogin` state generated during the OIDC callback. If no pending provisioning session exists or it has expired, the endpoint responds with `200 OK` and `expired: true` (never `401 Unauthorized`).\n\n### Timeout Behavior\nThe pending provisioning state expires after 60 seconds (`SCIM_PROVISIONING_TIMEOUT`). If SCIM provisioning does not arrive within this window, the pending session is cleared and the endpoint returns `expired: true`.\n\nExamples:\n```shell\n  curl -X GET https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \\\n       -H \"Cookie: sessionid=...\"\n```\n\n> Response 200 (Waiting for SCIM)\n```json\n{\n    \"ready\": false,\n    \"expired\": false,\n    \"redirect_url\": null\n}\n```\n\n> Response 200 (Account Provisioned & Logged In)\n```json\n{\n    \"ready\": true,\n    \"expired\": false,\n    \"redirect_url\": \"/\"\n}\n```\n\n> Response 200 (Timed Out)\n```json\n{\n    \"ready\": false,\n    \"expired\": true,\n    \"redirect_url\": null\n}\n```\n",
+                "tags": [
+                    "Authentication"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SocialAccountProvisioningResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    }
+                }
+            }
+        },
         "/api/v2/social-apps/{provider_id}/": {
             "get": {
                 "operationId": "api_v2_social_apps_retrieve",
@@ -32681,6 +32705,31 @@
                     "provider",
                     "uid",
                     "username"
+                ]
+            },
+            "SocialAccountProvisioningResponse": {
+                "type": "object",
+                "description": "Response schema for the social account provisioning polling endpoint.",
+                "properties": {
+                    "ready": {
+                        "type": "boolean",
+                        "description": "Whether the account provisioning has completed."
+                    },
+                    "expired": {
+                        "type": "boolean",
+                        "description": "Whether the provisioning session has timed out."
+                    },
+                    "redirect_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Destination URL to redirect to once logged in."
+                    }
+                },
+                "required": [
+                    "expired",
+                    "ready"
                 ]
             },
             "SocialApp": {

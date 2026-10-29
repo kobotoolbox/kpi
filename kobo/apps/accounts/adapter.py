@@ -11,9 +11,11 @@ from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -147,7 +149,21 @@ class AccountAdapter(DefaultAccountAdapter):
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
+    def is_scim_enabled(self, request, sociallogin):
+        if not apps.is_installed('kobo.apps.kobo_scim'):
+            return False
+        app = getattr(sociallogin.provider, 'app', None)
+        if app is None:
+            try:
+                app = self.get_app(request, sociallogin.account.provider)
+            except Exception:
+                return False
+        IdentityProvider = apps.get_model('kobo_scim', 'IdentityProvider')
+        return IdentityProvider.objects.filter(social_app=app, is_active=True).exists()
+
     def is_open_for_signup(self, request, sociallogin):
+        if self.is_scim_enabled(request, sociallogin):
+            return False
         email = sociallogin.user.email
         domain = email.split('@')[1].lower()
         app = getattr(sociallogin.provider, 'app', None)
@@ -162,11 +178,24 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
-        """Allow only one linked SSO account per user."""
-        # Only the connect flow links a new provider; login/signup are exempt.
+        # Handle SCIM provisioning race condition for first-time login
         if sociallogin.state.get('process') != AuthProcess.CONNECT:
+            if not sociallogin.is_existing and self.is_scim_enabled(
+                request, sociallogin
+            ):
+                if getattr(sociallogin, 'provider', None) is None:
+                    sociallogin.provider = self.get_provider(
+                        request, sociallogin.account.provider
+                    )
+                request.session['socialaccount_sociallogin'] = sociallogin.serialize()
+                request.session['scim_provisioning_start'] = timezone.now().timestamp()
+                raise ImmediateHttpResponse(
+                    HttpResponseRedirect(resolve_url('socialaccount_provisioning'))
+                )
             return
 
+        """Allow only one linked SSO account per user."""
+        # Only the connect flow links a new provider; login/signup are exempt.
         user = request.user
         if not user.is_authenticated:
             return
