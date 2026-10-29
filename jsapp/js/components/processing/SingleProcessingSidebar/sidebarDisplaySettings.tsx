@@ -17,7 +17,7 @@ import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
-import { StaticDisplays, isAudioQuestionType, isTextQuestionType } from '../common/utils'
+import { StaticDisplays, isDisplayAvailable } from '../common/utils'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -73,13 +73,9 @@ export default function SidebarDisplaySettings({
   const availableDisplays = useMemo<Array<LanguageCode | StaticDisplays>>(() => {
     let displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
 
-    // Audio and Text are mutually exclusive: only the one matching the current
-    // question's type makes sense to offer.
-    displays = displays.filter((display) => {
-      if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
-      if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
-      return true
-    })
+    // Audio, Text and Image are mutually exclusive: only the one matching the
+    // current question's type makes sense to offer.
+    displays = displays.filter((display) => isDisplayAvailable(display, questionType))
 
     // Filter out transcript if we are on the transcript tab or if it was deleted
     if (
@@ -134,6 +130,12 @@ export default function SidebarDisplaySettings({
       return (
         <Text fw={700} component='span'>
           {t('Original response')}
+        </Text>
+      )
+    } else if (display === StaticDisplays.Image) {
+      return (
+        <Text fw={700} component='span'>
+          {t('Original file (Image)')}
         </Text>
       )
     } else {
