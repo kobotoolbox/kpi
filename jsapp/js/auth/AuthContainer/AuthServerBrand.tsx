@@ -3,8 +3,7 @@ import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthServerTagEnum } from '#/api/models/authServerTagEnum'
 
 /**
- * Pill look for each server tag, using the palette shades closest to Figma.
- * Labels are functions, so `t()` runs at render.
+ * Pill look for each server tag. Labels are functions, so `t()` runs at render.
  */
 const SERVER_TAGS: Record<AuthServerTagEnum, { label: () => string; variant: PillProps['variant']; border: string }> = {
   [AuthServerTagEnum.global]: {
@@ -32,9 +31,8 @@ export default function AuthServerBrand({ authConfiguration }: AuthServerBrandPr
   if (serverTag) {
     const { label, variant, border } = SERVER_TAGS[serverTag]
     return (
-      // Pill is inline, so the spacing goes on a block wrapper.
-      <Box mb='xl'>
-        <Pill variant={variant} size='md' bd={`1px solid ${border}`}>
+      <Box mb='xl' ta='center'>
+        <Pill variant={variant} size='md' bd={`0.5px solid ${border}`}>
           {label()}
         </Pill>
       </Box>
@@ -43,7 +41,7 @@ export default function AuthServerBrand({ authConfiguration }: AuthServerBrandPr
 
   if (authConfiguration?.logo_url) {
     // No organization name to describe it with, so it's decorative.
-    return <Image src={authConfiguration.logo_url} alt='' h={40} w='auto' maw='100%' fit='contain' mb='xl' />
+    return <Image src={authConfiguration.logo_url} alt='' h={40} w='auto' maw='100%' fit='contain' mx='auto' mb='xl' />
   }
 
   return null
