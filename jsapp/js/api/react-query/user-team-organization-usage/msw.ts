@@ -137,6 +137,7 @@ export const getApiV2OrganizationsListResponseMock = (
     modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
     is_owner: faker.datatype.boolean(),
     is_mmo: faker.datatype.boolean(),
+    has_pending_ownership_transfer: faker.datatype.boolean(),
     request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
     members: faker.internet.url(),
     assets: faker.internet.url(),
@@ -158,6 +159,7 @@ export const getApiV2OrganizationsRetrieveResponseMock = (
   modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   is_owner: faker.datatype.boolean(),
   is_mmo: faker.datatype.boolean(),
+  has_pending_ownership_transfer: faker.datatype.boolean(),
   request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
   members: faker.internet.url(),
   assets: faker.internet.url(),
@@ -178,6 +180,7 @@ export const getApiV2OrganizationsPartialUpdateResponseMock = (
   modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   is_owner: faker.datatype.boolean(),
   is_mmo: faker.datatype.boolean(),
+  has_pending_ownership_transfer: faker.datatype.boolean(),
   request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
   members: faker.internet.url(),
   assets: faker.internet.url(),
@@ -853,6 +856,24 @@ export const getApiV2OrganizationsMembersListResponseInviteResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransferMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  ...{
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsMembersListResponseMock = (
   overrideResponse: Partial<PaginatedMemberListResponseList> = {},
 ): PaginatedMemberListResponseList => ({
@@ -871,6 +892,10 @@ export const getApiV2OrganizationsMembersListResponseMock = (
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
     invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
+    pending_transfer: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransferMock() },
+      null,
+    ]),
   })),
   ...overrideResponse,
 })
@@ -891,6 +916,24 @@ export const getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTransferMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  ...{
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
@@ -905,6 +948,10 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
+  pending_transfer: faker.helpers.arrayElement([
+    { ...getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTransferMock() },
+    null,
+  ]),
   ...overrideResponse,
 })
 
@@ -924,6 +971,24 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwnershipTransferMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  ...{
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
@@ -939,6 +1004,10 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([
     { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
+    null,
+  ]),
+  pending_transfer: faker.helpers.arrayElement([
+    { ...getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwnershipTransferMock() },
     null,
   ]),
   ...overrideResponse,

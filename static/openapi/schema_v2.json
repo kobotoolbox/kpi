@@ -27601,11 +27601,22 @@
                                 "type": "null"
                             }
                         ]
+                    },
+                    "pending_transfer": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 },
                 "required": [
                     "date_joined",
                     "invite",
+                    "pending_transfer",
                     "role",
                     "url",
                     "user",
@@ -27932,6 +27943,10 @@
                         "type": "boolean",
                         "readOnly": true
                     },
+                    "has_pending_ownership_transfer": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
                     "request_user_role": {
                         "allOf": [
                             {
@@ -27969,6 +27984,7 @@
                     "asset_usage",
                     "assets",
                     "created",
+                    "has_pending_ownership_transfer",
                     "id",
                     "is_mmo",
                     "is_owner",
