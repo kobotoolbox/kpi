@@ -1,6 +1,6 @@
-from django.apps import apps
 from allauth.headless import app_settings as headless_settings
 from allauth.headless.constants import Client
+from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -14,8 +14,8 @@ from markdownx.views import MarkdownifyView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kobo.apps.accounts.views import HeadlessManageTOTPView
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,

@@ -87,7 +87,9 @@ class ScimProvisioningTestCase(TestCase):
         self.assertFalse(self.adapter.is_open_for_signup(request, sociallogin))
 
     @patch('kobo.apps.accounts.adapter.apps.is_installed', return_value=False)
-    def test_is_scim_enabled_false_when_kobo_scim_not_installed(self, mock_is_installed):
+    def test_is_scim_enabled_false_when_kobo_scim_not_installed(
+        self, mock_is_installed
+    ):
         sociallogin = self._build_login()
         request = self._build_request()
         self.assertFalse(self.adapter.is_scim_enabled(request, sociallogin))
@@ -104,9 +106,7 @@ class ScimProvisioningTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTemplateUsed(response, 'socialaccount/provisioning.html')
         self.assertContains(response, 'js/socialaccount_provisioning.js')
-        self.assertContains(
-            response, f'data-poll-url="{self.provisioning_url}"'
-        )
+        self.assertContains(response, f'data-poll-url="{self.provisioning_url}"')
 
     def test_provisioning_html_view_redirects_to_login_when_no_session(self):
         response = self.client.get(self.provisioning_html_url)
