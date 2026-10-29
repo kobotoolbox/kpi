@@ -1,9 +1,8 @@
 import { Stack, Text, Title } from '@mantine/core'
-import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import AuthPageFrame from '#/auth/AuthContainer/AuthPageFrame'
-import { useLogout } from '#/auth/useLogout'
+import { useLogoutAndReload } from '#/auth/useLogout'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 
@@ -13,23 +12,11 @@ export interface ProfileDetailsErrorScreenProps {
 }
 
 /**
- * What goes up when we cannot tell whether the profile details have to be filled in, because the organization request
- * failed - see {@link useProfileDetailsBlockerState}.
+ * What goes up when we cannot tell whether the profile details have to be filled in, because `/environment` or the
+ * organization request failed - see {@link useProfileDetailsBlockerState}.
  */
 export default function ProfileDetailsErrorScreen({ onRetry }: ProfileDetailsErrorScreenProps) {
-  const logout = useLogout()
-  const [logoutError, setLogoutError] = useState<string>()
-
-  async function handleLogout() {
-    setLogoutError(undefined)
-    try {
-      await logout.mutateAsync()
-      window.location.replace('')
-    } catch {
-      // Only a 5xx or a dead connection gets here - `fetchAllauth` treats the 401 as the success it is.
-      setLogoutError(t('Could not log you out. Please try again later.'))
-    }
-  }
+  const logout = useLogoutAndReload()
 
   return (
     <DocumentTitle title={`${t('Complete your profile details')} | KoboToolbox`}>
@@ -45,9 +32,9 @@ export default function ProfileDetailsErrorScreen({ onRetry }: ProfileDetailsErr
               </Text>
             </Stack>
 
-            {logoutError && (
+            {logout.error && (
               <Alert type='error' iconName='alert'>
-                <Text inherit>{logoutError}</Text>
+                <Text inherit>{logout.error}</Text>
               </Alert>
             )}
 
@@ -55,7 +42,7 @@ export default function ProfileDetailsErrorScreen({ onRetry }: ProfileDetailsErr
               <ButtonNew size='lg' fullWidth disabled={logout.isPending} onClick={onRetry}>
                 {t('Try again')}
               </ButtonNew>
-              <ButtonNew variant='transparent' size='lg' fullWidth loading={logout.isPending} onClick={handleLogout}>
+              <ButtonNew variant='transparent' size='lg' fullWidth loading={logout.isPending} onClick={logout.logOut}>
                 {t('Logout')}
               </ButtonNew>
             </Stack>

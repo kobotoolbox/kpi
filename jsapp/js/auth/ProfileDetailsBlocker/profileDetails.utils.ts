@@ -1,17 +1,19 @@
-import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from '#/account/account.constants'
-import {
-  MMO_MANAGED_FIELD_NAMES,
-  ORGANIZATION_DEPENDENT_FIELD_NAMES,
-  USER_FIELD_NAMES,
+import type {
+  AccountFieldsErrors,
+  AccountFieldsValues,
+  UserFieldName,
+  UserMetadataField,
 } from '#/account/account.constants'
-import { hasNoOrganizationAffiliation } from '#/account/account.utils'
+import { MMO_MANAGED_FIELD_NAMES, ORGANIZATION_DEPENDENT_FIELD_NAMES } from '#/account/account.constants'
+import { getProfileFieldsValues, hasNoOrganizationAffiliation, isUserFieldName } from '#/account/account.utils'
+import type { AccountResponse } from '#/dataInterface'
 
 /**
  * Fields `AccountFieldsEditor` renders without a slot for an error message. A message about one of these
  * has to go in the banner instead, or it would be dropped and the user would be left clicking a button
  * that keeps failing for no visible reason.
  */
-const FIELD_NAMES_WITHOUT_ERROR_SLOT: readonly UserFieldName[] = [USER_FIELD_NAMES.newsletter_subscription]
+const FIELD_NAMES_WITHOUT_ERROR_SLOT: readonly UserFieldName[] = ['newsletter_subscription']
 
 export interface ProfileFieldsContext {
   /** Every field the instance configures through `USER_METADATA_FIELDS`, in the order it lists them. */
@@ -20,6 +22,17 @@ export interface ProfileFieldsContext {
   requiredFieldNames: UserFieldName[]
   /** Whether the user belongs to an organization with more than one member. */
   isMmoMember: boolean
+}
+
+export function getProfileFieldsContext(
+  userMetadataFields: readonly UserMetadataField[],
+  isMmoMember: boolean,
+): ProfileFieldsContext {
+  return {
+    configuredFieldNames: userMetadataFields.map((field) => field.name),
+    requiredFieldNames: userMetadataFields.filter((field) => field.required).map((field) => field.name),
+    isMmoMember,
+  }
 }
 
 /**
@@ -47,6 +60,30 @@ export function getBlankRequiredProfileFieldNames(
     // required checkbox counts as blank there, so it has to count as blank here too.
     return !values[name]
   })
+}
+
+export interface BlankRequiredProfileFieldsQuestion {
+  /** `undefined` when nobody is signed in or the request is still pending */
+  account: AccountResponse | undefined
+  /** The fields the instance asks for, or `undefined` before `/environment` lands */
+  userMetadataFields: readonly UserMetadataField[] | undefined
+  isMmoMember?: boolean
+}
+
+/** {@link getBlankRequiredProfileFieldNames} for an account */
+export function getBlankRequiredProfileFieldNamesForAccount({
+  account,
+  userMetadataFields,
+  isMmoMember = false,
+}: BlankRequiredProfileFieldsQuestion): UserFieldName[] {
+  if (!account || !userMetadataFields) {
+    return []
+  }
+
+  return getBlankRequiredProfileFieldNames(
+    getProfileFieldsValues(account.extra_details),
+    getProfileFieldsContext(userMetadataFields, isMmoMember),
+  )
 }
 
 export function doBlankFieldsDependOnMmoStatus(blankFieldNames: readonly UserFieldName[]): boolean {
@@ -95,9 +132,9 @@ export interface ProfileUpdateErrorsOptions {
 /** Whether the editor has somewhere to put a message about this field. */
 function canShowInline(fieldName: string, displayedFieldNames: UserFieldName[]): fieldName is UserFieldName {
   return (
-    fieldName in USER_FIELD_NAMES &&
-    displayedFieldNames.includes(fieldName as UserFieldName) &&
-    !FIELD_NAMES_WITHOUT_ERROR_SLOT.includes(fieldName as UserFieldName)
+    isUserFieldName(fieldName) &&
+    displayedFieldNames.includes(fieldName) &&
+    !FIELD_NAMES_WITHOUT_ERROR_SLOT.includes(fieldName)
   )
 }
 
@@ -158,9 +195,9 @@ export function splitProfileUpdateErrors(
         }
         if (canShowInline(fieldName, displayedFieldNames)) {
           fieldErrors[fieldName] = message
-        } else if (fieldName in USER_FIELD_NAMES) {
+        } else if (isUserFieldName(fieldName)) {
           // Named, so the banner can say which field this is about.
-          formErrors.push(`${labelFor(fieldName as UserFieldName)}: ${message}`)
+          formErrors.push(`${labelFor(fieldName)}: ${message}`)
         } else {
           // A field this build has never heard of. Quoting the message on its own beats dropping it.
           formErrors.push(message)

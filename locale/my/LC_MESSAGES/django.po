@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:35+0000\n"
+"POT-Creation-Date: 2026-10-28 17:49+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
 "Language-Team: Burmese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/my/)\n"
@@ -892,36 +892,36 @@ msgstr "တစ်ခုတည်းသော id string ရှိရမည်။"
 msgid "There should be a single title."
 msgstr "တစ်ခုတည်းသော ခေါင်းစဥ် ရှိရမည်။"
 
-#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/apps/logger/views.py:63
 #: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "အောင်မြင်သော တင်သွင်းမှု။"
 
-#: kobo/apps/openrosa/apps/logger/views.py:94
+#: kobo/apps/openrosa/apps/logger/views.py:102
 msgid ""
 "There was a problem receiving your ODK submission. [Error: IO Error reading "
 "data]"
 msgstr "သင့်၏ ODK တင်သွင်းမှုကို လက်ခံရာတွင် ပြဿနာတစ်ခု ဖြစ်ပွားခဲ့သည်။ [ချို့ယွင်းချက်- ဒေတာဖတ်ရာတွင် IO ချို့ယွင်းချက်]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:98
+#: kobo/apps/openrosa/apps/logger/views.py:110
 msgid ""
 "There was a problem receiving your ODK submission. [Error: multiple "
 "submission files (?)]"
 msgstr "သင့် ODK တင်သွင်းမှုကို လက်ခံရာတွင် ပြဿနာတစ်ခု ဖြစ်ပွားခဲ့ပါသည်။ [ချို့ယွင်းချက်- အများအပြား တင်သွင်းမှုဖိုင်များ (?)]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:120
+#: kobo/apps/openrosa/apps/logger/views.py:136
 #, python-format
 msgid ""
 "Submission complete. Out of %(total)d survey instances, %(success)d were "
 "imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
 msgstr "တင်သွင်းမှု ပြီးမြောက်ပါပြီ။%(total)d စစ်တမ်းအချက်အလက်များမှ %(success)d ခုတင်သွင်းပြီး၊ (%(rejected)d ခုသည် ထပ်နေသည်များ၊ ပျောက်နေသော ဖောင်များအဖြစ် ပယ်ဖျက်ထားသည်)"
 
-#: kobo/apps/openrosa/apps/logger/views.py:190
+#: kobo/apps/openrosa/apps/logger/views.py:210
 #, python-format
 msgid "No XLS file for your form %(id)s"
 msgstr "သင့်ဖောင်အတွက် XLS ဖိုင် မရှိပါ %(id)s"
 
-#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/logger/views.py:228
 #: kobo/apps/openrosa/apps/viewer/views.py:42
 #: kobo/apps/openrosa/apps/viewer/views.py:95
 #: kobo/apps/openrosa/apps/viewer/views.py:114

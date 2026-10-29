@@ -38,7 +38,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:39+0000\n"
+"POT-Creation-Date: 2026-10-28 17:49+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Salomé Garnier, 2026\n"
 "Language-Team: French (http://app.transifex.com/kobotoolbox/kobotoolbox/language/fr/)\n"
@@ -123,7 +123,7 @@ msgstr "Pour terminer cette action, veuillez saisir votre nom d'utilisateur ci-d
 #: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:96
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:103
 #: jsapp/js/components/common/openKoboConfirmModal.tsx:13
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:331
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:77
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:162
@@ -2726,40 +2726,40 @@ msgstr "TERMINÉ"
 msgid "Confirm"
 msgstr "Confirmer"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:110
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:156
 msgid "Deleted project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:183
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:229
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:6
 msgid "No project selected"
 msgstr "Aucun projet sélectionné"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:186
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:232
 msgid "Field is empty"
 msgstr "Le champ est vide"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:199
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:245
 msgid "Could not remove import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:247
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:259
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:293
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:305
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:111
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:132
 msgid "Failed to attach to source"
 msgstr "Échec de l'attachement à la source"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:248
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:294
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:112
 msgid "Some fields are invalid:"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:281
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:327
 msgid "Privacy Notice"
 msgstr "Avis de confidentialité"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:329
 msgid ""
 "This will attach the full dataset from \"##ASSET_NAME##\" as a background "
 "XML file to this form. While not easily visible, it is technically possible "
@@ -2767,31 +2767,31 @@ msgid ""
 "not use this feature if \"##ASSET_NAME##\" includes sensitive data."
 msgstr "Cette action joindra l’intégralité des données du projet « ##ASSET_NAME## » au formulaire sous la forme d’un fichier XML en arrière-plan. Bien que ce fichier ne soit pas facilement accessible, toute personne saisissant des données dans ce formulaire peut techniquement le récupérer et en consulter le contenu. Cette fonctionnalité ne doit pas être utilisée si «##ASSET_NAME## » contient des données sensibles."
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:331
 msgid "Acknowledge and continue"
 msgstr "Consentir et poursuivre"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:339
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:385
 msgid "Share data with other project forms"
 msgstr " Autoriser le partage des données avec d’autres projets"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:346
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:392
 msgid ""
 "Enable data sharing to allow other forms to import and use dynamic data from"
 " this project. Learn more about dynamic data attachments"
 msgstr "Activer le partage des données afin de permettre à d’autres formulaires d’importer et d’utiliser des données via la liaison dynamique de projets depuis ce projet. En savoir plus sur la liaison dynamique de projets"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:354
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:383
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:400
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:429
 #: jsapp/js/components/processing/SingleProcessingContent/components/nlpUsageLimitBlockModal/index.tsx:43
 msgid "here"
 msgstr "ici"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:372
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:418
 msgid "Import other project data"
 msgstr " Importer les données d’un autre projet"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:379
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:425
 msgid ""
 "Connect with other project(s) to import dynamic data from them into this "
 "project. Learn more about dynamic data attachments"
