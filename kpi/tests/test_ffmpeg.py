@@ -174,6 +174,25 @@ class RunFFMpegTestCase(SimpleTestCase):
         assert len(silences) == 1
         assert silences[0].duration == pytest.approx(5.0, abs=0.1)
 
+    def test_detect_silences_gives_up_at_the_timeout(self):
+        """
+        Detection runs in the web request against a presigned URL, so storage
+        going slow must not hold the request open
+        """
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'sample.flac')
+            duration = build_sample(path)
+
+            with pytest.raises(FFMpegException):
+                detect_silences(
+                    path,
+                    duration,
+                    threshold_db=-30,
+                    min_duration=0.5,
+                    timeout=0.001,
+                )
+
     def test_detect_silences_ignores_runs_under_the_minimum_duration(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, 'sample.flac')

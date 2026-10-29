@@ -4,7 +4,12 @@ import pytest
 from django.test import SimpleTestCase, override_settings
 
 from kpi.exceptions import AudioDurationUnknownError
-from kpi.utils.audio_chunking import ChunkRange, get_chunk_ranges, plan_chunk_ranges
+from kpi.utils.audio_chunking import (
+    MIN_LAST_CHUNK_SECONDS,
+    ChunkRange,
+    get_chunk_ranges,
+    plan_chunk_ranges,
+)
 from kpi.utils.ffmpeg import Silence
 
 HARD_LIMIT = 55 * 60
@@ -150,6 +155,37 @@ class PlanChunkRangesTestCase(SimpleTestCase):
 
         assert ranges[0].end == minutes(44)
 
+    def test_a_tail_shorter_than_the_minimum_is_not_left_behind(self):
+        """
+        A file only just over the limit would otherwise end in a stub: 55:00
+        plus 0.04 seconds, a whole transcription request for nothing
+        """
+
+        ranges, _ = plan_chunk_ranges(HARD_LIMIT + 0.04, [], HARD_LIMIT)
+
+        assert len(ranges) == 2
+        assert ranges[-1].duration == pytest.approx(MIN_LAST_CHUNK_SECONDS)
+        assert ranges[0].duration <= HARD_LIMIT
+        assert_ranges_cover_the_file(ranges, HARD_LIMIT + 0.04, HARD_LIMIT)
+
+    def test_the_window_is_pulled_in_to_reach_a_pause_before_the_tail(self):
+        """
+        Taken from `MARIAM BOLE`, where the last cut fell 1.8s before the end
+        of the file and left a 1.8 second chunk
+        """
+
+        duration = HARD_LIMIT + 10
+        ranges, blind_cuts = plan_chunk_ranges(
+            duration,
+            [pause_at(HARD_LIMIT - 100), pause_at(HARD_LIMIT - 2)],
+            HARD_LIMIT,
+        )
+
+        assert ranges[0].end == HARD_LIMIT - 100
+        assert ranges[-1].duration >= MIN_LAST_CHUNK_SECONDS
+        assert blind_cuts == 0
+        assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
+
     def test_audio_without_any_pause_is_cut_blind(self):
         duration = minutes(90)
 
@@ -242,8 +278,17 @@ class GetChunkRangesTestCase(SimpleTestCase):
 
         assert ranges[0].end == minutes(50)
         detect_silences.assert_called_once_with(
-            '/tmp/recording.mp3', minutes(90), -30, 0.5
+            '/tmp/recording.mp3', minutes(90), -30, 0.5, 300
         )
+
+    def test_nothing_is_warned_about_when_the_pauses_are_found(self):
+        with patch(
+            'kpi.utils.audio_chunking.detect_silences',
+            return_value=[pause_at(minutes(50))],
+        ), patch('kpi.utils.audio_chunking.logging') as logger:
+            get_chunk_ranges(self.attachment, duration=minutes(90))
+
+        logger.warning.assert_not_called()
 
     def test_threshold_is_raised_until_every_cut_has_a_pause(self):
         """
@@ -278,6 +323,22 @@ class GetChunkRangesTestCase(SimpleTestCase):
         assert detect_silences.call_count == 3
         assert ranges[0].end == HARD_LIMIT
 
+    def test_a_file_cut_blind_at_every_threshold_is_logged_as_a_warning(self):
+        """
+        A file cut mid-sentence should stand out from the info lines, since
+        nothing else in the logs distinguishes it
+        """
+
+        with patch('kpi.utils.audio_chunking.detect_silences', return_value=[]), patch(
+            'kpi.utils.audio_chunking.logging'
+        ) as logger:
+            get_chunk_ranges(self.attachment, duration=minutes(90))
+
+        assert logger.warning.call_count == 1
+        message, *args = logger.warning.call_args.args
+        assert 'no pause to land in' in message
+        assert args[-1] == -20
+
     def test_duration_is_read_from_the_attachment_when_not_given(self):
         with patch(
             'kpi.utils.audio_chunking.get_audio_duration', return_value=minutes(90)
@@ -290,10 +351,10 @@ class GetChunkRangesTestCase(SimpleTestCase):
         get_audio_duration.assert_called_once_with(self.attachment)
         assert ranges[-1].end == minutes(90)
 
-    def test_a_caller_can_override_the_hard_limit(self):
+    def test_the_hard_limit_setting_is_respected(self):
         """
-        An engine with a tighter limit than the shared one can ask for it,
-        without every other engine having to cut its files that finely
+        One setting decides the limit for every engine, so lowering it is what
+        makes a file chunk more finely
         """
 
         with patch(
@@ -301,9 +362,8 @@ class GetChunkRangesTestCase(SimpleTestCase):
             return_value=[pause_at(minutes(14)), pause_at(minutes(50))],
         ):
             shared = get_chunk_ranges(self.attachment, duration=minutes(90))
-            tighter = get_chunk_ranges(
-                self.attachment, duration=minutes(90), hard_limit=minutes(15)
-            )
+            with override_settings(TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS=minutes(15)):
+                tighter = get_chunk_ranges(self.attachment, duration=minutes(90))
 
         assert [chunk.duration for chunk in shared] == [minutes(50), minutes(40)]
         assert tighter[0].end == minutes(14)

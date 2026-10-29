@@ -38,20 +38,32 @@ class Silence:
         return (self.start + self.end) / 2
 
 
-def run_ffmpeg(args: list[str]) -> subprocess.CompletedProcess:
+def run_ffmpeg(
+    args: list[str], timeout: float | None = None
+) -> subprocess.CompletedProcess:
     """
     Run ffmpeg with `args` and return the completed process
 
     `stdout` holds whatever ffmpeg wrote to `pipe:1`, and `stderr` the log
     output that filters such as `silencedetect` report through. Raises
-    `FFMpegException` when ffmpeg exits non-zero.
+    `FFMpegException` when ffmpeg exits non-zero or outruns `timeout`.
+
+    `timeout` is in seconds, and `None` waits forever. Pass one whenever the
+    input may be a presigned URL, so that storage going slow cannot hold the
+    caller open indefinitely.
     """
 
-    pipe = subprocess.run(
-        [FFMPEG_BINARY, *args],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    try:
+        pipe = subprocess.run(
+            [FFMPEG_BINARY, *args],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        # Deliberately without the arguments, which carry the presigned URL
+        logging.error('ffmpeg timed out after %s seconds', timeout)
+        raise FFMpegException
 
     if pipe.returncode:
         logging.error(f'ffmpeg error: {pipe.stderr}')
@@ -123,11 +135,14 @@ def detect_silences(
     duration: float,
     threshold_db: int,
     min_duration: float,
+    timeout: float | None = None,
 ) -> list[Silence]:
     """
     Decode the audio at `path_or_url` and return the quiet runs in it
 
     Nothing is encoded (`-f null`), so this costs one decode pass and no more.
+    This runs inside the web request and reads whatever `absolute_path` gives
+    it, a presigned URL in production, so callers should pass a `timeout`.
     """
 
     pipe = run_ffmpeg(
@@ -137,7 +152,8 @@ def detect_silences(
             '-f',
             'null',
             '-',
-        ]
+        ],
+        timeout=timeout,
     )
 
     return parse_silences(pipe.stderr.decode(errors='replace'), duration)

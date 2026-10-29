@@ -22,6 +22,13 @@ from kpi.utils.log import logging
 # chunks and added none; at 0.8 the 0.66s pause would not qualify.
 GOOD_ENOUGH_SILENCE_FRACTION = 0.7
 
+# Shortest remainder worth sending as its own chunk. Without this a file only
+# just over the limit ends in a stub: a 55:00.04 recording would be cut into
+# 55:00 plus 0.04 seconds, a whole transcription request for audio the service
+# may well refuse. When the tail would come out shorter than this, the window
+# is pulled in so both pieces are worth sending.
+MIN_LAST_CHUNK_SECONDS = 30.0
+
 
 @dataclass(frozen=True)
 class ChunkRange:
@@ -71,6 +78,12 @@ def plan_chunk_ranges(
 
     while duration - start > hard_limit:
         limit = start + hard_limit
+        # Leave a remainder worth sending, as long as there is still room for
+        # a chunk in front of it (see `MIN_LAST_CHUNK_SECONDS`)
+        if duration - limit < MIN_LAST_CHUNK_SECONDS:
+            pulled_in = duration - MIN_LAST_CHUNK_SECONDS
+            if pulled_in > start:
+                limit = pulled_in
         # The pauses this chunk could end in. A pause that begins before
         # `limit` but runs past it is only usable while its middle is still
         # inside the window, because the middle is where we cut
@@ -110,7 +123,6 @@ def plan_chunk_ranges(
 def get_chunk_ranges(
     attachment: Attachment,
     duration: float | None = None,
-    hard_limit: float | None = None,
 ) -> list[ChunkRange]:
     """
     Return where `attachment` should be cut for transcription
@@ -128,15 +140,12 @@ def get_chunk_ranges(
     land in: detection then starts over at a louder threshold, at most once per
     entry in the ladder, and usually not at all.
 
-    `hard_limit` defaults to `TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS`: one
-    setting for every engine, set to the lowest limit among the engines we use,
-    so it is safe whichever one transcribes the file. The argument is there so
-    a caller can plan at another limit without patching the setting, which the
-    tests rely on; nothing in production passes it.
+    The limit comes from `TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS`: one setting
+    for every engine, set to the lowest limit among the engines we use, so it
+    is safe whichever one transcribes the file.
     """
 
-    if hard_limit is None:
-        hard_limit = settings.TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS
+    hard_limit = settings.TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS
 
     if duration is None:
         duration = get_audio_duration(attachment)
@@ -160,6 +169,7 @@ def get_chunk_ranges(
             duration,
             threshold_db,
             settings.TRANSCRIPTION_SILENCE_MIN_DURATION,
+            settings.TRANSCRIPTION_SILENCE_DETECT_TIMEOUT,
         )
         ranges, blind_cuts = plan_chunk_ranges(duration, silences, hard_limit)
         logging.info(
@@ -173,5 +183,15 @@ def get_chunk_ranges(
         )
         if not blind_cuts:
             break
+    else:
+        # Every threshold was tried and some cut still had no pause to land
+        # in, so those chunks are cut mid-sentence
+        logging.warning(
+            'Attachment %s still has %d transcription chunk cut(s) with no '
+            'pause to land in at %d dB, the loudest threshold tried',
+            attachment.pk,
+            blind_cuts,
+            thresholds[-1],
+        )
 
     return ranges
