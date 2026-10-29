@@ -3,6 +3,7 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
+import AuthServerBrand from '#/auth/AuthContainer/AuthServerBrand'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
 import { ROOT_URL } from '#/constants'
@@ -114,6 +115,7 @@ export default function RegisterRoute() {
           )
         }
       >
+        <AuthServerBrand authConfiguration={data?.authConfiguration} />
         <RegisterForm
           socialApps={data?.socialApps}
           newsletterField={data?.userMetadataFields.find((field) => field.name === 'newsletter_subscription')}
