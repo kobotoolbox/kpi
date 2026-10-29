@@ -115,12 +115,14 @@ def detect_silences(
     Nothing is encoded (`-f null`), so this costs one decode pass and no more.
     """
 
-    pipe = run_ffmpeg([
-        *decode_args(path_or_url),
-        *silencedetect_args(threshold_db, min_duration),
-        '-f',
-        'null',
-        '-',
-    ])
+    pipe = run_ffmpeg(
+        [
+            *decode_args(path_or_url),
+            *silencedetect_args(threshold_db, min_duration),
+            '-f',
+            'null',
+            '-',
+        ]
+    )
 
     return parse_silences(pipe.stderr.decode(errors='replace'), duration)

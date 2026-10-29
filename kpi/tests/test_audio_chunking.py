@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.test import SimpleTestCase, override_settings
 
 from kpi.exceptions import AudioDurationUnknownError
@@ -22,40 +23,39 @@ def pause_at(start: float, length: float = 1.0) -> Silence:
     return Silence(start=start - length / 2, end=start + length / 2)
 
 
+def assert_ranges_cover_the_file(ranges, duration, hard_limit):
+    """
+    Check what has to hold of every plan, whatever the pauses look like
+    """
+
+    assert [chunk.index for chunk in ranges] == list(range(len(ranges)))
+    assert ranges[0].start == 0.0
+    assert ranges[-1].end == duration
+    assert sum(chunk.duration for chunk in ranges) == pytest.approx(duration, abs=1e-6)
+    for chunk, following in zip(ranges, ranges[1:]):
+        assert chunk.end == following.start
+    for chunk in ranges:
+        assert chunk.duration > 0
+        assert chunk.duration <= hard_limit
+
+
 class PlanChunkRangesTestCase(SimpleTestCase):
-
-    def assert_ranges_cover_the_file(self, ranges, duration, hard_limit):
-        """
-        Check what has to hold of every plan, whatever the pauses look like
-        """
-
-        self.assertEqual([chunk.index for chunk in ranges], list(range(len(ranges))))
-        self.assertEqual(ranges[0].start, 0.0)
-        self.assertEqual(ranges[-1].end, duration)
-        self.assertAlmostEqual(
-            sum(chunk.duration for chunk in ranges), duration, places=6
-        )
-        for chunk, following in zip(ranges, ranges[1:]):
-            self.assertEqual(chunk.end, following.start)
-        for chunk in ranges:
-            self.assertGreater(chunk.duration, 0)
-            self.assertLessEqual(chunk.duration, hard_limit)
 
     def test_audio_under_the_hard_limit_is_one_chunk(self):
         ranges, blind_cuts = plan_chunk_ranges(
             minutes(30), [pause_at(minutes(10))], HARD_LIMIT
         )
 
-        self.assertEqual(ranges, [ChunkRange(index=0, start=0.0, end=minutes(30))])
-        self.assertEqual(blind_cuts, 0)
+        assert ranges == [ChunkRange(index=0, start=0.0, end=minutes(30))]
+        assert blind_cuts == 0
 
     def test_audio_of_exactly_the_hard_limit_is_one_chunk(self):
         ranges, blind_cuts = plan_chunk_ranges(
             HARD_LIMIT, [pause_at(minutes(10))], HARD_LIMIT
         )
 
-        self.assertEqual(ranges, [ChunkRange(index=0, start=0.0, end=HARD_LIMIT)])
-        self.assertEqual(blind_cuts, 0)
+        assert ranges == [ChunkRange(index=0, start=0.0, end=HARD_LIMIT)]
+        assert blind_cuts == 0
 
     def test_sparse_pauses_give_uneven_chunks(self):
         """
@@ -70,12 +70,13 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             HARD_LIMIT,
         )
 
-        self.assertEqual(
-            [chunk.duration for chunk in ranges],
-            [minutes(10), minutes(50), minutes(30)],
-        )
-        self.assertEqual(blind_cuts, 0)
-        self.assert_ranges_cover_the_file(ranges, minutes(90), HARD_LIMIT)
+        assert [chunk.duration for chunk in ranges] == [
+            minutes(10),
+            minutes(50),
+            minutes(30),
+        ]
+        assert blind_cuts == 0
+        assert_ranges_cover_the_file(ranges, minutes(90), HARD_LIMIT)
 
     def test_pauses_throughout_cut_close_to_the_hard_limit(self):
         """
@@ -87,10 +88,10 @@ class PlanChunkRangesTestCase(SimpleTestCase):
 
         ranges, blind_cuts = plan_chunk_ranges(duration, silences, HARD_LIMIT)
 
-        self.assertEqual(blind_cuts, 0)
-        self.assertEqual(len(ranges), 3)
-        self.assertEqual(ranges[0].end, HARD_LIMIT)
-        self.assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
+        assert blind_cuts == 0
+        assert len(ranges) == 3
+        assert ranges[0].end == HARD_LIMIT
+        assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
 
     def test_the_longest_pause_in_range_wins(self):
         ranges, blind_cuts = plan_chunk_ranges(
@@ -103,8 +104,8 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             HARD_LIMIT,
         )
 
-        self.assertEqual(ranges[0].end, minutes(46))
-        self.assertEqual(blind_cuts, 0)
+        assert ranges[0].end == minutes(46)
+        assert blind_cuts == 0
 
     def test_the_later_of_two_similar_pauses_wins(self):
         """
@@ -118,7 +119,7 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             HARD_LIMIT,
         )
 
-        self.assertEqual(ranges[0].end, minutes(50))
+        assert ranges[0].end == minutes(50)
 
     def test_a_slightly_shorter_later_pause_wins(self):
         """
@@ -137,8 +138,8 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             HARD_LIMIT,
         )
 
-        self.assertEqual(ranges[0].end, minutes(48))
-        self.assertGreater(ranges[0].duration, minutes(47))
+        assert ranges[0].end == minutes(48)
+        assert ranges[0].duration > minutes(47)
 
     def test_a_clearly_shorter_later_pause_does_not_win(self):
         ranges, _ = plan_chunk_ranges(
@@ -147,19 +148,19 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             HARD_LIMIT,
         )
 
-        self.assertEqual(ranges[0].end, minutes(44))
+        assert ranges[0].end == minutes(44)
 
     def test_audio_without_any_pause_is_cut_blind(self):
         duration = minutes(90)
 
         ranges, blind_cuts = plan_chunk_ranges(duration, [], HARD_LIMIT)
 
-        self.assertEqual(
-            [chunk.duration for chunk in ranges],
-            [HARD_LIMIT, duration - HARD_LIMIT],
-        )
-        self.assertEqual(blind_cuts, 1)
-        self.assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
+        assert [chunk.duration for chunk in ranges] == [
+            HARD_LIMIT,
+            duration - HARD_LIMIT,
+        ]
+        assert blind_cuts == 1
+        assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
 
     def test_a_pause_straddling_the_hard_limit_is_not_used(self):
         """
@@ -174,9 +175,9 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             duration, [pause_at(minutes(40)), straddling], HARD_LIMIT
         )
 
-        self.assertEqual(ranges[0].end, minutes(40))
-        self.assertEqual(blind_cuts, 0)
-        self.assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
+        assert ranges[0].end == minutes(40)
+        assert blind_cuts == 0
+        assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
 
     def test_a_pause_straddling_the_hard_limit_alone_cuts_blind(self):
         duration = minutes(90)
@@ -184,9 +185,9 @@ class PlanChunkRangesTestCase(SimpleTestCase):
 
         ranges, blind_cuts = plan_chunk_ranges(duration, [straddling], HARD_LIMIT)
 
-        self.assertEqual(ranges[0].end, HARD_LIMIT)
-        self.assertEqual(blind_cuts, 1)
-        self.assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
+        assert ranges[0].end == HARD_LIMIT
+        assert blind_cuts == 1
+        assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
 
     def test_pauses_already_passed_are_not_reused(self):
         """
@@ -200,19 +201,21 @@ class PlanChunkRangesTestCase(SimpleTestCase):
             duration, [pause_at(minutes(20))], HARD_LIMIT
         )
 
-        self.assertEqual(
-            [chunk.duration for chunk in ranges],
-            [minutes(20), HARD_LIMIT, HARD_LIMIT, minutes(180 - 20) - 2 * HARD_LIMIT],
-        )
-        self.assertEqual(blind_cuts, 2)
-        self.assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
+        assert [chunk.duration for chunk in ranges] == [
+            minutes(20),
+            HARD_LIMIT,
+            HARD_LIMIT,
+            minutes(180 - 20) - 2 * HARD_LIMIT,
+        ]
+        assert blind_cuts == 2
+        assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
 
     def test_a_hard_limit_of_zero_is_refused(self):
         """
         A misconfigured limit would otherwise never move the walk forward
         """
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             plan_chunk_ranges(minutes(90), [], 0)
 
 
@@ -237,7 +240,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
         ) as detect_silences:
             ranges = get_chunk_ranges(self.attachment, duration=minutes(90))
 
-        self.assertEqual(ranges[0].end, minutes(50))
+        assert ranges[0].end == minutes(50)
         detect_silences.assert_called_once_with(
             '/tmp/recording.mp3', minutes(90), -30, 0.5
         )
@@ -254,10 +257,12 @@ class GetChunkRangesTestCase(SimpleTestCase):
         ) as detect_silences:
             ranges = get_chunk_ranges(self.attachment, duration=minutes(90))
 
-        self.assertEqual(
-            [call.args[2] for call in detect_silences.call_args_list], [-30, -25, -20]
-        )
-        self.assertEqual(ranges[0].end, minutes(50))
+        assert [call.args[2] for call in detect_silences.call_args_list] == [
+            -30,
+            -25,
+            -20,
+        ]
+        assert ranges[0].end == minutes(50)
 
     def test_plan_from_the_last_threshold_is_used_when_no_pause_is_found(self):
         """
@@ -270,8 +275,8 @@ class GetChunkRangesTestCase(SimpleTestCase):
         ) as detect_silences:
             ranges = get_chunk_ranges(self.attachment, duration=minutes(90))
 
-        self.assertEqual(detect_silences.call_count, 3)
-        self.assertEqual(ranges[0].end, HARD_LIMIT)
+        assert detect_silences.call_count == 3
+        assert ranges[0].end == HARD_LIMIT
 
     def test_duration_is_read_from_the_attachment_when_not_given(self):
         with patch(
@@ -283,7 +288,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
             ranges = get_chunk_ranges(self.attachment)
 
         get_audio_duration.assert_called_once_with(self.attachment)
-        self.assertEqual(ranges[-1].end, minutes(90))
+        assert ranges[-1].end == minutes(90)
 
     def test_a_caller_can_override_the_hard_limit(self):
         """
@@ -300,19 +305,17 @@ class GetChunkRangesTestCase(SimpleTestCase):
                 self.attachment, duration=minutes(90), hard_limit=minutes(15)
             )
 
-        self.assertEqual(
-            [chunk.duration for chunk in shared], [minutes(50), minutes(40)]
-        )
-        self.assertEqual(tighter[0].end, minutes(14))
-        self.assertGreater(len(tighter), len(shared))
+        assert [chunk.duration for chunk in shared] == [minutes(50), minutes(40)]
+        assert tighter[0].end == minutes(14)
+        assert len(tighter) > len(shared)
         for chunk in tighter:
-            self.assertLessEqual(chunk.duration, minutes(15))
+            assert chunk.duration <= minutes(15)
 
     def test_unknown_duration_is_refused(self):
         with patch(
             'kpi.utils.audio_chunking.get_audio_duration', return_value=None
         ), patch('kpi.utils.audio_chunking.detect_silences') as detect_silences:
-            with self.assertRaises(AudioDurationUnknownError):
+            with pytest.raises(AudioDurationUnknownError):
                 get_chunk_ranges(self.attachment)
 
         detect_silences.assert_not_called()
@@ -323,5 +326,5 @@ class GetChunkRangesTestCase(SimpleTestCase):
         An empty ladder would otherwise leave the file with no plan at all
         """
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             get_chunk_ranges(self.attachment, duration=minutes(90))

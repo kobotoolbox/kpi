@@ -33,12 +33,14 @@ class AudioTranscodingMixin:
         if audio_format not in self.AVAILABLE_OUTPUT_FORMATS:
             raise NotSupportedFormatException
 
-        pipe = run_ffmpeg([
-            *decode_args(self.absolute_path),
-            '-f',
-            audio_format,
-            'pipe:1',
-        ])
+        pipe = run_ffmpeg(
+            [
+                *decode_args(self.absolute_path),
+                '-f',
+                audio_format,
+                'pipe:1',
+            ]
+        )
 
         if include_duration:
             duration = str(pipe.stderr).split('Duration: ')[-1].split('.')[0]
