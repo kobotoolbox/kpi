@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -91,10 +92,16 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
-    path(
-        'accounts/social/provisioning/',
-        SocialAccountProvisioningHTMLView.as_view(),
-        name='socialaccount_provisioning',
+    *(
+        [
+            path(
+                'accounts/social/provisioning/',
+                SocialAccountProvisioningHTMLView.as_view(),
+                name='socialaccount_provisioning',
+            ),
+        ]
+        if apps.is_installed('kobo.apps.kobo_scim')
+        else []
     ),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
     path('api/v2/allauth/', include('allauth.headless.urls')),

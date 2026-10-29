@@ -1,4 +1,5 @@
 import private_storage.urls
+from django.apps import apps
 from django.conf import settings
 from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
@@ -32,7 +33,11 @@ urlpatterns = [
         'delete': 'destroy',
     }), name='currentuser-detail'),
     path('api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
-    path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
+    *(
+        [path('api/scim/v2/', include('kobo.apps.kobo_scim.urls'))]
+        if apps.is_installed('kobo.apps.kobo_scim')
+        else []
+    ),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

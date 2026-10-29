@@ -1,4 +1,3 @@
-from django.utils.translation import gettext_lazy as t
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -7,6 +6,9 @@ from rest_framework.reverse import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_GROUP, SCIM_SCHEMA_USER
 from kobo.apps.kobo_scim.models import ScimGroup
+from kobo.apps.kobo_scim.provisioning import (
+    SocialAccountProvisioningResponseSerializer,
+)
 
 
 class ScimUserSerializer(serializers.ModelSerializer):
@@ -141,19 +143,8 @@ class ScimGroupSerializer(serializers.ModelSerializer):
         }
 
 
-class SocialAccountProvisioningResponseSerializer(serializers.Serializer):
-    """
-    Response schema for the social account provisioning polling endpoint.
-    """
-
-    ready = serializers.BooleanField(
-        help_text=t('Whether the account provisioning has completed.')
-    )
-    expired = serializers.BooleanField(
-        help_text=t('Whether the provisioning session has timed out.')
-    )
-    redirect_url = serializers.CharField(
-        required=False,
-        allow_null=True,
-        help_text=t('Destination URL to redirect to once logged in.'),
-    )
+__all__ = [
+    'ScimGroupSerializer',
+    'ScimUserSerializer',
+    'SocialAccountProvisioningResponseSerializer',
+]

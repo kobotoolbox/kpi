@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
@@ -83,6 +85,13 @@ class ScimProvisioningTestCase(TestCase):
         sociallogin = self._build_login()
         request = self._build_request()
         self.assertFalse(self.adapter.is_open_for_signup(request, sociallogin))
+
+    @patch('kobo.apps.accounts.adapter.apps.is_installed', return_value=False)
+    def test_is_scim_enabled_false_when_kobo_scim_not_installed(self, mock_is_installed):
+        sociallogin = self._build_login()
+        request = self._build_request()
+        self.assertFalse(self.adapter.is_scim_enabled(request, sociallogin))
+        self.assertIsNone(self.adapter.pre_social_login(request, sociallogin))
 
     def test_provisioning_html_view_renders_template_when_session_present(self):
         sociallogin = self._build_login()

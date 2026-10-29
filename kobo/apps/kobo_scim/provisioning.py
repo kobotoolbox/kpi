@@ -1,13 +1,15 @@
 from allauth.socialaccount.internal.flows.login import _login
 from allauth.socialaccount.internal.flows.signup import clear_pending_signup
 from allauth.socialaccount.models import SocialLogin
+from django.apps import apps
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, resolve_url
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 from django.views import View
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,13 +18,34 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.versioning import APIV2Versioning
 from .constants import SCIM_PROVISIONING_POLL_INTERVAL, SCIM_PROVISIONING_TIMEOUT
-from .serializers import SocialAccountProvisioningResponseSerializer
+
+
+class SocialAccountProvisioningResponseSerializer(serializers.Serializer):
+    """
+    Response schema for the social account provisioning polling endpoint.
+    """
+
+    ready = serializers.BooleanField(
+        help_text=t('Whether the account provisioning has completed.')
+    )
+    expired = serializers.BooleanField(
+        help_text=t('Whether the provisioning session has timed out.')
+    )
+    redirect_url = serializers.CharField(
+        required=False,
+        allow_null=True,
+        help_text=t('Destination URL to redirect to once logged in.'),
+    )
 
 
 @extend_schema(tags=['Authentication'])
 @extend_schema_view(
     get=extend_schema(
-        description=read_md('kobo_scim', 'social_accounts/provisioning.md'),
+        description=(
+            read_md('kobo_scim', 'social_accounts/provisioning.md')
+            if apps.is_installed('kobo.apps.kobo_scim')
+            else ''
+        ),
         responses=open_api_200_ok_response(
             SocialAccountProvisioningResponseSerializer,
             require_auth=False,
