@@ -1,8 +1,9 @@
-import { useQueries } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import { useLayoutEffect, useState } from 'react'
 import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
-import FormMap, { SUBMISSIONS_PER_PAGE } from '.'
+import FormMap from '.'
+import { SUBMISSIONS_PER_PAGE } from './mapUtils'
 
 interface FormMapWrapperProps {
   asset: AssetResponse
@@ -18,11 +19,15 @@ const DEFAULT_PAGE_SIZE = 1
 export default function FormMapWrapper(props: FormMapWrapperProps) {
   const [pageCount, setPageCount] = useState(DEFAULT_PAGE_SIZE)
   const [fields, setFields] = useState<string | undefined>(undefined)
+  // How many pages have been started, when we have to request them one at a time. Kept along with the `fields` it was
+  // counted for, so that new fields start again from the first page on the same render - an effect resetting it would
+  // let the old count request new pages first.
+  const [pageProgress, setPageProgress] = useState<{ fields?: string; count: number }>({ count: 1 })
   // Hard coded the sorting produced by `getSubmissions`
   const sort = JSON.stringify({ _id: -1 })
 
-  // We generate `pageCount` amount of queries because the data API is limited to 1000 results per page
-  const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
+  // We need several pages of queries because the data API is limited to 1000 results per page
+  const getPageQueryOptions = (index: number) => {
     return {
       queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'page', index, sort],
       queryFn: () =>
@@ -32,12 +37,37 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
           limit: SUBMISSIONS_PER_PAGE,
           sort: sort,
         }),
-      enabled: fields !== undefined,
+      // There can be up to 30 pages, so avoid refetching or retrying them all at once. They are still refetched whenever
+      // the map is opened, as nothing invalidates them when submissions are added, edited or deleted
+      refetchOnWindowFocus: false,
+      retry: 1,
     }
-  })
+  }
 
-  const results = useQueries({ queries: queryOptions })
+  // The first page is requested on its own, as its count decides how we request the rest
+  const firstPage = useQuery({ ...getPageQueryOptions(0), enabled: fields !== undefined })
+  // Only once it has (re)loaded, to avoid using stale data
+  const totalCount = firstPage.data?.status === 200 && !firstPage.isFetching ? firstPage.data.data.count : undefined
+
+  // With an exact count, `pageCount` is already capped to the pages holding submissions, so we request them all at once.
+  // So we do with 'many': we don't know where the submissions end, but counting up to the cap was quick, so requesting
+  // past the end is cheap. 'unknown' means counting timed out, so these queries are slow - there we request one page at
+  // a time, each once the one before it says there is a next page, so we never request pages past the end.
+  const canRequestAllPages = typeof totalCount === 'number' || totalCount === 'many'
+  const startedPages = canRequestAllPages ? pageCount : pageProgress.fields === fields ? pageProgress.count : 1
+
+  const otherPages = useQueries({
+    queries: Array.from({ length: Math.max(pageCount - 1, 0) }).map((_, otherIndex) => {
+      const index = otherIndex + 1
+      return { ...getPageQueryOptions(index), enabled: fields !== undefined && index < startedPages }
+    }),
+  })
+  const results = [firstPage].concat(otherPages)
+
+  // Only the pages this load has reached: the others can still hold data cached by an earlier load, which may have since
+  // been deleted, and would otherwise stay on the map if this load finds the submissions end sooner
   const allData = results
+    .slice(0, startedPages)
     .filter((result) => result.isSuccess)
     .flatMap((result) => {
       if (result.data && result.data.status === 200) {
@@ -45,10 +75,32 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
       }
       return []
     })
+
+  const latestPage = results[startedPages - 1]
+  const canStartNextPage =
+    !canRequestAllPages &&
+    startedPages < pageCount &&
+    latestPage?.isSuccess === true &&
+    !latestPage.isFetching &&
+    latestPage.data?.status === 200 &&
+    Boolean(latestPage.data.data.next)
+
+  // A layout effect starts the next page before the browser paints, so the loading message doesn't blink off in between
+  useLayoutEffect(() => {
+    if (canStartNextPage) {
+      setPageProgress({ fields, count: startedPages + 1 })
+    }
+  }, [canStartNextPage, fields, startedPages])
+
+  const changePageCount = (count: number) => {
+    setPageCount(count)
+    // Pages past the new count are dropped, so if it goes back up they have to be walked one at a time again
+    setPageProgress((progress) => {
+      return { ...progress, count: Math.min(progress.count, count) }
+    })
+  }
+
   const isLoading = results.some((result) => result.isLoading)
-  // Get total count from first query (only if not currently refetching to avoid stale data)
-  const totalCount =
-    results[0]?.data?.status === 200 && !results[0]?.isFetching ? results[0].data.data.count : undefined
 
   return (
     <FormMap
@@ -58,7 +110,7 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
       isLoading={isLoading}
       totalCount={totalCount}
       pageCount={pageCount}
-      setPageCount={setPageCount}
+      setPageCount={changePageCount}
       setFields={setFields}
     />
   )

@@ -1,13 +1,10 @@
 import './accountSettings.scss'
-
 import React, { useEffect, useState } from 'react'
-
 import { useBlocker } from 'react-router-dom'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
@@ -21,6 +18,7 @@ import {
   getProfilePatchData,
 } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
+import { useAccountFieldsConfig } from './useAccountFieldsConfig'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
@@ -36,6 +34,9 @@ const AccountSettings = () => {
   const isSelfDeleteFeatureEnabled = envStore.data.allow_self_account_deletion
 
   const { currentLoggedAccount, refreshAccount } = useProfile()
+
+  /** Same field config the authentication screens read, so both ask for the same things. */
+  const { data: fieldsConfig } = useAccountFieldsConfig()
 
   const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
 
@@ -109,11 +110,6 @@ const AccountSettings = () => {
 
   const accountName = currentLoggedAccount?.username || ''
 
-  const helpArticleUrl =
-    envStore.data.support_url && envStore.data.support_url.includes('support.kobotoolbox.org')
-      ? envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-      : envStore.data.support_url
-
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
@@ -131,9 +127,11 @@ const AccountSettings = () => {
           <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
-        {currentLoggedAccount && (
+        {/* No fields to render until `/environment` says which ones this instance asks for. */}
+        {currentLoggedAccount && fieldsConfig && (
           <bem.AccountSettings__item m='fields'>
             <AccountFieldsEditor
+              fieldsConfig={fieldsConfig}
               errors={fieldErrors}
               values={formFields}
               onFieldChange={onFieldChange}

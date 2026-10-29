@@ -45,7 +45,10 @@ class MfaAdminTestCase(BaseTestCase):
         totp = get_totp_authenticator(self.someuser)
         self.assertTrue(self.model_admin.has_delete_permission(self.request, totp))
 
-        self.model_admin.delete_model(self.request, totp)
+        self.assertTrue(UserProfile.objects.get(user=self.someuser).is_mfa_active)
+
+        with self.captureOnCommitCallbacks(execute=True):
+            self.model_admin.delete_model(self.request, totp)
 
         profile = UserProfile.objects.get(user=self.someuser)
         self.assertEqual(Authenticator.objects.filter(user=self.someuser).count(), 0)
@@ -63,10 +66,12 @@ class MfaAdminTestCase(BaseTestCase):
         self.assertIsNotNone(get_totp_authenticator(self.someuser))
 
     def test_bulk_deactivation(self):
-        self.model_admin.delete_queryset(
-            self.request, self.model_admin.get_queryset(self.request)
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            self.model_admin.delete_queryset(
+                self.request, self.model_admin.get_queryset(self.request)
+            )
         self.assertEqual(Authenticator.objects.filter(user=self.someuser).count(), 0)
+        self.assertFalse(UserProfile.objects.get(user=self.someuser).is_mfa_active)
 
     @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
     def test_superuser_deactivation_blocked_when_enforced(self):
@@ -119,21 +124,24 @@ class MfaAdminViewsTestCase(BaseTestCase):
         )
 
     def test_delete_page_deactivates_mfa(self):
+        self.assertTrue(UserProfile.objects.get(user=self.someuser).is_mfa_active)
         url = reverse('admin:mfa_authenticator_delete', args=(self.totp.pk,))
-        response = self.client.post(url, data={'post': 'yes'})
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(url, data={'post': 'yes'})
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         self.assertEqual(Authenticator.objects.filter(user=self.someuser).count(), 0)
         self.assertFalse(UserProfile.objects.get(user=self.someuser).is_mfa_active)
 
     def test_bulk_delete_action_deactivates_mfa(self):
-        response = self.client.post(
-            reverse('admin:mfa_authenticator_changelist'),
-            data={
-                'action': 'delete_selected',
-                '_selected_action': [self.totp.pk],
-                'post': 'yes',
-            },
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse('admin:mfa_authenticator_changelist'),
+                data={
+                    'action': 'delete_selected',
+                    '_selected_action': [self.totp.pk],
+                    'post': 'yes',
+                },
+            )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         self.assertEqual(Authenticator.objects.filter(user=self.someuser).count(), 0)
         self.assertFalse(UserProfile.objects.get(user=self.someuser).is_mfa_active)

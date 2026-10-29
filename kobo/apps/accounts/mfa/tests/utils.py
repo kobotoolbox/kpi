@@ -1,6 +1,7 @@
 import pyotp
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.totp.internal.auth import SECRET_SESSION_KEY
+from django.test import TestCase
 from django.urls import reverse
 
 from ..utils import get_totp_authenticator
@@ -28,7 +29,10 @@ def activate_mfa_for_user(client, user):
     client.force_login(user)
     client.post(reverse('mfa-activate', kwargs={'method': 'app'}))
     code = get_pending_mfa_code(client)
-    client.post(
-        reverse('mfa-confirm', kwargs={'method': 'app'}), data={'code': str(code)}
-    )
+    # Run the on-commit profile sync, which `TestCase` would otherwise skip
+    with TestCase.captureOnCommitCallbacks(execute=True):
+        client.post(
+            reverse('mfa-confirm', kwargs={'method': 'app'}),
+            data={'code': str(code)},
+        )
     client.logout()

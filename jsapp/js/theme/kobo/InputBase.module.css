@@ -33,6 +33,12 @@
   --input-placeholder-color: var(--mantine-color-gray-2);
 }
 
+/* Greyed out like disabled, but the text keeps its colour: read-only text still has to pass contrast checks.
+   `data-pointer` marks a non-searchable Select, which Mantine makes read-only too. */
+:not([data-pointer]) > .input[readonly] {
+  background-color: var(--input-disabled-bg);
+}
+
 .input[data-error] {
   border-color: var(--mantine-color-red-7);
 }

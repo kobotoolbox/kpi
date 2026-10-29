@@ -42,7 +42,7 @@ export default function SsoProviderButtonList({ socialApps, variant }: SsoProvid
         </ProviderRedirectButton>
       ))}
 
-      <Divider label={t('or')} labelPosition='center' />
+      <Divider label={t('or')} labelPosition='center' color='gray.5' />
     </Stack>
   )
 }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:35+0000\n"
+"POT-Creation-Date: 2026-10-28 17:49+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Thai (http://app.transifex.com/kobotoolbox/kobotoolbox/language/th/)\n"
@@ -885,36 +885,36 @@ msgstr "ควรมี id string เดียว"
 msgid "There should be a single title."
 msgstr "ควรมีชื่อเรื่องเดียว"
 
-#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/apps/logger/views.py:63
 #: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "การส่งข้อมูลสำเร็จ"
 
-#: kobo/apps/openrosa/apps/logger/views.py:94
+#: kobo/apps/openrosa/apps/logger/views.py:102
 msgid ""
 "There was a problem receiving your ODK submission. [Error: IO Error reading "
 "data]"
 msgstr "มีปัญหาในการรับการส่งข้อมูล ODK ของคุณ [ข้อผิดพลาด: ข้อผิดพลาดของ IO ในการอ่านข้อมูล]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:98
+#: kobo/apps/openrosa/apps/logger/views.py:110
 msgid ""
 "There was a problem receiving your ODK submission. [Error: multiple "
 "submission files (?)]"
 msgstr "มีปัญหาในการรับการรับ ODK ของคุณ [ข้อผิดพลาด: ไฟล์การส่งข้อมูลหลายไฟล์ (?)]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:120
+#: kobo/apps/openrosa/apps/logger/views.py:136
 #, python-format
 msgid ""
 "Submission complete. Out of %(total)d survey instances, %(success)d were "
 "imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
 msgstr "การส่งข้อมูลเรียบร้อยแล้ว จากกรณีตัวอย่างการสำรวจ %(total)d กรณีนั้น ได้นำเข้า %(success)d กรณี (%(rejected)d กรณีถูกปฏิเสธเนื่องจากซ้ำ แบบฟอร์มขาดหาย ฯลฯ)"
 
-#: kobo/apps/openrosa/apps/logger/views.py:190
+#: kobo/apps/openrosa/apps/logger/views.py:210
 #, python-format
 msgid "No XLS file for your form %(id)s"
 msgstr "ไม่มีไฟล์ XLS สำหรับแบบฟอร์ม %(id)s ของคุณ"
 
-#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/logger/views.py:228
 #: kobo/apps/openrosa/apps/viewer/views.py:42
 #: kobo/apps/openrosa/apps/viewer/views.py:95
 #: kobo/apps/openrosa/apps/viewer/views.py:114

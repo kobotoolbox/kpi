@@ -119,7 +119,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     def calculated_submission_count(
         self, user: settings.AUTH_USER_MODEL, **kwargs
-    ) -> int:
+    ) -> int | str:
         params = self.validate_submission_list_params(
             user, validate_count=True, **kwargs
         )
@@ -670,7 +670,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 '_userform_id': self.mongo_userform_id,
                 '_submission_time': {
                     '$gte': f'{timeframe[0]}',
-                    '$lte': f'{timeframe[1]}T23:59:59',
+                    '$lte': f'{timeframe[1]}T23:59:59+00:00',
                 },
             }
 

@@ -55,11 +55,13 @@ from kpi.constants import (
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.exceptions import (
+    AttachmentNotFoundException,
     InvalidXFormException,
     MissingXFormException,
     ObjectDeploymentDoesNotExist,
 )
 from kpi.models import Asset
+from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
@@ -269,6 +271,7 @@ class DataViewSet(
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
     )
+    pagination_class = DataPagination
     permission_classes = (SubmissionPermission,)
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
@@ -473,6 +476,14 @@ class DataViewSet(
                 )
             )
 
+        # The paginator owns the window, so `page` and `offset` reach MongoDB
+        # too. One extra row tells `DataPagination` whether a next page exists
+        offset = self.paginator.get_offset(request)
+        if offset is not None:
+            # `None` (no offset, 0 or invalid) keeps the back end's `start`
+            # validation
+            filters['start'] = offset
+        filters['limit'] = self.paginator.get_limit(request) + 1
         try:
             submissions = deployment.get_submissions(
                 request.user,
@@ -488,13 +499,9 @@ class DataViewSet(
                 raise serializers.ValidationError(message)
             logging.warning(message, exc_info=True)
             raise serializers.ValidationError('Unsupported query')
-        # Create a dummy list to let the Paginator do all the calculation
-        # for pagination because it does not need the list of real objects.
-        # It avoids retrieving all the objects from MongoDB
-        dummy_submissions_list = [None] * deployment.current_submission_count
-        page = self.paginate_queryset(dummy_submissions_list)
+        page = self.paginate_queryset(submissions)
         if page is not None:
-            return self.get_paginated_response(submissions)
+            return self.get_paginated_response(page)
 
         return Response(list(submissions))
 
@@ -628,6 +635,8 @@ class DataViewSet(
             raise serializers.ValidationError(
                 {'detail': 'Invalid qualitative analysis question configuration'}
             )
+        except AttachmentNotFoundException:
+            raise serializers.ValidationError({'detail': 'Attachment not found'})
 
         return Response(supplemental_data)
 
@@ -858,6 +867,8 @@ class DataViewSet(
 
         # Remove `format` from filters. No need to use it
         filters.pop('format', None)
+        # `skip_count` is internal: this endpoint must always return a count
+        filters.pop('skip_count', None)
         # Do not allow requests to retrieve more than `max_limit`
         # submissions at one time only if a limit is explicitly defined.
         if 'limit' in filters:
