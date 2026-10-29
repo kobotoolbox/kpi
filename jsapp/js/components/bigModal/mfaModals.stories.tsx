@@ -132,10 +132,10 @@ export const ConfirmWithoutPassword: Story = {
   },
 }
 
-/** allauth still trusts a login from a minute ago, so no password is asked */
-export const ConfirmSkipsPasswordAfterRecentLogin: Story = {
+/** allauth still trusts a reauthentication from a minute ago, so no password is asked */
+export const ConfirmSkipsPasswordAfterRecentReauthentication: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
-  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceLogin: 60 }) } },
+  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceReauthentication: 60 }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
@@ -146,10 +146,19 @@ export const ConfirmSkipsPasswordAfterRecentLogin: Story = {
   },
 }
 
+/** A login doesn't count as a reauthentication, however recent */
+export const ConfirmAsksPasswordAfterRecentLogin: Story = {
+  args: { modalType: 'qr', qrCode: TOTP_URL },
+  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceLogin: 10 }) } },
+  play: async ({ canvasElement }) => {
+    expect(await within(canvasElement).findByLabelText('Password')).toBeInTheDocument()
+  },
+}
+
 /** Close to the end of the window, the password is asked already */
 export const ConfirmAsksPasswordNearTimeout: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
-  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceLogin: 270 }) } },
+  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceReauthentication: 270 }) } },
   play: async ({ canvasElement }) => {
     expect(await within(canvasElement).findByLabelText('Password')).toBeInTheDocument()
   },

@@ -88,15 +88,15 @@ const REAUTHENTICATION_MARGIN_SECONDS = 60
 
 interface PasswordCheckReading {
   hasUsablePassword: boolean
-  /** Last (re)authentication, in server seconds */
-  authenticatedAt: number | null
+  /** Last reauthentication, in server seconds */
+  reauthenticatedAt: number | null
   /** Server clock when this reading came in, so a wrong browser clock doesn't matter */
   serverNow: number | null
 }
 
 /** Only the part of the session body this reads */
 interface SessionBody {
-  data?: { user?: { has_usable_password?: boolean }; methods?: Array<{ at?: number }> }
+  data?: { user?: { has_usable_password?: boolean }; methods?: Array<{ at?: number; reauthenticated?: boolean }> }
 }
 
 /** Whether allauth will want the password before 2FA goes on. A function, so submit can ask again. */
@@ -110,7 +110,8 @@ export function usePasswordCheck() {
         return {
           // SSO-only accounts have no password, and allauth doesn't ask them for one
           hasUsablePassword: body?.data?.user?.has_usable_password ?? true,
-          authenticatedAt: body?.data?.methods?.at(-1)?.at ?? null,
+          // Since allauth 65.20 a login doesn't count, only an explicit reauthentication
+          reauthenticatedAt: body?.data?.methods?.filter((method) => method.reauthenticated).at(-1)?.at ?? null,
           serverNow: Number.isNaN(serverDate) ? null : serverDate / 1000,
         }
       },
@@ -120,7 +121,7 @@ export function usePasswordCheck() {
 
   return () => {
     // Ask until we know otherwise
-    if (!data || data.authenticatedAt === null) {
+    if (!data || data.reauthenticatedAt === null) {
       return data?.hasUsablePassword ?? true
     }
     if (!data.hasUsablePassword) {
@@ -128,7 +129,7 @@ export function usePasswordCheck() {
     }
     // Server time of the reading, plus what the browser has counted since
     const readingNow = data.serverNow ?? dataUpdatedAt / 1000
-    const elapsed = readingNow - data.authenticatedAt + (Date.now() - dataUpdatedAt) / 1000
+    const elapsed = readingNow - data.reauthenticatedAt + (Date.now() - dataUpdatedAt) / 1000
     return elapsed > REAUTHENTICATION_TIMEOUT_SECONDS - REAUTHENTICATION_MARGIN_SECONDS
   }
 }
