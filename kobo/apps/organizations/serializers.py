@@ -42,6 +42,7 @@ from kpi.utils.schema_extensions.fields import (
     ReadOnlyFieldWithSchemaField,
 )
 from .constants import (
+    CANNOT_CHANGE_OWNER_ROLE_ERROR,
     INVALID_ROLE_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
@@ -59,6 +60,7 @@ from .constants import (
     ORG_EXTERNAL_ROLE,
     ORG_MEMBER_ROLE,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    PENDING_TRANSFER_ROLE_LOCKED_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_CANNOT_BE_OWNER_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
@@ -108,6 +110,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'user__is_active',
             'invite',
+            'pending_transfer',
         ]
 
     @extend_schema_field(OpenApiTypes.URI)
@@ -203,6 +206,18 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     def validate_role(self, role):
         if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
             raise InvalidMembershipRequest(INVALID_ROLE_ERROR)
+
+        if self.instance:
+            if self.instance.organization.is_owner(self.instance.user):
+                raise InvalidMembershipRequest(CANNOT_CHANGE_OWNER_ROLE_ERROR)
+
+            if OrganizationOwnershipTransfer.objects.filter(
+                organization=self.instance.organization,
+                recipient=self.instance.user,
+                status=OrganizationInviteStatusChoices.PENDING,
+            ).exists():
+                raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
+
         return role
 
 
