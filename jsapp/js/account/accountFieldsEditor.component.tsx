@@ -15,10 +15,9 @@ import Textarea from '#/components/common/Textarea'
 import type { ComboboxData } from '#/components/common/select.types'
 import { addRequiredToLabel } from '#/textUtils'
 import { recordKeys } from '#/utils'
-import envStore from '../envStore'
-import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
+import type { AccountFieldsConfig, AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import { ORGANIZATION_DEPENDENT_FIELD_NAMES } from './account.constants'
-import { hasNoOrganizationAffiliation } from './account.utils'
+import { getUserMetadataFieldsByName, hasNoOrganizationAffiliation } from './account.utils'
 import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
 
@@ -38,6 +37,11 @@ const ROW_PAIRS: Partial<Record<UserFieldName, UserFieldName>> = {
 }
 
 interface AccountFieldsEditorProps {
+  /**
+   * What this instance asks for: which fields exist, how they are labelled, and the country and sector choices.
+   * A prop rather than a store reading, so this works both with MobX and React Query.
+   */
+  fieldsConfig: AccountFieldsConfig
   /**
    * A list of fields to display in editor. Regardless of this list, all
    * the fields values will be returned with `onChange` callback (to avoid
@@ -59,19 +63,17 @@ interface AccountFieldsEditorProps {
  * values. It DOES NOT handle the API calls to update the values on the endpoint.
  */
 export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
-  if (!envStore.isReady) {
-    return null
-  }
-
-  const metadata = envStore.data.getUserMetadataFieldsAsSimpleDict()
+  const { userMetadataFields } = props.fieldsConfig
+  const metadata = getUserMetadataFieldsByName(userMetadataFields)
 
   /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
-    if (!metadata[fieldName]?.label) {
+    const label = metadata[fieldName]?.label
+    if (!label) {
       // Here it means a field is on screen that the Backend never configured, which is worth knowing about
       console.error(`No label for fieldname "${fieldName}"`)
     }
-    return envStore.data.getUserMetadataFieldLabel(fieldName)
+    return label || fieldName
   }
 
   /** Is this field required by Backend configuration? */
@@ -141,7 +143,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    */
   const areOrganizationFieldsToBeSkipped = hasNoOrganizationAffiliation(
     props.values,
-    envStore.data.getUserMetadataFieldNames(),
+    userMetadataFields.map((field) => field.name),
   )
 
   /**
@@ -211,9 +213,9 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       ),
     },
     gender: { section: 'main', render: () => select('gender', GENDER_SELECT_OPTIONS, { searchable: false }) },
-    country: { section: 'main', render: () => select('country', envStore.data.country_choices) },
+    country: { section: 'main', render: () => select('country', props.fieldsConfig.countryChoices) },
     city: { section: 'main', render: () => <TextInput size='sm' {...labelProps('city')} {...textProps('city')} /> },
-    sector: { section: 'main', render: () => select('sector', envStore.data.sector_choices) },
+    sector: { section: 'main', render: () => select('sector', props.fieldsConfig.sectorChoices) },
     organization_type: {
       section: 'main',
       render: () => select('organization_type', ORGANIZATION_TYPE_SELECT_OPTIONS),

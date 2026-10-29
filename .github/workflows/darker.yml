@@ -52,10 +52,9 @@ jobs:
 
           # Run darker. (https://github.com/akaihola/darker)
           # -L runs the linter
-          #  `--ignore=F821` avoids raising false positive error in typing
+          #  `--extend-ignore=F821` avoids raising false positive error in typing
           #   annotations with string, e.g. def my_method(my_model: 'ModelName')
-          #  `E203` (whitespace before ':') conflicts with black, which puts
-          #   spaces around ':' in complex slices, e.g. `text[a.find(b) : -1]`
+          #  `--extend-ignore=E203` avoids conflict with Black PEP-8 slice whitespace
           # -r REV specifies a commit to compare with the worktree
           #
           # Let darker's exit code decide: it is 0 when there is nothing to
