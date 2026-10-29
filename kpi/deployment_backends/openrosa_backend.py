@@ -670,7 +670,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 '_userform_id': self.mongo_userform_id,
                 '_submission_time': {
                     '$gte': f'{timeframe[0]}',
-                    '$lte': f'{timeframe[1]}T23:59:59',
+                    '$lte': f'{timeframe[1]}T23:59:59+00:00',
                 },
             }
 
