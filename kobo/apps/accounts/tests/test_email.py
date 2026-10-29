@@ -263,6 +263,23 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         assert res.status_code == status.HTTP_403_FORBIDDEN
         assert self._pending_emails() == 0
 
+    def test_recent_login_is_accepted(self):
+        record_authentication(self.client, reauthenticated=False)
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1
+
+    def test_reauthentication_through_allauth_is_accepted(self):
+        res = self.client.post(
+            '/api/v2/allauth/browser/v1/auth/reauthenticate',
+            data={'password': 'secret'},
+            format='json',
+        )
+        assert res.status_code == status.HTTP_200_OK
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1
+
     @override_settings(ACCOUNT_REAUTHENTICATION_TIMEOUT=3600)
     def test_timeout_setting_is_honoured(self):
         record_authentication(self.client, age=301)
