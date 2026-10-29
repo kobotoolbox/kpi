@@ -5,8 +5,6 @@ import unittest
 
 import pytest
 from django.conf import settings
-from django.core.management import call_command
-from django.core.management.base import CommandError
 from pyxform.errors import PyXFormError
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -15,45 +13,6 @@ from kobo.apps.openrosa.libs.utils.logger_tools import report_exception
 
 
 class TestPublishXLS(TestBase):
-
-    def test_publish_xls(self):
-        xls_file_path = os.path.join(
-            self.this_directory, 'fixtures', 'transportation', 'transportation.xls'
-        )
-        count = XForm.objects.count()
-        call_command('publish_xls', xls_file_path, self.user.username)
-        self.assertEqual(XForm.objects.count(), count + 1)
-        form = XForm.objects.get()
-        self.assertTrue(form.require_auth)
-
-    def test_publish_xls_replacement(self):
-        count = XForm.objects.count()
-        xls_file_path = os.path.join(
-            self.this_directory, 'fixtures', 'transportation', 'transportation.xls'
-        )
-        call_command('publish_xls', xls_file_path, self.user.username)
-        self.assertEqual(XForm.objects.count(), count + 1)
-        count = XForm.objects.count()
-        xls_file_path = os.path.join(
-            self.this_directory,
-            'fixtures',
-            'transportation',
-            'transportation_updated.xls',
-        )
-        # call command without replace param
-        with self.assertRaises(CommandError):
-            call_command('publish_xls', xls_file_path, self.user.username)
-        # now we call the command with the replace param
-        call_command(
-            'publish_xls', xls_file_path, self.user.username, replace=True)
-        # count should remain the same
-        self.assertEqual(XForm.objects.count(), count)
-        # check if the extra field has been added
-        self.xform = XForm.objects.order_by('id').reverse()[0]
-        data_dictionary = self.xform.data_dictionary()
-        is_updated_form = len([e.name for e in data_dictionary.survey_elements
-                               if e.name == 'preferred_means']) > 0
-        self.assertTrue(is_updated_form)
 
     @unittest.skip('Fails under Django 1.6')
     def test_line_break_in_variables(self):

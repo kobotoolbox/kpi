@@ -820,10 +820,9 @@ class TestFormVersionsOnSubmission(TestCase):
     def test_recomputing_the_hash_from_the_stored_xml_matches_the_client(self):
         """
         Maintenance paths recompute `xml_hash` straight from `instance.xml`
-        (`clean_duplicated_submissions`, `fix_root_node_names`,
-        `populate_xml_hashes_for_instances`, ...). They must land on the value
-        duplicate detection compares, otherwise a later retry or a split upload
-        no longer finds the record.
+        (`clean_duplicated_submissions`, `populate_xml_hashes_for_instances`,
+        ...). They must land on the value duplicate detection compares,
+        otherwise a later retry or a split upload no longer finds the record.
         """
 
         self._deploy(VERSION_2)
