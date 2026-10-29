@@ -827,6 +827,7 @@ paths:
         Allowed fields are:
 
         - `asset_type`
+        - `date_created`
         - `date_modified`
         - `date_deployed`
         - `date_modified__date`
@@ -11845,6 +11846,72 @@ paths:
                 $ref: '#/components/schemas/CheckoutLink'
           description: ''
   /api/v2/stripe/customer-portal:
+    get:
+      operationId: api_v2_stripe_customer_portal_retrieve
+      parameters:
+      - in: query
+        name: organization_id
+        schema:
+          type: string
+        description: Organization ID (starts with org)
+        required: true
+      tags:
+      - Other
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerBillingDetailsResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorValidation'
+              examples:
+                BadRequest:
+                  value:
+                    field_name:
+                    - Error message
+                  summary: Bad request
+          description: ''
     post:
       operationId: api_v2_stripe_customer_portal_create
       tags:
@@ -17204,6 +17271,32 @@ components:
       - metadata
       - name
       - type
+    BillingCycleInfo:
+      type: object
+      properties:
+        billing_cycle_anchor:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        current_period_start:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        current_period_end:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        interval:
+          type:
+          - string
+          - 'null'
+        status:
+          type:
+          - string
+          - 'null'
     BlankEnum:
       enum:
       - ''
@@ -17754,6 +17847,72 @@ components:
         * `archived` - archived
         * `deployed` - deployed
         * `draft` - draft
+    CustomerAddress:
+      type: object
+      properties:
+        city:
+          type:
+          - string
+          - 'null'
+        country:
+          type:
+          - string
+          - 'null'
+        line1:
+          type:
+          - string
+          - 'null'
+        line2:
+          type:
+          - string
+          - 'null'
+        postal_code:
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+    CustomerBillingDetailsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type:
+          - string
+          - 'null'
+        email:
+          type:
+          - string
+          - 'null'
+        phone:
+          type:
+          - string
+          - 'null'
+        address:
+          oneOf:
+          - $ref: '#/components/schemas/CustomerAddress'
+          - type: 'null'
+        balance:
+          type:
+          - integer
+          - 'null'
+        currency:
+          type:
+          - string
+          - 'null'
+        billing_cycle_info:
+          oneOf:
+          - $ref: '#/components/schemas/BillingCycleInfo'
+          - type: 'null'
+        url:
+          type:
+          - string
+          - 'null'
+      required:
+      - id
     CustomerPortal:
       type: object
       properties:
@@ -20150,8 +20309,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20177,8 +20344,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20204,8 +20379,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20287,8 +20470,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20314,8 +20505,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20341,8 +20540,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20391,8 +20598,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20488,8 +20703,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20515,8 +20738,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20542,8 +20773,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20569,8 +20808,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20596,8 +20843,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20623,8 +20878,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20650,8 +20913,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20677,8 +20948,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20704,8 +20983,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20731,8 +21018,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20758,8 +21053,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20785,8 +21088,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20812,8 +21123,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20839,8 +21158,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20866,8 +21193,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20893,8 +21228,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20943,8 +21286,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20970,8 +21321,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -20997,8 +21356,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21024,8 +21391,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21107,8 +21482,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21134,8 +21517,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21184,8 +21575,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21211,8 +21610,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21238,8 +21645,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21265,8 +21680,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string
@@ -21315,8 +21738,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string

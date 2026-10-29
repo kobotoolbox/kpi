@@ -1193,7 +1193,7 @@
         "/api/v2/assets/": {
             "get": {
                 "operationId": "api_v2_assets_list",
-                "description": "## Get user's assets\n\n\nSearch can be made with `q` parameter.\nSearch filters can be returned with results by passing `metadata=on` to querystring.\n\n\nResults can be sorted with `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name\n```\n\n\nAllowed fields are:\n\n- `asset_type`\n- `date_modified`\n- `date_deployed`\n- `date_modified__date`\n- `date_deployed__date`\n- `name`\n- `settings__sector`\n- `settings__sector__value`\n- `settings__description`\n- `owner__username`\n- `owner__extra_details__data__name`\n- `owner__extra_details__data__organization`\n- `owner__email`\n- `_deployment_status`\n- `subscribers_count`\n\n\nNote: Collections can be displayed first with parameter `collections_first`, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name\n```\n",
+                "description": "## Get user's assets\n\n\nSearch can be made with `q` parameter.\nSearch filters can be returned with results by passing `metadata=on` to querystring.\n\n\nResults can be sorted with `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name\n```\n\n\nAllowed fields are:\n\n- `asset_type`\n- `date_created`\n- `date_modified`\n- `date_deployed`\n- `date_modified__date`\n- `date_deployed__date`\n- `name`\n- `settings__sector`\n- `settings__sector__value`\n- `settings__description`\n- `owner__username`\n- `owner__extra_details__data__name`\n- `owner__extra_details__data__organization`\n- `owner__email`\n- `_deployment_status`\n- `subscribers_count`\n\n\nNote: Collections can be displayed first with parameter `collections_first`, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -16282,6 +16282,117 @@
             }
         },
         "/api/v2/stripe/customer-portal": {
+            "get": {
+                "operationId": "api_v2_stripe_customer_portal_retrieve",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "organization_id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Organization ID (starts with org)",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomerBillingDetailsResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "field_name": [
+                                                "Error message"
+                                            ]
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
             "post": {
                 "operationId": "api_v2_stripe_customer_portal_create",
                 "tags": [
@@ -23774,6 +23885,44 @@
                     "type"
                 ]
             },
+            "BillingCycleInfo": {
+                "type": "object",
+                "properties": {
+                    "billing_cycle_anchor": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "current_period_start": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "current_period_end": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "interval": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
             "BlankEnum": {
                 "enum": [
                     ""
@@ -24559,6 +24708,114 @@
                 ],
                 "type": "string",
                 "description": "* `archived` - archived\n* `deployed` - deployed\n* `draft` - draft"
+            },
+            "CustomerAddress": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "country": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "line1": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "line2": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "postal_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "state": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "CustomerBillingDetailsResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "address": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CustomerAddress"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "balance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "billing_cycle_info": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/BillingCycleInfo"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id"
+                ]
             },
             "CustomerPortal": {
                 "type": "object",
@@ -27975,8 +28232,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28012,8 +28281,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28049,8 +28330,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28171,8 +28464,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28208,8 +28513,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28245,8 +28562,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28314,8 +28643,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28449,8 +28790,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28486,8 +28839,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28523,8 +28888,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28560,8 +28937,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28597,8 +28986,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28634,8 +29035,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28671,8 +29084,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28708,8 +29133,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28745,8 +29182,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28782,8 +29231,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28819,8 +29280,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28856,8 +29329,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28893,8 +29378,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28930,8 +29427,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -28967,8 +29476,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29004,8 +29525,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29073,8 +29606,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29110,8 +29655,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29147,8 +29704,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29184,8 +29753,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29299,8 +29880,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29336,8 +29929,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29405,8 +30010,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29442,8 +30059,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29479,8 +30108,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29516,8 +30157,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
@@ -29585,8 +30238,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
