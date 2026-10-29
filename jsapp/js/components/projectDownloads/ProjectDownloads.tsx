@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
+import { getAssetsExportSettingsListQueryKey, useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import AnonymousExports from '#/components/projectDownloads/AnonymousExports'
 import LegacyExports from '#/components/projectDownloads/LegacyExports'
 import ProjectExportsCreator from '#/components/projectDownloads/ProjectExportsCreator'
 import ProjectExportsList from '#/components/projectDownloads/ProjectExportsList'
+import SynchronousExportsTable from '#/components/projectDownloads/SynchronousExportsTable'
 import { DEFAULT_EXPORT_SETTINGS } from '#/components/projectDownloads/exportsConstants'
 import type { AssetResponse } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import profileStore from '#/stores/profile'
 import type { ExportTypeDefinition } from './exportsConstants'
 
@@ -21,9 +24,16 @@ interface ProjectDownloadsProps {
  * @prop {object} asset
  */
 export default function ProjectDownloads(props: ProjectDownloadsProps) {
+  const isSynchronousExportsEnabled = useFeatureFlag(FeatureFlag.synchronousExportsEnabled)
   const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(
     DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE,
   )
+  const exportSettingsQuery = useAssetsExportSettingsList(props.asset.uid, undefined, {
+    query: {
+      enabled: profileStore.isLoggedIn && !selectedExportType.isLegacy,
+      queryKey: getAssetsExportSettingsListQueryKey(props.asset.uid),
+    },
+  })
 
   useEffect(() => {
     setSelectedExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE)
@@ -48,10 +58,12 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
       <React.Fragment>
         <ProjectExportsCreator
           asset={props.asset}
+          exportSettingsQuery={exportSettingsQuery}
           selectedExportType={selectedExportType}
           setSelectedExportType={onSetSelectedExportType}
         />
         <ProjectExportsList asset={props.asset} selectedExportType={selectedExportType} />
+        {isSynchronousExportsEnabled && <SynchronousExportsTable exportSettingsQuery={exportSettingsQuery} />}
       </React.Fragment>
     )
   }
