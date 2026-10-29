@@ -374,9 +374,10 @@ export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolea
 
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
- * questions are analyzed straight from the submission answer (mirroring the back
- * end's `RequiresTranscriptionMixin.attach_action_dependency`), so they need a
- * non-empty answer; every other type needs a transcript first.
+ * and image questions are analyzed straight from the submission answer (mirroring
+ * the back end's `RequiresTranscriptionMixin.attach_action_dependency`), so they
+ * need a non-empty answer (for images, the file name); every other type needs a
+ * transcript first.
  */
 export const hasAnalysisSource = (
   questionType: AnyRowTypeName | undefined,
@@ -384,7 +385,7 @@ export const hasAnalysisSource = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): boolean => {
-  if (isTextQuestionType(questionType)) {
+  if (isTextQuestionType(questionType) || isImageQuestionType(questionType)) {
     const answer = submission[xpath]
     return typeof answer === 'string' && answer.trim() !== ''
   }
@@ -412,10 +413,14 @@ export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
 
 /**
  * Returns the Processing tabs available for a given question type, in display
- * order. Transcript is omitted for question types that have no audio/video
- * response to transcribe (e.g. text).
+ * order, so the first one is the default tab. Transcript is omitted for
+ * question types that have no audio/video response to transcribe (e.g. text),
+ * and Translations too for those with no text to translate either (image).
  */
 export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (isImageQuestionType(questionType)) {
+    return [ProcessingTab.Analysis]
+  }
   if (isTextQuestionType(questionType)) {
     return [ProcessingTab.Translations, ProcessingTab.Analysis]
   }

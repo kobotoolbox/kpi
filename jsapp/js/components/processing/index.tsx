@@ -15,7 +15,6 @@ import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PROCESSING_BULK_ACTIONS_POLL_INTERVAL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import { addDefaultUuidPrefix, getSubmissionRootUuid } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
@@ -23,7 +22,7 @@ import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
 import { getAvailableTabsForQuestionType } from './common/utils'
 import styles from './index.module.scss'
-import { ProcessingTab, goToTabRoute, isProcessingRouteActive } from './routes.utils'
+import { TAB_ROUTES, getActiveTab, goToTabRoute } from './routes.utils'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -106,17 +105,19 @@ export default function SingleProcessingRoute({
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
   const pageTitle = 'Data | KoboToolbox'
 
-  // Guards against landing on Transcript for a question type that doesn't
-  // support it. This must live here (rather than in `SingleProcessingContent`)
-  // because that component isn't mounted when the question has no answer, so
-  // its own guard would never run for a cold-cache load onto that state.
+  // Guards against landing on a tab the question type doesn't support (e.g.
+  // Transcript for text), by moving to its default tab. This must live here
+  // (rather than in `SingleProcessingContent`) because that component isn't
+  // mounted when the question has no answer, so its own guard would never run
+  // for a cold-cache load onto that state.
   const questionType = asset?.content ? findRowByXpath(asset.content, questionXpath)?.type : undefined
-  const isTranscriptAvailable = getAvailableTabsForQuestionType(questionType).includes(ProcessingTab.Transcript)
   useEffect(() => {
-    if (asset && !isTranscriptAvailable && isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-      goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS)
+    const availableTabs = getAvailableTabsForQuestionType(questionType)
+    const activeTab = getActiveTab()
+    if (asset && activeTab && !availableTabs.includes(activeTab)) {
+      goToTabRoute(TAB_ROUTES[availableTabs[0]])
     }
-  }, [asset, isTranscriptAvailable])
+  }, [asset, questionType])
 
   // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
   // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.
