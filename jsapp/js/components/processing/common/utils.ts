@@ -397,18 +397,33 @@ export enum StaticDisplays {
   // Keep the enum ordering, since it controls the order of display options in the UI
   Audio = 'Audio',
   Text = 'Text',
+  Image = 'Image',
   Data = 'Data',
   Transcript = 'Transcript',
 }
 
 export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
-  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data]],
+  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image, StaticDisplays.Data]],
   [
     ProcessingTab.Translations,
-    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript],
+    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image, StaticDisplays.Data, StaticDisplays.Transcript],
   ],
-  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [
+    ProcessingTab.Analysis,
+    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
 ])
+
+/**
+ * Whether a display applies to a question type. Audio, Text and Image show the
+ * response itself, so each one only applies to its own question type.
+ */
+export function isDisplayAvailable(display: DisplaysList[number], questionType: AnyRowTypeName | undefined): boolean {
+  if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
+  if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
+  if (display === StaticDisplays.Image) return isImageQuestionType(questionType)
+  return true
+}
 
 /**
  * Returns the Processing tabs available for a given question type, in display
@@ -424,8 +439,8 @@ export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | u
 
 /**
  * Gets the default displays for a given processing tab, dropping whichever of
- * Audio/Text can't apply to the given question type (they're mutually
- * exclusive, and the baked-in defaults above include both).
+ * Audio/Text/Image can't apply to the given question type (they're mutually
+ * exclusive, and the baked-in defaults above include all of them).
  *
  * @param tabName - The processing tab name
  * @param questionType - The current question's type, if known
@@ -440,11 +455,7 @@ export const getDefaultDisplaysForTab = (
   }
   const defaults = DefaultDisplays.get(tabName) || []
 
-  return defaults.filter((display) => {
-    if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
-    if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
-    return true
-  })
+  return defaults.filter((display) => isDisplayAvailable(display, questionType))
 }
 
 /**

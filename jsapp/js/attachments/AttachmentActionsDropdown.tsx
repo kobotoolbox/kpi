@@ -38,6 +38,8 @@ interface AttachmentActionsDropdownProps {
    * Off by default.
    */
   showProcessingAction?: boolean
+  /** Leaves out the "Delete" entry. Off by default. */
+  hideDeleteAction?: boolean
 }
 
 /**
@@ -118,7 +120,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
           {t('Download')}
         </Menu.Item>
-        {userCanChangeSubmission && (
+        {userCanChangeSubmission && !props.hideDeleteAction && (
           <>
             <Menu.Divider />
             <Menu.Item variant='danger' onClick={() => setIsDeleteModalOpen(true)} leftSection={<Icon name='trash' />}>
