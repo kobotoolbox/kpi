@@ -24,11 +24,8 @@
     <p class="registration__message" style="color: #d9534f; margin-bottom: 1.5rem;">
       {% trans "Sorry, provisioning data were not received for your account. Please try again later." %}
     </p>
-    <div style="display: flex; gap: 1rem; justify-content: center; align-items: center;">
-      <button type="button" id="provisioning-retry-button" class="kobo-button kobo-button--blue">
-        {% trans "Check again" %}
-      </button>
-      <a href="{% url 'account_login' %}">
+    <div style="display: flex; justify-content: center; align-items: center;">
+      <a href="{% url 'account_login' %}" class="kobo-button kobo-button--blue">
         {% trans "Back to login" %}
       </a>
     </div>
