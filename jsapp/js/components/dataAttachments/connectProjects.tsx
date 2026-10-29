@@ -20,6 +20,7 @@ import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttach
 import { MAX_DISPLAYED_STRING_LENGTH, ROOT_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { replaceBracketsWithLink } from '#/textUtils'
 import { useProfile } from '#/stores/useProfile'
 import { ANON_USERNAME } from '#/users/utils'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
@@ -29,7 +30,7 @@ import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
 import openDataAttachmentColumnsModal from './openDataAttachmentColumnsModal'
 
-const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
+const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment_formbuilder.html'
 
 const SHARING_ENABLED_PROJECTS_PARAMS = { q: 'data_sharing__enabled:true' }
 
@@ -385,24 +386,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     <bem.FormView__row>
       <bem.FormView__cell m={['page-title']}>
         <i className='k-icon k-icon-folder-out' />
-        <h2>{t('Share data with other project forms')}</h2>
+        <h2>{t('Allow data sharing with other projects')}</h2>
       </bem.FormView__cell>
 
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.FormView__form>
-          <span>
-            {t(
-              'Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments',
-            )}
-            &nbsp;
-            <a
-              href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {t('here')}
-            </a>
-          </span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: replaceBracketsWithLink(
+                t(
+                  "Allow other forms to use this project's data as a dynamic data attachment. Learn more about dynamic data attachments [here]",
+                ),
+                envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
+              ),
+            }}
+          />
 
           <ConnectProjectsExports
             isShared={isShared}
@@ -418,20 +416,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
       <bem.FormView__cell m={['page-title']}>
         <i className='k-icon k-icon-folder-in' />
-        <h2>{t('Import other project data')}</h2>
+        <h2>{t('Import project data')}</h2>
       </bem.FormView__cell>
 
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.FormView__form>
-          <span>
-            {t(
-              'Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments',
-            )}
-            &nbsp;
-            <a href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL} target='_blank'>
-              {t('here')}
-            </a>
-          </span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: replaceBracketsWithLink(
+                t(
+                  'Select one or more projects to use their data as dynamic data attachments in this project. Learn more about dynamic data attachments [here]',
+                ),
+                envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
+              ),
+            }}
+          />
           <ConnectProjectsImports
             selectComponent={
               <ConnectProjectsSelect
