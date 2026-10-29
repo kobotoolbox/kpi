@@ -16,24 +16,10 @@ import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import styles from './LoginForm.module.scss'
-import { type LoginCredential, getLoginCredentialParam } from './loginCredential'
 
 interface LoginFormValues {
-  /** Username or email address, depending on what the server accepts */
-  identifier: string
+  username: string
   password: string
-}
-
-/** What to call the credential field, and what to let the browser fill it with. */
-function getCredentialFieldProps(credential: LoginCredential) {
-  switch (credential) {
-    case 'email':
-      return { label: t('Email'), type: 'email', autoComplete: 'email' } as const
-    case 'username':
-      return { label: t('Username'), type: 'text', autoComplete: 'username' } as const
-    default:
-      return { label: t('Username or email address'), type: 'text', autoComplete: 'username' } as const
-  }
 }
 
 /** How far the sign-in got, for the route to turn into a panel. */
@@ -42,51 +28,32 @@ export type LoginOutcome =
   | { kind: 'authenticated' }
   /** A session was already there, so there was nothing to sign in to. */
   | { kind: 'alreadyAuthenticated' }
-  /**
-   * Right credentials, unconfirmed address. `email` is only known on a server that signs in by address - with
-   * a username there is nothing to prefill the resend with.
-   */
-  | { kind: 'emailVerificationRequired'; email?: string }
+  /** Right credentials, unconfirmed address. */
+  | { kind: 'emailVerificationRequired' }
   /** Credentials accepted, and allauth wants a one-time code before it hands out the session. */
   | { kind: 'mfaRequired' }
   /** Credentials accepted, but allauth wants a step this screen cannot show yet. */
   | { kind: 'unsupportedStep' }
 
-/** Moves the credential error onto the input that shows it */
-function withIdentifierError(fieldErrors: Record<string, string>, credentialParam: string) {
-  const { [credentialParam]: credentialError, ...rest } = fieldErrors
-  return credentialError ? { ...rest, identifier: credentialError } : rest
-}
-
 export interface LoginFormProps {
-  credential: LoginCredential
   /** From `/api/v2/environment/`. The single sign-on providers this server advertises, if any. */
   socialApps: SocialApp[] | undefined
-  /** Blocks submitting until allauth's settings land, since the field name comes from them */
-  isConfigurationPending: boolean
   /** Drops the signup link: with signup closed there is only a dead end behind it */
   isRegistrationClosed?: boolean
   onOutcome: (outcome: LoginOutcome) => void
 }
 
 /** The single sign-on providers, then the credentials. Password recovery etc. live elsewhere */
-export default function LoginForm({
-  credential,
-  socialApps,
-  isConfigurationPending,
-  isRegistrationClosed = false,
-  onOutcome,
-}: LoginFormProps) {
-  const credentialParam = getLoginCredentialParam(credential)
+export default function LoginForm({ socialApps, isRegistrationClosed = false, onOutcome }: LoginFormProps) {
   // SSO buttons take the primary look when there are any
   const hasProviders = Boolean(socialApps?.length)
 
   const form = useForm<LoginFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
-    initialValues: { identifier: '', password: '' },
+    initialValues: { username: '', password: '' },
     validate: {
-      identifier: validateRequiredField,
+      username: validateRequiredField,
       // Untrimmed, because spaces are a legitimate part of a password
       password: (value) => (value ? null : getRequiredFieldMessage()),
     },
@@ -99,7 +66,7 @@ export default function LoginForm({
     mutation: {
       // Rejections land here too, not in `onError`: allauth signals with status codes, so `fetchAllauth`
       // hands back every answer below 500 as data for us to read.
-      onSuccess: (response, variables) => {
+      onSuccess: (response) => {
         if (response.status === 200 && response.data.meta.is_authenticated) {
           onOutcome({ kind: 'authenticated' })
           return
@@ -114,10 +81,7 @@ export default function LoginForm({
         if (pendingFlowIds.includes(FlowId.verify_email)) {
           // `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`, the KPI default. Nothing was mailed - our
           // `AccountAdapter` declines allauth's resend on a headless login - so the panel has to offer one.
-          onOutcome({
-            kind: 'emailVerificationRequired',
-            email: 'email' in variables.data ? variables.data.email : undefined,
-          })
+          onOutcome({ kind: 'emailVerificationRequired' })
           return
         }
         if (pendingFlowIds.includes(FlowId.mfa_authenticate)) {
@@ -128,8 +92,8 @@ export default function LoginForm({
           onOutcome({ kind: 'unsupportedStep' })
           return
         }
-        const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, [credentialParam, 'password'])
-        form.setErrors(withIdentifierError(fieldErrors, credentialParam))
+        const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, ['username', 'password'])
+        form.setErrors(fieldErrors)
         setFormErrors(bannerErrors)
       },
       // Only a 5xx or a dead connection gets this far. Handling it here rather than leaving it to the
@@ -139,20 +103,8 @@ export default function LoginForm({
   })
 
   const handleSubmit = (values: LoginFormValues) => {
-    // The button below is disabled while we wait, but better be safe and check here too
-    if (isConfigurationPending) {
-      return
-    }
-
     setFormErrors([])
-
-    const identifier = values.identifier.trim()
-    const body = (
-      credentialParam === 'email'
-        ? { email: identifier, password: values.password }
-        : { username: identifier, password: values.password }
-    ) satisfies LoginBody
-
+    const body = { username: values.username.trim(), password: values.password } satisfies LoginBody
     login.mutate({ data: body })
   }
 
@@ -176,14 +128,15 @@ export default function LoginForm({
         </Alert>
       )}
 
-      {/* `noValidate` so an address the browser dislikes still reaches the server */}
+      {/* Shows our field errors instead of the browser's popups */}
       <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
         <Stack gap='xl'>
           <Stack gap='sm'>
             <TextInput
-              {...getCredentialFieldProps(credential)}
-              key={form.key('identifier')}
-              {...withAuthFieldError(form.getInputProps('identifier'))}
+              label={t('Username')}
+              autoComplete='username'
+              key={form.key('username')}
+              {...withAuthFieldError(form.getInputProps('username'))}
               required
             />
 
@@ -207,7 +160,7 @@ export default function LoginForm({
             type='submit'
             size='lg'
             fullWidth
-            loading={isConfigurationPending || login.isPending}
+            loading={login.isPending}
           >
             {t('Log in')}
           </ButtonNew>

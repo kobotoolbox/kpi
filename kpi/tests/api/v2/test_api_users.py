@@ -1,7 +1,9 @@
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import LIMITED_COUNT_MANY
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -29,6 +31,20 @@ class UserListTests(BaseTestCase):
         assert len(response.data['results']) == 1
         assert response.data['results'][0]['username'] == 'adminuser'
 
+    def test_user_list_past_the_last_page_stays_paginated(self):
+        url = reverse(self._get_endpoint('user-kpi-list'))
+        response = self.client.get(url, {'start': 1000}, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'] == []
+        assert response.data['next'] is None
+
+    def test_user_list_search_without_match_stays_paginated(self):
+        url = reverse(self._get_endpoint('user-kpi-list'))
+        response = self.client.get(url, {'q': 'nobody_matches'}, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
+        assert response.data['results'] == []
+
     def test_user_list_forbidden_non_superuser(self):
         """
         a non-superuser cannot query the entire user list
@@ -47,6 +63,14 @@ class UserListTests(BaseTestCase):
         url = reverse(self._get_endpoint('user-kpi-list'))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        url = reverse(self._get_endpoint('user-kpi-list'))
+        response = self.client.get(url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
 
     def test_user_page_succeeds(self):
         """

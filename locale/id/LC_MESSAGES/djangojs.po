@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:39+0000\n"
+"POT-Creation-Date: 2026-10-28 17:49+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Satrio Waskitho <satriowaskitho@gmail.com>, 2022\n"
 "Language-Team: Indonesian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/id/)\n"
@@ -93,7 +93,7 @@ msgstr "Untuk menyelesaikan tindakan ini, masukkan nama pengguna Anda di bawah i
 #: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:96
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:103
 #: jsapp/js/components/common/openKoboConfirmModal.tsx:13
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:331
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:77
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:162
@@ -2696,40 +2696,40 @@ msgstr "SELESAI"
 msgid "Confirm"
 msgstr "Konfirmasi"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:110
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:156
 msgid "Deleted project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:183
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:229
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:6
 msgid "No project selected"
 msgstr "Tidak ada proyek yang dipilih"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:186
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:232
 msgid "Field is empty"
 msgstr "Bagian kosong"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:199
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:245
 msgid "Could not remove import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:247
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:259
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:293
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:305
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:111
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:132
 msgid "Failed to attach to source"
 msgstr "Gagal melampirkan ke sumber"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:248
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:294
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:112
 msgid "Some fields are invalid:"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:281
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:327
 msgid "Privacy Notice"
 msgstr "Pemberitahuan Privasi"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:329
 msgid ""
 "This will attach the full dataset from \"##ASSET_NAME##\" as a background "
 "XML file to this form. While not easily visible, it is technically possible "
@@ -2737,31 +2737,31 @@ msgid ""
 "not use this feature if \"##ASSET_NAME##\" includes sensitive data."
 msgstr "Ini akan melampirkan seluruh set data dari \"##ASSET_NAME##\" sebagai file XML latar belakang ke formulir ini. Meskipun tidak terlihat dengan mudah, secara teknis dimungkinkan bagi siapa pun yang memasukkan data ke formulir Anda untuk mengambil dan melihat set data ini. Jangan gunakan fitur ini jika \"##ASSET_NAME##\" berisi data sensitif."
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:331
 msgid "Acknowledge and continue"
 msgstr "Pahami dan lanjutkan"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:339
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:385
 msgid "Share data with other project forms"
 msgstr "Bagikan data dengan formulir proyek lainnya"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:346
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:392
 msgid ""
 "Enable data sharing to allow other forms to import and use dynamic data from"
 " this project. Learn more about dynamic data attachments"
 msgstr "Aktifkan berbagi data untuk memungkinkan formulir lain mengimpor dan menggunakan data dinamis dari proyek ini. Pelajari lebih lanjut tentang lampiran data dinamis"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:354
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:383
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:400
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:429
 #: jsapp/js/components/processing/SingleProcessingContent/components/nlpUsageLimitBlockModal/index.tsx:43
 msgid "here"
 msgstr "di sini"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:372
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:418
 msgid "Import other project data"
 msgstr "Impor data proyek lainnya"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:379
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:425
 msgid ""
 "Connect with other project(s) to import dynamic data from them into this "
 "project. Learn more about dynamic data attachments"

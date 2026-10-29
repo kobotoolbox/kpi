@@ -1,3 +1,4 @@
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -5,6 +6,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models import ProjectView
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
+    LIMITED_COUNT_MANY,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -206,6 +208,38 @@ class ProjectViewsApiTestCase(BaseTestCase):
             self.asset_org_esp, self.external_user
         )
         self.assertNotIn(PERM_VIEW_ASSET, perms_ext)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self.client.force_login(self.regular_user)
+        response = self.client.get(reverse(self._get_endpoint('projectview-list')))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_assets_count_is_capped(self):
+        self.client.force_login(self.regular_user)
+        url = reverse(
+            self._get_endpoint('projectview-assets'),
+            kwargs={'uid_project_view': self.pv_org.uid},
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_users_count_is_capped(self):
+        self.client.force_login(self.regular_user)
+        url = reverse(
+            self._get_endpoint('projectview-users'),
+            kwargs={'uid_project_view': self.pv_org.uid},
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
 
     def _deactivate_external_user(self) -> None:
         """

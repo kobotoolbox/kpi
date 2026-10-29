@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:39+0000\n"
+"POT-Creation-Date: 2026-10-28 17:49+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Nyanja (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ny/)\n"
@@ -92,7 +92,7 @@ msgstr ""
 #: jsapp/js/attachments/BulkDeleteMediaFiles.tsx:96
 #: jsapp/js/components/DeleteAssetModal/DeleteAssetModal.tsx:103
 #: jsapp/js/components/common/openKoboConfirmModal.tsx:13
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:331
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:77
 #: jsapp/js/components/map/MapSettings.tsx:258
 #: jsapp/js/components/permissions/copyTeamPermissions.component.tsx:162
@@ -2695,40 +2695,40 @@ msgstr "ZATHEKA"
 msgid "Confirm"
 msgstr "Tsimikizirani"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:110
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:156
 msgid "Deleted project"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:183
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:229
 #: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx:6
 msgid "No project selected"
 msgstr "Simunasankhe pulojekiti"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:186
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:232
 msgid "Field is empty"
 msgstr "Danga lilibe kanthu"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:199
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:245
 msgid "Could not remove import. Please refresh and try again."
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:247
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:259
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:293
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:305
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:111
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:132
 msgid "Failed to attach to source"
 msgstr "Zakanika kulumikizitsa ndi komwe zachokera"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:248
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:294
 #: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.tsx:112
 msgid "Some fields are invalid:"
 msgstr ""
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:281
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:327
 msgid "Privacy Notice"
 msgstr "Zokhudza Kusunga Chinsinsi"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:283
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:329
 msgid ""
 "This will attach the full dataset from \"##ASSET_NAME##\" as a background "
 "XML file to this form. While not easily visible, it is technically possible "
@@ -2736,31 +2736,31 @@ msgid ""
 "not use this feature if \"##ASSET_NAME##\" includes sensitive data."
 msgstr "Izi ziphatikizapo data yonse kuchokera pa \"##ASSET_NAME##\" monga failo yobisika ya XML kufika pa fomu ino. Ngakhale kuti sizophweka kuona fomuyi, ndi zotheka kuti aliyense amene akulowetsa data mu fomu yanu akhoza kuipeza komanso kuona data yake. Musagwiritse ntchito gawoli ngati \"##ASSET_NAME##\" lili ndi zinthu zachinsinsi."
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:285
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:331
 msgid "Acknowledge and continue"
 msgstr "Vomerezani n’kupitirira"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:339
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:385
 msgid "Share data with other project forms"
 msgstr "Gawani data ku ma fomu a mapulojekiti ena"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:346
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:392
 msgid ""
 "Enable data sharing to allow other forms to import and use dynamic data from"
 " this project. Learn more about dynamic data attachments"
 msgstr "Yatsani kuti muzitha kugawana data ndi cholinga choti mafomu ena azitha kulowetsa komanso kugwiritsa ntchito dainamiki data kuchokera ku pulojekitiyi. Dziwani zambiri zokhudza dainamiki data"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:354
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:383
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:400
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:429
 #: jsapp/js/components/processing/SingleProcessingContent/components/nlpUsageLimitBlockModal/index.tsx:43
 msgid "here"
 msgstr "pano"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:372
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:418
 msgid "Import other project data"
 msgstr "Lowetsani data ya mapulojekiti ena"
 
-#: jsapp/js/components/dataAttachments/connectProjects.tsx:379
+#: jsapp/js/components/dataAttachments/connectProjects.tsx:425
 msgid ""
 "Connect with other project(s) to import dynamic data from them into this "
 "project. Learn more about dynamic data attachments"
