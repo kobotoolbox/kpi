@@ -17,11 +17,12 @@ export enum ProcessingTab {
   Analysis = 'analysis',
 }
 
-const TabToRouteMap: Map<ProcessingTab, string> = new Map([
-  [ProcessingTab.Transcript, PROCESSING_ROUTES.TRANSCRIPT],
-  [ProcessingTab.Translations, PROCESSING_ROUTES.TRANSLATIONS],
-  [ProcessingTab.Analysis, PROCESSING_ROUTES.ANALYSIS],
-])
+/** The route of each tab, e.g. for `goToTabRoute`. */
+export const TAB_ROUTES: Record<ProcessingTab, string> = {
+  [ProcessingTab.Transcript]: PROCESSING_ROUTES.TRANSCRIPT,
+  [ProcessingTab.Translations]: PROCESSING_ROUTES.TRANSLATIONS,
+  [ProcessingTab.Analysis]: PROCESSING_ROUTES.ANALYSIS,
+}
 
 interface ProcessingRouteParts {
   assetUid: string
@@ -229,10 +230,7 @@ export function goToProcessing(
     if (targetTab === ProcessingTab.Translations && languageCode) {
       targetRoute = PROCESSING_ROUTES.TRANSLATION_DETAIL
     } else {
-      const tabRoute = TabToRouteMap.get(targetTab)
-      if (tabRoute) {
-        targetRoute = tabRoute
-      }
+      targetRoute = TAB_ROUTES[targetTab]
     }
   }
 
