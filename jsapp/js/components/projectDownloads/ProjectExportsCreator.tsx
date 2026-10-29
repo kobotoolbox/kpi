@@ -752,7 +752,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       definedExports,
     })
 
-    if (response.count >= 1 && shouldPreselectLastSettingsRef.current) {
+    if (response.results.length > 0 && shouldPreselectLastSettingsRef.current) {
       applyExportSettingToState(response.results[0] as never)
     }
 
