@@ -2,6 +2,8 @@ import glob
 import io
 import os
 import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from django.test import TestCase
 
@@ -114,6 +116,36 @@ class TestInstanceCreation(TestCase):
         assert attachment.user_id == instance.xform.user_id
         assert attachment.date_created is not None
         assert attachment.date_modified is not None
+
+    def test_date_created_override(self):
+        """
+        Test that `date_created_override` becomes the `date_created` of the
+        new submission
+        """
+
+        class FakeRequest:
+            pass
+
+        request = FakeRequest()
+        request.user = self.user
+
+        xml_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'Water_Translated_2011_03_10_2011-03-10_14-38-28.xml',
+        )
+        date_created = datetime(2013, 1, 1, 12, tzinfo=ZoneInfo('UTC'))
+        with open(xml_path, 'rb') as xml_file:
+            instance = create_instance(
+                self.user.username,
+                xml_file,
+                media_files=[],
+                request=request,
+                date_created_override=date_created,
+                check_usage_limits=False,
+            )
+
+        instance.refresh_from_db()
+        assert instance.date_created == date_created
 
     def test_submission_for_missing_form(self):
         xml_file = open(
