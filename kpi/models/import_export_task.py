@@ -403,9 +403,7 @@ class ImportTask(ImportExportTask):
         # Pre-validate folder hierarchy before beginning transaction
         for item in fif._parsed:
             if item.parent and item.parent not in fif._parsed:
-                raise ValueError(
-                    t('The archive contains an invalid folder hierarchy.')
-                )
+                raise ValueError(t('The archive contains an invalid folder hierarchy.'))
 
         updated_records = []
         with transaction.atomic():
