@@ -89,7 +89,7 @@ export default function NewPasswordForm({ resetKey, onOutcome }: NewPasswordForm
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {t('Create new password')}
         </Title>
         <Text>{t("Your password can't be too similar to your other personal information.")}</Text>

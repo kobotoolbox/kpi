@@ -13,7 +13,7 @@ import RegisterForm from './RegisterForm'
 function SignupClosedPanel() {
   return (
     <Stack gap='md'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Sign up closed')}
       </Title>
       <Text>{t('We are sorry, but the sign up is currently closed')}</Text>

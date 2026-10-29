@@ -108,7 +108,7 @@ function LinkCheckErrorPanel({ onRetry, isRetrying }: LinkCheckErrorPanelProps) 
 function CheckingLinkPanel() {
   return (
     <Stack gap='md'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Create new password')}
       </Title>
       <Text>{t('Checking your password reset link…')}</Text>
