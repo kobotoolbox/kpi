@@ -24,6 +24,7 @@ from kobo.apps.subsequences.actions.automatic_bedrock_qual import AutomaticBedro
 from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
     OSS120,
     ClaudeSonnet,
+    MantleClient,
     RuntimeClient,
 )
 from kobo.apps.subsequences.constants import (
@@ -61,6 +62,7 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_QUAL_SELECT_ONE_UUID,
     BEDROCK_QUAL_TEXT_UUID,
     BEDROCK_VALIDATION_MAIN_UUID,
+    FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
 )
 from kobo.apps.subsequences.tests.utils import mock_get_response
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
@@ -95,8 +97,14 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             question_xpath='q1',
         )
         self.action = self.feature.to_action()
+        self.image_feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            action=Action.AUTOMATIC_BEDROCK_QUAL,
+            question_xpath='settings_fixture_image',
+        )
+        self.image_action = self.image_feature.to_action()
 
-    def _add_submission(self):
+    def _add_submission(self, include_image=False):
         # add a submission
         u = self.asset.owner
         self.client.force_login(u)
@@ -109,6 +117,16 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             '_uuid': submission_uuid,
             '_submitted_by': 'someuser',
         }
+        if include_image:
+            submission_data['settings_fixture_image'] = 'IMG_4266-11_38_22.jpg'
+            submission_data['_attachments'] = [
+                {
+                    'id': 1,
+                    'filename': 'IMG_4266-11_38_22.jpg',
+                    'mimetype': 'image/jpeg',
+                    'question_xpath': 'settings_fixture_image',
+                },
+            ]
 
         self.asset.deployment.mock_submissions([submission_data])
         return submission_uuid
@@ -295,6 +313,40 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
+        assert 'verified' in version
+        assert not version['verified']
+        assert version.get('_dateVerified') is None
+
+    def test_update_supplement_api_with_image(self):
+        sub_uuid = self._add_submission(include_image=True)
+        supplement_details_url = reverse(
+            'api_v2:submission-supplement',
+            args=[self.asset.uid, sub_uuid],
+        )
+
+        payload = {
+            '_version': '20250820',
+            'settings_fixture_image': {
+                Action.AUTOMATIC_BEDROCK_QUAL: {
+                    'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+                },
+            },
+        }
+        with patch.object(
+            MantleClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(model=model, text='5'),
+        ):
+            response = self.client.patch(
+                supplement_details_url, data=payload, format='json'
+            )
+        assert response.status_code == status.HTTP_200_OK
+        version = response.data['settings_fixture_image'][
+            Action.AUTOMATIC_BEDROCK_QUAL
+        ][FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID]['_versions'][0]
+        version_data = version['_data']
+        assert version_data['value'] == 5
+        assert version_data['status'] == 'complete'
         assert 'verified' in version
         assert not version['verified']
         assert version.get('_dateVerified') is None
@@ -612,35 +664,16 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def test_generate_image_request_data(self):
         mock_templates_by_type = {
-            QUESTION_TYPE_TEXT: 'prompt',
+            QUESTION_TYPE_INTEGER: 'prompt',
         }
 
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-        submission = {
-            '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'IMG_4266-11_38_22.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 1,
-                    'filename': 'IMG_4266-11_38_22.jpg',
-                    'mimetype': 'image/jpeg',
-                    'question_xpath': 'q1',
-                },
-            ],
-            '_submitted_by': 'someuser',
-        }
-        self.asset.deployment.mock_submissions([submission])
+        submission_uuid = self._add_submission(include_image=True)
         submission = self.asset.deployment.get_submissions(
-            user=self.asset.owner, query={'_id': submission['_id']}
+            user=self.asset.owner, query={'_uuid': submission_uuid}
         )[0]
 
         action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
@@ -648,7 +681,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',  # noqa
                 return_value=b'123',
             ):
-                request = self.action.construct_external_request(
+                request = self.image_action.construct_external_request(
                     action_data, submission
                 )
         request_content = request['content']
@@ -657,11 +690,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert request_content[1]['image_url'] == 'data:image/jpeg;base64,123'
 
     def test_generate_image_request_data_image_response_missing(self):
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
             '_uuid': str(uuid.uuid4()),
@@ -669,29 +697,23 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         self.asset.deployment.mock_submissions([submission])
         action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with self.assertRaises(AttachmentNotFoundException):
-            self.action.construct_external_request(action_data, submission)
+            self.image_action.construct_external_request(action_data, submission)
 
     def test_generate_image_request_data_image_file_missing(self):
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'IMG_4266-11_38_22.jpg',
+            'settings_fixture_image': 'IMG_4266-11_38_22.jpg',
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
                     'id': 1,
                     'filename': 'IMG_4266-11_38_22.jpg',
                     'mimetype': 'image/jpeg',
-                    'question_xpath': 'q1',
+                    'question_xpath': 'settings_fixture_image',
                 },
             ],
             '_submitted_by': 'someuser',
@@ -703,16 +725,16 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         attachment = self.asset.deployment.get_attachment(
             submission_id_or_uuid=submission['_id'],
             user=User.objects.get(username='someuser'),
-            xpath='q1',
+            xpath='settings_fixture_image',
         )
         attachment.media_file.delete()
 
         action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with self.assertRaises(AttachmentNotFoundException):
-            self.action.construct_external_request(action_data, submission)
+            self.image_action.construct_external_request(action_data, submission)
 
     @data(
         # question uuid, parsing method name
@@ -803,7 +825,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        args = []
         if error_class == InvalidResponseFromLLMException:
             args = ['Bad']
         else:

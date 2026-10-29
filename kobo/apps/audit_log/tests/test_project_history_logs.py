@@ -1,6 +1,5 @@
 import base64
 import copy
-import io
 import json
 import uuid
 from unittest.mock import patch
@@ -29,17 +28,24 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
-from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120, ClaudeSonnet
+from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
+    OSS120,
+    ClaudeSonnet,
+    Gemma4,
+    MantleClient,
+    RuntimeClient,
+)
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.constants import (
+    FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
     FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
     FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
     FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
 )
 from kobo.apps.subsequences.tests.utils import (
-    MockBedrockRuntimeClient,
     get_mock_claude_response,
+    mock_get_response,
 )
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
@@ -99,7 +105,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # clean up mongo
         settings.MONGO_DB.instances.delete_many({})
 
-    def _add_submission(self, username) -> (Instance, dict):
+    def _add_submission(self, username, include_image=False) -> (Instance, dict):
         uuid_ = uuid.uuid4()
         # add a submission by <username>
         submission_data = {
@@ -109,6 +115,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             '_uuid': str(uuid_),
             '_submitted_by': username,
         }
+        if include_image:
+            submission_data['settings_fixture_image'] = 'IMG_4266-11_38_22.jpg'
+            submission_data['_attachments'] = [
+                {
+                    'id': 1,
+                    'filename': 'IMG_4266-11_38_22.jpg',
+                    'mimetype': 'image/jpeg',
+                    'question_xpath': 'settings_fixture_image',
+                },
+            ]
         self.asset.deploy(backend='mock')
 
         self.asset.deployment.mock_submissions([submission_data])
@@ -2065,10 +2081,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             },
         )
-
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockBedrockRuntimeClient(5),
+        with patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(
+                model=model, text='1', request_id='12345'
+            ),
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2094,11 +2112,47 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertEqual(llm_info['model'], OSS120.model_id)
             self.assertEqual(llm_info['request_id'], '12345')
 
-    def test_request_automatic_qa_data_bad_response(self):
-        class MockErrorClient:
-            def invoke_model(self, *args, **kwargs):
-                return {'something': 'bad'}
+    def test_request_automatic_qa_data_for_image(self):
+        instance, submission = self._add_submission('adminuser', include_image=True)
+        submission = list(
+            self.asset.deployment.get_submissions(
+                user=User.objects.get(username='adminuser'),
+                query={'meta/rootUuid': add_uuid_prefix(instance.root_uuid)},
+            )
+        )[0]
 
+        with patch.object(
+            MantleClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(
+                model=model, text='1', request_id='12345'
+            ),
+        ):
+            log_metadata = self._base_project_history_log_test(
+                url=reverse(
+                    self._get_endpoint('submission-supplement'),
+                    args=[self.asset.uid, submission['_uuid']],
+                ),
+                method=self.client.patch,
+                request_data={
+                    '_version': '20250820',
+                    'settings_fixture_image': {
+                        Action.AUTOMATIC_BEDROCK_QUAL: {
+                            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+                        }
+                    },
+                },
+                expected_action=AuditAction.MODIFY_AUTOMATIC_QA_DATA,
+                expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            )
+            self._check_submission_log_metadata(
+                log_metadata, 'adminuser', instance.root_uuid
+            )
+            llm_info = log_metadata['llm']
+            self.assertEqual(llm_info['model'], Gemma4.model_id)
+            self.assertEqual(llm_info['request_id'], '12345')
+
+    def test_request_automatic_qa_data_bad_response(self):
         instance, submission = self._add_submission('adminuser')
         submission = list(
             self.asset.deployment.get_submissions(
@@ -2119,9 +2173,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             },
         )
 
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockErrorClient(),
+        with patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda *args, **kwargs: {'something': 'bad'},
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2149,17 +2204,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
 
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
-        class MockErrorClient:
-            def invoke_model(self, modelId, *args, **kwargs):
-                if modelId == OSS120.model_arn:
-                    return {'something': 'bad'}
-                else:
-                    return {
-                        'ResponseMetadata': {'RequestId': '12345'},
-                        'body': io.StringIO(
-                            json.dumps(get_mock_claude_response(text='5'))
-                        ),
-                    }
+        def fail_only_on_oss(model):
+            if model.model_id == OSS120.model_id:
+                return {'something': 'bad'}
+            else:
+                return get_mock_claude_response(text='5', request_id='12345')
 
         instance, submission = self._add_submission('adminuser')
         submission = list(
@@ -2180,10 +2229,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             },
         )
-
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockErrorClient(),
+        with patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda _, request_data, model: fail_only_on_oss(model),
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2245,9 +2294,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             else FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
         )
         # add a response
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockBedrockRuntimeClient(5),
+        with patch.object(
+            RuntimeClient,
+            'make_request',
+            lambda _, request_data, model: mock_get_response(
+                model=model, text='5', request_id='12345'
+            ),
         ):
             action_data = {'uuid': question_uuid}
             if not automatic:

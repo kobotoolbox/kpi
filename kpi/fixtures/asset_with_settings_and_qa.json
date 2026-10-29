@@ -18,6 +18,12 @@
             "label": "settings fixture q2",
             "name": "settings_fixture_q2",
             "kuid": "def"
+          },
+          {
+            "type": "image",
+            "label": "settings fixture image",
+            "name": "settings_fixture_image",
+            "kuid": "ghi"
           }
         ]
       },
@@ -178,6 +184,38 @@
       "params": [
         {
           "language": "en"
+        }
+      ]
+    }
+  },
+  {
+    "model": "subsequences.QuestionAdvancedFeature",
+    "pk": "qafimagemanualqual",
+    "fields": {
+      "question_xpath": "settings_fixture_image",
+      "asset": 3,
+      "action": "manual_qual",
+      "params": [
+        {
+          "type": "qualInteger",
+          "uuid": "18ec9071-472c-46ec-8592-dd18fb6fd716",
+          "labels": {
+            "_default": "How many people are in the image?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "model": "subsequences.QuestionAdvancedFeature",
+    "pk": "qafimagebedrockqual",
+    "fields": {
+      "question_xpath": "settings_fixture_image",
+      "asset": 3,
+      "action": "automatic_bedrock_qual",
+      "params": [
+        {
+          "uuid": "18ec9071-472c-46ec-8592-dd18fb6fd716"
         }
       ]
     }

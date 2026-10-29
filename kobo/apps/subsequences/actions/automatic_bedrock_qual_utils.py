@@ -88,7 +88,7 @@ class MantleClient(BedrockClient):
         self.client = OpenAI(
             api_key=provide_token(region=settings.AWS_BEDROCK_REGION_NAME),
             base_url=f'https://bedrock-mantle'
-                     f'.{settings.AWS_BEDROCK_REGION_NAME}.api.aws/openai/v1',
+            f'.{settings.AWS_BEDROCK_REGION_NAME}.api.aws/openai/v1',
         )
 
     def make_request(self, request_data, model):
