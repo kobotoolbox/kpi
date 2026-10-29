@@ -162,6 +162,7 @@ class AccessLogViewSet(AllAccessLogViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
+    # Overrides the `NoCountPagination` set by `AuditLogViewSet`
     pagination_class = LimitedCountPagination
 
 
@@ -322,6 +323,7 @@ class ProjectHistoryLogViewSet(
     model = ProjectHistoryLog
     permission_classes = (ViewProjectHistoryLogsPermission,)
     lookup_field = 'uid'
+    # Overrides the `NoCountPagination` set by `AuditLogViewSet`
     pagination_class = LimitedCountPagination
 
     def get_queryset(self):
