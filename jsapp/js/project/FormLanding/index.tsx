@@ -34,11 +34,12 @@ import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify } from '#/utils'
 import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
 import FormLandingActions from './FormLandingActions'
+import FormLandingClonePrompt from './FormLandingClonePrompt'
 import FormLandingCollectData from './FormLandingCollectData'
 import FormLandingHistory from './FormLandingHistory'
 import FormLandingInfo from './FormLandingInfo'
 import FormLandingLanguages from './FormLandingLanguages'
-import FormLandingPrompt from './FormLandingPrompt'
+import FormLandingUnarchivePrompt from './FormLandingUnarchivePrompt'
 
 export type FormLandingCloneAssetType = AssetTypeName.survey | AssetTypeName.template
 
@@ -314,16 +315,23 @@ export default function FormLanding() {
           )}
         </Box>
       </DocumentTitle>
-      <FormLandingPrompt
-        prompt={prompt}
-        cloneName={cloneName}
-        onCloneNameChange={setCloneName}
-        onClose={() => setPrompt(null)}
-        onSubmitClone={submitClone}
-        isClonePending={createAssetMutation.isPending}
-        onConfirmUnarchive={confirmUnarchive}
-        isUnarchivePending={deploymentUpdateMutation.isPending}
-      />
+      {prompt?.type === 'unarchive' && (
+        <FormLandingUnarchivePrompt
+          onClose={() => setPrompt(null)}
+          onConfirm={confirmUnarchive}
+          isPending={deploymentUpdateMutation.isPending}
+        />
+      )}
+      {prompt?.type === 'clone' && (
+        <FormLandingClonePrompt
+          assetType={prompt.assetType}
+          cloneName={cloneName}
+          onCloneNameChange={setCloneName}
+          onClose={() => setPrompt(null)}
+          onSubmit={submitClone}
+          isPending={createAssetMutation.isPending}
+        />
+      )}
     </>
   )
 }
