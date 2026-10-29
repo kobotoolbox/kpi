@@ -17,9 +17,3 @@ class InstanceModification(AbstractTimeStampedModel):
 
     class Meta:
         app_label = "viewer"
-
-    def process_doc(self, doc):
-        if self.action == "delete":
-            doc.pop(self.xpath)
-
-        return doc

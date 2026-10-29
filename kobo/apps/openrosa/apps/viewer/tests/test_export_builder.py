@@ -21,6 +21,12 @@ def _logger_fixture_path(*args):
                         'tests', 'fixtures', *args)
 
 
+def _section_by_name(export_builder, name):
+    matches = [s for s in export_builder.sections if s['name'] == name]
+    assert len(matches) == 1
+    return matches[0]
+
+
 class TestExportBuilder(TestBase):
     data = [
         {
@@ -210,7 +216,7 @@ class TestExportBuilder(TestBase):
             'geo/_geolocation_latitude', 'geo/_geolocation_altitude',
             'geo/_geolocation_precision', 'tel/tel.office', 'tel/tel.mobile',
             'meta/instanceID']
-        section = export_builder.section_by_name(survey.name)
+        section = _section_by_name(export_builder, survey.name)
         element_names = [element['xpath'] for element in section['elements']]
         # fav_colors should have its choices split
         self.assertEqual(
@@ -222,14 +228,14 @@ class TestExportBuilder(TestBase):
             'children/fav_colors/pink', 'children/ice.creams',
             'children/ice.creams/vanilla', 'children/ice.creams/strawberry',
             'children/ice.creams/chocolate']
-        section = export_builder.section_by_name('children')
+        section = _section_by_name(export_builder, 'children')
         element_names = [element['xpath'] for element in section['elements']]
         self.assertEqual(
             sorted(expected_element_names), sorted(element_names))
 
         expected_element_names = [
             'children/cartoons/name', 'children/cartoons/why']
-        section = export_builder.section_by_name('children/cartoons')
+        section = _section_by_name(export_builder, 'children/cartoons')
         element_names = [element['xpath'] for element in section['elements']]
 
         self.assertEqual(
@@ -239,7 +245,7 @@ class TestExportBuilder(TestBase):
             'children/cartoons/characters/name',
             'children/cartoons/characters/good_or_evil']
         section = \
-            export_builder.section_by_name('children/cartoons/characters')
+            _section_by_name(export_builder, 'children/cartoons/characters')
         element_names = [element['xpath'] for element in section['elements']]
         self.assertEqual(
             sorted(expected_element_names), sorted(element_names))
@@ -494,7 +500,7 @@ class TestExportBuilder(TestBase):
                     ]
                 }
             ]
-        children_section = export_builder.section_by_name('children')
+        children_section = _section_by_name(export_builder, 'children')
         self.assertEqual(
             children_section['elements'][0]['title'],
             expected_sections[0]['elements'][0]['title'])
@@ -514,7 +520,7 @@ class TestExportBuilder(TestBase):
                     }
                 ]
             }
-        childrens_section = export_builder.section_by_name('children')
+        childrens_section = _section_by_name(export_builder, 'children')
         match = [x for x in childrens_section['elements']
                  if x['xpath'] == expected_section['elements'][0]['xpath']][0]
         self.assertEqual(
@@ -535,7 +541,7 @@ class TestExportBuilder(TestBase):
                     }
                 ]
             }
-        main_section = export_builder.section_by_name('childrens_survey')
+        main_section = _section_by_name(export_builder, 'childrens_survey')
         match = [x for x in main_section['elements'] if x['xpath'] == expected_section['elements'][0]['xpath']][0]
         self.assertEqual(
             expected_section['elements'][0]['title'], match['title'])

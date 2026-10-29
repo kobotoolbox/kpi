@@ -10,8 +10,7 @@ from kobo.apps.openrosa.apps.logger.views import (
     download_xlsform,
     download_jsonform,
 )
-from kobo.apps.openrosa.libs.utils.logger_tools import publish_xml_form
-from kobo.apps.openrosa.libs.utils.user_auth import http_auth_string
+from kobo.apps.openrosa.libs.tests.utils import publish_xml_form
 from .test_base import TestBase
 
 
@@ -46,10 +45,7 @@ class TestFormShow(TestBase):
         self.assertEqual(response.status_code, 302)
 
     def test_dl_xls_for_basic_auth(self):
-        extra = {
-            'HTTP_AUTHORIZATION':
-            http_auth_string(self.login_username, self.login_password)
-        }
+        extra = self._set_auth_headers(self.login_username, self.login_password)
         response = self.anon.get(reverse(download_xlsform, kwargs={
             'username': self.user.username,
             'id_string': self.xform.id_string
@@ -79,10 +75,7 @@ class TestFormShow(TestBase):
         self.assertEqual(content.endswith(')'), True)
 
     def test_dl_json_for_basic_auth(self):
-        extra = {
-            'HTTP_AUTHORIZATION':
-            http_auth_string(self.login_username, self.login_password)
-        }
+        extra = self._set_auth_headers(self.login_username, self.login_password)
         response = self.anon.get(reverse(download_jsonform, kwargs={
             'username': self.user.username,
             'id_string': self.xform.id_string

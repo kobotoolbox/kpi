@@ -12,8 +12,8 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 )
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.libs.utils.logger_tools import publish_form, publish_xml_form
+from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.openrosa.libs.tests.utils import publish_xml_form
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 from kpi.fields import KpiUidField
 from kpi.utils.hash import calculate_hash
@@ -315,13 +315,7 @@ class TestBriefcaseAPI(TestAbstractViewSet):
 
     def _publish_xml_form(self, auth=None):
         with open(self.form_def_path, 'rb') as f:
-
-            def publish():
-                return publish_xml_form(f, self.user)
-
-            xform = publish_form(publish)
-            assert isinstance(xform, XForm)
-            self.xform = xform
+            self.xform = publish_xml_form(f, self.user)
         # Permissions are resolved through the KPI asset, so we need a saved asset
         # with a simulated deployment to populate `_deployment_data`.
         asset = self.xform.asset

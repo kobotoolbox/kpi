@@ -1,5 +1,4 @@
 # coding: utf-8
-from django.db import models
 from django.utils.translation import gettext_lazy as t
 
 # http://www.unece.org/cefact/locode/service/location.html
@@ -255,15 +254,3 @@ COUNTRIES = (
     ('ZW', t('Zimbabwe')),
     ('ZZ', t('Unknown or unspecified country')),
 )
-
-
-class CountryField(models.CharField):
-
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('maxlength', 2)
-        kwargs.setdefault('choices', COUNTRIES)
-
-        super().__init__(*args, **kwargs)
-
-    def get_internal_type(self):
-        return "CharField"

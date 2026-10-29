@@ -7,10 +7,9 @@ from django.utils.dateparse import parse_datetime
 
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import xform_instance_to_dict
 from kobo.apps.openrosa.apps.viewer.pandas_mongo_bridge import AbstractDataFrameBuilder,\
     CSVDataFrameBuilder, CSVDataFrameWriter, ExcelWriter,\
-    get_prefix_from_xpath, get_valid_sheet_name, XLSDataFrameBuilder,\
+    get_valid_sheet_name, XLSDataFrameBuilder,\
     XLSDataFrameWriter, remove_dups_from_list_maintain_order
 from kobo.apps.openrosa.libs.utils.common_tags import NA_REP
 
@@ -434,42 +433,6 @@ class TestPandasMongoBridge(TestBase):
         temp_file.close()
         self.assertTrue(passed)
 
-    def test_repeat_child_name_matches_repeat(self):
-        """
-        ParsedInstance.to_dict creates a list within a repeat if a child has
-        the same name as the repeat. This test makes sure that doesnt happen
-        """
-        self.maxDiff = None
-        fixture = "repeat_child_name_matches_repeat"
-        # publish form so we have a dd to pass to xform inst. parser
-        self._publish_xls_fixture_set_xform(fixture)
-        submission_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "fixtures", fixture, fixture + ".xml"
-        )
-        # get submission xml str
-        with open(submission_path, "r") as f:
-            xml_str = f.read()
-        dict = xform_instance_to_dict(xml_str, self.xform.data_dictionary())
-        expected_dict = {
-            'test_item_name_matches_repeat': {
-                'formhub': {
-                    'uuid': 'c911d71ce1ac48478e5f8bac99addc4e'
-                },
-                'gps': [
-                    {
-                        'info': 'Yo',
-                        'gps': '-1.2625149 36.7924478 0.0 30.0'
-                    },
-                    {
-                        'info': 'What',
-                        'gps': '-1.2625072 36.7924328 0.0 30.0'
-                    }
-                ]
-            }
-        }
-        self.assertEqual(dict, expected_dict)
-
     def test_remove_dups_from_list_maintain_order(self):
         l = ["a", "z", "b", "y", "c", "b", "x"]
         result = remove_dups_from_list_maintain_order(l)
@@ -522,17 +485,6 @@ class TestPandasMongoBridge(TestBase):
         records = [record for record in cursor]
         self.assertTrue(len(records), 1)
 
-    def test_prefix_from_xpath(self):
-        xpath = "parent/child/grandhild"
-        prefix = get_prefix_from_xpath(xpath)
-        self.assertEqual(prefix, 'parent/child/')
-        xpath = "parent/child"
-        prefix = get_prefix_from_xpath(xpath)
-        self.assertEqual(prefix, 'parent/')
-        xpath = "parent"
-        prefix = get_prefix_from_xpath(xpath)
-        self.assertTrue(prefix is None)
-
     def test_csv_export_with_df_size_limit(self):
         """
         To fix pandas limitation of 30k rows on csv export, we specify a max
@@ -569,8 +521,6 @@ class TestPandasMongoBridge(TestBase):
         # See `_submitted_data` in `expected_data_0` below
         self._publish_xls_fixture_set_xform("groups_in_repeats")
         self._submit_fixture_instance("groups_in_repeats", "01")
-        dd = self.xform.data_dictionary()
-        dd.get_keys()
         data_0 = self._csv_data_for_dataframe()[0]
         # remove dynamic fields
         ignore_list = [
@@ -613,8 +563,6 @@ class TestPandasMongoBridge(TestBase):
     def test_xls_groups_within_repeats(self):
         self._publish_xls_fixture_set_xform("groups_in_repeats")
         self._submit_fixture_instance("groups_in_repeats", "01")
-        dd = self.xform.data_dictionary()
-        dd.get_keys()
         data = self._xls_data_for_dataframe()
         # remove dynamic fields
         ignore_list = [
