@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
@@ -6,17 +6,19 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { userCan } from '#/components/permissions/utils'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { getProcessingQuestionType } from '#/components/processing/common/questionType'
 import { CreateSteps } from '#/components/processing/common/types'
-import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getSuggestedLanguages, isAudioQuestionType } from '#/components/processing/common/utils'
+import { useAudioDurations } from '#/components/submissions/useCalculateAudioDuration.hook'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { getSubmissionRootUuid } from '#/utils'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import { getProcessedFileLabel } from '../common/utils'
-import { getAttachmentForProcessing } from '../transcript.utils'
+import { getAttachmentForProcessing, isAudioTooLongForAutomaticTranscription } from '../transcript.utils'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
 import StepCreateManual from './StepCreateManual'
@@ -45,7 +47,8 @@ export default function TranscriptCreate({
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
 
-  const processedFileLabel = getProcessedFileLabel(getProcessingQuestionType(asset, questionXpath, submission))
+  const questionType = getProcessingQuestionType(asset, questionXpath, submission)
+  const processedFileLabel = getProcessedFileLabel(questionType)
 
   const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
     '##type##',
@@ -63,7 +66,28 @@ export default function TranscriptCreate({
     submissionUuid: getSubmissionRootUuid(submission),
   })
 
-  const attachment = getAttachmentForProcessing(questionXpath, submission)
+  // A string instead of an attachment means there is no file to process.
+  const attachmentOrError = getAttachmentForProcessing(questionXpath, submission)
+  const attachment = typeof attachmentOrError === 'string' ? undefined : attachmentOrError
+
+  const canStartAutomatic =
+    envStore.data.asr_mt_features_enabled &&
+    !!attachment &&
+    !attachment.is_deleted &&
+    userCan('change_submissions', asset)
+
+  // Measuring can cost an `ffprobe` run on the back end, so we ask only when the answer could
+  // change what the user may do here. Text questions have no audio to measure at all.
+  const uidToMeasure = canStartAutomatic && isAudioQuestionType(questionType) ? attachment?.uid : undefined
+  const uidsToMeasure = useMemo(() => (uidToMeasure ? [uidToMeasure] : []), [uidToMeasure])
+
+  const { duration, isLoading: isDurationLoading } = useAudioDurations(uidsToMeasure, asset.uid)
+
+  const isAudioTooLong = isAudioTooLongForAutomaticTranscription(duration)
+
+  // Long audio takes the longest to measure, so a click before the length is known is the very case
+  // we are preventing.
+  const isMeasuringAudio = !!uidToMeasure && isDurationLoading
 
   function goBackToLanguageStep() {
     // Clear the selected language when returning to the language selection step
@@ -93,10 +117,10 @@ export default function TranscriptCreate({
           titleOverride={languageSelectorTitle}
           singleManualButtonLabel={t('transcribe')}
           disableManual={hasConflictingOngoingJob}
-          disableAutomatic={
-            !envStore.data.asr_mt_features_enabled || typeof attachment === 'string' || !!attachment.is_deleted
-          }
+          disableAutomatic={!canStartAutomatic || isMeasuringAudio}
           showConflictingOngoingJobAlert={hasConflictingOngoingJob}
+          showLongAudioAlert={isAudioTooLong}
+          isAutomaticPending={isMeasuringAudio}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (

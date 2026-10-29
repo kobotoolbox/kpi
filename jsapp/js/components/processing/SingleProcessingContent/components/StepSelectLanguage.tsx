@@ -10,6 +10,7 @@ import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import LongAudioAlert from '#/components/processing/common/LongAudioAlert'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
@@ -30,6 +31,10 @@ interface Props {
   disableManual?: boolean
   disableAutomatic: boolean
   showConflictingOngoingJobAlert?: boolean
+  /** Explains that the audio is too long for automatic transcription, and blocks that option */
+  showLongAudioAlert?: boolean
+  /** Keeps "automatic" spinning while we still don't know whether it is allowed */
+  isAutomaticPending?: boolean
 }
 
 export default function StepSelectLanguage({
@@ -46,6 +51,8 @@ export default function StepSelectLanguage({
   disableManual = false,
   disableAutomatic,
   showConflictingOngoingJobAlert = false,
+  showLongAudioAlert = false,
+  isAutomaticPending = false,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
   const usageLimitBlock = useMemo(
@@ -90,6 +97,8 @@ export default function StepSelectLanguage({
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
+      {showLongAudioAlert && <LongAudioAlert mb='xl' />}
+
       <LanguageSelector
         titleOverride={titleOverride}
         onLanguageChange={handleChangeLanguage}
@@ -117,7 +126,8 @@ export default function StepSelectLanguage({
             onClick={handleClickNextAutomatic}
             selectedLanguage={languageCode}
             type='transcript'
-            disabled={disableAutomatic || showConflictingOngoingJobAlert}
+            disabled={disableAutomatic || showConflictingOngoingJobAlert || showLongAudioAlert}
+            isPending={isAutomaticPending}
           />
         </div>
       </footer>
