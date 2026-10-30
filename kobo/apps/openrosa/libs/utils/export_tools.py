@@ -76,68 +76,6 @@ def question_types_to_exclude(_type):
     return _type in QUESTION_TYPES_TO_EXCLUDE
 
 
-class DictOrganizer:
-
-    def set_dict_iterator(self, dict_iterator):
-        self._dict_iterator = dict_iterator
-
-    # Every section will get its own table
-    # I need to think of an easy way to flatten out a dictionary
-    # parent name, index, table name, data
-    def _build_obs_from_dict(self, d, obs, table_name,
-                             parent_table_name, parent_index):
-        if table_name not in obs:
-            obs[table_name] = []
-        this_index = len(obs[table_name])
-        obs[table_name].append(
-            {
-                '_parent_table_name': parent_table_name,
-                '_parent_index': parent_index,
-            }
-        )
-        for k, v in d.items():
-            if type(v) != dict and type(v) != list:
-                assert k not in obs[table_name][-1]
-                obs[table_name][-1][k] = v
-        obs[table_name][-1]['_index'] = this_index
-
-        for k, v in d.items():
-            if type(v) == dict:
-                kwargs = {
-                    'd': v,
-                    'obs': obs,
-                    'table_name': k,
-                    'parent_table_name': table_name,
-                    'parent_index': this_index,
-                }
-                self._build_obs_from_dict(**kwargs)
-            if type(v) == list:
-                for i, item in enumerate(v):
-                    kwargs = {
-                        'd': item,
-                        'obs': obs,
-                        'table_name': k,
-                        'parent_table_name': table_name,
-                        'parent_index': this_index,
-                    }
-                    self._build_obs_from_dict(**kwargs)
-        return obs
-
-    def get_observation_from_dict(self, d):
-        result = {}
-        assert len(d.keys()) == 1
-        root_name = list(d)[0]
-        kwargs = {
-            'd': d[root_name],
-            'obs': result,
-            'table_name': root_name,
-            'parent_table_name': '',
-            'parent_index': -1,
-        }
-        self._build_obs_from_dict(**kwargs)
-        return result
-
-
 def dict_to_joined_export(data, index, indices, name):
     """
     Converts a dict into one or more tabular datasets
@@ -344,11 +282,6 @@ class ExportBuilder:
             self.select_multiples, self.gps_fields, self.encoded_fields,
             self.GROUP_DELIMITER)
 
-    def section_by_name(self, name):
-        matches = [s for s in self.sections if s['name'] == name]
-        assert(len(matches) == 1)
-        return matches[0]
-
     @classmethod
     def split_select_multiples(cls, row, select_multiples):
         # for each select_multiple, get the associated data and split it
@@ -551,10 +484,6 @@ class ExportBuilder:
         csv_builder.export_to(path)
 
 
-def dict_to_flat_export(d, parent_index=0):
-    pass
-
-
 def generate_export(export_type, extension, username, id_string,
                     export_id=None, filter_query=None, group_delimiter='/',
                     split_select_multiples=True,
@@ -636,24 +565,6 @@ def query_mongo(xform, username, query=None):
     return xform_instances.find(
         query, max_time_ms=MongoHelper.get_max_time_ms()
     )
-
-
-def should_create_new_export(xform, export_type):
-    if (
-        not Export.objects.filter(xform=xform, export_type=export_type).exists()
-        or Export.exports_outdated(xform, export_type=export_type)
-    ):
-        return True
-    return False
-
-
-def newset_export_for(xform, export_type):
-    """
-    Make sure you check that an export exists before calling this,
-    it will a DoesNotExist exception otherwise
-    """
-    return Export.objects.filter(xform=xform, export_type=export_type)\
-        .latest('created_on')
 
 
 def increment_index_in_filename(filename):

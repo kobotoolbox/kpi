@@ -45,10 +45,10 @@ from kpi.tests.base_test_case import (
     BaseTestCase,
 )
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view

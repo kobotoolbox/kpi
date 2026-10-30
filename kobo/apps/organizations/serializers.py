@@ -18,7 +18,6 @@ from kobo.apps.organizations.models import (
     Organization,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
-    OrganizationOwner,
     OrganizationType,
     OrganizationUser,
     create_organization,
@@ -171,14 +170,6 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
             raise InvalidMembershipRequest(INVALID_ROLE_ERROR)
         return role
-
-
-class OrganizationOwnerSerializer(serializers.ModelSerializer):
-    organization_user = OrganizationUserSerializer()
-
-    class Meta:
-        model = OrganizationOwner
-        fields = ['organization_user']
 
 
 class OrganizationSerializer(serializers.ModelSerializer):

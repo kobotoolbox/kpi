@@ -2,7 +2,6 @@ import json
 import os
 import re
 from copy import deepcopy
-from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
 
 from django.apps import apps
@@ -17,7 +16,6 @@ from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
-from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
 from kobo.apps.openrosa.libs.utils.common_tags import VERSION
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -144,14 +142,6 @@ class XForm(AbstractTimeStampedModel):
 
         return getattr(self, '_cached_asset')
 
-    @property
-    def can_be_replaced(self):
-        if hasattr(self.submission_count, '__call__'):
-            num_submissions = self.submission_count()
-        else:
-            num_submissions = self.submission_count
-        return num_submissions == 0
-
     def data_dictionary(self, use_cache: bool = False):
         # When the XForm is already in memory (e.g. fetched via `select_related`), and
         # with `use_cache=True`, `data_dictionary()` builds the `DataDictionary`
@@ -232,10 +222,6 @@ class XForm(AbstractTimeStampedModel):
         Matches what's returned by the KC API
         """
         return f'md5:{self.md5_hash}'
-
-    @classmethod
-    def public_forms(cls):
-        return cls.objects.filter(shared=True)
 
     def save(self, *args, **kwargs):
         self._set_title()
@@ -354,18 +340,3 @@ class XForm(AbstractTimeStampedModel):
             self.xml = title_pattern.sub('<h:title>%s</h:title>' % title_xml, self.xml)
 
         self.title = title_xml
-
-    def _xls_file_io(self):
-        """
-        Pulls the xls file from remote storage
-
-        this should be used sparingly
-        """
-        file_path = self.xls.name
-
-        if file_path != '' and default_storage.exists(file_path):
-            with default_storage.open(file_path) as ff:
-                if file_path.endswith('.csv'):
-                    return convert_csv_to_xls(ff.read())
-                else:
-                    return BytesIO(ff.read())

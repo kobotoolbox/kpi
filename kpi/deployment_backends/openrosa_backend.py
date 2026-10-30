@@ -519,14 +519,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             enketo_id = self.get_data('enketo_id')
         return enketo_id
 
-    @staticmethod
-    def normalize_internal_url(url: str) -> str:
-        """
-        Normalize url to ensure KOBOCAT_INTERNAL_URL is used
-        """
-        parsed_url = urlparse(url)
-        return f'{settings.KOBOCAT_INTERNAL_URL}{parsed_url.path}'
-
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],

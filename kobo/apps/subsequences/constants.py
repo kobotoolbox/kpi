@@ -23,8 +23,6 @@ DEPENDENCY_SOURCE_SUBMISSION = 'submission'
 # would create an import cycle: actions import integrations).
 DEPENDENCY_ACTION_ID_FIELD = '_actionId'
 
-ASYNC_TRANSLATION_DELAY_INTERVAL = 5
-
 SUBSEQUENCES_ASYNC_CACHE_KEY = 'subsequences'
 
 # Google speech api limits audio to ~480 Minutes*

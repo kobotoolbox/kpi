@@ -1,7 +1,5 @@
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError, ObjectDoesNotExist
-from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models import Case, Count, IntegerField, Value, When
 from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import filters
@@ -43,17 +41,6 @@ class DeploymentFilter:
         AssetDeploymentStatus.DRAFT.value,
         AssetDeploymentStatus.ARCHIVED.value,
     ]
-
-
-class AssetOwnerFilterBackend(filters.BaseFilterBackend):
-    """
-    For use with nested models of Asset.
-    Restricts access to items that are owned by the current user
-    """
-
-    def filter_queryset(self, request, queryset, view):
-        fields = {'asset__owner': request.user}
-        return queryset.filter(**fields)
 
 
 class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
@@ -528,39 +515,3 @@ class AssetFileTypeFilter(filters.BaseFilterBackend):
                 'schema': {'type': 'string'},
             }
         ]
-
-
-class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
-    """
-    Used by kpi.views.v1.object_permission.ObjectPermissionViewSet only
-    """
-
-    def filter_queryset(self, request, queryset, view):
-        # TODO: omit objects for which the user has only a deny permission
-        user = request.user
-        if isinstance(request.user, AnonymousUser):
-            user = get_anonymous_user()
-
-        if user.is_superuser:
-            # Superuser sees all
-            return queryset
-        if user.pk == settings.ANONYMOUS_USER_ID:
-            # Hide permissions from anonymous users
-            return queryset.none()
-        """
-        A regular user sees their own permissions and the owner's permissions
-        for objects to which they have access. For example, if Alana and John
-        have view access to an object owned by Richard, John should see all of
-        his own permissions and Richard's permissions, but not any of Alana's
-        permissions.
-        """
-        result = ObjectPermission.objects.filter(
-            Q(asset__owner=user)  # owner sees everything
-            | Q(user=user)  # everyone with access sees their own
-            | Q(
-                # everyone with access sees the owner's
-                asset__permissions__user=user,
-                user=F('asset__owner'),
-            )
-        ).distinct()
-        return result

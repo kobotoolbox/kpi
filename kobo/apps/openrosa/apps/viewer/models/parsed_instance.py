@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import Optional
 
 from bson import json_util
-from dateutil import parser
 from django.conf import settings
 from django.db import models
 from django.db.transaction import get_connection
@@ -35,23 +34,10 @@ from kpi.utils.mongo_helper import MongoHelper
 
 # this is Mongo Collection where we will store the parsed submissions
 xform_instances = settings.MONGO_DB.instances
-DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
 class ParseError(Exception):
     pass
-
-
-def datetime_from_str(text):
-    # Assumes text looks like 2011-01-01T09:50:06.966
-    if text is None:
-        return None
-    dt = None
-    try:
-        dt = parser.parse(text)
-    except Exception:
-        return None
-    return dt
 
 
 @celery_app.task
@@ -138,61 +124,6 @@ class ParsedInstance(models.Model):
 
         if start < 0 or limit < 0:
             raise ValueError(t('Invalid start/limit params'))
-
-        return cls._get_paginated_and_sorted_cursor(cursor, start, limit, sort)
-
-    @classmethod
-    @apply_form_field_names
-    def mongo_aggregate(cls, query, pipeline):
-        """Perform mongo aggregate queries
-        query - is a dict which is to be passed to $match, a pipeline operator
-        pipeline - list of dicts or dict of mongodb pipeline operators,
-        http://docs.mongodb.org/manual/reference/operator/aggregation-pipeline
-        """
-        if isinstance(query, str):
-            query = json.loads(
-                query, object_hook=json_util.object_hook) if query else {}
-        if not (isinstance(pipeline, dict) or isinstance(pipeline, list)):
-            raise Exception(t('Invalid pipeline! %s' % pipeline))
-        if not isinstance(query, dict):
-            raise Exception(t('Invalid query! %s' % query))
-        query = MongoHelper.to_safe_dict(query)
-        k = [{'$match': query}]
-        if isinstance(pipeline, list):
-            k.extend(pipeline)
-        else:
-            k.append(pipeline)
-        results = xform_instances.aggregate(k)
-        return results['result']
-
-    @classmethod
-    @apply_form_field_names
-    def query_mongo_minimal(
-            cls, query, fields, sort, start=0, limit=DEFAULT_LIMIT,
-            count=False):
-
-        query = cls._get_mongo_cursor_query(query)
-
-        if count:
-            return [
-                {
-                    'count': xform_instances.count_documents(
-                        query, maxTimeMS=MongoHelper.get_max_time_ms()
-                    )
-                }
-            ]
-
-        cursor = cls._get_mongo_cursor(query, fields)
-
-        if isinstance(sort, str):
-            sort = json.loads(sort, object_hook=json_util.object_hook)
-        sort = sort if sort else {}
-
-        if start < 0 or limit < 0:
-            raise ValueError(t('Invalid start/limit params'))
-
-        if limit > cls.DEFAULT_LIMIT:
-            limit = cls.DEFAULT_LIMIT
 
         return cls._get_paginated_and_sorted_cursor(cursor, start, limit, sort)
 
@@ -376,20 +307,6 @@ class ParsedInstance(models.Model):
         qs = cls.objects.filter(instance__xform=xform)
         for parsed_instance in queryset_iterator(qs):
             yield parsed_instance.to_dict()
-
-    def _get_name_for_type(self, type_value):
-        """
-        We cannot assume that start time and end times always use the same
-        XPath. This is causing problems for other peoples' forms.
-
-        This is a quick fix to determine from the original XLSForm's JSON
-        representation what the 'name' was for a given
-        type_value ('start' or 'end')
-        """
-        datadict = json.loads(self.instance.xform.json)
-        for item in datadict['children']:
-            if type(item) == dict and item.get('type') == type_value:
-                return item['name']
 
     def get_data_dictionary(self):
         # TODO: fix hack to get around a circular import

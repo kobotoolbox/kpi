@@ -78,11 +78,6 @@ class InstanceMultipleNodeError(Exception):
     pass
 
 
-class InstanceParseError(Exception):
-    def __init__(self, message=t('The instance could not be parsed')):
-        super().__init__(message)
-
-
 class InvalidSubmissionIdsError(Exception):
     """
     Raised when a bulk action references submission ids that do not all belong

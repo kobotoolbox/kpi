@@ -1,5 +1,4 @@
 # coding: utf-8
-import datetime
 
 from django.db import models
 from formpack.utils.expand_content import expand_content
@@ -8,8 +7,6 @@ from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
-
-DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 
 class AssetVersion(AbstractTimeStampedModel):

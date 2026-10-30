@@ -101,35 +101,3 @@ def resize(filename):
             )
             for suffix, size in settings.THUMB_CONF.items()
         ]
-
-
-def image_url(attachment, suffix):
-    """
-    Return url of an image given size(@param suffix)
-    e.g large, medium, small, or generate required thumbnail
-    """
-    url = attachment.media_file.url
-    if suffix == 'original':
-        return url
-    else:
-        if suffix in settings.THUMB_CONF:
-            filename = attachment.media_file.name
-            if default_storage.exists(filename):
-                if (
-                    default_storage.exists(
-                        get_optimized_image_path(filename, suffix)
-                    )
-                    and default_storage.size(
-                        get_optimized_image_path(filename, suffix)
-                    )
-                    > 0
-                ):
-                    url = default_storage.url(
-                        get_optimized_image_path(filename, suffix)
-                    )
-                else:
-                    resize(filename)
-                    return image_url(attachment, suffix)
-            else:
-                return None
-    return url

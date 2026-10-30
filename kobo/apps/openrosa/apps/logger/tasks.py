@@ -11,7 +11,6 @@ from constance import config
 from dateutil import relativedelta
 from django.conf import settings
 from django.core.cache import cache
-from django.core.management import call_command
 from django.utils import timezone
 from redis.exceptions import LockError
 
@@ -38,20 +37,6 @@ def delete_daily_counters():
         date__lte=rel_date
     )
     xform_daily_counters.delete()
-
-
-# ## ISSUE 242 TEMPORARY FIX ##
-# See https://github.com/kobotoolbox/kobocat/issues/242
-
-
-@shared_task(soft_time_limit=600, time_limit=900)
-def fix_root_node_names(**kwargs):
-    call_command(
-        'fix_root_node_names',
-        **kwargs
-    )
-
-# #### END ISSUE 242 FIX ######
 
 
 @shared_task(

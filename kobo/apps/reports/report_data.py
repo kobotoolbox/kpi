@@ -1,6 +1,5 @@
 # coding: utf-8
 from collections import OrderedDict
-from copy import deepcopy
 
 from django.utils.translation import gettext as t
 from formpack import FormPack
@@ -95,17 +94,6 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     )
 
     return pack, submission_stream
-
-
-# TODO validate if this function is still in used.
-def _vnames(asset, cache=False):
-    if not cache or not hasattr(asset, '_available_report_uids'):
-        content = deepcopy(asset.content)
-        survey = content.get('survey', [])
-        asset._available_report_uids = [
-            row.get('$kuid') for row in survey
-        ]
-    return asset._available_report_uids
 
 
 def data_by_identifiers(asset, field_names=None, submission_stream=None,
