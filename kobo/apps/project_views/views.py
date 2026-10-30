@@ -20,6 +20,7 @@ from kpi.paginators import NoCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import (
     AssetListCountSerializer,
+    AssetMetadataExtraListSerializer,
     AssetMetadataListSerializer,
     AssetMinimalListSerializer,
 )
@@ -62,6 +63,17 @@ from .serializers import ProjectViewSerializer
                 location=OpenApiParameter.QUERY,
                 required=False,
                 description='Paginate results with limit parameter',
+            ),
+            OpenApiParameter(
+                name='extra_fields',
+                type=str,
+                enum=['on'],
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=(
+                    'Superusers only: `on` adds `status`, `summary`, `version_id`, '
+                    '`deployed_version_id` and `version_count` to each project'
+                ),
             ),
         ],
     ),
@@ -227,7 +239,12 @@ class ProjectViewViewSet(
         )
         page = self.paginate_queryset(queryset)
         self._cache_asset_ids(page)
-        serializer = AssetMetadataListSerializer(
+        serializer_class = (
+            AssetMetadataExtraListSerializer
+            if self._with_extra_fields()
+            else AssetMetadataListSerializer
+        )
+        serializer = serializer_class(
             self._attach_xforms_to_assets(page),
             many=True,
             read_only=True,
@@ -356,6 +373,18 @@ class ProjectViewViewSet(
             context_['organizations_per_asset']
         )
 
+        if self._with_extra_fields():
+            context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
+                self._asset_ids
+            )
+            (
+                context_['permission_asset_ids'],
+                context_['shared_asset_ids'],
+            ) = self.get_shared_asset_ids(self._asset_ids)
+            context_['versions_per_asset'] = self.get_versions_per_asset_ids(
+                self._asset_ids
+            )
+
         return context_
 
     def _get_regional_response(self, queryset, serializer_class):
@@ -422,3 +451,15 @@ class ProjectViewViewSet(
                 queryset = queryset.filter(owner_id__in=member_ids)
 
         return queryset
+
+    def _with_extra_fields(self) -> bool:
+        """
+        Whether the asset list adds the fields of `AssetMetadataExtraListSerializer`,
+        which only superusers can request
+        """
+
+        return (
+            self.action == 'assets'
+            and self.request.query_params.get('extra_fields') == 'on'
+            and self.request.user.is_superuser
+        )
