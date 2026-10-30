@@ -9,7 +9,8 @@ from kpi.models.asset import Asset
 
 class AssetViewSetListMixin:
 
-    # Ids and uids of the assets of the page, set by `_cache_asset_ids()`
+    # Ids of the assets of the page and uids of the deployed ones, set by
+    # `_cache_asset_ids()`
     _asset_ids = None
     _asset_uids = None
 
@@ -92,11 +93,15 @@ class AssetViewSetListMixin:
 
     def _cache_asset_ids(self, assets: list):
         """
-        Collect the ids and uids of the assets of the page in a single loop
+        Collect the ids of the assets of the page, and the uids of the deployed
+        ones, in a single loop
         """
 
         self._asset_ids = []
         self._asset_uids = []
         for asset in assets:
             self._asset_ids.append(asset.pk)
-            self._asset_uids.append(asset.uid)
+            # Only deployed assets have an XForm. Leaving the others out keeps the
+            # XForm query small, and skips it when no asset of the page is deployed.
+            if asset.has_deployment:
+                self._asset_uids.append(asset.uid)
