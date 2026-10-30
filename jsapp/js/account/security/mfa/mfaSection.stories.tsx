@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, waitFor, within } from 'storybook/test'
-import type { MfaUserMethod } from '#/account/security/mfa/mfa.api'
-import { MFA_ACTIVE, mfaMocks } from '#/endpoints/mfa.mocks'
+import type { TOTPAuthenticator } from '#/api/models/tOTPAuthenticator'
+import { MFA_ACTIVE, MFA_ACTIVE_CREATED_AT, type MfaMockState, mfaMocks } from '#/endpoints/mfa.mocks'
 import { seedEnvStore } from '#/envStore.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { hydrateProfileStoreForStories } from '#/stores/profile.mocks'
@@ -9,23 +9,23 @@ import { formatTime } from '#/utils'
 import MfaSection from './mfaSection.component'
 
 interface MfaStoryOptions {
-  /** What `user-methods` answers with; empty until 2FA has been set up once */
-  methods?: MfaUserMethod[]
+  /** The authenticator allauth reports, `null` while 2FA is off */
+  totp?: TOTPAuthenticator | null
   isMfaEnabledOnServer?: boolean
 }
 
 /**
- * Per-story setup: the rows the endpoint answers with, plus the `/environment` setting the section reads.
+ * Per-story setup: the authenticator allauth answers with, plus the `/environment` setting the section reads.
  * Spelled out each time, because Storybook replaces the handler array instead of merging.
  */
-function withMfa({ methods = [], isMfaEnabledOnServer = true }: MfaStoryOptions) {
-  const initial = [...methods]
+function withMfa({ totp = null, isMfaEnabledOnServer = true }: MfaStoryOptions) {
+  const state: MfaMockState = { totp }
   const seedSettings = seedEnvStore({ mfa_enabled: isMfaEnabledOnServer })
 
   return {
-    parameters: { msw: { handlers: mfaMocks(methods) } },
+    parameters: { msw: { handlers: mfaMocks(state) } },
     beforeEach: async () => {
-      methods.splice(0, methods.length, ...initial)
+      state.totp = totp
       hydrateProfileStoreForStories()
       const restoreSettings = await seedSettings()
 
@@ -60,14 +60,14 @@ export const NotSetUp: Story = {
 }
 
 export const Enabled: Story = {
-  ...withMfa({ methods: [MFA_ACTIVE] }),
+  ...withMfa({ totp: MFA_ACTIVE }),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
     await waitFor(() => expect(canvas.getByRole('switch')).toBeChecked())
     expect(canvas.getByRole('button', { name: 'Reconfigure' })).toBeEnabled()
     expect(canvas.getByRole('button', { name: 'Generate new' })).toBeEnabled()
-    expect(canvas.getByText(formatTime(MFA_ACTIVE.date_modified))).toBeInTheDocument()
+    expect(canvas.getByText(formatTime(MFA_ACTIVE_CREATED_AT))).toBeInTheDocument()
   },
 }
 

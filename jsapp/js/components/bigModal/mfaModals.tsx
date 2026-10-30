@@ -5,10 +5,13 @@ import React, { useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
+  MfaRejection,
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
+  useMfaRecoveryCodes,
   useMfaRegenerateCodes,
+  usePasswordCheck,
 } from '#/account/security/mfa/mfa.api'
 import bem, { makeBem } from '#/bem'
 import TextInput from '#/components/common/TextInput'
@@ -80,13 +83,25 @@ function MFAModals(props: MFAModalsProps) {
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null)
   const [isDownloadClicked, setIsDownloadClicked] = useState(false)
   const [errorText, setErrorText] = useState<string | undefined>(undefined)
+  const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState<string | undefined>(undefined)
+  /** 2FA is on, but the codes may still need reading */
+  const [isActivated, setIsActivated] = useState(false)
 
+  const checkPasswordNeeded = usePasswordCheck()
+  const isPasswordNeeded = checkPasswordNeeded()
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
+  const recoveryCodes = useMfaRecoveryCodes()
   const regenerateCodes = useMfaRegenerateCodes()
 
-  const isBusy = activate.isPending || confirmCode.isPending || deactivate.isPending || regenerateCodes.isPending
+  const isBusy =
+    activate.isPending ||
+    confirmCode.isPending ||
+    recoveryCodes.isPending ||
+    deactivate.isPending ||
+    regenerateCodes.isPending
 
   // HACK FIX: the close icon belongs to the modal frame, and the codes are shown once - dismissing would lose them.
   useEffect(() => {
@@ -108,19 +123,50 @@ function MFAModals(props: MFAModalsProps) {
     setCurrentStep('backups')
   }
 
-  /** A rejected code shows next to the field; anything else is left to the usual error toast. */
-  function onCodeRejected() {
-    setErrorText(t('Incorrect token'))
+  function clearErrors() {
+    setErrorText(undefined)
+    setPasswordError(undefined)
+  }
+
+  /** A refused credential shows by its field; anything else is left to the usual error toast. */
+  function onCredentialRejected(error: Error) {
+    if (!(error instanceof MfaRejection)) {
+      return
+    }
+    if (error.field === 'password') {
+      setPasswordError(error.message)
+    } else if (error.field === 'code') {
+      setErrorText(error.message)
+    }
   }
 
   function mfaConfirm() {
-    setErrorText(undefined)
-    confirmCode.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCodeRejected })
+    clearErrors()
+    // A retry after the codes failed to load must not turn 2FA on again
+    if (isActivated) {
+      recoveryCodes.mutate(undefined, { onSuccess: showCodes })
+      return
+    }
+    // The window may have closed since the last render
+    if (checkPasswordNeeded() && !password) {
+      setPasswordError(t('Please confirm your password to continue'))
+      return
+    }
+    confirmCode.mutate(
+      { code: inputString, password: password || undefined },
+      {
+        onSuccess: () => {
+          setIsActivated(true)
+          recoveryCodes.mutate(undefined, { onSuccess: showCodes })
+        },
+        onError: onCredentialRejected,
+      },
+    )
   }
 
   // TODO: DEV-1971 this and the regenerate below stop asking for a code.
   function mfaDeactivate() {
-    setErrorText(undefined)
+    clearErrors()
     deactivate.mutate(
       { code: inputString },
       {
@@ -137,14 +183,14 @@ function MFAModals(props: MFAModalsProps) {
             closeModal()
           }
         },
-        onError: onCodeRejected,
+        onError: onCredentialRejected,
       },
     )
   }
 
   function mfaRegenerate() {
-    setErrorText(undefined)
-    regenerateCodes.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCodeRejected })
+    clearErrors()
+    regenerateCodes.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCredentialRejected })
   }
 
   function onSubmit() {
@@ -207,18 +253,51 @@ function MFAModals(props: MFAModalsProps) {
   function renderCodeInput() {
     return (
       <bem.MFAModal__p>
-        {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
-        <input type='password' hidden />
         <TextInput
           className='mfa-modals-textbox'
           size='lg'
           error={errorText}
           value={inputString}
           onChange={(evt) => setInputString(evt.currentTarget.value)}
-          autoComplete='off'
+          // Keeps password managers from filling it in as the username for the password field below
+          autoComplete='one-time-code'
         />
       </bem.MFAModal__p>
     )
+  }
+
+  /**
+   * allauth wants a recent password before turning 2FA on. We ask here instead of relying on the reauthentication
+   * redirect: leaving the page closes this modal, and starting over makes a new secret, so the one already scanned
+   * stops working. Sending both together also means neither expires while the other is typed.
+   */
+  function renderPasswordInput() {
+    if (!isPasswordNeeded) {
+      return null
+    }
+    return (
+      <>
+        <bem.MFAModal__p>{t('Confirm your password to turn on two-factor authentication.')}</bem.MFAModal__p>
+        <bem.MFAModal__p>
+          <TextInput
+            className='mfa-modals-textbox'
+            type='password'
+            size='lg'
+            aria-label={t('Password')}
+            placeholder={t('Password')}
+            error={passwordError}
+            value={password}
+            onChange={(evt) => setPassword(evt.currentTarget.value)}
+            autoComplete='current-password'
+          />
+        </bem.MFAModal__p>
+      </>
+    )
+  }
+
+  /** The confirming steps need the password too, when there is one. Once 2FA is on, Next only rereads the codes. */
+  function isConfirmValid() {
+    return isActivated || (isTokenValid() && (!isPasswordNeeded || password.length >= 1))
   }
 
   function renderQRCodeStep() {
@@ -241,15 +320,7 @@ function MFAModals(props: MFAModalsProps) {
             <QRCode value={qrCode || ''} size={170} />
           </bem.MFAModal__qrcodeWrapper>
 
-          <bem.MFAModal__p>
-            {t(
-              'After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.',
-            ).replace('##number##', String(envStore.data.mfa_code_length))}
-          </bem.MFAModal__p>
-
-          {renderCodeInput()}
-
-          <bem.MFAModal__p m='align-right'>
+          <bem.MFAModal__p m='align-center'>
             {t('No QR code?')}
             &nbsp;
             <bem.MFAModal__helpLink
@@ -260,6 +331,15 @@ function MFAModals(props: MFAModalsProps) {
               {t('Enter key manually')}
             </bem.MFAModal__helpLink>
           </bem.MFAModal__p>
+
+          <bem.MFAModal__p>
+            {t(
+              'After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.',
+            ).replace('##number##', String(envStore.data.mfa_code_length))}
+          </bem.MFAModal__p>
+
+          {renderCodeInput()}
+          {renderPasswordInput()}
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -270,7 +350,7 @@ function MFAModals(props: MFAModalsProps) {
               isFullWidth
               label={t('Next')}
               onClick={mfaConfirm}
-              isDisabled={!isTokenValid()}
+              isDisabled={!isConfirmValid()}
               isPending={isBusy}
             />
           </bem.MFAModal__footerRight>
@@ -355,6 +435,7 @@ function MFAModals(props: MFAModalsProps) {
           </bem.MFAModal__p>
 
           {renderCodeInput()}
+          {renderPasswordInput()}
 
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
@@ -375,7 +456,7 @@ function MFAModals(props: MFAModalsProps) {
               isFullWidth
               label={t('Next')}
               onClick={mfaConfirm}
-              isDisabled={!isTokenValid()}
+              isDisabled={!isConfirmValid()}
               isPending={isBusy}
             />
           </bem.MFAModal__footerRight>
