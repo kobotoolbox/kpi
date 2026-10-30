@@ -152,24 +152,41 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_pending_transfer(self, obj):
         """
-        Get the active pending ownership transfer for the user if it exists
+        Get the active pending ownership transfer for the user if it exists.
+        Only exposed to the sender (owner) or recipient (invitee).
         """
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        request_user = get_database_user(request.user)
+
         try:
             pending_transfers_per_member = self.context['pending_transfers_per_member']
         except KeyError:
+            # If requester is neither the org owner (sender) nor this member
+            # (recipient), they cannot view any pending transfer for this member.
+            if (
+                not obj.organization.is_owner(request_user)
+                and obj.user_id != request_user.id
+            ):
+                return None
+
             transfer = (
                 OrganizationOwnershipTransfer.objects.filter(
                     organization=obj.organization,
                     recipient=obj.user,
                     status=OrganizationInviteStatusChoices.PENDING,
                 )
-                .select_related('sender', 'recipient', 'organization')
+                .select_related(
+                    'sender__extra_details', 'recipient', 'organization'
+                )
                 .first()
             )
         else:
             transfer = pending_transfers_per_member.get(obj.user_id)
 
-        if transfer:
+        if transfer and request_user.id in (transfer.sender_id, transfer.recipient_id):
             return OrganizationOwnershipTransferSerializer(
                 transfer, context=self.context
             ).data

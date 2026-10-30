@@ -599,7 +599,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             status=OrganizationInviteStatusChoices.PENDING,
             recipient_id__in=members_user_ids,
             organization_id=organization_id,
-        ).select_related('sender', 'recipient', 'organization')
+        ).select_related('sender__extra_details', 'recipient', 'organization')
         return page
 
     def get_queryset(self):
@@ -1058,7 +1058,7 @@ class OrganizationOwnershipTransferViewSet(
         queryset = OrganizationOwnershipTransfer.objects.filter(
             organization_id=organization_id
         ).select_related(
-            'sender__extra_details', 'recipient__extra_details', 'organization'
+            'sender__extra_details', 'recipient', 'organization'
         )
 
         if self.action == 'list':
