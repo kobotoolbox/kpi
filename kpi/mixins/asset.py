@@ -9,6 +9,10 @@ from kpi.models.asset import Asset
 
 class AssetViewSetListMixin:
 
+    # Ids and uids of the assets of the page, set by `_cache_asset_ids()`
+    _asset_ids = None
+    _asset_uids = None
+
     def get_organizations_per_asset_ids(self, asset_ids: list) -> dict:
 
         assets = (
@@ -48,13 +52,15 @@ class AssetViewSetListMixin:
 
     def _attach_xforms_to_assets(self, assets: list):
         """
-        Attach the related XForm to each deployed Asset with one query, instead
-        of one query per Asset when the serializer reads its deployment.
+        Attach the related XForm to each Asset and yield it, so that this happens
+        in the same pass as serialization.
+
+        It reads the uids that `_cache_asset_ids()` collected. Only the serializer
+        must consume the result: any earlier iteration would leave it empty.
         """
 
-        asset_uids = [asset.uid for asset in assets if asset.has_deployment]
         xform_qs = (
-            XForm.all_objects.filter(kpi_asset_uid__in=asset_uids)
+            XForm.all_objects.filter(kpi_asset_uid__in=self._asset_uids)
             .only(
                 'id_string',
                 'num_of_submissions',
@@ -71,6 +77,7 @@ class AssetViewSetListMixin:
 
         xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
 
+        # Single pass over assets: attach _xform then yield
         for asset in assets:
             if asset.has_deployment:
                 if xf := xforms_by_uid.get(asset.uid):
@@ -81,3 +88,15 @@ class AssetViewSetListMixin:
                     # Consider the asset as not deployed.
                     asset.date_deployed = None
                     asset._deployment_data = {}
+            yield asset
+
+    def _cache_asset_ids(self, assets: list):
+        """
+        Collect the ids and uids of the assets of the page in a single loop
+        """
+
+        self._asset_ids = []
+        self._asset_uids = []
+        for asset in assets:
+            self._asset_ids.append(asset.pk)
+            self._asset_uids.append(asset.uid)

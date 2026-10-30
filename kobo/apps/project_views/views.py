@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 from django.conf import settings
 from django.db import transaction
@@ -226,9 +226,12 @@ class ProjectViewViewSet(
             'owner', 'owner__extra_details'
         )
         page = self.paginate_queryset(queryset)
-        self._attach_xforms_to_assets(page)
-        serializer = self._get_regional_serializer(
-            page, serializer_class=AssetMetadataListSerializer
+        self._cache_asset_ids(page)
+        serializer = AssetMetadataListSerializer(
+            self._attach_xforms_to_assets(page),
+            many=True,
+            read_only=True,
+            context=self.get_serializer_context(),
         )
         return self.get_paginated_response(serializer.data)
 
@@ -340,16 +343,14 @@ class ProjectViewViewSet(
             queryset, serializer_class=UserListSerializer
         )
 
-    def get_serializer_context(self, data: Optional[list] = None):
+    def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
-        # `users` serializes users, which need none of the organizations below
-        if not data or self.action != 'assets':
+        if not self._asset_ids:
             return context_
 
-        asset_ids = [asset.pk for asset in data]
-        context_['organizations_per_asset'] = (
-            self.get_organizations_per_asset_ids(asset_ids)
+        context_['organizations_per_asset'] = self.get_organizations_per_asset_ids(
+            self._asset_ids
         )
         context_['mmo_organization_ids'] = self.get_mmo_organization_ids(
             context_['organizations_per_asset']
@@ -379,7 +380,7 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_context(queryset)
+        context_ = self.get_serializer_context()
 
         return serializer_class(
             queryset,
