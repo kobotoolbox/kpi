@@ -1207,14 +1207,16 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         regional_res = self.client.get(
             view_0_url, headers={'accept': 'application/json'}
         )
-        assert regional_res.json()['count'] == 2
+        regional_data = regional_res.json()
+        assert 'count' not in regional_data
+        assert len(regional_data['results']) == 2
 
         view_1_url = results[1]['assets']
         regional_res = self.client.get(
             view_1_url, headers={'accept': 'application/json'}
         )
         regional_data = regional_res.json()
-        assert regional_data['count'] == 1
+        assert len(regional_data['results']) == 1
         asset_countries = set(
             c['value']
             for c in regional_data['results'][0]['settings']['country']
@@ -1294,7 +1296,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         assert regional_res.status_code == status.HTTP_200_OK
         regional_data = regional_res.json()
-        assert regional_data['count'] == 1
+        assert len(regional_data['results']) == 1
         assert regional_data['results'][0]['deployment__submission_count'] is None
 
     def test_project_views_for_anotheruser(self):
@@ -1313,7 +1315,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 results[i]['assets'], headers={'accept': 'application/json'}
             )
             regional_data = regional_res.json()
-            assert regional_data['count'] == item['count']
+            assert len(regional_data['results']) == item['count']
             asset_countries = set(
                 c['value']
                 for c in regional_data['results'][0]['settings']['country']
