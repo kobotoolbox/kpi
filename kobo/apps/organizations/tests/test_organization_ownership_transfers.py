@@ -28,6 +28,7 @@ from kobo.apps.organizations.constants import (
 from kobo.apps.organizations.models import (
     OrganizationInviteStatusChoices,
     OrganizationOwnershipTransfer,
+    OrganizationUser,
 )
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
@@ -697,22 +698,22 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             str(res_reaccept.data['detail']), str(INVITE_ALREADY_ACCEPTED_ERROR)
         )
 
-    def test_accept_transfer_fails_if_recipient_no_longer_active_admin(self):
+    def test_demoted_invitee_cannot_accept_transfer(self):
         """
-        Invitee cannot accept if they are no longer an active admin.
+        Invitee cannot accept if they have been demoted to a regular member (403).
         """
         self._create_transfer(self.owner_user, self.admin_user.username)
         transfer = OrganizationOwnershipTransfer.objects.first()
         accept_url = self._get_action_url('accept', transfer.guid)
 
-        # Deactivate admin user
-        self.admin_user.is_active = False
-        self.admin_user.save(update_fields=['is_active'])
+        # Demote admin user to member
+        OrganizationUser.objects.filter(
+            organization=self.organization, user=self.admin_user
+        ).update(is_admin=False)
 
         self.client.force_login(self.admin_user)
         res = self.client.patch(accept_url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(res.data['detail']), str(RECIPIENT_MUST_BE_ADMIN_ERROR))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_decline_transfer(self):
         """
@@ -801,10 +802,12 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertIn('Retry-After', res_rate_limited.headers)
 
         # 3. Rewind modified timestamp beyond cooldown period
-        transfer.modified = timezone.now() - timedelta(
+        fake_modified = timezone.now() - timedelta(
             seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER + 10
         )
-        transfer.save(update_fields=['modified'])
+        OrganizationOwnershipTransfer.objects.filter(pk=transfer.pk).update(
+            modified=fake_modified
+        )
 
         # 4. Owner resends successfully
         res_resend = self.client.post(resend_url)
