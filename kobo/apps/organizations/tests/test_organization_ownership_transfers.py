@@ -33,6 +33,7 @@ from kobo.apps.organizations.models import (
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
+from kobo.apps.organizations.views import OrganizationOwnershipTransferViewSet
 from kpi.exceptions import MailerError
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.placeholders import replace_placeholders
@@ -823,3 +824,88 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(
             str(res_cancelled.data['detail']), str(INVITE_CANNOT_BE_RESENT_ERROR)
         )
+
+    def test_accept_fails_if_transfer_cancelled_concurrently(self):
+        """
+        If owner cancels while recipient attempts to accept, the row lock and
+        re-read inside the transaction detects non-pending status and aborts (400).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrganizationOwnershipTransfer.objects.first()
+        accept_url = self._get_action_url('accept', transfer.guid)
+
+        # In DB, the transfer is cancelled by owner concurrently
+        OrganizationOwnershipTransfer.objects.filter(pk=transfer.pk).update(
+            status=OrganizationInviteStatusChoices.CANCELLED
+        )
+
+        # Stale read simulating concurrent request having read pending status
+        stale_transfer = OrganizationOwnershipTransfer.objects.get(pk=transfer.pk)
+        stale_transfer.status = OrganizationInviteStatusChoices.PENDING
+
+        with patch.object(
+            OrganizationOwnershipTransferViewSet,
+            'get_object',
+            return_value=stale_transfer,
+        ):
+            self.client.force_login(self.admin_user)
+            res = self.client.patch(accept_url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(str(res.data['detail']), str(TRANSFER_NOT_PENDING_ERROR))
+
+    def test_cancel_fails_if_transfer_accepted_concurrently(self):
+        """
+        If recipient accepts while owner attempts to cancel, the row lock and
+        re-read inside the transaction detects non-pending status and aborts (400).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrganizationOwnershipTransfer.objects.first()
+        cancel_url = self._get_action_url('cancel', transfer.guid)
+
+        # In DB, the transfer is accepted by recipient concurrently
+        OrganizationOwnershipTransfer.objects.filter(pk=transfer.pk).update(
+            status=OrganizationInviteStatusChoices.ACCEPTED
+        )
+
+        # Stale read simulating concurrent request having read pending status
+        stale_transfer = OrganizationOwnershipTransfer.objects.get(pk=transfer.pk)
+        stale_transfer.status = OrganizationInviteStatusChoices.PENDING
+
+        with patch.object(
+            OrganizationOwnershipTransferViewSet,
+            'get_object',
+            return_value=stale_transfer,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self.client.patch(cancel_url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(str(res.data['detail']), str(TRANSFER_NOT_PENDING_ERROR))
+
+    def test_resend_fails_if_cooldown_triggered_concurrently(self):
+        """
+        If concurrent resend requests pass initial read, the row lock and
+        re-read inside transaction enforces cooldown rate limiting (429).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrganizationOwnershipTransfer.objects.first()
+        resend_url = self._get_action_url('resend', transfer.guid)
+
+        # In DB, the transfer was modified/resent by concurrent request
+        OrganizationOwnershipTransfer.objects.filter(pk=transfer.pk).update(
+            modified=timezone.now()
+        )
+
+        # Stale read simulating cooldown elapsed on initial fetch
+        stale_transfer = OrganizationOwnershipTransfer.objects.get(pk=transfer.pk)
+        stale_transfer.modified = timezone.now() - timedelta(
+            seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER + 60
+        )
+
+        with patch.object(
+            OrganizationOwnershipTransferViewSet,
+            'get_object',
+            return_value=stale_transfer,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self.client.post(resend_url)
+            self.assertEqual(res.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

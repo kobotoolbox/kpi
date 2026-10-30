@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
+    OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
@@ -67,6 +68,7 @@ from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
     open_api_204_empty_response,
@@ -1077,7 +1079,22 @@ class OrganizationOwnershipTransferViewSet(
     @extend_schema(
         description='Accept an organization ownership transfer request (invitee only).',
         request=None,
-        responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Transfer is not pending.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -1091,25 +1108,50 @@ class OrganizationOwnershipTransferViewSet(
     @action(detail=True, methods=['patch'])
     def accept(self, request, *args, **kwargs):
         transfer = self.get_object()
-        if transfer.status != OrganizationInviteStatusChoices.PENDING:
-            if transfer.status == OrganizationInviteStatusChoices.ACCEPTED:
-                raise serializers.ValidationError(
-                    {'detail': INVITE_ALREADY_ACCEPTED_ERROR}
-                )
-            raise serializers.ValidationError({'detail': TRANSFER_NOT_PENDING_ERROR})
 
         with transaction.atomic():
-            transfer.status = OrganizationInviteStatusChoices.ACCEPTED
-            transfer.save(update_fields=['status', 'modified'])
+            locked_transfer = (
+                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                    pk=transfer.pk
+                )
+            )
+            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+                if locked_transfer.status == OrganizationInviteStatusChoices.ACCEPTED:
+                    raise serializers.ValidationError(
+                        {'detail': INVITE_ALREADY_ACCEPTED_ERROR}
+                    )
+                raise serializers.ValidationError(
+                    {'detail': TRANSFER_NOT_PENDING_ERROR}
+                )
+
+            locked_transfer.status = OrganizationInviteStatusChoices.ACCEPTED
+            locked_transfer.save(update_fields=['status', 'modified'])
             # Placeholder for async ownership and asset reassignment task (DEV-2896)
 
+        transfer.status = locked_transfer.status
+        transfer.modified = locked_transfer.modified
         transfer.send_acceptance_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         description='Decline an organization ownership transfer request (invitee only).',
         request=None,
-        responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Transfer is not pending.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -1123,20 +1165,45 @@ class OrganizationOwnershipTransferViewSet(
     @action(detail=True, methods=['patch'])
     def decline(self, request, *args, **kwargs):
         transfer = self.get_object()
-        if transfer.status != OrganizationInviteStatusChoices.PENDING:
-            raise serializers.ValidationError({'detail': TRANSFER_NOT_PENDING_ERROR})
 
         with transaction.atomic():
-            transfer.status = OrganizationInviteStatusChoices.DECLINED
-            transfer.save(update_fields=['status', 'modified'])
+            locked_transfer = (
+                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                    pk=transfer.pk
+                )
+            )
+            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+                raise serializers.ValidationError(
+                    {'detail': TRANSFER_NOT_PENDING_ERROR}
+                )
 
+            locked_transfer.status = OrganizationInviteStatusChoices.DECLINED
+            locked_transfer.save(update_fields=['status', 'modified'])
+
+        transfer.status = locked_transfer.status
+        transfer.modified = locked_transfer.modified
         transfer.send_refusal_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         description='Cancel a pending organization ownership transfer request (outgoing owner only).',
         request=None,
-        responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Transfer is not pending.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -1150,23 +1217,46 @@ class OrganizationOwnershipTransferViewSet(
     @action(detail=True, methods=['patch'])
     def cancel(self, request, *args, **kwargs):
         transfer = self.get_object()
-        if transfer.status != OrganizationInviteStatusChoices.PENDING:
-            raise serializers.ValidationError({'detail': TRANSFER_NOT_PENDING_ERROR})
 
         with transaction.atomic():
-            transfer.status = OrganizationInviteStatusChoices.CANCELLED
-            transfer.save(update_fields=['status', 'modified'])
+            locked_transfer = (
+                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                    pk=transfer.pk
+                )
+            )
+            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+                raise serializers.ValidationError(
+                    {'detail': TRANSFER_NOT_PENDING_ERROR}
+                )
 
+            locked_transfer.status = OrganizationInviteStatusChoices.CANCELLED
+            locked_transfer.save(update_fields=['status', 'modified'])
+
+        transfer.status = locked_transfer.status
+        transfer.modified = locked_transfer.modified
         transfer.send_cancellation_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         description='Resend the invitation email for a pending organization ownership transfer (outgoing owner only).',
         request=None,
-        responses=open_api_200_ok_response(
-            OrganizationOwnershipTransferSerializer,
-            raise_throttled=True,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+                raise_throttled=True,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Invitation cannot be resent.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -1180,25 +1270,36 @@ class OrganizationOwnershipTransferViewSet(
     @action(detail=True, methods=['post'])
     def resend(self, request, *args, **kwargs):
         transfer = self.get_object()
-        if transfer.status != OrganizationInviteStatusChoices.PENDING:
-            raise serializers.ValidationError({'detail': INVITE_CANNOT_BE_RESENT_ERROR})
 
-        retry_after = transfer.modified + timedelta(
-            seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
-        )
-        now = timezone.now()
-        if retry_after > now:
-            remaining_delta = retry_after - now
-            remaining_seconds = int(remaining_delta.total_seconds())
-            raise RetryAfterAPIException(
-                replace_placeholders(
-                    INVITE_RESENT_TOO_QUICKLY_ERROR,
-                    minutes=str(math.ceil(remaining_seconds / 60)),
-                ),
-                retry_after=remaining_seconds,
+        with transaction.atomic():
+            locked_transfer = (
+                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                    pk=transfer.pk
+                )
             )
+            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+                raise serializers.ValidationError(
+                    {'detail': INVITE_CANNOT_BE_RESENT_ERROR}
+                )
 
+            retry_after = locked_transfer.modified + timedelta(
+                seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
+            )
+            now = timezone.now()
+            if retry_after > now:
+                remaining_delta = retry_after - now
+                remaining_seconds = int(remaining_delta.total_seconds())
+                raise RetryAfterAPIException(
+                    replace_placeholders(
+                        INVITE_RESENT_TOO_QUICKLY_ERROR,
+                        minutes=str(math.ceil(remaining_seconds / 60)),
+                    ),
+                    retry_after=remaining_seconds,
+                )
+
+            locked_transfer.modified = now
+            locked_transfer.save(update_fields=['modified'])
+
+        transfer.modified = locked_transfer.modified
         transfer.send_invite_email()
-        transfer.modified = now
-        transfer.save(update_fields=['modified'])
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
