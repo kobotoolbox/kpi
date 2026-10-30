@@ -147,7 +147,7 @@ django-loginas==0.3.14
     # via -r dependencies/pip/requirements.in
 django-markdownx==4.0.11
     # via -r dependencies/pip/requirements.in
-django-oauth-toolkit==3.2.0
+django-oauth-toolkit==3.4.1
     # via -r dependencies/pip/requirements.in
 django-organizations==2.6.0
     # via -r dependencies/pip/requirements.in
@@ -497,6 +497,7 @@ uritemplate==4.2.0
 urllib3==2.7.0
     # via
     #   botocore
+    #   django-oauth-toolkit
     #   requests
     #   responses
     #   sentry-sdk

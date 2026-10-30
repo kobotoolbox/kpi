@@ -77,6 +77,10 @@ class UserViewSet(
         fields = '__all__'
 
     def get_queryset(self, *args, **kwargs):
+        if hasattr(self, 'swagger_fake_view'):
+            # Schema generation has no real user; only the model matters
+            return User.objects.none()
+
         self.queryset = User.objects.all()
 
         if not self.request.user.is_superuser:
