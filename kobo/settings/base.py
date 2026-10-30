@@ -1437,6 +1437,34 @@ BULK_ACTION_STUCK_THRESHOLD = env.int(
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
 )
 
+# The one audio length limit for every transcription engine; lower it whenever
+# an engine with a tighter limit is added
+TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS = env.int(
+    'TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS',
+    55 * 60,
+)
+
+# The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
+# than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
+TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
+    'TRANSCRIPTION_SILENCE_MIN_DURATION',
+    0.5,
+)
+
+# Loudness thresholds, in dBFS, tried in order until every cut has a pause to
+# land in. Recording levels differ enormously between files, so no single
+# threshold finds the pauses in all of them
+TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
+
+# Longest a single silence detection pass may run. It streams the whole
+# recording out of storage, so allow for a slow download, but never let a web
+# request hang on it for ever
+TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
+    'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
+    300,
+)
+
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'

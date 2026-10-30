@@ -33,6 +33,15 @@ class AttachmentUidMismatchException(Exception):
     pass
 
 
+class AudioDurationUnknownError(Exception):
+    """
+    Raised when the duration of an audio file cannot be determined, which
+    leaves no way to tell whether it needs chunking or where to cut it
+    """
+
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 
