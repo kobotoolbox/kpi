@@ -344,7 +344,8 @@ class ProjectViewViewSet(
     def get_serializer_context(self, data: Optional[list] = None):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
-        if not data:
+        # `users` serializes users, which need none of the organizations below
+        if not data or self.action != 'assets':
             return context_
 
         asset_ids = [asset.pk for asset in data]
