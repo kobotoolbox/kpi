@@ -21,7 +21,6 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -915,6 +914,9 @@ class AssetViewSet(
                 context_['organizations_per_asset'] = (
                     self.get_organizations_per_asset_ids(asset_ids)
                 )
+                context_['mmo_organization_ids'] = self.get_mmo_organization_ids(
+                    context_['organizations_per_asset']
+                )
 
         return context_
 
@@ -926,12 +928,8 @@ class AssetViewSet(
         page = self.paginate_queryset(self._filtered_queryset)
 
         if page is not None:
-            self._serializer_context['asset_ids_cache'] = []
-            self._serializer_context['asset_uids_cache'] = []
-            for asset in page:
-                self._serializer_context['asset_ids_cache'].append(asset.pk)
-                self._serializer_context['asset_uids_cache'].append(asset.uid)
-
+            self._cache_asset_ids(page)
+            self._serializer_context['asset_ids_cache'] = self._asset_ids
             serializer = self.get_serializer(
                 self._attach_xforms_to_assets(page), many=True
             )
@@ -1090,44 +1088,6 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(request, *args, **kwargs)
-
-    def _attach_xforms_to_assets(self, assets: list):
-        """
-        Attach the related XForm to each Asset and yield them to
-        stay memory-efficient.
-        """
-
-        asset_uids = self._serializer_context['asset_uids_cache']
-        xform_qs = (
-            XForm.all_objects.filter(kpi_asset_uid__in=asset_uids)
-            .only(
-                'id_string',
-                'num_of_submissions',
-                'attachment_storage_bytes',
-                'require_auth',
-                'uuid',
-                'mongo_uuid',
-                'encrypted',
-                'last_submission_time',
-                'kpi_asset_uid',
-            )
-            .order_by()
-        )
-
-        xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
-
-        # Single pass over assets: attach _xform then yield
-        for asset in assets:
-            if asset.has_deployment:
-                if xf := xforms_by_uid.get(asset.uid):
-                    xf.user = asset.owner
-                    asset.deployment._xform = xf
-                else:
-                    # If XForm does not exist, something went wrong.
-                    # Consider the asset as not deployed.
-                    asset.date_deployed = None
-                    asset._deployment_data = {}
-            yield asset
 
     def _bulk_asset_actions(self, data: dict) -> dict:
         params = {
