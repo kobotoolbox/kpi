@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import OrganizationUser
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.mixins.asset import AssetViewSetListMixin
@@ -406,13 +407,14 @@ class ProjectViewViewSet(
                 queryset = queryset.filter(settings__country_codes__in_array=region)
 
         if pv.organizations.all():
+            # Filter on members with a subquery: it keeps one row per user or
+            # asset, so the query needs no `DISTINCT`.
+            member_ids = OrganizationUser.objects.filter(
+                organization__in=pv.organizations.all()
+            ).values('user_id')
             if obj_type == 'user':
-                queryset = queryset.filter(
-                    organizations_organization__in=pv.organizations.all()
-                ).distinct()
+                queryset = queryset.filter(pk__in=member_ids)
             else:
-                queryset = queryset.filter(
-                    owner__organizations_organization__in=pv.organizations.all()
-                ).distinct()
+                queryset = queryset.filter(owner_id__in=member_ids)
 
         return queryset
