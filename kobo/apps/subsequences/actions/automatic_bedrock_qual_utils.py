@@ -85,10 +85,12 @@ class BedrockClient(ABC):
 
 class MantleClient(BedrockClient):
     def __init__(self, *args, **kwargs):
+        # use boto to resolve to the correct the region
+        region = boto3.Session(region_name=settings.AWS_BEDROCK_REGION_NAME).region_name
         self.client = OpenAI(
-            api_key=provide_token(region=settings.AWS_BEDROCK_REGION_NAME),
-            base_url=f'https://bedrock-mantle'
-            f'.{settings.AWS_BEDROCK_REGION_NAME}.api.aws/openai/v1',
+            api_key=provide_token(region=region),
+            base_url=f'https://bedrock-mantle.{region}.api.aws/openai/v1',
+            timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT,
         )
 
     def make_request(self, request_data, model):

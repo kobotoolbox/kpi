@@ -7,6 +7,7 @@ from xml.sax.saxutils import escape
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
+from openai import OpenAIError
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
@@ -52,7 +53,6 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
-
 from .automatic_bedrock_qual_utils import (
     CLIENTS_BY_NAME,
     OSS120,
@@ -449,7 +449,10 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             self.asset.id,
         )
 
-        clients_by_type = self.get_clients_for_models(models)
+        try:
+            clients_by_type = self.get_clients_for_models(models)
+        except (ClientError, OpenAIError, ConnectTimeoutError) as e:
+            return {'status': 'failed', 'error': f'{e}'}
 
         for index, model in enumerate(models):
             try:
@@ -495,6 +498,7 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 ClientError,
                 ReadTimeoutError,
                 ConnectTimeoutError,
+                OpenAIError,
             ) as e:
                 if index < len(models) - 1:
                     logging.warning(
