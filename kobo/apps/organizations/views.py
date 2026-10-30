@@ -987,7 +987,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
                 required=True,
                 description='GUID of the ownership transfer',
             )
-        ]
+        ],
     ),
     list=extend_schema(
         description='List organization ownership transfers for the current user.',
@@ -999,7 +999,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
                 required=False,
                 description='Filter ownership transfers by status (e.g. pending, accepted).',
             )
-        ]
+        ],
     ),
 )
 class OrganizationOwnershipTransferViewSet(
