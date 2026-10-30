@@ -65,13 +65,13 @@ echo -e '\n\n### Step: Check package-lock.json is in sync with package.json'
 # `npm ci` passes if locked versions still satisfy a bumped range, so we
 # regenerate the lockfile in a temp dir and diff. No git, so works mid-merge.
 lockcheck_dir=$(mktemp -d)
+trap 'rm -rf "$lockcheck_dir"' EXIT
 cp package.json package-lock.json "$lockcheck_dir"
 (cd "$lockcheck_dir" && npm install --package-lock-only --ignore-scripts --no-audit --no-fund --loglevel=error > /dev/null)
 if ! diff -u package-lock.json "$lockcheck_dir/package-lock.json"; then
     echo '❌ package-lock.json is out of sync, run `npm install` and commit it.'
     exit 1
 fi
-rm -rf "$lockcheck_dir"
 
 echo -e '\n\n### Step: Install JavaScript dependencies'
 npm ci
