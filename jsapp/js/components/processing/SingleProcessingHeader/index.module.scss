@@ -15,6 +15,14 @@
   gap: 5px;
 }
 
+// Reserve width even when empty (loading, or count is 'many'/'unknown') so the nav
+// buttons don't shift
+.countContainer {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 120px;
+}
+
 .navButtons {
   @include mixins.centerRowFlex;
   position: relative;
@@ -50,8 +58,6 @@
   }
 
   .countContainer {
-    display: flex;
-    justify-content: flex-end;
     min-width: 150px;
     margin-left: 50px;
   }
