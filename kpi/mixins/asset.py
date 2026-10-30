@@ -17,9 +17,9 @@ class AssetViewSetListMixin:
             .prefetch_related(
                 Prefetch(
                     'owner__organizations_organization',
-                    queryset=Organization.objects.all().order_by(
-                        '-organization_users__created'
-                    ),
+                    queryset=Organization.objects.all()
+                    .select_related('owner__organization_user__user')
+                    .order_by('-organization_users__created'),
                     to_attr='organizations',
                 )
             )
