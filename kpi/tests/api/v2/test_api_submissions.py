@@ -521,8 +521,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_query_counts_for_list_submissions(self):
-        # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(17, 19)):
+        # query count differs when stripe is enabled/disabled.
+        # The first request also reads the content of the deployed version,
+        # which is not in the attachment xpath cache yet
+        with self.assertNumQueries(FuzzyInt(19, 21)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
         with self.assertNumQueries(FuzzyInt(17, 19)):
@@ -544,6 +546,9 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             )
 
     def test_query_count_does_not_increase_with_more_submissions(self):
+        # Fill the attachment xpath cache first, so that every request below
+        # finds it in the same state and only the number of submissions changes
+        self.client.get(self.submission_list_url, {'format': 'json'})
         with CaptureQueriesContext(connection) as context:
             self.client.get(self.submission_list_url, {'format': 'json'})
         count = context.final_queries - context.initial_queries
