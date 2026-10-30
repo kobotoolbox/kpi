@@ -24,8 +24,7 @@ def get_indexes():
 
 
 def manually_create_indexes_instructions(apps, schema_editor):
-    print(
-        """
+    print("""
         !!! ATTENTION !!!
         If you have existing projects you need to run the SQL queries below in PostgreSQL directly:
 
@@ -33,21 +32,18 @@ def manually_create_indexes_instructions(apps, schema_editor):
            > CREATE INDEX CONCURRENTLY IF NOT EXISTS "asset_date_created_id_idx" ON "kpi_asset" USING btree ("date_created" DESC, "id");
 
         Otherwise, project views will perform very poorly.
-        """
-    )
+        """)
 
 
 def manually_drop_indexes_instructions(apps, schema_editor):
-    print(
-        """
+    print("""
         !!! ATTENTION !!!
         Run the SQL queries below in PostgreSQL directly:
 
            > DROP INDEX CONCURRENTLY IF EXISTS "asset_survey_default_order_idx";
            > DROP INDEX CONCURRENTLY IF EXISTS "asset_date_created_id_idx";
 
-        """
-    )
+        """)
 
 
 class Migration(migrations.Migration):
