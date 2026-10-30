@@ -225,7 +225,9 @@ class ProjectViewsApiTestCase(BaseTestCase):
         results = {asset['uid']: asset for asset in response.data['results']}
 
         org_esp = results[self.asset_org_esp.uid]
-        assert org_esp['version_id'] == self.asset_org_esp.latest_version.uid
+        latest_version = self.asset_org_esp.latest_version
+        assert org_esp['version_id'] == latest_version.uid
+        assert org_esp['version__content_hash'] == latest_version.content_hash
         version_count = self.asset_org_esp.asset_versions.count()
         assert version_count > 1
         assert org_esp['version_count'] == version_count
@@ -239,6 +241,7 @@ class ProjectViewsApiTestCase(BaseTestCase):
             'status',
             'summary',
             'version_id',
+            'version__content_hash',
             'deployed_version_id',
             'version_count',
         }

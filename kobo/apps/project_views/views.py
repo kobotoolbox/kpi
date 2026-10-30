@@ -72,7 +72,8 @@ from .serializers import ProjectViewSerializer
                 required=False,
                 description=(
                     'Superusers only: `on` adds `status`, `summary`, `version_id`, '
-                    '`deployed_version_id` and `version_count` to each project'
+                    '`version__content_hash`, `deployed_version_id` and '
+                    '`version_count` to each project'
                 ),
             ),
         ],

@@ -13,6 +13,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { ProjectViewAssetResponseSettings } from './projectViewAssetResponseSettings'
 import type { ProjectViewAssetResponseSummary } from './projectViewAssetResponseSummary'
+import type { ProjectViewAssetResponseVersionContentHash } from './projectViewAssetResponseVersionContentHash'
 import type { ProjectViewAssetResponseVersionId } from './projectViewAssetResponseVersionId'
 
 export interface ProjectViewAssetResponse {
@@ -39,6 +40,7 @@ export interface ProjectViewAssetResponse {
   status?: string
   summary?: ProjectViewAssetResponseSummary
   version_id?: ProjectViewAssetResponseVersionId
+  version__content_hash?: ProjectViewAssetResponseVersionContentHash
   deployed_version_id?: ProjectViewAssetResponseDeployedVersionId
   version_count?: number
 }

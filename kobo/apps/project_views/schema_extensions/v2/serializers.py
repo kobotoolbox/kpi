@@ -43,6 +43,7 @@ ProjectViewAssetResponse = inline_serializer_class(
         'status': serializers.CharField(required=False),
         'summary': SummaryField(required=False),
         'version_id': serializers.CharField(required=False, allow_null=True),
+        'version__content_hash': serializers.CharField(required=False, allow_null=True),
         'deployed_version_id': serializers.CharField(required=False, allow_null=True),
         'version_count': serializers.IntegerField(required=False),
     },
