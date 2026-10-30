@@ -11,15 +11,16 @@ from xml.parsers.expat import ExpatError
 import requests
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.test import RequestFactory
 from requests.auth import HTTPDigestAuth
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     clean_and_parse_xml,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    publish_xml_form,
-    publish_form,
     create_instance,
+    publish_form,
+    publish_xml_form,
 )
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -52,14 +53,14 @@ def retry(tries, delay=3, backoff=2):
     *tries* must be at least 0, and *delay* greater than 0.
     """
     if backoff <= 1:  # pragma: no cover
-        raise ValueError("backoff must be greater than 1")
+        raise ValueError('backoff must be greater than 1')
 
     tries = math.floor(tries)
     if tries < 0:  # pragma: no cover
-        raise ValueError("tries must be 0 or greater")
+        raise ValueError('tries must be 0 or greater')
 
     if delay <= 0:  # pragma: no cover
-        raise ValueError("delay must be greater than 0")
+        raise ValueError('delay must be greater than 0')
 
     def decorator_retry(func):
         def function_retry(self, *args, **kwargs):
@@ -88,6 +89,10 @@ class BriefcaseClient:
     def __init__(self, url, username, password, user):
         self.url = url
         self.user = user
+        # `create_instance()` checks submission permissions against the
+        # request user
+        self.request = RequestFactory().post('/')
+        self.request.user = user
         self.auth = HTTPDigestAuth(username, password)
         self.form_list_url = urljoin(self.url, 'formList')
         self.submission_list_url = urljoin(self.url, 'view/submissionList')
@@ -124,16 +129,19 @@ class BriefcaseClient:
 
             manifest_path = os.path.join(
                 self.forms_path, id_string, 'form-media')
-            self.logger.debug("Downloading media files for %s" % id_string)
+            self.logger.debug('Downloading media files for %s' % id_string)
 
             self.download_media_files(manifest_doc, manifest_path)
 
     def download_xforms(self, include_instances=False):
         # fetch formList
         if not self._get_response(self.form_list_url):
-            response = self._current_response.content \
-                if self._current_response else "Unknown Error"
-            self.logger.error("Failed to download xforms %s." % response)
+            response = (
+                self._current_response.content
+                if self._current_response
+                else 'Unknown Error'
+            )
+            self.logger.error('Failed to download xforms %s.' % response)
 
             return
 
@@ -148,8 +156,7 @@ class BriefcaseClient:
 
             if not default_storage.exists(form_path):
                 if not self._get_response(download_url):
-                    self.logger.error("Failed to download xform %s."
-                                      % download_url)
+                    self.logger.error('Failed to download xform %s.' % download_url)
                     continue
 
                 form_res = self._current_response
@@ -159,14 +166,13 @@ class BriefcaseClient:
                 form_res = default_storage.open(form_path)
                 content = form_res.read()
 
-            self.logger.debug("Fetched %s." % download_url)
+            self.logger.debug('Fetched %s.' % download_url)
 
             self.download_manifest(manifest_url, id_string)
 
             if include_instances:
                 self.download_instances(id_string)
-                self.logger.debug("Done downloading submissions for %s" %
-                                  id_string)
+                self.logger.debug('Done downloading submissions for %s' % id_string)
 
     @retry(NUM_RETRIES)
     def _get_response(self, url, params=None):
@@ -206,9 +212,9 @@ class BriefcaseClient:
                     download_res = self._current_response
                     media_content = ContentFile(download_res.content)
                     default_storage.save(path, media_content)
-                    self.logger.debug("Fetched %s." % filename)
+                    self.logger.debug('Fetched %s.' % filename)
                 else:
-                    self.logger.error("Failed to fetch %s." % filename)
+                    self.logger.error('Failed to fetch %s.' % filename)
 
     def get_instances_uuids(self, xml_doc):
         uuids = []
@@ -223,18 +229,22 @@ class BriefcaseClient:
         return uuids
 
     def download_instances(self, form_id, cursor=0, num_entries=100):
-        self.logger.debug("Starting submissions download for %s" % form_id)
-        if not self._get_response(self.submission_list_url,
-                                  params={'formId': form_id,
-                                          'numEntries': num_entries,
-                                          'cursor': cursor}):
-            self.logger.error("Fetching %s formId: %s, cursor: %s" %
-                              (self.submission_list_url, form_id, cursor))
+        self.logger.debug('Starting submissions download for %s' % form_id)
+        if not self._get_response(
+            self.submission_list_url,
+            params={'formId': form_id, 'numEntries': num_entries, 'cursor': cursor},
+        ):
+            self.logger.error(
+                'Fetching %s formId: %s, cursor: %s'
+                % (self.submission_list_url, form_id, cursor)
+            )
             return
 
         response = self._current_response
-        self.logger.debug("Fetching %s formId: %s, cursor: %s" %
-                          (self.submission_list_url, form_id, cursor))
+        self.logger.debug(
+            'Fetching %s formId: %s, cursor: %s'
+            % (self.submission_list_url, form_id, cursor)
+        )
         try:
             xml_doc = clean_and_parse_xml(response.content)
         except ExpatError:
@@ -244,7 +254,7 @@ class BriefcaseClient:
         path = os.path.join(self.forms_path, form_id, 'instances')
 
         for uuid in instances:
-            self.logger.debug("Fetching %s %s submission" % (uuid, form_id))
+            self.logger.debug('Fetching %s %s submission' % (uuid, form_id))
             form_str = '%(formId)s[@version=null and @uiVersion=null]/'\
                 '%(formId)s[@key=%(instanceId)s]' % {
                     'formId': form_id,
@@ -271,7 +281,7 @@ class BriefcaseClient:
 
             media_path = os.path.join(path, uuid.replace(':', ''))
             self.download_media_files(instance_doc, media_path)
-            self.logger.debug("Fetched %s %s submission" % (form_id, uuid))
+            self.logger.debug('Fetched %s %s submission' % (form_id, uuid))
 
         if xml_doc.getElementsByTagName('resumptionCursor'):
             rs_node = xml_doc.getElementsByTagName('resumptionCursor')[0]
@@ -316,7 +326,12 @@ class BriefcaseClient:
                 media_obj = django_file(file_obj, 'media_files[]', mimetype)
                 attachments.append(media_obj)
 
-        create_instance(self.user.username, new_xml_file, attachments)
+        create_instance(
+            xml_file=new_xml_file,
+            media_files=attachments,
+            request=self.request,
+            owner_username=self.user.username,
+        )
 
     def _upload_instances(self, path):
         instances_count = 0
@@ -354,11 +369,10 @@ class BriefcaseClient:
                 form_xml_path = os.path.join(dir_path, form_xml)
                 x = self._upload_xform(form_xml_path, form_xml)
                 if isinstance(x, dict):
-                    self.logger.error("Failed to publish %s" % form_dir)
+                    self.logger.error('Failed to publish %s' % form_dir)
                 else:
-                    self.logger.debug("Successfully published %s" % form_dir)
+                    self.logger.debug('Successfully published %s' % form_dir)
             if 'instances' in form_dirs:
-                self.logger.debug("Uploading instances")
+                self.logger.debug('Uploading instances')
                 c = self._upload_instances(os.path.join(dir_path, 'instances'))
-                self.logger.debug("Published %d instances for %s" %
-                                  (c, form_dir))
+                self.logger.debug('Published %d instances for %s' % (c, form_dir))

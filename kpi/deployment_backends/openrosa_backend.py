@@ -376,7 +376,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
-        _uuid, uuid_formatted = self.generate_new_instance_id()
+        _, uuid_formatted = self.generate_new_instance_id()
         date_formatted = self.format_openrosa_datetime()
         for date_field in ('start', 'end'):
             element = xml_parsed.find(date_field)
@@ -404,14 +404,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if deprecated_uuid_node is not None:
             meta_node.remove(deprecated_uuid_node)
 
-        # create_instance uses `username` argument to identify the XForm object
-        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         instance = create_instance(
-            username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
             media_files=attachments,
-            uuid=_uuid,
             request=request,
+            owner_username=self.asset.owner.username,
         )
 
         all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
@@ -508,10 +505,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Request.
         xml_submission_file.seek(0)
 
-        # create_instance uses `username` argument to identify the XForm object
-        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return create_instance(
-            username=user.username,
             xml_file=xml_submission_file,
             media_files=attachments,
             request=request,
@@ -1288,15 +1282,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if attachments:
             media_files = (media_file for media_file in attachments.values())
 
-        # create_instance uses `username` argument to identify the XForm object
-        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return create_instance(
-            username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),
             media_files=media_files,
-            uuid=submission_uuid,
             request=kwargs.get('request'),
             check_usage_limits=False,
+            owner_username=self.asset.owner.username,
         )
 
     @property
